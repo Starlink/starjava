@@ -227,7 +227,7 @@ public class Driver {
         String usage = 
               pre + " [-help] [-version]"
             + pad + " [-stilts <stilts-args>|-jsamp <jsamp-args>]"
-            + pad + " [-verbose] [-demo] [-running] [-memory|-disk]"
+            + pad + " [-verbose] [-debug] [-demo] [-running] [-memory|-disk]"
             + pad + " [-[no]hub|-exthub|-noserv] [-samp|-plastic]"
             + pad + " [[-f <format>] table ...]";
 
@@ -238,6 +238,7 @@ public class Driver {
         List argList = new ArrayList( Arrays.asList( args ) );
         boolean demo = false;
         int verbosity = 0;
+        boolean debug = false;
         boolean interopServe = true;
         boolean internalHub = false;
         boolean externalHub = false;
@@ -275,6 +276,10 @@ public class Driver {
             else if ( arg.equals( "-v" ) || arg.equals( "-verbose" ) ) {
                 it.remove();
                 verbosity++;
+            }
+            else if ( arg.equals( "-debug" ) ) {
+                it.remove();
+                debug = true;
             }
             else if ( arg.equals( "-demo" ) ) {
                 it.remove();
@@ -345,7 +350,7 @@ public class Driver {
         }
 
         /* Configure logging. */
-        configureLogging( verbosity );
+        configureLogging( verbosity, debug );
 
         /* Check JRE vendor and report on concerns. */
         Loader.checkJ2seVendor();
@@ -507,8 +512,9 @@ public class Driver {
                 }
             }
             catch ( IOException e ) {
-                logger.warning( "Can't start " + communicator.getProtocolName()
-                              + " hub: " + e );
+                logger.log( Level.WARNING,
+                            "Can't start " + communicator.getProtocolName()
+                          + " hub", e );
             }
 
             /* Start SAMP/PLASTIC client. */
@@ -632,6 +638,8 @@ public class Driver {
                                          + "and exit" )
            .append( p2 + "-verbose       increase verbosity of "
                                          + "reports to console" )
+           .append( p2 + "-debug         add debugging information to "
+                                         + "console log messages" )
            .append( p2 + "-demo          start with demo data" )
            .append( p2 + "-running       use existing TOPCAT instance "
                                          + "if one is running" )
@@ -763,7 +771,7 @@ public class Driver {
      *
      * @param  verbosity  number of levels greater than default to set
      */
-    private static void configureLogging( int verbosity ) {
+    private static void configureLogging( int verbosity, boolean debug ) {
 
         /* Try to acquire a custom log handler - may fail for security
          * reasons. */
@@ -793,7 +801,7 @@ public class Driver {
             if ( rootHandlers.length > 0 &&
                  rootHandlers[ 0 ] instanceof ConsoleHandler ) {
                 rootHandlers[ 0 ].setLevel( verbLevel );
-                rootHandlers[ 0 ].setFormatter( new LineFormatter() );
+                rootHandlers[ 0 ].setFormatter( new LineFormatter( debug ) );
             }
             rootLogger.setLevel( verbLevel );
 

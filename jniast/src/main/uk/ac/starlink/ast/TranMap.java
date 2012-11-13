@@ -16,7 +16,7 @@ package uk.ac.starlink.ast;
  * <p>
  * When the forward transformation of the TranMap is referred to, the
  * transformation actually used is the forward transformation of the
- * first Mapping supplied when the TranMap was constructed. Likewise, 
+ * first Mapping supplied when the TranMap was constructed. Likewise,
  * when the inverse transformation of the TranMap is referred to, the
  * transformation actually used is the inverse transformation of the
  * second Mapping supplied when the TranMap was constructed.
@@ -33,8 +33,8 @@ package uk.ac.starlink.ast;
  * <p>
  * You should have received a copy of the GNU General Public Licence
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
- * 02111-1307, USA
+ * Foundation, Inc., 51 Franklin Street,Fifth Floor, Boston, MA
+ * 02110-1301, USA
  * 
  * 
  * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_TranMap'>AST TranMap</a>  

@@ -67,22 +67,31 @@ public class Shaders {
         new ScaleRGBComponentShader( "Scale Blue", 2 );
 
     /** Fixes Y in YUV colour space. */
-    public static final Shader FIX_Y = new FixYuvShader( "YUV Y", 0 );
+    public static final Shader FIX_Y = new YuvShader( "YUV Y", 0, true );
 
     /** Fixes U in YUV colour space. */
-    public static final Shader FIX_U = new FixYuvShader( "YUV U", 1 );
+    public static final Shader FIX_U = new YuvShader( "YUV U", 1, true );
 
     /** Fixes V in YUV colour space. */
-    public static final Shader FIX_V = new FixYuvShader( "YUV V", 2 );
+    public static final Shader FIX_V = new YuvShader( "YUV V", 2, true );
 
     /** Fixes H in HSV colour space. */
-    public static final Shader HSV_H = new FixHsvShader( "HSV H", 0 );
+    public static final Shader HSV_H = new HsvShader( "HSV H", 0, true );
  
     /** Fixes S in HSV colour space. */
-    public static final Shader HSV_S = new FixHsvShader( "HSV S", 1 );
+    public static final Shader HSV_S = new HsvShader( "HSV S", 1, true );
 
     /** Fixes V in HSV colour space. */
-    public static final Shader HSV_V = new FixHsvShader( "HSV V", 2 );
+    public static final Shader HSV_V = new HsvShader( "HSV V", 2, true );
+
+    /** Scales H in HSV colour space. */
+    public static final Shader SCALE_H = new HsvShader( "SCALE H", 0, false );
+
+    /** Scales S in HSV colour space. */
+    public static final Shader SCALE_S = new HsvShader( "SCALE S", 1, false );
+
+    /** Scales V in HSV colour space. */
+    public static final Shader SCALE_V = new HsvShader( "SCALE V", 2, false );
 
     /** Interpolates between red (0) and blue (1). */
     public static final Shader RED_BLUE =
@@ -228,13 +237,14 @@ public class Shaders {
     }
 
     /**
-     * Abstract Shader implementation for fixing components in foreign
+     * Abstract Shader implementation for setting components in foreign
      * (non-RGB) colour spaces.
      */
-    private static abstract class FixColorSpaceComponentShader 
+    private static abstract class ColorSpaceComponentShader 
                                   extends BasicShader {
 
         private final int icomp_;
+        private final boolean fix_;
 
         /**
          * Constructor.
@@ -242,11 +252,14 @@ public class Shaders {
          * @param  name   name
          * @param  baseColor  base colour for generating icon
          * @param  icomp   modified component index
+         * @param  fix    if true, component is fixed at given value,
+         *                if false, it is scaled to given value
          */
-        FixColorSpaceComponentShader( String name, Color baseColor,
-                                      int icomp ) {
+        ColorSpaceComponentShader( String name, Color baseColor, int icomp,
+                                   boolean fix ) {
             super( name, baseColor );
             icomp_ = icomp;
+            fix_ = fix;
         }
 
         /**
@@ -267,7 +280,8 @@ public class Shaders {
 
         public void adjustRgba( float[] rgba, float value ) {
             toSpace( rgba );
-            rgba[ icomp_ ] = value;
+            rgba[ icomp_ ] = fix_ ? value
+                                  : value * rgba[ icomp_ ];
             fromSpace( rgba );
         }
     }
@@ -444,19 +458,20 @@ public class Shaders {
     }
 
     /**
-     * Shader implementation which fixes one component of the YUV colour
-     * space at its parameter's value.
+     * Shader implementation which sets one component of the YUV colour
+     * space according to its parameter's value.
      */
-    private static class FixYuvShader extends FixColorSpaceComponentShader {
+    private static class YuvShader extends ColorSpaceComponentShader {
  
         /**
          * Constructor.
          *
          * @param  name   name
          * @param  icomp   modified component index
+         * @param  fix    true for fix, false for scale
          */
-        FixYuvShader( String name, int icomp ) {
-            super( name, DARK_GREEN, icomp );
+        YuvShader( String name, int icomp, boolean fix ) {
+            super( name, DARK_GREEN, icomp, fix );
         }
 
         protected void toSpace( float[] rgb ) {
@@ -489,10 +504,10 @@ public class Shaders {
     }
 
     /**
-     * Shader implementation which fixes one component of the YPbPr colour
-     * space at its parameter's value.
+     * Shader implementation which sets one component of the YPbPr colour
+     * space according to its parameter's value.
      */
-    private static class FixYPbPrShader extends FixColorSpaceComponentShader {
+    private static class YPbPrShader extends ColorSpaceComponentShader {
 
         private static final float[] T;
         private static final float[] F;
@@ -514,9 +529,10 @@ public class Shaders {
          *
          * @param  name   name
          * @param  icomp   modified component index
+         * @param  fix    true for fix, false for scale
          */
-        FixYPbPrShader( String name, int icomp ) {
-            super( name, DARK_GREEN, icomp );
+        YPbPrShader( String name, int icomp, boolean fix ) {
+            super( name, DARK_GREEN, icomp, fix );
         }
 
         protected void toSpace( float[] rgb ) {
@@ -548,16 +564,17 @@ public class Shaders {
      * Shader implementation which fixes one component of the HSV colour
      * space at its parameter's value.
      */
-    private static class FixHsvShader extends FixColorSpaceComponentShader {
+    private static class HsvShader extends ColorSpaceComponentShader {
 
         /**
          * Constructor.
          *
          * @param  name   name
          * @param  icomp   modified component index
+         * @param  fix    true for fix, false for scale
          */
-        FixHsvShader( String name, int icomp ) {
-            super( name, Color.RED, icomp );
+        HsvShader( String name, int icomp, boolean fix ) {
+            super( name, Color.RED, icomp, fix );
         }
 
         protected void toSpace( float[] rgb ) {
@@ -683,6 +700,159 @@ public class Shaders {
             return 0f;
         }
     }
+
+    /**
+     * Shader which represents a sub-range of a given base shader.
+     * Icon drawing is not handled perfectly for some non-absolute base shaders.
+     */
+    private static class StretchedShader implements Shader {
+        private final String name_;
+        private final Shader baseShader_;
+        private final float f0_;
+        private final float fScale_; 
+
+        /**
+         * Constructor.
+         *
+         * @param   name    shader name
+         * @param   shader  base shader
+         * @param   frac0   parameter value in base shader corresponding to
+         *                  value 0 in this one (must be in range 0-1)
+         * @param   frac1   parameter value in base shader corresponding to
+         *                  value 1 in this one (must be in range 0-1)
+         */
+        public StretchedShader( String name, Shader base, float f0, float f1 ) {
+            if ( ! ( f0 >= 0 && f0 <= 1 ) ||
+                 ! ( f1 >= 0 && f1 <= 1 ) ) {
+                throw new IllegalArgumentException( "Bad fraction" );
+            }
+            name_ = name;
+            baseShader_ = base;
+            f0_ = f0;
+            fScale_ = f1 - f0;
+        }
+
+        /**
+         * Constructor with an automatically-generated name.
+         *
+         * @param   shader  base shader
+         * @param   frac0   parameter value in base shader corresponding to
+         *                  value 0 in this one (must be in range 0-1)
+         * @param   frac1   parameter value in base shader corresponding to
+         *                  value 1 in this one (must be in range 0-1)
+         */
+        public StretchedShader( Shader base, float f0, float f1 ) {
+            this( "Stretch-" + base.getName(), base, f0, f1 );
+        }
+
+        public String getName() {
+            return name_;
+        }
+
+        public boolean isAbsolute() {
+            return baseShader_.isAbsolute();
+        }
+
+        public void adjustRgba( float[] rgba, float value ) {
+            baseShader_.adjustRgba( rgba, f0_ + fScale_ * value );
+        }
+
+        public Icon createIcon( boolean horizontal, int width, int height,
+                                int xpad, int ypad ) {
+            Color baseColor = baseShader_ instanceof BasicShader
+                            ? ((BasicShader) baseShader_).baseColor_
+                            : Color.BLACK;
+            return create1dIcon( this, horizontal, baseColor,
+                                 width, height, xpad, ypad );
+        }
+
+        public boolean equals( Object o ) {
+            if ( o instanceof StretchedShader ) {
+                StretchedShader other = (StretchedShader) o;
+                return this.baseShader_.equals( other.baseShader_ )
+                    && this.f0_ == other.f0_
+                    && this.fScale_ == other.fScale_;
+            }
+            else {
+                return false;
+            }
+        }
+
+        public int hashCode() {
+            int code = 79;
+            code = code * 23 + baseShader_.hashCode();
+            code = code * 23 + Float.floatToIntBits( f0_ );
+            code = code * 23 + Float.floatToIntBits( fScale_ );
+            return code;
+        }
+    }
+
+    /**
+     * Shader implementation which reverses the sense of an existing one.
+     */
+    private static class InvertedShader implements Shader {
+        private final Shader base_;
+
+        /**
+         * Constructor.
+         *
+         * @param  base  base shader
+         */
+        public InvertedShader( Shader base ) {
+            base_ = base;
+        }
+
+        public void adjustRgba( float[] rgba, float value ) {
+            base_.adjustRgba( rgba, 1f - value );
+        }
+
+        public boolean isAbsolute() {
+            return base_.isAbsolute();
+        }
+
+        public String getName() {
+            return "-" + base_.getName();
+        }
+
+        public Icon createIcon( final boolean horizontal, final int width,
+                                final int height, int xpad, int ypad ) {
+            final Icon icon =
+                base_.createIcon( horizontal, width, height, xpad, ypad );
+            return new Icon() {
+                public int getIconWidth() {
+                    return icon.getIconWidth();
+                }
+                public int getIconHeight() {
+                    return icon.getIconHeight();
+                }
+                public void paintIcon( Component c, Graphics g,
+                                       int x, int y ) {
+                    Graphics2D g2 = (Graphics2D) g;
+                    AffineTransform trans = g2.getTransform();
+                    g2.translate( x + width / 2, y + height / 2 );
+                    g2.scale( horizontal ? -1 : +1,
+                              horizontal ? +1 : -1 );
+                    icon.paintIcon( c, g2, -width / 2, -height / 2 );
+                    g2.setTransform( trans );
+                }
+            };
+        }
+
+        public boolean equals( Object o ) {
+            if ( o instanceof InvertedShader ) {
+                InvertedShader other = (InvertedShader) o;
+                return this.base_.equals( other.base_ );
+            }
+            else {
+                return false;
+            }
+        }
+
+        public int hashCode() {
+            return - base_.hashCode();
+        }
+    }
+
 
     /**
      * Shader implementation which scales one component of the sRGB array
@@ -852,6 +1022,71 @@ public class Shaders {
     }
 
     /**
+     * LutShader which creates a lookup table by applying an existing
+     * (presumably non-absolute) shader to a given colour.
+     */
+    private static class AppliedLutShader extends LutShader {
+        private final Shader baseShader_;
+        private final Color baseColor_;
+        private final int nsample_;
+        private final float[] lut_;
+
+        /**
+         * Constructor.
+         *
+         * @param  baseShader  shader which will be applied
+         * @param  baseColor   colour to which shader will be applied
+         * @param  nsample   number of entries in the lookup table
+         *                   which will be created
+         */
+        AppliedLutShader( Shader baseShader, Color baseColor, int nsample ) {
+            super( baseShader.getName() + "-fix" );
+            baseShader_ = baseShader;
+            baseColor_ = baseColor;
+            nsample_ = nsample;
+            float[] baseRgba =
+                baseColor.getRGBColorComponents( new float[ 4 ] );
+            float[] rgba = new float[ 4 ];
+            lut_  = new float[ 3 * nsample ];
+            for ( int is = 0; is < nsample; is++ ) {
+                float level = (float) is / (float) ( nsample - 1 );
+                System.arraycopy( baseRgba, 0, rgba, 0, 4 );
+                baseShader.adjustRgba( rgba, level );
+                System.arraycopy( rgba, 0, lut_, is * 3, 3 );
+            }
+        }
+
+        protected float[] getRgbLut() {
+            return lut_;
+        }
+
+        @Override
+        public boolean equals( Object o ) {
+            if ( o instanceof AppliedLutShader ) {
+                AppliedLutShader other = (AppliedLutShader) o;
+                return this.baseShader_.equals( other.baseShader_ )
+                    && ( baseShader_.isAbsolute()
+                         || this.baseColor_.equals( other.baseColor_ ) )
+                    && this.nsample_ == other.nsample_;
+            }
+            else {
+                return false;
+            }
+        }
+
+        @Override
+        public int hashCode() {
+            int code = 5501;
+            code = code * 23 + baseShader_.hashCode();
+            code = code * 23 + ( baseShader_.isAbsolute()
+                                     ? 99
+                                     : baseColor_.hashCode() );
+            code = code * 23 + nsample_;
+            return code;
+        }
+    }
+
+    /**
      * Creates a new RGB array with a specificied number of samples 
      * from a given one by interpolation.
      *
@@ -881,41 +1116,35 @@ public class Shaders {
      * @param  shader  base shader
      * @return  inverted version
      */
-    public static Shader invert( final Shader shader ) {
-        return new Shader() {
-            public void adjustRgba( float[] rgba, float value ) {
-                shader.adjustRgba( rgba, 1f - value );
-            }
-            public boolean isAbsolute() {
-                return shader.isAbsolute();
-            }
-            public String getName() {
-                return "-" + shader.getName();
-            }
-            public Icon createIcon( final boolean horizontal, final int width,
-                                    final int height, int xpad, int ypad ) {
-                final Icon icon =
-                    shader.createIcon( horizontal, width, height, xpad, ypad );
-                return new Icon() {
-                    public int getIconWidth() {
-                        return icon.getIconWidth();
-                    }
-                    public int getIconHeight() {
-                        return icon.getIconHeight();
-                    }
-                    public void paintIcon( Component c, Graphics g,
-                                           int x, int y ) {
-                        Graphics2D g2 = (Graphics2D) g;
-                        AffineTransform trans = g2.getTransform();
-                        g2.translate( x + width / 2, y + height / 2 );
-                        g2.scale( horizontal ? -1 : +1,
-                                  horizontal ? +1 : -1 );
-                        icon.paintIcon( c, g2, -width / 2, -height / 2 );
-                        g2.setTransform( trans );
-                    }
-                };
-            }
-        };
+    public static Shader invert( Shader shader ) {
+        return new InvertedShader( shader );
+    }
+
+    /**
+     * Returns a shader which corresponds to a sub-range of a given shader.
+     *
+     * @param   shader  base shader
+     * @param   frac0   parameter value in base shader corresponding to
+     *                  value 0 in this one (must be in range 0-1)
+     * @param   frac1   parameter value in base shader corresponding to
+     *                  value 1 in this one (must be in range 0-1)
+     */
+    public static Shader stretch( Shader shader, float frac0, float frac1 ) {
+        return new StretchedShader( shader, frac0, frac1 );
+    }
+
+    /**
+     * Creates a shader by applying an existing shader to a given base colour.
+     * This only does useful work if the existing shader is non-absolute.
+     *
+     * @param  shader  shader to apply (presumably non-absolute)
+     * @param  baseColor  colour to which the shader will be applied
+     * @param  nsample  number of samples in the lookup table
+     * @return  new absolute shader
+     */
+    public static Shader applyShader( Shader shader, Color baseColor,
+                                      int nsample ) {
+        return new AppliedLutShader( shader, baseColor, nsample );
     }
 
     /**

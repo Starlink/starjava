@@ -144,7 +144,7 @@ public class AxisDataSelector extends JPanel {
      * @param   listener  action listener
      */
     public void addActionListener( ActionListener listener ) {
-        actionForwarder_.addListener( listener );
+        actionForwarder_.addActionListener( listener );
     }
 
     /**
@@ -153,7 +153,7 @@ public class AxisDataSelector extends JPanel {
      * @param  listener  action listener
      */
     public void removeActionListener( ActionListener listener ) {
-        actionForwarder_.removeListener( listener );
+        actionForwarder_.removeActionListener( listener );
     }
 
     public void setEnabled( boolean enabled ) {

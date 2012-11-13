@@ -233,7 +233,7 @@ public class AxisEditor extends JPanel {
      * @param  listener   listener to add
      */
     public void addActionListener( ActionListener listener ) {
-        actionForwarder_.addListener( listener );
+        actionForwarder_.addActionListener( listener );
     }
 
     /**
@@ -242,7 +242,7 @@ public class AxisEditor extends JPanel {
      * @param  listener   listener to remove
      */
     public void removeActionListener( ActionListener listener ) {
-        actionForwarder_.removeListener( listener );
+        actionForwarder_.removeActionListener( listener );
     }
 
     /**

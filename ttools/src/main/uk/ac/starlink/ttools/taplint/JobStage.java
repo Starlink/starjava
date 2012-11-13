@@ -10,7 +10,6 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -202,20 +201,28 @@ public class JobStage implements Stage {
             if ( ! postPhase( job, "RUN" ) ) {
                 return;
             }
-            String phase;
+            String phase = null;
             try {
-                job.readPhase();
-                phase = job.getLastPhase();
+                boolean knownPhase = false;
+                while ( ! knownPhase ) {
+                    job.readPhase();
+                    phase = job.getLastPhase();
+                    knownPhase = ! "UNKNOWN".equals( phase );
+                    if ( ! knownPhase ) {
+                        waitUnknown( jobUrl );
+                    }
+                }
             }
             catch ( IOException e ) {
                 reporter_.report( ReportType.ERROR, "RDPH",
                                   "Can't read phase for job " + jobUrl, e );
                 return;
             }
-            if ( ! new HashSet( Arrays.asList( new String[] {
-                                    "QUEUED", "EXECUTING", "SUSPENDED",
-                                    "ERROR", "COMPLETED",
-                                } ) ).contains( phase ) ) {
+            assert ! "UNKNOWN".equals( phase );
+            if ( ! Arrays.asList( new String[] {
+                                      "QUEUED", "EXECUTING", "SUSPENDED",
+                                      "ERROR", "COMPLETED",
+                                  } ).contains( phase ) ) {
                 String msg = new StringBuilder()
                    .append( "Incorrect phase " )
                    .append( phase )
@@ -598,20 +605,15 @@ public class JobStage implements Stage {
                                         + " for started job " + jobUrl );
                         return;
                     case ILLEGAL:
-                    case UNKNOWN:
-                        reporter_.report( ReportType.ERROR, "BAPH",
+                        reporter_.report( ReportType.ERROR, "ILPH",
                                           "Bad phase " + phase
                                         + " for job " + jobUrl );
                         return;
+                    case UNKNOWN:
+                        waitUnknown( jobUrl );
+                        break;
                     case RUNNING:
-                        try {
-                            Thread.sleep( poll_ );
-                        }
-                        catch ( InterruptedException e ) {
-                            reporter_.report( ReportType.FAILURE, "INTR",
-                                              "Interrupted??" );
-                            return;
-                        }
+                        waitPoll();
                         break;
                     case FINISHED:
                         break;
@@ -626,6 +628,32 @@ public class JobStage implements Stage {
                                       "Can't read phase for job " + jobUrl );
                     return;
                 }
+            }
+        }
+
+        /**
+         * Called when an UNKNOWN UWS phase is encountered.
+         * This routine reports that the status has been encountered and
+         * then waits for a short while.
+         *
+         * @param  jobUrl  job URL for reporting purposes only
+         */
+        private void waitUnknown( URL jobUrl ) {
+            reporter_.report( ReportType.WARNING, "UNPH",
+                              "Phase UNKNOWN reported for job " + jobUrl
+                            + "; wait and poll" );
+            waitPoll();
+        }
+
+        /**
+         * Waits for a short while, suitable for a delay before polling.
+         */
+        private void waitPoll() {
+            try {
+                Thread.sleep( poll_ );
+            }
+            catch ( InterruptedException e ) {
+                reporter_.report( ReportType.FAILURE, "INTR", "Interrupted??" );
             }
         }
 

@@ -18,7 +18,7 @@ f     AST_TRANMAP
 *
 *     When the forward transformation of the TranMap is referred to, the
 *     transformation actually used is the forward transformation of the
-*     first Mapping supplied when the TranMap was constructed. Likewise, 
+*     first Mapping supplied when the TranMap was constructed. Likewise,
 *     when the inverse transformation of the TranMap is referred to, the
 *     transformation actually used is the inverse transformation of the
 *     second Mapping supplied when the TranMap was constructed.
@@ -44,16 +44,16 @@ f     The TranMap class does not define any new routines beyond those
 *     modify it under the terms of the GNU General Public Licence as
 *     published by the Free Software Foundation; either version 2 of
 *     the Licence, or (at your option) any later version.
-*     
+*
 *     This program is distributed in the hope that it will be
 *     useful,but WITHOUT ANY WARRANTY; without even the implied
 *     warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
 *     PURPOSE. See the GNU General Public Licence for more details.
-*     
+*
 *     You should have received a copy of the GNU General Public Licence
 *     along with this program; if not, write to the Free Software
-*     Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
-*     02111-1307, USA
+*     Foundation, Inc., 51 Franklin Street,Fifth Floor, Boston, MA
+*     02110-1301, USA
 
 *  Authors:
 *     DSB: David S. Berry (Starlink)
@@ -96,6 +96,7 @@ f     The TranMap class does not define any new routines beyond those
 #include "cmpmap.h"              /* Compound Mappings */
 #include "unitmap.h"             /* Unit Mappings */
 #include "tranmap.h"             /* Interface definition for this class */
+#include "frame.h"               /* Frames */
 
 /* Error code definitions. */
 /* ----------------------- */
@@ -127,9 +128,9 @@ static int (* parent_managelock)( AstObject *, int, int, AstObject **, int * );
 
 
 #ifdef THREAD_SAFE
-/* Define how to initialise thread-specific globals. */ 
+/* Define how to initialise thread-specific globals. */
 #define GLOBAL_inits \
-   globals->Class_Init = 0; 
+   globals->Class_Init = 0;
 
 /* Create the function that initialises global data for this module. */
 astMAKE_INITGLOBALS(TranMap)
@@ -161,6 +162,7 @@ AstTranMap *astTranMapId_( void *, void *, const char *, ... );
 
 /* Prototypes for Private Member Functions. */
 /* ======================================== */
+static AstMapping *RemoveRegions( AstMapping *, int * );
 static AstPointSet *Transform( AstMapping *, AstPointSet *, int, AstPointSet *, int * );
 static double Rate( AstMapping *, double *, int, int, int * );
 static int *MapSplit( AstMapping *, int, const int *, AstMapping **, int * );
@@ -192,7 +194,7 @@ static int Equal( AstObject *this_object, AstObject *that_object, int *status ) 
 
 *  Synopsis:
 *     #include "tranmap.h"
-*     int Equal( AstObject *this, AstObject *that, int *status ) 
+*     int Equal( AstObject *this, AstObject *that, int *status )
 
 *  Class Membership:
 *     TranMap member function (over-rides the astEqual protected
@@ -219,8 +221,8 @@ static int Equal( AstObject *this_object, AstObject *that_object, int *status ) 
 */
 
 /* Local Variables: */
-   AstTranMap *that;        
-   AstTranMap *this;        
+   AstTranMap *that;
+   AstTranMap *this;
    int nin;
    int nout;
    int result;
@@ -260,9 +262,9 @@ static int Equal( AstObject *this_object, AstObject *that_object, int *status ) 
          astSetInvert( that->map1, that->invert1 );
          astSetInvert( that->map2, that->invert2 );
 
-/* If the Invert flags for the two TranMaps differ, it may still be possible 
-   for them to be equivalent. First compare the TranMaps if their Invert 
-   flags are the same. In this case all the attributes of the two TranMaps 
+/* If the Invert flags for the two TranMaps differ, it may still be possible
+   for them to be equivalent. First compare the TranMaps if their Invert
+   flags are the same. In this case all the attributes of the two TranMaps
    must be identical. */
          if( astGetInvert( this ) == astGetInvert( that ) ) {
             if( astEqual( this->map1, that->map1 ) &&
@@ -270,7 +272,7 @@ static int Equal( AstObject *this_object, AstObject *that_object, int *status ) 
                result = 1;
             }
 
-/* If the Invert flags for the two TranMaps differ, the attributes of the two 
+/* If the Invert flags for the two TranMaps differ, the attributes of the two
    TranMaps must be inversely related to each other. */
          } else {
 
@@ -291,7 +293,7 @@ static int Equal( AstObject *this_object, AstObject *that_object, int *status ) 
          astSetInvert( that->map2, that_inv2 );
       }
    }
-   
+
 /* If an error occurred, clear the result value. */
    if ( !astOK ) result = 0;
 
@@ -312,7 +314,7 @@ static int GetObjSize( AstObject *this_object, int *status ) {
 
 *  Synopsis:
 *     #include "tranmap.h"
-*     int GetObjSize( AstObject *this, int *status ) 
+*     int GetObjSize( AstObject *this, int *status )
 
 *  Class Membership:
 *     TranMap member function (over-rides the astGetObjSize protected
@@ -363,8 +365,8 @@ static int GetObjSize( AstObject *this_object, int *status ) {
    return result;
 }
 
-static void Decompose( AstMapping *this_mapping, AstMapping **map1, 
-                       AstMapping **map2, int *series, int *invert1, 
+static void Decompose( AstMapping *this_mapping, AstMapping **map1,
+                       AstMapping **map2, int *series, int *invert1,
                        int *invert2, int *status ) {
 /*
 *
@@ -379,7 +381,7 @@ static void Decompose( AstMapping *this_mapping, AstMapping **map1,
 
 *  Synopsis:
 *     #include "tranmap.h"
-*     void Decompose( AstMapping *this, AstMapping **map1, 
+*     void Decompose( AstMapping *this, AstMapping **map1,
 *                     AstMapping **map2, int *series,
 *                     int *invert1, int *invert2, int *status )
 
@@ -399,19 +401,19 @@ static void Decompose( AstMapping *this_mapping, AstMapping **map1,
 *        Mapping (the forward Mapping).
 *     map2
 *        Address of a location to receive a pointer to second component
-*        Mapping (the inverse Mapping). 
+*        Mapping (the inverse Mapping).
 *     series
 *        Address of a location to receive a value indicating if the
 *        component Mappings are applied in series or parallel. A non-zero
-*        value means that the supplied Mapping is equivalent to applying map1 
+*        value means that the supplied Mapping is equivalent to applying map1
 *        followed by map2 in series. A zero value means that the supplied
 *        Mapping is equivalent to applying map1 to the lower numbered axes
 *        and map2 to the higher numbered axes, in parallel. Zero is
 *        returned for a TranMap.
 *     invert1
-*        The value of the Invert attribute to be used with map1. 
+*        The value of the Invert attribute to be used with map1.
 *     invert2
-*        The value of the Invert attribute to be used with map2. 
+*        The value of the Invert attribute to be used with map2.
 *     status
 *        Pointer to the inherited status variable.
 
@@ -480,14 +482,14 @@ void astInitTranMapVtab_(  AstTranMapVtab *vtab, const char *name, int *status )
 *        been initialised.
 *     name
 *        Pointer to a constant null-terminated character string which contains
-*        the name of the class to which the virtual function table belongs (it 
+*        the name of the class to which the virtual function table belongs (it
 *        is this pointer value that will subsequently be returned by the Object
 *        astClass function).
 *-
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
+   astDECLARE_GLOBALS            /* Pointer to thread-specific global data */
    AstObjectVtab *object;        /* Pointer to Object component of Vtab */
    AstMappingVtab *mapping;      /* Pointer to Mapping component of Vtab */
 
@@ -505,7 +507,8 @@ void astInitTranMapVtab_(  AstTranMapVtab *vtab, const char *name, int *status )
    will be used (by astIsATranMap) to determine if an object belongs to
    this class.  We can conveniently use the address of the (static)
    class_check variable to generate this unique value. */
-   vtab->check = &class_check;
+   vtab->id.check = &class_check;
+   vtab->id.parent = &(((AstMappingVtab *) vtab)->id);
 
 /* Initialise member function pointers. */
 /* ------------------------------------ */
@@ -520,6 +523,8 @@ void astInitTranMapVtab_(  AstTranMapVtab *vtab, const char *name, int *status )
    mapping = (AstMappingVtab *) vtab;
    parent_getobjsize = object->GetObjSize;
    object->GetObjSize = GetObjSize;
+
+   mapping->RemoveRegions = RemoveRegions;
 
 #if defined(THREAD_SAFE)
    parent_managelock = object->ManageLock;
@@ -545,13 +550,16 @@ void astInitTranMapVtab_(  AstTranMapVtab *vtab, const char *name, int *status )
    astSetDump( vtab, Dump, "TranMap", "Compound Transformation Mapping" );
 
 /* If we have just initialised the vtab for the current class, indicate
-   that the vtab is now initialised. */
-   if( vtab == &class_vtab ) class_init = 1;
-
+   that the vtab is now initialised, and store a pointer to the class
+   identifier in the base "object" level of the vtab. */
+   if( vtab == &class_vtab ) {
+      class_init = 1;
+      astSetVtabClassIdentifier( vtab, &(vtab->id) );
+   }
 }
 
 #if defined(THREAD_SAFE)
-static int ManageLock( AstObject *this_object, int mode, int extra, 
+static int ManageLock( AstObject *this_object, int mode, int extra,
                        AstObject **fail, int *status ) {
 /*
 *  Name:
@@ -565,8 +573,8 @@ static int ManageLock( AstObject *this_object, int mode, int extra,
 
 *  Synopsis:
 *     #include "object.h"
-*     AstObject *ManageLock( AstObject *this, int mode, int extra, 
-*                            AstObject **fail, int *status ) 
+*     AstObject *ManageLock( AstObject *this, int mode, int extra,
+*                            AstObject **fail, int *status )
 
 *  Class Membership:
 *     TranMap member function (over-rides the astManageLock protected
@@ -574,7 +582,7 @@ static int ManageLock( AstObject *this_object, int mode, int extra,
 
 *  Description:
 *     This function manages the thread lock on the supplied Object. The
-*     lock can be locked, unlocked or checked by this function as 
+*     lock can be locked, unlocked or checked by this function as
 *     deteremined by parameter "mode". See astLock for details of the way
 *     these locks are used.
 
@@ -593,21 +601,21 @@ static int ManageLock( AstObject *this_object, int mode, int extra,
 *        AST__CHECKLOCK: Check that the object is locked for use by the
 *        calling thread (report an error if not).
 *     extra
-*        Extra mode-specific information. 
+*        Extra mode-specific information.
 *     fail
 *        If a non-zero function value is returned, a pointer to the
 *        Object that caused the failure is returned at "*fail". This may
 *        be "this" or it may be an Object contained within "this". Note,
 *        the Object's reference count is not incremented, and so the
-*        returned pointer should not be annulled. A NULL pointer is 
+*        returned pointer should not be annulled. A NULL pointer is
 *        returned if this function returns a value of zero.
 *     status
 *        Pointer to the inherited status variable.
 
 *  Returned Value:
-*    A local status value: 
+*    A local status value:
 *        0 - Success
-*        1 - Could not lock or unlock the object because it was already 
+*        1 - Could not lock or unlock the object because it was already
 *            locked by another thread.
 *        2 - Failed to lock a POSIX mutex
 *        3 - Failed to unlock a POSIX mutex
@@ -826,7 +834,7 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
 /* Simplify the TranMap on its own. */
 /* ================================ */
 
-/* If the TranMap is inverted, creat an equal TranMap which is not inverted. 
+/* If the TranMap is inverted, creat an equal TranMap which is not inverted.
    To do this, invert and swap the component Mappings. */
    if( ( *invert_list )[ where ] ) {
       astInvert( map1 );
@@ -846,7 +854,7 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
       smap_i = astSimplify( map2 );
 
 /* Assume some simplification took place if the pointers have changed. */
-      if( smap_f != map1 || smap_i != map2 ) { 
+      if( smap_f != map1 || smap_i != map2 ) {
 
 /* Construct a new TranMap from these simplifgied Mappings. */
          (void) astAnnul( ( *map_list )[ where ] );
@@ -854,7 +862,7 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
          result = where;
 
 /* Otherwise, if the both component Mappings are defined in both directions... */
-      } else if( astGetTranForward( map1 ) && astGetTranInverse( map1 ) &&    
+      } else if( astGetTranForward( map1 ) && astGetTranInverse( map1 ) &&
                  astGetTranForward( map2 ) && astGetTranInverse( map2 ) ) {
 
 /* Form a series CmpMap from the two component Mappings, with the second
@@ -863,7 +871,7 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
          cmap = astCmpMap( map1, map2, 1, "", status );
          astInvert( map2 );
 
-/* If this CmpMap simplifies to a UnitMap, then the two components of the 
+/* If this CmpMap simplifies to a UnitMap, then the two components of the
    TranMap are equal, and so we can replace the entire TranMap with either
    of its components. Note, we leave the supplied invert flag unchanged,
    since the copycreated below refers to the Mapping as it was when the
@@ -894,12 +902,12 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
    if( result == -1 && series ) {
 
 /* Is the higher neighbour a TranMap? */
-      if( where < ( *nmap - 1 ) && 
+      if( where < ( *nmap - 1 ) &&
           astIsATranMap( ( *map_list )[ where + 1 ] ) ){
 
-/* Get the two component Mappings of the higher TranMap, and temporarily set 
-   their Invert attributes back to the values they had when the TranMap was 
-   created, saving their current Invert values so that they can be re-instated 
+/* Get the two component Mappings of the higher TranMap, and temporarily set
+   their Invert attributes back to the values they had when the TranMap was
+   created, saving their current Invert values so that they can be re-instated
    later. */
          hmap = (AstTranMap *) ( *map_list )[ where + 1 ];
 
@@ -911,7 +919,7 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
          old_hinv2 = astGetInvert( hmap2 );
          astSetInvert( hmap2, hmap->invert2 );
 
-/* Get the Mappings which defines the forward and inverse transformation of 
+/* Get the Mappings which defines the forward and inverse transformation of
    the lower TranMap ("this"). Then, map_f and map_i are pointers to
    Mappings which could be used to construct a new TranMap which would be
    equivalent to "this" with the supplied invert setting. */
@@ -925,7 +933,7 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
             map_i = map2;
          }
 
-/* Likewise, get the Mappings which defines the forward and inverse 
+/* Likewise, get the Mappings which defines the forward and inverse
    transformation of the higher TranMap. */
          if( ( *invert_list )[ where + 1 ] ) {
             hmap_f = hmap2;
@@ -968,14 +976,14 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
          astSetInvert( hmap1, old_hinv1 );
          astSetInvert( hmap2, old_hinv2 );
 
-/* If we have a new TranMap, annul the first of the two Mappings, and replace 
-   it with the merged TranMap. Also set the invert flag. */ 
+/* If we have a new TranMap, annul the first of the two Mappings, and replace
+   it with the merged TranMap. Also set the invert flag. */
          if( new ) {
             (void) astAnnul( ( *map_list )[ where ] );
             ( *map_list )[ where ] = (AstMapping *) new;
             ( *invert_list )[ where ] = 0;
 
-/* Annul the second of the two Mappings, and shuffle down the rest of the 
+/* Annul the second of the two Mappings, and shuffle down the rest of the
    list to fill the gap. */
             (void) astAnnul( ( *map_list )[ where + 1 ] );
             for ( i = where + 2; i < *nmap; i++ ) {
@@ -1027,7 +1035,7 @@ static int *MapSplit( AstMapping *this_map, int nin, const int *in, AstMapping *
 *     inherited from the Mapping class).
 
 *  Description:
-*     This function creates a new Mapping by picking specified inputs from 
+*     This function creates a new Mapping by picking specified inputs from
 *     an existing TranMap. This is only possible if the specified inputs
 *     correspond to some subset of the TranMap outputs. That is, there
 *     must exist a subset of the TranMap outputs for which each output
@@ -1037,27 +1045,27 @@ static int *MapSplit( AstMapping *this_map, int nin, const int *in, AstMapping *
 
 *  Parameters:
 *     this
-*        Pointer to the TranMap to be split (the TranMap is not actually 
+*        Pointer to the TranMap to be split (the TranMap is not actually
 *        modified by this function).
 *     nin
 *        The number of inputs to pick from "this".
 *     in
 *        Pointer to an array of indices (zero based) for the inputs which
 *        are to be picked. This array should have "nin" elements. If "Nin"
-*        is the number of inputs of the supplied TranMap, then each element 
+*        is the number of inputs of the supplied TranMap, then each element
 *        should have a value in the range zero to Nin-1.
 *     map
 *        Address of a location at which to return a pointer to the new
 *        Mapping. This Mapping will have "nin" inputs (the number of
 *        outputs may be different to "nin"). A NULL pointer will be
-*        returned if the supplied TranMap has no subset of outputs which 
+*        returned if the supplied TranMap has no subset of outputs which
 *        depend only on the selected inputs.
 *     status
 *        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     A pointer to a dynamically allocated array of ints. The number of
-*     elements in this array will equal the number of outputs for the 
+*     elements in this array will equal the number of outputs for the
 *     returned Mapping. Each element will hold the index of the
 *     corresponding output in the supplied TranMap. The array should be
 *     freed using astFree when no longer needed. A NULL pointer will
@@ -1117,7 +1125,7 @@ static int *MapSplit( AstMapping *this_map, int nin, const int *in, AstMapping *
       }
 
 /* Temporarily set the Invert flag of both Mappings back to their
-   original values. */ 
+   original values. */
       old_finv = astGetInvert( fmap );
       astSetInvert( fmap, finv );
       old_iinv = astGetInvert( imap );
@@ -1200,31 +1208,31 @@ static double Rate( AstMapping *this, double *at, int ax1, int ax2, int *status 
 *     from the Mapping class ).
 
 *  Description:
-*     This function returns the rate of change of a specified output of 
-*     the supplied Mapping with respect to a specified input, at a 
+*     This function returns the rate of change of a specified output of
+*     the supplied Mapping with respect to a specified input, at a
 *     specified input position. Also evaluates the second derivative.
 
 *  Parameters:
 *     this
 *        Pointer to the Mapping to be applied.
 *     at
-*        The address of an array holding the axis values at the position 
-*        at which the rate of change is to be evaluated. The number of 
-*        elements in this array should equal the number of inputs to the 
+*        The address of an array holding the axis values at the position
+*        at which the rate of change is to be evaluated. The number of
+*        elements in this array should equal the number of inputs to the
 *        Mapping.
 *     ax1
-*        The index of the Mapping output for which the rate of change is to 
+*        The index of the Mapping output for which the rate of change is to
 *        be found (output numbering starts at 0 for the first output).
 *     ax2
 *        The index of the Mapping input which is to be varied in order to
-*        find the rate of change (input numbering starts at 0 for the first 
+*        find the rate of change (input numbering starts at 0 for the first
 *        input).
 *     status
 *        Pointer to the inherited status variable.
 
 *  Returned Value:
-*     The rate of change of Mapping output "ax1" with respect to input 
-*     "ax2", evaluated at "at", or AST__BAD if the value cannot be 
+*     The rate of change of Mapping output "ax1" with respect to input
+*     "ax2", evaluated at "at", or AST__BAD if the value cannot be
 *     calculated.
 
 */
@@ -1255,7 +1263,7 @@ static double Rate( AstMapping *this, double *at, int ax1, int ax2, int *status 
    }
 
 /* Temporarily set the Invert flag of the component Mapping back to its
-   original value. */ 
+   original value. */
    old_inv = astGetInvert( cmap );
    astSetInvert( cmap, cinv );
 
@@ -1264,6 +1272,135 @@ static double Rate( AstMapping *this, double *at, int ax1, int ax2, int *status 
 
 /* Re-instate the Invert flag of the component Mapping. */
    astSetInvert( cmap, old_inv );
+
+/* Return the result. */
+   return result;
+}
+
+static AstMapping *RemoveRegions( AstMapping *this_mapping, int *status ) {
+/*
+*  Name:
+*     RemoveRegions
+
+*  Purpose:
+*     Remove any Regions from a Mapping.
+
+*  Type:
+*     Private function.
+
+*  Synopsis:
+*     #include "tranmap.h"
+*     AstMapping *RemoveRegions( AstMapping *this, int *status )
+
+*  Class Membership:
+*     TranMap method (over-rides the astRemoveRegions method inherited
+*     from the Mapping class).
+
+*  Description:
+*     This function searches the supplied Mapping (which may be a
+*     compound Mapping such as a TranMap) for any component Mappings
+*     that are instances of the AST Region class. It then creates a new
+*     Mapping from which all Regions have been removed. If a Region
+*     cannot simply be removed (for instance, if it is a component of a
+*     parallel TranMap), then it is replaced with an equivalent UnitMap
+*     in the returned Mapping.
+*
+*     The implementation provided by the TranMap class invokes the
+*     astRemoveRegions method on the two component Mappings, and joins
+*     the results together into a new TranMap.
+
+*  Parameters:
+*     this
+*        Pointer to the original Region.
+*     status
+*        Pointer to the inherited status variable.
+
+*  Returned Value:
+*     A pointer to the modified mapping.
+
+*  Notes:
+*     - A NULL pointer value will be returned if this function is
+*     invoked with the AST error status set, or if it should fail for
+*     any reason.
+*/
+
+/* Local Variables: */
+   AstTranMap *new;              /* Pointer to new TranMap */
+   AstTranMap *this;             /* Pointer to TranMap structure */
+   AstMapping *newmap1;          /* New first component Mapping */
+   AstMapping *newmap2;          /* New second component Mapping */
+   AstMapping *result;           /* Result pointer to return */
+   int nax;                      /* Number of Frame axes */
+   int unit1;                    /* Is new first Mapping a UnitMap? */
+   int unit2;                    /* Is new second Mapping a UnitMap? */
+
+/* Initialise. */
+   result = NULL;
+
+/* Check the global error status. */
+   if ( !astOK ) return result;
+
+/* Get a pointer to the TranMap. */
+   this = (AstTranMap *) this_mapping;
+
+/* Invoke the astRemoveRegions method on the two component Mappings. */
+   newmap1 = astRemoveRegions( this->map1 );
+   newmap2 = astRemoveRegions( this->map2 );
+
+/* If neither component was modified, just return a clone of the supplied
+   pointer. */
+   if( this->map1 == newmap1 && this->map2 == newmap2 ) {
+      result = astClone( this );
+
+/* Otherwise, we need to create a new Mapping to return. */
+   } else {
+
+/* The implementation of the astRemoveRegions method provided by the
+   Region class returns a Frame rather than a UnitMap. But we need
+   Mappings here, not Frames. So if either of these new Mappings is
+   a Frame, replace it with an equivalent UnitMap. Also, get flags
+   indicating if either Mapping is a UnitMap.*/
+      if( astIsAFrame( newmap1 ) ) {
+         nax = astGetNin( newmap1 );
+         (void) astAnnul( newmap1 );
+         newmap1 = (AstMapping *) astUnitMap( nax, " ", status );
+         unit1 = 1;
+      } else {
+         unit1 = astIsAUnitMap( newmap1 );
+      }
+
+      if( astIsAFrame( newmap2 ) ) {
+         nax = astGetNin( newmap2 );
+         (void) astAnnul( newmap2 );
+         newmap2 = (AstMapping *) astUnitMap( nax, " ", status );
+         unit2 = 1;
+      } else {
+         unit2 = astIsAUnitMap( newmap2 );
+      }
+
+/* If both new Mappings are UnitMaps, return an equivalent UnitMap. */
+      if( unit1 && unit2 ) {
+         result = (AstMapping *) astUnitMap( astGetNin( newmap1 ) +
+                                             astGetNin( newmap2 ), " ",
+                                             status );
+
+/* Otherwise, return a new TranMap containing the two new Mappings. */
+      } else {
+         new = astCopy( this );
+         (void) astAnnul( new->map1 );
+         (void) astAnnul( new->map2 );
+         new->map1 = astClone( newmap1 );
+         new->map2 = astClone( newmap2 );
+         result = (AstMapping *) new;
+      }
+   }
+
+/* Free resources. */
+   newmap1 = astAnnul( newmap1 );
+   newmap2 = astAnnul( newmap2 );
+
+/* Annul the returned Mapping if an error has occurred. */
+   if( !astOK ) result = astAnnul( result );
 
 /* Return the result. */
    return result;
@@ -1361,7 +1498,7 @@ static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
    }
 
 /* Temporarily set the Invert flag of the component Mapping back to its
-   original value. */ 
+   original value. */
    old_inv = astGetInvert( cmap );
    astSetInvert( cmap, cinv );
 
@@ -1559,9 +1696,9 @@ static void Dump( AstObject *this_object, AstChannel *channel, int *status ) {
                 ival ? "Second Mapping used in inverse direction" :
                        "Second Mapping used in forward direction" );
 
-/* First Mapping. */ 
+/* First Mapping. */
 /* -------------- */
-   astWriteObject( channel, "MapA", 1, 1, this->map1, 
+   astWriteObject( channel, "MapA", 1, 1, this->map1,
                    "Mapping for forward transformation" );
 
 /* Second Mapping. */
@@ -1574,7 +1711,7 @@ static void Dump( AstObject *this_object, AstChannel *channel, int *status ) {
 /* ========================= */
 /* Implement the astIsATranMap and astCheckTranMap functions using the
    macros defined for this purpose in the "object.h" header file. */
-astMAKE_ISA(TranMap,Mapping,check,&class_check)
+astMAKE_ISA(TranMap,Mapping)
 astMAKE_CHECK(TranMap)
 
 AstTranMap *astTranMap_( void *map1_void, void *map2_void, const char *options, int *status, ...) {
@@ -1644,7 +1781,7 @@ AstTranMap *astTranMap_( void *map1_void, void *map2_void, const char *options, 
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
+   astDECLARE_GLOBALS            /* Pointer to thread-specific global data */
    AstTranMap *new;              /* Pointer to new TranMap */
    AstMapping *map1;             /* Pointer to first Mapping structure */
    AstMapping *map2;             /* Pointer to second Mapping structure */
@@ -1690,7 +1827,7 @@ AstTranMap *astTranMap_( void *map1_void, void *map2_void, const char *options, 
    return new;
 }
 
-AstTranMap *astTranMapId_( void *map1_void, void *map2_void, 
+AstTranMap *astTranMapId_( void *map1_void, void *map2_void,
                            const char *options, ... ) {
 /*
 *++
@@ -1724,7 +1861,7 @@ f     RESULT = AST_TRANMAP( MAP1, MAP2, OPTIONS, STATUS )
 *
 *     When the forward transformation of the TranMap is referred to, the
 *     transformation actually used is the forward transformation of the
-*     first Mapping supplied when the TranMap was constructed. Likewise, 
+*     first Mapping supplied when the TranMap was constructed. Likewise,
 *     when the inverse transformation of the TranMap is referred to, the
 *     transformation actually used is the inverse transformation of the
 *     second Mapping supplied when the TranMap was constructed.
@@ -1813,19 +1950,19 @@ f     function is invoked with STATUS set to an error value, or if it
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
+   astDECLARE_GLOBALS            /* Pointer to thread-specific global data */
    AstTranMap *new;               /* Pointer to new TranMap */
    AstMapping *map1;             /* Pointer to first Mapping structure */
    AstMapping *map2;             /* Pointer to second Mapping structure */
    va_list args;                 /* Variable argument list */
+
+   int *status;                  /* Pointer to inherited status value */
 
 /* Get a pointer to the thread specific global data structure. */
    astGET_GLOBALS(NULL);
 
 /* Initialise. */
    new = NULL;
-
-   int *status;                  /* Pointer to inherited status value */
 
 /* Get a pointer to the inherited status value. */
    status = astGetStatusPtr;
@@ -1963,7 +2100,7 @@ AstTranMap *astInitTranMap_( void *mem, size_t size, int init,
               name );
    }
 
-/* Check that the number of coordinates are compatible and report an error if 
+/* Check that the number of coordinates are compatible and report an error if
    they are not. */
    nout = astGetNout( map1 );
    if ( astGetNout( map2 ) != nout && astOK ) {
@@ -2095,7 +2232,7 @@ AstTranMap *astLoadTranMap_( void *mem, size_t size,
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
+   astDECLARE_GLOBALS            /* Pointer to thread-specific global data */
    AstTranMap *new;               /* Pointer to the new TranMap */
 
 /* Initialise. */

@@ -22,7 +22,7 @@ public abstract class CatalogSaxHandler extends DefaultHandler {
 
     private final StringBuffer txtbuf_;
     private final boolean includeObsolete_;
-    private final Stack elStack_;
+    private final Stack<String> elStack_;
     private Entry entry_;
     private SubTable subTable_;
 
@@ -34,7 +34,7 @@ public abstract class CatalogSaxHandler extends DefaultHandler {
      */
     public CatalogSaxHandler( boolean includeObsolete ) {
         includeObsolete_ = includeObsolete;
-        elStack_ = new Stack();
+        elStack_ = new Stack<String>();
         txtbuf_ = new StringBuffer();
     }
 
@@ -54,8 +54,14 @@ public abstract class CatalogSaxHandler extends DefaultHandler {
         txtbuf_.setLength( 0 );
         String tagName = getTagName( uri, localName, qName );
         if ( "RESOURCE".equals( tagName ) ) {
-            entry_ = new Entry();
-            entry_.name_ = atts.getValue( "name" );
+
+            /* Ignore all but the outermost RESOURCE elements.
+             * This works around a (temporary?) hacky change in VizieR output
+             * that occurred in July 2012. */
+            if ( ! elStack_.contains( tagName ) ) {
+                entry_ = new Entry();
+                entry_.name_ = atts.getValue( "name" );
+            }
         }
         else if ( "INFO".equals( tagName ) ) {
             String name = atts.getValue( "name" );
@@ -85,14 +91,18 @@ public abstract class CatalogSaxHandler extends DefaultHandler {
         assert tagName.equals( elStack_.peek() );
         elStack_.pop();
         if ( "RESOURCE".equals( tagName ) ) {
-            String status = entry_.getStringValue( "status" );
-            if ( includeObsolete_ || ! "obsolete".equals( status ) ) {
-                VizierCatalog[] cats = createCatalogs( entry_ );
-                for ( int ic = 0; ic < cats.length; ic++ ) {
-                    gotCatalog( cats[ ic ] );
+
+            /* Ignore all but the outermost RESOURCE elements.  See above. */
+            if ( ! elStack_.contains( tagName ) ) {
+                String status = entry_.getStringValue( "status" );
+                if ( includeObsolete_ || ! "obsolete".equals( status ) ) {
+                    VizierCatalog[] cats = createCatalogs( entry_ );
+                    for ( int ic = 0; ic < cats.length; ic++ ) {
+                        gotCatalog( cats[ ic ] );
+                    }
                 }
+                entry_ = null;
             }
-            entry_ = null;
         }
         else if ( "TABLE".equals( tagName ) ) {
             entry_.tableList_.add( subTable_ );

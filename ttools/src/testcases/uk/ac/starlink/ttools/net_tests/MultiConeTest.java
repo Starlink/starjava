@@ -117,11 +117,12 @@ public class MultiConeTest extends TableTestCase {
             .setValue( "dec", "$2" )
             .setValue( "sr", "$3" )
             .setValue( "scorecol", null )
-            .setValue( "copycols", "$4" );
+            .setValue( "copycols", "$4" )
+            .setValue( "ocmd", "delcols Category" );
         StarTable result = multicone( env, new int[] { 1, 2, 3, } );
 
         assertEquals( 699L, result.getRowCount() );  // was 451 rows
-        assertEquals( 15, result.getColumnCount() );  // was 14 cols
+        assertEquals( 14, result.getColumnCount() );
 
         assertEquals( "Name", result.getColumnInfo( 0 ).getName() );
         assertEquals( "fomalhaut", result.getCell( 0L, 0 ) );
@@ -233,6 +234,29 @@ public class MultiConeTest extends TableTestCase {
         assertTrue( utypeMap.containsKey( "ssa:Access.Format" ) );
         assertTrue( ((Number) result.getCell( 0, isepCol )).doubleValue()
                     < 0.1 );
+    }
+
+    public void testFootprints() throws Exception {
+        MapEnvironment env = new MapEnvironment()
+            .setResourceBase( MultiConeTest.class )
+            .setValue( "serviceurl",
+                       "http://vizier.u-strasbg.fr/viz-bin/votable/-A?-source="
+                     + "VIII/58&" )
+            .setValue( "in", "messier.xml" )
+            .setValue( "ra", "RA" )
+            .setValue( "dec", "Dec" )
+            .setValue( "sr", "0.1" )
+            .setValue( "find", "all" )
+            .setValue( "copycols", "" )
+            .setValue( "emptyok", "false" );
+        MapEnvironment fEnv = new MapEnvironment( env )
+            .setValue( "usefoot", "true" );
+        MapEnvironment nEnv = new MapEnvironment( env )
+            .setValue( "usefoot", "false" );
+        StarTable fResult = multicone( env, new int[] { 1, 2 } );
+        assertEquals( 3, fResult.getRowCount() );
+        StarTable nResult = multicone( env, new int[] { 5 } );
+        assertSameData( fResult, nResult );
     }
 
     private StarTable multicone( MapEnvironment env,

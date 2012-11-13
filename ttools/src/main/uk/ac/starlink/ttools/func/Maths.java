@@ -163,8 +163,20 @@ public class Maths {
      * @return  the positive square root of <code>x</code>.
      *          If the argument is NaN or less than zero, the result is NaN.
      */
-    public static double sqrt(double x) {
+    public static double sqrt( double x ) {
         return Math.sqrt( x );
+    }
+
+    /**
+     * Returns the square root of the sum of squares of its two arguments.
+     * Doing it like this may avoid intermediate overflow or underflow.
+     *
+     * @param   x  a value
+     * @param   y  a value
+     * @return  sqrt(<code>x</code><sup>2</sup> + <code>y</code><sup>2</sup>)
+     */
+    public static double hypot( double x, double y ) {
+        return Math.hypot( x, y );
     }
 
     /**

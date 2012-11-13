@@ -21,7 +21,7 @@ package uk.ac.starlink.ast;
  * <p>
  * Note, The Interval class makes no allowances for cyclic nature of
  * some coordinate systems (such as SkyFrame coordinates). A Box
- * should usually be used in these cases since this requires the user 
+ * should usually be used in these cases since this requires the user
  * to think about suitable upper and lower limits,
  * <h4>Licence</h4>
  * This program is free software; you can redistribute it and/or
@@ -36,8 +36,8 @@ package uk.ac.starlink.ast;
  * <p>
  * You should have received a copy of the GNU General Public Licence
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
- * 02111-1307, USA
+ * Foundation, Inc., 51 Franklin Street,Fifth Floor, Boston, MA
+ * 02110-1301, USA
  * 
  * 
  * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_Interval'>AST Interval</a>  
@@ -48,21 +48,21 @@ public class Interval extends Region {
      * This function creates a new Interval and optionally initialises its
      * attributes.
      * <p>
-     * A Interval is a Region which represents upper and/or lower limits on 
-     * one or more axes of a Frame. For a point to be within the region 
-     * represented by the Interval, the point must satisfy all the 
-     * restrictions placed on all the axes. The point is outside the region 
-     * if it fails to satisfy any one of the restrictions. Each axis may have 
-     * either an upper limit, a lower limit, both or neither. If both limits 
-     * are supplied but are in reverse order (so that the lower limit is 
-     * greater than the upper limit), then the interval is an excluded 
+     * A Interval is a Region which represents upper and/or lower limits on
+     * one or more axes of a Frame. For a point to be within the region
+     * represented by the Interval, the point must satisfy all the
+     * restrictions placed on all the axes. The point is outside the region
+     * if it fails to satisfy any one of the restrictions. Each axis may have
+     * either an upper limit, a lower limit, both or neither. If both limits
+     * are supplied but are in reverse order (so that the lower limit is
+     * greater than the upper limit), then the interval is an excluded
      * interval, rather than an included interval.
      * <p>
      * At least one axis limit must be supplied.
      * <p>
      * Note, The Interval class makes no allowances for cyclic nature of
      * some coordinate systems (such as SkyFrame coordinates). A Box
-     * should usually be used in these cases since this requires the user 
+     * should usually be used in these cases since this requires the user
      * to think about suitable upper and lower limits,
      * <h4>Notes</h4>
      * <br> - A null Object pointer (AST__NULL) will be returned if this
@@ -81,7 +81,7 @@ public class Interval extends Region {
      * 
      * @param  lbnd  An array of double, with one element for each Frame axis
      * (Naxes attribute) containing the lower limits on each axis.
-     * Set a value to AST__BAD to indicate that the axis has no lower 
+     * Set a value to AST__BAD to indicate that the axis has no lower
      * limit.
      * 
      * @param  ubnd  An array of double, with one element for each Frame axis
@@ -89,33 +89,33 @@ public class Interval extends Region {
      * Set a value to AST__BAD to indicate that the axis has no upper
      * limit.
      * 
-     * @param  unc  An optional pointer to an existing Region which specifies the 
-     * uncertainties associated with the boundary of the Box being created. 
-     * The uncertainty in any point on the boundary of the Box is found by 
-     * shifting the supplied "uncertainty" Region so that it is centred at 
+     * @param  unc  An optional pointer to an existing Region which specifies the
+     * uncertainties associated with the boundary of the Box being created.
+     * The uncertainty in any point on the boundary of the Box is found by
+     * shifting the supplied "uncertainty" Region so that it is centred at
      * the boundary point being considered. The area covered by the
      * shifted uncertainty Region then represents the uncertainty in the
      * boundary position. The uncertainty is assumed to be the same for
      * all points.
      * <p>
-     * If supplied, the uncertainty Region must be of a class for which 
-     * all instances are centro-symetric (e.g. Box, Circle, Ellipse, etc.) 
-     * or be a Prism containing centro-symetric component Regions. A deep 
-     * copy of the supplied Region will be taken, so subsequent changes to 
-     * the uncertainty Region using the supplied pointer will have no 
-     * effect on the created Box. Alternatively, 
-     * a NULL Object pointer 
-     * may be supplied, in which case a default uncertainty is used 
+     * If supplied, the uncertainty Region must be of a class for which
+     * all instances are centro-symetric (e.g. Box, Circle, Ellipse, etc.)
+     * or be a Prism containing centro-symetric component Regions. A deep
+     * copy of the supplied Region will be taken, so subsequent changes to
+     * the uncertainty Region using the supplied pointer will have no
+     * effect on the created Box. Alternatively,
+     * a NULL Object pointer
+     * may be supplied, in which case a default uncertainty is used
      * equivalent to a box 1.0E-6 of the size of the Box being created.
      * <p>
-     * The uncertainty Region has two uses: 1) when the 
+     * The uncertainty Region has two uses: 1) when the
      * astOverlap
      * function compares two Regions for equality the uncertainty
      * Region is used to determine the tolerance on the comparison, and 2)
      * when a Region is mapped into a different coordinate system and
-     * subsequently simplified (using 
+     * subsequently simplified (using
      * astSimplify),
-     * the uncertainties are used to determine if the transformed boundary 
+     * the uncertainties are used to determine if the transformed boundary
      * can be accurately represented by a specific shape of Region.
      * 
      * @throws  AstException  if an error occurred in the AST library

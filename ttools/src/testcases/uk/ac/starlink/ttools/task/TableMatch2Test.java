@@ -177,6 +177,60 @@ public class TableMatch2Test extends TableTestCase {
         }
     }
 
+    public void testAndernach() throws Exception {
+        assertEquals( 6, matchAndernach( 140 ).getRowCount() );
+        assertEquals( 4, matchAndernach( 120 ).getRowCount() );
+        assertEquals( 3, matchAndernach( 100 ).getRowCount() );
+        assertEquals( 2, matchAndernach( 90 ).getRowCount() );
+        assertEquals( 0, matchAndernach( 80 ).getRowCount() );
+    }
+
+    private StarTable matchAndernach( double errSec ) throws Exception {
+        StarTable ta = new QuickTable( 5, new ColumnData[] {
+            col( "RA", new String[] {
+                "00:01:08.05",
+                "00:02:01.00",
+                "23:59:59.00",
+                "06:00:00.00",
+                "12:00:00.00",
+            } ),
+            col( "Dec", new String[] {
+                "-33:38:51.3",
+                "-31:07:05.5",
+                "-32:35:18.4",
+                "-89:58:58.0",
+                "-89:59:02.0",
+            } ),
+        } );
+        StarTable tb = new QuickTable( 5, new ColumnData[] {
+            col( "RA", new String[] {
+                "00:01:16.00",
+                "00:02:12.00",
+                "00:00:09.00",
+                "18:00:00.00",
+                "00:00:00.00",
+            } ),
+            col( "Dec", new String[] {
+                "-33:38:51.3",
+                "-31:07:05.5",
+                "-32:35:18.4",
+                "-89:58:58.0",
+                "-89:59:02.0",
+            } ),
+        } );
+        MapEnvironment env = new MapEnvironment()
+           .setValue( "in1", ta )
+           .setValue( "in2", tb )
+           .setValue( "join", "1and2" )
+           .setValue( "find", "all" )
+           .setValue( "matcher", "sky" )
+           .setValue( "params", Double.toString( errSec ) )
+           .setValue( "values1", "hmsToDegrees(ra) dmsToDegrees(dec)" )
+           .setValue( "values2", "hmsToDegrees(ra) dmsToDegrees(dec)" );
+        new TableMatch2().createExecutable( env ).execute();
+        return env.getOutputTable( "omode" );
+    }
+
     private StarTable join12( String join, String find, double err )
             throws Exception {
         return join12( join, find, err, null, null );

@@ -16,16 +16,16 @@ package uk.ac.starlink.ast;
  * When an SpecMap is first created, it simply performs a unit
  * (null) Mapping. Using the astSpecAdd
  * function, a series of coordinate conversion steps may then be
- * added. This allows multi-step conversions between a variety of 
- * spectral coordinate systems to be assembled out of a set of building 
+ * added. This allows multi-step conversions between a variety of
+ * spectral coordinate systems to be assembled out of a set of building
  * blocks.
  * <p>
  * Conversions are available to transform between standards of rest.
  * Such conversions need to know the source position as an RA and DEC.
  * This information can be supplied in the form of parameters for
- * the relevant conversions, in which case the SpecMap is 1-dimensional, 
+ * the relevant conversions, in which case the SpecMap is 1-dimensional,
  * simply transforming the spectral axis values. This means that the
- * same source position will always be used by the SpecMap. However, this 
+ * same source position will always be used by the SpecMap. However, this
  * may not be appropriate for an accurate description of a 3-D spectral
  * cube, where changes of spatial position can produce significant
  * changes in the Doppler shift introduced when transforming between
@@ -49,8 +49,8 @@ package uk.ac.starlink.ast;
  * <p>
  * You should have received a copy of the GNU General Public Licence
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
- * 02111-1307, USA
+ * Foundation, Inc., 51 Franklin Street,Fifth Floor, Boston, MA
+ * 02110-1301, USA
  * 
  * 
  * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_SpecMap'>AST SpecMap</a>  
@@ -62,14 +62,14 @@ public class SpecMap extends Mapping {
      * 
      *       @see  #specAdd
      *    
-     * @param  nin  The number of inputs to the Mapping (this will also equal the 
+     * @param  nin  The number of inputs to the Mapping (this will also equal the
      * number of outputs). This value must be either 1 or 3. In either
      * case, the first input and output correspoindis the spectral axis.
      * For a 3-axis SpecMap, the second and third axes give the RA and
      * DEC (J2000 FK5) of the source. This positional information is
      * used by conversions which transform between standards of rest,
      * and replaces the "RA" and "DEC" arguments for the individual
-     * conversions listed in description of the "SpecAdd" 
+     * conversions listed in description of the "SpecAdd"
      * function.
      * 
      * @param  flags  This parameter is reserved for future use and should currently
@@ -110,11 +110,11 @@ public class SpecMap extends Mapping {
      * <h4>Notes</h4>
      * <br> - When assembling a multi-stage conversion, it can sometimes be
      * difficult to determine the most economical conversion path. For
-     * example, when converting between reference frames, converting first 
-     * to the heliographic reference frame as an intermediate stage is often 
+     * example, when converting between reference frames, converting first
+     * to the heliographic reference frame as an intermediate stage is often
      * sensible in formulating the problem, but may introduce unnecessary
-     * extra conversion steps. A solution to this is to include all the steps 
-     * which are (logically) necessary, but then to use 
+     * extra conversion steps. A solution to this is to include all the steps
+     * which are (logically) necessary, but then to use
      * astSimplify to simplify the resulting
      * SpecMap. The simplification process will eliminate any steps
      * which turn out not to be needed.
@@ -127,7 +127,7 @@ public class SpecMap extends Mapping {
      * conversion is to be added to the SpecMap. Where arguments are needed by
      * the conversion, they are listed in parentheses. Values for
      * these arguments should be given, via the "args" array, in the
-     * order indicated. Units and argument names are described at the end of 
+     * order indicated. Units and argument names are described at the end of
      * the list of conversions.
      * <p>
      * <br> - "FRTOVL" (RF): Convert frequency to relativistic velocity.
@@ -148,44 +148,44 @@ public class SpecMap extends Mapping {
      * <br> - "VLTOZO": Convert relativistic velocity to redshift.
      * <br> - "BTTOVL": Convert beta factor to relativistic velocity.
      * <br> - "VLTOBT": Convert relativistic velocity to beta factor.
-     * <br> - "USF2HL" (VOFF,RA,DEC): Convert frequency from a user-defined 
+     * <br> - "USF2HL" (VOFF,RA,DEC): Convert frequency from a user-defined
      * reference frame to heliocentric.
-     * <br> - "HLF2US" (VOFF,RA,DEC): Convert frequency from heliocentric 
+     * <br> - "HLF2US" (VOFF,RA,DEC): Convert frequency from heliocentric
      * reference frame to user-defined.
-     * <br> - "TPF2HL" (GLON,GLAT,EPOCH,RA,DEC): Convert frequency from 
+     * <br> - "TPF2HL" (OBSLON,OBSLAT,OBSALT,EPOCH,RA,DEC): Convert frequency from
      * topocentric reference frame to heliocentric.
-     * <br> - "HLF2TP" (GLON,GLAT,EPOCH,RA,DEC): Convert frequency from 
+     * <br> - "HLF2TP" (OBSLON,OBSLAT,OBSALT,EPOCH,RA,DEC): Convert frequency from
      * heliocentric reference frame to topocentric.
-     * <br> - "GEF2HL" (EPOCH,RA,DEC): Convert frequency from geocentric 
+     * <br> - "GEF2HL" (EPOCH,RA,DEC): Convert frequency from geocentric
      * reference frame to heliocentric.
-     * <br> - "HLF2GE" (EPOCH,RA,DEC): Convert frequency from 
+     * <br> - "HLF2GE" (EPOCH,RA,DEC): Convert frequency from
      * heliocentric reference frame to geocentric.
-     * <br> - "BYF2HL" (EPOCH,RA,DEC): Convert frequency from 
+     * <br> - "BYF2HL" (EPOCH,RA,DEC): Convert frequency from
      * barycentric reference frame to heliocentric.
-     * <br> - "HLF2BY" (EPOCH,RA,DEC): Convert frequency from 
+     * <br> - "HLF2BY" (EPOCH,RA,DEC): Convert frequency from
      * heliocentric reference frame to barycentric.
-     * <br> - "LKF2HL" (RA,DEC): Convert frequency from kinematic LSR 
+     * <br> - "LKF2HL" (RA,DEC): Convert frequency from kinematic LSR
      * reference frame to heliocentric.
-     * <br> - "HLF2LK" (RA,DEC): Convert frequency from heliocentric 
+     * <br> - "HLF2LK" (RA,DEC): Convert frequency from heliocentric
      * reference frame to kinematic LSR.
      * <br> - "LDF2HL" (RA,DEC): Convert frequency from dynamical LSR
      * reference frame to heliocentric.
-     * <br> - "HLF2LD" (RA,DEC): Convert frequency from heliocentric 
+     * <br> - "HLF2LD" (RA,DEC): Convert frequency from heliocentric
      * reference frame to dynamical LSR.
-     * <br> - "LGF2HL" (RA,DEC): Convert frequency from local group 
+     * <br> - "LGF2HL" (RA,DEC): Convert frequency from local group
      * reference frame to heliocentric.
-     * <br> - "HLF2LG" (RA,DEC): Convert frequency from heliocentric 
+     * <br> - "HLF2LG" (RA,DEC): Convert frequency from heliocentric
      * reference frame to local group.
-     * <br> - "GLF2HL" (RA,DEC): Convert frequency from galactic 
+     * <br> - "GLF2HL" (RA,DEC): Convert frequency from galactic
      * reference frame to heliocentric.
-     * <br> - "HLF2GL" (RA,DEC): Convert frequency from heliocentric 
+     * <br> - "HLF2GL" (RA,DEC): Convert frequency from heliocentric
      * reference frame to galactic.
      * <p>
      * The units for the values processed by the above conversions are as
-     * follows: 
+     * follows:
      * <p>
-     * <br> - all velocities: metres per second (positive if the source receeds from 
-     *   the observer). 
+     * <br> - all velocities: metres per second (positive if the source receeds from
+     *   the observer).
      * <br> - frequency: Hertz.
      * <br> - all wavelengths: metres.
      * <br> - energy: Joules.
@@ -194,8 +194,9 @@ public class SpecMap extends Mapping {
      * The arguments used in the above conversions are as follows:
      * <p>
      * <br> - RF: Rest frequency (Hz).
-     * <br> - GLAT: Geodetic latitude of observer (radians).
-     * <br> - GLON: Geodetic longitude of observer (radians - positive eastwards).
+     * <br> - OBSALT: Geodetic altitude of observer (IAU 1975, metres).
+     * <br> - OBSLAT: Geodetic latitude of observer (IAU 1975, radians).
+     * <br> - OBSLON: Longitude of observer (radians - positive eastwards).
      * <br> - EPOCH: Epoch of observation (UT1 expressed as a Modified Julian Date).
      * <br> - RA: Right Ascension of source (radians, FK5 J2000).
      * <br> - DEC: Declination of source (radians, FK5 J2000).
@@ -203,12 +204,12 @@ public class SpecMap extends Mapping {
      * position given by RA and DEC, measured in the heliocentric
      * reference frame.
      * <p>
-     * If the SpecMap is 3-dimensional, source positions are provided by the 
-     * values supplied to inputs 2 and 3 of the SpecMap (which are simply 
+     * If the SpecMap is 3-dimensional, source positions are provided by the
+     * values supplied to inputs 2 and 3 of the SpecMap (which are simply
      * copied to outputs 2 and 3). Note, usable values are still required
-     * for the RA and DEC arguments in order to define the "user-defined" 
-     * reference frame used by USF2HL and HLF2US. However, AST__BAD can be 
-     * supplied for RA and DEC if the user-defined reference frame is not 
+     * for the RA and DEC arguments in order to define the "user-defined"
+     * reference frame used by USF2HL and HLF2US. However, AST__BAD can be
+     * supplied for RA and DEC if the user-defined reference frame is not
      * required.
      * 
      * @param   cvt

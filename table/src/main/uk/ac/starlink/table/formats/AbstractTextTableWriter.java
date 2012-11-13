@@ -94,11 +94,12 @@ public abstract class AbstractTextTableWriter extends StreamStarTableWriter {
         int ncol = startab.getColumnCount();
         ColumnInfo[] cinfos = new ColumnInfo[ ncol ];
         int[] cwidths = new int[ ncol ];
-        int[] maxWidths = new int[ ncol ];
+        int[] maxDataWidths = new int[ ncol ];
         for ( int i = 0; i < ncol; i++ ) {
             cinfos[ i ] = startab.getColumnInfo( i );
-            cwidths[ i ] = cinfos[ i ].getName().length();
-            maxWidths[ i ] = getMaxWidth( cinfos[ i ].getContentClass() );
+            cwidths[ i ] = getMinNameWidth( cinfos[ i ] );
+            maxDataWidths[ i ] =
+                getMaxDataWidth( cinfos[ i ].getContentClass() );
         }
 
         /* Go through the sample to determine field widths. */
@@ -106,7 +107,7 @@ public abstract class AbstractTextTableWriter extends StreamStarTableWriter {
             Object[] row = (Object[]) it.next();
             for ( int i = 0; i < ncol; i++ ) {
                 String formatted = cinfos[ i ]
-                                  .formatValue( row[ i ], maxWidths[ i ] );
+                                  .formatValue( row[ i ], maxDataWidths[ i ] );
                 if ( formatted.length() > cwidths[ i ] ) {
                     cwidths[ i ] = formatted.length();
                 }
@@ -121,7 +122,7 @@ public abstract class AbstractTextTableWriter extends StreamStarTableWriter {
                 if ( cinfo.getContentClass().equals( String.class ) ) {
                     int nchar = cinfo.getElementSize();
                     if ( nchar > 0 ) {
-                        cwidths[ icol ] = nchar;
+                        cwidths[ icol ] = Math.max( cwidths[ icol ],  nchar );
                     }
                 }
             }
@@ -129,20 +130,21 @@ public abstract class AbstractTextTableWriter extends StreamStarTableWriter {
 
         /* Apply sensible maximum field widths. */
         for ( int i = 0; i < ncol; i++ ) {
-            cwidths[ i ] = Math.min( maxWidths[ i ], cwidths[ i ] );
+            cwidths[ i ] = Math.min( getMaxWidth(), cwidths[ i ] );
         }
 
         /* Print parameters. */
         if ( writeParams_ ) {
             String name = startab.getName();
             if ( name != null && name.trim().length() > 0 ) {
-                printParam( strm, "Table name", name );
+                printParam( strm, "Table name", name, String.class );
             }
             for ( Iterator it = startab.getParameters().iterator();
                   it.hasNext(); ) {
                 DescribedValue param = (DescribedValue) it.next();
-                printParam( strm, param.getInfo().getName(),
-                                  param.getValueAsString( 160 ) );
+                ValueInfo info = param.getInfo();
+                printParam( strm, info.getName(), param.getValueAsString( 160 ),
+                            info.getContentClass() );
             }
         }
 
@@ -211,6 +213,19 @@ public abstract class AbstractTextTableWriter extends StreamStarTableWriter {
     public abstract int getMaxWidth();
 
     /**
+     * Returns the minimum width required to output the actual characters
+     * of the name for a given column.  Padding applied subsequently
+     * by this object's {@link #printColumnHeads} method does not need
+     * to be included.
+     *
+     * @param  info  column metadata
+     * @return   minimum number of characters required for column title
+     */
+    public int getMinNameWidth( ColumnInfo info ) {
+        return info.getName().length();
+    }
+
+    /**
      * Returns the number of columns which will be sampled to 
      * work out the column width.
      *
@@ -272,9 +287,10 @@ public abstract class AbstractTextTableWriter extends StreamStarTableWriter {
      * @param   strm  stream to write into
      * @param   name  parameter name
      * @param   value  formatted parameter value
+     * @param   clazz  type of value
      */
     protected abstract void printParam( OutputStream strm, String name,
-                                        String value )
+                                        String value, Class clazz )
             throws IOException;
 
     /**
@@ -298,7 +314,7 @@ public abstract class AbstractTextTableWriter extends StreamStarTableWriter {
         return buf;
     }
 
-    private int getMaxWidth( Class clazz ) {
+    private int getMaxDataWidth( Class clazz ) {
         if ( clazz == Double.class ) {
             return Math.max( Double.toString( - Double.MAX_VALUE ).length(),
                              Double.toString( - Double.MIN_VALUE ).length() );

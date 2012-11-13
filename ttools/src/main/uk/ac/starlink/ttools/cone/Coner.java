@@ -76,4 +76,13 @@ public interface Coner {
      */
     ConeSearcher createSearcher( Environment env, boolean bestOnly )
         throws TaskException;
+
+    /**
+     * Returns a coverage footprint suitable for use with the cone search
+     * service configured by this object's parameters.
+     *
+     * @param   env  execution environment
+     * @return   coverage footprint, or null
+     */
+    Footprint getFootprint( Environment env ) throws TaskException;
 }

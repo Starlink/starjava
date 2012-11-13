@@ -24,7 +24,7 @@ public class ConeSearchConer implements Coner {
 
     private final URLParameter urlParam_;
     private final ChoiceParameter verbParam_;
-    private final ChoiceParameter serviceParam_;
+    private final ChoiceParameter<ServiceType> serviceParam_;
     private final BooleanParameter believeemptyParam_;
     private final Parameter formatParam_;
     private static final String BELIEVE_EMPTY_NAME = "emptyok";
@@ -55,7 +55,8 @@ public class ConeSearchConer implements Coner {
             "</p>",
         } );
 
-        serviceParam_ = new ChoiceParameter( "servicetype", serviceTypes );
+        serviceParam_ =
+            new ChoiceParameter<ServiceType>( "servicetype", serviceTypes );
         serviceParam_.setPrompt( "Search service type" );
         StringBuffer typesDescrip = new StringBuffer();
         for ( int i = 0; i < serviceTypes.length; i++ ) {
@@ -159,25 +160,28 @@ public class ConeSearchConer implements Coner {
 
     public void configureParams( Environment env, Parameter srParam )
             throws TaskException {
-        ((ServiceType) serviceParam_.objectValue( env ))
-                      .configureParams( srParam );
+        serviceParam_.objectValue( env ).configureParams( srParam );
     }
 
     public boolean useDistanceFilter( Environment env )
             throws TaskException {
-        return ((ServiceType) serviceParam_.objectValue( env ))
-                             .useDistanceFilter();
+        return serviceParam_.objectValue( env ).useDistanceFilter();
     }
 
     public ConeSearcher createSearcher( Environment env, boolean bestOnly )
             throws TaskException {
-        ServiceType serviceType =
-            (ServiceType) serviceParam_.objectValue( env );
+        ServiceType serviceType = serviceParam_.objectValue( env );
         URL url = urlParam_.urlValue( env );
         boolean believeEmpty = believeemptyParam_.booleanValue( env );
         StarTableFactory tfact = LineTableEnvironment.getTableFactory( env );
         return serviceType
               .createSearcher( env, url.toString(), believeEmpty, tfact );
+    }
+
+    public Footprint getFootprint( Environment env ) throws TaskException {
+        ServiceType serviceType = serviceParam_.objectValue( env );
+        URL url = urlParam_.urlValue( env );
+        return serviceType.getFootprint( url );
     }
 
     /**
@@ -240,6 +244,14 @@ public class ConeSearchConer implements Coner {
                                               boolean believeEmpty,
                                               StarTableFactory tfact )
                 throws TaskException;
+
+        /**
+         * Returns a coverage footprint for use with the service specified.
+         *
+         * @param  url  cone search service URL
+         * @return  coverage footprint, or null
+         */
+        abstract Footprint getFootprint( URL url );
 
         public String toString() {
             return name_;
@@ -313,6 +325,10 @@ public class ConeSearchConer implements Coner {
                 }
             };
         }
+
+        public Footprint getFootprint( URL url ) {
+            return new MocServiceFootprint( url );
+        }
     }
 
     /**
@@ -367,6 +383,10 @@ public class ConeSearchConer implements Coner {
                     return INCONSISTENT_EMPTY_ADVICE;
                 }
             };
+        }
+
+        public Footprint getFootprint( URL url ) {
+            return null;
         }
     }
 
@@ -423,6 +443,10 @@ public class ConeSearchConer implements Coner {
                     return INCONSISTENT_EMPTY_ADVICE;
                 };
             };
+        }
+
+        public Footprint getFootprint( URL url ) {
+            return null;
         }
     } 
 }

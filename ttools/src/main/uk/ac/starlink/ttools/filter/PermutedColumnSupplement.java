@@ -1,0 +1,90 @@
+package uk.ac.starlink.ttools.filter;
+
+import java.io.IOException;
+import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.RowSequence;
+import uk.ac.starlink.table.StarTable;
+
+/**
+ * ColumnSupplement implementation which contains a selection of the
+ * columns in the base table.  Each column is a view of one in the base table.
+ *
+ * <p>An <tt>int[]</tt> array, <tt>colMap</tt>, is used to keep track of
+ * which columns in this table correspond to which columns in the base table;
+ * the <tt>i</tt>'th column in this table corresponds to the
+ * <tt>colMap[i]</tt>'th column in the base table.
+ * The <tt>colMap</tt> array may contain duplicate entries, but all
+ * its entries must be in the range <tt>0..baseSup.getColumnCount()-1</tt>.
+ * This table will have <tt>colMap.length</tt> columns.
+ *
+ * @author   Mark Taylor
+ * @since    2 Apr 2012
+ */
+public class PermutedColumnSupplement implements ColumnSupplement {
+
+    private final ColumnSupplement baseSup_;
+    private final int[] colMap_;
+    private final int ncol_;
+
+    /**
+     * Constructs a permuted column supplement based on a given
+     * column supplement.
+     *
+     * @param  baseSup   column supplement supplying the base data
+     * @param  colMap   array of column indices, one for each column in this
+     *                  object
+     */
+    public PermutedColumnSupplement( ColumnSupplement baseSup, int[] colMap ) {
+        baseSup_ = baseSup;
+        colMap_ = colMap;
+        ncol_ = colMap.length;
+    }
+
+    /**
+     * Constructs a permuted column supplement based on a given table.
+     *
+     * @param   baseTable  table supplying the base data
+     * @param  colMap   array of column indices, one for each column in this
+     *                  object
+     */
+    public PermutedColumnSupplement( StarTable baseTable, int[] colMap ) {
+        this( new UnitColumnSupplement( baseTable ), colMap );
+    }
+
+    public int getColumnCount() {
+        return colMap_.length;
+    }
+
+    public ColumnInfo getColumnInfo( int icol ) {
+        return baseSup_.getColumnInfo( colMap_[ icol ] );
+    }
+
+    public Object getCell( long irow, int icol ) throws IOException {
+        return baseSup_.getCell( irow, colMap_[ icol ] );
+    }
+
+    public Object[] getRow( long irow ) throws IOException {
+        Object[] row = new Object[ ncol_ ];
+        for ( int ic = 0; ic < ncol_; ic++ ) {
+            row[ ic ] = baseSup_.getCell( irow, colMap_[ ic ] );
+        }
+        return row;
+    }
+
+    public SupplementSequence createSequence( RowSequence rseq )
+            throws IOException {
+        final SupplementSequence sseq = baseSup_.createSequence( rseq );
+        return new SupplementSequence() {
+            public Object getCell( long irow, int icol ) throws IOException {
+                return sseq.getCell( irow, colMap_[ icol ] );
+            }
+            public Object[] getRow( long irow ) throws IOException {
+                Object[] row = new Object[ ncol_ ]; 
+                for ( int ic = 0; ic < ncol_; ic++ ) {
+                    row[ ic ] = sseq.getCell( irow, colMap_[ ic ] );
+                }
+                return row;
+            }
+        };
+    }
+}

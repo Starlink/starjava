@@ -39,6 +39,8 @@
   <!ENTITY calc-summary SYSTEM 'calc-summary.xml'>
   <!ENTITY coneskymatch-summary SYSTEM 'coneskymatch-summary.xml'>
   <!ENTITY funcs-summary SYSTEM 'funcs-summary.xml'>
+  <!ENTITY pixfoot-summary SYSTEM 'pixfoot-summary.xml'>
+  <!ENTITY pixsample-summary SYSTEM 'pixsample-summary.xml'>
   <!ENTITY plot2d-summary SYSTEM 'plot2d-summary.xml'>
   <!ENTITY plot3d-summary SYSTEM 'plot3d-summary.xml'>
   <!ENTITY plothist-summary SYSTEM 'plothist-summary.xml'>
@@ -205,6 +207,11 @@ same ground as the STIL and TOPCAT user documents
     <ref id="plot3d"><code>plot3d</code></ref> and
     <ref id="plothist"><code>plothist</code></ref>
     (see <ref id="plot" plaintextref="yes"/>).
+    </p></dd>
+<dt>Sky Pixel Operations</dt>
+<dd><p>
+    <ref id="pixfoot"><code>pixfoot</code></ref> and
+    <ref id="pixsample"><code>pixsample</code></ref>.
     </p></dd>
 <dt>VOTable</dt>
 <dd><p>
@@ -435,6 +442,8 @@ the available tasks are:
 <li><code>calc</code></li>
 <li><code>funcs</code></li>
 <li><code>coneskymatch</code></li>
+<li><code>pixfoot</code></li>
+<li><code>pixsample</code></li>
 <li><code>plot2d</code></li>
 <li><code>plot3d</code></li>
 <li><code>plothist</code></li>
@@ -1775,6 +1784,8 @@ or Unix <code>compress</code> and the program will uncompress it on the fly.
            <ref id="tmatch2"><code>tmatch2</code></ref>,
            <ref id="tmatchn"><code>tmatchn</code></ref>,
            <ref id="tskymatch2"><code>tskymatch2</code></ref>,
+           <ref id="pixfoot"><code>pixfoot</code></ref>,
+           <ref id="pixsample"><code>pixsample</code></ref>,
            <ref id="plot2d"><code>plot2d</code></ref>,
            <ref id="plot3d"><code>plot3d</code></ref>,
            <ref id="plothist"><code>plothist</code></ref>,
@@ -1825,8 +1836,13 @@ The following list gives the values usually allowed for this
 <dd><p>FITS format - FITS binary or ASCII tables can be read.
     For commands which take a single input table, by default the 
     first table HDU in the file will used, but this can
-    be altered by supplying the HDU index after a '#' sign, 
-    so "table.fits#3" means the third HDU extension.
+    be altered for multi-extension FITS files by supplying
+    an identifier after a '#' sign.
+    The identifier can be either an HDU index or the extension name
+    (EXTNAME header, possibly followed by "-" and the EXTVER header),
+    so "table.fits#3" means the third HDU extension, and
+    "table.fits#UV_DATA" means the HDU with the value "UV_DATA" for its
+    EXTNAME header card.
     </p></dd>
 
 <dt><code>colfits</code></dt>
@@ -1958,6 +1974,9 @@ Matching is case-insensitive.
 
 <dt><code>csv-noheader</code></dt>
 <dd><p>Comma-Separated Value format with no header line.</p></dd>
+
+<dt><code>ipac</code></dt>
+<dd><p>IPAC Table Format.</p></dd>
 
 <dt><code>tst</code></dt>
 <dd><p>Tab-Separated Table format.</p></dd>
@@ -2763,7 +2782,8 @@ matching criteria it is given to identifying multi-object groups.
 
 <p>In a multi-object match context, the matcher identifies a matched
 group as the largest possible group of objects in which each is 
-linked by a pair match to <em>any</em> other object in the group.
+linked by a pair match to <em>any</em> other object in the group -
+it is a group of "friends of friends".
 Formally, the set of matched groups is a set of disjoint graphs whose nodes
 are input table rows and whose edges are successful pair matches,
 where no successful pair match exists between nodes in 
@@ -3886,6 +3906,18 @@ Detailed descriptions and examples for each command can be found in
     See also <ref id="plot" plaintextref="yes"/>.
     </p></dd>
 
+<dt>Sky Pixel Operations:</dt>
+<dd><p>
+    <ul>
+    <li><ref id="pixfoot" plaintextref="yes"><code>pixfoot</code></ref>:
+        &pixfoot-purpose;
+        </li>
+    <li><ref id="pixsample" plaintextref="yes"><code>pixsample</code></ref>:
+        &pixsample-purpose;
+        </li>
+    </ul>
+    </p></dd>
+
 <dt>VOTables:</dt>
 <dd><p>
     <ul>
@@ -4267,6 +4299,163 @@ There are no parameters.
 </p>
 
 &funcs-summary;
+
+</subsect>
+
+<subsect id="pixfoot" tocleaf="yes">
+<subhead><title><code>pixfoot</code>: &pixfoot-purpose;</title></subhead>
+
+<p><code>pixfoot</code> takes a list of sky positions from an input
+table and generates a pixel map describing a sky region which includes
+them all.
+Currently the output is to a format known as a 
+<webref url="http://www.ivoa.net/Documents/Notes/MOC/"
+        >Multi-Order Coverage map</webref> (MOC),
+which is a HEALPix-based format composed of a list of HEALPix pixels
+of different sizes, which can efficiently describe complex regions.
+Other output formats may be introduced in the future.
+</p>
+
+<p>See also the
+<ref id="uk.ac.starlink.ttools.func.Footprints">Footprints</ref> class
+for MOC-related functions.
+</p>
+
+&pixfoot-summary;
+
+<subsubsect id="pixfoot-examples">
+<subhead><title>Examples</title></subhead>
+
+<p>Here are some examples of <code>pixfoot</code>:
+<dl>
+
+<dt><verbatim>
+stilts pixfoot in=survey.vot ra=RA2000 dec=DEC2000
+               order=8 mocfmt=fits out=sfoot.fits
+</verbatim></dt>
+<dd><p>Generates an order-8 FITS MOC file from the point positions of
+    rows in the given VOTable.
+    </p></dd>
+
+<dt><verbatim>
+stilts pixfoot in='jdbc:mysql://localhost/astro1#SELECT * FROM first1'
+               icmd='addskycoords galactic icrs GLON GLAT RA DEC'
+               ra=RA dec=DEC radius=20./3600.
+               order=13 mocfmt=fits out=first.moc
+</verbatim></dt>
+<dd><p>Generates an order-13 FITS MOC file from positions in a table
+    held in a database.  The positions in the original table are in
+    galactic coordinates, so have to be converted to ecliptic (ICRS) first.  
+    The map is formed in this case by surrounding each point by a
+    disc of 20 arcsec.
+    Note that JDBC database access will have to be set up as per
+    <ref id="jdbcConfig"/> for this command to work.
+    </p></dd>
+
+</dl>
+</p>
+
+</subsubsect>
+</subsect>
+
+
+<subsect id="pixsample" tocleaf="yes">
+<subhead><title><code>pixsample</code>: &pixsample-purpose;</title></subhead>
+
+<p><code>pixsample</code> samples data at the sky position 
+represented by each row from an all-sky map contained
+in a HEALPix-format pixel data file.
+Such files are actually tables (usually in FITS format)
+in which the row number corresponds to
+a HEALPix pixel index, and the pixel values are cell contents;
+one or more columns may be present containing values for one or more
+all-sky maps.  The result of this command is to add a column to
+the input table representing the pixel data at the position of
+each input row for each of the data columns in the
+HEALPix table.
+</p>
+
+<p>This command does not attempt to convert between coordinate systems
+except as instructed, so it is important to know what coordinate
+system the HEALPix file is in, and ensure that the coordinates
+supplied from the input table match this.
+You may need to examine the documentation or headers of the HEALPix
+file in question to find out.
+See the <ref id="pixsample-examples">Examples</ref> section for
+some examples.
+</p>
+
+<p>There is a choice of how the sampling is done;
+the simplest way is just to use the value of the pixel covering 
+the indicated position.  An alternative is to average over a
+disc of given radius (perhaps a function of the input row).
+Other options (e.g. max/min) could easily be added.
+</p>
+
+<p>Although HEALPix is not a common format for storing image
+data in general, it is used for storing a number of important all-sky
+data sets such as the WMAP results and Schlegel dust maps.
+The NASA 
+<webref url="http://lambda.gsfc.nasa.gov/" plaintextref="yes">LAMBDA</webref>
+(Legacy Archive for Microwave Background Data Analysis)
+archive has a number of maps in a suitable format,
+including foreground data like predicted reddening as well as CMB maps.
+</p>
+
+&pixsample-summary;
+
+<subsubsect id="pixsample-examples">
+<subhead><title>Examples</title></subhead>
+
+<p>Here are some examples of <code>pixsample</code>:
+<dl>
+
+<dt><verbatim>
+stilts pixsample in=szdata.fits pixdata=wmap_ilc_7yr_v4.fits
+                 lat=GAL_LAT lon=GAL_LON pcmd='keepcols TEMPERATURE'
+                 out=szdata_cmb.fits
+</verbatim></dt>
+<dd><p>Samples from a HEALPix file containing WMAP data are added to an
+    input file <code>szdata.fits</code>, giving an output file
+    <code>szdata_cmb.fits</code> which is the same but with an additional
+    column <code>TEMPERATURE</code>.
+    The sampling is done using the default statistical mode <code>point</code>,
+    which just takes a point sample at the input position.
+    The HEALPix file must have its pixels ordered using galactic
+    coordinates, since that is the coordinate system available from
+    the input table.
+    </p>
+    <p>
+    The pixdata file used here can be found (at time of writing) at
+    <webref
+    url='http://lambda.gsfc.nasa.gov/data/map/dr4/dfp/ilc/wmap_ilc_7yr_v4.fits'
+    /> (24 Mbyte).
+    </p></dd>
+
+<dt><verbatim>
+stilts pixsample in=messier.xml pixdata=lambda_sfd_ebv.fits
+                 stat=mean radius=5./60.
+                 insys=icrs pixsys=galactic lon=RA2000 lat=DEC2000
+</verbatim></dt>
+<dd><p>Samples data from a HEALPix table, averaging over a sampling radius
+    of 5 arcmin.  The coordinates in the input table are only available
+    as ICRS (RA,Dec) coordinates, and the arrangement of the HEALPix pixels
+    in the pixel data file uses galactic coordinates
+    (you can only determine this by looking at the FITS headers or
+    documentation of that file), so it is necessary to use the
+    <code>insys</code> and <code>pixsys</code> parameters for conversion.
+    </p>
+    <p>
+    The pixdata file used here can be found (at time of writing) at
+    <webref
+      url='http://lambda.gsfc.nasa.gov/data/foregrounds/SFD/lambda_sfd_ebv.fits'
+    /> (25 Mbyte).
+    </p></dd>
+
+</dl>
+</p>
+
+</subsubsect>
 
 </subsect>
 
@@ -4884,9 +5073,10 @@ where the parts have the following meanings:
         >VOResource</webref>,
 <webref url="http://www.ivoa.net/Documents/VOSI/">VOSI</webref>,
 <webref url="http://www.ivoa.net/Documents/TAPRegExt/">TAPRegExt</webref>,
+<webref url="http://www.ivoa.net/Documents/ObsCore/">ObsCore</webref>,
 <webref url="http://www.ivoa.net/Documents/VOTable/">VOTable</webref>,
 <webref url="http://www.w3.org/Protocols/rfc2616/rfc2616.html">HTTP</webref>),
-and it is hard to write a validator which comprehensive, especially
+and it is hard to write a validator which is comprehensive, especially
 one which can provide useful output for services with a range of 
 compliance levels.
 This tool tries to make a wide range of tests, but does not claim to
@@ -7980,6 +8170,85 @@ but my thanks are especially due to the following:
         </ul>
         </p></dd>
     </dl>
+    </p></dd>
+
+<dt>Next version</dt>
+<dd><p>
+    <ul>
+    <li>Fixed <code>tcat</code>, <code>tcatn</code> so that in most cases
+        output column metadata is compatible with all input tables, not
+        just the first one in terms of nullability, array shape etc.</li>
+    <li>Add <code>OBS</code> stage (ObsTAP validation)
+        to <code>taplint</code>.</li>
+    <li>Add more checks to <code>CAP</code> stage of <code>taplint</code>.
+        Declared languages (including features) and output formats are
+        now checked.</li>
+    <li>Adjust SQL writer to avoid type error for MySQL.
+        Hope it hasn't introduced new problems elsewhere.</li>
+    <li>Add <ref id="pixsample"><code>pixsample</code></ref> command,
+        which can sample pixel data from HEALPix table files
+        (useful for things like Schlegel dust extinction).
+        Also <ref id="addpixsample"><code>addpixsample</code></ref> filter,
+        which does the same job.</li>
+    <li>You can now reference tables in multi-extension FITS files by name
+        (EXTNAME or EXTNAME-EXTVER) as an alternative to by HDU index.</li>
+    <li>Tidied up error reporting a bit (fewer duplicate nested messages
+        reported).</li>
+    <li>Fix bug which failed when attempting to read FITS files with
+        complex array columns (<code>TFORMn=rC/rM</code>).</li>
+    <li>Add MOC-based coverage filter to <code>coneskymatch</code>
+        when using some Cone Search services (mostly VizieR).
+        This uses the Multi-Order Coverage map service operated by CDS.
+        It can make VizieR multi-cone queries much faster by not doing
+        cone searches that are outside the coverage region of the
+        catalogue in question.</li>
+    <li>Fix failure when caching very large sequential tables.</li>
+    <li>Slight changes to <code>toString</code> function: now works on
+        non-numeric values, gives the right answer for <code>Long</code>
+        integers, and character values,
+        and returns a blank value rather than "null" or "NaN"
+        for blank inputs.</li>
+    <li>PNG graphics output no longer has transparent background.</li>
+    <li>Sexagesimal to numeric angle conversion functions now permit the
+        seconds part of the sexagesimal string to be missing.</li>
+    <li>Fix serious and long-standing bug (bad TZERO header, causes subsequent
+        reads to fail) for FITS output of boolean array columns.</li>
+    <li>Issue warning for high values of <code>coneskymatch</code>
+        <code>parallel</code> parameter.</li>
+    <li>Fix bug in <code>replacecol</code> and <code>replaceval</code> filters
+        which could cause truncation of strings in FITS and possibly
+        VOTable output when the new value was longer than the previously
+        declared maximum length.</li>
+    <li>Fixed bug in <code>tmatchn</code> group mode which could result in
+        output rows with columns from only a single table,
+        i.e. not representing an inter-table match, 
+        even when <code>join*=default</code>.</li>
+    <li>Fix bug in HMS sexagesimal formatting: minus sign was omitted from
+        negative angles.  Now the output is forced positive.</li>
+    <li>Upgrade to official v1.0 of Gr&#x00e9;gory Mantelet's
+        ADQL library for TAP query parsing.</li>
+    <li>Add new task <code><ref id="pixfoot">pixfoot</ref></code> for
+        generating MOC (Multi-Order Coverage) maps.</li>
+    <li>Add new class 
+        <ref id="uk.ac.starlink.ttools.func.Footprints">Footprints</ref>
+        to the expression language containing MOC-related functions
+        (currently, just <code>inMoc</code>).</li>
+    <li>Add new function <code>hypot</code> (=sqrt(x*x+y*y)).</li>
+    <li>Fix small but genuine sky matching bug.
+        The effect was that near the poles matches near the specified
+        threshold could be missed.  The bug was in the PixTools library,
+        fixed at the 2012-07-28 release.</li>
+    <li>IPAC format "long"/"l" column type, apparently now official,
+        now accepted without warning.  IPAC headers may now use minus
+        signs instead of whitespace.</li>
+    <li>Add IPAC table output format.</li>
+    <li>Cope with 1-column CSV files.</li>
+    <li>Use "<code>rows</code>"/"<code>bytes</code>"
+        rather than "<code>row</code>"/"<code>byte</code>"
+        for TAP capability unit values.</li>
+    <li>Upgrade to JSAMP v1.3-3.</li>
+    <li>Add K-Corrections functions of I&amp;I.</li>
+    </ul>
     </p></dd>
 
 </dl>

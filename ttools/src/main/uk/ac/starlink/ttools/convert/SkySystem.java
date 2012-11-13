@@ -22,14 +22,32 @@ import uk.ac.starlink.ttools.func.Times;
  */
 public abstract class SkySystem {
 
+    /** ICRS system. */
+    public static final SkySystem ICRS;
+
+    /** FK5 system. */
+    public static final SkySystem FK5;
+
+    /** FK4 system. */
+    public static final SkySystem FK4;
+
+    /** Galactic system. */
+    public static final SkySystem GALACTIC;
+
+    /** Supergalactic system. */
+    public static final SkySystem SUPERGALACTIC;
+
+    /** Ecliptic sysem. */
+    public static final SkySystem ECLIPTIC;
+
     /** All known SkySystem instances. */
     private static final SkySystem[] KNOWN_SYSTEMS = new SkySystem[] {
-        new ICRSSystem( "icrs" ),
-        new FK5System( "fk5" ),
-        new FK4System( "fk4" ),
-        new GalSystem( "galactic" ),
-        new SuperGalSystem( "supergalactic" ),
-        new EclipticSystem( "ecliptic" ),
+        ICRS = new ICRSSystem( "icrs" ),
+        FK5 = new FK5System( "fk5" ),
+        FK4 = new FK4System( "fk4" ),
+        GALACTIC = new GalSystem( "galactic" ),
+        SUPERGALACTIC = new SuperGalSystem( "supergalactic" ),
+        ECLIPTIC = new EclipticSystem( "ecliptic" ),
     };
     private static final Pal PAL = new Pal();
 
@@ -142,7 +160,7 @@ public abstract class SkySystem {
     }
 
     public String toString() {
-        return getDescription();
+        return getName();
     }
 
     /**

@@ -40,19 +40,20 @@ f     The UnitMap class does not define any new routines beyond those
 *     modify it under the terms of the GNU General Public Licence as
 *     published by the Free Software Foundation; either version 2 of
 *     the Licence, or (at your option) any later version.
-*     
+*
 *     This program is distributed in the hope that it will be
 *     useful,but WITHOUT ANY WARRANTY; without even the implied
 *     warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
 *     PURPOSE. See the GNU General Public Licence for more details.
-*     
+*
 *     You should have received a copy of the GNU General Public Licence
 *     along with this program; if not, write to the Free Software
-*     Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
-*     02111-1307, USA
+*     Foundation, Inc., 51 Franklin Street,Fifth Floor, Boston, MA
+*     02110-1301, USA
 
 *  Authors:
 *     RFWS: R.F. Warren-Smith (Starlink)
+*     DSB: David S Berry (JAC, Hawaii)
 
 *  History:
 *     7-FEB-1996 (RFWS):
@@ -64,6 +65,9 @@ f     The UnitMap class does not define any new routines beyond those
 *        method.
 *     10-MAY-2006 (DSB):
 *        Override astEqual.
+*     17-FEB-2012 (DSB):
+*        In Transform, do not copy the coordinate values if the input and
+*        output array are the same.
 *class--
 */
 
@@ -109,9 +113,9 @@ static AstPointSet *(* parent_transform)( AstMapping *, AstPointSet *, int, AstP
 
 
 #ifdef THREAD_SAFE
-/* Define how to initialise thread-specific globals. */ 
+/* Define how to initialise thread-specific globals. */
 #define GLOBAL_inits \
-   globals->Class_Init = 0; 
+   globals->Class_Init = 0;
 
 /* Create the function that initialises global data for this module. */
 astMAKE_INITGLOBALS(UnitMap)
@@ -166,7 +170,7 @@ static int Equal( AstObject *this_object, AstObject *that_object, int *status ) 
 
 *  Synopsis:
 *     #include "unitmap.h"
-*     int Equal( AstObject *this, AstObject *that, int *status ) 
+*     int Equal( AstObject *this, AstObject *that, int *status )
 
 *  Class Membership:
 *     UnitMap member function (over-rides the astEqual protected
@@ -193,8 +197,8 @@ static int Equal( AstObject *this_object, AstObject *that_object, int *status ) 
 */
 
 /* Local Variables: */
-   AstUnitMap *that;        
-   AstUnitMap *this;        
+   AstUnitMap *that;
+   AstUnitMap *this;
    int result;
 
 /* Initialise. */
@@ -216,7 +220,7 @@ static int Equal( AstObject *this_object, AstObject *that_object, int *status ) 
       result = ( astGetNin( this ) == astGetNin( that ) );
 
    }
-   
+
 /* If an error occurred, clear the result value. */
    if ( !astOK ) result = 0;
 
@@ -286,14 +290,14 @@ void astInitUnitMapVtab_(  AstUnitMapVtab *vtab, const char *name, int *status )
 *        been initialised.
 *     name
 *        Pointer to a constant null-terminated character string which contains
-*        the name of the class to which the virtual function table belongs (it 
+*        the name of the class to which the virtual function table belongs (it
 *        is this pointer value that will subsequently be returned by the Object
 *        astClass function).
 *-
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
+   astDECLARE_GLOBALS            /* Pointer to thread-specific global data */
    AstObjectVtab *object;        /* Pointer to Object component of Vtab */
    AstMappingVtab *mapping;      /* Pointer to Mapping component of Vtab */
 
@@ -311,7 +315,8 @@ void astInitUnitMapVtab_(  AstUnitMapVtab *vtab, const char *name, int *status )
    will be used (by astIsAUnitMap) to determine if an object belongs
    to this class.  We can conveniently use the address of the (static)
    class_check variable to generate this unique value. */
-   vtab->check = &class_check;
+   vtab->id.check = &class_check;
+   vtab->id.parent = &(((AstMappingVtab *) vtab)->id);
 
 /* Initialise member function pointers. */
 /* ------------------------------------ */
@@ -341,9 +346,12 @@ void astInitUnitMapVtab_(  AstUnitMapVtab *vtab, const char *name, int *status )
    astSetDump( vtab, Dump, "UnitMap", "Unit (null) Mapping" );
 
 /* If we have just initialised the vtab for the current class, indicate
-   that the vtab is now initialised. */
-   if( vtab == &class_vtab ) class_init = 1;
-
+   that the vtab is now initialised, and store a pointer to the class
+   identifier in the base "object" level of the vtab. */
+   if( vtab == &class_vtab ) {
+      class_init = 1;
+      astSetVtabClassIdentifier( vtab, &(vtab->id) );
+   }
 }
 
 static int MapMerge( AstMapping *this, int where, int series, int *nmap,
@@ -527,7 +535,7 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
    modified element. */
          ( *nmap )--;
          result = where;
-         
+
 /* In parallel. */
 /* ============ */
 /* If a UnitMap occurs in parallel with other Mappings, it can be
@@ -587,7 +595,7 @@ static int MapMerge( AstMapping *this, int where, int series, int *nmap,
                      ( *map_list )[ i ] = astAnnul( ( *map_list )[ i ] );
                   }
 
-/* Insert the new pointer and the associated Invert flag. */               
+/* Insert the new pointer and the associated Invert flag. */
                   ( *map_list )[ i1 ] = new;
                   ( *invert_list )[ i1 ] = 0;
 
@@ -639,7 +647,7 @@ static int *MapSplit( AstMapping *this_map, int nin, const int *in, AstMapping *
 *     inherited from the Mapping class).
 
 *  Description:
-*     This function creates a new Mapping by picking specified inputs from 
+*     This function creates a new Mapping by picking specified inputs from
 *     an existing UnitMap. This is only possible if the specified inputs
 *     correspond to some subset of the UnitMap outputs. That is, there
 *     must exist a subset of the UnitMap outputs for which each output
@@ -649,27 +657,27 @@ static int *MapSplit( AstMapping *this_map, int nin, const int *in, AstMapping *
 
 *  Parameters:
 *     this
-*        Pointer to the UnitMap to be split (the UnitMap is not actually 
+*        Pointer to the UnitMap to be split (the UnitMap is not actually
 *        modified by this function).
 *     nin
 *        The number of inputs to pick from "this".
 *     in
 *        Pointer to an array of indices (zero based) for the inputs which
 *        are to be picked. This array should have "nin" elements. If "Nin"
-*        is the number of inputs of the supplied UnitMap, then each element 
+*        is the number of inputs of the supplied UnitMap, then each element
 *        should have a value in the range zero to Nin-1.
 *     map
 *        Address of a location at which to return a pointer to the new
 *        Mapping. This Mapping will have "nin" inputs (the number of
 *        outputs may be different to "nin"). A NULL pointer will be
-*        returned if the supplied UnitMap has no subset of outputs which 
+*        returned if the supplied UnitMap has no subset of outputs which
 *        depend only on the selected inputs.
 *     status
 *        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     A pointer to a dynamically allocated array of ints. The number of
-*     elements in this array will equal the number of outputs for the 
+*     elements in this array will equal the number of outputs for the
 *     returned Mapping. Each element will hold the index of the
 *     corresponding output in the supplied UnitMap. The array should be
 *     freed using astFree when no longer needed. A NULL pointer will
@@ -707,7 +715,7 @@ static int *MapSplit( AstMapping *this_map, int nin, const int *in, AstMapping *
 /* Check pointers can be used safely. */
    if( astOK ) {
 
-/* Store the required output axis indices. At the same time check that each 
+/* Store the required output axis indices. At the same time check that each
    axis is valid. */
       mnin = astGetNin( this );
       ok = 1;
@@ -723,7 +731,7 @@ static int *MapSplit( AstMapping *this_map, int nin, const int *in, AstMapping *
 
 /* If the "in" array contained any invalid values, free the returned
    resources. */
-      if( !ok ) { 
+      if( !ok ) {
          result = astFree( result );
          *map = astAnnul( *map );
       }
@@ -759,31 +767,31 @@ static double Rate( AstMapping *this, double *at, int ax1, int ax2, int *status 
 *     from the Mapping class ).
 
 *  Description:
-*     This function returns the rate of change of a specified output of 
-*     the supplied Mapping with respect to a specified input, at a 
-*     specified input position. 
+*     This function returns the rate of change of a specified output of
+*     the supplied Mapping with respect to a specified input, at a
+*     specified input position.
 
 *  Parameters:
 *     this
 *        Pointer to the Mapping to be applied.
 *     at
-*        The address of an array holding the axis values at the position 
-*        at which the rate of change is to be evaluated. The number of 
-*        elements in this array should equal the number of inputs to the 
+*        The address of an array holding the axis values at the position
+*        at which the rate of change is to be evaluated. The number of
+*        elements in this array should equal the number of inputs to the
 *        Mapping.
 *     ax1
-*        The index of the Mapping output for which the rate of change is to 
+*        The index of the Mapping output for which the rate of change is to
 *        be found (output numbering starts at 0 for the first output).
 *     ax2
 *        The index of the Mapping input which is to be varied in order to
-*        find the rate of change (input numbering starts at 0 for the first 
+*        find the rate of change (input numbering starts at 0 for the first
 *        input).
 *     status
 *        Pointer to the inherited status variable.
 
 *  Returned Value:
-*     The rate of change of Mapping output "ax1" with respect to input 
-*     "ax2", evaluated at "at", or AST__BAD if the value cannot be 
+*     The rate of change of Mapping output "ax1" with respect to input
+*     "ax2", evaluated at "at", or AST__BAD if the value cannot be
 *     calculated.
 
 */
@@ -875,7 +883,7 @@ static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
    values. */
    ncoord_in = astGetNcoord( in );
    npoint = astGetNpoint( in );
-   ptr_in = astGetPoints( in );      
+   ptr_in = astGetPoints( in );
    ptr_out = astGetPoints( result );
 
 /* We need not determine whether to apply the forward or inverse
@@ -885,11 +893,14 @@ static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
 /* --------------------------- */
    if ( astOK ) {
 
-/* Loop to copy the values for each coordinate. Use a memory copy for speed. */
+/* Loop to copy the values for each coordinate. Use a memory copy for speed.
+   Do not do the copy if the input and output arrays are the same. */
       for ( coord = 0; coord < ncoord_in; coord++ ) {
-         (void) memcpy( (void *) ptr_out[ coord ],
-                        (const void *) ptr_in[ coord ],
-                        sizeof( double ) * (size_t) npoint );
+         if( ptr_out[ coord ] != ptr_in[ coord ] ) {
+            (void) memcpy( (void *) ptr_out[ coord ],
+                           (const void *) ptr_in[ coord ],
+                           sizeof( double ) * (size_t) npoint );
+         }
       }
    }
 
@@ -966,7 +977,7 @@ static void Dump( AstObject *this_object, AstChannel *channel, int *status ) {
 /* ========================= */
 /* Implement the astIsAUnitMap and astCheckUnitMap functions using the macros
    defined for this purpose in the "object.h" header file. */
-astMAKE_ISA(UnitMap,Mapping,check,&class_check)
+astMAKE_ISA(UnitMap,Mapping)
 astMAKE_CHECK(UnitMap)
 
 AstUnitMap *astUnitMap_( int ncoord, const char *options, int *status, ...) {
@@ -1040,7 +1051,7 @@ f     function is invoked with STATUS set to an error value, or if it
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
+   astDECLARE_GLOBALS            /* Pointer to thread-specific global data */
    AstUnitMap *new;              /* Pointer to new UnitMap */
    va_list args;                 /* Variable argument list */
 
@@ -1114,7 +1125,7 @@ AstUnitMap *astUnitMapId_( int ncoord, const char *options, ... ) {
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
+   astDECLARE_GLOBALS            /* Pointer to thread-specific global data */
    AstUnitMap *new;              /* Pointer to new UnitMap */
    va_list args;                 /* Variable argument list */
 
@@ -1238,7 +1249,7 @@ AstUnitMap *astInitUnitMap_( void *mem, size_t size, int init,
 /* Initialise a Mapping structure (the parent class) as the first component
    within the UnitMap structure, allocating memory if necessary. Specify that
    the Mapping should be defined in both the forward and inverse directions. */
-   new = (AstUnitMap *) astInitMapping( mem, size, 0, 
+   new = (AstUnitMap *) astInitMapping( mem, size, 0,
                                         (AstMappingVtab *) vtab, name,
                                         ncoord, ncoord, 1, 1 );
 
@@ -1334,7 +1345,7 @@ AstUnitMap *astLoadUnitMap_( void *mem, size_t size,
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
+   astDECLARE_GLOBALS            /* Pointer to thread-specific global data */
    AstUnitMap *new;              /* Pointer to the new UnitMap */
 
 /* Initialise. */

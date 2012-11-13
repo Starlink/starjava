@@ -232,10 +232,7 @@ public class CompareMetadataStage implements Stage {
         if ( isBlank1 || isBlank2 ) {
             return false;
         }
-        Matcher atm1 = ADQLTYPE_REGEX.matcher( dt1 );
-        if ( atm1.matches() ) {
-            dt1 = atm1.group( 2 );
-        }
+        dt1 = stripAdqlType( dt1 );
         if ( dt1.equals( dt2 ) ) {
             return true;
         }
@@ -279,6 +276,23 @@ public class CompareMetadataStage implements Stage {
             map.put( item.toString(), item );
         }
         return map;
+    }
+
+    /**
+     * Takes a string which may be an ADQL type and strips off confusing
+     * parts including any "adql:" prefix and trailing parenthesis.
+     *
+     * @param   dtype  string which may be an ADQL datatype
+     * @return  base ADQL data type if appropriate, else input string
+     */
+    public static String stripAdqlType( String dtype ) {
+        if ( dtype == null ) {
+            return null;
+        }
+        else {
+            Matcher atm = ADQLTYPE_REGEX.matcher( dtype );
+            return atm.matches() ? atm.group( 2 ) : dtype;
+        }
     }
 
     /**

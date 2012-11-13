@@ -24,8 +24,8 @@ package uk.ac.starlink.ast;
  * <p>
  * You should have received a copy of the GNU General Public Licence
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
- * 02111-1307, USA
+ * Foundation, Inc., 51 Franklin Street,Fifth Floor, Boston, MA
+ * 02110-1301, USA
  * 
  * 
  * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_ShiftMap'>AST ShiftMap</a>  
@@ -38,7 +38,7 @@ public class ShiftMap extends Mapping {
      *       coordinates, and is equal to the number of elements in the 
      *       supplied <code>shift</code> array.
      *    
-     * @param  shift  An array containing the values to be added on to the input 
+     * @param  shift  An array containing the values to be added on to the input
      * coordinates in order to create the output coordinates. A separate
      * value should be supplied for each coordinate.
      * 

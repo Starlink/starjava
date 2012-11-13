@@ -21,12 +21,10 @@ public class FuncTest extends TestCase {
     }
 
     public void testJELClasses() {
-        checkClassesLookOK( (Class[]) TopcatJELUtils
-                                     .getStaticClasses()
-                                     .toArray( new Class[ 0 ] ) );
-        checkClassesLookOK( (Class[]) TopcatJELUtils
-                                     .getActivationStaticClasses()
-                                     .toArray( new Class[ 0 ] ) );
+        checkClassesLookOK( TopcatJELUtils.getStaticClasses()
+                                          .toArray( new Class[ 0 ] ) );
+        checkClassesLookOK( TopcatJELUtils.getActivationStaticClasses()
+                                          .toArray( new Class[ 0 ] ) );
     }
 
     public void checkClassesLookOK( Class[] classes ) {

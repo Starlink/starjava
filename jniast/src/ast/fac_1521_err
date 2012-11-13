@@ -33,7 +33,7 @@ FACILITY AST
 331,INNCO,incompatible numbers of coordinates
 332,INTER,internal programming error
 333,INTRD,incompatible transformation directions
-334,KYCIR,Circular dependency between KeyMaps
+334,KYCIR,circular dependency between KeyMaps
 335,LDERR,class loader error
 336,LUTII,invalid lookup table increment
 337,LUTIN,invalid number of lookup table elements
@@ -133,3 +133,22 @@ FACILITY AST
 431,BADFLG,Incompatible flags for re-sampling or re-binning
 432,LCKERR,Error locking or unlocking an AST Object
 433,FUNDEF,FITS keyword had undefined value
+434,MPVIN,invalid integer index supplied for a KeyMap vector element
+435,OPRIN,operation specifier invalid
+436,NONIN,no inside point found
+437,MPKER,requested key not found in KeyMap
+438,MPPER,error putting a named value into a KeyMap
+439,BADKEY,Attempt made to add an entry to a locked KeyMap
+440,BADTYP,Bad data type
+441,OLDCOL,Column already exists with different properties
+442,BADNULL,Bad null value for a FITS table column
+443,BIGKEY,Key string is too long
+444,BADCOL,No such column exists in the table
+445,BIGTAB,Table is too large
+446,BADSIZ,Invalid array size
+447,BADTAB,Error reading WCS from FITS binary table
+448,NOTAB,Cannot access FITS binary table
+449,LEVMAR,Error in levmar Levenberg-Marquardt code
+450,NOFIT,Fit failed
+451,ISNAN,A transformation generated one or more NaN values
+452,WRERR,write error

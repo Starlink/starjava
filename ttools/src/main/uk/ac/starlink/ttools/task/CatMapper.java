@@ -14,7 +14,9 @@ import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.EmptyStarTable;
 import uk.ac.starlink.table.JoinStarTable;
+import uk.ac.starlink.table.MetaCopyStarTable;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.WrapperStarTable;
 import uk.ac.starlink.task.BooleanParameter;
@@ -252,7 +254,14 @@ public class CatMapper implements TableMapper {
                 for ( int i = 0; i < nTable; i++ ) {
                     inTables[ i ] = tProds[ i ].getTable();
                 }
-                out = new ConcatStarTable( inTables[ 0 ], inTables );
+                MetaCopyStarTable t0 = new MetaCopyStarTable( inTables[ 0 ] );
+                ColumnInfo[] colInfos =
+                    ConcatStarTable
+                   .extendColumnTypes( Tables.getColumnInfos( t0 ), inTables );
+                for ( int ic = 0; ic < colInfos.length; ic++ ) {
+                    t0.setColumnInfo( ic, colInfos[ ic ] );
+                }
+                out = new ConcatStarTable( t0, inTables );
             }
 
             /* Work out the table row count if required. */

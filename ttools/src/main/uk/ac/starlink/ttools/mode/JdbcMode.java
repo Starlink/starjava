@@ -137,7 +137,7 @@ public class JdbcMode implements ProcessingMode {
         return DocUtils.join( new String[] {
             "<p>Writes a new table to an SQL database.",
             "You need the appropriate JDBC drivers and",
-            "<code>-Djdcb.drivers</code> set as usual",
+            "<code>-Djdbc.drivers</code> set as usual",
             "(see <ref id=\"jdbcConfig\"/>).",
             "</p>",
         } );

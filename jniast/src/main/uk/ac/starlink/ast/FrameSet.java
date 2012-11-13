@@ -46,13 +46,13 @@ package uk.ac.starlink.ast;
  * coordinates into "apparent" ones, and vice versa. Like any
  * Mapping, a FrameSet may also be inverted (see astInvert), which
  * has the effect of interchanging its base and current Frames and
- * hence of reversing the Mapping between them. 
+ * hence of reversing the Mapping between them.
  * <p>
  * Regions may be added into a FrameSet (since a Region is a type of
- * Frame), either explicitly or as components within CmpFrames. In this 
- * case the Mapping between a pair of Frames within a FrameSet will 
- * include the effects of the clipping produced by any Regions included 
- * in the path between the Frames. 
+ * Frame), either explicitly or as components within CmpFrames. In this
+ * case the Mapping between a pair of Frames within a FrameSet will
+ * include the effects of the clipping produced by any Regions included
+ * in the path between the Frames.
  * <h4>Licence</h4>
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public Licence as
@@ -66,8 +66,8 @@ package uk.ac.starlink.ast;
  * <p>
  * You should have received a copy of the GNU General Public Licence
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
- * 02111-1307, USA
+ * Foundation, Inc., 51 Franklin Street,Fifth Floor, Boston, MA
+ * 02110-1301, USA
  * 
  * 
  * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_FrameSet'>AST FrameSet</a>  
@@ -112,7 +112,9 @@ public class FrameSet extends Frame {
      * one which already exists within the FrameSet. The new Frame then
      * becomes the FrameSet's current Frame.
      * <p>
-     * This function may also be used to merge two FrameSets.
+     * This function
+     * may also be used to merge two FrameSets, or to append extra axes
+     * to every Frame in a FrameSet.
      * <h4>Notes</h4>
      * <br> - A value of AST__BASE or AST__CURRENT may be given for the
      * "iframe" parameter to specify the base Frame or the current
@@ -137,12 +139,31 @@ public class FrameSet extends Frame {
      * the "iframe" parameter (in the original FrameSet) and the current
      * Frame of the "frame" FrameSet. This latter Frame becomes the
      * current Frame in the merged FrameSet.
+     * <br> - As another special case, if a value of AST__ALLFRAMES is supplied
+     * for parameter
+     * "iframe",
+     * then the supplied Mapping is ignored, and the axes defined by the
+     * supplied Frame are appended to each Frame in the FrameSet. In detail,
+     * each Frame in the FrameSet is replaced by a CmpFrame containing the
+     * original Frame and the Frame specified by parameter
+     * "frame".
+     * In addition, each Mapping in the FrameSet is replaced by a CmpMap
+     * containing the original Mapping and a UnitMap in parallel. The Nin and
+     * Nout attributes of the UnitMap are set equal to the number of axes
+     * in the supplied Frame. Each new CmpMap is simplified using
+     * astSimplify
+     * before being stored in the FrameSet.
+     * <p>
+     * 
+     * 
      * @param   iframe
      * The index of the Frame within the FrameSet which describes
      * the coordinate system upon which the new one is to be based.
      * This value should lie in the range from 1 to the number of
      * Frames already in the FrameSet (as given by its Nframe
-     * attribute).
+     * attribute). As a special case, AST__ALLFRAMES may be supplied,
+     * in which case the axes defined by the supplied Frame are appended
+     * to every Frame in the FrameSet (see the Notes section for details).
      * 
      * @param   map
      * Pointer to a Mapping which describes how to convert
@@ -150,7 +171,8 @@ public class FrameSet extends Frame {
      * Frame with index "iframe") into coordinates in the new
      * system. The Mapping's forward transformation should perform
      * this conversion, and its inverse transformation should
-     * convert in the opposite direction.
+     * convert in the opposite direction. The supplied Mapping is ignored
+     * if parameter "iframe"is equal to AST__ALLFRAMES.
      * 
      * @param   frame
      * Pointer to a Frame that describes the new coordinate system.

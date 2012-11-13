@@ -1,7 +1,10 @@
 package uk.ac.starlink.vo;
 
+import adql.db.exception.UnresolvedIdentifiersException;
 import adql.parser.ParseException;
 import adql.parser.Token;
+import adql.parser.TokenMgrError;
+import adql.query.TextPosition;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -9,8 +12,6 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -51,8 +52,7 @@ public class TapQueryPanel extends JPanel {
     private URL serviceUrl_;
     private Thread metaFetcher_;
     private Thread capFetcher_;
-    private AdqlValidator validator_;
-    private ParseException parseError_;
+    private Throwable parseError_;
     private final ParseTextArea textPanel_;
     private final TableSetPanel tmetaPanel_;
     private final TapCapabilityPanel tcapPanel_;
@@ -124,13 +124,17 @@ public class TapQueryPanel extends JPanel {
                 clearAct.setEnabled( textPanel_.getDocument().getLength() > 0 );
                 String text = textPanel_.getText();
                 if ( text.trim().length() > 0 ) {
+                    AdqlValidator validator = getValidator();
                     try {
-                        validator_.validate( text );
+                        validator.validate( text );
                         setParseError( null );
                     }
-                    catch ( ParseException e ) {
+                    catch ( Throwable e ) {
                         setParseError( e );
                     }
+                }
+                else {
+                    setParseError( null );
                 }
             }
         } );
@@ -148,17 +152,20 @@ public class TapQueryPanel extends JPanel {
                 Object src = evt.getSource();
                 if ( src instanceof Component ) {
                     Component comp = (Component) src;
+
+                    /* The example text will be affected by various aspects
+                     * of the state of this component; they must be configured
+                     * appropriately before display.  It would be possible
+                     * to keep them up to date at all times by monitoring
+                     * the state of constituent components, but it needs
+                     * a lot of listeners and plumbing. */
+                    configureExamples();
                     examplesMenu.show( comp, 0, 0 );
                 }
             }
         };
         examplesAct_.putValue( Action.SHORT_DESCRIPTION,
                                "Choose from example ADQL quries" );
-        tmetaPanel_.getTableSelector().addItemListener( new ItemListener() {
-            public void itemStateChanged( ItemEvent evt ) {
-                configureExamples();
-            }
-        } );
 
         /* Controls for ADQL text panel. */
         Box buttLine = Box.createHorizontalBox();
@@ -341,7 +348,6 @@ public class TapQueryPanel extends JPanel {
                     public void run() {
                         if ( fetcher == capFetcher_ ) {
                             tcapPanel_.setCapability( cap );
-                            configureExamples();
                         }
                     }
                 } );
@@ -349,6 +355,21 @@ public class TapQueryPanel extends JPanel {
         };
         capFetcher_.setDaemon( true );
         capFetcher_.start();
+    }
+
+    /**
+     * Returns any extra tables available for valid queries.
+     * By default ADQL validation is done on a list of tables acquired
+     * by reading the service's declared table metadata.
+     * Subclasses which override this method can arrange for additional
+     * tables to be passed by the validator.
+     * This method is called immediately prior to any validation attempt.
+     * The default implementation returns an empty array.
+     *
+     * @return   array of additional tables to be passed by the validator
+     */
+    protected AdqlValidator.ValidatorTable[] getExtraTables() {
+        return new AdqlValidator.ValidatorTable[ 0 ];
     }
 
     /**
@@ -360,9 +381,6 @@ public class TapQueryPanel extends JPanel {
 
         /* Populate table metadata JTable. */
         tmetaPanel_.setTables( tmetas );
-
-        /* Set validator. */
-        validator_ = new AdqlValidator( tmetas );
 
         /* Display number of tables. */
         String countText;
@@ -376,14 +394,13 @@ public class TapQueryPanel extends JPanel {
             countText = "(" + tmetas.length + " tables)";
         }
         countLabel_.setText( countText );
-        configureExamples();
     }
 
     /**
      * Works with the known table and service metadata currently displayed
      * to set up example queries.
      */
-    public void configureExamples() {
+    private void configureExamples() {
         String lang = tcapPanel_.getQueryLanguage();
         TapCapability tcap = tcapPanel_.getCapability();
         TableMeta[] tables = tmetaPanel_.getTables();
@@ -394,6 +411,29 @@ public class TapQueryPanel extends JPanel {
                 exAct.getExample().getText( true, lang, tcap, tables, table );
             exAct.setAdqlText( adql );
         }
+    }
+
+    /**
+     * Returns a validator for validating ADQL text.
+     *
+     * @return  ADQL validator
+     */
+    private AdqlValidator getValidator() {
+
+        /* Prepare a list of table metadata objects to inform the validator
+         * what tables and columns are available. */
+        List<AdqlValidator.ValidatorTable> vtList =
+            new ArrayList<AdqlValidator.ValidatorTable>();
+        TableMeta[] tmetas = tmetaPanel_.getTables();
+        for ( int it = 0; it < tmetas.length; it++ ) {
+            vtList.add( AdqlValidator.toValidatorTable( tmetas[ it ] ) );
+        }
+        vtList.addAll( Arrays.asList( getExtraTables() ) );
+        AdqlValidator.ValidatorTable[] vtables =
+            vtList.toArray( new AdqlValidator.ValidatorTable[ 0 ] );
+
+        /* Construct and return a validator. */
+        return new AdqlValidator( vtables );
     }
 
     /**
@@ -413,7 +453,7 @@ public class TapQueryPanel extends JPanel {
      *
      * @param  parseError  parse error or null
      */
-    private void setParseError( ParseException parseError ) {
+    private void setParseError( Throwable parseError ) {
         parseError_ = parseError;
         textPanel_.setParseError( parseError );
         parseErrorAct_.setEnabled( parseError != null );
@@ -485,7 +525,7 @@ public class TapQueryPanel extends JPanel {
      */
     private class ParseTextArea extends JTextArea {
 
-        private Rectangle errorRect_;
+        private Rectangle[] errorRects_;
         private final Color highlighter_;
 
         /**
@@ -494,15 +534,18 @@ public class TapQueryPanel extends JPanel {
         public ParseTextArea() {
             super( new PlainDocument() );
             highlighter_ = new Color( 0x40ff0000, true );
+            errorRects_ = new Rectangle[ 0 ];
         }
 
         protected void paintComponent( Graphics g ) {
             super.paintComponent( g );
             Color col0 = g.getColor();
             g.setColor( highlighter_ );
-            if ( errorRect_ != null ) {
-                g.fillRect( errorRect_.x, errorRect_.y,
-                            errorRect_.width, errorRect_.height );
+            if ( errorRects_.length > 0 ) {
+                for ( int ir = 0; ir < errorRects_.length; ir++ ) {
+                    Rectangle erect = errorRects_[ ir ];
+                    g.fillRect( erect.x, erect.y, erect.width, erect.height );
+                }
             }
             g.setColor( col0 );
         }
@@ -512,35 +555,65 @@ public class TapQueryPanel extends JPanel {
          *
          * @param  perr  parse error, or null if there is none
          */
-        public void setParseError( ParseException perr ) {
-            Rectangle er = toRectangle( perr );
-            if ( ( er == null && errorRect_ != null ) ||
-                 ( er != null && ! er.equals( errorRect_ ) ) ) {
-                if ( er != null ) {
-                    repaint( er );
-                }
-                if ( errorRect_ != null ) {
-                    repaint( errorRect_ );
+        public void setParseError( Throwable perr ) {
+            Rectangle[] ers = toRectangles( perr );
+            if ( ! Arrays.equals( errorRects_, ers ) ) {
+                errorRects_ = ers;
+                repaint();
+            }
+        }
+
+        /**
+         * Returns zero or more rectangles on this text area which mark
+         * the positions of tokens corresponding to parse errors indicated
+         * by the given parse exception.
+         *
+         * @param  perr  parse error (may be null)
+         * @return  array of error token rectangles
+         */
+        private Rectangle[] toRectangles( Throwable perr ) {
+            List<Rectangle> rectList = new ArrayList<Rectangle>();
+            if ( perr instanceof UnresolvedIdentifiersException ) {
+                for ( ParseException pe :
+                      (UnresolvedIdentifiersException) perr ) {
+                    Rectangle rect = toRectangle( pe );
+                    if ( rect != null ) {
+                        rectList.add( rect );
+                    }
                 }
             }
-            errorRect_ = er;
+            else if ( perr instanceof ParseException ) {
+                Rectangle rect = toRectangle( (ParseException) perr );
+                if ( rect != null ) {
+                    rectList.add( rect );
+                }
+            }
+            else if ( perr instanceof TokenMgrError ) {
+                Rectangle rect = toRectangle( (TokenMgrError) perr );
+                if ( rect != null ) {
+                    rectList.add( rect );
+                }
+            }
+            else if ( perr != null ) {
+                logger_.warning( "Unexpected parse exception: " + perr );
+            }
+            return rectList.toArray( new Rectangle[ 0 ] );
         }
 
         /**
          * Indicates the coordinates of a rectangle on this text area
          * corresponding to the token indicated by a parse error.
          *
-         * @param  perr  parse error
+         * @param  perr  parse error (may be null)
          * @return   rectangle coordinates of error-causing token
          */
         private Rectangle toRectangle( ParseException perr ) {
-            if ( perr == null ) {
+            TextPosition tpos = perr == null ? null : perr.getPosition();
+            if ( tpos == null ) {
                 return null;
             }
-            Rectangle r0 =
-                toRectangle( perr.getBeginLine(), perr.getBeginColumn() );
-            Rectangle r1 =
-                toRectangle( perr.getEndLine(), perr.getEndColumn() + 1 );
+            Rectangle r0 = toRectangle( tpos.beginLine, tpos.beginColumn );
+            Rectangle r1 = toRectangle( tpos.endLine, tpos.endColumn );
             if ( r0 == null || r1 == null ) {
                 return null;
             }
@@ -548,6 +621,25 @@ public class TapQueryPanel extends JPanel {
                 r0.add( r1 );
                 return r0;
             }
+        }
+
+        /**
+         * Indicates the coordinates of a rectangle on this text area
+         * corresponding to the token indicated by a TokenMgrError.
+         * The coordinates are approximate; a TokenMgrError does not have
+         * such complete position information as a ParseException.
+         *
+         * @param  tmerr  parse error
+         * @return   rectangle coordinates of error-causing token
+         */
+        private Rectangle toRectangle( TokenMgrError tmerr ) {
+            int iline = tmerr.getErrorLine();
+            int icol = tmerr.getErrorColumn();
+            Rectangle r0 = toRectangle( iline, icol );
+            if ( icol > 0 ) {
+                r0.add( toRectangle( iline, icol - 1 ) );
+            }
+            return r0;
         }
 
         /**

@@ -31,8 +31,8 @@ import uk.ac.starlink.util.Loader;
  * <p>
  * You should have received a copy of the GNU General Public Licence
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
- * 02111-1307, USA
+ * Foundation, Inc., 51 Franklin Street,Fifth Floor, Boston, MA
+ * 02110-1301, USA
  * 
  * 
  * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_Object'>AST Object</a>  
@@ -561,9 +561,9 @@ public class AstObject {
      * <br> - White space may also surround attribute values, where it will
      * generally be ignored (except for string-valued attributes where
      * it is significant and forms part of the value to be assigned).
-     * <br> - It is not possible to include a comma directly in the value
-     * assigned to an attribute via the "settings" string. To achieve
-     * this, you should use "%s" format and supply the value as a
+     * <br> - To include a literal comma in the value assigned to an attribute,
+     * the whole attribute value should be enclosed in quotation markes.
+     * Alternatively, you can use "%s" format and supply the value as a
      * separate additional argument to astSet (or use the astSetC
      * function instead).
      * <br> - The same procedure may be adopted if "%" signs are to be included
@@ -611,30 +611,34 @@ public class AstObject {
     public native boolean test( String attrib );
 
     /** 
-     * Set or get an AST global tuning parameter.   
-     * This function returns the current value of an AST global tuning 
-     * parameter, optionally storing a new value for the parameter.
+     * Set or get an integer-valued AST global tuning parameter.   
+     * This function returns the current value of an integer-valued AST
+     * global tuning parameter, optionally storing a new value for the
+     * parameter. For character-valued tuning parameters, see
+     * astTuneC.
      * <h4>Tuning Parameters</h4>
-     * <br> - ObjectCaching: A boolean flag which indicates what should happen 
-     * to the memory occupied by an AST Object when the Object is deleted 
-     * (i.e. when its reference count falls to zero or it is deleted using 
-     * astDelete). 
-     * If this is zero, the memory is simply freed using the systems "free" 
-     * function. If it is non-zero, the memory is not freed. Instead a pointer 
-     * to it is stored in a pool of such pointers, all of which refer to 
-     * allocated but currently unused blocks of memory. This allows AST to
-     * speed up subsequent Object creation by re-using previously
-     * allocated memory blocks rather than allocating new memory using the
-     * systems malloc function. The default value for this parameter is
-     * zero. Setting it to a non-zero value will result in Object memory
-     * being cached in future. Setting it back to zero causes any memory
-     * blocks currently in the pool to be freed. Note, this tuning parameter 
-     * only controls the caching of memory used to store AST Objects. To 
-     * cache other memory blocks allocated by AST, use MemoryCaching.
-     * <br> - MemoryCaching: A boolean flag similar to ObjectCaching except
-     * that it controls caching of all memory blocks of less than 300 bytes
-     * allocated by AST (whether for internal or external use), not just 
-     * memory used to store AST Objects. 
+     * ObjectCaching
+     *    A boolean flag which indicates what should happen
+     *    to the memory occupied by an AST Object when the Object is deleted
+     *    (i.e. when its reference count falls to zero or it is deleted using
+     *    astDelete).
+     *    If this is zero, the memory is simply freed using the systems "free"
+     *    function. If it is non-zero, the memory is not freed. Instead a
+     *    pointer to it is stored in a pool of such pointers, all of which
+     *    refer to allocated but currently unused blocks of memory. This allows
+     *    AST to speed up subsequent Object creation by re-using previously
+     *    allocated memory blocks rather than allocating new memory using the
+     *    systems malloc function. The default value for this parameter is
+     *    zero. Setting it to a non-zero value will result in Object memory
+     *    being cached in future. Setting it back to zero causes any memory
+     *    blocks currently in the pool to be freed. Note, this tuning parameter
+     *    only controls the caching of memory used to store AST Objects. To
+     *    cache other memory blocks allocated by AST, use MemoryCaching.
+     * MemoryCaching
+     *    A boolean flag similar to ObjectCaching except
+     *    that it controls caching of all memory blocks of less than 300 bytes
+     *    allocated by AST (whether for internal or external use), not just
+     *    memory used to store AST Objects.
      * <h4>Notes</h4>
      * <br> - This function attempts to execute even if the AST error
      * status is set
@@ -719,9 +723,9 @@ public class AstObject {
     /**
      * Get 
      * permanent Object identification string.  
-     * This attribute is like the ID attribute, in that it contains a 
-     * string which may be used to identify the Object to which it is 
-     * attached. The only difference between ID and Ident is that Ident 
+     * This attribute is like the ID attribute, in that it contains a
+     * string which may be used to identify the Object to which it is
+     * attached. The only difference between ID and Ident is that Ident
      * is transferred when an Object is copied, but ID is not.
      * 
      *
@@ -734,9 +738,9 @@ public class AstObject {
     /**
      * Set 
      * permanent Object identification string.  
-     * This attribute is like the ID attribute, in that it contains a 
-     * string which may be used to identify the Object to which it is 
-     * attached. The only difference between ID and Ident is that Ident 
+     * This attribute is like the ID attribute, in that it contains a
+     * string which may be used to identify the Object to which it is
+     * attached. The only difference between ID and Ident is that Ident
      * is transferred when an Object is copied, but ID is not.
      * 
      *

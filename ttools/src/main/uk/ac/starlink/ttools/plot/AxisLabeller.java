@@ -25,6 +25,7 @@ public class AxisLabeller {
     private FontMetrics fm_;
     private TickStyle tickStyle_;
     private int reqTick_;
+    private Rectangle axisBounds_;
     private int maxHeight_;
     private boolean drawText_ = true;
 
@@ -75,7 +76,9 @@ public class AxisLabeller {
          * the requested number, but if this makes the axis too crowded
          * reduce the number and start again. */
         TickLabel[] labels = null;
-        int maxh = 0;
+        int xmin = 0;
+        int xmax = npix_;
+        int hmax = 0;
         for ( int mTick = reqTick_; labels == null && mTick > 0; mTick-- ) {
             AxisLabels axer = log_
                             ? AxisLabels.labelLogAxis( lo_, hi_, mTick )
@@ -90,7 +93,9 @@ public class AxisLabeller {
 
                 /* Check it's not too close to the last label. */
                 Rectangle bounds = tickStyle_.getBounds( fm_, pos, 0, text );
-                maxh = Math.max( maxh, bounds.height );
+                hmax = Math.max( hmax, bounds.height );
+                xmin = Math.min( xmin, bounds.x );
+                xmax = Math.max( xmax, bounds.x + bounds.width );
                 if ( iTick > 0 ) {
                     Rectangle r1 =
                        new Rectangle( bounds.x, bounds.y, 
@@ -110,21 +115,29 @@ public class AxisLabeller {
         }
         assert labels != null;
         tickLabels_ = labels;
-        maxHeight_ = maxh;
+        maxHeight_ = hmax;
+        int fullHeight = hmax;
+        if ( axisLabel_ != null && axisLabel_.trim().length() > 0 ) {
+            fullHeight += fm_.getHeight() + fm_.getDescent();
+        }
+        axisBounds_ =
+            new Rectangle( xmin, tickStyle_.isDown() ? -fullHeight : 0,
+                           xmax - xmin, fullHeight );
     }
 
     /**
-     * Returns the height in pixels of the annotation text.  This is a
-     * distance perpendicular to the axis itself.
+     * Returns the bounding box that contains the axis and annotations
+     * drawn that this labeller would like to draw.  
+     * In the horizontal direction this covers
+     * at least the range 0-npix, and may be larger if some numeric labels
+     * extend beyond the axis itself.  In the vertical direction it
+     * includes space for the height of numeric labels and possibly a
+     * text label.
      *
-     * @return   size of annotation box
+     * @return  annotation bounding box
      */
-    public int getAnnotationHeight() {
-        int h = maxHeight_;
-        if ( axisLabel_ != null && axisLabel_.trim().length() > 0 ) {
-            h += fm_.getHeight() + fm_.getDescent();
-        }
-        return h;
+    public Rectangle getAnnotationBounds() {
+        return new Rectangle( axisBounds_ );
     }
 
     /**
@@ -149,6 +162,24 @@ public class AxisLabeller {
     }
 
     /**
+     * Returns the number of pixels below 0 available for drawing on.
+     *
+     * @return   left padding pixel count 
+     */
+    public int getLoPad() {
+        return loPad_;
+    }
+
+    /**
+     * Returns the number of pixels above npix available for drawing on.
+     *
+     * @return  right padding pixel count
+     */
+    public int getHiPad() {
+        return hiPad_;
+    }
+
+    /**
      * Draw the axis labels on a given graphics context.
      * The axis will be drawn along the horizontal direction of the context,
      * starting at the origin.
@@ -162,9 +193,8 @@ public class AxisLabeller {
              axisLabel_ != null && axisLabel_.trim().length() > 0 ) {
             g.drawString( axisLabel_,
                          ( npix_ - fm_.stringWidth( axisLabel_ ) ) / 2,
-                         tickStyle_.isDown() 
-                                  ? maxHeight_ + fm_.getHeight()
-                                  : - maxHeight_ - fm_.getDescent() );
+                         tickStyle_.isDown() ? maxHeight_ + fm_.getHeight()
+                                             : -maxHeight_ - fm_.getDescent() );
         }
 
         /* Draw the tick marks. */

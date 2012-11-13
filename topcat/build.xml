@@ -754,6 +754,7 @@
                 icon="${src.dir}/lib/MacOS/Topcat.icns"
                 infostring="${Name} ${copyright.string}"
                 jvmversion="1.5+"
+                vmoptions=""
                 version="${version}"
                 jar="${dist.lib.pkg}/topcat-full.jar">
 
@@ -1364,7 +1365,7 @@
     <!-- Transform the user document from XML to HTML form for browsing. -->
     <java classpathref="classpath"
           dir="${src.docs}"
-          classname="uk.ac.starlink.util.MultiXML"
+          classname="uk.ac.starlink.xdoc.MultiXML"
           failonerror="yes"
           fork="yes">
       <sysproperty key="java.awt.headless" value="true"/>
@@ -1387,7 +1388,7 @@
     <!-- Transform the user document from XML to JavaHelp form. -->
     <java classpathref="classpath"
           dir="${src.docs}" 
-          classname="uk.ac.starlink.util.MultiXML" 
+          classname="uk.ac.starlink.xdoc.MultiXML" 
           failonerror="yes"
           fork="yes">
       <sysproperty key="java.awt.headless" value="true"/>

@@ -37,8 +37,8 @@ package uk.ac.starlink.ast;
  * <p>
  * You should have received a copy of the GNU General Public Licence
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
- * 02111-1307, USA
+ * Foundation, Inc., 51 Franklin Street,Fifth Floor, Boston, MA
+ * 02110-1301, USA
  * 
  * @see <a href="http://star-www.rl.ac.uk/star/docs/sun67.htx/sun67.html">SUN/67 - SLALIB</a>
  * 
@@ -153,8 +153,8 @@ public class SlaMap extends Mapping {
      * In addition the following strings may be supplied for more complex
      * conversions which do not correspond to any one single SLALIB routine
      * (DIURAB is the magnitude of the diurnal aberration vector in units
-     * of "day/(2.PI)", DATE is the Modified Julian Date of the observation, 
-     * and (OBSX,OBSY,OBZ) are the Heliocentric-Aries-Ecliptic cartesian 
+     * of "day/(2.PI)", DATE is the Modified Julian Date of the observation,
+     * and (OBSX,OBSY,OBZ) are the Heliocentric-Aries-Ecliptic cartesian
      * coordinates, in metres, of the observer):
      * <p>
      * <br> - "HPCEQ" (DATE,OBSX,OBSY,OBSZ): Convert Helioprojective-Cartesian coordinates to J2000.0 equatorial.
@@ -169,7 +169,7 @@ public class SlaMap extends Mapping {
      * Note, the "H2E" and "E2H" conversions convert between topocentric
      * horizon coordinates (azimuth,elevation), and apparent local equatorial
      * coordinates (hour angle,declination). Thus, the effects of diurnal
-     * aberration are taken into account in the conversions but the effects 
+     * aberration are taken into account in the conversions but the effects
      * of atmospheric refraction are not.
      * 
      * @see <a href="http://star-www.rl.ac.uk/star/docs/sun67.htx/sun67.html">SUN/67 - SLALIB</a>

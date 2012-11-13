@@ -4,163 +4,145 @@ import java.io.IOException;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
-import uk.ac.starlink.table.WrapperRowSequence;
 import uk.ac.starlink.table.WrapperStarTable;
 
 /**
- * Modifies a table by adding a set of columns to it which are calculated
- * as a function of existing columns.  Concrete subclasses must provide
- * an implementation of the {@link #calculateValues} method.
- *
- * <p>Some attempt is made to arrange things so that if the output 
- * columns are read for the same row, the <code>calculateValues</code>
- * method is called only once, for the sake of efficiency.
+ * Wrapper table which adds another table to it by placing all the
+ * columns of the added table together with the existing columns.
+ * The added columns may be placed anywhere, but they stay together.
+ * Table metadata is just that of the base table.
  *
  * @author   Mark Taylor
- * @since    30 Aug 2005
+ * @since    2 Dec 2011
  */
-public abstract class AddColumnsTable extends WrapperStarTable {
+public class AddColumnsTable extends WrapperStarTable {
 
     private final StarTable baseTable_;
-    private final int[] inColIndices_;
-    private final ColumnInfo[] outColInfos_;
-    private final int[] colMap_;
-    private long currentRow_ = -1L;
-    private Object[] outValues_;
+    private final ColumnSupplement colSup_;
+    private final int ncol_;
+    private final boolean[] jtabs_; // false for base, true for supplement
+    private final int[] jcols_;     // column index in table indicated by jtabs_
 
     /**
-     * Constructor.
+     * Constructs a table in which the added columns are placed at a
+     * given position.
      *
-     * @param   baseTable  base table
-     * @param   inColIndices  array of indices of the columns in the base
-     *          table which are used to calculate the new columns in the 
-     *          resulting table
-     * @param   outColInfos  array of column info headers for each of the
-     *          new columns which are added in the resulting table
-     * @param   ipos    position which the first of the new columns is
-     *          to occupy in the resulting table (other new columns
-     *          follow immediately)
+     * @param  baseTable  base table
+     * @param  colSup   object supplying columns to be added
+     * @param  ipos  column index within the output table at which
+     *               the first <code>colSup</code> column should appear
      */
-    public AddColumnsTable( StarTable baseTable, int[] inColIndices, 
-                            ColumnInfo[] outColInfos, int ipos ) {
+    public AddColumnsTable( StarTable baseTable, ColumnSupplement colSup,
+                            int ipos ) {
         super( baseTable );
         baseTable_ = baseTable;
-        inColIndices_ = inColIndices;
-        outColInfos_ = outColInfos;
+        colSup_ = colSup;
+        int nc0 = baseTable_.getColumnCount();
+        int nc1 = colSup_.getColumnCount();
+        ncol_ = nc0 + nc1;
 
-        /* Store a map of which column in the base table is used for each
-         * column in this table.  Negative values indicate calculated
-         * columns; -1 is the first one, -2 is the second and so on. */
-        colMap_ = new int[ baseTable.getColumnCount() + outColInfos.length ];
-        int j = 0;
-        for ( int i = 0; i < colMap_.length; i++ ) {
-            colMap_[ i ] = ( i >= ipos && i < ipos + outColInfos.length )
-                         ? ipos - i - 1
-                         : j++;
+        /* Store a lookup table for where to find output columns. */
+        jtabs_ = new boolean[ ncol_ ];
+        jcols_ = new int[ ncol_ ];
+        for ( int ic = 0; ic < ncol_; ic++ ) {
+            int ic1 = ic - ipos;
+            final int jcol;
+            final boolean jtab;
+            if ( ic1 < 0 ) {
+                jtab = false;
+                jcol = ic;
+            }
+            else if ( ic1 >= nc1 ) {
+                jtab = false;
+                jcol = ic - nc1;
+            }
+            else {
+                jtab = true;
+                jcol = ic1;
+            }
+            jcols_[ ic ] = jcol;
+            jtabs_[ ic ] = jtab;
         }
-        assert j == baseTable.getColumnCount();
     }
 
     /**
-     * Calcuates the values for the new columns added to this table
-     * based on the values from the relevant columns from the base table.
+     * Constructs a table in which the added columns come after all the
+     * columns of the base table.
      *
-     * @param  inValues  array of values from the base table, 
-     *         one from each of the columns indicated by the
-     *         <code>inColIndices</code> array
-     * @return array of values to be included in this table,
-     *         one for each of the columns indicated by the 
-     *         <code>outColInfos</code> array
+     * @param   baseTable   base table
+     * @param  colSup   object supplying columns to be added
      */
-    protected abstract Object[] calculateValues( Object[] inValues );
+    public AddColumnsTable( StarTable baseTable, ColumnSupplement colSup ) {
+        this( baseTable, colSup, baseTable.getColumnCount() );
+    }
 
     public int getColumnCount() {
-        return colMap_.length;
+        return jcols_.length;
     }
 
     public ColumnInfo getColumnInfo( int icol ) {
-        int ibase = colMap_[ icol ];
-        return ibase >= 0 ? super.getColumnInfo( ibase )
-                          : outColInfos_[ -1 - ibase ];
+        int jcol = jcols_[ icol ];
+        return jtabs_[ icol ] ? colSup_.getColumnInfo( jcol )
+                              : baseTable_.getColumnInfo( jcol );
     }
 
     public Object getCell( long irow, int icol ) throws IOException {
-        int ibase = colMap_[ icol ];
-        if ( ibase >= 0 ) {
-            return super.getCell( irow, ibase );
-        }
-        else {
-            synchronized ( this ) {
-                if ( irow != currentRow_ || currentRow_ < 0 ) {
-                    currentRow_ = -1;
-                    Object[] inValues = new Object[ inColIndices_.length ];
-                    for ( int i = 0; i < inColIndices_.length; i++ ) {
-                        inValues[ i ] = super.getCell( irow,
-                                                       inColIndices_[ i ] );
-                    }
-                    outValues_ = calculateValues( inValues );
-                    currentRow_ = irow;
-                }
-                assert irow == currentRow_;
-                return outValues_[ -1 - ibase ];
-            }
-        }
+        int jcol = jcols_[ icol ];
+        return jtabs_[ icol ] ? colSup_.getCell( irow, jcol )
+                              : baseTable_.getCell( irow, jcol );
     }
 
     public Object[] getRow( long irow ) throws IOException {
-        return calculateRow( super.getRow( irow ) );
+        return combineRows( baseTable_.getRow( irow ), colSup_.getRow( irow ) );
     }
 
     /**
-     * Returns a full row of this table given a full row of the base table.
+     * Takes corresponding rows from the two input tables and
+     * produces a row for this table.
      *
-     * @param   baseRow  row of base table
-     * @return  row of this table
+     * @param  row0  base table row
+     * @param  row1  added table row
+     * @return  output row
      */
-    private Object[] calculateRow( Object[] baseRow ) {
-        Object[] inValues = new Object[ inColIndices_.length ];
-        for ( int i = 0; i < inColIndices_.length; i++ ) {
-            inValues[ i ] = baseRow[ inColIndices_[ i ] ];
-        }
-        Object[] outVals = calculateValues( inValues );
-        Object[] row = new Object[ colMap_.length ];
-        for ( int icol = 0; icol < row.length; icol++ ) {
-            int ibase = colMap_[ icol ];
-            row[ icol ] = ibase >= 0 ? baseRow[ ibase ]
-                                     : outVals[ -1 - ibase ];
+    private Object[] combineRows( Object[] row0, Object[] row1 ) {
+        assert row0.length + row1.length == ncol_;
+        Object[] row = new Object[ ncol_ ];
+        for ( int icol = 0; icol < ncol_; icol++ ) {
+            row[ icol ] = ( jtabs_[ icol ] ? row1 : row0 )[ jcols_[ icol ] ];
         }
         return row;
     }
 
     public RowSequence getRowSequence() throws IOException {
-        return new WrapperRowSequence( super.getRowSequence() ) {
-
-            private Object[] seqOutValues_;
-
+        final RowSequence baseSeq = baseTable_.getRowSequence();
+        final SupplementSequence supSeq = colSup_.createSequence( baseSeq );
+        return new RowSequence() {
+            long lrow_ = -1;
             public boolean next() throws IOException {
-                seqOutValues_ = null;
-                return super.next();
-            }
-
-            public Object getCell( int icol ) throws IOException {
-                int ibase = colMap_[ icol ];
-                if ( ibase >= 0 ) {
-                    return super.getCell( icol );
+                if ( baseSeq.next() ) {
+                    lrow_++;
+                    return true;
                 }
                 else {
-                    if ( seqOutValues_ == null ) {
-                        Object[] inValues = new Object[ inColIndices_.length ];
-                        for ( int i = 0; i < inColIndices_.length; i++ ) {
-                            inValues[ i ] = super.getCell( inColIndices_[ i ] );
-                        }
-                        seqOutValues_ = calculateValues( inValues );
-                    }
-                    return seqOutValues_[ -1 - ibase ];
+                    return false;
                 }
             }
-
+            public Object getCell( int icol ) throws IOException {
+                if ( lrow_ >= 0 ) {
+                    int jcol = jcols_[ icol ];
+                    return jtabs_[ icol ] ? supSeq.getCell( lrow_, jcol )
+                                          : baseSeq.getCell( jcol );
+                }
+                else {
+                    throw new IllegalStateException();
+                }
+            }
             public Object[] getRow() throws IOException {
-                return calculateRow( super.getRow() );
+                return combineRows( baseSeq.getRow(),
+                                    supSeq.getRow( lrow_ ) );
+            }
+            public void close() throws IOException {
+                baseSeq.close();
             }
         };
     }

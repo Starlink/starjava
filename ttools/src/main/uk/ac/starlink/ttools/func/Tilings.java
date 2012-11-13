@@ -18,7 +18,7 @@ import javax.vecmath.Vector3d;
  */
 public class Tilings {
 
-    private static final PixTools pixTools_ = new PixTools();
+    private static final PixTools pixTools_ = PixTools.getInstance();
 
     /**
      * Private constructor prevents instantiation.

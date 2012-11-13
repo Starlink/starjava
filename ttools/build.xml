@@ -1226,7 +1226,7 @@
     <!-- Transform the user document to a multi-page HTML document. -->
     <java classpathref="classpath"
           dir="${src.docs}"
-          classname="uk.ac.starlink.util.MultiXML"
+          classname="uk.ac.starlink.xdoc.MultiXML"
           failonerror="yes"
           fork="yes">
       <sysproperty key="java.awt.headless" value="true"/>

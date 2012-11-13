@@ -48,11 +48,11 @@ public class TopcatJELUtils extends JELUtils {
      */
     public static Library getLibrary( JELRowReader rowReader,
                                       boolean activation ) {
-        List statix = new ArrayList( getStaticClasses() );
+        List<Class> statix = new ArrayList<Class>( getStaticClasses() );
         if ( activation ) {
             statix.addAll( getActivationStaticClasses() );
         }
-        Class[] staticLib = (Class[]) statix.toArray( new Class[ 0 ] );
+        Class[] staticLib = statix.toArray( new Class[ 0 ] );
         Class[] dynamicLib = new Class[] { rowReader.getClass() };
         Class[] dotClasses = new Class[ 0 ];
         DVMap resolver = rowReader;
@@ -91,13 +91,13 @@ public class TopcatJELUtils extends JELUtils {
      *
      * @return  list of activation classes with static methods
      */
-    public static List getActivationStaticClasses() {
+    public static List<Class> getActivationStaticClasses() {
         if ( activationStaticClasses == null ) {
 
             /* Assemble the list of classes which we know we have on hand.
              * Be careful though, since we may not have the classes they
              * rely on. */
-            List classList = new ArrayList();
+            List<Class> classList = new ArrayList<Class>();
             classList.add( Output.class );
             classList.add( uk.ac.starlink.topcat.func.System.class );
             classList.add( Image.class );

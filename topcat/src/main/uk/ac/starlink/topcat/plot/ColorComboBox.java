@@ -59,7 +59,8 @@ public class ColorComboBox extends RenderingComboBox {
     }
 
     protected Icon getRendererIcon( Object obj ) {
-        final Color color = (Color) obj;
+        final Color color = ColorComboBox.this.isEnabled() ? (Color) obj
+                                                           : Color.LIGHT_GRAY;
         return new Icon() {
             public int getIconHeight() {
                 return ICON_HEIGHT;

@@ -327,6 +327,8 @@ public class FuncTest extends TestCase {
         assertEquals( 256.0, Maths.pow( 2, 8 ) );
 
         assertEquals( 32.0, Maths.sqrt( 1024.0 ) );
+
+        assertEquals( 5.0, Maths.hypot( 3, -4 ) );
        
         double delta = 1e-7;
         for ( int i = 0; i < 1000; i++ ) {
@@ -448,17 +450,20 @@ public class FuncTest extends TestCase {
                       CoordsRadians.radiansToHms( Maths.PI / 4.0 ) );
         assertEquals( "12:00:00.000",
                       CoordsRadians.radiansToHms( -Maths.PI, 3 ) );
-        assertEquals( "12:00:00.500", 
+        assertEquals( "11:59:59.500", 
                       CoordsRadians.radiansToHms( -Maths.PI*(1+.5000/12/60/60),
                                                   3 ) );
+        assertEquals( "12:00:00.500", 
+                      CoordsRadians.radiansToHms( -Maths.PI*(1-.5000/12/60/60),
+                                                  3 ) );
         assertEquals( "12:00:00.005", 
-                      CoordsRadians.radiansToHms( -Maths.PI*(1+.0050/12/60/60),
+                      CoordsRadians.radiansToHms( Maths.PI*(1+.0050/12/60/60),
                                                   3 ) );
         assertEquals( "12:00:00.500", 
-                      CoordsRadians.radiansToHms( -Maths.PI*(1+.5004/12/60/60),
+                      CoordsRadians.radiansToHms( Maths.PI*(1+.5004/12/60/60),
                                                   3 ) );
         assertEquals( "12:00:00.500", 
-                      CoordsRadians.radiansToHms( -Maths.PI*(1+.4996/12/60/60),
+                      CoordsRadians.radiansToHms( Maths.PI*(1+.4996/12/60/60),
                                                   3 ) );
 
         assertEquals( Maths.PI / 4.0,
@@ -527,8 +532,8 @@ public class FuncTest extends TestCase {
     }
 
     public void testJELClasses() {
-        checkClassesLookOK( (Class[]) JELUtils.getStaticClasses()
-                                              .toArray( new Class[ 0 ] ) );
+        checkClassesLookOK( JELUtils.getStaticClasses()
+                                    .toArray( new Class[ 0 ] ) );
     }
 
     public void checkClassesLookOK( Class[] classes ) {

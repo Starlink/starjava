@@ -233,6 +233,13 @@ public class SkyColumnQueryWindow extends QueryWindow {
         private LabelledComponentStack createQueryStack() {
             LabelledComponentStack stack = new LabelledComponentStack();
             sysChooser_ = new JComboBox( SkySystem.getKnownSystems() );
+            sysChooser_.setRenderer( new CustomComboBoxRenderer() {
+                protected Object mapValue( Object value ) {
+                    return value instanceof SkySystem
+                         ? ((SkySystem) value).getDescription()
+                         : String.valueOf( value );
+                }
+            } );
             unitChooser_ = new JComboBox( SkyUnits.getKnownUnits() );
             JComponent[] coordChoosers = getCoordChoosers();
             stack.addLine( "System", sysChooser_ );

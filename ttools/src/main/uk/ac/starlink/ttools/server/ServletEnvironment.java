@@ -10,7 +10,6 @@ import java.util.Map;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletResponse;
-import javax.swing.JComponent;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.StarTableOutput;
@@ -25,6 +24,7 @@ import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.TableConsumer;
 import uk.ac.starlink.ttools.plot.GraphicExporter;
+import uk.ac.starlink.ttools.plot.Picture;
 import uk.ac.starlink.ttools.plottask.PaintModeParameter;
 import uk.ac.starlink.ttools.plottask.Painter;
 import uk.ac.starlink.ttools.task.LineTableEnvironment;
@@ -320,7 +320,7 @@ public class ServletEnvironment implements TableEnvironment {
             exporter_ = exporter;
         }
 
-        public void paintPlot( JComponent plot ) throws IOException {
+        public void paintPicture( Picture picture ) throws IOException {
             response_.setContentType( exporter_.getMimeType() );
             String encoding = exporter_.getContentEncoding();
             if ( encoding != null &&
@@ -334,7 +334,7 @@ public class ServletEnvironment implements TableEnvironment {
             }
             OutputStream out =
                 new BufferedOutputStream( response_.getOutputStream() );
-            exporter_.exportGraphic( plot, out );
+            exporter_.exportGraphic( picture, out );
             out.flush();
             out.close();
         }

@@ -62,9 +62,7 @@ public class AssertFilter extends BasicFilter {
                     return new JELAssertionTable( base, expr );
                 }
                 catch ( CompilationException e ) {
-                    String msg = "Bad expression \"" + expr +
-                                 "\" (" + e.getMessage() + ")";
-                    throw (IOException) new IOException( msg ).initCause( e );
+                    throw JELUtils.toIOException( e, expr );
                 }
             }
         };
@@ -142,9 +140,7 @@ public class AssertFilter extends BasicFilter {
                 compEx = JELUtils.compile( lib, baseTable_, expr_ );
             }
             catch ( CompilationException e ) {
-                throw (IOException)
-                      new IOException( "Bad expression: " + expr_ )
-                     .initCause( e );
+                throw JELUtils.toIOException( e, expr_ );
             }
             return new WrapperRowSequence( seqReader ) {
                 long lrow_;

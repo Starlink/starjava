@@ -69,7 +69,8 @@ public class DocNames {
                 narray++;
                 clazz = clazz.getComponentType();
             }
-            mangle.append( clazz.getName().replaceFirst( "^.*\\.", "" ) );
+            mangle.append( clazz.getName().replaceFirst( "^.*\\.", "" )
+                                          .replaceAll( "\\$", "." ) );
             for ( int j = 0; j < narray; j++ ) {
                 mangle.append( ',' );
             }

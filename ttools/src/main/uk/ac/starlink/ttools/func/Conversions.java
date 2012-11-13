@@ -5,6 +5,8 @@
 
 package uk.ac.starlink.ttools.func;
 
+import uk.ac.starlink.table.Tables;
+
 /**
  * Functions for converting between strings and numeric values.
  *
@@ -22,12 +24,52 @@ public class Conversions {
     /**
      * Turns a numeric value into a string.
      *
-     * @param  value  numeric value
-     * @return  a string representation of <code>value</code>
+     * @param  fpVal  floating point numeric value
+     * @return  a string representation of <code>fpVal</code>
      */
-    public static String toString( double value ) {
-        return value == (double) (long) value ? Long.toString( (long) value )
-                                              : Double.toString( value );
+    public static String toString( double fpVal ) {
+        if ( Tables.isBlank( fpVal ) ) {
+            return null;
+        }
+        else {
+            return fpVal == (double) (long) fpVal
+                 ? Long.toString( (long) fpVal )
+                 : Double.toString( fpVal );
+        }
+    }
+
+    /**
+     * Turns an integer numeric value into a string.
+     *
+     * @param  intVal  integer numeric value
+     * @return  a string representation of <code>intVal</code>
+     */
+    public static String toString( long intVal ) {
+        return Long.toString( intVal );
+    }
+
+    /**
+     * Turns a single character value into a string.
+     *
+     * @param  charVal  character numeric value
+     * @return  a string representation of <code>charVal</code>
+     */
+    public static String toString( char charVal ) {
+        return Character.toString( charVal );
+    }
+
+    /**
+     * Turns any value into a string.
+     * As applied to existing string values this isn't really useful,
+     * but it means that you can apply <code>toString()</code>
+     * to any value without knowing its type
+     * and get a useful return from it.
+     *
+     * @param  objVal  non-numeric value
+     * @return  a string representation of <code>objVal</code>
+     */
+    public static String toString( Object objVal ) {
+        return Tables.isBlank( objVal ) ? null : objVal.toString();
     }
 
     /**

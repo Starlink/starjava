@@ -6,6 +6,7 @@ import gnu.jel.DVMap;
 import gnu.jel.Evaluator;
 import gnu.jel.Library;
 import gnu.jel.Parser;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Hashtable;
@@ -18,7 +19,9 @@ import uk.ac.starlink.ttools.func.CoordsDegrees;
 import uk.ac.starlink.ttools.func.CoordsRadians;
 import uk.ac.starlink.ttools.func.Distances;
 import uk.ac.starlink.ttools.func.Fluxes;
+import uk.ac.starlink.ttools.func.Footprints;
 import uk.ac.starlink.ttools.func.Formats;
+import uk.ac.starlink.ttools.func.KCorrections;
 import uk.ac.starlink.ttools.func.Maths;
 import uk.ac.starlink.ttools.func.Strings;
 import uk.ac.starlink.ttools.func.Tilings;
@@ -35,7 +38,7 @@ import uk.ac.starlink.util.Loader;
  */
 public class JELUtils {
 
-    private static List staticClasses_;
+    private static List<Class> staticClasses_;
     private static Logger logger_ = Logger.getLogger( "uk.ac.starlink.ttools" );
 
     /** 
@@ -68,11 +71,12 @@ public class JELUtils {
      *
      * @return   list of classes with static methods
      */
-    public static List getStaticClasses() {
+    public static List<Class> getStaticClasses() {
         if ( staticClasses_ == null ) {
 
             /* Basic classes always present. */
-            List classList = new ArrayList( Arrays.asList( new Class[] {
+            List<Class> classList =
+                    new ArrayList<Class>( Arrays.asList( new Class[] {
                 Arithmetic.class,
                 uk.ac.starlink.ttools.func.Arrays.class,
                 Conversions.class,
@@ -80,7 +84,9 @@ public class JELUtils {
                 CoordsRadians.class,
                 Distances.class,
                 Fluxes.class,
+                Footprints.class,
                 Formats.class,
+                KCorrections.class,
                 Maths.class,
                 Strings.class,
                 Tilings.class,
@@ -206,6 +212,28 @@ public class JELUtils {
                                               String expr )
             throws CompilationException {
         return Evaluator.compile( tweakExpression( table, expr ), lib );
+    }
+
+    /**
+     * Utility method to convert a CompilationException into an IOException.
+     *
+     * @param   e   compilation exception
+     * @param  expr  expression for which compilation failed,
+     *               to be reported in error message
+     */
+    public static IOException toIOException( CompilationException e,
+                                             String expr ) {
+        StringBuffer sbuf = new StringBuffer()
+            .append( "Bad expression \"" )
+            .append( expr )
+            .append( "\"" );
+        String msg = e.getMessage();
+        if ( msg != null && msg.trim().length() > 0 ) {
+            sbuf.append( " (" )
+                .append( msg )
+                .append( ")" );
+        }
+        return (IOException) new IOException( sbuf.toString() ).initCause( e );
     }
 
     /**

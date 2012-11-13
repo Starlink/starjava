@@ -24,6 +24,10 @@ import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.UsageException;
 import uk.ac.starlink.ttools.filter.AddColumnsTable;
+import uk.ac.starlink.ttools.filter.CalculatorColumnSupplement;
+import uk.ac.starlink.ttools.filter.ColumnSupplement;
+import uk.ac.starlink.ttools.filter.PermutedColumnSupplement;
+import uk.ac.starlink.ttools.filter.SupplementSequence;
 import uk.ac.starlink.ttools.func.CoordsDegrees;
 import uk.ac.starlink.ttools.jel.ColumnIdentifier;
 import uk.ac.starlink.ttools.task.TableProducer;
@@ -42,6 +46,7 @@ public class ConeMatcher implements TableProducer {
     private final QuerySequenceFactory qsFact_;
     private final int parallelism_;
     private final boolean bestOnly_;
+    private final Footprint footprint_;
     private final boolean includeBlanks_;
     private final boolean distFilter_;
     private final String copyColIdList_;
@@ -75,11 +80,10 @@ public class ConeMatcher implements TableProducer {
      */
     public ConeMatcher( ConeSearcher coneSearcher, TableProducer inProd,
                         QuerySequenceFactory qsFact, boolean bestOnly ) {
-        this( coneSearcher, inProd, qsFact, bestOnly, true, false,
+        this( coneSearcher, inProd, qsFact, bestOnly, null, true, false,
               1, "*", DISTANCE_INFO.getName(), JoinFixAction.NO_ACTION,
               JoinFixAction.makeRenameDuplicatesAction( "_1", false, false ) );
     }
-    
 
     /**
      * Full-functioned constructor.
@@ -90,6 +94,7 @@ public class ConeMatcher implements TableProducer {
      * @param   qsFact    object which can produce a ConeQueryRowSequence
      * @param   bestOnly  true iff only the best match for each input table
      *                    row is required, false for all matches within radius
+     * @param   footprint  coverage footprint for cone searcher, or null
      * @param   includeBlanks  true iff a row is to be output for input rows
      *                         for which the cone search has no matches
      * @param   distFilter true to perform post-query filtering on results
@@ -108,7 +113,7 @@ public class ConeMatcher implements TableProducer {
      */
     public ConeMatcher( ConeSearcher coneSearcher, TableProducer inProd,
                         QuerySequenceFactory qsFact, boolean bestOnly,
-                        boolean includeBlanks,
+                        Footprint footprint, boolean includeBlanks,
                         boolean distFilter, int parallelism,
                         String copyColIdList, String distanceCol,
                         JoinFixAction inFixAct, JoinFixAction coneFixAct ) {
@@ -116,6 +121,7 @@ public class ConeMatcher implements TableProducer {
         inProd_ = inProd;
         qsFact_ = qsFact;
         bestOnly_ = bestOnly;
+        footprint_ = footprint;
         includeBlanks_ = includeBlanks;
         distFilter_ = distFilter;
         parallelism_ = parallelism;
@@ -151,10 +157,19 @@ public class ConeMatcher implements TableProducer {
     public StarTable getTable() throws IOException, TaskException {
         StarTable inTable = inProd_.getTable();
         ConeQueryRowSequence querySeq = qsFact_.createQuerySequence( inTable );
+        if ( footprint_ != null ) {
+            try {
+                footprint_.initFootprint();
+            }
+            catch ( IOException e ) {
+                logger_.warning( "Footprint initialisation failed: " + e );
+            }
+        }
         final ConeResultRowSequence resultSeq;
         if ( parallelism_ == 1 ) {
             resultSeq = new SequentialResultRowSequence( querySeq,
                                                          coneSearcher_,
+                                                         footprint_,
                                                          bestOnly_, distFilter_,
                                                          distanceCol_ ) {
                    public void close() throws IOException {
@@ -166,6 +181,7 @@ public class ConeMatcher implements TableProducer {
         else {
             resultSeq = new ParallelResultRowSequence( querySeq,
                                                        coneSearcher_,
+                                                       footprint_,
                                                        bestOnly_, distFilter_,
                                                        distanceCol_,
                                                        parallelism_ ) {
@@ -370,37 +386,31 @@ public class ConeMatcher implements TableProducer {
             throw new IllegalArgumentException( "Bad column info type" );
         }
         int ncolIn = inTable.getColumnCount();
-        ColumnInfo[] addCols = new ColumnInfo[] { distInfo };
+        ColumnInfo[] distCols = new ColumnInfo[] { distInfo };
+        final ColumnSupplement distSup;
         if ( ira < 0 || idec < 0 ) {
-            return new AddColumnsTable( inTable, new int[ 0 ],
-                                        addCols, ncolIn ) {
-                protected Object[] calculateValues( Object[] inValues ) {
-                    return new Object[] { new Double( Double.NaN ) };
-                }
-            };
+            Object[] blankRow = new Object[] { new Double( Double.NaN ) };
+            distSup = new ConstantColumnSupplement( distCols, blankRow );
         }
         else {
             final double raUnit =
                 getAngleUnit( inTable.getColumnInfo( ira ).getUnitString() );
             final double decUnit =
                 getAngleUnit( inTable.getColumnInfo( idec ).getUnitString() );
-            return new AddColumnsTable( inTable, new int[] { ira, idec },
-                                        addCols, ncolIn ) {
-                protected Object[] calculateValues( Object[] inValues ) {
-                    double ra1 = inValues[ 0 ] instanceof Number
-                               ? ((Number) inValues[ 0 ]).doubleValue()
-                                 * raUnit
-                               : Double.NaN;
-                    double dec1 = inValues[ 1 ] instanceof Number
-                                ? ((Number) inValues[ 1 ]).doubleValue()
-                                  * decUnit
-                                : Double.NaN;
+            ColumnSupplement radecSup =
+                new PermutedColumnSupplement( inTable,
+                                              new int[] { ira, idec } );
+            distSup = new CalculatorColumnSupplement( radecSup, distCols ) {
+                protected Object[] calculate( Object[] inValues ) {
+                    double ra1 = getDouble( inValues[ 0 ] ) * raUnit;
+                    double dec1 = getDouble( inValues[ 1 ] ) * decUnit;
                     double dist = CoordsDegrees
                                  .skyDistanceDegrees( ra0, dec0, ra1, dec1 );
                     return new Object[] { new Double( dist ) };
                 }
             };
         }
+        return new AddColumnsTable( inTable, distSup );
     }
 
     /**
@@ -715,6 +725,52 @@ public class ConeMatcher implements TableProducer {
                 }
                 public boolean isRandom() {
                     return false;
+                }
+            };
+        }
+    }
+
+    /**
+     * ColumnSupplement implementation that has a constant value for each row.
+     */
+    private static class ConstantColumnSupplement implements ColumnSupplement {
+        private final ColumnInfo[] colInfos_;
+        private final Object[] row_;
+
+        /**
+         * Constructor.
+         *
+         * @param   colInfos  column metadata array
+         * @param   row   column data array, same for each row
+         */
+        ConstantColumnSupplement( ColumnInfo[] colInfos, Object[] row ) {
+            colInfos_ = colInfos;
+            row_ = row;
+        }
+
+        public int getColumnCount() {
+            return colInfos_.length;
+        }
+
+        public ColumnInfo getColumnInfo( int icol ) {
+            return colInfos_[ icol ];
+        }
+
+        public Object getCell( long irow, int icol ) {
+            return row_[ icol ];
+        }
+
+        public Object[] getRow( long irow ) {
+            return row_.clone();
+        }
+
+        public SupplementSequence createSequence( RowSequence rseq ) {
+            return new SupplementSequence() {
+                public Object getCell( long irow, int icol ) {
+                    return row_[ icol ];
+                }
+                public Object[] getRow( long irow ) {
+                    return row_.clone();
                 }
             };
         }

@@ -20,13 +20,14 @@ import javax.swing.event.ChangeListener;
 public class ActionForwarder implements ActionListener, ChangeListener {
 
     private final List listeners_ = new ArrayList();
+    private int nSuspend_;
 
     /**
      * Adds a new listener to the list of forwardees.
      *
      * @param  listener   listener to add
      */
-    public void addListener( ActionListener listener ) {
+    public void addActionListener( ActionListener listener ) {
         listeners_.add( listener );
     }
 
@@ -34,19 +35,38 @@ public class ActionForwarder implements ActionListener, ChangeListener {
      * Removes a listener which was previously added.
      *
      * @param   listener   listener to remove
-     * @see     #addListener
+     * @see     #addActionListener
      */
-    public void removeListener( ActionListener listener ) {
+    public void removeActionListener( ActionListener listener ) {
         listeners_.remove( listener );
     }
 
     public void actionPerformed( ActionEvent evt ) {
-        for ( Iterator it = listeners_.iterator(); it.hasNext(); ) {
-            ((ActionListener) it.next()).actionPerformed( evt );
+        if ( nSuspend_ <= 0 ) {
+            for ( Iterator it = listeners_.iterator(); it.hasNext(); ) {
+                ((ActionListener) it.next()).actionPerformed( evt );
+            }
         }
     }
 
     public void stateChanged( ChangeEvent evt ) {
         actionPerformed( new ActionEvent( evt.getSource(), 0, "Change" ) );
+    }
+
+    /**
+     * Suspends forwarding of events.
+     * No events will be forwarded until a matching call to
+     * {@link #popSuspend} is called.
+     */
+    public void pushSuspend() {
+        nSuspend_++;
+    }
+
+    /**
+     * Resumes forwarding of events.
+     * A previous matching call to {@link #pushSuspend} must have been made.
+     */
+    public void popSuspend() {
+        nSuspend_--;
     }
 }

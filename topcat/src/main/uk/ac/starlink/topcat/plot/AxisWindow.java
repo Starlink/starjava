@@ -144,7 +144,7 @@ public class AxisWindow extends JDialog {
      * @param  listener listener to add
      */
     public void addActionListener( ActionListener listener ) {
-        forwarder_.addListener( listener );
+        forwarder_.addActionListener( listener );
     }
 
     /**
@@ -153,7 +153,7 @@ public class AxisWindow extends JDialog {
      * @param  listener   listener to remove
      */
     public void removeActionListener( ActionListener listener ) {
-        forwarder_.removeListener( listener );
+        forwarder_.removeActionListener( listener );
     }
 
     public void setVisible( boolean vis ) {

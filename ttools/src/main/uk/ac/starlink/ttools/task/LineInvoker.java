@@ -296,6 +296,13 @@ public class LineInvoker {
                 if ( e instanceof ParameterValueException && task != null ) {
                     Parameter param =
                         ((ParameterValueException) e).getParameter();
+                    try {
+                        err.println( "Value was: " + param.getName() + "=\""
+                                   + param.stringValue( env ) + "\"" );
+                    }
+                    catch ( TaskException e2 ) {
+                        // never mind
+                    }
                     err.println( "Usage: " + param.getName() + "="
                                + param.getUsage() );
                     err.println();
@@ -515,25 +522,31 @@ public class LineInvoker {
             e.printStackTrace( env.getErrorStream() );
         }
         else {
-            StringBuffer sbuf = new StringBuffer();
-            sbuf.append( "Error: " );
-            int i = 0;
+            List<String> msgList = new ArrayList<String>();
             for ( ; e != null; e = e.getCause() ) {
                 String msg = e.getMessage();
                 if ( msg == null ) {
                     msg = e.toString();
                 }
-                if ( i > 0 ) {
+                int nm = msgList.size();
+                if ( nm == 0 || ! msg.equals( msgList.get( nm - 1 ) ) ) {
+                    msgList.add( msg );
+                }
+            }
+            String[] msgs = msgList.toArray( new String[ 0 ] );
+            StringBuffer sbuf = new StringBuffer();
+            sbuf.append( "Error: " );
+            for ( int im = 0; im < msgs.length; im++ ) {
+                if ( im > 0 ) {
                     sbuf.append( '\n' );
-                    for ( int j = 0; j < i; j++ ) {
+                    for ( int j = 0; j < im; j++ ) {
                         sbuf.append( "    " );
                     }
                     sbuf.append( '(' );
                 }
-                sbuf.append( msg );
-                i++;
+                sbuf.append( msgs[ im ] );
             }
-            for ( int j = 1; j < i; j++ ) {
+            for ( int j = 1; j < msgs.length; j++ ) {
                 sbuf.append( ')' );
             }
             env.getErrorStream().println( sbuf.toString() );

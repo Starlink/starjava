@@ -11,16 +11,16 @@ c     astSpecFrame
 f     AST_SPECFRAME
 
 *  Description:
-*     A SpecFrame is a specialised form of one-dimensional Frame which 
-*     represents various coordinate systems used to describe positions within 
-*     an electro-magnetic spectrum. The particular coordinate system to be 
-*     used is specified by setting the SpecFrame's System attribute (the 
-*     default is wavelength) qualified, as necessary, by other attributes 
-*     such as the rest frequency, the standard of rest, the epoch of 
+*     A SpecFrame is a specialised form of one-dimensional Frame which
+*     represents various coordinate systems used to describe positions within
+*     an electro-magnetic spectrum. The particular coordinate system to be
+*     used is specified by setting the SpecFrame's System attribute (the
+*     default is wavelength) qualified, as necessary, by other attributes
+*     such as the rest frequency, the standard of rest, the epoch of
 *     observation, units, etc (see the description of the System attribute
 *     for details).
 *
-*     By setting a value for thr SpecOrigin attribute, a SpecFrame can be made 
+*     By setting a value for thr SpecOrigin attribute, a SpecFrame can be made
 *     to represent offsets from a given spectral position, rather than absolute
 *     spectral values.
 
@@ -31,7 +31,7 @@ f     AST_SPECFRAME
 *     In addition to those attributes common to all Frames, every
 *     SpecFrame also has the following attributes:
 *
-*     - AlignSpecOffset: Align SpecFrames using the offset coordinate system? 
+*     - AlignSpecOffset: Align SpecFrames using the offset coordinate system?
 *     - AlignStdOfRest: Standard of rest in which to align SpecFrames
 *     - RefDec: Declination of the source (FK5 J2000)
 *     - RefRA: Right ascension of the source (FK5 J2000)
@@ -40,10 +40,10 @@ f     AST_SPECFRAME
 *     - SourceVel: Source velocity
 *     - SourceVRF: Source velocity rest frame
 *     - SpecOrigin: The zero point for SpecFrame axis values
-*     - StdOfRest: Standard of rest 
+*     - StdOfRest: Standard of rest
 *
-*     Several of the Frame attributes inherited by the SpecFrame class 
-*     refer to a specific axis of the Frame (for instance Unit(axis), 
+*     Several of the Frame attributes inherited by the SpecFrame class
+*     refer to a specific axis of the Frame (for instance Unit(axis),
 *     Label(axis), etc). Since a SpecFrame is strictly one-dimensional,
 *     it allows these attributes to be specified without an axis index.
 *     So for instance, "Unit" is allowed in place of "Unit(1)".
@@ -68,16 +68,16 @@ f     - AST_GETREFPOS: Get reference position in any celestial system
 *     modify it under the terms of the GNU General Public Licence as
 *     published by the Free Software Foundation; either version 2 of
 *     the Licence, or (at your option) any later version.
-*     
+*
 *     This program is distributed in the hope that it will be
 *     useful,but WITHOUT ANY WARRANTY; without even the implied
 *     warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
 *     PURPOSE. See the GNU General Public Licence for more details.
-*     
+*
 *     You should have received a copy of the GNU General Public Licence
 *     along with this program; if not, write to the Free Software
-*     Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
-*     02111-1307, USA
+*     Foundation, Inc., 51 Franklin Street,Fifth Floor, Boston, MA
+*     02110-1301, USA
 
 *  Authors:
 *     DSB: David S. Berry (Starlink)
@@ -87,19 +87,19 @@ f     - AST_GETREFPOS: Get reference position in any celestial system
 *        Original version.
 *     2-FEB-2005 (DSB):
 *        - Avoid using astStore to allocate more storage than is supplied
-*        in the "data" pointer. This can cause access violations since 
+*        in the "data" pointer. This can cause access violations since
 *        astStore will then read beyond the end of the "data" area.
 *     22-MAR-2005 (DSB):
 *        - Re-structure MakeSpecMapping in order to avoid unnecessary
 *        access to SpecFrame attributes which may not be set, and to
-*        check that all required attributes have been set if UseDefs is 
+*        check that all required attributes have been set if UseDefs is
 *        zero.
 *     23-MAR-2005 (DSB):
 *        - Added missing rest frames to SorEqual.
 *     12-AUG-2005 (DSB):
 *        - Remove GeoLon and GeoLat attributes. Use the new ObsLon and
 *        ObsLat attributes in the parent Frame class instead. Note, for
-*        backward compatibility the public attribute accessors and the 
+*        backward compatibility the public attribute accessors and the
 *        astLoadSpecFrame functions still recogonise GeoLon and GeoLat,
 *        but use the ObsLat/ObsLon attributes internally.
 *     14-FEB-2006 (DSB):
@@ -111,16 +111,16 @@ f     - AST_GETREFPOS: Get reference position in any celestial system
 *     18-OCT-2006 (DSB):
 *        Added SpecOrigin and AlignSpecOffset attributes.
 *     23-OCT-2006 (DSB):
-*        Fix memory leak caused by addition of SpecOrigin and AlignSpecOffset 
+*        Fix memory leak caused by addition of SpecOrigin and AlignSpecOffset
 *        attributes.
 *     15-NOV-2006 (DSB):
 *        Only write out SpecOrigin if it is not bad.
 *     8-JAN-2006 (DSB):
 *        - SubFrame: Copy the SourceSystem and SourceStdOfRest attributes
-*        to the System and StdOfRest attributes of the "align_frm" 
-*        SpecFrame before calling MakeSpecMapping. Previously, the 
+*        to the System and StdOfRest attributes of the "align_frm"
+*        SpecFrame before calling MakeSpecMapping. Previously, the
 *        values assigned to  SourceSystem and SourceStdOfRest were
-*        ignored, and alignment was always performed in the templates System 
+*        ignored, and alignment was always performed in the templates System
 *        and StdOfRest.
 *        - MakeSpecMapping: Correct logic used to decide if steps 2 and 7
 *        can be cancelled.
@@ -143,6 +143,21 @@ f     - AST_GETREFPOS: Get reference position in any celestial system
 *     2-OCT-2007 (DSB):
 *        In Overlay, clear AlignSystem as well as System before calling
 *        the parent overlay method.
+*     4-SEP-2009 (DSB):
+*        In MakeSpecMapping, in order to produce alignment that is not
+*        affected by the epoch or reference position, make the alignment
+*        frame adapt to the epoch and reference position of the target
+*        and result Frames.
+*     14-SEP-2009 (DSB):
+*        In MakeSpecMapping, extend the 4-SEP-2009 fix to cover other
+*        attributes that define the available rest frames (e.g.
+*        SourceVRF, SourceVel, ObsLat, ObsLon, ObsAlt).
+*     16-SEP-2009 (DSB):
+*        In MakeSpecMapping, retain the original alignment frame attribute
+*        values if we are restoring the integrity of a FrameSet.
+*     29-APR-2011 (DSB):
+*        Prevent astFindFrame from matching a subclass template against a
+*        superclass target.
 *class--
 */
 
@@ -164,8 +179,8 @@ f     - AST_GETREFPOS: Get reference position in any celestial system
 /* The supported spectral coordinate systems fall into two groups;
    "relative", and "absolute". The relative systems define each axis
    value with respect to the rest frequency, whereas the absolute systems
-   have axis values which do not depend on the rest frequency. Define a 
-   macro which returns one if the specified system is absolute, and zero 
+   have axis values which do not depend on the rest frequency. Define a
+   macro which returns one if the specified system is absolute, and zero
    otherwise. */
 #define ABS_SYSTEM(sys) \
       ( ( sys == AST__ENERGY || \
@@ -242,7 +257,7 @@ static const char *(* parent_getlabel)( AstFrame *, int, int * );
 static const char *(* parent_getsymbol)( AstFrame *, int, int * );
 static const char *(* parent_gettitle)( AstFrame *, int * );
 static const char *(* parent_getunit)( AstFrame *, int, int * );
-static int (* parent_match)( AstFrame *, AstFrame *, int **, int **, AstMapping **, AstFrame **, int * );
+static int (* parent_match)( AstFrame *, AstFrame *, int, int **, int **, AstMapping **, AstFrame **, int * );
 static int (* parent_subframe)( AstFrame *, AstFrame *, int, const int *, const int *, AstMapping **, AstFrame **, int * );
 static int (* parent_testattrib)( AstObject *, const char *, int * );
 static void (* parent_setunit)( AstFrame *, int, const char *, int * );
@@ -255,12 +270,12 @@ static void (* parent_clearunit)( AstFrame *, int, int * );
 
 /* Define a variable to hold a SkyFrame which will be used for formatting
    and unformatting sky positions, etc. */
-static AstSkyFrame *skyframe;      
+static AstSkyFrame *skyframe;
 
 /* Define macros for accessing each item of thread specific global data. */
 #ifdef THREAD_SAFE
 
-/* Define how to initialise thread-specific globals. */ 
+/* Define how to initialise thread-specific globals. */
 #define GLOBAL_inits \
    globals->Class_Init = 0; \
    globals->GetAttrib_Buff[ 0 ] = 0; \
@@ -282,11 +297,11 @@ astMAKE_INITGLOBALS(SpecFrame)
 
 
 static pthread_mutex_t mutex2 = PTHREAD_MUTEX_INITIALIZER;
-#define LOCK_MUTEX2 pthread_mutex_lock( &mutex2 ); 
-#define UNLOCK_MUTEX2 pthread_mutex_unlock( &mutex2 ); 
+#define LOCK_MUTEX2 pthread_mutex_lock( &mutex2 );
+#define UNLOCK_MUTEX2 pthread_mutex_unlock( &mutex2 );
 
-/* If thread safety is not needed, declare and initialise globals at static 
-   variables. */ 
+/* If thread safety is not needed, declare and initialise globals at static
+   variables. */
 #else
 
 /* Buffer returned by GetAttrib. */
@@ -334,7 +349,7 @@ static double ConvertSourceVel( AstSpecFrame *, AstStdOfRestType, AstSystemType,
 static int EqualSor( AstSpecFrame *, AstSpecFrame *, int * );
 static int GetActiveUnit( AstFrame *, int * );
 static int MakeSpecMapping( AstSpecFrame *, AstSpecFrame *, AstSpecFrame *, int, AstMapping **, int * );
-static int Match( AstFrame *, AstFrame *, int **, int **, AstMapping **, AstFrame **, int * );
+static int Match( AstFrame *, AstFrame *, int, int **, int **, AstMapping **, AstFrame **, int * );
 static int SorConvert( AstSpecFrame *, AstSpecFrame *, AstSpecMap *, int * );
 static int SubFrame( AstFrame *, AstFrame *, int, const int *, const int *, AstMapping **, AstFrame **, int * );
 static int TestActiveUnit( AstFrame *, int * );
@@ -471,7 +486,7 @@ static void ClearAttrib( AstObject *this_object, const char *attrib, int *status
 /* First look for axis attributes defined by the Frame class. Since a
    SpecFrame has only 1 axis, we allow these attributes to be specified
    without a trailing "(axis)" string. */
-   if ( !strcmp( attrib, "direction" ) || 
+   if ( !strcmp( attrib, "direction" ) ||
         !strcmp( attrib, "bottom" ) ||
         !strcmp( attrib, "top" ) ||
         !strcmp( attrib, "format" ) ||
@@ -484,7 +499,7 @@ static void ClearAttrib( AstObject *this_object, const char *attrib, int *status
       new_attrib = astMalloc( len + 4 );
       if( new_attrib ) {
          memcpy( new_attrib, attrib, len );
-         memcpy( new_attrib + len, "(1)", 4 ); 
+         memcpy( new_attrib + len, "(1)", 4 );
          (*parent_clearattrib)( this_object, new_attrib, status );
          new_attrib = astFree( new_attrib );
       }
@@ -496,7 +511,7 @@ static void ClearAttrib( AstObject *this_object, const char *attrib, int *status
 
 /* GeoLat. */
 /* ------- */
-/* Retained for backward compatibility with older versions of AST in which 
+/* Retained for backward compatibility with older versions of AST in which
    SpecFrame had GeoLon/Lat attributes (now ObsLon/Lat are used instead). */
    } else if ( !strcmp( attrib, "geolat" ) ) {
       astClearAttrib( this, "obslat" );
@@ -652,7 +667,7 @@ static void ClearStdOfRest( AstSpecFrame *this, int *status ) {
 *     void astClearStdOfRest( AstSpecFrame *this )
 
 *  Class Membership:
-*     SpecFrame virtual function 
+*     SpecFrame virtual function
 
 *  Description:
 *     This function clears the StdOfRest attribute for a SpecFrame.
@@ -667,7 +682,7 @@ static void ClearStdOfRest( AstSpecFrame *this, int *status ) {
 /* Check the global error status. */
    if ( !astOK ) return;
 
-/* Modify the SpecOrigin value stored in the SpecFrame structure to refer to the 
+/* Modify the SpecOrigin value stored in the SpecFrame structure to refer to the
    default rest frame (heliocentric). */
    OriginStdOfRest( this, AST__HLSOR, "astClearStdOfRest", status );
 
@@ -696,7 +711,7 @@ static void ClearUnit( AstFrame *this_frame, int axis, int *status ) {
 *     from the Frame class).
 
 *  Description:
-*     This function clears the Unit string for a specified axis of a 
+*     This function clears the Unit string for a specified axis of a
 *     SpecFrame. It also clears the UsedUnit item in the SpecFrame
 *     structure corresponding to the current System.
 
@@ -730,7 +745,7 @@ static void ClearUnit( AstFrame *this_frame, int axis, int *status ) {
    (*parent_clearunit)( this_frame, axis, status );
 }
 
-static double ConvertSourceVel( AstSpecFrame *this, AstStdOfRestType newsor, 
+static double ConvertSourceVel( AstSpecFrame *this, AstStdOfRestType newsor,
                                 AstSystemType newsys, int *status ) {
 /*
 *  Name:
@@ -745,11 +760,11 @@ static double ConvertSourceVel( AstSpecFrame *this, AstStdOfRestType newsor,
 
 *  Synopsis:
 *     #include "specframe.h"
-*     double ConvertSourceVel( AstSpecFrame *this, AstStdOfRestType newsor, 
-*                              AstSystemType newsys, int *status ) 
+*     double ConvertSourceVel( AstSpecFrame *this, AstStdOfRestType newsor,
+*                              AstSystemType newsys, int *status )
 
 *  Class Membership:
-*     SpecFrame member function 
+*     SpecFrame member function
 
 *  Description:
 *     This function convert the SourceVel value to a specified rest frame
@@ -761,7 +776,7 @@ static double ConvertSourceVel( AstSpecFrame *this, AstStdOfRestType newsor,
 *     newsor
 *        The rest frame in which the source velocity is required.
 *     newsys
-*        The spectral system (AST__VREL or AST__REDSHIFT) in which the 
+*        The spectral system (AST__VREL or AST__REDSHIFT) in which the
 *        source velocity is required.
 *     status
 *        Pointer to the inherited status variable.
@@ -790,13 +805,13 @@ static double ConvertSourceVel( AstSpecFrame *this, AstStdOfRestType newsor,
    if ( !astOK ) return ret;
 
 /* Get the value of the SourceVel attribute. This will be a velocity in m/s
-   (relativistic, radio or optical), or unitless redshift or beta factor, 
+   (relativistic, radio or optical), or unitless redshift or beta factor,
    depending on the current value of SourceSys. */
    ret = astGetSourceVel( this );
 
 /* Check it can be used (depends on whether a value has been set and
    whether the UseDefs attribute is zero). */
-   VerifyAttrs( this, "convert source velocity to a new standard of rest", 
+   VerifyAttrs( this, "convert source velocity to a new standard of rest",
                 "SourceVel", "astMatch", status );
 
 /* Get the rest frame and spectral system to which value refers. */
@@ -806,9 +821,9 @@ static double ConvertSourceVel( AstSpecFrame *this, AstStdOfRestType newsor,
 /* If necessary, convert to the requested rest frame and spectral system. */
    if( sor != newsor || sys != newsys ) {
 
-/* Verify that usable value is available for the RestFreq attribute. An 
+/* Verify that usable value is available for the RestFreq attribute. An
    error is reported if not. */
-      VerifyAttrs( this, "convert source velocity to a new standard of rest", 
+      VerifyAttrs( this, "convert source velocity to a new standard of rest",
                    "RestFreq", "astMatch", status );
 
 /* Take two copies of the supplied SpecFrame and set their StdOfRest
@@ -836,18 +851,18 @@ static double ConvertSourceVel( AstSpecFrame *this, AstStdOfRestType newsor,
 
       } else if( sys == AST__BETA ) {
          astSpecAdd( specmap, "BTTOVL", NULL );
-      } 
+      }
 
 /* Add a conversion from velocity to frequency since SorConvert converts
    frequencies. */
       rf = astGetRestFreq( this );
       astSpecAdd( specmap, "VLTOFR", &rf );
 
-/* Now add a conversion from frequency in the SourveVRF standard of rest to 
+/* Now add a conversion from frequency in the SourveVRF standard of rest to
    frequency in the required rest frame. */
       SorConvert( from, to, specmap, status );
 
-/* Add a conversion from frequency back to velocity. Note, the value of the 
+/* Add a conversion from frequency back to velocity. Note, the value of the
    rest frequency does not affect the overall conversion. */
       astSpecAdd( specmap, "FRTOVL", &rf );
 
@@ -864,10 +879,10 @@ static double ConvertSourceVel( AstSpecFrame *this, AstStdOfRestType newsor,
 
       } else if( newsys == AST__BETA ) {
          astSpecAdd( specmap, "VLTOBT", NULL );
-      } 
+      }
 
 /* Use the SpecMap to convert the source velocity in the SourceVRF
-   standard of rest and SourceSys spectral system to the required rest 
+   standard of rest and SourceSys spectral system to the required rest
    frame and spectral system. */
       temp = ret;
       astTran1( specmap, 1, &temp, 1, &ret );
@@ -907,7 +922,7 @@ static const char *DefUnit( AstSystemType system, const char *method,
 *     SpecFrame member function.
 
 *  Description:
-*     This function returns a textual representation of the default 
+*     This function returns a textual representation of the default
 *     units associated with the specified spectral coordinate system.
 
 *  Parameters:
@@ -916,7 +931,7 @@ static const char *DefUnit( AstSystemType system, const char *method,
 *     method
 *        Pointer to a string holding the name of the calling method.
 *        This is only for use in constructing error messages.
-*     class 
+*     class
 *        Pointer to a string holding the name of the supplied object class.
 *        This is only for use in constructing error messages.
 *     status
@@ -966,7 +981,7 @@ static const char *DefUnit( AstSystemType system, const char *method,
 /* Report an error if the coordinate system was not recognised. */
    } else {
       astError( AST__SCSIN, "%s(%s): Corrupt %s contains illegal System "
-                "identification code (%d).", status, method, class, class, 
+                "identification code (%d).", status, method, class, class,
                 (int) system );
    }
 
@@ -987,10 +1002,10 @@ static int EqualSor( AstSpecFrame *this, AstSpecFrame *that, int *status ) {
 
 *  Synopsis:
 *     #include "specframe.h"
-*     int EqualSor( AstSpecFrame *this, AstSpecFrame *that, int *status ) 
+*     int EqualSor( AstSpecFrame *this, AstSpecFrame *that, int *status )
 
 *  Class Membership:
-*     SpecFrame member function 
+*     SpecFrame member function
 
 *  Description:
 *    This function returns non-zero if the two supplied SpecFrames use
@@ -1030,31 +1045,32 @@ static int EqualSor( AstSpecFrame *this, AstSpecFrame *that, int *status ) {
    } else {
 
 /* The reference RA and Dec need to be equal */
-      if( !EQUAL( astGetRefRA( this ), astGetRefRA( that ) ) || 
+      if( !EQUAL( astGetRefRA( this ), astGetRefRA( that ) ) ||
           !EQUAL( astGetRefDec( this ), astGetRefDec( that ) ) ) {
          result = 0;
 
-/* For source rest frame, the source velocities, rest frames and systems must 
+/* For source rest frame, the source velocities, rest frames and systems must
    be equal */
       } else if( sor == AST__SCSOR ){
-         if( !EQUAL( astGetSourceVel( this ), astGetSourceVel( that ) ) || 
+         if( !EQUAL( astGetSourceVel( this ), astGetSourceVel( that ) ) ||
                      astGetSourceVRF( this ) != astGetSourceVRF( that ) ||
                      astGetSourceSys( this ) != astGetSourceSys( that ) ) {
             result = 0;
          }
 
-/* For geocentric, barycentric and heliocentric rest frames, the epochs must 
+/* For geocentric, barycentric and heliocentric rest frames, the epochs must
    be the same */
       } else if( sor == AST__GESOR || sor == AST__BYSOR || sor == AST__HLSOR ){
          if( !EQUAL( astGetEpoch( this ), astGetEpoch( that ) ) ) result = 0;
 
-/* For topocentric rest frame, the epoch and observer position must be the 
-   same */
+/* For topocentric rest frame, the epoch and position of the observer must be
+   the same */
       } else if( sor == AST__TPSOR ){
          if( !EQUAL( astGetEpoch( this ), astGetEpoch( that ) ) ||
+             !EQUAL( astGetObsAlt( this ), astGetObsAlt( that ) ) ||
              !EQUAL( astGetObsLon( this ), astGetObsLon( that ) ) ||
              !EQUAL( astGetObsLat( this ), astGetObsLat( that ) ) ) result = 0;
-      
+
       } else if( sor != AST__LKSOR && sor != AST__LDSOR &&
                  sor != AST__GLSOR && sor != AST__LGSOR && astOK ) {
          astError( AST__INTER, "SorEqual(SpecFrame): Function SorEqual "
@@ -1080,7 +1096,7 @@ static int GetObjSize( AstObject *this_object, int *status ) {
 
 *  Synopsis:
 *     #include "specframe.h"
-*     int GetObjSize( AstObject *this, int *status ) 
+*     int GetObjSize( AstObject *this, int *status )
 
 *  Class Membership:
 *     SpecFrame member function (over-rides the astGetObjSize protected
@@ -1149,7 +1165,7 @@ static int GetActiveUnit( AstFrame *this_frame, int *status ) {
 
 *  Synopsis:
 *     #include "specframe.h"
-*     int GetActiveUnit( AstFrame *this_frame, int *status ) 
+*     int GetActiveUnit( AstFrame *this_frame, int *status )
 
 *  Class Membership:
 *     SpecFrame member function (over-rides the astGetActiveUnit protected
@@ -1224,7 +1240,7 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib, int *s
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Declare the thread specific global data */
+   astDECLARE_GLOBALS            /* Declare the thread specific global data */
    AstSpecFrame *this;           /* Pointer to the SpecFrame structure */
    AstStdOfRestType sor;         /* Standard of rest */
    AstSystemType sys;            /* Spectral system */
@@ -1240,13 +1256,13 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib, int *s
 /* Check the global error status. */
    if ( !astOK ) return result;
 
-/* Get a pointer to the structure holding thread-specific global data. */   
+/* Get a pointer to the structure holding thread-specific global data. */
    astGET_GLOBALS(this_object);
 
 /* Obtain a pointer to the SpecFrame structure. */
    this = (AstSpecFrame *) this_object;
 
-/* Create an FK5 J2000 SkyFrame which will be used for formatting and 
+/* Create an FK5 J2000 SkyFrame which will be used for formatting and
    unformatting sky positions, etc. */
    LOCK_MUTEX2
    if( !skyframe ) {
@@ -1267,7 +1283,7 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib, int *s
 /* First look for axis attributes defined by the Frame class. Since a
    SpecFrame has only 1 axis, we allow these attributes to be specified
    without a trailing "(axis)" string. */
-   if ( !strcmp( attrib, "direction" ) || 
+   if ( !strcmp( attrib, "direction" ) ||
         !strcmp( attrib, "bottom" ) ||
         !strcmp( attrib, "top" ) ||
         !strcmp( attrib, "format" ) ||
@@ -1280,7 +1296,7 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib, int *s
       new_attrib = astMalloc( len + 4 );
       if( new_attrib ) {
          memcpy( new_attrib, attrib, len );
-         memcpy( new_attrib + len, "(1)", 4 ); 
+         memcpy( new_attrib + len, "(1)", 4 );
          result = (*parent_getattrib)( this_object, new_attrib, status );
          new_attrib = astFree( new_attrib );
       }
@@ -1297,7 +1313,7 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib, int *s
          if ( !result ) {
             astError( AST__SCSIN,
                      "astGetAttrib(%s): Corrupt %s contains invalid AlignStdOfRest "
-                     "identification code (%d).", status, astGetClass( this ), 
+                     "identification code (%d).", status, astGetClass( this ),
                      astGetClass( this ), (int) sor );
          }
       }
@@ -1313,7 +1329,7 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib, int *s
 
 /* GeoLat. */
 /* ------- */
-/* Retained for backward compatibility with older versions of AST in which 
+/* Retained for backward compatibility with older versions of AST in which
    SpecFrame had GeoLon/Lat attributes (now ObsLon/Lat are used instead). */
    } else if ( !strcmp( attrib, "geolat" ) ) {
       result = astGetAttrib( this, "obslat" );
@@ -1388,7 +1404,7 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib, int *s
          if ( !result ) {
             astError( AST__SCSIN,
                      "astGetAttrib(%s): Corrupt %s contains invalid SourceVRF "
-                     "identification code (%d).", status, astGetClass( this ), 
+                     "identification code (%d).", status, astGetClass( this ),
                      astGetClass( this ), (int) sor );
          }
       }
@@ -1404,7 +1420,7 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib, int *s
          if ( !result ) {
             astError( AST__SCSIN,
                      "astGetAttrib(%s): Corrupt %s contains invalid SourceSys "
-                     "identification code (%d).", status, astGetClass( this ), 
+                     "identification code (%d).", status, astGetClass( this ),
                      astGetClass( this ), (int) sys );
          }
       }
@@ -1421,7 +1437,7 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib, int *s
          if ( !result ) {
             astError( AST__SCSIN,
                      "astGetAttrib(%s): Corrupt %s contains invalid StdOfRest "
-                     "identification code (%d).", status, astGetClass( this ), 
+                     "identification code (%d).", status, astGetClass( this ),
                      astGetClass( this ), (int) sor );
          }
       }
@@ -1546,7 +1562,7 @@ static const char *GetLabel( AstFrame *this, int axis, int *status ) {
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Declare the thread specific global data */
+   astDECLARE_GLOBALS            /* Declare the thread specific global data */
    AstMapping *map;              /* Mapping between units */
    AstSystemType system;         /* Code identifying type of spectral coordinates */
    char *new_lab;                /* Modified label string */
@@ -1556,7 +1572,7 @@ static const char *GetLabel( AstFrame *this, int axis, int *status ) {
 /* Check the global error status. */
    if ( !astOK ) return NULL;
 
-/* Get a pointer to the structure holding thread-specific global data. */   
+/* Get a pointer to the structure holding thread-specific global data. */
    astGET_GLOBALS(this);
 
 /* Initialise. */
@@ -1570,7 +1586,7 @@ static const char *GetLabel( AstFrame *this, int axis, int *status ) {
    if ( astTestLabel( this, axis ) ) {
       result = (*parent_getlabel)( this, axis, status );
 
-/* Otherwise, identify the spectral coordinate system described by the 
+/* Otherwise, identify the spectral coordinate system described by the
    SpecFrame. */
    } else {
       system = astGetSystem( this );
@@ -1583,20 +1599,20 @@ static const char *GetLabel( AstFrame *this, int axis, int *status ) {
 /* If a non-zero SpecOrigin has been specified, include the offset now. */
          orig = GetSpecOriginCur( (AstSpecFrame *) this, status );
          if( orig != 0.0 ) {
-            sprintf( getlabel_buff + strlen( getlabel_buff ), " offset from %s", 
+            sprintf( getlabel_buff + strlen( getlabel_buff ), " offset from %s",
                      astFormat( this, 0, orig ) );
          }
 
-/* Modify this default to take account of the current value of the Unit 
+/* Modify this default to take account of the current value of the Unit
    attribute, if set. */
          if( astTestUnit( this, axis ) ) {
 
-/* Find a Mapping from the default Units for the current System, to the 
+/* Find a Mapping from the default Units for the current System, to the
    units indicated by the Unit attribute. This Mapping is used to modify
    the existing default label appropriately. For instance, if the default
    units is "Hz" and the actual units is "log(Hz)", then the default label
    of "Frequency" is changed to "log( frequency )". */
-            map = astUnitMapper( DefUnit( system, "astGetLabel", 
+            map = astUnitMapper( DefUnit( system, "astGetLabel",
                                           astGetClass( this ), status ),
                                  astGetUnit( this, axis ), result,
                                  &new_lab );
@@ -1616,7 +1632,7 @@ static const char *GetLabel( AstFrame *this, int axis, int *status ) {
    return result;
 }
 
-static void GetRefPos( AstSpecFrame *this, AstSkyFrame *frm, double *lon, 
+static void GetRefPos( AstSpecFrame *this, AstSkyFrame *frm, double *lon,
                        double *lat, int *status ){
 /*
 *++
@@ -1632,7 +1648,7 @@ f     AST_GETREFPOS
 
 *  Synopsis:
 c     #include "specframe.h"
-c     void astGetRefPos( AstSpecFrame *this, AstSkyFrame *frm, double *lon, 
+c     void astGetRefPos( AstSpecFrame *this, AstSkyFrame *frm, double *lon,
 c                        double *lat )
 f     CALL AST_GETREFPOS( THIS, FRM, LON, LAT, STATUS )
 
@@ -1640,8 +1656,8 @@ f     CALL AST_GETREFPOS( THIS, FRM, LON, LAT, STATUS )
 *     Frame method.
 
 *  Description:
-c     This function 
-f     This routine 
+c     This function
+f     This routine
 *     returns the reference position (specified by attributes RefRA and
 *     RefDec) converted to the celestial coordinate system represented by
 *     a supplied SkyFrame. The celestial longitude and latitude values
@@ -1654,21 +1670,21 @@ f     THIS = INTEGER (Given)
 c     frm
 f     FRM = INTEGER (Given)
 *        Pointer to the SkyFrame which defines the required celestial
-*        coordinate system. 
-c        If NULL 
-f        If AST__NULL 
-*        is supplied, then the longitude and latitude values are returned 
+*        coordinate system.
+c        If NULL
+f        If AST__NULL
+*        is supplied, then the longitude and latitude values are returned
 *        as FK5 J2000 RA and Dec values.
 c     lon
 f     LON = DOUBLE PRECISION (Returned)
 c        A pointer to a double in which to store the
-f        The 
+f        The
 *        longitude of the reference point, in the coordinate system
 *        represented by the supplied SkyFrame (radians).
 c     lat
 f     LAT = DOUBLE PRECISION (Returned)
 c        A pointer to a double in which to store the
-f        The 
+f        The
 *        latitude of the reference point, in the coordinate system
 *        represented by the supplied SkyFrame (radians).
 f     STATUS = INTEGER (Given and Returned)
@@ -1698,7 +1714,7 @@ f     invoked with STATUS set to an error value, or if it should fail for
 /* Check the global error status. */
    if ( !astOK ) return;
 
-/* If no SkyFrame was supplied, just return the stored RefRA and RefDec 
+/* If no SkyFrame was supplied, just return the stored RefRA and RefDec
    values. */
    if( !frm ) {
       if( lon ) *lon = astGetRefRA( this );
@@ -1707,7 +1723,7 @@ f     invoked with STATUS set to an error value, or if it should fail for
 /* Otherwise, convert the stored values to the requested system. */
    } else {
 
-/* Create an FK5 J2000 SkyFrame which will be used for formatting and 
+/* Create an FK5 J2000 SkyFrame which will be used for formatting and
    unformatting sky positions, etc. */
       LOCK_MUTEX2
       if( !skyframe ) {
@@ -1751,7 +1767,7 @@ f     invoked with STATUS set to an error value, or if it should fail for
          fb = astAnnul( fb );
          fs = astAnnul( fs );
       }
-   }  
+   }
 }
 
 static const char *GetSymbol( AstFrame *this, int axis, int *status ) {
@@ -1796,7 +1812,7 @@ static const char *GetSymbol( AstFrame *this, int axis, int *status ) {
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Declare the thread specific global data */
+   astDECLARE_GLOBALS            /* Declare the thread specific global data */
    AstMapping *map;              /* Mapping between units */
    AstSystemType system;         /* Code identifying type of sky coordinates */
    char *new_sym;                /* Modified symbol string */
@@ -1805,7 +1821,7 @@ static const char *GetSymbol( AstFrame *this, int axis, int *status ) {
 /* Check the global error status. */
    if ( !astOK ) return NULL;
 
-/* Get a pointer to the structure holding thread-specific global data. */   
+/* Get a pointer to the structure holding thread-specific global data. */
    astGET_GLOBALS(this);
 
 /* Initialise. */
@@ -1850,20 +1866,20 @@ static const char *GetSymbol( AstFrame *this, int axis, int *status ) {
 /* Report an error if the coordinate system was not recognised. */
          } else {
 	    astError( AST__SCSIN, "astGetSymbol(%s): Corrupt %s contains "
-		      "invalid System identification code (%d).", status, 
+		      "invalid System identification code (%d).", status,
                       astGetClass( this ), astGetClass( this ), (int) system );
          }
 
-/* Modify this default to take account of the current value of the Unit 
+/* Modify this default to take account of the current value of the Unit
    attribute, if set. */
          if( astTestUnit( this, axis ) ) {
 
-/* Find a Mapping from the default Units for the current System, to the 
+/* Find a Mapping from the default Units for the current System, to the
    units indicated by the Unit attribute. This Mapping is used to modify
    the existing default symbol appropriately. For instance, if the default
    units is "Hz" and the actual units is "log(Hz)", then the default symbol
    of "nu" is changed to "log( nu )". */
-            map = astUnitMapper( DefUnit( system, "astGetSymbol", 
+            map = astUnitMapper( DefUnit( system, "astGetSymbol",
                                           astGetClass( this ), status ),
                                  astGetUnit( this, axis ), result,
                                  &new_sym );
@@ -1929,7 +1945,7 @@ static AstSystemType GetAlignSystem( AstFrame *this_frame, int *status ) {
 /* Obtain a pointer to the SpecFrame structure. */
    this = (AstSpecFrame *) this_frame;
 
-/* If a AlignSystem attribute has been set, invoke the parent method to obtain 
+/* If a AlignSystem attribute has been set, invoke the parent method to obtain
    it. */
    if ( astTestAlignSystem( this ) ) {
       result = (*parent_getalignsystem)( this_frame, status );
@@ -1992,7 +2008,7 @@ static AstSystemType GetSystem( AstFrame *this_frame, int *status ) {
 /* Obtain a pointer to the SpecFrame structure. */
    this = (AstSpecFrame *) this_frame;
 
-/* If a System attribute has been set, invoke the parent method to obtain 
+/* If a System attribute has been set, invoke the parent method to obtain
    it. */
    if ( astTestSystem( this ) ) {
       result = (*parent_getsystem)( this_frame, status );
@@ -2046,7 +2062,7 @@ static const char *GetTitle( AstFrame *this_frame, int *status ) {
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Declare the thread specific global data */
+   astDECLARE_GLOBALS            /* Declare the thread specific global data */
    AstSpecFrame *this;           /* Pointer to SpecFrame structure */
    AstStdOfRestType sor;         /* Code identifying standard of rest */
    AstSystemType system;         /* Code identifying type of coordinates */
@@ -2059,7 +2075,7 @@ static const char *GetTitle( AstFrame *this_frame, int *status ) {
 /* Check the global error status. */
    if ( !astOK ) return NULL;
 
-/* Get a pointer to the structure holding thread-specific global data. */   
+/* Get a pointer to the structure holding thread-specific global data. */
    astGET_GLOBALS(this_frame);
 
 /* Initialise. */
@@ -2129,12 +2145,12 @@ static double GetSpecOriginCur( AstSpecFrame *this, int *status ) {
 *     double GetSpecOriginCur( AstSpecFrame *this, int *status )
 
 *  Class Membership:
-*     SpecFrame virtual function 
+*     SpecFrame virtual function
 
 *  Description:
 *     This function returns the SpecOrigin attribute for a SpecFrame, in
 *     the current units of the SpecFrame. The protected astGetSpecOrigin
-*     method can be used to obtain the time origin in the default units of 
+*     method can be used to obtain the time origin in the default units of
 *     the SpecFrame's System.
 
 *  Parameters:
@@ -2157,7 +2173,7 @@ static double GetSpecOriginCur( AstSpecFrame *this, int *status ) {
    AstMapping *map;
    const char *cur;
    const char *def;
-   double result;         
+   double result;
    double defval;
 
 /* Initialise. */
@@ -2186,7 +2202,7 @@ static double GetSpecOriginCur( AstSpecFrame *this, int *status ) {
 /* Report an error if the units are incompatible. */
             if( !map ) {
                astError( AST__BADUN, "%s(%s): The current units (%s) are not suitable "
-                         "for a SpecFrame.", status, "astGetSpecOrigin", astGetClass( this ), 
+                         "for a SpecFrame.", status, "astGetSpecOrigin", astGetClass( this ),
                          cur );
 
 /* Otherwise, transform the stored origin value.*/
@@ -2256,12 +2272,12 @@ static const char *GetUnit( AstFrame *this_frame, int axis, int *status ) {
 /* Validate the axis index. */
    astValidateAxis( this, axis, "astGetUnit" );
 
-/* If a value has been set for the Unit attribute, use the parent 
+/* If a value has been set for the Unit attribute, use the parent
    GetUnit method to return a pointer to the required Unit string. */
    if( astTestUnit( this, axis ) ){
       result = (*parent_getunit)( this_frame, axis, status );
 
-/* Otherwise, identify the spectral coordinate system described by the 
+/* Otherwise, identify the spectral coordinate system described by the
    SpecFrame. */
    } else {
       system = astGetSystem( this );
@@ -2307,14 +2323,14 @@ void astInitSpecFrameVtab_(  AstSpecFrameVtab *vtab, const char *name, int *stat
 *        been initialised.
 *     name
 *        Pointer to a constant null-terminated character string which contains
-*        the name of the class to which the virtual function table belongs (it 
+*        the name of the class to which the virtual function table belongs (it
 *        is this pointer value that will subsequently be returned by the Object
 *        astClass function).
 *-
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
+   astDECLARE_GLOBALS            /* Pointer to thread-specific global data */
    AstFrameVtab *frame;          /* Pointer to Frame component of Vtab */
    AstObjectVtab *object;        /* Pointer to Object component of Vtab */
 
@@ -2332,7 +2348,8 @@ void astInitSpecFrameVtab_(  AstSpecFrameVtab *vtab, const char *name, int *stat
    will be used (by astIsASpecFrame) to determine if an object belongs
    to this class.  We can conveniently use the address of the (static)
    class_check variable to generate this unique value. */
-   vtab->check = &class_check;
+   vtab->id.check = &class_check;
+   vtab->id.parent = &(((AstFrameVtab *) vtab)->id);
 
 /* Initialise member function pointers. */
 /* ------------------------------------ */
@@ -2463,13 +2480,16 @@ void astInitSpecFrameVtab_(  AstSpecFrameVtab *vtab, const char *name, int *stat
                "Description of spectral coordinate system" );
 
 /* If we have just initialised the vtab for the current class, indicate
-   that the vtab is now initialised. */
-   if( vtab == &class_vtab ) class_init = 1;
-
+   that the vtab is now initialised, and store a pointer to the class
+   identifier in the base "object" level of the vtab. */
+   if( vtab == &class_vtab ) {
+      class_init = 1;
+      astSetVtabClassIdentifier( vtab, &(vtab->id) );
+   }
 }
 
 static int MakeSpecMapping( AstSpecFrame *target, AstSpecFrame *result,
-                            AstSpecFrame *align_frm, int report, 
+                            AstSpecFrame *align_frm, int report,
                             AstMapping **map, int *status ) {
 /*
 *  Name:
@@ -2484,7 +2504,7 @@ static int MakeSpecMapping( AstSpecFrame *target, AstSpecFrame *result,
 *  Synopsis:
 *     #include "specframe.h"
 *     int MakeSpecMapping( AstSpecFrame *target, AstSpecFrame *result,
-*                          AstSpecFrame *align_frm, int report, 
+*                          AstSpecFrame *align_frm, int report,
 *                          AstMapping **map, int *status ) {
 
 *  Class Membership:
@@ -2493,7 +2513,7 @@ static int MakeSpecMapping( AstSpecFrame *target, AstSpecFrame *result,
 *  Description:
 *     This function takes two SpecFrames and generates a Mapping that
 *     converts between them, taking account of differences in their
-*     coordinate systems, rest frequency, standard of rest, etc. 
+*     coordinate systems, rest frequency, standard of rest, etc.
 *
 *     In order to cut down the number of transformations to be considered,
 *     the scheme works by first converting from the target frame to an
@@ -2501,20 +2521,20 @@ static int MakeSpecMapping( AstSpecFrame *target, AstSpecFrame *result,
 *     transformation. A transformation is then found from the alignment
 *     frame to the required result Frame,  using the attributes of the
 *     result to define the transformation. The alignment Frame is
-*     described by the AlignSystem and AlignStdOfRest attributes of the 
+*     described by the AlignSystem and AlignStdOfRest attributes of the
 *     "align_frm" SpecFrame.
 *
 *     Thus, different forms of alignment can be obtained by suitable
 *     choice of the attributes of "align_frm". For instance, to compare the
 *     radio velocity dispersion of two lines at different rest frequencies,
-*     you would set "system=radio velocity" and (probably) "stdofrest=local 
-*     group" in "align_frm". On the other hand if you wanted to re-calibrate 
-*     an existing radio velocity Frame within a FrameSet to use a different 
-*     rest frequency, you would make the SpecFrame the current Frame and then 
-*     set the rest frequency attribute for the FrameSet. The "integrity 
-*     checking" system in the FrameSet class would then get the Mapping 
-*     between the original and the modified SpecFrames. In this case, the 
-*     "alignment system" needs to be "frequency" since you want the original 
+*     you would set "system=radio velocity" and (probably) "stdofrest=local
+*     group" in "align_frm". On the other hand if you wanted to re-calibrate
+*     an existing radio velocity Frame within a FrameSet to use a different
+*     rest frequency, you would make the SpecFrame the current Frame and then
+*     set the rest frequency attribute for the FrameSet. The "integrity
+*     checking" system in the FrameSet class would then get the Mapping
+*     between the original and the modified SpecFrames. In this case, the
+*     "alignment system" needs to be "frequency" since you want the original
 *     and modified SpecFrames to be aligned in frequency, not radio velocity.
 
 *  Parameters:
@@ -2523,7 +2543,7 @@ static int MakeSpecMapping( AstSpecFrame *target, AstSpecFrame *result,
 *     result
 *        Pointer to the second SpecFrame.
 *     align_frm
-*        A SpecFrame defining the system and standard of rest in which to 
+*        A SpecFrame defining the system and standard of rest in which to
 *        align the target and result SpecFrames.
 *     report
 *        Should errors be reported if no match is possible? These reports
@@ -2558,6 +2578,8 @@ static int MakeSpecMapping( AstSpecFrame *target, AstSpecFrame *result,
    AstMapping *umap2;            /* Second Units Mapping */
    AstSpecMap *specmap;          /* Pointer to SpecMap */
    AstShiftMap *sm;              /* ShiftMap pointer */
+   AstSpecFrame *align_target;   /* Alignment Frame with target properties */
+   AstSpecFrame *align_result;   /* Alignment Frame with result properties */
    AstSystemType serr;           /* Erroneous system */
    AstSystemType align_system;   /* Code to identify alignment system */
    AstSystemType target_system;  /* Code to identify target system */
@@ -2622,20 +2644,74 @@ static int MakeSpecMapping( AstSpecFrame *target, AstSpecFrame *result,
    VerifyAttrs( result, vmess, "StdOfRest", "astMatch", status );
    VerifyAttrs( target, vmess, "StdOfRest", "astMatch", status );
 
+/* There are two different strategies for alignment. I'll use the Source
+   rest frame as an example, although the same argument applies to other
+   rest frames. In the first strategy, all "Source" rest frames are
+   considered equal. That is, if two SpecFrames respresent (for example)
+   frequencies in the source frame, then the SpecFrames are aligned using
+   a UnitMap even if the details of the two source rest frames differ.
+   This is usually what users want to see when (for instance) aligning
+   plots of two spectra which both represent source frequencies but where
+   the source frames details differ. In the second strategy, "Source"
+   rest frames are aligned using a SpecMap that takes into account any
+   differences in the properties of the source rest frames. This is what
+   should happen when changes are made to the properties of a SpecFrame
+   within a FrameSet. For instance, if the user changes the SourceVel
+   attribute of the current Frame (assumed here to be a SpecFrame) in a
+   FrameSet, then the process of restoring the integrity of the FrameSet
+   (see frameset.c for details of integrity restoration) should cause the
+   base->current Mapping in the FrameSet to be modified to reflect the
+   new SourceVel value.
+
+   So if the current call to this function is part of the process of
+   restoring a FrameSet's integrity following changes to the FrameSet's
+   current Frame, then we want to retain the properties of the supplied
+   alignment Frame. So we use clones of the supplied alignment Frame. */
+   if( astGetFrameFlags( target ) & AST__INTFLAG ) {
+      align_target = astClone( align_frm );
+      align_result = astClone( align_frm );
+
+/* Buf if we are not restoring the integrity of a FrameSet, we want
+   to ignore any differences in the properties that define the available
+   rest frames. So create copies of the alignment Frame in which the
+   properies defining the available rest frames are the same as in the
+   target and result Frames. */
+   } else {
+      align_target = astCopy( align_frm );
+      astSetEpoch( align_target, astGetEpoch( target ) );
+      astSetRefRA( align_target, astGetRefRA( target ) );
+      astSetRefDec( align_target, astGetRefDec( target ) );
+      astSetSourceVRF( align_target, astGetSourceVRF( target ) );
+      astSetSourceVel( align_target, astGetSourceVel( target ) );
+      astSetObsLat( align_target, astGetObsLat( target ) );
+      astSetObsLon( align_target, astGetObsLon( target ) );
+      astSetObsAlt( align_target, astGetObsAlt( target ) );
+
+      align_result = astCopy( align_frm );
+      astSetEpoch( align_result, astGetEpoch( result ) );
+      astSetRefRA( align_result, astGetRefRA( result ) );
+      astSetRefDec( align_result, astGetRefDec( result ) );
+      astSetSourceVRF( align_result, astGetSourceVRF( result ) );
+      astSetSourceVel( align_result, astGetSourceVel( result ) );
+      astSetObsLat( align_result, astGetObsLat( result ) );
+      astSetObsLon( align_result, astGetObsLon( result ) );
+      astSetObsAlt( align_result, astGetObsAlt( result ) );
+   }
+
 /* The supported spectral coordinate systems fall into two groups;
    "relative", and "absolute". The relative systems define each axis
    value with respect to the rest frequency, whereas the absolute systems
    have axis values which do not depend on the rest frequency. In order
-   to convert an axis value from a system in one group to a system in the 
+   to convert an axis value from a system in one group to a system in the
    other group, the rest frequency must be known. However, the rest
-   frequency is not necessary in order to convert axis values between two 
-   systems belonging to the same group.  Determine if the alignment system 
-   is absolute or relative. If absolute, we ignore the system of the supplied 
-   "align_frm" and align in frequency, since aligning in any absolute system 
-   will automatically ensure that all the other absolute systems are aligned. 
-   Similarly, aligning in any relative system will automatically ensure that 
-   all the other relative systems are aligned. Doing this cuts down the 
-   complexity of the conversion process since we do not need to check every 
+   frequency is not necessary in order to convert axis values between two
+   systems belonging to the same group.  Determine if the alignment system
+   is absolute or relative. If absolute, we ignore the system of the supplied
+   "align_frm" and align in frequency, since aligning in any absolute system
+   will automatically ensure that all the other absolute systems are aligned.
+   Similarly, aligning in any relative system will automatically ensure that
+   all the other relative systems are aligned. Doing this cuts down the
+   complexity of the conversion process since we do not need to check every
    possible alignment system. */
    align_system = ( ABS_SYSTEM( align_system ) ) ? AST__FREQ : AST__VREL;
 
@@ -2647,18 +2723,18 @@ static int MakeSpecMapping( AstSpecFrame *target, AstSpecFrame *result,
   3) Convert from freq in target SOR to freq in alignment SOR
   4) Convert from freq in alignment SOR to alignment system in alignment SOR
   5) Convert from alignment system in alignment SOR to freq in alignment SOR
-  6) Convert from freq in alignment SOR to freq in result SOR 
+  6) Convert from freq in alignment SOR to freq in result SOR
   7) Convert from freq in result SOR to result system in result SOR
   8) Convert default units for the result system to results unit
-  9) Convert from an absolute value to an offset value (if SpecOrigin set)  
+  9) Convert from an absolute value to an offset value (if SpecOrigin set)
 
    Steps 1,2,3,4 are performed using the attributes of the target (rest
-   frequency, reference position, etc), whilst steps 5,6,7,8 are performed 
-   using the attributes of the target (rest frequency, reference position, 
-   etc). It is necessary to go from target system to alignment system 
+   frequency, reference farem, etc), whilst steps 5,6,7,8 are performed
+   using the attributes of the target (rest frequency, reference frame,
+   etc). It is necessary to go from target system to alignment system
    via frequency because SOR conversion can only be performed in the
    frequency domain.
- 
+
    Some of these steps may not be necessary. Initially assume all steps
    are necessary (we leave steps 0, 1, 8 and 9 out of this process and
    implement them once all other steps have been done). */
@@ -2672,13 +2748,13 @@ static int MakeSpecMapping( AstSpecFrame *target, AstSpecFrame *result,
 /* Step 2 is not necessary if the target system is frequency. */
    if( target_system == AST__FREQ ) step2 = 0;
 
-/* Step 3 is not necessary if the alignment SOR is the same as the target 
+/* Step 3 is not necessary if the alignment SOR is the same as the target
    SOR. */
-   if( EqualSor( target, align_frm, status ) ) step3 = 0;
+   if( EqualSor( target, align_target, status ) ) step3 = 0;
 
 /* Step 6 is not necessary if the alignment SOR is the same as the result
    SOR. */
-   if( EqualSor( result, align_frm, status ) ) step6 = 0;
+   if( EqualSor( result, align_result, status ) ) step6 = 0;
 
 /* Step 7 is not necessary if the result system is frequency. */
    if( result_system == AST__FREQ ) step7 = 0;
@@ -2691,9 +2767,9 @@ static int MakeSpecMapping( AstSpecFrame *target, AstSpecFrame *result,
    the target sor equals the result sor. */
    if( !step4 && !step5 && EqualSor( target, result, status ) ) step3 = step6 = 0;
 
-/* Steps 2 and 7 are not necessary if steps 3, 4, 5 and 6 are not necessary, 
-   and the target sor equals the result sor, and the target and results 
-   systems are equal (if the systems are relative they must also have equal 
+/* Steps 2 and 7 are not necessary if steps 3, 4, 5 and 6 are not necessary,
+   and the target sor equals the result sor, and the target and results
+   systems are equal (if the systems are relative they must also have equal
    rest frequencies). */
    if( !step3 && !step4 && !step5 && !step6 && EqualSor( target, result, status ) &&
        target_system == result_system ) {
@@ -2704,7 +2780,7 @@ static int MakeSpecMapping( AstSpecFrame *target, AstSpecFrame *result,
 /* Now we know which steps are needed, let's do them (we delay unit
    conversion to the end)... */
 
-/* Step 2: target system in target rest frame to frequency in target rest 
+/* Step 2: target system in target rest frame to frequency in target rest
    frame. */
    if( step2 ) {
       if( target_system != AST__FREQ ) {
@@ -2722,19 +2798,19 @@ static int MakeSpecMapping( AstSpecFrame *target, AstSpecFrame *result,
          } else if ( target_system == AST__AIRWAVE ) {
             TRANSFORM_0( "AWTOFR" )
 
-/* If the target target_system is relative, we first need to convert to 
+/* If the target target_system is relative, we first need to convert to
    apparent radial velocity, and then to frequency using the rest frequency. */
          } else {
 
             if ( target_system == AST__VRADIO ) {
                TRANSFORM_0( "VRTOVL" )
-   
+
             } else if ( target_system == AST__VOPTICAL ) {
                TRANSFORM_0( "VOTOVL" )
-   
+
             } else if ( target_system == AST__REDSHIFT ) {
                TRANSFORM_0( "ZOTOVL" )
-   
+
             } else if ( target_system == AST__BETA ) {
                TRANSFORM_0( "BTTOVL" )
             }
@@ -2747,9 +2823,9 @@ static int MakeSpecMapping( AstSpecFrame *target, AstSpecFrame *result,
 
 /* Step 3: frequency in target rest frame to frequency in alignment rest
    frame. */
-   if( step3 ) match = SorConvert( target, align_frm, specmap, status );
+   if( step3 ) match = SorConvert( target, align_target, specmap, status );
 
-/* Step 4: frequency in alignment rest frame to alignment system in alignment 
+/* Step 4: frequency in alignment rest frame to alignment system in alignment
    rest frame. The alignment will be either relativistic velocity or
    frequency. */
    if( step4 ) {
@@ -2759,7 +2835,7 @@ static int MakeSpecMapping( AstSpecFrame *target, AstSpecFrame *result,
       }
    }
 
-/* Step 5: Alignment system in alignment rest frame to frequency in alignment 
+/* Step 5: Alignment system in alignment rest frame to frequency in alignment
    rest frame (from now on use the attributes of the result SpecFrame to
    define the conversion parameters). */
    if( step5 ) {
@@ -2769,9 +2845,9 @@ static int MakeSpecMapping( AstSpecFrame *target, AstSpecFrame *result,
       }
    }
 
-/* Step 6: frequency in alignment rest frame to frequency in result rest 
+/* Step 6: frequency in alignment rest frame to frequency in result rest
    frame. */
-   if( step6 ) match = SorConvert( align_frm, result, specmap, status );
+   if( step6 ) match = SorConvert( align_result, result, specmap, status );
 
 /* Step 7: frequency in result rest frame to result system in result rest
    frame. */
@@ -2791,8 +2867,8 @@ static int MakeSpecMapping( AstSpecFrame *target, AstSpecFrame *result,
          } else if ( result_system == AST__AIRWAVE ) {
             TRANSFORM_0( "FRTOAW" )
 
-/* If the result system is relative, we first need to convert to apparent 
-   radial velocity from frequency using the rest frequency. Report an error 
+/* If the result system is relative, we first need to convert to apparent
+   radial velocity from frequency using the rest frequency. Report an error
    if the rest frequency is undefined. */
          } else {
             VerifyAttrs( result, vmess, "RestFreq", "astMatch", status );
@@ -2801,13 +2877,13 @@ static int MakeSpecMapping( AstSpecFrame *target, AstSpecFrame *result,
 /* Now convert from apparent radial velocity to the required result system. */
             if ( result_system == AST__VRADIO ) {
                TRANSFORM_0( "VLTOVR" )
-   
+
             } else if ( result_system == AST__VOPTICAL ) {
                TRANSFORM_0( "VLTOVO" )
-   
+
             } else if ( result_system == AST__REDSHIFT ) {
                TRANSFORM_0( "VLTOZO" )
-   
+
             } else if ( result_system == AST__BETA ) {
                TRANSFORM_0( "VLTOBT" )
             }
@@ -2815,21 +2891,21 @@ static int MakeSpecMapping( AstSpecFrame *target, AstSpecFrame *result,
       }
    }
 
-/* The SpecMap created above class assumes that the axis values supplied to 
-   its Transform method are in units which correspond to the default units 
+/* The SpecMap created above class assumes that the axis values supplied to
+   its Transform method are in units which correspond to the default units
    for its class (the returned values also use these units). However,
    the Unit attributes of the supplied Frames may have been set to some
    non-default value, and so we need to add Mappings before and after the
    SpecMap which convert to and from the default units. Find the Mapping
    from the target Frame Units to the default Units for the target's system. */
    utarg = astGetUnit( target, 0 );
-   umap1 = astUnitMapper( utarg, SpecMapUnit( target_system, "MakeSpecMap", 
+   umap1 = astUnitMapper( utarg, SpecMapUnit( target_system, "MakeSpecMap",
                                               "SpecFrame", status ), NULL, NULL );
 
 /* Find the Mapping from the default Units for the result's system to the
    Units of the result Frame. */
    ures = astGetUnit( result, 0 );
-   umap2 = astUnitMapper( SpecMapUnit( result_system, "MakeSpecMap", 
+   umap2 = astUnitMapper( SpecMapUnit( result_system, "MakeSpecMap",
                                        "SpecFrame", status ), ures, NULL, NULL );
 
 /* If both units Mappings were created OK, sandwich the SpecMap between
@@ -2841,13 +2917,13 @@ static int MakeSpecMapping( AstSpecFrame *target, AstSpecFrame *result,
 
 /* If the simplified SpecMap is a UnitMap, and the target and result
    units are the same, we do not need to know the mapping between units.
-   Otherwise, report an error and indicate that we cannot convert between 
+   Otherwise, report an error and indicate that we cannot convert between
    the Frames. */
    } else {
       map2 = astSimplify( specmap );
       if( !astIsAUnitMap( map2 ) || strcmp( ures, utarg ) ) {
          match = 0;
-         if( astOK && report ) {         
+         if( astOK && report ) {
             if( !umap1 ) {
                uerr = utarg;
                serr = astGetSystem( target );
@@ -2861,7 +2937,7 @@ static int MakeSpecMapping( AstSpecFrame *target, AstSpecFrame *result,
       }
    }
 
-/* Step 0: offset to absolute value in target system. Prepend the Maping created 
+/* Step 0: offset to absolute value in target system. Prepend the Maping created
    above with a ShiftMap that does the required shift of origin. */
    target_origin = GetSpecOriginCur( target, status );
    if( target_origin != 0.0 ) {
@@ -2873,9 +2949,9 @@ static int MakeSpecMapping( AstSpecFrame *target, AstSpecFrame *result,
    }
    map2 = astAnnul( map2 );
 
-/* Step 9: absolute value to offset in result system. If we are aligning in the 
-   offset system, use the transformed target origin as the new zero point. 
-   Otherwise use the origin from the result frame. First get the origin for the 
+/* Step 9: absolute value to offset in result system. If we are aligning in the
+   offset system, use the transformed target origin as the new zero point.
+   Otherwise use the origin from the result frame. First get the origin for the
    result system. */
    if( astGetAlignSpecOffset( target ) && astGetAlignSpecOffset( result ) ) {
       result_origin = 0.0;
@@ -2903,8 +2979,10 @@ static int MakeSpecMapping( AstSpecFrame *target, AstSpecFrame *result,
    specmap = astAnnul( specmap );
    if( umap1 ) umap1 = astAnnul( umap1 );
    if( umap2 ) umap2 = astAnnul( umap2 );
+   align_result = astAnnul( align_result );
+   align_target = astAnnul( align_target );
 
-/* If an error occurred, annul the returned Mapping and clear the returned 
+/* If an error occurred, annul the returned Mapping and clear the returned
    values. */
    if ( !astOK ) {
       *map = astAnnul( *map );
@@ -2920,7 +2998,7 @@ static int MakeSpecMapping( AstSpecFrame *target, AstSpecFrame *result,
 #undef TRANSFORM_1
 }
 
-static int Match( AstFrame *template_frame, AstFrame *target,
+static int Match( AstFrame *template_frame, AstFrame *target, int matchsub,
                   int **template_axes, int **target_axes, AstMapping **map,
                   AstFrame **result, int *status ) {
 /*
@@ -2935,7 +3013,7 @@ static int Match( AstFrame *template_frame, AstFrame *target,
 
 *  Synopsis:
 *     #include "specframe.h"
-*     int Match( AstFrame *template, AstFrame *target,
+*     int Match( AstFrame *template, AstFrame *target, int matchsub,
 *                int **template_axes, int **target_axes,
 *                AstMapping **map, AstFrame **result, int *status )
 
@@ -2955,12 +3033,16 @@ static int Match( AstFrame *template_frame, AstFrame *target,
 
 *  Parameters:
 *     template
-*        Pointer to the template SpecFrame. This describes the coordinate 
-*        system (or set of possible coordinate systems) into which we wish to 
+*        Pointer to the template SpecFrame. This describes the coordinate
+*        system (or set of possible coordinate systems) into which we wish to
 *        convert our coordinates.
 *     target
 *        Pointer to the target Frame. This describes the coordinate system in
 *        which we already have coordinates.
+*     matchsub
+*        If zero then a match only occurs if the template is of the same
+*        class as the target, or of a more specialised class. If non-zero
+*        then a match can occur even if this is not the case.
 *     template_axes
 *        Address of a location where a pointer to int will be returned if the
 *        requested coordinate conversion is possible. This pointer will point
@@ -2969,8 +3051,8 @@ static int Match( AstFrame *template_frame, AstFrame *target,
 *        (using astFree) when no longer required.
 *
 *        For each axis in the result Frame, the corresponding element of this
-*        array will return the index of the template SpecFrame axis from 
-*        which it is derived. If it is not derived from any template 
+*        array will return the index of the template SpecFrame axis from
+*        which it is derived. If it is not derived from any template
 *        SpecFrame axis, a value of -1 will be returned instead.
 *     target_axes
 *        Address of a location where a pointer to int will be returned if the
@@ -3013,9 +3095,9 @@ static int Match( AstFrame *template_frame, AstFrame *target,
 *     global error status set, or if it should fail for any reason.
 
 *  Implementation Notes:
-*     This implementation addresses the matching of a SpecFrame class 
-*     object to any other class of Frame. A SpecFrame will match any class 
-*     of SpecFrame (i.e. possibly from a derived class) but will not match 
+*     This implementation addresses the matching of a SpecFrame class
+*     object to any other class of Frame. A SpecFrame will match any class
+*     of SpecFrame (i.e. possibly from a derived class) but will not match
 *     a less specialised class of Frame.
 */
 
@@ -3048,7 +3130,7 @@ static int Match( AstFrame *template_frame, AstFrame *target,
    Frame class object. This ensures that the number of axes (1) and
    domain, etc. of the target Frame are suitable. Invoke the parent
    "astMatch" method to verify this. */
-   match = (*parent_match)( template_frame, target,
+   match = (*parent_match)( template_frame, target, matchsub,
                             template_axes, target_axes, map, result, status );
 
 /* If a match was found, annul the returned objects, which are not
@@ -3127,7 +3209,7 @@ static void OriginStdOfRest( AstSpecFrame *this, AstStdOfRestType newsor,
 *                           const char *method, int *status )
 
 *  Class Membership:
-*     SpecFrame member function 
+*     SpecFrame member function
 
 *  Description:
 *     This function converts the value of the SpecOrigin attribute stored
@@ -3138,15 +3220,15 @@ static void OriginStdOfRest( AstSpecFrame *this, AstStdOfRestType newsor,
 *     this
 *        Point to the SpecFrame. On entry, the SpecOrigin value is
 *        assumed to refer to the re st frame given by the astGetStdOfRest
-*        method. On exit, the SpecOrigin value refers to the rest frame 
+*        method. On exit, the SpecOrigin value refers to the rest frame
 *        supplied in "newsor". The StdOfRest attribute of the SpecFrame
 *        should then be modified in order to keep things consistent.
 *     newsor
 *        The rest frame to which the SpecOrigin value stored within "this"
-*        should refer on exit. 
+*        should refer on exit.
 *     method
 *        Pointer to a string holding the name of the method to be
-*        included in any error messages. 
+*        included in any error messages.
 *     status
 *        Pointer to the inherited status variable.
 
@@ -3168,7 +3250,7 @@ static void OriginStdOfRest( AstSpecFrame *this, AstStdOfRestType newsor,
 /* Do nothing if the rest frame will not change. */
       if( newsor != astGetStdOfRest( this ) ) {
 
-/* Save the original SpecOrigin value (in the current SpecFrame units) and then 
+/* Save the original SpecOrigin value (in the current SpecFrame units) and then
    clear it. */
          origin = GetSpecOriginCur( this, status );
          astClearSpecOrigin( this );
@@ -3177,7 +3259,7 @@ static void OriginStdOfRest( AstSpecFrame *this, AstStdOfRestType newsor,
          sf = astCopy( this );
          astSetStdOfRest( sf, newsor );
 
-/* Create a Mapping to perform the rest frame change, then use it to convert 
+/* Create a Mapping to perform the rest frame change, then use it to convert
    the value to the new rest frame. */
          fs = astConvert( this, sf, "" );
          neworigin = AST__BAD;
@@ -3186,7 +3268,7 @@ static void OriginStdOfRest( AstSpecFrame *this, AstStdOfRestType newsor,
             fs = astAnnul( fs );
          }
 
-/* If succesful, convert from the current units to the default units, and store 
+/* If succesful, convert from the current units to the default units, and store
    in "this". */
          if( neworigin != AST__BAD ) {
             astSetSpecOrigin( this, ToUnits( this, astGetUnit( this, 0 ), neworigin,
@@ -3194,14 +3276,14 @@ static void OriginStdOfRest( AstSpecFrame *this, AstStdOfRestType newsor,
 
          } else if( astOK ) {
             astError( AST__ATSER, "%s(%s): Cannot convert the SpecOrigin "
-                      "value to a different rest frame.", status, method, 
+                      "value to a different rest frame.", status, method,
                       astGetClass( this ) );
          }
       }
    }
 }
 
-static void OriginSystem( AstSpecFrame *this, AstSystemType oldsys, 
+static void OriginSystem( AstSpecFrame *this, AstSystemType oldsys,
                           const char *method, int *status ){
 /*
 *  Name:
@@ -3215,26 +3297,26 @@ static void OriginSystem( AstSpecFrame *this, AstSystemType oldsys,
 
 *  Synopsis:
 *     #include "specframe.h"
-*     void OriginSystem( AstSpecFrame *this, AstSystemType oldsys, 
+*     void OriginSystem( AstSpecFrame *this, AstSystemType oldsys,
 *                        const char *method, int *status )
 
 *  Class Membership:
-*     SpecFrame member function 
+*     SpecFrame member function
 
 *  Description:
 *     This function converts the value of the SpecOrigin attribute stored
-*     within a supplied SpecFrame from its original System, etc, to the 
+*     within a supplied SpecFrame from its original System, etc, to the
 *     System, etc, currently associated with the SpecFrame.
 
 *  Parameters:
 *     this
 *        Point to the SpecFrame. On entry, the SpecOrigin value is
 *        assumed to refer to the System given by "oldsys", etc. On exit, the
-*        SpecOrigin value refers to the System returned by the astGetSystem 
+*        SpecOrigin value refers to the System returned by the astGetSystem
 *        method, etc.
 *     oldsys
 *        The System to which the SpecOrigin value stored within "this"
-*        refers on entry. 
+*        refers on entry.
 *     method
 *        A string containing the method name for error messages.
 *     status
@@ -3272,14 +3354,14 @@ static void OriginSystem( AstSpecFrame *this, AstSystemType oldsys,
          sf2 = astCopy( sf1 );
          astSetSystem( sf2, oldsys );
 
-/* Create a Mapping to perform the rest frame change, then use it to convert 
+/* Create a Mapping to perform the rest frame change, then use it to convert
    the value to the current system. */
          fs = astConvert( sf2, sf1, "" );
          neworigin = AST__BAD;
          if( fs ) {
             astTran1( fs, 1, &origin, 1, &neworigin );
             fs = astAnnul( fs );
-         } 
+         }
 
 /* Free resources */
          sf1 = astAnnul( sf1 );
@@ -3291,7 +3373,7 @@ static void OriginSystem( AstSpecFrame *this, AstSystemType oldsys,
 
          } else if( astOK ) {
             astError( AST__ATSER, "%s(%s): Cannot convert the SpecOrigin "
-                      "value to a different spectral system.", status, method, 
+                      "value to a different spectral system.", status, method,
                       astGetClass( this ) );
          }
       }
@@ -3350,6 +3432,9 @@ static void Overlay( AstFrame *template, const int *template_axes,
 *
 *        If any axis in the result Frame is not associated with a template
 *        axis, the corresponding element of this array should be set to -1.
+*
+*        If a NULL pointer is supplied, the template and result axis
+*        indicies are assumed to be identical.
 *     result
 *        Pointer to the Frame which is to receive the new attribute values.
 *     status
@@ -3361,7 +3446,7 @@ static void Overlay( AstFrame *template, const int *template_axes,
 *  Notes:
 *     -  In general, if the result Frame is not from the same class as the
 *     template SpecFrame, or from a class derived from it, then attributes may
-*     exist in the template SpecFrame which do not exist in the result Frame. 
+*     exist in the template SpecFrame which do not exist in the result Frame.
 *     In this case, these attributes will not be transferred.
 */
 
@@ -3378,8 +3463,8 @@ static void Overlay( AstFrame *template, const int *template_axes,
    if ( !astOK ) return;
 
 /* Initialise strings used in error messages. */
-   new_class = astGetClass( template );   
-   old_class = astGetClass( result );   
+   new_class = astGetClass( template );
+   old_class = astGetClass( result );
    method = "astOverlay";
 
 /* Get the old and new systems. */
@@ -3397,8 +3482,8 @@ static void Overlay( AstFrame *template, const int *template_axes,
    templt = astClone( template );
 
 /* If the result Frame is a SpecFrame, we must test to see if overlaying its
-   System attribute will change the type of coordinate system it describes. 
-   Determine the value of this attribute for the result and template 
+   System attribute will change the type of coordinate system it describes.
+   Determine the value of this attribute for the result and template
    SpecFrames. */
    specframe = astIsASpecFrame( result );
    if( specframe ) {
@@ -3408,10 +3493,10 @@ static void Overlay( AstFrame *template, const int *template_axes,
       if ( new_system != old_system ) {
          astClearTitle( result );
 
-/* If the systems have the same default units, we can retain the current 
+/* If the systems have the same default units, we can retain the current
    Unit value. */
          if( strcmp( DefUnit( new_system, method, new_class, status ),
-                     DefUnit( old_system, method, old_class, status ) ) ) { 
+                     DefUnit( old_system, method, old_class, status ) ) ) {
             astClearUnit( result, 0 );
          }
 
@@ -3424,8 +3509,8 @@ static void Overlay( AstFrame *template, const int *template_axes,
       }
 
 /* If the result Frame is not a SpecFrame, we must temporarily clear the
-   System and AlignSystem values since the values used by this class 
-   are only appropriate to this class. Use a deep copy to avoid the danger 
+   System and AlignSystem values since the values used by this class
+   are only appropriate to this class. Use a deep copy to avoid the danger
    of making any permanent changes to the suppied Frame. */
    } else {
       if( astTestSystem( template ) ) {
@@ -3453,7 +3538,7 @@ static void Overlay( AstFrame *template, const int *template_axes,
    }
 
 /* Use the macro to transfer each SpecFrame attribute in turn. Note,
-   SourceVRF must be overlayed before SourceVel. Otherwise the stored value 
+   SourceVRF must be overlayed before SourceVel. Otherwise the stored value
    for SourceVel would be changed from the default SourceVRF to the specified
    SourceVRF when SourceVRF was overlayed. */
       OVERLAY(AlignStdOfRest)
@@ -3546,7 +3631,7 @@ static void SetAttrib( AstObject *this_object, const char *setting, int *status 
 /* Obtain a pointer to the SpecFrame structure. */
    this = (AstSpecFrame *) this_object;
 
-/* Create an FK5 J2000 SkyFrame which will be used for formatting and 
+/* Create an FK5 J2000 SkyFrame which will be used for formatting and
    unformatting sky positions, etc. */
    LOCK_MUTEX2
    if( !skyframe ) {
@@ -3571,7 +3656,7 @@ static void SetAttrib( AstObject *this_object, const char *setting, int *status 
 /* First look for axis attributes defined by the Frame class. Since a
    SpecFrame has only 1 axis, we allow these attributes to be specified
    without a trailing "(axis)" string. */
-   if ( !strncmp( setting, "direction=", 10 ) || 
+   if ( !strncmp( setting, "direction=", 10 ) ||
         !strncmp( setting, "bottom=", 7 ) ||
         !strncmp( setting, "top=", 4 ) ||
         !strncmp( setting, "format=", 7 ) ||
@@ -3580,7 +3665,7 @@ static void SetAttrib( AstObject *this_object, const char *setting, int *status 
         !strncmp( setting, "unit=", 5 ) ) {
 
 /* Create a new setting string from the original by appending the string
-   "(1)" to the end of the attribute name and then use the parent SetAttrib 
+   "(1)" to the end of the attribute name and then use the parent SetAttrib
    method. */
       new_setting = astMalloc( len + 4 );
       if( new_setting ) {
@@ -3613,7 +3698,7 @@ static void SetAttrib( AstObject *this_object, const char *setting, int *status 
 
 /* GeoLat. */
 /* ------- */
-/* Retained for backward compatibility with older versions of AST in which 
+/* Retained for backward compatibility with older versions of AST in which
    SpecFrame had GeoLon/Lat attributes (now ObsLon/Lat are used instead). */
    } else if ( nc = 0,
               ( 0 == astSscanf( setting, "geolat=%n%*s %n", &off, &nc ) )
@@ -3705,7 +3790,7 @@ static void SetAttrib( AstObject *this_object, const char *setting, int *status 
          astTran1( umap, 1, &dval, 1, &dtemp );
          umap = astAnnul( umap );
 
-/* Convert the wavelength (m) to frequency (Hz). */ 
+/* Convert the wavelength (m) to frequency (Hz). */
          if( dtemp != AST__BAD && dtemp != 0.0 ) {
             dtemp = AST__C/dtemp;
          } else if( astOK ) {
@@ -3721,7 +3806,7 @@ static void SetAttrib( AstObject *this_object, const char *setting, int *status 
          astTran1( umap, 1, &dval, 1, &dtemp );
          umap = astAnnul( umap );
 
-/* Convert the energy (J) to frequency (Hz). */ 
+/* Convert the energy (J) to frequency (Hz). */
          if( dtemp != AST__BAD ) {
             dtemp *= 1.0/AST__H;
          } else if( astOK ) {
@@ -3732,7 +3817,7 @@ static void SetAttrib( AstObject *this_object, const char *setting, int *status 
 /* Otherwise report an error. */
       } else if( astOK ) {
          astError( AST__ATTIN, "astSetAttrib(%s): Rest frequency given in an "
-                   "unsupported system of units \"%g %s\".", status, 
+                   "unsupported system of units \"%g %s\".", status,
                    astGetClass( this ), dval, setting + off );
       }
 
@@ -3800,7 +3885,7 @@ static void SetAttrib( AstObject *this_object, const char *setting, int *status 
 /* SpecOrigin */
 /* ---------- */
 
-/* Floating-point without any units indication - assume the current Unit 
+/* Floating-point without any units indication - assume the current Unit
    value. Convert from current units to default units for current system. */
    } else if ( nc = 0,
         ( 1 == astSscanf( setting, "specorigin= %lg %n", &dval, &nc ) )
@@ -3809,7 +3894,7 @@ static void SetAttrib( AstObject *this_object, const char *setting, int *status 
       astSetSpecOrigin( this, ToUnits( this, astGetUnit( this, 0 ), dval,
                                        "astSetSpecOrigin", status ) );
 
-/* Floating-point with units. Convert the supplied value to the default units 
+/* Floating-point with units. Convert the supplied value to the default units
    for the SpecFrame's System. */
    } else if ( nc = 0,
         ( 1 == astSscanf( setting, "specorigin= %lg %n%*s %n", &dval, &off, &nc ) )
@@ -3823,7 +3908,7 @@ static void SetAttrib( AstObject *this_object, const char *setting, int *status 
    }
 }
 
-static void SetRefPos( AstSpecFrame *this, AstSkyFrame *frm, double lon, 
+static void SetRefPos( AstSpecFrame *this, AstSkyFrame *frm, double lon,
                        double lat, int *status ){
 /*
 *++
@@ -3839,7 +3924,7 @@ f     AST_SETREFPOS
 
 *  Synopsis:
 c     #include "specframe.h"
-c     void astSetRefPos( AstSpecFrame *this, AstSkyFrame *frm, double lon, 
+c     void astSetRefPos( AstSpecFrame *this, AstSkyFrame *frm, double lon,
 c                        double lat )
 f     CALL AST_SETREFPOS( THIS, FRM, LON, LAT, STATUS )
 
@@ -3847,11 +3932,11 @@ f     CALL AST_SETREFPOS( THIS, FRM, LON, LAT, STATUS )
 *     Frame method.
 
 *  Description:
-c     This function 
-f     This routine 
-*     sets the reference position (see attributes RefRA and RefDec) using 
-*     axis values (in radians) supplied within the celestial coordinate 
-*     system represented by a supplied SkyFrame. 
+c     This function
+f     This routine
+*     sets the reference position (see attributes RefRA and RefDec) using
+*     axis values (in radians) supplied within the celestial coordinate
+*     system represented by a supplied SkyFrame.
 
 *  Parameters:
 c     this
@@ -3859,11 +3944,11 @@ f     THIS = INTEGER (Given)
 *        Pointer to the SpecFrame.
 c     frm
 f     FRM = INTEGER (Given)
-*        Pointer to the SkyFrame which defines the celestial coordinate 
+*        Pointer to the SkyFrame which defines the celestial coordinate
 *        system in which the longitude and latitude values are supplied.
-c        If NULL 
-f        If AST__NULL 
-*        is supplied, then the supplied longitude and latitude values are 
+c        If NULL
+f        If AST__NULL
+*        is supplied, then the supplied longitude and latitude values are
 *        assumed to be FK5 J2000 RA and Dec values.
 c     lon
 f     LON = DOUBLE PRECISION (Given)
@@ -3891,7 +3976,7 @@ f        The global status.
 /* Check the global error status. */
    if ( !astOK ) return;
 
-/* If no SkyFrame was supplied, just store the supplied RefRA and RefDec 
+/* If no SkyFrame was supplied, just store the supplied RefRA and RefDec
    values. */
    if( !frm ) {
       astSetRefRA( this, lon );
@@ -3900,7 +3985,7 @@ f        The global status.
 /* Otherwise, convert the supplied values from the requested system. */
    } else {
 
-/* Create an FK5 J2000 SkyFrame which will be used for formatting and 
+/* Create an FK5 J2000 SkyFrame which will be used for formatting and
    unformatting sky positions, etc. */
       LOCK_MUTEX2
       if( !skyframe ) {
@@ -3910,17 +3995,17 @@ f        The global status.
       }
       UNLOCK_MUTEX2
 
-/* Find the Mapping from the supplied SkyFrame, to the SkyFrame which 
-   describes the internal format in which the RefRA and RefDec attribute 
+/* Find the Mapping from the supplied SkyFrame, to the SkyFrame which
+   describes the internal format in which the RefRA and RefDec attribute
    values are stored. */
       fs = astFindFrame( frm, skyframe, "" );
 
 /* If alignment was possible, use the Mapping to transform the supplied
-   axis values, checking to see if the axes of the supplied SkyFrame have 
+   axis values, checking to see if the axes of the supplied SkyFrame have
    been permuted. */
       if( fs ) {
-         
-/* Find the longitude axis in the Base Frame, and store the supplied 
+
+/* Find the longitude axis in the Base Frame, and store the supplied
    longitude and latitude values. */
          fb = astGetFrame( fs, AST__BASE );
          if( astGetLonAxis( fb ) == 0 ) {
@@ -3947,7 +4032,7 @@ f        The global status.
          fb = astAnnul( fb );
          fs = astAnnul( fs );
       }
-   }  
+   }
 }
 
 static void SetStdOfRest( AstSpecFrame *this, AstStdOfRestType value, int *status ) {
@@ -3967,10 +4052,10 @@ static void SetStdOfRest( AstSpecFrame *this, AstStdOfRestType value, int *statu
 *     void astSetStdOfRest( AstSpecFrame *this, AstStdOfRestType value )
 
 *  Class Membership:
-*     SpecFrame virtual function 
+*     SpecFrame virtual function
 
 *  Description:
-*     This function set a new value for the StdOfRest attribute for a 
+*     This function set a new value for the StdOfRest attribute for a
 *     SpecFrame.
 
 *  Parameters:
@@ -3994,7 +4079,7 @@ static void SetStdOfRest( AstSpecFrame *this, AstStdOfRestType value, int *statu
 /* Otherwise set the new StdOfRest */
    } else {
 
-/* Modify the SpecOrigin value stored in the SpecFrame structure to refer 
+/* Modify the SpecOrigin value stored in the SpecFrame structure to refer
    to the new rest frame. */
       OriginStdOfRest( this, value, "astSetStdOfRest", status );
 
@@ -4130,7 +4215,7 @@ static void SetUnit( AstFrame *this_frame, int axis, const char *value, int *sta
    current system. */
    system = (int) astGetSystem( this );
    if( system >= this->nuunits ) {
-      this->usedunits = astGrow( this->usedunits, system + 1, 
+      this->usedunits = astGrow( this->usedunits, system + 1,
                                  sizeof(char *) );
       if( astOK ) {
          for( i = this->nuunits; i < system + 1; i++ ) this->usedunits[ i ] = NULL;
@@ -4174,9 +4259,9 @@ static int SorConvert( AstSpecFrame *this, AstSpecFrame *that,
 
 *  Description:
 *     This function adds a conversion to a SpecMap which transforms
-*     frequencies between the standards of rest specified by "this" to
+*     frequencies from the standard of rest specified by "this" to
 *     the standard of rest specified by "that". Note the conversion is
-*     always between frequency in the two rest frames no matter what the 
+*     always between frequency in the two rest frames no matter what the
 *     System attributes of the two SpecFrames may be (which are ignored).
 
 *  Parameters:
@@ -4190,13 +4275,13 @@ static int SorConvert( AstSpecFrame *this, AstSpecFrame *that,
 *        Pointer to the inherited status variable.
 
 *  Returned Value:
-*     Zero is returned if the conversion could not be performed. One is 
+*     Zero is returned if the conversion could not be performed. One is
 *     returned otherwise.
 
 */
 
 /* Local Constants: */
-#define MAX_ARGS 5               /* Max arguments for an SpecMap conversion */
+#define MAX_ARGS 7               /* Max arguments for an SpecMap conversion */
 
 /* Local Variables: */
    AstStdOfRestType from;        /* Input standard of rest */
@@ -4205,6 +4290,7 @@ static int SorConvert( AstSpecFrame *this, AstSpecFrame *that,
    double args[ MAX_ARGS ];      /* Conversion argument array */
    double dec;                   /* DEC of source (radians, FK5 J2000) */
    double epoch;                 /* Epoch of observation (MJD) */
+   double alt;                   /* Observers geodetic altitude (radians) */
    double lat;                   /* Observers geodetic latitude (radians) */
    double lon;                   /* Observers geodetic longitude (radians) */
    double ra;                    /* RA of source (radians, FK5 J2000) */
@@ -4235,12 +4321,13 @@ static int SorConvert( AstSpecFrame *this, AstSpecFrame *that,
         args[ 2 ] = arg2; \
         astSpecAdd( specmap, cvt, args );
 
-#define TRANSFORM_5(cvt,arg0,arg1,arg2,arg3,arg4) \
+#define TRANSFORM_6(cvt,arg0,arg1,arg2,arg3,arg4,arg5) \
         args[ 0 ] = arg0; \
         args[ 1 ] = arg1; \
         args[ 2 ] = arg2; \
         args[ 3 ] = arg3; \
         args[ 4 ] = arg4; \
+        args[ 5 ] = arg5; \
         astSpecAdd( specmap, cvt, args );
 
 /* A string for use in error messages. */
@@ -4252,17 +4339,18 @@ static int SorConvert( AstSpecFrame *this, AstSpecFrame *that,
       dec = astGetRefDec( this );
       lon = astGetObsLon( this );
       lat = astGetObsLat( this );
+      alt = astGetObsAlt( this );
       epoch = astGetEpoch( this );
 
-/* Verify that the reference RA and DEC can be used (they are needed by all 
+/* Verify that the reference RA and DEC can be used (they are needed by all
    the conversions used below). */
       VerifyAttrs( this, vmess, "RefRA RefDec", "astMatch", status );
 
 /* Convert from the "this" rest frame to heliographic. */
       if( from == AST__TPSOR ) {
-         VerifyAttrs( this, vmess, "ObsLon ObsLat Epoch", "astMatch", status );
-         TRANSFORM_5( "TPF2HL", lon, lat, epoch, ra, dec )
-      
+         VerifyAttrs( this, vmess, "ObsLon ObsLat ObsAlt Epoch", "astMatch", status );
+         TRANSFORM_6( "TPF2HL", lon, lat, alt, epoch, ra, dec )
+
       } else if( from == AST__GESOR ) {
          VerifyAttrs( this, vmess, "Epoch", "astMatch", status );
          TRANSFORM_3( "GEF2HL", epoch, ra, dec )
@@ -4284,23 +4372,24 @@ static int SorConvert( AstSpecFrame *this, AstSpecFrame *that,
          TRANSFORM_2( "GLF2HL", ra, dec )
 
       } else if( from == AST__SCSOR ) {
-         TRANSFORM_3( "USF2HL", ConvertSourceVel( this, AST__HLSOR, AST__VREL, status ), 
+         TRANSFORM_3( "USF2HL", ConvertSourceVel( this, AST__HLSOR, AST__VREL, status ),
                       ra, dec )
       }
-   
-/* Now go from heliocentric to the "to" frame. */  
+
+/* Now go from heliocentric to the "to" frame. */
       to = astGetStdOfRest( that );
       ra = astGetRefRA( that );
       dec = astGetRefDec( that );
       lon = astGetObsLon( that );
       lat = astGetObsLat( that );
+      alt = astGetObsAlt( that );
       epoch = astGetEpoch( that );
       VerifyAttrs( that, vmess, "RefRA RefDec", "astMatch", status );
 
       if( to == AST__TPSOR ) {
-         VerifyAttrs( that, vmess, "ObsLon ObsLat Epoch", "astMatch", status );
-         TRANSFORM_5( "HLF2TP", lon, lat, epoch, ra, dec )
-   
+         VerifyAttrs( that, vmess, "ObsLon ObsLat ObsAlt Epoch", "astMatch", status );
+         TRANSFORM_6( "HLF2TP", lon, lat, alt, epoch, ra, dec )
+
       } else if( to == AST__GESOR ) {
          VerifyAttrs( that, vmess, "Epoch", "astMatch", status );
          TRANSFORM_3( "HLF2GE", epoch, ra, dec )
@@ -4322,7 +4411,7 @@ static int SorConvert( AstSpecFrame *this, AstSpecFrame *that,
          TRANSFORM_2( "HLF2GL", ra, dec )
 
       } else if( to == AST__SCSOR ) {
-         TRANSFORM_3( "HLF2US", ConvertSourceVel( that, AST__HLSOR, AST__VREL, status ), 
+         TRANSFORM_3( "HLF2US", ConvertSourceVel( that, AST__HLSOR, AST__VREL, status ),
                       ra, dec )
       }
    }
@@ -4334,7 +4423,7 @@ static int SorConvert( AstSpecFrame *this, AstSpecFrame *that,
 #undef MAX_ARGS
 #undef TRANSFORM_2
 #undef TRANSFORM_3
-#undef TRANSFORM_5
+#undef TRANSFORM_6
 }
 
 static const char *SpecMapUnit( AstSystemType system, const char *method,
@@ -4359,10 +4448,10 @@ static const char *SpecMapUnit( AstSystemType system, const char *method,
 *     SpecFrame member function.
 
 *  Description:
-*     This function returns a textual representation of the 
-*     units used by the SpecMap class for the specified spectral 
+*     This function returns a textual representation of the
+*     units used by the SpecMap class for the specified spectral
 *     coordinate system. In general, the SpecMap class uses SI units
-*     (m/s, Hz, m, etc), but this class (SpecFrame) has default units 
+*     (m/s, Hz, m, etc), but this class (SpecFrame) has default units
 *     more appropriate to astronomers (km/s, GHz, Angstroms, etc).
 
 *  Parameters:
@@ -4371,7 +4460,7 @@ static const char *SpecMapUnit( AstSystemType system, const char *method,
 *     method
 *        Pointer to a string holding the name of the calling method.
 *        This is only for use in constructing error messages.
-*     class 
+*     class
 *        Pointer to a string holding the name of the supplied object class.
 *        This is only for use in constructing error messages.
 *     status
@@ -4421,7 +4510,7 @@ static const char *SpecMapUnit( AstSystemType system, const char *method,
 /* Report an error if the coordinate system was not recognised. */
    } else {
       astError( AST__SCSIN, "%s(%s): Corrupt %s contains illegal System "
-                "identification code (%d).", status, method, class, class, 
+                "identification code (%d).", status, method, class, class,
                 (int) system );
    }
 
@@ -4448,9 +4537,9 @@ static AstStdOfRestType StdOfRestCode( const char *sor, int *status ) {
 *     SpecFrame member function.
 
 *  Description:
-*     This function converts a string used for the external description of 
-*     a standard of rest into a SpecFrame standard of rest type code 
-*     (StdOfRest attribute value). It is the inverse of the 
+*     This function converts a string used for the external description of
+*     a standard of rest into a SpecFrame standard of rest type code
+*     (StdOfRest attribute value). It is the inverse of the
 *     StdOfRestString function.
 
 *  Parameters:
@@ -4462,7 +4551,7 @@ static AstStdOfRestType StdOfRestCode( const char *sor, int *status ) {
 *     The StdOfRest type code.
 
 *  Notes:
-*     - A value of AST__BADSOR is returned if the standard of rest 
+*     - A value of AST__BADSOR is returned if the standard of rest
 *     description was not recognised. This does not produce an error.
 *     - A value of AST__BADSOR is also returned if this function
 *     is invoked with the global error status set or if it should fail
@@ -4501,8 +4590,8 @@ static AstStdOfRestType StdOfRestCode( const char *sor, int *status ) {
    } else if ( astChrMatch( "GAL", sor ) || astChrMatch( "GALACTOC", sor ) || astChrMatch( "GALACTIC", sor ) ) {
       result = AST__GLSOR;
 
-   } else if ( astChrMatch( "LG", sor ) || astChrMatch( "LOCALGRP", sor ) || 
-               astChrMatch( "LOCAL_GROUP", sor ) || astChrMatch( "LOCAL-GROUP", sor ) ) { 
+   } else if ( astChrMatch( "LG", sor ) || astChrMatch( "LOCALGRP", sor ) ||
+               astChrMatch( "LOCAL_GROUP", sor ) || astChrMatch( "LOCAL-GROUP", sor ) ) {
       result = AST__LGSOR;
 
    } else if ( astChrMatch( "SOURCE", sor ) || astChrMatch( "SRC", sor ) ) {
@@ -4620,7 +4709,7 @@ static int SubFrame( AstFrame *target_frame, AstFrame *template,
 *     SubFrame
 
 *  Purpose:
-*     Select axes from a SpecFrame and convert to the new coordinate 
+*     Select axes from a SpecFrame and convert to the new coordinate
 *     system.
 
 *  Type:
@@ -4634,7 +4723,7 @@ static int SubFrame( AstFrame *target_frame, AstFrame *template,
 *                   AstFrame **result, int *status )
 
 *  Class Membership:
-*     SpecFrame member function (over-rides the protected astSubFrame 
+*     SpecFrame member function (over-rides the protected astSubFrame
 *     method inherited from the Frame class).
 
 *  Description:
@@ -4650,7 +4739,7 @@ static int SubFrame( AstFrame *target_frame, AstFrame *template,
 
 *  Parameters:
 *     target
-*        Pointer to the target SpecFrame, from which axes are to be 
+*        Pointer to the target SpecFrame, from which axes are to be
 *        selected.
 *     template
 *        Pointer to the template Frame, from which new attributes for the
@@ -4703,14 +4792,14 @@ static int SubFrame( AstFrame *target_frame, AstFrame *template,
 *     global error status set, or if it should fail for any reason.
 
 *  Implementation Notes:
-*     -  This implementation addresses the selection of axes from a 
-*     SpecFrame object. This results in another object of the same class 
-*     only if the single SpecFrame axis is selected exactly once. 
-*     Otherwise, the result is a Frame class object which inherits the 
-*     SpecFrame's axis information (if appropriate) but none of the other 
+*     -  This implementation addresses the selection of axes from a
+*     SpecFrame object. This results in another object of the same class
+*     only if the single SpecFrame axis is selected exactly once.
+*     Otherwise, the result is a Frame class object which inherits the
+*     SpecFrame's axis information (if appropriate) but none of the other
 *     properties of a SpecFrame.
-*     -  In the event that a SpecFrame results, the returned Mapping will 
-*     take proper account of the relationship between the target and result 
+*     -  In the event that a SpecFrame results, the returned Mapping will
+*     take proper account of the relationship between the target and result
 *     coordinate systems.
 *     -  In the event that a Frame class object results, the returned Mapping
 *     will only represent a selection/permutation of axes.
@@ -4744,7 +4833,7 @@ static int SubFrame( AstFrame *target_frame, AstFrame *template,
 /* Result is a SpecFrame. */
 /* -------------------------- */
 /* Check if the result Frame is to have one axis obtained by selecting
-   the single target SpecFrame axis. If so, the result will also be 
+   the single target SpecFrame axis. If so, the result will also be
    a SpecFrame. */
    if ( ( result_naxes == 1 ) && ( target_axes[ 0 ] == 0 ) ) {
 
@@ -4756,19 +4845,19 @@ static int SubFrame( AstFrame *target_frame, AstFrame *template,
       report = 0;
 
 /* If required, overlay the template attributes on to the result SpecFrame.
-   Also get the system and standard of rest in which to align the two 
-   SpecFrames. These are the values from the template (if there is a 
+   Also get the system and standard of rest in which to align the two
+   SpecFrames. These are the values from the template (if there is a
    template). */
       if ( template ) {
          astOverlay( template, template_axes, *result );
          if( astIsASpecFrame( template ) ) {
             align_frm = astCopy( template );
 
-/* Since we now know that both the template and target are SpecFrames, it 
+/* Since we now know that both the template and target are SpecFrames, it
    should usually be possible to convert betwen them. If conversion is
    *not* possible (fpr instance if no rest frequency is availalbe, etc)
    then the user will probably be interested in knowing the reason why
-   conversion is not possible. Therefore, indicate that MakeSpecMapping 
+   conversion is not possible. Therefore, indicate that MakeSpecMapping
    should report errors if no Mapping can be created. */
             report = 1;
 
@@ -4779,15 +4868,15 @@ static int SubFrame( AstFrame *target_frame, AstFrame *template,
 /* If no template was supplied, align in the System and StdOfRest of the
    target. */
       } else {
-         VerifyAttrs( target, "convert between different spectral systems", 
+         VerifyAttrs( target, "convert between different spectral systems",
                    "StdOfRest", "astMatch", status );
          align_frm = astCopy( target );
       }
 
 /* The MakeSpecMapping function uses the System and StdOfRest attributes to
-   define the alignment frame. But the AlignSystem and AlignStdOfRest 
-   attributes should be used for this purpose. Therefore, copy the values 
-   of the AlignSystem and AlignStdOfRest attributes to the System and 
+   define the alignment frame. But the AlignSystem and AlignStdOfRest
+   attributes should be used for this purpose. Therefore, copy the values
+   of the AlignSystem and AlignStdOfRest attributes to the System and
    StdOfRest attribute. */
       astSetSystem( align_frm, astGetAlignSystem( align_frm ) );
       astSetStdOfRest( align_frm, astGetAlignStdOfRest( align_frm ) );
@@ -4797,7 +4886,7 @@ static int SubFrame( AstFrame *target_frame, AstFrame *template,
    SpecFrame. If this Mapping can be generated, set "match" to indicate that
    coordinate conversion is possible. If the template is a specframe,
    report errors if a match is not possible. */
-      match = ( MakeSpecMapping( target, (AstSpecFrame *) *result, 
+      match = ( MakeSpecMapping( target, (AstSpecFrame *) *result,
                 align_frm, report, map, status ) != 0 );
 
 /* Free resources. */
@@ -5183,15 +5272,15 @@ static int TestActiveUnit( AstFrame *this_frame, int *status ) {
 
 *  Synopsis:
 *     #include "specframe.h"
-*     int TestActiveUnit( AstFrame *this_frame, int *status ) 
+*     int TestActiveUnit( AstFrame *this_frame, int *status )
 
 *  Class Membership:
 *     SpecFrame member function (over-rides the astTestActiveUnit protected
 *     method inherited from the Frame class).
 
 *  Description:
-*    This function test the value of the ActiveUnit flag for a SpecFrame, 
-*    which is always "unset". 
+*    This function test the value of the ActiveUnit flag for a SpecFrame,
+*    which is always "unset".
 
 *  Parameters:
 *     this
@@ -5272,7 +5361,7 @@ static int TestAttrib( AstObject *this_object, const char *attrib, int *status )
 /* First look for axis attributes defined by the Frame class. Since a
    SpecFrame has only 1 axis, we allow these attributes to be specified
    without a trailing "(axis)" string. */
-   if ( !strcmp( attrib, "direction" ) || 
+   if ( !strcmp( attrib, "direction" ) ||
         !strcmp( attrib, "bottom" ) ||
         !strcmp( attrib, "top" ) ||
         !strcmp( attrib, "format" ) ||
@@ -5285,7 +5374,7 @@ static int TestAttrib( AstObject *this_object, const char *attrib, int *status )
       new_attrib = astMalloc( len + 4 );
       if( new_attrib ) {
          memcpy( new_attrib, attrib, len );
-         memcpy( new_attrib + len, "(1)", 4 ); 
+         memcpy( new_attrib + len, "(1)", 4 );
          result = (*parent_testattrib)( this_object, new_attrib, status );
          new_attrib = astFree( new_attrib );
       }
@@ -5297,7 +5386,7 @@ static int TestAttrib( AstObject *this_object, const char *attrib, int *status )
 
 /* GeoLat. */
 /* ------- */
-/* Retained for backward compatibility with older versions of AST in which 
+/* Retained for backward compatibility with older versions of AST in which
    SpecFrame had GeoLon/Lat attributes (now ObsLon/Lat are used instead). */
    } else if ( !strcmp( attrib, "geolat" ) ) {
       result = astTestAttrib( this, "obslat" );
@@ -5370,7 +5459,7 @@ static double ToUnits( AstSpecFrame *this, const char *oldunit, double oldval,
 *     ToUnits
 
 *  Purpose:
-*     Convert a supplied spectral value to the default units of the supplied 
+*     Convert a supplied spectral value to the default units of the supplied
 *     SpecFrame.
 
 *  Type:
@@ -5382,10 +5471,10 @@ static double ToUnits( AstSpecFrame *this, const char *oldunit, double oldval,
 *                     const char *method, int *status )
 
 *  Class Membership:
-*     SpecFrame member function 
+*     SpecFrame member function
 
 *  Description:
-*     This function converts the supplied value from the supplied units to 
+*     This function converts the supplied value from the supplied units to
 *     the default units associated with the supplied SpecFrame's System.
 
 *  Parameters:
@@ -5397,7 +5486,7 @@ static double ToUnits( AstSpecFrame *this, const char *oldunit, double oldval,
 *        The value to be converted.
 *     method
 *        Pointer to a string holding the name of the method to be
-*        included in any error messages. 
+*        included in any error messages.
 *     status
 *        Pointer to the inherited status variable.
 
@@ -5409,8 +5498,8 @@ static double ToUnits( AstSpecFrame *this, const char *oldunit, double oldval,
 /* Local Variables: */
    AstMapping *map;
    const char *defunit;
-   double result;              
-   
+   double result;
+
 /* Initialise. */
    result = AST__BAD;
 
@@ -5432,7 +5521,7 @@ static double ToUnits( AstSpecFrame *this, const char *oldunit, double oldval,
 /* Report an error if no conversion is possible. */
    } else if( astOK ){
       astError( AST__BADUN, "%s(%s): Cannot convert the supplied attribute "
-                "value from units of %s to %s.", status, method, astGetClass( this ), 
+                "value from units of %s to %s.", status, method, astGetClass( this ),
                  oldunit, defunit );
    }
 
@@ -5455,7 +5544,7 @@ static int ValidateSystem( AstFrame *this, AstSystemType system, const char *met
 
 *  Synopsis:
 *     #include "specframe.h"
-*     int ValidateSystem( AstFrame *this, AstSystemType system, 
+*     int ValidateSystem( AstFrame *this, AstSystemType system,
 *                         const char *method, int *status )
 
 *  Class Membership:
@@ -5471,7 +5560,7 @@ static int ValidateSystem( AstFrame *this, AstSystemType system, const char *met
 *     this
 *        Pointer to the Frame.
 *     system
-*        The system value to be checked. 
+*        The system value to be checked.
 *     method
 *        Pointer to a constant null-terminated character string
 *        containing the name of the method that invoked this function
@@ -5501,8 +5590,8 @@ static int ValidateSystem( AstFrame *this, AstSystemType system, const char *met
 /* If the value is out of bounds, report an error. */
    if ( system < FIRST_SYSTEM || system > LAST_SYSTEM ) {
          astError( AST__AXIIN, "%s(%s): Bad value (%d) given for the System "
-                   "attribute of a %s.", status, method, astGetClass( this ),
-                   (int) system, astGetClass( this ) );
+                   "or AlignSystem attribute of a %s.", status, method,
+                   astGetClass( this ), (int) system, astGetClass( this ) );
 
 /* Otherwise, return the supplied value. */
    } else {
@@ -5513,7 +5602,7 @@ static int ValidateSystem( AstFrame *this, AstSystemType system, const char *met
    return result;
 }
 
-static void VerifyAttrs( AstSpecFrame *this, const char *purp, 
+static void VerifyAttrs( AstSpecFrame *this, const char *purp,
                          const char *attrs, const char *method, int *status ) {
 /*
 *  Name:
@@ -5527,11 +5616,11 @@ static void VerifyAttrs( AstSpecFrame *this, const char *purp,
 
 *  Synopsis:
 *     #include "specframe.h"
-*     void VerifyAttrs( AstSpecFrame *this, const char *purp, 
+*     void VerifyAttrs( AstSpecFrame *this, const char *purp,
 *                       const char *attrs, const char *method, int *status  )
 
 *  Class Membership:
-*     SpecFrame member function 
+*     SpecFrame member function
 
 *  Description:
 *     This function tests each attribute listed in "attrs". It returns
@@ -5544,11 +5633,11 @@ static void VerifyAttrs( AstSpecFrame *this, const char *purp,
 
 *  Parameters:
 *     this
-*        Pointer to the SpecFrame. 
+*        Pointer to the SpecFrame.
 *     purp
 *        Pointer to a text string containing a message which will be
 *        included in any error report. This shouldindicate the purpose
-*        for which the attribute value is required. 
+*        for which the attribute value is required.
 *     attrs
 *        A string holding a space separated list of attribute names.
 *     method
@@ -5571,10 +5660,10 @@ static void VerifyAttrs( AstSpecFrame *this, const char *purp,
    if( !astOK ) return;
 
 /* If the SpecFrame has a non-zero value for its UseDefs attribute, then
-   all attributes are assumed to have usable values, since the defaults 
+   all attributes are assumed to have usable values, since the defaults
    will be used if no explicit value has been set. So we only need to do
    any checks if UseDefs is zero. */
-   if( !astGetUseDefs( this ) ) {   
+   if( !astGetUseDefs( this ) ) {
 
 /* Stop compiler warnings about uninitialised variables */
       a = NULL;
@@ -5595,7 +5684,7 @@ static void VerifyAttrs( AstSpecFrame *this, const char *purp,
             }
          } else {
             if( isspace( *p ) || !*p ) {
-   
+
 /* The end of a word has just been reached. Compare it to each known
    attribute value. Get a flag indicating if the attribute has a set
    value, and a string describing the attribute.*/
@@ -5603,11 +5692,15 @@ static void VerifyAttrs( AstSpecFrame *this, const char *purp,
 
                   if( !strncmp( "ObsLat", a, len ) ) {
                      set = astTestObsLat( this );
-                     desc = "observatory latitude";
+                     desc = "observer's latitude";
 
                   } else if( !strncmp( "ObsLon", a, len ) ) {
                      set = astTestObsLon( this );
-                     desc = "observatory longitude";
+                     desc = "observer's longitude";
+
+                  } else if( !strncmp( "ObsAlt", a, len ) ) {
+                     set = astTestObsAlt( this );
+                     desc = "observer's altitude";
 
                   } else if( !strncmp( "RefRA", a, len ) ) {
                      set = astTestRefRA( this );
@@ -5669,7 +5762,7 @@ static void VerifyAttrs( AstSpecFrame *this, const char *purp,
 *     AlignSpecOffset
 
 *  Purpose:
-*     Align SpecFrames using the offset coordinate system? 
+*     Align SpecFrames using the offset coordinate system?
 
 *  Type:
 *     Public attribute.
@@ -5682,14 +5775,14 @@ static void VerifyAttrs( AstSpecFrame *this, const char *purp,
 *     behaves when it is used (by
 c     astFindFrame or astConvert) as a template to match another (target)
 f     AST_FINDFRAME or AST_CONVERT) as a template to match another (target)
-*     SpecFrame. It determines whether alignment occurs between the offset 
-*     values defined by the current value of the SpecOffset attribute, or 
+*     SpecFrame. It determines whether alignment occurs between the offset
+*     values defined by the current value of the SpecOffset attribute, or
 *     between the corresponding absolute spectral values.
 *
-*     The default value of zero results in the two SpecFrames being aligned 
-*     so that a given absolute spectral value in one is mapped to the same 
-*     absolute value in the other. A non-zero value results in the SpecFrames 
-*     being aligned so that a given offset value in one is mapped to the same 
+*     The default value of zero results in the two SpecFrames being aligned
+*     so that a given absolute spectral value in one is mapped to the same
+*     absolute value in the other. A non-zero value results in the SpecFrames
+*     being aligned so that a given offset value in one is mapped to the same
 *     offset value in the other.
 
 *  Applicability:
@@ -5723,14 +5816,14 @@ astMAKE_TEST(SpecFrame,AlignSpecOffset,( this->alignspecoffset != -INT_MAX ))
 *     This attribute controls how a SpecFrame behaves when it is used (by
 c     astFindFrame or astConvert) as a template to match another (target)
 f     AST_FINDFRAME or AST_CONVERT) as a template to match another (target)
-*     SpecFrame. It identifies the standard of rest in which alignment is 
-*     to occur. See the StdOfRest attribute for a desription of the values 
-*     which may be assigned to this attribute. The default AlignStdOfRest 
+*     SpecFrame. It identifies the standard of rest in which alignment is
+*     to occur. See the StdOfRest attribute for a desription of the values
+*     which may be assigned to this attribute. The default AlignStdOfRest
 *     value is "Helio" (heliographic).
 *
-c     When astFindFrame or astConvert is used on two SpecFrames (potentially 
-f     When AST_FindFrame or AST_CONVERT is used on two SpecFrames (potentially 
-*     describing different spectral coordinate systems), it returns a Mapping 
+c     When astFindFrame or astConvert is used on two SpecFrames (potentially
+f     When AST_FindFrame or AST_CONVERT is used on two SpecFrames (potentially
+*     describing different spectral coordinate systems), it returns a Mapping
 *     which can be used to transform a position in one SpecFrame into the
 *     corresponding position in the other. The Mapping is made up of the
 *     following steps in the indicated order:
@@ -5740,17 +5833,17 @@ f     When AST_FindFrame or AST_CONVERT is used on two SpecFrames (potentially
 *     AlignSystem attribute, using the target's rest frequency if necessary.
 *
 *     - Map these values from the target's standard of rest to the standard of
-*     rest specified by the AlignStdOfRest attribute, using the Epoch, ObsLat, 
-*     ObsLon, RefDec and RefRA attributes of the target to define the two
-*     standards of rest.
+*     rest specified by the AlignStdOfRest attribute, using the Epoch, ObsLat,
+*     ObsLon, ObsAlt, RefDec and RefRA attributes of the target to define the
+*     two standards of rest.
 *
-*     - Map these values from the standard of rest specified by the 
-*     AlignStdOfRest attribute, to the template's standard of rest, using the 
-*     Epoch, ObsLat, ObsLon, RefDec and RefRA attributes of the template to 
-*     define the two standards of rest.
+*     - Map these values from the standard of rest specified by the
+*     AlignStdOfRest attribute, to the template's standard of rest, using the
+*     Epoch, ObsLat, ObsLon, ObsAlt, RefDec and RefRA attributes of the
+*     template to define the two standards of rest.
 *
-*     - Map these values from the system specified by the AlignSystem 
-*     attribute, to the system used by the template, using the template's 
+*     - Map these values from the system specified by the AlignSystem
+*     attribute, to the system used by the template, using the template's
 *     rest frequency if necessary.
 
 *  Applicability:
@@ -5759,7 +5852,7 @@ f     When AST_FindFrame or AST_CONVERT is used on two SpecFrames (potentially
 
 *att--
 */
-/* The AlignStdOfRest value has a value of AST__BADSOR when not set yielding 
+/* The AlignStdOfRest value has a value of AST__BADSOR when not set yielding
    a default of AST__HLSOR. */
 astMAKE_TEST(SpecFrame,AlignStdOfRest,( this->alignstdofrest != AST__BADSOR ))
 astMAKE_CLEAR(SpecFrame,AlignStdOfRest,alignstdofrest,AST__BADSOR)
@@ -5792,8 +5885,8 @@ astMAKE_SET(SpecFrame,AlignStdOfRest,AstStdOfRestType,alignstdofrest,(
 *     String.
 
 *  Description:
-*     This attribute specifies the FK5 J2000.0 declination of a reference 
-*     point on the sky. See the description of attribute RefRA for details. 
+*     This attribute specifies the FK5 J2000.0 declination of a reference
+*     point on the sky. See the description of attribute RefRA for details.
 *     The default RefDec is "0:0:0".
 
 *  Applicability:
@@ -5802,7 +5895,7 @@ astMAKE_SET(SpecFrame,AlignStdOfRest,AstStdOfRestType,alignstdofrest,(
 
 *att--
 */
-/* The reference declination (FK5 J2000, radians). Clear the RefDec value by 
+/* The reference declination (FK5 J2000, radians). Clear the RefDec value by
    setting it to AST__BAD, which results in a default value of zero. Any
    value is acceptable. */
 astMAKE_CLEAR(SpecFrame,RefDec,refdec,AST__BAD)
@@ -5825,15 +5918,15 @@ astMAKE_TEST(SpecFrame,RefDec,( this->refdec != AST__BAD ))
 *     String.
 
 *  Description:
-*     This attribute, together with the RefDec attribute, specifies the FK5 
-*     J2000.0 coordinates of a reference point on the sky. For 1-dimensional 
-*     spectra, this should normally be the position of the source. For 
-*     spectral data with spatial coverage (spectral cubes, etc), this should 
-*     be close to centre of the spatial coverage. It is used to define the 
-*     correction for Doppler shift to be applied when using the 
-c     astFindFrame or astConvert 
-f     AST_FINDFRAME or AST_CONVERT 
-*     method to convert between different standards of rest. 
+*     This attribute, together with the RefDec attribute, specifies the FK5
+*     J2000.0 coordinates of a reference point on the sky. For 1-dimensional
+*     spectra, this should normally be the position of the source. For
+*     spectral data with spatial coverage (spectral cubes, etc), this should
+*     be close to centre of the spatial coverage. It is used to define the
+*     correction for Doppler shift to be applied when using the
+c     astFindFrame or astConvert
+f     AST_FINDFRAME or AST_CONVERT
+*     method to convert between different standards of rest.
 *
 *     The SpecFrame class assumes this velocity correction is spatially
 *     invariant. If a single SpecFrame is used (for instance, as a
@@ -5844,14 +5937,14 @@ f     AST_FINDFRAME or AST_CONVERT
 *     of V*SIN(FOV), where FOV is the angular field of view, and V is the
 *     relative velocity of the two standards of rest. As an example, when
 *     correcting from the observers rest frame (i.e. the topocentric rest
-*     frame) to the kinematic local standard of rest the maximum value of V 
-*     is about 20 km/s, so for 5 arc-minute field of view the maximum velocity 
-*     error introduced by the correction will be about 0.03 km/s. As another 
-*     example, the maximum error when correcting from the observers rest frame 
+*     frame) to the kinematic local standard of rest the maximum value of V
+*     is about 20 km/s, so for 5 arc-minute field of view the maximum velocity
+*     error introduced by the correction will be about 0.03 km/s. As another
+*     example, the maximum error when correcting from the observers rest frame
 *     to the local group is about 5 km/s over a 1 degree field of view.
-*     
-*     The RefRA and RefDec attributes are stored internally in radians, but 
-*     are converted to and from a string for access. The format "hh:mm:ss.ss" 
+*
+*     The RefRA and RefDec attributes are stored internally in radians, but
+*     are converted to and from a string for access. The format "hh:mm:ss.ss"
 *     is used for RefRA, and "dd:mm:ss.s" is used for RefDec. The methods
 c     astSetRefPos and astGetRefPos may be used to access the values of
 f     AST_SETREFPOS and AST_GETREFPOS may be used to access the value of
@@ -5865,7 +5958,7 @@ f     AST_SETREFPOS and AST_GETREFPOS may be used to access the value of
 
 *att--
 */
-/* The reference right ascension (FK5 J2000, radians). Clear the RefRA value 
+/* The reference right ascension (FK5 J2000, radians). Clear the RefRA value
    by setting it to AST__BAD, which gives a default value of 0.0. Any
    value is acceptable. */
 astMAKE_CLEAR(SpecFrame,RefRA,refra,AST__BAD)
@@ -5890,25 +5983,25 @@ astMAKE_TEST(SpecFrame,RefRA,( this->refra != AST__BAD ))
 
 *  Description:
 *     This attribute specifies the frequency corresponding to zero
-*     velocity. It is used when converting between between velocity-based 
-*     coordinate systems and and other coordinate systems (such as frequency, 
+*     velocity. It is used when converting between between velocity-based
+*     coordinate systems and and other coordinate systems (such as frequency,
 *     wavelength, energy, etc). The default value is 1.0E5 GHz.
 *
-*     When setting a new value for this attribute, the new value can be 
-*     supplied either directly as a frequency, or indirectly as a wavelength 
-*     or energy, in which case the supplied value is converted to a frequency 
-*     before being stored. The nature of the supplied value is indicated by 
-*     appending text to the end of the numerical value indicating the units in 
-*     which the value is supplied. If the units are not specified, then the 
-*     supplied value is assumed to be a frequency in units of GHz. If the 
-*     supplied unit is a unit of frequency, the supplied value is assumed to 
-*     be a frequency in the given units. If the supplied unit is a unit of 
-*     length, the supplied value is assumed to be a (vacuum) wavelength. If 
-*     the supplied unit is a unit of energy, the supplied value is assumed to 
-*     be an energy. For instance, the following strings all result in 
+*     When setting a new value for this attribute, the new value can be
+*     supplied either directly as a frequency, or indirectly as a wavelength
+*     or energy, in which case the supplied value is converted to a frequency
+*     before being stored. The nature of the supplied value is indicated by
+*     appending text to the end of the numerical value indicating the units in
+*     which the value is supplied. If the units are not specified, then the
+*     supplied value is assumed to be a frequency in units of GHz. If the
+*     supplied unit is a unit of frequency, the supplied value is assumed to
+*     be a frequency in the given units. If the supplied unit is a unit of
+*     length, the supplied value is assumed to be a (vacuum) wavelength. If
+*     the supplied unit is a unit of energy, the supplied value is assumed to
+*     be an energy. For instance, the following strings all result in
 *     a rest frequency of around 1.4E14 Hz being used: "1.4E5", "1.4E14 Hz",
 *     "1.4E14 s**-1", "1.4E5 GHz", "2.14E-6 m", "21400 Angstrom", "9.28E-20 J",
-*     "9.28E-13 erg", "0.58 eV", etc. 
+*     "9.28E-13 erg", "0.58 eV", etc.
 *
 *     When getting the value of this attribute, the returned value is
 *     always a frequency in units of GHz.
@@ -5941,24 +6034,24 @@ astMAKE_TEST(SpecFrame,RestFreq,( this->restfreq != AST__BAD ))
 *     Floating point.
 
 *  Description:
-*     This attribute (together with SourceSys, SourceVRF, RefRA and RefDec) 
-*     defines the "Source" standard of rest (see attribute StdOfRest). This is 
-*     a rest frame which is moving towards the position given by RefRA and 
+*     This attribute (together with SourceSys, SourceVRF, RefRA and RefDec)
+*     defines the "Source" standard of rest (see attribute StdOfRest). This is
+*     a rest frame which is moving towards the position given by RefRA and
 *     RefDec at a  velocity given by SourceVel. A positive value means
 *     the source is moving away from the observer. When a new value is
 *     assigned to this attribute, the supplied value is assumed to refer
 *     to the spectral system specified by the SourceSys attribute. For
 *     instance, the SourceVel value may be supplied as a radio velocity, a
 *     redshift, a beta factor, etc. Similarly, when the current value of
-*     the SourceVel attribute is obtained, the returned value will refer 
+*     the SourceVel attribute is obtained, the returned value will refer
 *     to the spectral system specified by the SourceSys value. If the
 *     SourceSys value is changed, any value previously stored for the SourceVel
-*     attribute will be changed automatically from the old spectral system 
+*     attribute will be changed automatically from the old spectral system
 *     to the new spectral system.
 *
-*     When setting a value for SourceVel, the value should be supplied in the 
-*     rest frame specified by the SourceVRF attribute. Likewise, when getting 
-*     the value of SourceVel, it will be returned in the rest frame specified 
+*     When setting a value for SourceVel, the value should be supplied in the
+*     rest frame specified by the SourceVRF attribute. Likewise, when getting
+*     the value of SourceVel, it will be returned in the rest frame specified
 *     by the SourceVRF attribute.
 *
 *     The default SourceVel value is zero.
@@ -5969,15 +6062,15 @@ astMAKE_TEST(SpecFrame,RestFreq,( this->restfreq != AST__BAD ))
 
 *  Notes:
 *     - It is important to set an appropriate value for SourceVRF and
-*     SourceSys before setting a value for SourceVel. If a new value is later 
-*     set for SourceVRF or SourceSys, the value stored for SourceVel will 
+*     SourceSys before setting a value for SourceVel. If a new value is later
+*     set for SourceVRF or SourceSys, the value stored for SourceVel will
 *     simultaneously be changed to the new standard of rest or spectral
 *     system.
 
 *att--
 */
-/* The source velocity (velocities are stored internally in m/s). Clear it 
-   by setting it to AST__BAD, which returns a default value of zero. Any 
+/* The source velocity (velocities are stored internally in m/s). Clear it
+   by setting it to AST__BAD, which returns a default value of zero. Any
    value is acceptable. */
 astMAKE_CLEAR(SpecFrame,SourceVel,sourcevel,AST__BAD)
 astMAKE_SET(SpecFrame,SourceVel,double,sourcevel,value)
@@ -6000,18 +6093,18 @@ astMAKE_GET(SpecFrame,SourceVel,double,0.0,((this->sourcevel!=AST__BAD)?this->so
 
 *  Description:
 *     This attribute identifies the rest frame in which the source
-*     velocity or redshift is stored (the source velocity or redshift is 
-*     accessed using attribute SourceVel). When setting a new value for the 
-*     SourceVel attribute, the source velocity or redshift should be supplied 
-*     in the rest frame indicated by this attribute. Likewise, when getting 
-*     the value of the SourceVel attribute, the velocity or redshift will be 
+*     velocity or redshift is stored (the source velocity or redshift is
+*     accessed using attribute SourceVel). When setting a new value for the
+*     SourceVel attribute, the source velocity or redshift should be supplied
+*     in the rest frame indicated by this attribute. Likewise, when getting
+*     the value of the SourceVel attribute, the velocity or redshift will be
 *     returned in this rest frame.
 *
-*     If the value of SourceVRF is changed, the value stored for SourceVel 
+*     If the value of SourceVRF is changed, the value stored for SourceVel
 *     will be converted from the old to the new rest frame.
 *
-*     The values which can be supplied are the same as for the StdOfRest 
-*     attribute (except that SourceVRF cannot be set to "Source"). The 
+*     The values which can be supplied are the same as for the StdOfRest
+*     attribute (except that SourceVRF cannot be set to "Source"). The
 *     default value is "Helio".
 
 *  Applicability:
@@ -6020,7 +6113,7 @@ astMAKE_GET(SpecFrame,SourceVel,double,0.0,((this->sourcevel!=AST__BAD)?this->so
 
 *att--
 */
-/* The SourceVRF value has a value of AST__BADSOR when not set yielding 
+/* The SourceVRF value has a value of AST__BADSOR when not set yielding
    a default of AST__HLSOR. */
 astMAKE_TEST(SpecFrame,SourceVRF,( this->sourcevrf != AST__BADSOR ))
 astMAKE_GET(SpecFrame,SourceVRF,AstStdOfRestType,AST__BADSOR,(
@@ -6031,7 +6124,7 @@ astMAKE_GET(SpecFrame,SourceVRF,AstStdOfRestType,AST__BADSOR,(
 astMAKE_CLEAR(SpecFrame,SourceVRF,sourcevrf,((astTestSourceVel( this )?
 astSetSourceVel( this, ConvertSourceVel( this, AST__HLSOR, astGetSourceSys( this ), status ) ),NULL:NULL),AST__BADSOR))
 
-/* Validate the SourceVRF value being set and report an error if necessary. 
+/* Validate the SourceVRF value being set and report an error if necessary.
    If OK, convert the stored SourceVel value into the new rest frame (but
 only if set)*/
 astMAKE_SET(SpecFrame,SourceVRF,AstStdOfRestType,sourcevrf,(
@@ -6061,7 +6154,7 @@ astMAKE_SET(SpecFrame,SourceVRF,AstStdOfRestType,sourcevrf,(
 
 *  Description:
 *     This attribute identifies the spectral system in which the
-*     SourceVel attribute value (the source velocity) is supplied and 
+*     SourceVel attribute value (the source velocity) is supplied and
 *     returned. It can be one of the following:
 *
 *        - "VRAD" or "VRADIO": Radio velocity (km/s)
@@ -6070,12 +6163,12 @@ astMAKE_SET(SpecFrame,SourceVRF,AstStdOfRestType,sourcevrf,(
 *        - "BETA": Beta factor (dimensionless)
 *        - "VELO" or "VREL": Apparent radial ("relativistic") velocity (km/s)
 *
-*     When setting a new value for the SourceVel attribute, the source 
+*     When setting a new value for the SourceVel attribute, the source
 *     velocity should be supplied in the spectral system indicated
 *     by this attribute. Likewise, when getting the value of the SourceVel
 *     attribute, the velocity will be returned in this spectral system.
 *
-*     If the value of SourceSys is changed, the value stored for SourceVel 
+*     If the value of SourceSys is changed, the value stored for SourceVel
 *     will be converted from the old to the new spectral systems.
 *
 *     The default value is "VELO" (apparent radial velocity).
@@ -6086,7 +6179,7 @@ astMAKE_SET(SpecFrame,SourceVRF,AstStdOfRestType,sourcevrf,(
 
 *att--
 */
-/* The SourceSys value has a value of AST__BADSYS when not set yielding 
+/* The SourceSys value has a value of AST__BADSYS when not set yielding
    a default of AST__VREL. */
 astMAKE_TEST(SpecFrame,SourceSys,( this->sourcesys != AST__BADSYSTEM ))
 astMAKE_GET(SpecFrame,SourceSys,AstSystemType,AST__BADSYSTEM,(
@@ -6095,10 +6188,10 @@ astMAKE_GET(SpecFrame,SourceSys,AstSystemType,AST__BADSYSTEM,(
 /* When clearing SourceSys, convert the SourceVel value to relativistic
    velocity (but only if set) */
 astMAKE_CLEAR(SpecFrame,SourceSys,sourcesys,((astTestSourceVel( this )?
-astSetSourceVel( this, ConvertSourceVel( this, astGetSourceVRF( this ), 
+astSetSourceVel( this, ConvertSourceVel( this, astGetSourceVRF( this ),
                                          AST__VREL, status ) ),NULL:NULL),AST__BADSYSTEM))
 
-/* Validate the SourceSys value being set and report an error if necessary. 
+/* Validate the SourceSys value being set and report an error if necessary.
    If OK, convert the stored SourceVel value into the new rest frame (but
    only if set)*/
 astMAKE_SET(SpecFrame,SourceSys,AstSystemType,sourcesys,(
@@ -6106,8 +6199,8 @@ astMAKE_SET(SpecFrame,SourceSys,AstSystemType,sourcesys,(
               ( value == AST__VRADIO ) || ( value == AST__REDSHIFT ) ||
               ( value == AST__VOPTICAL ) ) ?
               (astTestSourceVel( this )?
-               astSetSourceVel( this, ConvertSourceVel( this, astGetSourceVRF( this ), 
-                                                        value, status )),NULL:NULL), 
+               astSetSourceVel( this, ConvertSourceVel( this, astGetSourceVRF( this ),
+                                                        value, status )),NULL:NULL),
                                                         value:
                  ( astError( AST__ATTIN, "%s(%s): Bad value (%d) "
                              "given for SourceSys attribute.", status,
@@ -6133,7 +6226,7 @@ astMAKE_SET(SpecFrame,SourceSys,AstSystemType,sourcesys,(
 *  Description:
 *     This attribute identifies the standard of rest to which the spectral
 *     axis values of a SpecFrame refer, and may take any of the values
-*     listed in the "Standards of Rest" section (below). 
+*     listed in the "Standards of Rest" section (below).
 *
 *     The default StdOfRest value is "Helio".
 
@@ -6145,62 +6238,62 @@ astMAKE_SET(SpecFrame,SourceSys,AstSystemType,sourcesys,(
 *     The SpecFrame class supports the following StdOfRest values (all are
 *     case-insensitive):
 *
-*     - "Topocentric", "Topocent" or "Topo": The observers rest-frame (assumed 
-*     to be on the surface of the earth). Spectra recorded in this standard of 
+*     - "Topocentric", "Topocent" or "Topo": The observers rest-frame (assumed
+*     to be on the surface of the earth). Spectra recorded in this standard of
 *     rest suffer a Doppler shift which varies over the course of a day
 *     because of the rotation of the observer around the axis of the earth.
-*     This standard of rest must be qualified using the ObsLat, ObsLon, Epoch, 
-*     RefRA and RefDec attributes. 
+*     This standard of rest must be qualified using the ObsLat, ObsLon,
+*     ObsAlt, Epoch, RefRA and RefDec attributes.
 *
-*     - "Geocentric", "Geocentr" or "Geo": The rest-frame of the earth centre. 
-*     Spectra recorded in this standard of rest suffer a Doppler shift which 
-*     varies over the course of a year because of the rotation of the earth 
-*     around the Sun. This standard of rest must be qualified using the Epoch, 
-*     RefRA and RefDec attributes. 
+*     - "Geocentric", "Geocentr" or "Geo": The rest-frame of the earth centre.
+*     Spectra recorded in this standard of rest suffer a Doppler shift which
+*     varies over the course of a year because of the rotation of the earth
+*     around the Sun. This standard of rest must be qualified using the Epoch,
+*     RefRA and RefDec attributes.
 *
 *     - "Barycentric", "Barycent" or "Bary": The rest-frame of the solar-system
-*     barycentre. Spectra recorded in this standard of rest suffer a Doppler 
-*     shift which depends both on the velocity of the Sun through the Local 
-*     Standard of Rest, and on the movement of the planets through the solar 
-*     system. This standard of rest must be qualified using the Epoch, RefRA 
-*     and RefDec attributes. 
+*     barycentre. Spectra recorded in this standard of rest suffer a Doppler
+*     shift which depends both on the velocity of the Sun through the Local
+*     Standard of Rest, and on the movement of the planets through the solar
+*     system. This standard of rest must be qualified using the Epoch, RefRA
+*     and RefDec attributes.
 *
-*     - "Heliocentric", "Heliocen" or "Helio": The rest-frame of the Sun. 
-*     Spectra recorded in this standard of rest suffer a Doppler shift which 
-*     depends on the velocity of the Sun through the Local Standard of Rest. 
-*     This standard of rest must be qualified using the RefRA and RefDec 
-*     attributes. 
+*     - "Heliocentric", "Heliocen" or "Helio": The rest-frame of the Sun.
+*     Spectra recorded in this standard of rest suffer a Doppler shift which
+*     depends on the velocity of the Sun through the Local Standard of Rest.
+*     This standard of rest must be qualified using the RefRA and RefDec
+*     attributes.
 *
-*     - "LSRK", "LSR": The rest-frame of the kinematical Local Standard of 
-*     Rest. Spectra recorded in this standard of rest suffer a Doppler shift 
-*     which depends on the velocity of the kinematical Local Standard of Rest 
-*     through the galaxy. This standard of rest must be qualified using the 
-*     RefRA and RefDec attributes. 
+*     - "LSRK", "LSR": The rest-frame of the kinematical Local Standard of
+*     Rest. Spectra recorded in this standard of rest suffer a Doppler shift
+*     which depends on the velocity of the kinematical Local Standard of Rest
+*     through the galaxy. This standard of rest must be qualified using the
+*     RefRA and RefDec attributes.
 *
 *     - "LSRD": The rest-frame of the dynamical Local Standard of Rest. Spectra
-*     recorded in this standard of rest suffer a Doppler shift which depends 
-*     on the velocity of the dynamical Local Standard of Rest through the 
-*     galaxy.  This standard of rest must be qualified using the RefRA and 
-*     RefDec attributes. 
+*     recorded in this standard of rest suffer a Doppler shift which depends
+*     on the velocity of the dynamical Local Standard of Rest through the
+*     galaxy.  This standard of rest must be qualified using the RefRA and
+*     RefDec attributes.
 *
 *     - "Galactic", "Galactoc" or "Gal": The rest-frame of the galactic centre.
-*     Spectra recorded in this standard of rest suffer a Doppler shift which 
-*     depends on the velocity of the galactic centre through the local group. 
-*     This standard of rest must be qualified using the RefRA and RefDec 
+*     Spectra recorded in this standard of rest suffer a Doppler shift which
+*     depends on the velocity of the galactic centre through the local group.
+*     This standard of rest must be qualified using the RefRA and RefDec
 *     attributes.
 *
-*     - "Local_group", "Localgrp" or "LG": The rest-frame of the local group. 
-*     This standard of rest must be qualified using the RefRA and RefDec 
+*     - "Local_group", "Localgrp" or "LG": The rest-frame of the local group.
+*     This standard of rest must be qualified using the RefRA and RefDec
 *     attributes.
 *
-*     - "Source", or "src": The rest-frame of the source. This standard of 
+*     - "Source", or "src": The rest-frame of the source. This standard of
 *     rest must be qualified using the RefRA, RefDec and SourceVel attributes.
 *
 *     Where more than one alternative System value is shown above, the
 *     first of these will be returned when an enquiry is made.
 *att--
 */
-/* The StdOfRest value has a value of AST__BADSOR when not set yielding 
+/* The StdOfRest value has a value of AST__BADSOR when not set yielding
    a default of AST__HLSOR. */
 astMAKE_TEST(SpecFrame,StdOfRest,( this->stdofrest != AST__BADSOR ))
 astMAKE_GET(SpecFrame,StdOfRest,AstStdOfRestType,AST__BADSOR,(
@@ -6225,18 +6318,18 @@ astMAKE_GET(SpecFrame,StdOfRest,AstStdOfRestType,AST__BADSOR,(
 *     The default value (zero) results in the SpecFrame describing
 *     absolute spectral values in the system given by the System attribute
 *     (e.g. frequency, velocity, etc). If a SpecFrame is to be used to
-*     describe offset from some origin, the SpecOrigin attribute 
-*     should be set to hold the required origin value. The SpecOrigin value 
-*     stored inside the SpecFrame structure is modified whenever SpecFrame 
-*     attribute values are changed so that it refers to the original spectral 
+*     describe offset from some origin, the SpecOrigin attribute
+*     should be set to hold the required origin value. The SpecOrigin value
+*     stored inside the SpecFrame structure is modified whenever SpecFrame
+*     attribute values are changed so that it refers to the original spectral
 *     position.
 *
-*     When setting a new value for this attribute, the supplied value is assumed 
+*     When setting a new value for this attribute, the supplied value is assumed
 *     to be in the system, units and standard of rest described by the SpecFrame.
 *     Likewise, when getting the value of this attribute, the value is returned
-*     in the system, units and standard of rest described by the SpecFrame. If 
-*     any of these attributes are changed, then any previously stored SpecOrigin 
-*     value will also be changed so that refers to the new system, units or 
+*     in the system, units and standard of rest described by the SpecFrame. If
+*     any of these attributes are changed, then any previously stored SpecOrigin
+*     value will also be changed so that refers to the new system, units or
 *     standard of rest.
 
 *  Applicability:
@@ -6246,7 +6339,7 @@ astMAKE_GET(SpecFrame,StdOfRest,AstStdOfRestType,AST__BADSOR,(
 *att--
 */
 /* The spec origin, stored internally in the default units associated
-   with the current System value. Clear the SpecOrigin value  by setting it 
+   with the current System value. Clear the SpecOrigin value  by setting it
    to AST__BAD, which gives 0.0 as the default value. Any value is acceptable. */
 astMAKE_CLEAR(SpecFrame,SpecOrigin,specorigin,AST__BAD)
 astMAKE_GET(SpecFrame,SpecOrigin,double,0.0,((this->specorigin!=AST__BAD)?this->specorigin:0.0))
@@ -6313,7 +6406,7 @@ static void Copy( const AstObject *objin, AstObject *objout, int *status ) {
          for( i = 0; i < nused; i++ ) {
             usedunit = in->usedunits[ i ];
             if( usedunit ) {
-               out->usedunits[ i ] = astStore( NULL, usedunit, 
+               out->usedunits[ i ] = astStore( NULL, usedunit,
                                                strlen( usedunit ) + 1 );
             } else {
                out->usedunits[ i ] = NULL;
@@ -6356,7 +6449,7 @@ static void Delete( AstObject *obj, int *status ) {
 *     This function attempts to execute even if the global error status is
 *     set.
 */
-   
+
 /* Local Variables: */
    AstSpecFrame *this;
    int i;
@@ -6451,7 +6544,7 @@ static void Dump( AstObject *this_object, AstChannel *channel, int *status ) {
          if ( !sval ) {
             astError( AST__SCSIN,
                      "%s(%s): Corrupt %s contains invalid standard of rest "
-                     "identification code (%d).", status, "astWrite", 
+                     "identification code (%d).", status, "astWrite",
                      astGetClass( channel ), astGetClass( this ), (int) sor );
          }
       }
@@ -6479,7 +6572,7 @@ static void Dump( AstObject *this_object, AstChannel *channel, int *status ) {
          if ( !sval ) {
             astError( AST__SCSIN,
                      "%s(%s): Corrupt %s contains invalid alignment standard "
-                     "of rest identification code (%d).", status, "astWrite", 
+                     "of rest identification code (%d).", status, "astWrite",
                      astGetClass( channel ), astGetClass( this ), (int) sor );
          }
       }
@@ -6531,7 +6624,7 @@ static void Dump( AstObject *this_object, AstChannel *channel, int *status ) {
          if ( !sval ) {
             astError( AST__SCSIN,
                      "%s(%s): Corrupt %s contains invalid source velocity "
-                     "rest frame identification code (%d).", status, "astWrite", 
+                     "rest frame identification code (%d).", status, "astWrite",
                      astGetClass( channel ), astGetClass( this ), (int) sor );
          }
       }
@@ -6559,7 +6652,7 @@ static void Dump( AstObject *this_object, AstChannel *channel, int *status ) {
          if ( !sval ) {
             astError( AST__SCSIN,
                      "%s(%s): Corrupt %s contains invalid source velocity "
-                     "spectral system identification code (%d).", status, "astWrite", 
+                     "spectral system identification code (%d).", status, "astWrite",
                      astGetClass( channel ), astGetClass( this ), (int) sys );
          }
       }
@@ -6606,9 +6699,9 @@ static void Dump( AstObject *this_object, AstChannel *channel, int *status ) {
 
 /* Standard class functions. */
 /* ========================= */
-/* Implement the astIsASpecFrame and astCheckSpecFrame functions using the 
+/* Implement the astIsASpecFrame and astCheckSpecFrame functions using the
    macros defined for this purpose in the "object.h" header file. */
-astMAKE_ISA(SpecFrame,Frame,check,&class_check)
+astMAKE_ISA(SpecFrame,Frame)
 astMAKE_CHECK(SpecFrame)
 
 AstSpecFrame *astSpecFrame_( const char *options, int *status, ...) {
@@ -6665,7 +6758,7 @@ AstSpecFrame *astSpecFrame_( const char *options, int *status, ...) {
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
+   astDECLARE_GLOBALS            /* Pointer to thread-specific global data */
    AstMapping *um;               /* Mapping from default to actual units */
    AstSpecFrame *new;            /* Pointer to new SpecFrame */
    AstSystemType s;              /* System */
@@ -6680,7 +6773,7 @@ AstSpecFrame *astSpecFrame_( const char *options, int *status, ...) {
 
 /* Initialise the SpecFrame, allocating memory and initialising the virtual
    function table as well if necessary. */
-   new = astInitSpecFrame( NULL, sizeof( AstSpecFrame ), !class_init, 
+   new = astInitSpecFrame( NULL, sizeof( AstSpecFrame ), !class_init,
                            &class_vtab, "SpecFrame" );
 
 /* If successful, note that the virtual function table has been initialised. */
@@ -6696,14 +6789,14 @@ AstSpecFrame *astSpecFrame_( const char *options, int *status, ...) {
 /* Check the Units are appropriate for the System. */
       u = astGetUnit( new, 0 );
       s = astGetSystem( new );
-      um = astUnitMapper( DefUnit( s, "astSpecFrame", "SpecFrame", status ), 
+      um = astUnitMapper( DefUnit( s, "astSpecFrame", "SpecFrame", status ),
                           u, NULL, NULL );
       if( um ) {
          um = astAnnul( um );
       } else {
          astError( AST__BADUN, "astSpecFrame: Inappropriate units (%s) "
                    "specified for a %s axis.", status, u, SystemLabel( s, status ) );
-      }      
+      }
 
 /* If an error occurred, clean up by deleting the new object. */
       if ( !astOK ) new = astDelete( new );
@@ -6799,13 +6892,13 @@ AstSpecFrame *astInitSpecFrame_( void *mem, size_t size, int init,
 /* Initialise the SpecFrame data. */
 /* ----------------------------- */
 /* Initialise all attributes to their "undefined" values. */
-      new->alignstdofrest = AST__BADSOR;    
+      new->alignstdofrest = AST__BADSOR;
       new->refdec = AST__BAD;
       new->refra = AST__BAD;
       new->restfreq = AST__BAD;
       new->sourcevel = AST__BAD;
-      new->sourcevrf = AST__BADSOR;    
-      new->sourcesys = AST__BADSYSTEM;    
+      new->sourcevrf = AST__BADSOR;
+      new->sourcesys = AST__BADSYSTEM;
       new->stdofrest = AST__BADSOR;
       new->nuunits = 0;
       new->usedunits = NULL;
@@ -6822,7 +6915,7 @@ AstSpecFrame *astInitSpecFrame_( void *mem, size_t size, int init,
 }
 
 AstSpecFrame *astLoadSpecFrame_( void *mem, size_t size,
-                                 AstSpecFrameVtab *vtab, 
+                                 AstSpecFrameVtab *vtab,
                                  const char *name, AstChannel *channel, int *status ) {
 /*
 *+
@@ -6838,7 +6931,7 @@ AstSpecFrame *astLoadSpecFrame_( void *mem, size_t size,
 *  Synopsis:
 *     #include "specframe.h"
 *     AstSpecFrame *astLoadSpecFrame( void *mem, size_t size,
-*                                      AstSpecFrameVtab *vtab, 
+*                                      AstSpecFrameVtab *vtab,
 *                                      const char *name, AstChannel *channel )
 
 *  Class Membership:
@@ -6893,19 +6986,20 @@ AstSpecFrame *astLoadSpecFrame_( void *mem, size_t size,
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
+   astDECLARE_GLOBALS            /* Pointer to thread-specific global data */
    AstSpecFrame *new;            /* Pointer to the new SpecFrame */
    char buff[ 20 ];              /* Buffer for item name */
    char *sval;                   /* Pointer to string value */
    double obslat;                /* Value for ObsLat attribute */
    double obslon;                /* Get a pointer to the thread specific global data structure. */
-   astGET_GLOBALS(channel);
 
 /* Value for ObsLon attribute */
    int i;                        /* Loop count */
    int j;                        /* Loop count */
    int nc;                       /* String length */
    int sys;                      /* System value */
+
+   astGET_GLOBALS(channel);
 
 /* Initialise. */
    new = NULL;
@@ -7095,7 +7189,7 @@ AstSpecFrame *astLoadSpecFrame_( void *mem, size_t size,
          sval = astReadString( channel, buff, NULL );
          if( sval ) {
             if( (int) sys >= new->nuunits ) {
-               new->usedunits = astGrow( new->usedunits, sys + 1, 
+               new->usedunits = astGrow( new->usedunits, sys + 1,
                                           sizeof(char *) );
                if( astOK ) {
                   for( i = new->nuunits; i < sys + 1; i++ ) new->usedunits[ i ] = NULL;
@@ -7137,12 +7231,12 @@ AstSpecFrame *astLoadSpecFrame_( void *mem, size_t size,
    Note that the member function may not be the one defined here, as it may
    have been over-ridden by a derived class. However, it should still have the
    same interface. */
-void astGetRefPos_( AstSpecFrame *this, AstSkyFrame *frm, double *lon, 
+void astGetRefPos_( AstSpecFrame *this, AstSkyFrame *frm, double *lon,
                     double *lat, int *status ){
    if ( !astOK ) return;
    (**astMEMBER(this,SpecFrame,GetRefPos))(this,frm,lon,lat, status );
 }
-void astSetRefPos_( AstSpecFrame *this, AstSkyFrame *frm, double lon, 
+void astSetRefPos_( AstSpecFrame *this, AstSkyFrame *frm, double lon,
                     double lat, int *status ){
    if ( !astOK ) return;
    (**astMEMBER(this,SpecFrame,SetRefPos))(this,frm,lon,lat, status );
@@ -7202,16 +7296,16 @@ f     RESULT = AST_SPECFRAME( OPTIONS, STATUS )
 *     This function creates a new SpecFrame and optionally initialises
 *     its attributes.
 *
-*     A SpecFrame is a specialised form of one-dimensional Frame which 
-*     represents various coordinate systems used to describe positions within 
-*     an electro-magnetic spectrum. The particular coordinate system to be 
-*     used is specified by setting the SpecFrame's System attribute (the 
-*     default is wavelength) qualified, as necessary, by other attributes 
-*     such as the rest frequency, the standard of rest, the epoch of 
-*     observation, etc (see the description of the System attribute for 
+*     A SpecFrame is a specialised form of one-dimensional Frame which
+*     represents various coordinate systems used to describe positions within
+*     an electro-magnetic spectrum. The particular coordinate system to be
+*     used is specified by setting the SpecFrame's System attribute (the
+*     default is wavelength) qualified, as necessary, by other attributes
+*     such as the rest frequency, the standard of rest, the epoch of
+*     observation, etc (see the description of the System attribute for
 *     details).
 *
-*     By setting a value for thr SpecOrigin attribute, a SpecFrame can be made 
+*     By setting a value for thr SpecOrigin attribute, a SpecFrame can be made
 *     to represent offsets from a given spectral position, rather than absolute
 
 *  Parameters:
@@ -7248,19 +7342,19 @@ f     AST_SPECFRAME = INTEGER
 c     frame = astSpecFrame( "" );
 f     FRAME = AST_SPECFRAME( ' ', STATUS )
 *        Creates a SpecFrame to describe the default wavelength spectral
-*        coordinate system. The RestFreq attribute (rest frequency) is 
-*        unspecified, so it will not be possible to align this SpecFrame 
+*        coordinate system. The RestFreq attribute (rest frequency) is
+*        unspecified, so it will not be possible to align this SpecFrame
 *        with another SpecFrame on the basis of a velocity-based system. The
 *        standard of rest is also unspecified. This means that alignment
 *        will be possible with other SpecFrames, but no correction will be
-*        made for Doppler shift caused by change of rest frame during the 
+*        made for Doppler shift caused by change of rest frame during the
 *        alignment.
 c     frame = astSpecFrame( "System=VELO, RestFreq=1.0E15, StdOfRest=LSRK" );
 f     FRAME = AST_SPECFRAME( 'System=VELO, RestFreq=1.0E15, StdOfRest=LSRK', STATUS )
-*        Creates a SpecFrame describing a apparent radial velocity ("VELO") axis 
+*        Creates a SpecFrame describing a apparent radial velocity ("VELO") axis
 *        with rest frequency 1.0E15 Hz (about 3000 Angstroms), measured
 *        in the kinematic Local Standard of Rest ("LSRK"). Since the
-*        source position has not been specified (using attributes RefRA and 
+*        source position has not been specified (using attributes RefRA and
 *        RefDec), it will only be possible to align this SpecFrame with
 *        other SpecFrames which are also measured in the LSRK standard of
 *        rest.
@@ -7269,12 +7363,12 @@ f     FRAME = AST_SPECFRAME( 'System=VELO, RestFreq=1.0E15, StdOfRest=LSRK', STA
 *     - When conversion between two SpecFrames is requested (as when
 c     supplying SpecFrames to astConvert),
 f     supplying SpecFrames AST_CONVERT),
-*     account will be taken of the nature of the spectral coordinate systems 
-*     they represent, together with any qualifying rest frequency, standard 
+*     account will be taken of the nature of the spectral coordinate systems
+*     they represent, together with any qualifying rest frequency, standard
 *     of rest, epoch values, etc. The AlignSystem and AlignStdOfRest
-*     attributes will also be taken into account. The results will therefore 
+*     attributes will also be taken into account. The results will therefore
 *     fully reflect the relationship between positions measured in the two
-*     systems. In addition, any difference in the Unit attributes of the two 
+*     systems. In addition, any difference in the Unit attributes of the two
 *     systems will also be taken into account.
 *     - A null Object pointer (AST__NULL) will be returned if this
 c     function is invoked with the AST error status set, or if it
@@ -7296,17 +7390,15 @@ f     function is invoked with STATUS set to an error value, or if it
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
+   astDECLARE_GLOBALS            /* Pointer to thread-specific global data */
    AstMapping *um;               /* Mapping from default to actual units */
    AstSpecFrame *new;            /* Pointer to new SpecFrame */
    AstSystemType s;              /* System */
    const char *u;                /* Units string */
-   va_list args;                 /* Get a pointer to the thread specific global data structure. */
-   astGET_GLOBALS(NULL);
-
-/* Variable argument list */
+   va_list args;                 /* Variable argument list */
 
    int *status;                  /* Pointer to inherited status value */
+   astGET_GLOBALS(NULL);         /* Get a pointer to the thread specific global data structure. */
 
 /* Get a pointer to the inherited status value. */
    status = astGetStatusPtr;
@@ -7316,7 +7408,7 @@ f     function is invoked with STATUS set to an error value, or if it
 
 /* Initialise the SpecFrame, allocating memory and initialising the virtual
    function table as well if necessary. */
-   new = astInitSpecFrame( NULL, sizeof( AstSpecFrame ), !class_init, 
+   new = astInitSpecFrame( NULL, sizeof( AstSpecFrame ), !class_init,
                            &class_vtab, "SpecFrame" );
 
 /* If successful, note that the virtual function table has been initialised. */
@@ -7332,14 +7424,14 @@ f     function is invoked with STATUS set to an error value, or if it
 /* Check the Units are appropriate for the System. */
       u = astGetUnit( new, 0 );
       s = astGetSystem( new );
-      um = astUnitMapper( DefUnit( s, "astSpecFrame", "SpecFrame", status ), 
+      um = astUnitMapper( DefUnit( s, "astSpecFrame", "SpecFrame", status ),
                           u, NULL, NULL );
       if( um ) {
          um = astAnnul( um );
       } else {
          astError( AST__BADUN, "astSpecFrame: Inappropriate units (%s) "
                    "specified for a %s axis.", status, u, SystemLabel( s, status ) );
-      }      
+      }
 
 /* If an error occurred, clean up by deleting the new object. */
       if ( !astOK ) new = astDelete( new );
@@ -7348,12 +7440,4 @@ f     function is invoked with STATUS set to an error value, or if it
 /* Return an ID value for the new SpecFrame. */
    return astMakeId( new );
 }
-
-
-
-
-
-
-
-
 

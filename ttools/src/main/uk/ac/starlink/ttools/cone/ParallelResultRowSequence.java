@@ -3,6 +3,8 @@ package uk.ac.starlink.ttools.cone;
 import java.io.IOException;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import uk.ac.starlink.table.StarTable;
 
 /**
@@ -18,6 +20,7 @@ public class ParallelResultRowSequence implements ConeResultRowSequence {
 
     private final ConeQueryRowSequence querySeq_;
     private final ConeSearcher coneSearcher_;
+    private final Footprint footprint_;
     private final boolean bestOnly_;
     private final boolean distFilter_;
     private final String distanceCol_;
@@ -28,12 +31,15 @@ public class ParallelResultRowSequence implements ConeResultRowSequence {
     private long nextIndex_;
     private Result currentResult_;
     private IOException error_;
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.ttools.cone" );
 
     /**
      * Constructor.
      *
      * @param  querySeq  sequence providing cone search query parameters
      * @param  coneSearcher  cone search implementation
+     * @param  footprint   coverage footprint for results, or null
      * @param  bestOnly  whether all results or just best are required
      * @param  distFilter  true to perform post-query filtering on results
      *                     based on the distance between the query position
@@ -44,18 +50,31 @@ public class ParallelResultRowSequence implements ConeResultRowSequence {
      */
     public ParallelResultRowSequence( ConeQueryRowSequence querySeq,
                                       ConeSearcher coneSearcher,
-                                      boolean bestOnly, boolean distFilter,
-                                      String distanceCol, int parallelism ) {
+                                      Footprint footprint, boolean bestOnly,
+                                      boolean distFilter, String distanceCol,
+                                      int parallelism ) {
         querySeq_ = querySeq;
         coneSearcher_ = coneSearcher;
+        footprint_ = footprint;
         bestOnly_ = bestOnly;
         distFilter_ = distFilter;
         distanceCol_ = distanceCol;
         poolMax_ = parallelism * 3;
         resultPool_ = new TreeSet();
+
+        /* Prepare the worker threads. */
         workers_ = new Worker[ parallelism ];
         for ( int i = 0; i < parallelism; i++ ) {
             workers_[ i ] = new Worker( "Cone Query Worker #" + ( i + 1 ) );
+        }
+
+        /* Ensure that at least one query is performed even if all points
+         * are outside the footprint.  This way the metadata for an empty
+         * table is returned, so at least you have the columns. */
+        workers_[ 0 ].forceNextQuery_ = true;
+
+        /* Start the threads. */
+        for ( int i = 0; i < parallelism; i++ ) {
             workers_[ i ].start();
         }
     }
@@ -135,10 +154,19 @@ public class ParallelResultRowSequence implements ConeResultRowSequence {
     }
 
     public void close() throws IOException {
+        long nQuery = 0;
+        long nSkip = 0;
         for ( int i = 0; i < workers_.length; i++ ) {
-            workers_[ i ].interrupt();
+            Worker worker = workers_[ i ];
+            worker.interrupt();
+            nQuery += worker.nQuery_;
+            nSkip += worker.nSkip_;
         }
         querySeq_.close();
+        if ( footprint_ != null ) {
+            logger_.info( "Submitted " + nQuery + ", skipped " + nSkip
+                        + " queries to service" );
+        }
     }
 
     /**
@@ -249,6 +277,9 @@ public class ParallelResultRowSequence implements ConeResultRowSequence {
      */
     private class Worker extends Thread {
         private boolean finished_;
+        volatile long nQuery_;
+        volatile long nSkip_;
+        volatile boolean forceNextQuery_;
 
         /**
          * Constructor.
@@ -333,11 +364,29 @@ public class ParallelResultRowSequence implements ConeResultRowSequence {
                 }
             }
 
-            /* Perform the query. */
-            StarTable table =
-                ConeMatcher.getConeResult( coneSearcher_, bestOnly_,
-                                           distFilter_, distanceCol_,
-                                           ra, dec, radius );
+            /* Perform the query unless it can be shown to be unnecesary. */
+            final StarTable table;
+            boolean excluded = ! forceNextQuery_
+                            && footprint_ != null
+                            && ! footprint_.discOverlaps( ra, dec, radius );
+            forceNextQuery_ = false;
+            if ( excluded ) {
+                Level level = Level.CONFIG;
+                if ( logger_.isLoggable( level ) ) {
+                    logger_.log( level,
+                                 "Skipping cone query for point outside "
+                               + "footprint " + "(" + (float) ra + ","
+                               + (float) dec + ")+" + (float) radius );
+                }
+                table = null;
+                nSkip_++;
+            }
+            else {
+                table = ConeMatcher.getConeResult( coneSearcher_, bestOnly_,
+                                                   distFilter_, distanceCol_,
+                                                   ra, dec, radius );
+                nQuery_++;
+            }
 
             /* Return the completed result object. */
             return new Result( index, ra, dec, radius, row, table );

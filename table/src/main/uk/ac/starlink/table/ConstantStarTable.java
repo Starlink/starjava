@@ -42,6 +42,10 @@ public class ConstantStarTable extends RandomStarTable {
         return nrow_;
     }
 
+    public boolean isRandom() {
+        return nrow_ >= 0;
+    }
+
     public Object getCell( long lrow, int icol ) {
         return row_[ icol ];
     }

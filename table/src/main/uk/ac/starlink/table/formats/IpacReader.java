@@ -46,7 +46,6 @@ class IpacReader implements RowSequence {
         new DefaultValueInfo( "Comments", String.class,
                               "Miscellaneous comments" );
     private static final boolean WORKAROUND_TRUNCATION = true;
-    private static final boolean WORKAROUND_GUESSTYPES = true;
 
     /**
      * Constructor.
@@ -156,6 +155,9 @@ class IpacReader implements RowSequence {
      * @return   data token array
      */
     private String[] getDataTokens() throws IOException {
+        if ( dataLine_ == null ) {
+            throw new IllegalStateException( "next() not yet called" );
+        }
         if ( dataTokens_ == null ) {
             dataTokens_ = readDataTokens( dataLine_ );
         }
@@ -172,7 +174,9 @@ class IpacReader implements RowSequence {
         int ipos = 1;
         String[] tokens = new String[ ends_.length ];
         for ( int icol = 0; icol < tokens.length; icol++ ) {
-            tokens[ icol ] = line.substring( ipos, ends_[ icol ] - 1 ).trim();
+            String token = line.substring( ipos, ends_[ icol ] - 1 );
+            token = token.replace( '-', ' ' ).trim();
+            tokens[ icol ] = token;
             ipos = ends_[ icol ];
         }
         return tokens;
@@ -422,6 +426,24 @@ class IpacReader implements RowSequence {
                 }
             };
         }
+        else if ( typeMatch( type, "long" ) || typeMatch( type, "l" ) ) {
+            info.setContentClass( Long.class );
+            return new ColumnReader( info ) {
+                Object readValue( String token ) {
+                    if ( hasBlank && blankVal.equals( token ) ) {
+                        return null;
+                    }
+                    else {
+                        try {
+                            return Long.valueOf( token );
+                        }
+                        catch ( NumberFormatException e ) {
+                            return null;
+                        }
+                    }
+                }
+            };
+        }
         else if ( typeMatch( type, "double" ) || type.equals( "d" ) ) {
             info.setContentClass( Double.class );
             return new ColumnReader( info ) {
@@ -509,30 +531,6 @@ class IpacReader implements RowSequence {
             //         }
             //     }
             // };
-        }
-
-        /* At time of writing, no other types are defined in the published
-         * format definition.  But some others have been seen in the wild,
-         * so we can use them where it's not hard to guess what's meant. */
-        else if ( typeMatch( type, "long" ) && WORKAROUND_GUESSTYPES ) {
-            logger_.warning( "Unofficial IPAC data type \"" + type
-                           + "\" - assume long" );
-            info.setContentClass( Long.class );
-            return new ColumnReader( info ) {
-                Object readValue( String token ) {
-                    if ( hasBlank && blankVal.equals( token ) ) {
-                        return null;
-                    }
-                    else {
-                        try {
-                            return Long.valueOf( token );
-                        }
-                        catch ( NumberFormatException e ) {
-                            return null;
-                        }
-                    }
-                }
-            };
         }
         else {
             throw new TableFormatException( "Unknown IPAC data type " + type );

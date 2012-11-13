@@ -57,10 +57,10 @@ public abstract class MarkShape {
         final Object id = new Object();
         public MarkStyle getStyle( Color color, int size ) {
             return new MarkStyle( color, id, this, 0, 1 ) {
-                protected void drawShape( Graphics g ) {
+                public void drawShape( Graphics g ) {
                     g.fillRect( 0, 0, 1, 1 );
                 }
-                protected void drawLegendShape( Graphics g ) {
+                public void drawLegendShape( Graphics g ) {
                     g.fillRect( 0, 0, 2, 2 );
                 }
             };
@@ -74,7 +74,7 @@ public abstract class MarkShape {
             final int diam = size * 2;
             return new MarkStyle( color, new Integer( size ),
                                   this, size, size + 1 ) {
-                protected void drawShape( Graphics g ) {
+                public void drawShape( Graphics g ) {
                     g.drawOval( off, off, diam, diam );
                 }
                 public Pixellator getPixelOffsets() {
@@ -94,7 +94,7 @@ public abstract class MarkShape {
             final int diam = size * 2;
             return new MarkStyle( color, new Integer( size ), 
                                   this, size, size + 1 ) {
-                protected void drawShape( Graphics g ) {
+                public void drawShape( Graphics g ) {
                     g.fillOval( off, off, diam, diam );
 
                     /* In pixel-type graphics contexts, the filled circle is
@@ -117,7 +117,7 @@ public abstract class MarkShape {
             final int height = size * 2;
             return new MarkStyle( color, new Integer( size ),
                                   this, size, size + 1 ) {
-                protected void drawShape( Graphics g ) {
+                public void drawShape( Graphics g ) {
                     g.drawRect( off, off, height, height );
                 }
             };
@@ -132,7 +132,7 @@ public abstract class MarkShape {
             final int height = size * 2 + 1;
             return new MarkStyle( color, new Integer( size ),
                                   this, size, size + 1 ) {
-                protected void drawShape( Graphics g ) {
+                public void drawShape( Graphics g ) {
                      g.fillRect( off, off, height, height );
                 }
             };
@@ -145,7 +145,7 @@ public abstract class MarkShape {
             final int off = size;
             return new MarkStyle( color, new Integer( size ),
                                   this, size, size + 1 ) {
-                protected void drawShape( Graphics g ) {
+                public void drawShape( Graphics g ) {
                     g.drawLine( -off, 0, off, 0 );
                     g.drawLine( 0, -off, 0, off );
                 }
@@ -159,7 +159,7 @@ public abstract class MarkShape {
             final int off = size;
             return new MarkStyle( color, new Integer( size ),
                                   this, size, size + 1 ) {
-                protected void drawShape( Graphics g ) {
+                public void drawShape( Graphics g ) {
                     g.drawLine( -off, -off, off, off );
                     g.drawLine( off, -off, -off, off );
                 }
@@ -251,7 +251,7 @@ public abstract class MarkShape {
                                          final boolean fill ) {
         return new MarkStyle( color, shape,
                               shapeId, size, getMaxRadius( shape ) ) {
-            protected void drawShape( Graphics g ) {
+            public void drawShape( Graphics g ) {
                 if ( g instanceof Graphics2D ) {
                     Graphics2D g2 = (Graphics2D) g;
                     if ( fill ) {
@@ -284,7 +284,7 @@ public abstract class MarkShape {
                                                MarkShape shapeId, int size ) {
         return new MarkStyle( color, shape,
                               shapeId, size, getMaxRadius( shape ) ) {
-            protected void drawShape( Graphics g ) {
+            public void drawShape( Graphics g ) {
                 if ( g instanceof Graphics2D ) {
                     Graphics2D g2 = (Graphics2D) g;
                     g2.fill( shape );
@@ -346,7 +346,12 @@ public abstract class MarkShape {
             }
         }
         public int hashCode() {
-            return npoints + xpoints.hashCode() + ypoints.hashCode();
+            int code = 5555;
+            for ( int i = 0; i < npoints; i++ ) {
+                code = 23 * code + xpoints[ i ];
+                code = 23 * code + ypoints[ i ];
+            }
+            return code;
         }
     }
 

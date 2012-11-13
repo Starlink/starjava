@@ -67,10 +67,22 @@ public class FitsTableBuilder implements TableBuilder, MultiTableBuilder {
     /**
      * Creates a StarTable from a DataSource which refers to a FITS
      * file or stream.  If the source has a position attribute, it
-     * will be interpreted as an integer indicating which HDU the
-     * table is in.  The first HDU is number 0 (though being a primary
-     * HDU this one can't hold a table).  If there is no position,
-     * the first HDU which does hold a table is used.
+     * will be interpreted in one of two ways:
+     * <ul>
+     * <li>If it's an integer, it will be interpreted as the index of the
+     *     HDU holding the table.  The first HDU is number 0 (though
+     *     being primary this one can't hold a table), the first extension
+     *     is number 1, etc.</li>
+     * <li>Otherwise it's interpreted as the name of the extension.
+     *     Either of the forms "EXTNAME" or "EXTNAME-EXTVER" is permitted,
+     *     where EXTNAME and EXTVER are the values of the corresponding
+     *     FITS header cards, as per the FITS standard.</li>
+     * </ul>
+     * <p>If the EXTNAME happens to be in the form of a positive integer,
+     * this means you can't refer to the extension by name.  Too bad.
+     *
+     * <p>If there is no position attribute, the first HDU which does hold
+     * a table is used.
      *
      * @param  datsrc  the source of the FITS table data
      * @param  wantRandom  whether a random-access table is preferred
@@ -100,16 +112,43 @@ public class FitsTableBuilder implements TableBuilder, MultiTableBuilder {
 
             /* If an HDU was specified explicitly, try to pick up that one
              * as a table. */
-            if ( datsrc.getPosition() != null ) {
-                pos[ 0 ] += FitsConstants
-                           .positionStream( strm, datsrc.getPosition() );
+            String spos = datsrc.getPosition();
+            if ( spos != null && spos.trim().length() > 0 ) {
+
+                /* If it looks like an integer, treat it as an HDU index. */
+                int ihdu;
                 try {
-                    table = attemptReadTable( strm, wantRandom, datsrc, pos );
+                    ihdu = Integer.parseInt( spos.trim() );
                 }
-                catch ( EOFException e ) {
-                    throw new IOException( "Fell off end of file looking for "
-                                         + "HDU " + datsrc.getPosition() );
+                catch ( NumberFormatException e ) {
+                    ihdu = -1;
                 }
+                if ( ihdu >= 0 ) {
+                    try {
+                        pos[ 0 ] += FitsConstants.skipHDUs( strm, ihdu );
+                        table = attemptReadTable( strm, wantRandom, datsrc,
+                                                  pos );
+                    }
+                    catch ( EOFException e ) {
+                        throw new IOException( "Fell off end of file "
+                                             + "looking for HDU #" + ihdu );
+                    }
+                }
+
+                /* Otherwise treat it as an extension name or name-version
+                 * string (EXTNAME and EXTVER headers, see FITS standard). */
+                else {
+                    try {
+                        table = findNamedTable( strm, datsrc, spos, pos );
+                    }
+                    catch ( EOFException e ) {
+                        throw new IOException( "No extension found with "
+                                             + "EXTNAME or EXTNAME-EXTVER "
+                                             + "\"" + spos + "\"" );
+                    }
+                }
+
+                /* Adjust name if required and return. */
                 if ( table != null ) {
                     if ( table.getName() == null ) {
                         table.setName( datsrc.getName() );
@@ -266,6 +305,45 @@ public class FitsTableBuilder implements TableBuilder, MultiTableBuilder {
     }
 
     /**
+     * Looks through the HDUs in a given FITS stream and if it finds
+     * one which has a given name, attempts to make a table out of it.
+     * The supplied <code>name</code> is checked against the EXTNAME
+     * header value (if present), and if that fails, against EXTNAME-EXTVER
+     * (if EXTVER is present too).  Matching is case-insensitive.
+     *
+     * @param  strm  stream to read from, positioned at the start of an HDU
+     *         (before the header)
+     * @param  datsrc  a DataSource which can supply the data 
+     *         in <tt>strm</tt>
+     * @param  name  target extension name or name-version
+     * @param  pos  a 1-element array holding the position in <tt>datsrc</tt>
+     *         at which <tt>strm</tt> is positioned -
+     *         it's an array so it can be updated by this routine (sorry)
+     * @return  a new table
+     */
+    public static StarTable findNamedTable( ArrayDataInput strm,
+                                            DataSource datsrc, String name,
+                                            long[] pos )
+            throws FitsException, IOException {
+        while ( true ) {
+            Header hdr = new Header();
+            int headsize = FitsConstants.readHeader( hdr, strm );
+            long datasize = FitsConstants.getDataSize( hdr );
+            long datpos = pos[ 0 ] + headsize;
+            pos[ 0 ] += headsize + datasize;
+            if ( headerName( hdr, name ) ) {
+                TableResult tres =
+                    attemptReadTableData( strm, datsrc, datpos, hdr );
+                assert pos[ 0 ] == tres.afterPos_;
+                return tres.table_;
+            }
+            else {
+                IOUtils.skipBytes( strm, datasize );
+            }
+        }
+    }
+
+    /**
      * Reads the next header, and returns a StarTable based on it if it
      * represents a table.  If a StarTable is returned, it may not be safe
      * to use the supplied input stream subsequently for other purposes.
@@ -319,9 +397,32 @@ public class FitsTableBuilder implements TableBuilder, MultiTableBuilder {
         /* Read the header. */
         Header hdr = new Header();
         int headsize = FitsConstants.readHeader( hdr, strm );
-        long datasize = FitsConstants.getDataSize( hdr );
         long datpos = pos + headsize;
-        long afterpos = pos + headsize + datasize;
+        return attemptReadTableData( strm, datsrc, datpos, hdr );
+    }
+
+    /**
+     * Takes a header and a stream positioned just after it,
+     * and tries to turn it into a table.
+     * A TableResult is returned as long as the stream can be interpreted
+     * as FITS; if the header describes a table, the table will be
+     * contained.
+     *
+     * @param   strm  stream to read for, positioned at the start of the
+     *          data part of an HDU (just after the header)
+     * @param   datsrc  a DataSource which can supply the data
+     *          in <code>strm</code>
+     * @param   datpos  offset into the file at which the stream is
+     *          currently positioned
+     * @param   hdr  populated header describing the upcoming data
+     * @return  an object which may contain a table and other information
+     */
+    private static TableResult attemptReadTableData( ArrayDataInput strm,
+                                                     DataSource datsrc,
+                                                     long datpos, Header hdr )
+            throws FitsException, IOException {
+        long datasize = FitsConstants.getDataSize( hdr );
+        long afterpos = datpos + datasize;
         String xtension = hdr.getStringValue( "XTENSION" );
 
         /* If it's a BINTABLE HDU, make a BintableStarTable out of it. */
@@ -359,6 +460,29 @@ public class FitsTableBuilder implements TableBuilder, MultiTableBuilder {
             IOUtils.skipBytes( strm, datasize );
             return new TableResult( null, afterpos, false, isEof( strm ) );
         }
+    }
+
+    /**
+     * Indicates whether the header has a given name.
+     * EXTNAME or EXTNAME-VERSION, matched case-insensitively, count.
+     *
+     * @param  hdr   header
+     * @param  name  required name
+     * @return  true iff <code>hdr</code> appears to be named <code>name</code>
+     */
+    private static boolean headerName( Header hdr, String name ) {
+        String extname = hdr.getStringValue( "EXTNAME" );
+        if ( extname == null || extname.trim().length() == 0 ) {
+            return false;
+        }
+        if ( extname.trim().equalsIgnoreCase( name ) ) {
+            return true;
+        }
+        int extver = hdr.getIntValue( "EXTVER", Integer.MIN_VALUE );
+        if ( extver != Integer.MIN_VALUE ) {
+            return (extname + "-" + extver).equalsIgnoreCase( name );
+        }
+        return false;
     }
 
     /**

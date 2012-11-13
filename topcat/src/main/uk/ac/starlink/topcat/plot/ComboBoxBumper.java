@@ -131,6 +131,7 @@ public class ComboBoxBumper extends JPanel {
                 isel = 0;
             }
             comboBox_.setSelectedIndex( isel );
+            comboBox_.repaint();
         }
     }
 }

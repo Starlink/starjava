@@ -37,7 +37,7 @@ import uk.ac.starlink.ast.grf.DefaultGrfMarker;
  * may often be non-linear, or even discontinuous, most plotting
  * does not result in simple straight lines. The basic plotting
  * element is therefore not a straight line, but a geodesic curve
- * (see astCurve, astGenCurve and astPolyCurve). A Plot also provides facilities for 
+ * (see astCurve, astGenCurve and astPolyCurve). A Plot also provides facilities for
  * drawing markers or symbols (astMark), text (astText) and grid lines
  * (astGridLine). It is also possible to draw curvilinear axes with
  * optional coordinate grids (astGrid).
@@ -71,25 +71,25 @@ import uk.ac.starlink.ast.grf.DefaultGrfMarker;
  * strings listed below as subscripts to the Plot attributes
  * Colour(element), Font(element), Size(element), Style(element)
  * and Width(element). These strings are case-insensitive and
- * unambiguous abbreviations may be used. Elements of the graphical 
+ * unambiguous abbreviations may be used. Elements of the graphical
  * output which relate to individual axes can be referred to either
  * independently (e.g. "(Grid1)" and "(Grid2)" ) or together (e.g.
  * "(Grid)"):
  * <p>
- * <br> - Axes: Axis lines drawn through tick marks using astGrid 
+ * <br> - Axes: Axis lines drawn through tick marks using astGrid
  * <br> - Axis1: Axis line drawn through tick marks on axis 1 using astGrid
  * <br> - Axis2: Axis line drawn through tick marks on axis 2 using astGrid
  * <br> - Border: The Plot border drawn using astBorder or astGrid
  * <br> - Curves: Geodesic curves drawn using astCurve, astGenCurve or astPolyCurve
  * <br> - Grid: Grid lines drawn using astGridLine or astGrid
- * <br> - Grid1: Grid lines which cross axis 1, drawn using astGridLine or astGrid 
- * <br> - Grid2: Grid lines which cross axis 2, drawn using astGridLine or astGrid 
+ * <br> - Grid1: Grid lines which cross axis 1, drawn using astGridLine or astGrid
+ * <br> - Grid2: Grid lines which cross axis 2, drawn using astGridLine or astGrid
  * <br> - Markers: Graphical markers (symbols) drawn using astMark
- * <br> - NumLab: Numerical axis labels drawn using astGrid 
- * <br> - NumLab1: Numerical labels for axis 1 drawn using astGrid 
+ * <br> - NumLab: Numerical axis labels drawn using astGrid
+ * <br> - NumLab1: Numerical labels for axis 1 drawn using astGrid
  * <br> - NumLab2: Numerical labels for axis 2 drawn using astGrid
  * <br> - Strings: Text strings drawn using astText
- * <br> - TextLab: Descriptive axis labels drawn using astGrid 
+ * <br> - TextLab: Descriptive axis labels drawn using astGrid
  * <br> - TextLab1: Descriptive label for axis 1 drawn using astGrid
  * <br> - TextLab2: Descriptive label for axis 2 drawn using astGrid
  * <br> - Ticks: Tick marks (both major and minor) drawn using astGrid
@@ -109,8 +109,8 @@ import uk.ac.starlink.ast.grf.DefaultGrfMarker;
  * <p>
  * You should have received a copy of the GNU General Public Licence
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
- * 02111-1307, USA
+ * Foundation, Inc., 51 Franklin Street,Fifth Floor, Boston, MA
+ * 02110-1301, USA
  * 
  * <p>
  *       <h4>Usage</h4>
@@ -364,9 +364,9 @@ public class Plot extends FrameSet {
      * If the Plot is a Plot3D, this method is applied individually to
      * each of the three 2D Plots encapsulated within the Plot3D (each of
      * these Plots corresponds to a single 2D plane in the 3D graphics
-     * system). In addition, if the entire plotting volume has valid 
-     * coordinates in the 3D current Frame of the Plot3D, then additional 
-     * lines are drawn along the edges of the 3D plotting volume so that 
+     * system). In addition, if the entire plotting volume has valid
+     * coordinates in the 3D current Frame of the Plot3D, then additional
+     * lines are drawn along the edges of the 3D plotting volume so that
      * the entire plotting volume is enclosed within a cuboid grid.
      * <h4>Notes</h4>
      * <br> - A value of zero will be returned if this function is invoked
@@ -383,10 +383,10 @@ public class Plot extends FrameSet {
 
     /** 
      * Return a bounding box for previously drawn graphics.   
-     * This function returns the bounds of a box which just encompasess the 
-     * graphics produced by the previous call to any of the Plot methods 
+     * This function returns the bounds of a box which just encompasess the
+     * graphics produced by the previous call to any of the Plot methods
      * which produce graphical output. If no such previous call has yet
-     * been made, or if the call failed for any reason, then the bounding box 
+     * been made, or if the call failed for any reason, then the bounding box
      * returned by this function is undefined.
      * <h4>Notes</h4>
      * <br> - An error results if the base Frame of the Plot is not
@@ -410,7 +410,7 @@ public class Plot extends FrameSet {
      * will deactivate any previously-established clipping Frame before
      * setting up new clipping limits.
      * <br> - The clipping produced by this function is in addition to that
-     * specified by the Clip attribute which occurs at the edges of the 
+     * specified by the Clip attribute which occurs at the edges of the
      * plotting area
      * established when the Plot is created (see astPlot). The
      * underlying graphics system may also impose further clipping.
@@ -522,7 +522,7 @@ public class Plot extends FrameSet {
 
     /** 
      * Draw a generalized curve.   
-     * This function draws a general user-defined curve defined by the 
+     * This function draws a general user-defined curve defined by the
      * supplied Mapping. Note that the curve is transformed into graphical
      * coordinate space for plotting, so that a straight line in
      * physical coordinates may result in a curved line being drawn if
@@ -540,7 +540,7 @@ public class Plot extends FrameSet {
      * @param   map
      * Pointer to a Mapping. This Mapping should have 1 input
      * coordinate representing offset along the required curve,
-     * normalized so that the start of the curve is at offset 0.0, 
+     * normalized so that the start of the curve is at offset 0.0,
      * and the end of the curve is at offset 1.0. Note, this offset
      * does not need to be linearly related to distance along the curve.
      * The number of output coordinates should equal the number of axes
@@ -555,14 +555,14 @@ public class Plot extends FrameSet {
 
     /** 
      * Draw a set of labelled coordinate axes.   
-     * This function draws a complete annotated set of 
+     * This function draws a complete annotated set of
      * coordinate axes for a Plot with (optionally) a coordinate grid
      * superimposed. Details of the axes and grid can be controlled by
      * setting values for the various attributes defined by the Plot
      * class (q.v.).
      * <h4>Notes</h4>
      * <br> - If the supplied Plot is a Plot3D, the axes will be annotated
-     * using three 2-dimensional Plots, one for each 2D plane in the 3D 
+     * using three 2-dimensional Plots, one for each 2D plane in the 3D
      * current coordinate system. The plots will be "pasted" onto 3 faces
      * of the cuboid graphics volume specified when the Plot3D was
      * constructed. The faces to be used can be controlled by the "RootCorner"
@@ -644,7 +644,7 @@ public class Plot extends FrameSet {
      * given by its Naxes attribute).
      * 
      * @param   in
-     * The address of the first element of a 2-dimensional array of 
+     * The address of the first element of a 2-dimensional array of
      * shape "[ncoord][indim]" giving the
      * physical coordinates of the points where markers are to be
      * drawn. These should be stored such that the value of
@@ -692,7 +692,7 @@ public class Plot extends FrameSet {
      * by its Naxes attribute).
      * 
      * @param   in
-     * The address of the first element in a 2-dimensional array of shape 
+     * The address of the first element in a 2-dimensional array of shape
      * "[ncoord][indim]" giving the
      * physical coordinates of the points which are to be joined in
      * sequence by geodesic curves. These should be stored such that
@@ -710,7 +710,7 @@ public class Plot extends FrameSet {
      * is transformed into graphical coordinates to determine where the
      * text should appear within the plotting area.
      * <h4>Notes</h4>
-     * <br> - The Plot3D class currently does not interpret graphical escape 
+     * <br> - The Plot3D class currently does not interpret graphical escape
      * sequences contained within text displayed using this method.
      * <br> - Text is not drawn at positions which have any coordinate equal
      * to the value AST__BAD (or where the transformation into
@@ -736,7 +736,7 @@ public class Plot extends FrameSet {
      * An array holding the components of a vector in the "up"
      * direction of the text (in graphical coordinates). For
      * example, to get horizontal text, the vector {0.0f,1.0f} should
-     * be supplied. For a basic Plot, 2 values should be supplied. For 
+     * be supplied. For a basic Plot, 2 values should be supplied. For
      * a Plot3D, 3 values should be supplied, and the actual up vector
      * used is the projection of the supplied up vector onto the text plane
      * specified by the current value of the Plot3D's Norm attribute.
@@ -745,9 +745,9 @@ public class Plot extends FrameSet {
      * Pointer to a null-terminated character string identifying the
      * reference point for the text being drawn. The first character in
      * this string identifies the reference position in the "up" direction
-     * and may be "B" (baseline), "C" (centre), "T" (top) or "M" (bottom). 
-     * The second character identifies the side-to-side reference position 
-     * and may be "L" (left), "C" (centre) or "R" (right ). The string is 
+     * and may be "B" (baseline), "C" (centre), "T" (top) or "M" (bottom).
+     * The second character identifies the side-to-side reference position
+     * and may be "L" (left), "C" (centre) or "R" (right ). The string is
      * case-insensitive, and only the first two characters are significant.
      * <p>
      * For example, a value of "BL" means that the left end of the
@@ -810,16 +810,16 @@ public class Plot extends FrameSet {
     /**
      * Get 
      * clip lines and/or markers at the Plot boundary.  
-     * This attribute controls whether curves and markers are clipped at the 
-     * boundary of the graphics box specified when the Plot was created. A 
+     * This attribute controls whether curves and markers are clipped at the
+     * boundary of the graphics box specified when the Plot was created. A
      * value of 3 implies both markers and curves are clipped at the Plot
-     * boundary. A value of 2 implies markers are clipped, but not curves. A 
+     * boundary. A value of 2 implies markers are clipped, but not curves. A
      * value of 1 implies curves are clipped, but not markers. A value of
      * zero implies neither curves nor markers are clipped. The default
      * value is 1. Note, this attributes controls only the clipping
      * performed internally within AST. The underlying graphics system may
      * also apply clipping. In such cases, removing clipping using this
-     * attribute does not guarantee that no clipping will be visible in the 
+     * attribute does not guarantee that no clipping will be visible in the
      * final plot.
      * <p>
      * The astClip function
@@ -836,16 +836,16 @@ public class Plot extends FrameSet {
     /**
      * Set 
      * clip lines and/or markers at the Plot boundary.  
-     * This attribute controls whether curves and markers are clipped at the 
-     * boundary of the graphics box specified when the Plot was created. A 
+     * This attribute controls whether curves and markers are clipped at the
+     * boundary of the graphics box specified when the Plot was created. A
      * value of 3 implies both markers and curves are clipped at the Plot
-     * boundary. A value of 2 implies markers are clipped, but not curves. A 
+     * boundary. A value of 2 implies markers are clipped, but not curves. A
      * value of 1 implies curves are clipped, but not markers. A value of
      * zero implies neither curves nor markers are clipped. The default
      * value is 1. Note, this attributes controls only the clipping
      * performed internally within AST. The underlying graphics system may
      * also apply clipping. In such cases, removing clipping using this
-     * attribute does not guarantee that no clipping will be visible in the 
+     * attribute does not guarantee that no clipping will be visible in the
      * final plot.
      * <p>
      * The astClip function
@@ -1487,7 +1487,7 @@ public class Plot extends FrameSet {
      * by determining if any escape sequences contained within the strings
      * should be used to control the appearance of the text, or should
      * be printed literally. Note, the Plot3D class only interprets escape
-     * sequences within the 
+     * sequences within the
      * astGrid function.
      * <p>
      * If the Escape value of a Plot is one (the default), then any
@@ -1496,50 +1496,50 @@ public class Plot extends FrameSet {
      * <p>
      * See also the {@link uk.ac.starlink.ast.grf.GrfEscape#setEscapes} function.
      * <h4>Escape Sequences</h4>
-     * Escape sequences are introduced into the text string by a percent 
-     * "%" character. Any unrecognised, illegal or incomplete escape sequences 
-     * are printed literally. The following escape sequences are 
-     * currently recognised ("..." represents a string of one or more 
+     * Escape sequences are introduced into the text string by a percent
+     * "%" character. Any unrecognised, illegal or incomplete escape sequences
+     * are printed literally. The following escape sequences are
+     * currently recognised ("..." represents a string of one or more
      * decimal digits):
      * <p>
      *   %%      - Print a literal "%" character.
      * <p>
      *   %^...+  - Draw subsequent characters as super-scripts. The digits
-     *             "..." give the distance from the base-line of "normal" 
-     *             text to the base-line of the super-script text, scaled 
-     *             so that a value of "100" corresponds to the height of 
+     *             "..." give the distance from the base-line of "normal"
+     *             text to the base-line of the super-script text, scaled
+     *             so that a value of "100" corresponds to the height of
      *             "normal" text.
      *   %^+     - Draw subsequent characters with the normal base-line.
      * <p>
      *   %v...+  - Draw subsequent characters as sub-scripts. The digits
-     *             "..." give the distance from the base-line of "normal" 
-     *             text to the base-line of the sub-script text, scaled 
-     *             so that a value of "100" corresponds to the height of 
+     *             "..." give the distance from the base-line of "normal"
+     *             text to the base-line of the sub-script text, scaled
+     *             so that a value of "100" corresponds to the height of
      *             "normal" text.
      * <p>
      *   %v+     - Draw subsequent characters with the normal base-line
      *             (equivalent to %^+).
      * <p>
      *   %>...+  - Leave a gap before drawing subsequent characters.
-     *             The digits "..." give the size of the gap, scaled 
-     *             so that a value of "100" corresponds to the height of 
+     *             The digits "..." give the size of the gap, scaled
+     *             so that a value of "100" corresponds to the height of
      *             "normal" text.
      * <p>
      *   %<...+  - Move backwards before drawing subsequent characters.
-     *             The digits "..." give the size of the movement, scaled 
-     *             so that a value of "100" corresponds to the height of 
+     *             The digits "..." give the size of the movement, scaled
+     *             so that a value of "100" corresponds to the height of
      *             "normal" text.
      * <p>
      *   %s...+  - Change the Size attribute for subsequent characters. The
-     *             digits "..." give the new Size as a fraction of the 
-     *             "normal" Size, scaled so that a value of "100" corresponds 
+     *             digits "..." give the new Size as a fraction of the
+     *             "normal" Size, scaled so that a value of "100" corresponds
      *             to 1.0;
      * <p>
      *   %s+     - Reset the Size attribute to its "normal" value.
      * <p>
      *   %w...+  - Change the Width attribute for subsequent characters. The
-     *             digits "..." give the new width as a fraction of the 
-     *             "normal" Width, scaled so that a value of "100" corresponds 
+     *             digits "..." give the new width as a fraction of the
+     *             "normal" Width, scaled so that a value of "100" corresponds
      *             to 1.0;
      * <p>
      *   %w+     - Reset the Size attribute to its "normal" value.
@@ -1563,7 +1563,7 @@ public class Plot extends FrameSet {
      * <p>
      *   %g+     - Go to the horizontal position of the previous "%h+" (if any).
      * <p>
-     *   %-      - Push the current graphics attribute values onto the top of 
+     *   %-      - Push the current graphics attribute values onto the top of
      *             the stack (see "%+").
      * <p>
      *   %+      - Pop attributes values of the top the stack (see "%-"). If
@@ -1587,7 +1587,7 @@ public class Plot extends FrameSet {
      * by determining if any escape sequences contained within the strings
      * should be used to control the appearance of the text, or should
      * be printed literally. Note, the Plot3D class only interprets escape
-     * sequences within the 
+     * sequences within the
      * astGrid function.
      * <p>
      * If the Escape value of a Plot is one (the default), then any
@@ -1596,50 +1596,50 @@ public class Plot extends FrameSet {
      * <p>
      * See also the {@link uk.ac.starlink.ast.grf.GrfEscape#setEscapes} function.
      * <h4>Escape Sequences</h4>
-     * Escape sequences are introduced into the text string by a percent 
-     * "%" character. Any unrecognised, illegal or incomplete escape sequences 
-     * are printed literally. The following escape sequences are 
-     * currently recognised ("..." represents a string of one or more 
+     * Escape sequences are introduced into the text string by a percent
+     * "%" character. Any unrecognised, illegal or incomplete escape sequences
+     * are printed literally. The following escape sequences are
+     * currently recognised ("..." represents a string of one or more
      * decimal digits):
      * <p>
      *   %%      - Print a literal "%" character.
      * <p>
      *   %^...+  - Draw subsequent characters as super-scripts. The digits
-     *             "..." give the distance from the base-line of "normal" 
-     *             text to the base-line of the super-script text, scaled 
-     *             so that a value of "100" corresponds to the height of 
+     *             "..." give the distance from the base-line of "normal"
+     *             text to the base-line of the super-script text, scaled
+     *             so that a value of "100" corresponds to the height of
      *             "normal" text.
      *   %^+     - Draw subsequent characters with the normal base-line.
      * <p>
      *   %v...+  - Draw subsequent characters as sub-scripts. The digits
-     *             "..." give the distance from the base-line of "normal" 
-     *             text to the base-line of the sub-script text, scaled 
-     *             so that a value of "100" corresponds to the height of 
+     *             "..." give the distance from the base-line of "normal"
+     *             text to the base-line of the sub-script text, scaled
+     *             so that a value of "100" corresponds to the height of
      *             "normal" text.
      * <p>
      *   %v+     - Draw subsequent characters with the normal base-line
      *             (equivalent to %^+).
      * <p>
      *   %>...+  - Leave a gap before drawing subsequent characters.
-     *             The digits "..." give the size of the gap, scaled 
-     *             so that a value of "100" corresponds to the height of 
+     *             The digits "..." give the size of the gap, scaled
+     *             so that a value of "100" corresponds to the height of
      *             "normal" text.
      * <p>
      *   %<...+  - Move backwards before drawing subsequent characters.
-     *             The digits "..." give the size of the movement, scaled 
-     *             so that a value of "100" corresponds to the height of 
+     *             The digits "..." give the size of the movement, scaled
+     *             so that a value of "100" corresponds to the height of
      *             "normal" text.
      * <p>
      *   %s...+  - Change the Size attribute for subsequent characters. The
-     *             digits "..." give the new Size as a fraction of the 
-     *             "normal" Size, scaled so that a value of "100" corresponds 
+     *             digits "..." give the new Size as a fraction of the
+     *             "normal" Size, scaled so that a value of "100" corresponds
      *             to 1.0;
      * <p>
      *   %s+     - Reset the Size attribute to its "normal" value.
      * <p>
      *   %w...+  - Change the Width attribute for subsequent characters. The
-     *             digits "..." give the new width as a fraction of the 
-     *             "normal" Width, scaled so that a value of "100" corresponds 
+     *             digits "..." give the new width as a fraction of the
+     *             "normal" Width, scaled so that a value of "100" corresponds
      *             to 1.0;
      * <p>
      *   %w+     - Reset the Size attribute to its "normal" value.
@@ -1663,7 +1663,7 @@ public class Plot extends FrameSet {
      * <p>
      *   %g+     - Go to the horizontal position of the previous "%h+" (if any).
      * <p>
-     *   %-      - Push the current graphics attribute values onto the top of 
+     *   %-      - Push the current graphics attribute values onto the top of
      *             the stack (see "%+").
      * <p>
      *   %+      - Pop attributes values of the top the stack (see "%-"). If
@@ -1953,7 +1953,7 @@ public class Plot extends FrameSet {
      * the setting "Gap(2)=3.0" specifies the difference between adjacent major
      * values along the second axis. The Gap attribute is only used when
      * the LogTicks attribute indicates that the spacing between major axis
-     * values is to be linear. If major axis values are logarithmically spaced 
+     * values is to be linear. If major axis values are logarithmically spaced
      * then the gap is specified using attribute LogGap.
      * <p>
      * The Gap value supplied will usually be rounded to the nearest
@@ -2002,7 +2002,7 @@ public class Plot extends FrameSet {
      * the setting "Gap(2)=3.0" specifies the difference between adjacent major
      * values along the second axis. The Gap attribute is only used when
      * the LogTicks attribute indicates that the spacing between major axis
-     * values is to be linear. If major axis values are logarithmically spaced 
+     * values is to be linear. If major axis values are logarithmically spaced
      * then the gap is specified using attribute LogGap.
      * <p>
      * The Gap value supplied will usually be rounded to the nearest
@@ -2052,7 +2052,7 @@ public class Plot extends FrameSet {
      * the setting "Gap(2)=3.0" specifies the difference between adjacent major
      * values along the second axis. The Gap attribute is only used when
      * the LogTicks attribute indicates that the spacing between major axis
-     * values is to be linear. If major axis values are logarithmically spaced 
+     * values is to be linear. If major axis values are logarithmically spaced
      * then the gap is specified using attribute LogGap.
      * <p>
      * The Gap value supplied will usually be rounded to the nearest
@@ -2134,7 +2134,7 @@ public class Plot extends FrameSet {
      * If the Invisible value of a Plot is non-zero, then all the Plot
      * methods which normally generate graphical output do not do so (you
      * can think of them drawing with "invisible ink"). Such methods do,
-     * however, continue to do all the calculations which would be needed to 
+     * however, continue to do all the calculations which would be needed to
      * produce the graphics. In particular, the bounding box enclosing the
      * graphics is still calculated and can be retrieved as normal using
      * astBoundingBox. The default value is zero, resulting in all methods
@@ -2157,7 +2157,7 @@ public class Plot extends FrameSet {
      * If the Invisible value of a Plot is non-zero, then all the Plot
      * methods which normally generate graphical output do not do so (you
      * can think of them drawing with "invisible ink"). Such methods do,
-     * however, continue to do all the calculations which would be needed to 
+     * however, continue to do all the calculations which would be needed to
      * produce the graphics. In particular, the bounding box enclosing the
      * graphics is still calculated and can be retrieved as normal using
      * astBoundingBox. The default value is zero, resulting in all methods
@@ -2425,11 +2425,11 @@ public class Plot extends FrameSet {
      * <p>
      * If the LabelUp value of a Plot axis is non-zero, it causes
      * numerical labels for that axis to be plotted upright (i.e. as
-     * normal, horizontal text), otherwise labels are drawn parallel to 
+     * normal, horizontal text), otherwise labels are drawn parallel to
      * the axis to which they apply.
      * <p>
      * The default is to produce upright labels if the labels are placed
-     * around the edge of the plot, and to produce labels that follow the 
+     * around the edge of the plot, and to produce labels that follow the
      * axes if the labels are placed within the interior of the plot (see
      * attribute Labelling).
      * <h4>Notes</h4>
@@ -2473,11 +2473,11 @@ public class Plot extends FrameSet {
      * <p>
      * If the LabelUp value of a Plot axis is non-zero, it causes
      * numerical labels for that axis to be plotted upright (i.e. as
-     * normal, horizontal text), otherwise labels are drawn parallel to 
+     * normal, horizontal text), otherwise labels are drawn parallel to
      * the axis to which they apply.
      * <p>
      * The default is to produce upright labels if the labels are placed
-     * around the edge of the plot, and to produce labels that follow the 
+     * around the edge of the plot, and to produce labels that follow the
      * axes if the labels are placed within the interior of the plot (see
      * attribute Labelling).
      * <h4>Notes</h4>
@@ -2522,11 +2522,11 @@ public class Plot extends FrameSet {
      * <p>
      * If the LabelUp value of a Plot axis is non-zero, it causes
      * numerical labels for that axis to be plotted upright (i.e. as
-     * normal, horizontal text), otherwise labels are drawn parallel to 
+     * normal, horizontal text), otherwise labels are drawn parallel to
      * the axis to which they apply.
      * <p>
      * The default is to produce upright labels if the labels are placed
-     * around the edge of the plot, and to produce labels that follow the 
+     * around the edge of the plot, and to produce labels that follow the
      * axes if the labels are placed within the interior of the plot (see
      * attribute Labelling).
      * <h4>Notes</h4>
@@ -2552,7 +2552,7 @@ public class Plot extends FrameSet {
      * coordinate grid (drawn with the astGrid function) by determining
      * the strategy for placing numerical labels and tick marks for a Plot.
      * <p>
-     * If the Labelling value of a Plot is "exterior" (the default), then 
+     * If the Labelling value of a Plot is "exterior" (the default), then
      * numerical labels and their associated tick marks are placed
      * around the edges of the plotting area, if possible. If this is
      * not possible, or if the Labelling value is "interior", then they
@@ -2575,7 +2575,7 @@ public class Plot extends FrameSet {
      * coordinate grid (drawn with the astGrid function) by determining
      * the strategy for placing numerical labels and tick marks for a Plot.
      * <p>
-     * If the Labelling value of a Plot is "exterior" (the default), then 
+     * If the Labelling value of a Plot is "exterior" (the default), then
      * numerical labels and their associated tick marks are placed
      * around the edges of the plotting area, if possible. If this is
      * not possible, or if the Labelling value is "interior", then they
@@ -2602,14 +2602,14 @@ public class Plot extends FrameSet {
      * the setting "LogGap(2)=100.0" specifies the ratio between adjacent major
      * values along the second axis. The LogGap attribute is only used when
      * the LogTicks attribute indicates that the spacing between major axis
-     * values is to be logarithmic. If major axis values are linearly spaced 
+     * values is to be logarithmic. If major axis values are linearly spaced
      * then the gap is specified using attribute Gap.
      * <p>
      * The LogGap value supplied will be rounded to the nearest power of 10.
-     * The reciprocal of the supplied value may be used if this is necessary 
-     * to produce usable major axis values. If a zero or negative value is 
-     * supplied, an error will be reported when the grid is drawn. The default 
-     * behaviour is for the Plot to generate its own LogGap value when 
+     * The reciprocal of the supplied value may be used if this is necessary
+     * to produce usable major axis values. If a zero or negative value is
+     * supplied, an error will be reported when the grid is drawn. The default
+     * behaviour is for the Plot to generate its own LogGap value when
      * required, based on the range of axis values to be represented.
      * <h4>Notes</h4>
      * <br> - The LogGap value is a ratio between axis values and is therefore
@@ -2648,14 +2648,14 @@ public class Plot extends FrameSet {
      * the setting "LogGap(2)=100.0" specifies the ratio between adjacent major
      * values along the second axis. The LogGap attribute is only used when
      * the LogTicks attribute indicates that the spacing between major axis
-     * values is to be logarithmic. If major axis values are linearly spaced 
+     * values is to be logarithmic. If major axis values are linearly spaced
      * then the gap is specified using attribute Gap.
      * <p>
      * The LogGap value supplied will be rounded to the nearest power of 10.
-     * The reciprocal of the supplied value may be used if this is necessary 
-     * to produce usable major axis values. If a zero or negative value is 
-     * supplied, an error will be reported when the grid is drawn. The default 
-     * behaviour is for the Plot to generate its own LogGap value when 
+     * The reciprocal of the supplied value may be used if this is necessary
+     * to produce usable major axis values. If a zero or negative value is
+     * supplied, an error will be reported when the grid is drawn. The default
+     * behaviour is for the Plot to generate its own LogGap value when
      * required, based on the range of axis values to be represented.
      * <h4>Notes</h4>
      * <br> - The LogGap value is a ratio between axis values and is therefore
@@ -2695,14 +2695,14 @@ public class Plot extends FrameSet {
      * the setting "LogGap(2)=100.0" specifies the ratio between adjacent major
      * values along the second axis. The LogGap attribute is only used when
      * the LogTicks attribute indicates that the spacing between major axis
-     * values is to be logarithmic. If major axis values are linearly spaced 
+     * values is to be logarithmic. If major axis values are linearly spaced
      * then the gap is specified using attribute Gap.
      * <p>
      * The LogGap value supplied will be rounded to the nearest power of 10.
-     * The reciprocal of the supplied value may be used if this is necessary 
-     * to produce usable major axis values. If a zero or negative value is 
-     * supplied, an error will be reported when the grid is drawn. The default 
-     * behaviour is for the Plot to generate its own LogGap value when 
+     * The reciprocal of the supplied value may be used if this is necessary
+     * to produce usable major axis values. If a zero or negative value is
+     * supplied, an error will be reported when the grid is drawn. The default
+     * behaviour is for the Plot to generate its own LogGap value when
      * required, based on the range of axis values to be represented.
      * <h4>Notes</h4>
      * <br> - The LogGap value is a ratio between axis values and is therefore
@@ -2727,8 +2727,8 @@ public class Plot extends FrameSet {
      * or should be represented as 10 raised to the appropriate power.
      * That is, an axis value of 1000.0 will be drawn as "1000.0" if
      * LogLabel is zero, but as "10^3" if LogLabel is non-zero. If
-     * graphical escape sequences are supported (see attribute Escape), 
-     * the power in such exponential labels will be drawn as a small 
+     * graphical escape sequences are supported (see attribute Escape),
+     * the power in such exponential labels will be drawn as a small
      * superscript instead of using a "^" character to represent
      * exponentiation.
      * <p>
@@ -2767,8 +2767,8 @@ public class Plot extends FrameSet {
      * or should be represented as 10 raised to the appropriate power.
      * That is, an axis value of 1000.0 will be drawn as "1000.0" if
      * LogLabel is zero, but as "10^3" if LogLabel is non-zero. If
-     * graphical escape sequences are supported (see attribute Escape), 
-     * the power in such exponential labels will be drawn as a small 
+     * graphical escape sequences are supported (see attribute Escape),
+     * the power in such exponential labels will be drawn as a small
      * superscript instead of using a "^" character to represent
      * exponentiation.
      * <p>
@@ -2808,8 +2808,8 @@ public class Plot extends FrameSet {
      * or should be represented as 10 raised to the appropriate power.
      * That is, an axis value of 1000.0 will be drawn as "1000.0" if
      * LogLabel is zero, but as "10^3" if LogLabel is non-zero. If
-     * graphical escape sequences are supported (see attribute Escape), 
-     * the power in such exponential labels will be drawn as a small 
+     * graphical escape sequences are supported (see attribute Escape),
+     * the power in such exponential labels will be drawn as a small
      * superscript instead of using a "^" character to represent
      * exponentiation.
      * <p>
@@ -2832,30 +2832,30 @@ public class Plot extends FrameSet {
      * map the plot logarithmically onto the screen by axis.  
      * This attribute controls the appearance of all graphics produced by
      * the Plot, by determining whether the axes of the plotting surface
-     * are mapped logarithmically or linearly onto the base Frame of the 
-     * FrameSet supplied when the Plot was constructed. It takes a separate 
+     * are mapped logarithmically or linearly onto the base Frame of the
+     * FrameSet supplied when the Plot was constructed. It takes a separate
      * value for each axis of the graphics coordinate system (i.e. the
      * base Frame in the Plot) so that, for instance, the setting
      * "LogPlot(2)=1" specifies that the second axis of the graphics
      * coordinate system (usually the vertical axis) should be mapped
      * logarithmically onto the second axis of the base Frame of the
-     * FrameSet supplied when the Plot was constructed. 
+     * FrameSet supplied when the Plot was constructed.
      * <p>
      * If the LogPlot value of a Plot axis is non-zero, it causes that
      * axis to be mapped logarithmically, otherwise (the default) the axis
      * is mapped linearly.
      * <h4>Notes</h4>
      * <br> - The setting of the LogPlot attribute provides the default value
-     * for the related LogTicks attribute. By selecting suitable values for 
-     * LogPlot and LogTicks, it is possible to have tick marks which are evenly 
-     * spaced in value but which are mapped logarithmically onto the screen 
+     * for the related LogTicks attribute. By selecting suitable values for
+     * LogPlot and LogTicks, it is possible to have tick marks which are evenly
+     * spaced in value but which are mapped logarithmically onto the screen
      * (and vice-versa).
      * <br> - An axis may only be mapped logarithmically if the visible part of
      * the axis does not include the value zero. The visible part of the
      * axis is that part which is mapped onto the plotting area, and is
      * measured within the base Frame of the FrameSet which was supplied when
-     * the Plot was constructed. Any attempt to set LogPlot to a non-zero value 
-     * will be ignored (without error) if the visible part of the axis 
+     * the Plot was constructed. Any attempt to set LogPlot to a non-zero value
+     * will be ignored (without error) if the visible part of the axis
      * includes the value zero
      * <br> - If no axis is specified, (e.g. "LogPlot" instead of
      * "LogPlot(2)"), then a "set" or "clear" operation will affect the
@@ -2885,30 +2885,30 @@ public class Plot extends FrameSet {
      * map the plot logarithmically onto the screen by axis.  
      * This attribute controls the appearance of all graphics produced by
      * the Plot, by determining whether the axes of the plotting surface
-     * are mapped logarithmically or linearly onto the base Frame of the 
-     * FrameSet supplied when the Plot was constructed. It takes a separate 
+     * are mapped logarithmically or linearly onto the base Frame of the
+     * FrameSet supplied when the Plot was constructed. It takes a separate
      * value for each axis of the graphics coordinate system (i.e. the
      * base Frame in the Plot) so that, for instance, the setting
      * "LogPlot(2)=1" specifies that the second axis of the graphics
      * coordinate system (usually the vertical axis) should be mapped
      * logarithmically onto the second axis of the base Frame of the
-     * FrameSet supplied when the Plot was constructed. 
+     * FrameSet supplied when the Plot was constructed.
      * <p>
      * If the LogPlot value of a Plot axis is non-zero, it causes that
      * axis to be mapped logarithmically, otherwise (the default) the axis
      * is mapped linearly.
      * <h4>Notes</h4>
      * <br> - The setting of the LogPlot attribute provides the default value
-     * for the related LogTicks attribute. By selecting suitable values for 
-     * LogPlot and LogTicks, it is possible to have tick marks which are evenly 
-     * spaced in value but which are mapped logarithmically onto the screen 
+     * for the related LogTicks attribute. By selecting suitable values for
+     * LogPlot and LogTicks, it is possible to have tick marks which are evenly
+     * spaced in value but which are mapped logarithmically onto the screen
      * (and vice-versa).
      * <br> - An axis may only be mapped logarithmically if the visible part of
      * the axis does not include the value zero. The visible part of the
      * axis is that part which is mapped onto the plotting area, and is
      * measured within the base Frame of the FrameSet which was supplied when
-     * the Plot was constructed. Any attempt to set LogPlot to a non-zero value 
-     * will be ignored (without error) if the visible part of the axis 
+     * the Plot was constructed. Any attempt to set LogPlot to a non-zero value
+     * will be ignored (without error) if the visible part of the axis
      * includes the value zero
      * <br> - If no axis is specified, (e.g. "LogPlot" instead of
      * "LogPlot(2)"), then a "set" or "clear" operation will affect the
@@ -2939,30 +2939,30 @@ public class Plot extends FrameSet {
      * map the plot logarithmically onto the screen.  
      * This attribute controls the appearance of all graphics produced by
      * the Plot, by determining whether the axes of the plotting surface
-     * are mapped logarithmically or linearly onto the base Frame of the 
-     * FrameSet supplied when the Plot was constructed. It takes a separate 
+     * are mapped logarithmically or linearly onto the base Frame of the
+     * FrameSet supplied when the Plot was constructed. It takes a separate
      * value for each axis of the graphics coordinate system (i.e. the
      * base Frame in the Plot) so that, for instance, the setting
      * "LogPlot(2)=1" specifies that the second axis of the graphics
      * coordinate system (usually the vertical axis) should be mapped
      * logarithmically onto the second axis of the base Frame of the
-     * FrameSet supplied when the Plot was constructed. 
+     * FrameSet supplied when the Plot was constructed.
      * <p>
      * If the LogPlot value of a Plot axis is non-zero, it causes that
      * axis to be mapped logarithmically, otherwise (the default) the axis
      * is mapped linearly.
      * <h4>Notes</h4>
      * <br> - The setting of the LogPlot attribute provides the default value
-     * for the related LogTicks attribute. By selecting suitable values for 
-     * LogPlot and LogTicks, it is possible to have tick marks which are evenly 
-     * spaced in value but which are mapped logarithmically onto the screen 
+     * for the related LogTicks attribute. By selecting suitable values for
+     * LogPlot and LogTicks, it is possible to have tick marks which are evenly
+     * spaced in value but which are mapped logarithmically onto the screen
      * (and vice-versa).
      * <br> - An axis may only be mapped logarithmically if the visible part of
      * the axis does not include the value zero. The visible part of the
      * axis is that part which is mapped onto the plotting area, and is
      * measured within the base Frame of the FrameSet which was supplied when
-     * the Plot was constructed. Any attempt to set LogPlot to a non-zero value 
-     * will be ignored (without error) if the visible part of the axis 
+     * the Plot was constructed. Any attempt to set LogPlot to a non-zero value
+     * will be ignored (without error) if the visible part of the axis
      * includes the value zero
      * <br> - If no axis is specified, (e.g. "LogPlot" instead of
      * "LogPlot(2)"), then a "set" or "clear" operation will affect the
@@ -2980,29 +2980,29 @@ public class Plot extends FrameSet {
      * space the major tick marks logarithmically by axis.  
      * This attribute controls the appearance of an annotated
      * coordinate grid (drawn with the astGrid function) by determining
-     * whether the major tick marks should be spaced logarithmically or 
-     * linearly in axis value. It takes a separate value for each physical 
-     * axis of the Plot so that, for instance, the setting "LogTicks(2)=1" 
-     * specifies that the major tick marks on the second axis should be 
+     * whether the major tick marks should be spaced logarithmically or
+     * linearly in axis value. It takes a separate value for each physical
+     * axis of the Plot so that, for instance, the setting "LogTicks(2)=1"
+     * specifies that the major tick marks on the second axis should be
      * spaced logarithmically.
      * <p>
      * If the LogTicks value for a physical axis is non-zero, the major
      * tick marks on that axis will be spaced logarithmically (that is,
-     * there will be a constant ratio between the axis values at adjacent 
-     * major tick marks). An error will be reported if the dynamic range of 
-     * the axis (the ratio of the largest to smallest displayed axis value) 
-     * is less than 10.0. If the LogTicks value is zero, the major tick marks 
-     * will be evenly spaced (that is, there will be a constant difference 
-     * between the axis values at adjacent major tick marks). The default is 
-     * to produce logarithmically spaced tick marks if the corresponding 
+     * there will be a constant ratio between the axis values at adjacent
+     * major tick marks). An error will be reported if the dynamic range of
+     * the axis (the ratio of the largest to smallest displayed axis value)
+     * is less than 10.0. If the LogTicks value is zero, the major tick marks
+     * will be evenly spaced (that is, there will be a constant difference
+     * between the axis values at adjacent major tick marks). The default is
+     * to produce logarithmically spaced tick marks if the corresponding
      * LogPlot attribute is non-zero and the ratio of maximum axis value
      * to minimum axis value is 100 or more. If either of these conditions
      * is not met, the default is to produce linearly spaced tick marks.
      * <h4>Notes</h4>
      * <br> - The setting of the LogTicks attribute does not affect the mapping
      * of the plot onto the screen, which is controlled by attribute LogPlot.
-     * By selecting suitable values for LogPlot and LogTicks, it is possible to 
-     * have tick marks which are evenly spaced in value but which are mapped 
+     * By selecting suitable values for LogPlot and LogTicks, it is possible to
+     * have tick marks which are evenly spaced in value but which are mapped
      * logarithmically onto the screen (and vica-versa).
      * <br> - An error will be reported when drawing an annotated axis grid if
      * the visible part of the physical axis includes the value zero.
@@ -3034,29 +3034,29 @@ public class Plot extends FrameSet {
      * space the major tick marks logarithmically by axis.  
      * This attribute controls the appearance of an annotated
      * coordinate grid (drawn with the astGrid function) by determining
-     * whether the major tick marks should be spaced logarithmically or 
-     * linearly in axis value. It takes a separate value for each physical 
-     * axis of the Plot so that, for instance, the setting "LogTicks(2)=1" 
-     * specifies that the major tick marks on the second axis should be 
+     * whether the major tick marks should be spaced logarithmically or
+     * linearly in axis value. It takes a separate value for each physical
+     * axis of the Plot so that, for instance, the setting "LogTicks(2)=1"
+     * specifies that the major tick marks on the second axis should be
      * spaced logarithmically.
      * <p>
      * If the LogTicks value for a physical axis is non-zero, the major
      * tick marks on that axis will be spaced logarithmically (that is,
-     * there will be a constant ratio between the axis values at adjacent 
-     * major tick marks). An error will be reported if the dynamic range of 
-     * the axis (the ratio of the largest to smallest displayed axis value) 
-     * is less than 10.0. If the LogTicks value is zero, the major tick marks 
-     * will be evenly spaced (that is, there will be a constant difference 
-     * between the axis values at adjacent major tick marks). The default is 
-     * to produce logarithmically spaced tick marks if the corresponding 
+     * there will be a constant ratio between the axis values at adjacent
+     * major tick marks). An error will be reported if the dynamic range of
+     * the axis (the ratio of the largest to smallest displayed axis value)
+     * is less than 10.0. If the LogTicks value is zero, the major tick marks
+     * will be evenly spaced (that is, there will be a constant difference
+     * between the axis values at adjacent major tick marks). The default is
+     * to produce logarithmically spaced tick marks if the corresponding
      * LogPlot attribute is non-zero and the ratio of maximum axis value
      * to minimum axis value is 100 or more. If either of these conditions
      * is not met, the default is to produce linearly spaced tick marks.
      * <h4>Notes</h4>
      * <br> - The setting of the LogTicks attribute does not affect the mapping
      * of the plot onto the screen, which is controlled by attribute LogPlot.
-     * By selecting suitable values for LogPlot and LogTicks, it is possible to 
-     * have tick marks which are evenly spaced in value but which are mapped 
+     * By selecting suitable values for LogPlot and LogTicks, it is possible to
+     * have tick marks which are evenly spaced in value but which are mapped
      * logarithmically onto the screen (and vica-versa).
      * <br> - An error will be reported when drawing an annotated axis grid if
      * the visible part of the physical axis includes the value zero.
@@ -3089,29 +3089,29 @@ public class Plot extends FrameSet {
      * space the major tick marks logarithmically.  
      * This attribute controls the appearance of an annotated
      * coordinate grid (drawn with the astGrid function) by determining
-     * whether the major tick marks should be spaced logarithmically or 
-     * linearly in axis value. It takes a separate value for each physical 
-     * axis of the Plot so that, for instance, the setting "LogTicks(2)=1" 
-     * specifies that the major tick marks on the second axis should be 
+     * whether the major tick marks should be spaced logarithmically or
+     * linearly in axis value. It takes a separate value for each physical
+     * axis of the Plot so that, for instance, the setting "LogTicks(2)=1"
+     * specifies that the major tick marks on the second axis should be
      * spaced logarithmically.
      * <p>
      * If the LogTicks value for a physical axis is non-zero, the major
      * tick marks on that axis will be spaced logarithmically (that is,
-     * there will be a constant ratio between the axis values at adjacent 
-     * major tick marks). An error will be reported if the dynamic range of 
-     * the axis (the ratio of the largest to smallest displayed axis value) 
-     * is less than 10.0. If the LogTicks value is zero, the major tick marks 
-     * will be evenly spaced (that is, there will be a constant difference 
-     * between the axis values at adjacent major tick marks). The default is 
-     * to produce logarithmically spaced tick marks if the corresponding 
+     * there will be a constant ratio between the axis values at adjacent
+     * major tick marks). An error will be reported if the dynamic range of
+     * the axis (the ratio of the largest to smallest displayed axis value)
+     * is less than 10.0. If the LogTicks value is zero, the major tick marks
+     * will be evenly spaced (that is, there will be a constant difference
+     * between the axis values at adjacent major tick marks). The default is
+     * to produce logarithmically spaced tick marks if the corresponding
      * LogPlot attribute is non-zero and the ratio of maximum axis value
      * to minimum axis value is 100 or more. If either of these conditions
      * is not met, the default is to produce linearly spaced tick marks.
      * <h4>Notes</h4>
      * <br> - The setting of the LogTicks attribute does not affect the mapping
      * of the plot onto the screen, which is controlled by attribute LogPlot.
-     * By selecting suitable values for LogPlot and LogTicks, it is possible to 
-     * have tick marks which are evenly spaced in value but which are mapped 
+     * By selecting suitable values for LogPlot and LogTicks, it is possible to
+     * have tick marks which are evenly spaced in value but which are mapped
      * logarithmically onto the screen (and vica-versa).
      * <br> - An error will be reported when drawing an annotated axis grid if
      * the visible part of the physical axis includes the value zero.
@@ -3132,8 +3132,8 @@ public class Plot extends FrameSet {
      * This attribute controls the appearance of an annotated
      * coordinate grid (drawn with the astGrid function) by determining
      * the length of the major tick marks drawn on the axes of a Plot.
-     * It takes a separate value for each physical axis of the Plot so 
-     * that, for instance, the setting "MajTickLen(2)=0" specifies the 
+     * It takes a separate value for each physical axis of the Plot so
+     * that, for instance, the setting "MajTickLen(2)=0" specifies the
      * length of the major tick marks drawn on the second axis.
      * <p>
      * The MajTickLen value should be given as a fraction of the
@@ -3148,9 +3148,9 @@ public class Plot extends FrameSet {
      * the default MajTickLen value is zero (so that major ticks are
      * not drawn), otherwise the default is +0.015.
      * <h4>Notes</h4>
-     * <br> - If no axis is specified, (e.g. "MajTickLen" instead of 
-     * "MajTickLen(2)"), then a "set" or "clear" operation will affect 
-     * the attribute value of all the Plot axes, while a "get" or "test" 
+     * <br> - If no axis is specified, (e.g. "MajTickLen" instead of
+     * "MajTickLen(2)"), then a "set" or "clear" operation will affect
+     * the attribute value of all the Plot axes, while a "get" or "test"
      * operation will use just the MajTickLen(1) value.
      * 
      *
@@ -3178,8 +3178,8 @@ public class Plot extends FrameSet {
      * This attribute controls the appearance of an annotated
      * coordinate grid (drawn with the astGrid function) by determining
      * the length of the major tick marks drawn on the axes of a Plot.
-     * It takes a separate value for each physical axis of the Plot so 
-     * that, for instance, the setting "MajTickLen(2)=0" specifies the 
+     * It takes a separate value for each physical axis of the Plot so
+     * that, for instance, the setting "MajTickLen(2)=0" specifies the
      * length of the major tick marks drawn on the second axis.
      * <p>
      * The MajTickLen value should be given as a fraction of the
@@ -3194,9 +3194,9 @@ public class Plot extends FrameSet {
      * the default MajTickLen value is zero (so that major ticks are
      * not drawn), otherwise the default is +0.015.
      * <h4>Notes</h4>
-     * <br> - If no axis is specified, (e.g. "MajTickLen" instead of 
-     * "MajTickLen(2)"), then a "set" or "clear" operation will affect 
-     * the attribute value of all the Plot axes, while a "get" or "test" 
+     * <br> - If no axis is specified, (e.g. "MajTickLen" instead of
+     * "MajTickLen(2)"), then a "set" or "clear" operation will affect
+     * the attribute value of all the Plot axes, while a "get" or "test"
      * operation will use just the MajTickLen(1) value.
      * 
      *
@@ -3225,8 +3225,8 @@ public class Plot extends FrameSet {
      * This attribute controls the appearance of an annotated
      * coordinate grid (drawn with the astGrid function) by determining
      * the length of the major tick marks drawn on the axes of a Plot.
-     * It takes a separate value for each physical axis of the Plot so 
-     * that, for instance, the setting "MajTickLen(2)=0" specifies the 
+     * It takes a separate value for each physical axis of the Plot so
+     * that, for instance, the setting "MajTickLen(2)=0" specifies the
      * length of the major tick marks drawn on the second axis.
      * <p>
      * The MajTickLen value should be given as a fraction of the
@@ -3241,9 +3241,9 @@ public class Plot extends FrameSet {
      * the default MajTickLen value is zero (so that major ticks are
      * not drawn), otherwise the default is +0.015.
      * <h4>Notes</h4>
-     * <br> - If no axis is specified, (e.g. "MajTickLen" instead of 
-     * "MajTickLen(2)"), then a "set" or "clear" operation will affect 
-     * the attribute value of all the Plot axes, while a "get" or "test" 
+     * <br> - If no axis is specified, (e.g. "MajTickLen" instead of
+     * "MajTickLen(2)"), then a "set" or "clear" operation will affect
+     * the attribute value of all the Plot axes, while a "get" or "test"
      * operation will use just the MajTickLen(1) value.
      * 
      *
@@ -3259,8 +3259,8 @@ public class Plot extends FrameSet {
      * This attribute controls the appearance of an annotated
      * coordinate grid (drawn with the astGrid function) by determining
      * the length of the minor tick marks drawn on the axes of a Plot.
-     * It takes a separate value for each physical axis of the Plot so 
-     * that, for instance, the setting "MinTickLen(2)=0" specifies the 
+     * It takes a separate value for each physical axis of the Plot so
+     * that, for instance, the setting "MinTickLen(2)=0" specifies the
      * length of the minor tick marks drawn on the second axis.
      * <p>
      * The MinTickLen value should be given as a fraction of the
@@ -3274,9 +3274,9 @@ public class Plot extends FrameSet {
      * <h4>Notes</h4>
      * <br> - The number of minor tick marks drawn is determined by the
      * Plot's MinTick(axis) attribute.
-     * <br> - If no axis is specified, (e.g. "MinTickLen" instead of 
-     * "MinTickLen(2)"), then a "set" or "clear" operation will affect 
-     * the attribute value of all the Plot axes, while a "get" or "test" 
+     * <br> - If no axis is specified, (e.g. "MinTickLen" instead of
+     * "MinTickLen(2)"), then a "set" or "clear" operation will affect
+     * the attribute value of all the Plot axes, while a "get" or "test"
      * operation will use just the MinTickLen(1) value.
      * 
      *
@@ -3304,8 +3304,8 @@ public class Plot extends FrameSet {
      * This attribute controls the appearance of an annotated
      * coordinate grid (drawn with the astGrid function) by determining
      * the length of the minor tick marks drawn on the axes of a Plot.
-     * It takes a separate value for each physical axis of the Plot so 
-     * that, for instance, the setting "MinTickLen(2)=0" specifies the 
+     * It takes a separate value for each physical axis of the Plot so
+     * that, for instance, the setting "MinTickLen(2)=0" specifies the
      * length of the minor tick marks drawn on the second axis.
      * <p>
      * The MinTickLen value should be given as a fraction of the
@@ -3319,9 +3319,9 @@ public class Plot extends FrameSet {
      * <h4>Notes</h4>
      * <br> - The number of minor tick marks drawn is determined by the
      * Plot's MinTick(axis) attribute.
-     * <br> - If no axis is specified, (e.g. "MinTickLen" instead of 
-     * "MinTickLen(2)"), then a "set" or "clear" operation will affect 
-     * the attribute value of all the Plot axes, while a "get" or "test" 
+     * <br> - If no axis is specified, (e.g. "MinTickLen" instead of
+     * "MinTickLen(2)"), then a "set" or "clear" operation will affect
+     * the attribute value of all the Plot axes, while a "get" or "test"
      * operation will use just the MinTickLen(1) value.
      * 
      *
@@ -3350,8 +3350,8 @@ public class Plot extends FrameSet {
      * This attribute controls the appearance of an annotated
      * coordinate grid (drawn with the astGrid function) by determining
      * the length of the minor tick marks drawn on the axes of a Plot.
-     * It takes a separate value for each physical axis of the Plot so 
-     * that, for instance, the setting "MinTickLen(2)=0" specifies the 
+     * It takes a separate value for each physical axis of the Plot so
+     * that, for instance, the setting "MinTickLen(2)=0" specifies the
      * length of the minor tick marks drawn on the second axis.
      * <p>
      * The MinTickLen value should be given as a fraction of the
@@ -3365,9 +3365,9 @@ public class Plot extends FrameSet {
      * <h4>Notes</h4>
      * <br> - The number of minor tick marks drawn is determined by the
      * Plot's MinTick(axis) attribute.
-     * <br> - If no axis is specified, (e.g. "MinTickLen" instead of 
-     * "MinTickLen(2)"), then a "set" or "clear" operation will affect 
-     * the attribute value of all the Plot axes, while a "get" or "test" 
+     * <br> - If no axis is specified, (e.g. "MinTickLen" instead of
+     * "MinTickLen(2)"), then a "set" or "clear" operation will affect
+     * the attribute value of all the Plot axes, while a "get" or "test"
      * operation will use just the MinTickLen(1) value.
      * 
      *
@@ -4333,8 +4333,8 @@ public class Plot extends FrameSet {
      * For each axis, the TextLabGap value gives the spacing between the
      * descriptive label and the edge of a box enclosing all other parts
      * of the annotated grid (excluding other descriptive labels). The gap
-     * is measured to the nearest edge of the label (i.e. the top or the 
-     * bottom). Positive values cause the descriptive label to be placed 
+     * is measured to the nearest edge of the label (i.e. the top or the
+     * bottom). Positive values cause the descriptive label to be placed
      * outside the bounding box, while negative values cause it to be placed
      * inside.
      * <p>
@@ -4382,8 +4382,8 @@ public class Plot extends FrameSet {
      * For each axis, the TextLabGap value gives the spacing between the
      * descriptive label and the edge of a box enclosing all other parts
      * of the annotated grid (excluding other descriptive labels). The gap
-     * is measured to the nearest edge of the label (i.e. the top or the 
-     * bottom). Positive values cause the descriptive label to be placed 
+     * is measured to the nearest edge of the label (i.e. the top or the
+     * bottom). Positive values cause the descriptive label to be placed
      * outside the bounding box, while negative values cause it to be placed
      * inside.
      * <p>
@@ -4432,8 +4432,8 @@ public class Plot extends FrameSet {
      * For each axis, the TextLabGap value gives the spacing between the
      * descriptive label and the edge of a box enclosing all other parts
      * of the annotated grid (excluding other descriptive labels). The gap
-     * is measured to the nearest edge of the label (i.e. the top or the 
-     * bottom). Positive values cause the descriptive label to be placed 
+     * is measured to the nearest edge of the label (i.e. the top or the
+     * bottom). Positive values cause the descriptive label to be placed
      * outside the bounding box, while negative values cause it to be placed
      * inside.
      * <p>
@@ -4510,10 +4510,10 @@ public class Plot extends FrameSet {
      * coordinate grid (drawn with the astGrid function) by determining
      * where the title of a Plot is drawn.
      * <p>
-     * Its value gives the spacing between the bottom edge of the title 
-     * and the top edge of a bounding box containing all the other parts 
+     * Its value gives the spacing between the bottom edge of the title
+     * and the top edge of a bounding box containing all the other parts
      * of the annotated grid. Positive values cause the title to be
-     * drawn outside the box, while negative values cause it to be drawn 
+     * drawn outside the box, while negative values cause it to be drawn
      * inside.
      * <p>
      * The TitleGap value should be given as a fraction of the minimum
@@ -4535,10 +4535,10 @@ public class Plot extends FrameSet {
      * coordinate grid (drawn with the astGrid function) by determining
      * where the title of a Plot is drawn.
      * <p>
-     * Its value gives the spacing between the bottom edge of the title 
-     * and the top edge of a bounding box containing all the other parts 
+     * Its value gives the spacing between the bottom edge of the title
+     * and the top edge of a bounding box containing all the other parts
      * of the annotated grid. Positive values cause the title to be
-     * drawn outside the box, while negative values cause it to be drawn 
+     * drawn outside the box, while negative values cause it to be drawn
      * inside.
      * <p>
      * The TitleGap value should be given as a fraction of the minimum

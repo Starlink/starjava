@@ -40,16 +40,16 @@ f     The ZoomMap class does not define any new routines beyond those
 *     modify it under the terms of the GNU General Public Licence as
 *     published by the Free Software Foundation; either version 2 of
 *     the Licence, or (at your option) any later version.
-*     
+*
 *     This program is distributed in the hope that it will be
 *     useful,but WITHOUT ANY WARRANTY; without even the implied
 *     warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
 *     PURPOSE. See the GNU General Public Licence for more details.
-*     
+*
 *     You should have received a copy of the GNU General Public Licence
 *     along with this program; if not, write to the Free Software
-*     Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
-*     02111-1307, USA
+*     Foundation, Inc., 51 Franklin Street,Fifth Floor, Boston, MA
+*     02110-1301, USA
 
 *  Authors:
 *     RFWS: R.F. Warren-Smith (Starlink)
@@ -127,7 +127,7 @@ static void (* parent_setattrib)( AstObject *, const char *, int * );
 /* Define macros for accessing each item of thread specific global data. */
 #ifdef THREAD_SAFE
 
-/* Define how to initialise thread-specific globals. */ 
+/* Define how to initialise thread-specific globals. */
 #define GLOBAL_inits \
    globals->Class_Init = 0; \
    globals->GetAttrib_Buff[ 0 ] = 0;
@@ -142,8 +142,8 @@ astMAKE_INITGLOBALS(ZoomMap)
 
 
 
-/* If thread safety is not needed, declare and initialise globals at static 
-   variables. */ 
+/* If thread safety is not needed, declare and initialise globals at static
+   variables. */
 #else
 
 static char getattrib_buff[ 101 ];
@@ -252,7 +252,7 @@ static int Equal( AstObject *this_object, AstObject *that_object, int *status ) 
 
 *  Synopsis:
 *     #include "zoommap.h"
-*     int Equal( AstObject *this, AstObject *that, int *status ) 
+*     int Equal( AstObject *this, AstObject *that, int *status )
 
 *  Class Membership:
 *     ZoomMap member function (over-rides the astEqual protected
@@ -279,8 +279,8 @@ static int Equal( AstObject *this_object, AstObject *that_object, int *status ) 
 */
 
 /* Local Variables: */
-   AstZoomMap *that;        
-   AstZoomMap *this;        
+   AstZoomMap *that;
+   AstZoomMap *this;
    int nin;
    int nout;
    int result;
@@ -305,14 +305,14 @@ static int Equal( AstObject *this_object, AstObject *that_object, int *status ) 
       nout = astGetNout( this );
       if( astGetNin( that ) == nin && astGetNout( that ) == nout ) {
 
-/* If the Invert flags for the two ZoomMaps differ, it may still be possible 
-   for them to be equivalent. First compare the ZoomMaps if their Invert 
-   flags are the same. In this case all the attributes of the two ZoomMaps 
+/* If the Invert flags for the two ZoomMaps differ, it may still be possible
+   for them to be equivalent. First compare the ZoomMaps if their Invert
+   flags are the same. In this case all the attributes of the two ZoomMaps
    must be identical. */
          if( astGetInvert( this ) == astGetInvert( that ) ) {
             result = ( astEQUAL( this->zoom, that->zoom ) );
 
-/* If the Invert flags for the two ZoomMaps differ, the attributes of the two 
+/* If the Invert flags for the two ZoomMaps differ, the attributes of the two
    ZoomMaps must be inversely related to each other. */
          } else {
             result = ( astEQUAL( this->zoom, 1.0/that->zoom ) );
@@ -320,7 +320,7 @@ static int Equal( AstObject *this_object, AstObject *that_object, int *status ) 
          }
       }
    }
-   
+
 /* If an error occurred, clear the result value. */
    if ( !astOK ) result = 0;
 
@@ -378,7 +378,7 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib, int *s
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;          /* Pointer to thread-specific global data */
+   astDECLARE_GLOBALS           /* Pointer to thread-specific global data */
    AstZoomMap *this;             /* Pointer to the ZoomMap structure */
    const char *result;           /* Pointer value to return */
    double zoom;                  /* Zoom attribute value */
@@ -386,7 +386,7 @@ static const char *GetAttrib( AstObject *this_object, const char *attrib, int *s
 /* Initialise. */
    result = NULL;
 
-/* Check the global error status. */   
+/* Check the global error status. */
    if ( !astOK ) return result;
 
 /* Get a pointer to the thread specific global data structure. */
@@ -481,14 +481,14 @@ void astInitZoomMapVtab_(  AstZoomMapVtab *vtab, const char *name, int *status )
 *        been initialised.
 *     name
 *        Pointer to a constant null-terminated character string which contains
-*        the name of the class to which the virtual function table belongs (it 
+*        the name of the class to which the virtual function table belongs (it
 *        is this pointer value that will subsequently be returned by the Object
 *        astClass function).
 *-
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
+   astDECLARE_GLOBALS            /* Pointer to thread-specific global data */
    AstObjectVtab *object;        /* Pointer to Object component of Vtab */
    AstMappingVtab *mapping;      /* Pointer to Mapping component of Vtab */
 
@@ -506,7 +506,8 @@ void astInitZoomMapVtab_(  AstZoomMapVtab *vtab, const char *name, int *status )
    will be used (by astIsAZoomMap) to determine if an object belongs
    to this class.  We can conveniently use the address of the (static)
    class_check variable to generate this unique value. */
-   vtab->check = &class_check;
+   vtab->id.check = &class_check;
+   vtab->id.parent = &(((AstMappingVtab *) vtab)->id);
 
 /* Initialise member function pointers. */
 /* ------------------------------------ */
@@ -547,9 +548,12 @@ void astInitZoomMapVtab_(  AstZoomMapVtab *vtab, const char *name, int *status )
    astSetDump( vtab, Dump, "ZoomMap", "Zoom about the origin" );
 
 /* If we have just initialised the vtab for the current class, indicate
-   that the vtab is now initialised. */
-   if( vtab == &class_vtab ) class_init = 1;
-
+   that the vtab is now initialised, and store a pointer to the class
+   identifier in the base "object" level of the vtab. */
+   if( vtab == &class_vtab ) {
+      class_init = 1;
+      astSetVtabClassIdentifier( vtab, &(vtab->id) );
+   }
 }
 
 static int MapMerge( AstMapping *this, int where, int series, int *nmap,
@@ -997,7 +1001,7 @@ static int *MapSplit( AstMapping *this_map, int nin, const int *in, AstMapping *
 *     inherited from the Mapping class).
 
 *  Description:
-*     This function creates a new Mapping by picking specified inputs from 
+*     This function creates a new Mapping by picking specified inputs from
 *     an existing ZoomMap. This is only possible if the specified inputs
 *     correspond to some subset of the ZoomMap outputs. That is, there
 *     must exist a subset of the ZoomMap outputs for which each output
@@ -1007,27 +1011,27 @@ static int *MapSplit( AstMapping *this_map, int nin, const int *in, AstMapping *
 
 *  Parameters:
 *     this
-*        Pointer to the ZoomMap to be split (the ZoomMap is not actually 
+*        Pointer to the ZoomMap to be split (the ZoomMap is not actually
 *        modified by this function).
 *     nin
 *        The number of inputs to pick from "this".
 *     in
 *        Pointer to an array of indices (zero based) for the inputs which
 *        are to be picked. This array should have "nin" elements. If "Nin"
-*        is the number of inputs of the supplied ZoomMap, then each element 
+*        is the number of inputs of the supplied ZoomMap, then each element
 *        should have a value in the range zero to Nin-1.
 *     map
 *        Address of a location at which to return a pointer to the new
 *        Mapping. This Mapping will have "nin" inputs (the number of
 *        outputs may be different to "nin"). A NULL pointer will be
-*        returned if the supplied ZoomMap has no subset of outputs which 
+*        returned if the supplied ZoomMap has no subset of outputs which
 *        depend only on the selected inputs.
 *     status
 *        Pointer to the inherited status variable.
 
 *  Returned Value:
 *     A pointer to a dynamically allocated array of ints. The number of
-*     elements in this array will equal the number of outputs for the 
+*     elements in this array will equal the number of outputs for the
 *     returned Mapping. Each element will hold the index of the
 *     corresponding output in the supplied ZoomMap. The array should be
 *     freed using astFree when no longer needed. A NULL pointer will
@@ -1068,7 +1072,7 @@ static int *MapSplit( AstMapping *this_map, int nin, const int *in, AstMapping *
 /* Check pointers can be used safely. */
    if( astOK ) {
 
-/* Store the required output axis indices. At the same time check that each 
+/* Store the required output axis indices. At the same time check that each
    axis is valid. */
       mnin = astGetNin( this );
       ok = 1;
@@ -1084,7 +1088,7 @@ static int *MapSplit( AstMapping *this_map, int nin, const int *in, AstMapping *
 
 /* If the "in" array contained any invalid values, free the returned
    resources. */
-      if( !ok ) { 
+      if( !ok ) {
          result = astFree( result );
          *map = astAnnul( *map );
       }
@@ -1120,31 +1124,31 @@ static double Rate( AstMapping *this, double *at, int ax1, int ax2, int *status 
 *     from the Mapping class ).
 
 *  Description:
-*     This function returns the rate of change of a specified output of 
-*     the supplied Mapping with respect to a specified input, at a 
-*     specified input position. 
+*     This function returns the rate of change of a specified output of
+*     the supplied Mapping with respect to a specified input, at a
+*     specified input position.
 
 *  Parameters:
 *     this
 *        Pointer to the Mapping to be applied.
 *     at
-*        The address of an array holding the axis values at the position 
-*        at which the rate of change is to be evaluated. The number of 
-*        elements in this array should equal the number of inputs to the 
+*        The address of an array holding the axis values at the position
+*        at which the rate of change is to be evaluated. The number of
+*        elements in this array should equal the number of inputs to the
 *        Mapping.
 *     ax1
-*        The index of the Mapping output for which the rate of change is to 
+*        The index of the Mapping output for which the rate of change is to
 *        be found (output numbering starts at 0 for the first output).
 *     ax2
 *        The index of the Mapping input which is to be varied in order to
-*        find the rate of change (input numbering starts at 0 for the first 
+*        find the rate of change (input numbering starts at 0 for the first
 *        input).
 *     status
 *        Pointer to the inherited status variable.
 
 *  Returned Value:
-*     The rate of change of Mapping output "ax1" with respect to input 
-*     "ax2", evaluated at "at", or AST__BAD if the value cannot be 
+*     The rate of change of Mapping output "ax1" with respect to input
+*     "ax2", evaluated at "at", or AST__BAD if the value cannot be
 *     calculated.
 
 */
@@ -1411,7 +1415,7 @@ static AstPointSet *Transform( AstMapping *this, AstPointSet *in,
    values. */
    ncoord_in = astGetNcoord( in );
    npoint = astGetNpoint( in );
-   ptr_in = astGetPoints( in );      
+   ptr_in = astGetPoints( in );
    ptr_out = astGetPoints( result );
 
 /* Determine whether to apply the forward or inverse mapping, according to the
@@ -1577,7 +1581,7 @@ static void Dump( AstObject *this_object, AstChannel *channel, int *status ) {
 /* ========================= */
 /* Implement the astIsAZoomMap and astCheckZoomMap functions using the macros
    defined for this purpose in the "object.h" header file. */
-astMAKE_ISA(ZoomMap,Mapping,check,&class_check)
+astMAKE_ISA(ZoomMap,Mapping)
 astMAKE_CHECK(ZoomMap)
 
 AstZoomMap *astZoomMap_( int ncoord, double zoom, const char *options, int *status, ...) {
@@ -1667,7 +1671,7 @@ f     function is invoked with STATUS set to an error value, or if it
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
+   astDECLARE_GLOBALS            /* Pointer to thread-specific global data */
    AstZoomMap *new;              /* Pointer to new ZoomMap */
    va_list args;                 /* Variable argument list */
 
@@ -1742,7 +1746,7 @@ AstZoomMap *astZoomMapId_( int ncoord, double zoom,
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
+   astDECLARE_GLOBALS            /* Pointer to thread-specific global data */
    AstZoomMap *new;              /* Pointer to new ZoomMap */
    va_list args;                 /* Variable argument list */
 
@@ -1974,7 +1978,7 @@ AstZoomMap *astLoadZoomMap_( void *mem, size_t size,
 */
 
 /* Local Variables: */
-   astDECLARE_GLOBALS;           /* Pointer to thread-specific global data */
+   astDECLARE_GLOBALS            /* Pointer to thread-specific global data */
    AstZoomMap *new;              /* Pointer to the new ZoomMap */
 
 /* Initialise. */

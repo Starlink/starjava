@@ -242,7 +242,7 @@ public class ErrorModeSelectionModel
      * @param  listener listener
      */
     public void addActionListener( ActionListener listener ) {
-        actionForwarder_.addListener( listener );
+        actionForwarder_.addActionListener( listener );
     }
 
     /**
@@ -251,7 +251,7 @@ public class ErrorModeSelectionModel
      * @param  listener   listener
      */
     public void removeActionListener( ActionListener listener ) {
-        actionForwarder_.addListener( listener );
+        actionForwarder_.addActionListener( listener );
     }
 
     /**

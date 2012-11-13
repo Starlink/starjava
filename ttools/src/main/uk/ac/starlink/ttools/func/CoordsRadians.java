@@ -106,6 +106,9 @@ public class CoordsRadians {
         if ( Double.isNaN( rad ) ) {
             return null;
         }
+        while ( rad < 0 ) {
+            rad += Math.PI * 2;
+        }
         double degrees = radiansToDegrees( rad );
         int sign = degrees >= 0 ? +1 : -1;
         double hours = degrees / 15.0;
@@ -127,6 +130,7 @@ public class CoordsRadians {
      * in radians.  Delimiters may be colon, space, characters 
      * <code>dm[s]</code>, or some others.
      * Additional spaces and leading +/- are permitted.
+     * The :seconds part is optional.
      *
      * @param  dms  formatted DMS string
      * @return  angle in radians specified by <code>dms</code>
@@ -142,7 +146,9 @@ public class CoordsRadians {
         boolean positive = ! "-".equals( matcher.group( 1 ) );
         int hour = Integer.parseInt( matcher.group( 2 ) );
         int min = Integer.parseInt( matcher.group( 3 ) );
-        double sec = Double.parseDouble( matcher.group( 4 ) );
+        double sec = matcher.group( 4 ) == null
+                   ? 0
+                   : Double.parseDouble( matcher.group( 4 ) );
         if ( min < 0 || min > 60 ) {
             return Double.NaN;
         }
@@ -157,6 +163,7 @@ public class CoordsRadians {
      * in radians.  Delimiters may be colon, space, characters 
      * <code>hm[s]</code>, or some others.
      * Additional spaces and leading +/- are permitted.
+     * The :seconds part is optional.
      *
      * @param  hms  formatted HMS string
      * @return  angle in radians specified by <code>hms</code>
@@ -172,7 +179,9 @@ public class CoordsRadians {
         boolean positive = ! "-".equals( matcher.group( 1 ) );
         int hour = Integer.parseInt( matcher.group( 2 ) );
         int min = Integer.parseInt( matcher.group( 3 ) );
-        double sec = Double.parseDouble( matcher.group( 4 ) );
+        double sec = matcher.group( 4 ) == null
+                   ? 0
+                   : Double.parseDouble( matcher.group( 4 ) );
         if ( min < 0 || min > 60 ) {
             return Double.NaN;
         }
@@ -521,9 +530,11 @@ public class CoordsRadians {
     private static Pattern getSexPattern( String trail1, String trail2,
                                           String trail3 ) {
         return Pattern.compile( " *([+\\-]?)"
-                              + " *([0-9]+) *" + trail1 
-                              + " *([0-9]+) *" + trail2
-                              + " *([0-9]+\\.?[0-9]*) *" + trail3
+                              + " *([0-9]+) *"
+                              + trail1 
+                              + " *([0-9]+) *"
+                              + "(?:" + trail2
+                                      + " *([0-9]+\\.?[0-9]*) *" + trail3 + ")?"
                               + " *" );
     }
 

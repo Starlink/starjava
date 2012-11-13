@@ -1,5 +1,7 @@
 package uk.ac.starlink.ttools.plot;
 
+import java.util.Arrays;
+
 /**
  * Describes a one-dimensional range.
  * This is effectively a lower and upper bound, but either of these
@@ -189,6 +191,15 @@ public class Range {
     }
 
     /**
+     * Returns true if both ends of the range have values which are not NaN.
+     *
+     * @return  true iff low and high are numbers
+     */
+    public boolean isFinite() {
+        return ! Double.isNaN( lo_ ) && ! Double.isNaN( hi_ );
+    }
+
+    /**
      * Adds padding to either end of this range.
      *
      * @param  ratio  padding ratio (should normally be greater than 0)
@@ -232,11 +243,19 @@ public class Range {
             if ( ! ( lo <= 0.0 ) ) {
                 loPos_ = lo;
             }
+            if ( hi_ < lo_ ) {
+                hi_ = lo_;
+                hiPos_ = loPos_;
+            }
         }
 	if ( ! Double.isNaN( hi ) && ! Double.isInfinite( hi ) && hi >= lo_ ) {
             hi_ = hi;
             if ( ! ( hi <= 0.0 ) ) {
                 hiPos_ = hi;
+            }
+            if ( lo_ > hi_ ) {
+                lo_ = hi_;
+                loPos_ = hiPos_;
             }
         }
     }
@@ -266,7 +285,28 @@ public class Range {
         limit( boundRange.getBounds() );
     }
 
+    @Override
+    public boolean equals( Object o ) {
+        return o instanceof Range
+            && Arrays.equals( this.stateArray(), ((Range) o).stateArray() );
+    }
+
+    @Override
+    public int hashCode() {
+        return Arrays.hashCode( stateArray() );
+    }
+
+    @Override
     public String toString() {
         return "[" + lo_ + " .. " + hi_ + "]";
+    }
+
+    /**
+     * Returns the complete state of this object as a double array.
+     *
+     * @return  state object
+     */
+    private double[] stateArray() {
+        return new double[] { lo_, hi_, loPos_, hiPos_ };
     }
 }

@@ -1,6 +1,5 @@
 package uk.ac.starlink.ttools.filter;
 
-import gnu.jel.CompilationException;
 import java.io.IOException;
 import java.util.Iterator;
 import uk.ac.starlink.table.ColumnInfo;
@@ -128,24 +127,22 @@ public class ReplaceColumnFilter extends BasicFilter {
                 cinfo.setDescription( description_ );
             }
 
-            /* Create a table with the new column. */
-            StarTable added;
-            try {
-                added = new AddJELColumnTable( base, cinfo, expr_, icol );
-            }
-            catch ( CompilationException e ) {
-                String msg = "Bad expression \"" + expr_;
-                String errMsg = e.getMessage();
-                if ( errMsg != null ) {
-                    msg += ": " + errMsg;
-                }
-                throw (IOException) new IOException( msg )
-                                   .initCause( e );
-            }
+            /* Invalidate metadata assertions which may be no longer true. */
+            cinfo.setNullable( true );
+            cinfo.setElementSize( -1 );
+            cinfo.setShape( new int[] { -1 } );
+
+            /* Create a column supplement with the new column. */
+            ColumnSupplement jelSup =
+                new JELColumnSupplement( base, expr_, cinfo );
+
+            /* Add the new column just after the one it's replacing. */
+            StarTable addTable = new AddColumnsTable( base, jelSup, icol );
 
             /* Delete the old column. */
-            StarTable removed = ColumnPermutedStarTable
-                               .deleteColumns( added, new int[] { icol + 1 } );
+            StarTable removed =
+                ColumnPermutedStarTable
+               .deleteColumns( addTable, new int[] { icol + 1 } );
 
             /* Return the result. */
             return removed;

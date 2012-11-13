@@ -175,7 +175,8 @@ public class AsciiTableWriter extends AbstractTextTableWriter {
         printItems( strm, colwidths, heads );
     }
 
-    protected void printParam( OutputStream strm, String name, String value )
+    protected void printParam( OutputStream strm, String name, String value,
+                               Class clazz )
             throws IOException {
         strm.write( '#' );
         strm.write( ' ' );

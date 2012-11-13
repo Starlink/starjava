@@ -10,6 +10,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.ttools.TableTestCase;
+import uk.ac.starlink.ttools.cone.Footprint;
 import uk.ac.starlink.ttools.task.TableProducer;
 import uk.ac.starlink.votable.VOTableBuilder;
 import uk.ac.starlink.util.TestCase;
@@ -60,7 +61,7 @@ public class MultiConeFrameworkTest extends TableTestCase {
         ConeMatcher bestMatcher = new ConeMatcher(
                 searcher, inProd,
                 new JELQuerySequenceFactory( "RA + 0", "DEC", "0.5" ), true,
-                false, true, parallelism, "*", scoreCol,
+                null, false, true, parallelism, "*", scoreCol,
                 JoinFixAction.NO_ACTION, JoinFixAction.NO_ACTION );
         StarTable bestResult = Tables.randomTable( bestMatcher.getTable() );
 
@@ -71,7 +72,7 @@ public class MultiConeFrameworkTest extends TableTestCase {
         ConeMatcher eachMatcher = new ConeMatcher(
                 searcher, inProd,
                 new JELQuerySequenceFactory( "RA + 0", "DEC", "0.5" ), true,
-                true, true, parallelism, "*", scoreCol,
+                null, true, true, parallelism, "*", scoreCol,
                 JoinFixAction.NO_ACTION, JoinFixAction.NO_ACTION );
         StarTable eachResult = Tables.randomTable( eachMatcher.getTable() );
 
@@ -82,7 +83,7 @@ public class MultiConeFrameworkTest extends TableTestCase {
                 searcher, inProd,
                 new JELQuerySequenceFactory( "ucd$POS_EQ_RA_", "ucd$POS_EQ_DEC",
                                              "0.1 + 0.2" ),
-                false, false, true, parallelism, "RA DEC", scoreCol,
+                false, null, false, true, parallelism, "RA DEC", scoreCol,
                 JoinFixAction.makeRenameDuplicatesAction( "_A" ),
                 JoinFixAction.makeRenameDuplicatesAction( "_B" ) );
         StarTable allResult = Tables.randomTable( allMatcher.getTable() );
@@ -91,6 +92,27 @@ public class MultiConeFrameworkTest extends TableTestCase {
         assertEquals( 2 + 3 + ( addScore ? 1 : 0 ),
                       allResult.getColumnCount() );
 
+        Footprint footNorth = new HemisphereFootprint( true );
+        Footprint footSouth = new HemisphereFootprint( false );
+        ConeMatcher footMatcherN = new ConeMatcher(
+                searcher, inProd,
+                new JELQuerySequenceFactory( "RA + 0", "DEC", "0.5" ), true,
+                footNorth, false, true, parallelism, "*", scoreCol,
+                JoinFixAction.NO_ACTION, JoinFixAction.NO_ACTION );
+        ConeMatcher footMatcherS = new ConeMatcher(
+                searcher, inProd,
+                new JELQuerySequenceFactory( "RA + 0", "DEC", "0.5" ), true,
+                footSouth, false, true, parallelism, "*", scoreCol,
+                JoinFixAction.NO_ACTION, JoinFixAction.NO_ACTION );
+        StarTable footResultN = Tables.randomTable( footMatcherN.getTable() );
+        StarTable footResultS = Tables.randomTable( footMatcherS.getTable() );
+        long nrN = footResultN.getRowCount();
+        long nrS = footResultS.getRowCount();
+        assertTrue( nrN > 10 );
+        assertTrue( nrS > 10 );
+        long nrBoth = nrN + nrS - bestResult.getRowCount();
+        assertTrue( nrBoth > 0 );
+        assertTrue( nrBoth < 10 );
 
         if ( parallelism == 1 ) { // else order of requests is non-deterministic
             ConeSearcher searcher2 = new GappyConeSearcher( searcher, false ) {
@@ -102,7 +124,7 @@ public class MultiConeFrameworkTest extends TableTestCase {
             ConeMatcher bestMatcher2 = new ConeMatcher(
                     searcher2, inProd,
                     new JELQuerySequenceFactory( "RA + 0", "DEC", "0.5" ), true,
-                    false, true, parallelism, "*", scoreCol,
+                    null, false, true, parallelism, "*", scoreCol,
                     JoinFixAction.NO_ACTION, JoinFixAction.NO_ACTION );
             StarTable bestResult2 =
                 Tables.randomTable( bestMatcher2.getTable() );
@@ -112,7 +134,7 @@ public class MultiConeFrameworkTest extends TableTestCase {
             ConeMatcher eachMatcher2 = new ConeMatcher(
                     searcher2, inProd,
                     new JELQuerySequenceFactory( "RA + 0", "DEC", "0.5" ), true,
-                    true, true, parallelism, "*", scoreCol,
+                    null, true, true, parallelism, "*", scoreCol,
                     JoinFixAction.NO_ACTION, JoinFixAction.NO_ACTION );
             StarTable eachResult2 =
                 Tables.randomTable( eachMatcher2.getTable() );
@@ -123,7 +145,7 @@ public class MultiConeFrameworkTest extends TableTestCase {
                     new JELQuerySequenceFactory( "ucd$POS_EQ_RA_",
                                                  "ucd$POS_EQ_DEC",
                                                  "0.1 + 0.2" ),
-                    false, false, true, parallelism, "RA DEC", scoreCol,
+                    false, null, false, true, parallelism, "RA DEC", scoreCol,
                     JoinFixAction.makeRenameDuplicatesAction( "_A" ),
                     JoinFixAction.makeRenameDuplicatesAction( "_B" ) );
             StarTable allResult2 = Tables.randomTable( allMatcher2.getTable() );
@@ -165,8 +187,9 @@ public class MultiConeFrameworkTest extends TableTestCase {
             }
         };
         ConeMatcher matcher3 = new ConeMatcher(
-                searcher, inProd, qsFact3, true, false, true, parallelism, "",
-                scoreCol, JoinFixAction.NO_ACTION, JoinFixAction.NO_ACTION );
+                searcher, inProd, qsFact3, true, null, false, true,
+                parallelism, "", scoreCol,
+                JoinFixAction.NO_ACTION, JoinFixAction.NO_ACTION );
         StarTable result3 = Tables.randomTable( matcher3.getTable() );
         assertEquals( 3 + ( addScore ? 1 : 0 ), result3.getColumnCount() );
         assertEquals( "ID", result3.getColumnInfo( 0 ).getName() );
@@ -186,5 +209,25 @@ public class MultiConeFrameworkTest extends TableTestCase {
         rseq2.close();
 
         return allResult;
+    }
+
+    /**
+     * Test footprint that covers a hemisphere at a time.
+     */
+    private static class HemisphereFootprint implements Footprint {
+        private final boolean isNorth_;
+        HemisphereFootprint( boolean isNorth ) {
+            isNorth_ = isNorth;
+        }
+        public void initFootprint() {
+        }
+        public Coverage getCoverage() {
+            return Coverage.SOME_SKY;
+        }
+        public boolean discOverlaps( double alphaDeg, double deltaDeg,
+                                     double radiusDeg ) {
+            return isNorth_ ? deltaDeg > -radiusDeg
+                            : deltaDeg < +radiusDeg;
+        }
     }
 }

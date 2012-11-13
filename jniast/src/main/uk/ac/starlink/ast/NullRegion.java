@@ -11,8 +11,8 @@ package uk.ac.starlink.ast;
  *  - a boundless region within a Frame. 
  * The NullRegion class implements a Region with no bounds within a Frame.
  * If the Negated attribute of a NullRegion is false, the NullRegion
- * represents a Region containing no points. If the Negated attribute of 
- * a NullRegion is true, the NullRegion represents an infinite Region 
+ * represents a Region containing no points. If the Negated attribute of
+ * a NullRegion is true, the NullRegion represents an infinite Region
  * (that is, all points in the coordinate system are inside the NullRegion).
  * <h4>Licence</h4>
  * This program is free software; you can redistribute it and/or
@@ -27,8 +27,8 @@ package uk.ac.starlink.ast;
  * <p>
  * You should have received a copy of the GNU General Public Licence
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
- * 02111-1307, USA
+ * Foundation, Inc., 51 Franklin Street,Fifth Floor, Boston, MA
+ * 02110-1301, USA
  * 
  * 
  * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_NullRegion'>AST NullRegion</a>  
@@ -39,9 +39,9 @@ public class NullRegion extends Region {
      * This function creates a new NullRegion and optionally initialises its
      * attributes.
      * <p>
-     * A NullRegion is a Region with no bounds. If the Negated attribute of a 
-     * NullRegion is false, the NullRegion represents a Region containing no 
-     * points. If the Negated attribute of a NullRegion is true, the NullRegion 
+     * A NullRegion is a Region with no bounds. If the Negated attribute of a
+     * NullRegion is false, the NullRegion represents a Region containing no
+     * points. If the Negated attribute of a NullRegion is true, the NullRegion
      * represents an infinite Region containing all points within the
      * coordinate system.
      * <h4>Notes</h4>
@@ -53,22 +53,22 @@ public class NullRegion extends Region {
      * subsequent changes made to the Frame using the supplied pointer
      * will have no effect the Region.
      * 
-     * @param  unc  An optional pointer to an existing Region which specifies the 
-     * uncertainties associated with positions in the supplied Frame. 
-     * The uncertainty in any point in the Frame is found by shifting the 
-     * supplied "uncertainty" Region so that it is centred at the point 
-     * being considered. The area covered by the shifted uncertainty 
-     * Region then represents the uncertainty in the position. The 
+     * @param  unc  An optional pointer to an existing Region which specifies the
+     * uncertainties associated with positions in the supplied Frame.
+     * The uncertainty in any point in the Frame is found by shifting the
+     * supplied "uncertainty" Region so that it is centred at the point
+     * being considered. The area covered by the shifted uncertainty
+     * Region then represents the uncertainty in the position. The
      * uncertainty is assumed to be the same for all points.
      * <p>
-     * If supplied, the uncertainty Region must be of a class for which 
-     * all instances are centro-symetric (e.g. Box, Circle, Ellipse, etc.) 
-     * or be a Prism containing centro-symetric component Regions. A deep 
-     * copy of the supplied Region will be taken, so subsequent changes to 
-     * the uncertainty Region using the supplied pointer will have no 
-     * effect on the created Box. Alternatively, 
-     * a NULL Object pointer 
-     * may be supplied, in which case a default uncertainty of zero is 
+     * If supplied, the uncertainty Region must be of a class for which
+     * all instances are centro-symetric (e.g. Box, Circle, Ellipse, etc.)
+     * or be a Prism containing centro-symetric component Regions. A deep
+     * copy of the supplied Region will be taken, so subsequent changes to
+     * the uncertainty Region using the supplied pointer will have no
+     * effect on the created Box. Alternatively,
+     * a NULL Object pointer
+     * may be supplied, in which case a default uncertainty of zero is
      * used.
      * 
      * @throws  AstException  if an error occurred in the AST library

@@ -12,17 +12,17 @@ package uk.ac.starlink.ast;
  * A GrismMap is a specialised form of Mapping which transforms
  * 1-dimensional coordinates using the spectral dispersion equation
  * described in FITS-WCS paper III "Representation of spectral
- * coordinates in FITS". This describes the dispersion produced by 
+ * coordinates in FITS". This describes the dispersion produced by
  * gratings, prisms and grisms.
  * <p>
- * When initially created, the forward transformation of a GrismMap 
+ * When initially created, the forward transformation of a GrismMap
  * transforms input "grism parameter" values into output wavelength
  * values. The "grism parameter" is a dimensionless value which is
- * linearly related to position on the detector. It is defined in FITS-WCS 
- * paper III as "the offset on the detector from the point of intersection 
+ * linearly related to position on the detector. It is defined in FITS-WCS
+ * paper III as "the offset on the detector from the point of intersection
  * of the camera axis, measured in units of the effective local length".
- * The units in which wavelength values are expected or returned is 
- * determined by the values supplied for the GrismWaveR, GrismNRP and 
+ * The units in which wavelength values are expected or returned is
+ * determined by the values supplied for the GrismWaveR, GrismNRP and
  * GrismG attribute: whatever units are used for these attributes will
  * also be used for the wavelength values.
  * <h4>Licence</h4>
@@ -38,8 +38,8 @@ package uk.ac.starlink.ast;
  * <p>
  * You should have received a copy of the GNU General Public Licence
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place,Suite 330, Boston, MA
- * 02111-1307, USA
+ * Foundation, Inc., 51 Franklin Street,Fifth Floor, Boston, MA
+ * 02110-1301, USA
  * 
  * 
  * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_GrismMap'>AST GrismMap</a>  
@@ -85,7 +85,7 @@ public class GrismMap extends Mapping {
      *  The angle between the normal and the dispersion plane.  
      * This attribute holds the angle (in radians) between the normal to
      * the grating or exit prism face, and the dispersion plane. The
-     * dispersion plane is the plane spanned by the incoming and outgoing 
+     * dispersion plane is the plane spanned by the incoming and outgoing
      * ray. The default value is 0.0.
      * 
      *
@@ -100,7 +100,7 @@ public class GrismMap extends Mapping {
      *  The angle between the normal and the dispersion plane.  
      * This attribute holds the angle (in radians) between the normal to
      * the grating or exit prism face, and the dispersion plane. The
-     * dispersion plane is the plane spanned by the incoming and outgoing 
+     * dispersion plane is the plane spanned by the incoming and outgoing
      * ray. The default value is 0.0.
      * 
      *
@@ -169,7 +169,7 @@ public class GrismMap extends Mapping {
     /**
      * Get 
      * the refractive index at the reference wavelength.  
-     * This attribute holds refractive index of the grism material at the 
+     * This attribute holds refractive index of the grism material at the
      * reference wavelength (given by attribute GrismWaveR). The default
      * value is 1.0.
      * 
@@ -183,7 +183,7 @@ public class GrismMap extends Mapping {
     /**
      * Set 
      * the refractive index at the reference wavelength.  
-     * This attribute holds refractive index of the grism material at the 
+     * This attribute holds refractive index of the grism material at the
      * reference wavelength (given by attribute GrismWaveR). The default
      * value is 1.0.
      * 
@@ -197,11 +197,11 @@ public class GrismMap extends Mapping {
     /**
      * Get 
      * the rate of change of refractive index with wavelength.  
-     * This attribute holds the rate of change of the refractive index of the 
-     * grism material with respect to wavelength at the reference wavelength 
-     * (given by attribute GrismWaveR). The default value is 0.0 (the 
-     * appropriate value for a pure grating disperser with no prism). The 
-     * units of this attribute should be consistent with those of attributes 
+     * This attribute holds the rate of change of the refractive index of the
+     * grism material with respect to wavelength at the reference wavelength
+     * (given by attribute GrismWaveR). The default value is 0.0 (the
+     * appropriate value for a pure grating disperser with no prism). The
+     * units of this attribute should be consistent with those of attributes
      * GrismWaveR and GrismG.
      * 
      *
@@ -214,11 +214,11 @@ public class GrismMap extends Mapping {
     /**
      * Set 
      * the rate of change of refractive index with wavelength.  
-     * This attribute holds the rate of change of the refractive index of the 
-     * grism material with respect to wavelength at the reference wavelength 
-     * (given by attribute GrismWaveR). The default value is 0.0 (the 
-     * appropriate value for a pure grating disperser with no prism). The 
-     * units of this attribute should be consistent with those of attributes 
+     * This attribute holds the rate of change of the refractive index of the
+     * grism material with respect to wavelength at the reference wavelength
+     * (given by attribute GrismWaveR). The default value is 0.0 (the
+     * appropriate value for a pure grating disperser with no prism). The
+     * units of this attribute should be consistent with those of attributes
      * GrismWaveR and GrismG.
      * 
      *
@@ -233,8 +233,8 @@ public class GrismMap extends Mapping {
      * angle between normal to detector plane and reference ray.  
      * This attribute gives the angle of incidence of light of the
      * reference wavelength (given by attribute GrismWaveR) onto the
-     * detector. Specifically, it holds the angle (in radians) between 
-     * the normal to the detector plane and an incident ray at the reference 
+     * detector. Specifically, it holds the angle (in radians) between
+     * the normal to the detector plane and an incident ray at the reference
      * wavelength. The default value is 0.0.
      * 
      *
@@ -249,8 +249,8 @@ public class GrismMap extends Mapping {
      * angle between normal to detector plane and reference ray.  
      * This attribute gives the angle of incidence of light of the
      * reference wavelength (given by attribute GrismWaveR) onto the
-     * detector. Specifically, it holds the angle (in radians) between 
-     * the normal to the detector plane and an incident ray at the reference 
+     * detector. Specifically, it holds the angle (in radians) between
+     * the normal to the detector plane and an incident ray at the reference
      * wavelength. The default value is 0.0.
      * 
      *
@@ -263,8 +263,8 @@ public class GrismMap extends Mapping {
     /**
      * Get 
      * the reference wavelength.  
-     * This attribute holds reference wavelength. The default value is 
-     * 5000 (Angstrom). The units of this attribute should be consistent with 
+     * This attribute holds reference wavelength. The default value is
+     * 5000 (Angstrom). The units of this attribute should be consistent with
      * those of attributes GrismNRP and GrismG.
      * 
      *
@@ -277,8 +277,8 @@ public class GrismMap extends Mapping {
     /**
      * Set 
      * the reference wavelength.  
-     * This attribute holds reference wavelength. The default value is 
-     * 5000 (Angstrom). The units of this attribute should be consistent with 
+     * This attribute holds reference wavelength. The default value is
+     * 5000 (Angstrom). The units of this attribute should be consistent with
      * those of attributes GrismNRP and GrismG.
      * 
      *

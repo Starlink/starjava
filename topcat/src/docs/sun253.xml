@@ -273,7 +273,7 @@ and has subsequently been supported by PPARC grant PP/D002486/1,
 <webref url="http://cds.u-strasbg.fr/twikiAIDA/bin/view/EuroVOAIDA/WebHome"
         >AIDA</webref>,
 STFC grant ST/H008470/1,
-GAVO (BMBF Biwilligungsnummer 05A08VHA)
+GAVO (BMBF Bewilligungsnummer 05A08VHA)
 and
 STFC grant ST/I00176X/1.
 The underlying table handling facilities are supplied by
@@ -301,7 +301,7 @@ GNU <webref url="http://www.gnu.org/copyleft/gpl.html"
 
 <p>This manual aims to give detailed tutorial and reference 
 documentation on most aspects of TOPCAT's capabilities, and reading
-it is an excellent way to to learn about the program.
+it is an excellent way to learn about the program.
 However, it's quite a fat document, and if you feel you've got better
 things to do with your time than read it all, you should be able to
 do most things by playing around with the software and dipping into
@@ -813,24 +813,42 @@ ASCII table, for instance by typing "<code>topcat -f ascii table.txt</code>".
 
 <p>The following sections describe the table formats which TOPCAT can read.</p>
 
-<subsubsubsect>
+<subsubsubsect id="inFits">
 <subhead><title>FITS</title></subhead>
 
 <p>FITS binary and ASCII table extensions can be read.
 Normally, TOPCAT will load all TABLE or BINTABLE extensions in a given file.
-If only a single extension is required, this is indicated by giving the
-extension number after a '#' at the end of the table location.
-The first extension (first HDU after the primary HDU) is numbered 1.
-Thus in a compressed FITS table named "spec23.fits.gz"
-with one primary HDU and two BINTABLE extensions,
-you would view the first one using the name "spec23.fits.gz"
-or "spec23.fits.gz#1" and the second one using the name "spec23.fits.gz#2".
-The suffix "#0" is never used for a legal
-FITS file, since the primary HDU cannot contain a table.
 </p>
 
-<p>You can select which extension to use more conveniently than
-by specifying the HDU numbers if you use the
+<p>If only a single extension is required from a multi-extension FITS file,
+this is indicated by giving an identifier after a '#' at the
+end of the table location.
+The identifier can be in one of two forms:
+<ul>
+<li>The numeric index of the HDU.  The first extension
+    (first HDU after the primary HDU) is numbered 1.
+    Thus in a compressed FITS table named "spec23.fits.gz"
+    with one primary HDU and two BINTABLE extensions,
+    you would view the first one using the name "spec23.fits.gz"
+    or "spec23.fits.gz#1" and the second one using the name "spec23.fits.gz#2".
+    The suffix "#0" is never used for a legal
+    FITS file, since the primary HDU cannot contain a table.
+    </li>
+<li>The name of the extension.  This is the value of the EXTNAME header
+    in the HDU, or alternatively the value of EXTNAME followed by "-"
+    followed by the value of EXTVER.  This follows the recommendation in
+    the FITS standard that EXTNAME and EXTVER headers can be used to
+    identify an HDU.
+    So in a multi-extension FITS file "cat.fits" where a table extension
+    has EXTNAME='UV_DATA' and EXTVER=1, it could be referenced as
+    "cat.fits#UV_DATA" or "cat.fits#UV_DATA-1".
+    Matching of these names is case-insensitive.
+    </li>
+</ul>
+</p>
+
+<p>You can select which extension to use interactively
+if you use the
 <ref id="TreeTableLoadDialog">Hierarchy Browser</ref> to load the table.
 </p>
 
@@ -1486,6 +1504,15 @@ such as some spreadsheets or databases.
 
 </subsubsubsect>
 
+<subsubsubsect id="outIpac">
+<subhead><title>IPAC</title></subhead>
+
+<p>Tables can be wrtten to the IPAC data format,
+described in more detail in <ref id="inIpac"/>.
+</p>
+
+</subsubsubsect>
+
 <subsubsubsect id="outTst">
 <subhead><title>Tab-Separated Table</title></subhead>
 
@@ -1917,6 +1944,52 @@ menu.
 
 </subsect>
 
+<subsect id="matchGroup">
+<subhead><title>Multi-Object Matches</title></subhead>
+
+<p>The matching in TOPCAT is determined by specified
+match criteria, as described in <ref id="matchCriteria"/>.
+These criteria give conditions for whether two items (table rows)
+count as matched with each other.  In the case of a pair match,
+it is clear how this is to be interpreted.
+</p>
+
+<p>However, some of the matching operations such as the
+<ref id="MatchWindow1">Internal Match</ref>
+search for match groups which may have more than two members.
+This section explains how TOPCAT applies the pair-wise
+matching criteria it is given to identifying multi-object groups.
+</p>
+
+<p>In a multi-object match context, the matcher identifies a matched
+group as the largest possible group of objects in which each is
+linked by a pair match to <em>any</em> other object in the group -
+it is a group of "friends of friends".
+Formally, the set of matched groups is a set of disjoint graphs whose nodes
+are input table rows and whose edges are successful pair matches,
+where no successful pair match exists between nodes in
+different elements of that set.
+Thus the set has a minimal number of elements, and each of its elements
+is a matched group of maximal size.
+The important point to note
+is that for any particular pair in a matched group,
+there is no guarantee that the two objects match each other,
+only that you can hop from one to the other via pairs which do match.
+</p>
+
+<p>So in the case of a multi-object sky match
+on a field which is very crowded compared to the specified error radius,
+it is quite possible for <em>all</em> the objects in the input table(s)
+to end up as part of the same large matching group.
+Results at or near this percolation threshold are
+(a) probably not useful and
+(b) likely to take a long time to run.
+Some care should therefore be exercised when specifying match criteria
+in multi-object match contexts.
+</p>
+
+</subsect>
+
 <subsect id="matchAlgorithm">
 <subhead><title>Notes on Matching</title></subhead>
 
@@ -1939,15 +2012,15 @@ any "adjacent" bins within a distance corresponding to the matching
 tolerance.  A reference to the row is associated with each such bin.
 In the second step, each bin is examined, and if two or more 
 rows are associated with it every possible pair of rows in the associated set
-is assessed to see whether it does in fact consitute a matched pair.
+is assessed to see whether it does in fact constitute a matched pair.
 This will identify all and only those row pairs which 
 are related according to the selected match criteria.
 During this process a number of optimisations may be applied depending
 on the details of the data and the requested match.
 </p>
 
-<p>This means that the matching algorithm is 
-basically an <m>O(N log(N))</m> process, 
+<p>The matching algorithm described above is 
+roughly an <m>O(N log(N))</m> process, 
 where <m>N</m> is the total number of rows in all the tables participating
 in a match.  This is good news, since the naive interpretation 
 would be <m>O(N<sup>2</sup>)</m>.  
@@ -1990,7 +2063,7 @@ so-called <em>Data Access Layer</em> services provided within the
 Virtual Observatory (VO).
 The buzzwords are not important, but the basic idea is that this
 allows you to locate a service providing data which may be
-of interest you, and then query that service to obtain the data.
+of interest to you, and then query that service to obtain the data.
 The VO is not a single monolithic entity, but a set of protocols
 which allow a general purpose tool such as TOPCAT to talk to 
 services made available by many different participating data
@@ -2169,7 +2242,7 @@ the Java language, which are compiled into Java bytecode before
 evaluation.  However, this does not mean that you need to be a
 Java programmer to write them.  The syntax is pretty similar to C,
 but even if you've never programmed in C most simple things, 
-and some complicated ones, are quite intutitive.
+and some complicated ones, are quite intuitive.
 </p>
 
 <p>The following explanation gives
@@ -2494,7 +2567,7 @@ The common ones are:
   <dt><code>(short)</code>  (numeric -> 2-byte integer)</dt>
   <dt><code>(int)</code>    (numeric -> 4-byte integer)</dt>
   <dt><code>(long)</code>   (numeric -> 8-byte integer)</dt>
-  <dt><code>(float)</code>  (numeric -> 4-type floating point)</dt>
+  <dt><code>(float)</code>  (numeric -> 4-byte floating point)</dt>
   <dt><code>(double)</code> (numeric -> 8-byte floating point)</dt>
   </dl>
   Note you may find the numeric conversion functions in the 
@@ -3526,6 +3599,13 @@ The meaning of the flags is as follows:
     java's standard logging system - see the description of the 
     <ref id="LogWindow" plaintextref="yes">Log Window</ref> for more
     information about this.
+    </p></dd>
+
+<dt>-debug</dt>
+<dd><p>The <code>-debug</code> flag affects how logging messages appear
+    (whether they appear is affected by the <code>-verbose</code> flag).
+    If present, these messages will provide more detail about where
+    each message was generated from.
     </p></dd>
 
 <dt>-demo</dt>
@@ -8712,9 +8792,9 @@ into a table an error window will pop up.
 is all you need to do.  However, the <label>Position in file</label>
 field allows you to add information about where in the file the
 table you want is situated.  The meaning of this varies according to
-the file format: for FITS files, it is the index of the HDU containing
-the table you're after (the first extension after the primary HDU is
-numbered 1), and for VOTables it is the index of the TABLE element
+the file format: for FITS files, it is the index or EXTNAME of the HDU 
+containing the table you're after (see <ref id="inFits"/> for details),
+and for VOTables it is the index of the TABLE element
 (the first TABLE encountered is numbered 0).  If you leave this blank,
 you will get all the tables in the file; this is usually just one table, 
 since most file formats cannot accommodate more than one table per file, 
@@ -9242,7 +9322,7 @@ permits direct queries to the services provided by
 the German Astrophysical Virtual Observatory.
 The main databases of general interest available through these services
 are the <label>Millennium Simulation</label> results,
-documented at <webref url="http://www.g-vo.org/Millennium/Help"/>.
+documented at <webref url="http://gavo.mpa-garching.mpg.de/Millennium/Help"/>.
 </p>
 
 <p>To make a query, fill in the fields as required:
@@ -9251,13 +9331,15 @@ documented at <webref url="http://www.g-vo.org/Millennium/Help"/>.
 <dd><p>This determines the database to be queried.  The following options
     are available:
     <dl>
-    <dt>Milli-Millennium (<code>http://www.g-vo.org/Millennium</code>)</dt>
+    <dt>Milli-Millennium
+        (<code>http://gavo.mpa-garching.mpg.de/Millennium</code>)</dt>
     <dd><p>Public simulation results database, containing a fraction of the
         full simulation results.  
         No username or password is required (the User and Password
         boxes will be disabled).
         </p></dd>
-    <dt>Millennium (<code>http://www.g-vo.org/MyMillennium3</code>)</dt>
+    <dt>Millennium
+        (<code>http://gavo.mpa-garching.mpg.de/MyMillennium</code>)</dt>
     <dd><p>Full, protected simulation results database.  
         The username and password must be filled in for these queries.
         Registration is by application to GAVO.
@@ -9290,14 +9372,15 @@ is in progress will stop it running.
 <p>The <label>HaloSamples</label> and <label>GalaxySamples</label> menus
 provide some examples of
 queries on the Milli-Millennium database (these have been copied from 
-the <webref url="http://www.g-vo.org/Millennium/">GAVO query page</webref>).
+the <webref url="http://gavo.mpa-garching.mpg.de/Millennium/"
+            >GAVO query page</webref>).
 If you select one of these the <label>SQL Query</label> panel will be
 filled in accordingly.
 </p>
 
 <p>Much more documentation, including tutorials and descriptions of the 
 database schemas, is available on the GAVO website, at
-<webref url="http://www.g-vo.org/Millennium/Help"/>.
+<webref url="http://gavo.mpa-garching.mpg.de/Millennium/Help"/>.
 </p>
 
 </subsubsect>
@@ -13013,10 +13096,11 @@ the following external libraries provide important parts of TOPCAT's
 functionality:
 <ul>
 <li><webref url="http://www.gnu.org/software/jel/">JEL</webref>
-    (GNU) for algebraic expression evaluation</li>
+    (Konstantin Metlov, GNU) for algebraic expression evaluation</li>
 <li><webref url="http://home.fnal.gov/~kuropat/HEALPIX/PixTools.html"
             >PixTools</webref>
-    (Fermilab EAG) for HEALPix-based celestial sphere row matching</li>
+    (Nikolay Kuropatkin, Fermilab EAG)
+    for HEALPix-based celestial sphere row matching</li>
 <li><webref url="http://trac.us-vo.org/project/nvo/wiki/IVOARegistry"
             >IVOARegistry</webref>
     (NVO) for ADQL/X-&gt;S translations in registry searches</li>
@@ -13025,8 +13109,8 @@ functionality:
     (now deprecated within TOPCAT)</li>
 <li><webref url="http://ptolemy.eecs.berkeley.edu/java/ptplot5.2/ptolemy/plot/doc/index.htm">Ptplot</webref>
     (Ptolemy) for 2D axis plotting</li>
-<li><webref url="http://www.1t3xt.com/about/">iText</webref>
-    (1T3XT BVBA) for PDF output</li>
+<li><webref url="http://itextpdf.com/">iText</webref>
+    for PDF output</li>
 <li><webref url="http://www.jibble.org/epsgraphics/">EPSGraphics2D</webref>
     (Jibble) for encapsulated postscript output</li>
 <li><webref url="http://www.acme.com/java/software/Acme.JPM.Encoders.GifEncoder.html">GifEncoder</webref>
@@ -13037,6 +13121,9 @@ functionality:
 <li><webref url="http://cdsportal.u-strasbg.fr/adqltuto/"
             >ADQL</webref> (Gr&#x00e9;gory Mantelet, CDS)
             for ADQL parsing</li>
+<li><webref url="http://cds.u-strasbg.fr/resources/doku.php?id=moc"
+            >MOC</webref> (CDS)
+            Multi-Order Coverage HEALPix maps for footprint manipulation</li>
 <li><webref url="http://browserlaunch2.sourceforge.net/"
             >BrowserLauncher2</webref> for launching default web browser</li>
 </ul>
@@ -13056,7 +13143,9 @@ Some of the notable contributers are these:
 <ul>
 <li>Alasdair Allan (Starlink, Exeter)</li>
 <li>Mark Allen (CDS)</li>
+<li>Heinz Andernach (Guanajuato)</li>
 <li>Thomas Boch (CDS)</li>
+<li>Laurent Bourges (JMMC)</li>
 <li>Danny Boxhoorn (Kapteyn, Groningen)</li>
 <li>Malcolm Currie (Starlink, RAL)</li>
 <li>Clive Davenhall (Royal Observatory Edinburgh)</li>
@@ -13095,6 +13184,7 @@ Some of the notable contributers are these:
 <li>Mike Read (ROE)</li>
 <li>Mike Watson (Leicester)</li>
 <li>Ivan Zolotukhin (SAI MSU)</li>
+<li>Jonathan Zwart (Columbia)</li>
 </ul>
 </p>
 
@@ -15277,6 +15367,73 @@ introduced since the last version:
 <dd><p>
     <ul>
     <li>Fixed SAMP table loads to honour "name" parameter.</li>
+    <li>Fixed table concatenation so that column datatype array size etc
+        is consistent with both input tables not just the first one.</li>
+    <li>Adjust SQL writer to avoid type error for MySQL.
+        Hope it hasn't introduced new problems elsewhere.</li>
+    <li>You can now reference tables in multi-extension FITS files by name
+        (EXTNAME or EXTNAME-EXTVER) as an alternative to by HDU index.</li>
+    <li>Fix bug which failed when attempting to read FITS files with 
+        complex array columns (<code>TFORMn=rC/rM</code>).</li>
+    <li>Use MOC footprints to speed up multi-cone searches,
+        including footprint icon display in multicone window.</li>
+    <li>Fix failure when loading very large sequential tables.</li>
+    <li>Slight changes to <code>toString</code> function: now works on
+        non-numeric values, gives the right answer for <code>Long</code>
+        integers, and returns a blank value rather than "null" or "NaN"
+        for blank inputs.</li>
+    <li>PNG graphics output no longer has transparent background.</li>
+    <li>Fixed problem with row highlight messages bouncing for ever between
+        applications when the Transmit Row activation action is in use.</li>
+    <li>Sexagesimal to numeric angle conversion functions now permit the
+        seconds part of the sexagesimal string to be missing.</li>
+    <li>Fix serious and long-standing bug (bad TZERO header, causes subsequent
+        reads to fail) for FITS output of boolean array columns.</li>
+    <li>Fix plotting bug that might have caused mysterious failures to
+        update the plot.  Or it might not.</li>
+    <li>Fix bug which could cause truncation of strings in FITS and
+        possibly VOTable output when tables were hand-edited to add
+        strings longer than previously-declared length.</li>
+    <li>Fixed bug in multi-table matches (&gt;2 tables) which could result in
+        output rows with columns from only a single table,
+        i.e. not representing an inter-table match.</li>
+    <li>Fix bug in HMS sexagesimal formatting: minus sign was omitted from
+        negative angles.  Now the output is forced positive.</li>
+    <li>ADQL parsing in the TAP window can now highlight all unknown symbols
+        not just one of them.  This is possible by upgrading to the
+        official v1.0 of Gr&#x00e9;gory Mantelet's ADQL library.
+        Fixed parsing so that TAP_UPLOAD tables in ADQL are treated
+        correctly.</li>
+    <li>Fixed minor bug associated with deleting the current row subset
+        (this now causes All to become current).</li>
+    <li>Add new class
+        <ref id="Footprints">Footprints</ref>
+        to the expression language
+        containing MOC-related functions
+        (currently, just <code>inMoc</code>).</li>
+    <li>Add new function <code>hypot</code> (=sqrt(x*x+y*y)).</li>
+    <li>Add explanatory section to manual on
+        <ref id="matchGroup">Multi-Object Matches</ref>.</li>
+    <li>Work around change in VizieR output so that VizieR catalogue
+        searching works again.  This may be a temporary change.</li>
+    <li>Fix small but genuine sky matching bug.
+        The effect was that near the poles matches near the specified
+        threshold could be missed.  The bug was in the PixTools library,
+        fixed at the 2012-07-28 release.</li>
+    <li>IPAC format "long"/"l" column type, apparently now official,
+        now accepted without warning.  IPAC headers may now use minus
+        signs instead of whitespace.</li>
+    <li>Add IPAC output format.</li>
+    <li>Update URLs for GAVO Millennium database service at request of
+        Gerard Lemson.</li>
+    <li>Cope with 1-column CSV files.</li>
+    <li>Add <code>-debug</code> flag to manage logging messages better.</li>
+    <li>Fix possible bug(s) related to running on Java 1.7 on Mac.</li>
+    <li>Use "<code>rows</code>"/"<code>bytes</code>" 
+        rather than "<code>row</code>"/"<code>byte</code>"
+        for TAP capability unit values.</li>
+    <li>Upgrade to JSAMP v1.3-3.</li>
+    <li>Add K-Corrections functions of I&amp;I.</li>
     </ul>
     </p>
     </dd>

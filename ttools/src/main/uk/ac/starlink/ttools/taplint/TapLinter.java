@@ -37,6 +37,7 @@ public class TapLinter {
     private final JobStage jobStage_;
     private final ColumnMetadataStage colMetaStage_;
     private final UploadStage uploadStage_;
+    private final ObsTapStage obstapStage_;
     private final TapSchemaMetadataHolder tapSchemaMetadata_;
 
     private static final String XSDS = "http://www.ivoa.net/xml";
@@ -62,14 +63,14 @@ public class TapLinter {
         tapSchemaMetadata_ = new TapSchemaMetadataHolder();
         MetadataHolder metaHolder =
                 new AnyMetadataHolder( new MetadataHolder[] {
-            tmetaStage_,
             tapSchemaStage_,
+            tmetaStage_,
             tapSchemaMetadata_,
         } );
         MetadataHolder declaredMetaHolder =
                 new AnyMetadataHolder( new MetadataHolder[] {
-            tmetaStage_,
             tapSchemaStage_,
+            tmetaStage_,
         } );
         cfTmetaStage_ = CompareMetadataStage
                        .createStage( tmetaStage_, tapSchemaStage_ );
@@ -97,6 +98,12 @@ public class TapLinter {
         uploadStage_ =
             new UploadStage( VotLintTapRunner.createAsyncRunner( 500, true ),
                              tcapStage_ );
+        obstapStage_ =
+            new ObsTapStage( VotLintTapRunner.createGetSyncRunner( true ),
+                             tcapStage_,
+                             new AnyMetadataHolder( new MetadataHolder[] {
+                                 tapSchemaStage_, tmetaStage_,
+                             } ) );
 
         /* Record them in order. */
         stageSet_ = new StageSet();
@@ -112,6 +119,7 @@ public class TapLinter {
         stageSet_.add( "QAS", asyncQueryStage_, true );
         stageSet_.add( "UWS", jobStage_, true );
         stageSet_.add( "MDQ", colMetaStage_, true );
+        stageSet_.add( "OBS", obstapStage_, true );
         stageSet_.add( "UPL", uploadStage_, true );
     }
 

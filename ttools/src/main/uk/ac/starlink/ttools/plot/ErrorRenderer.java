@@ -140,6 +140,26 @@ public abstract class ErrorRenderer {
         new CappedLine( "Arrows", true, new ArrowCapper( 3 ) ),
     };
 
+    private static ErrorRenderer[] OPTIONS_ELLIPSE = new ErrorRenderer[] {
+        new OpenEllipse( "Ellipse", false ),
+        new OpenEllipse( "Crosshair Ellipse", true ),
+        new FilledEllipse( "Filled Ellipse" ),
+        new OpenRectangle( "Rectangle", false ),
+        new OpenRectangle( "Crosshair Rectangle", true ),
+        new FilledRectangle( "Filled Rectangle" ),
+        DEFAULT,
+        EXAMPLE,
+        new CappedLine( "Arrows", true, new ArrowCapper( 3 ) ),
+    };
+
+    private static ErrorRenderer[] OPTIONS_VECTOR = new ErrorRenderer[] {
+        new CappedLine( "Small Arrow", true, new ArrowCapper( 3 ) ),
+        new CappedLine( "Medium Arrow", true, new ArrowCapper( 4 ) ),
+        new CappedLine( "Large Arrow", true, new ArrowCapper( 5 ) ),
+        DEFAULT,
+        EXAMPLE,
+    };
+
     private static final Stroke CAP_ROUND =
         new BasicStroke( 1f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER );
     private static final Stroke CAP_BUTT = 
@@ -348,7 +368,7 @@ public abstract class ErrorRenderer {
      * @return  selection of renderers
      */
     public static ErrorRenderer[] getOptions2d() {
-        return (ErrorRenderer[]) OPTIONS_2D.clone();
+        return OPTIONS_2D.clone();
     }
 
     /**
@@ -357,7 +377,7 @@ public abstract class ErrorRenderer {
      * @return  selection of renderers
      */
     public static ErrorRenderer[] getOptions3d() {
-        return (ErrorRenderer[]) OPTIONS_3D.clone();
+        return OPTIONS_3D.clone();
     }
 
     /**
@@ -369,7 +389,7 @@ public abstract class ErrorRenderer {
      * @return  selection of renderers
      */
     public static ErrorRenderer[] getOptionsSpherical() {
-        return (ErrorRenderer[]) OPTIONS_SPHERE.clone();
+        return OPTIONS_SPHERE.clone();
     }
 
     /**
@@ -379,7 +399,27 @@ public abstract class ErrorRenderer {
      * @return  selection of renderers
      */
     public static ErrorRenderer[] getOptionsGeneral() {
-        return (ErrorRenderer[]) OPTIONS_GENERAL.clone();
+        return OPTIONS_GENERAL.clone();
+    }
+
+    /**
+     * Returns an array of ErrorRenderers which is suitable for 2d
+     * ellipse-like applications.
+     *
+     * @return  selection of renderers
+     */
+    public static ErrorRenderer[] getOptionsEllipse() {
+        return OPTIONS_ELLIPSE.clone();
+    }
+
+    /**
+     * Returns an array of ErrorRenderers which is suitable for
+     * vector-like applications.
+     *
+     * @return  selection of renderers
+     */
+    public static ErrorRenderer[] getOptionsVector() {
+        return OPTIONS_VECTOR.clone();
     }
 
     /**
@@ -1123,24 +1163,26 @@ public abstract class ErrorRenderer {
                     0,     height, 0,
                     1,     1,      1,
                 };
-                int[] xo = xoffs;
-                int[] yo = yoffs;
-                double[] m2 = new double[] {
-                    x + xo[1] + xo[2], x + xo[0] + xo[3], x + xo[0] + xo[2],
-                    y + yo[1] + yo[2], y + yo[0] + yo[3], y + yo[0] + yo[2],
-                    1,                 1,                 1,
-                };
                 if ( Matrices.det( m1 ) != 0 ) {
+                    int[] xo = xoffs;
+                    int[] yo = yoffs;
+                    double[] m2 = new double[] {
+                        x + xo[1] + xo[2], x + xo[0] + xo[3], x + xo[0] + xo[2],
+                        y + yo[1] + yo[2], y + yo[0] + yo[3], y + yo[0] + yo[2],
+                        1,                 1,                 1,
+                    };
                     double[] m3 = Matrices.mmMult( m2, Matrices.invert( m1 ) );
                     AffineTransform trans =
                         new AffineTransform( m3[ 0 ], m3[ 3 ],
                                              m3[ 1 ], m3[ 4 ],
                                              m3[ 2 ], m3[ 5 ] );
-                    AffineTransform oldTrans = g2.getTransform();
-                    g2.transform( trans );
-                    drawOblong( g2, 0, 0, (int) Math.round( width ),
-                                (int) Math.round( height ) );
-                    g2.setTransform( oldTrans );
+                    if ( trans.getDeterminant() != 0 ) {
+                        AffineTransform oldTrans = g2.getTransform();
+                        g2.transform( trans );
+                        drawOblong( g2, 0, 0, (int) Math.round( width ),
+                                    (int) Math.round( height ) );
+                        g2.setTransform( oldTrans );
+                    }
                 }
             }
 

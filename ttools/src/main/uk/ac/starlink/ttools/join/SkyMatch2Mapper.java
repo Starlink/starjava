@@ -7,6 +7,7 @@ import uk.ac.starlink.table.join.HealpixSkyPixellator;
 import uk.ac.starlink.table.join.JoinType;
 import uk.ac.starlink.table.join.NullProgressIndicator;
 import uk.ac.starlink.table.join.PairMode;
+import uk.ac.starlink.table.join.PixtoolsHealpixSkyPixellator;
 import uk.ac.starlink.table.join.ProgressIndicator;
 import uk.ac.starlink.table.join.TextProgressIndicator;
 import uk.ac.starlink.task.ChoiceParameter;
@@ -141,7 +142,7 @@ public class SkyMatch2Mapper implements TableMapper {
             throw new ParameterValueException( errorParam_,
                                                "Negative value illegal" );
         }
-        HealpixSkyPixellator pixer = new HealpixSkyPixellator();
+        HealpixSkyPixellator pixer = new PixtoolsHealpixSkyPixellator();
         FixedSkyMatchEngine matcher = new FixedSkyMatchEngine( pixer, error );
         int defk = pixer.getHealpixK();
         if ( defk >= 0 ) {

@@ -111,7 +111,7 @@ public class AuxLegend extends JComponent {
                      - preLength_ - postLength_;
                    
             labeller_.setNpix( npix );
-            prefDepth_ = iconDepth_ + labeller_.getAnnotationHeight()
+            prefDepth_ = iconDepth_ + labeller_.getAnnotationBounds().height
                        + ( horizontal_ ? yadd : xadd );
         }
         else {
@@ -135,7 +135,7 @@ public class AuxLegend extends JComponent {
 
             /* Work out geometry. */
             Insets insets = getInsets();
-            int txtDepth = labeller_.getAnnotationHeight();
+            int txtDepth = labeller_.getAnnotationBounds().height;
             int iconDepth =
                 ( horizontal_ ? ( getHeight() - insets.top - insets.bottom )
                               : ( getWidth() - insets.left - insets.right ) )

@@ -1,8 +1,12 @@
 package uk.ac.starlink.topcat;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import javax.swing.ButtonGroup;
 import javax.swing.Icon;
 import javax.swing.JCheckBox;
 import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JRadioButton;
 import javax.swing.JToggleButton;
 
 /**
@@ -138,6 +142,31 @@ public class ToggleButtonModel extends JToggleButton.ToggleButtonModel {
     }
 
     /**
+     * Creates and returns a pair of radio buttons using this model.
+     * One unselects it, and the other selects it.
+     *
+     * @param  name0  name of the Off control
+     * @param  name1  name of the On control
+     * @return   array of (Off, On) controls
+     */
+    public JRadioButton[] createRadioButtons( String name0, String name1 ) {
+        final JRadioButton butt0 = new JRadioButton( name0, ! isSelected() );
+        JRadioButton butt1 = new JRadioButton( name1, isSelected() );
+        butt1.setModel( this );
+        butt0.addActionListener( new ActionListener() {
+            public void actionPerformed( ActionEvent evt ) {
+                ToggleButtonModel.this.fireActionPerformed( evt );
+            }
+        } );
+        butt0.setToolTipText( "Off: " + shortdesc_ );
+        butt1.setToolTipText( "On: " + shortdesc_ );
+        ButtonGroup bgrp = new ButtonGroup();
+        bgrp.add( butt0 );
+        bgrp.add( butt1 );
+        return new JRadioButton[] { butt0, butt1 };
+    }
+
+    /**
      * Sets the state of this model.
      * 
      * @param  state  on/off status
@@ -153,5 +182,10 @@ public class ToggleButtonModel extends JToggleButton.ToggleButtonModel {
      */
     public boolean isSelected() {
         return super.isSelected();
+    }
+
+    @Override
+    public void fireActionPerformed( ActionEvent evt ) {
+        super.fireActionPerformed( evt );
     }
 }

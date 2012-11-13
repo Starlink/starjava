@@ -79,7 +79,8 @@ public class ShaderTweaker implements DataColorTweaker {
                         assert sval >= 0.0 && sval <= 1.0;
                     }
                     else if ( Double.isNaN( sval ) ) {
-                        return false;
+                        hasEffect = false;
+                        return hasEffect;
                     }
                     else {
                         knobs_[ idim ] = sval > 1.0 ? 1.0 : 0.0;
@@ -88,7 +89,7 @@ public class ShaderTweaker implements DataColorTweaker {
             }
         }
         hasEffect_ = hasEffect;
-        return true;
+        return hasEffect;
     }
 
     public void tweakColor( float[] rgba ) {

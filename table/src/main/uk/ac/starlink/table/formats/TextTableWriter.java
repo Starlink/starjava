@@ -124,7 +124,8 @@ public class TextTableWriter extends AbstractTextTableWriter
         strm.write( '\n' );
     }
 
-    protected void printParam( OutputStream strm, String name, String value )
+    protected void printParam( OutputStream strm, String name, String value,
+                               Class clazz )
             throws IOException {
         strm.write( getBytes( name ) );
         strm.write( ':' );
