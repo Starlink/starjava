@@ -261,7 +261,7 @@ public class SSAServerList
             try {
                 server = (SSAPRegResource) decoder.readObject();
                 String name = server.getShortName();
-                selectionList.put(server.getShortName(), true );
+                if (name == null || name.length()==0)
                     name = "<>";
                 serverList.put( name, server );
                 selectionList.put(name, true );
