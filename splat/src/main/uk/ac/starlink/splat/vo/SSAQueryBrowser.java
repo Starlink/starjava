@@ -3114,7 +3114,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         
         if (metaPanel != null)
             extendedQueryText=metaPanel.getParamsQueryString(); 
-           
+      
             try {
                 String txt = queryLine.getQueryURLText() + extendedQueryText;
                 queryText.setText(txt /*queryLine.getQueryURLText() + extendedQueryText */);
