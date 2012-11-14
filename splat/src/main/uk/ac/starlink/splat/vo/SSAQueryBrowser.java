@@ -76,6 +76,8 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.border.Border;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 //import javax.swing.SwingWorker;
 
 import jsky.catalog.BasicQueryArgs;
@@ -143,7 +145,7 @@ import javax.swing.BoxLayout;
  */
 public class SSAQueryBrowser
 extends JFrame
-implements ActionListener, MouseListener, PropertyChangeListener
+implements ActionListener, MouseListener, DocumentListener, PropertyChangeListener
 {
     // Logger.
     private static Logger logger =  Logger.getLogger( "uk.ac.starlink.splat.vo.SSAQueryBrowser" );
@@ -595,9 +597,13 @@ implements ActionListener, MouseListener, PropertyChangeListener
         //  the object name, when return or the lookup button are pressed.
         JLabel nameLabel = new JLabel( "Object:" );
         nameField = new JTextField( 10 );
+        nameField.setFocusable(true);
         nameField.setToolTipText( "Enter the name of an object " +
                 " -- press return to get coordinates" );
         nameField.addActionListener( this );
+        nameField.getDocument().putProperty("owner", nameField); //set the owner
+        nameField.getDocument().addDocumentListener( this );
+      //  nameField.addMouseListener( this );
         
         nameLookup = new JButton( "Lookup" );
         nameLookup.addActionListener( this );
@@ -623,11 +629,15 @@ implements ActionListener, MouseListener, PropertyChangeListener
         JLabel raLabel = new JLabel( "RA:" );
         raField = new JTextField( 10 );
         raField.addActionListener(this);
-       
+        raField.getDocument().putProperty("owner", raField); //set the owner
+        raField.getDocument().addDocumentListener( this );
+
         JLabel decLabel = new JLabel( "Dec:" );
         decField = new JTextField( 10 );
         decField.addActionListener(this);
-        
+        decField.getDocument().putProperty("owner", decField); //set the owner
+        decField.getDocument().addDocumentListener( this );
+
         JPanel posPanel = new JPanel( new GridBagLayout() );
         GridBagConstraints gbc = new GridBagConstraints();
      
@@ -659,13 +669,22 @@ implements ActionListener, MouseListener, PropertyChangeListener
         radiusField.setToolTipText( "Enter radius of field to search" +
                 " from given centre, arcminutes" );
         radiusField.addActionListener( this );
+        radiusField.getDocument().putProperty("owner", radiusField); //set the owner
+        radiusField.getDocument().addDocumentListener( this );
+
 
         //  Band fields.
         JLabel bandLabel = new JLabel( "Band:" );
         lowerBandField = new JTextField( 10 );
         lowerBandField.addActionListener( this );
+        lowerBandField.getDocument().putProperty("owner", lowerBandField); //set the owner
+        lowerBandField.getDocument().addDocumentListener( this );
+
         upperBandField = new JTextField( 10 );
         upperBandField.addActionListener( this );
+        upperBandField.getDocument().putProperty("owner", upperBandField); //set the owner
+        upperBandField.getDocument().addDocumentListener( this );
+
 
         JPanel bandPanel = new JPanel( new GridBagLayout() );
         GridBagConstraints gbc2 = new GridBagConstraints();
@@ -695,8 +714,13 @@ implements ActionListener, MouseListener, PropertyChangeListener
         JLabel timeLabel = new JLabel( "Time:" );
         lowerTimeField = new JTextField( 15 );
         lowerTimeField.addActionListener( this );
+        lowerTimeField.getDocument().putProperty("owner", lowerTimeField); //set the owner
+        lowerTimeField.getDocument().addDocumentListener( this );
+
         upperTimeField = new JTextField( 15 );
         upperTimeField.addActionListener( this );
+        upperTimeField.getDocument().putProperty("owner", upperTimeField); //set the owner
+        upperTimeField.getDocument().addDocumentListener( this );
 
         JPanel timePanel = new JPanel( new GridBagLayout() );
 
@@ -977,6 +1001,7 @@ implements ActionListener, MouseListener, PropertyChangeListener
                             String[] radec = coords.format();
                             raField.setText( radec[0] );
                             decField.setText( radec[1] );
+                         //   queryLine.setPosition(radec[0], radec[1]);
                         }
                         else {
                             QueryResult r =
@@ -991,7 +1016,7 @@ implements ActionListener, MouseListener, PropertyChangeListener
                                     raField.setText( radec[0] );
                                     decField.setText( radec[1] );
                                     // 
-                                    queryLine.setPosition(radec[0], radec[1]);
+                           //         queryLine.setPosition(radec[0], radec[1]);
                                 }
                             }
                         }
@@ -2059,13 +2084,14 @@ implements ActionListener, MouseListener, PropertyChangeListener
         if ( source.equals( nameLookup ) /*|| source.equals( nameField ) */) {
             resolveName();
            // queryLine.setPosition(raField.getText(), decField.getText());
-            try {
-                String q = queryLine.getQueryURLText();
-                queryText.setText(q);
-            } catch (UnsupportedEncodingException e1) {
-                // TODO Auto-generated catch block
-                e1.printStackTrace();
-            }
+            //updateQueryText();
+            //try {
+            //    String q = queryLine.getQueryURLText();
+           //     queryText.setText(q);
+         //   } catch (UnsupportedEncodingException e1) {
+          //      // TODO Auto-generated catch block
+           //     e1.printStackTrace();
+          //  }
             return;
         } 
            
@@ -2284,22 +2310,20 @@ implements ActionListener, MouseListener, PropertyChangeListener
      */
     public void propertyChange(PropertyChangeEvent pvt)
     {
-      
-        // customParameters();
+       updateQueryText();        
+    }
+    
+    private void updateQueryText() {
+        
         if (metaPanel != null)
             extendedQueryText=metaPanel.getParamsQueryString(); 
       
- //       if (extendedQueryText != null && extendedQueryText.length() > 0) 
- //       {
             try {
                 queryText.setText(queryLine.getQueryURLText() + extendedQueryText);
             } catch (UnsupportedEncodingException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }           
-       
-  //      }
-        
     }
 
     /**
@@ -2644,12 +2668,17 @@ implements ActionListener, MouseListener, PropertyChangeListener
     public void mouseExited( MouseEvent e ) {}
     public void mouseClicked( MouseEvent e )
     {
-        if ( e.getClickCount() == 2 ) {
-            StarJTable table = (StarJTable) e.getSource();
-            Point p = e.getPoint();
-            int row = table.rowAtPoint( p );
-            displaySpectra( false, true, table, row );
-        }
+       
+        //requestFocusInWindow();
+     //   if (e.getSource().getClass() == StarTable.class ) {
+
+            if ( e.getClickCount() == 2 ) {
+                StarJTable table = (StarJTable) e.getSource();
+                Point p = e.getPoint();
+                int row = table.rowAtPoint( p );
+                displaySpectra( false, true, table, row );
+            }
+      //  }
     }
 
     //
@@ -2819,4 +2848,60 @@ implements ActionListener, MouseListener, PropertyChangeListener
             counter++;
         }
     } // MetadataInputParameter
+
+
+    public void changedUpdate(DocumentEvent de) {
+        // Plain text components don't fire these events.
+    }
+
+    public void insertUpdate(DocumentEvent de) {
+        
+        //get the owner of this document
+        Object owner = de.getDocument().getProperty("owner");
+        if(owner != null){
+            if (owner == nameField ) {
+                queryLine.setTargetName(nameField.getText());
+            }
+            if (owner == radiusField ) {
+                String radiusText = radiusField.getText();
+                double radius = 0.0;
+                if ( radiusText != null && radiusText.length() > 0 ) {
+                    try {
+                        radius = Double.parseDouble( radiusText );
+                    }
+                    catch (NumberFormatException e1) {
+                        ErrorDialog.showError( this, "Cannot understand radius value", e1);                         
+                        return;
+                    }
+                }
+                queryLine.setRadius(radius);
+            }
+            if (owner == raField || owner == decField ) {
+                if (raField.getText().length() > 0 && decField.getText().length() > 0 )
+                    queryLine.setPosition(raField.getText(), decField.getText());
+            }
+           
+            if (owner == upperBandField || owner == lowerBandField ) {
+                queryLine.setBand(lowerBandField.getText(), upperBandField.getText());
+            }
+            
+            if (owner == upperTimeField || owner == lowerTimeField) {
+                queryLine.setTime(lowerTimeField.getText(), upperTimeField.getText());
+            }
+            
+        }
+        updateQueryText();
+        
+    }
+
+    public void removeUpdate(DocumentEvent de) {
+        Object owner = de.getDocument().getProperty("owner");
+        if(owner != null){
+            if (owner == nameField ) {
+                queryLine.setTargetName(nameField.getText());
+            }
+        }
+        updateQueryText();
+        
+    }
 }
