@@ -820,15 +820,18 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         sendQueryPanel.add(new JLabel("Query:"), BorderLayout.LINE_START);
   //      sendQueryPanel.add(showQueryButton, BorderLayout.LINE_START);
         queryText = new JTextArea(2,30);
+        queryText.setEditable(false);
         sendQueryPanel.add(queryText);
-        queryText.setLineWrap(true);
+        queryText.setLineWrap(true);     
         sendQueryPanel.add(goButton, BorderLayout.LINE_END);
        
         
         queryPanel.add( sendQueryPanel, BorderLayout.SOUTH);
        
         centrePanel.add( queryPanel, BorderLayout.NORTH );
-
+        
+        // add query text to query text area
+        updateQueryText();
     }
 
     /**

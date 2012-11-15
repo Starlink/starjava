@@ -1098,11 +1098,11 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
         
     //    JCheckBox tag = new JCheckBox(tagname);
         tagsListModel.addElement(tagname);
-       // tagsList.updateUI();
-       // tag.setName(tagdescr);
-    //    tag.addItemListener(checkBoxlistener);
+        tagsList.setSelectedValue(tagname, true);
+       
         treeRenderer.addTag(tagname);
         
+ 
     //    userTags.add(tag);
        // tag.setSelected(true);
   //      treeRenderer.addTag(tagdescr);
@@ -1482,7 +1482,7 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
              * Event listener to check if a tag has been selected
              */
             public void valueChanged(ListSelectionEvent lse) {
-                treeRenderer.setTagsSelection(true); // selection from options
+                treeRenderer.setTagsSelection(true); // selection from tags
                 if( !lse.getValueIsAdjusting() )
                 {
                     treeRenderer.removeTags();
