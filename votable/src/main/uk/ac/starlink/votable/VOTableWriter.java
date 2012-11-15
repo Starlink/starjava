@@ -463,22 +463,25 @@ public class VOTableWriter implements StarTableWriter, MultiStarTableWriter {
 
     public String getMimeType() {
         String type = "application/x-votable+xml";
-        String encoding;
+        String serialization;
         if ( dataFormat == DataFormat.TABLEDATA ) {
-            encoding = "TABLEDATA";
+            serialization = "TABLEDATA";
         }
         else if ( dataFormat == DataFormat.BINARY ) {
-            encoding = "BINARY";
+            serialization = "BINARY";
         }
         else if ( dataFormat == DataFormat.FITS ) {
-            encoding = "FITS";
+            serialization = "FITS";
         }
         else {
-            encoding = null;
+            serialization = null;
         }
-        return "application/x-votable+xml"
-             + ( encoding == null ? ""
-                                  : "; encoding=\"" + encoding + "\"" ); 
+        StringBuffer sbuf = new StringBuffer( type );
+        if ( serialization != null ) {
+            sbuf.append( "; serialization=" )
+                .append( serialization );
+        }
+        return sbuf.toString();
     }
 
     /**
