@@ -75,6 +75,7 @@ import uk.ac.starlink.splat.vo.SSAQueryBrowser.ResolverAction;
  * selecting parameters and modifying their values.
  *
  * @author Margarida Castro Neves
+ * @version $Id: SSAMetadataPanel.java 
  */
 
 public class SSAMetadataPanel extends JPanel implements ActionListener, TableModelListener

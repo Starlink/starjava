@@ -110,6 +110,19 @@ import uk.ac.starlink.votable.VOElement;
 import uk.ac.starlink.votable.VOElementFactory;
 import javax.swing.SwingConstants;
 
+
+
+/**
+ * SSAServerTree is a panel displaying the SSA servers as a tree, with the server capabilities as branches,
+ * and information as leaves . Includes also selection options for the servers, as waveband and data source options
+ * as well as user generated tags.
+ *
+ * @author Margarida Castro Neves 
+ * @version $Id: SSAServerTree.java 10350 2012-11-15 13:27:36Z mcneves $
+ *
+ */
+
+
 public class SSAServerTree extends JPanel  implements PropertyChangeListener {
     
     
@@ -200,7 +213,7 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
         //setSSAServerList( serverList );
     }
     
- 
+  
 
     /**
      * Initialise the main part of the user interface.

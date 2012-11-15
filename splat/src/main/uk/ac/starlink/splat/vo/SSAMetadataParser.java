@@ -43,6 +43,7 @@ import uk.ac.starlink.votable.VOElementFactory;
  * resulting VOTable and extract its metadata parameters.
  * 
  * @author Margarida Castro Neves
+ * @version $Id: SSAMetadataParser.java 
  */
 
 class SSAMetadataParser 
