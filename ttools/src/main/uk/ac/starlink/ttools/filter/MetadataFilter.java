@@ -38,6 +38,7 @@ public class MetadataFilter extends BasicFilter {
     public static final ValueInfo DESCRIPTION_INFO;
     public static final ValueInfo UCD_INFO;
     public static final ValueInfo UCDDESC_INFO;
+    public static final ValueInfo UTYPE_INFO;
 
     /** All known metadata items. */
     public static final ValueInfo[] KNOWN_INFOS = new ValueInfo[] {
@@ -60,6 +61,8 @@ public class MetadataFilter extends BasicFilter {
                                          "Unified Content Descriptor" ),
         UCDDESC_INFO = new DefaultValueInfo( "UCD_desc", String.class,
                                              "Textual description of UCD" ),
+        UTYPE_INFO = new DefaultValueInfo( "Utype", String.class,
+                                           "Type in data model" ),
     };
 
     /** Metadata items listed by default. */
@@ -72,6 +75,7 @@ public class MetadataFilter extends BasicFilter {
         UNIT_INFO,
         DESCRIPTION_INFO,
         UCD_INFO,
+        UTYPE_INFO,
     };
 
     /**
@@ -202,6 +206,7 @@ public class MetadataFilter extends BasicFilter {
                     map.put( UCDDESC_INFO, u.getDescription() );
                 }
             }
+            map.put( UTYPE_INFO, info.getUtype() );
 
             /* Add auxiliary items if there are any. */
             if ( ! auxInfos.isEmpty() ) {

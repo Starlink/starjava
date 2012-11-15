@@ -8248,6 +8248,10 @@ but my thanks are especially due to the following:
         for TAP capability unit values.</li>
     <li>Upgrade to JSAMP v1.3-3.</li>
     <li>Add K-Corrections functions of I&amp;I.</li>
+    <li>Add <code>-utype</code> flags for <code>addcol</code>,
+        <code>replacecol</code>, <code>colmeta</code> and
+        <code>setparam</code> filters,
+        and <code>utype</code> option for <code>meta</code> filter.</li>
     </ul>
     </p></dd>
 

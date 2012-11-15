@@ -100,12 +100,14 @@ public class TablePipeTest extends TableTestCase {
 
         StarTable withSize = apply( "addcol -before 1"
                                   + " -ucd PHYS.SIZE"
+                                  + " -utype tc:size"
                                   + " -desc 'Not important'"
                                   + " -units parsec" 
                                   + " SIZE 99.f" );
         ColumnInfo sizeInfo = withSize.getColumnInfo( 0 );
         assertEquals( "SIZE", sizeInfo.getName() );
         assertEquals( "PHYS.SIZE", sizeInfo.getUCD() );
+        assertEquals( "tc:size", sizeInfo.getUtype() );
         assertEquals( "parsec", sizeInfo.getUnitString() );
         assertEquals( Float.class, sizeInfo.getContentClass() );
 
@@ -559,12 +561,14 @@ public class TablePipeTest extends TableTestCase {
 
         ColumnInfo info = apply( "replacecol"
                                + " -ucd UCD -units UNITS -desc DESCRIPTION"
+                               + " -utype UTYPE"
                                + " -name NAME"
                                + " b '\"Message\"'" ).getColumnInfo( 1 );
         assertEquals( "NAME", info.getName() );
         assertEquals( "UCD", info.getUCD() );
         assertEquals( "UNITS", info.getUnitString() );
         assertEquals( "DESCRIPTION", info.getDescription() );
+        assertEquals( "UTYPE", info.getUtype() );
         assertEquals( String.class, info.getContentClass() );
     }
 
