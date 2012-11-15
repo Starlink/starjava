@@ -26,6 +26,9 @@ abstract class CharDecoders {
                     throws IOException {
                 return (char) ( strm.readByte() & 0x00ff );
             }
+            public int getCharSize() {
+                return 1;
+            }
         };
         return makeDecoder( arraysize, cread );
     }
@@ -46,6 +49,9 @@ abstract class CharDecoders {
                     throws IOException {
                 return strm.readChar();
             }
+            public int getCharSize() {
+                return 2;
+            }
         };
         return makeDecoder( arraysize, cread );
     }
@@ -62,6 +68,14 @@ abstract class CharDecoders {
          * @return   single character read from <tt>strm</tt>
          */
         char readCharFromStream( DataInput strm ) throws IOException;
+
+        /**
+         * Returns the number of bytes read for a single character
+         * (a single call of {@link #readCharFromStream}).
+         *
+         * @return  byte count per character
+         */
+        int getCharSize();
     }
 
 
@@ -96,6 +110,9 @@ abstract class CharDecoders {
                         "Refuse to decode assumed char arraysize - try -D" +
                         VOElementFactory.STRICT_PROPERTY + "=true" );
                 }
+                public void skipStream( DataInput strm ) throws IOException {
+                    decodeStream( strm );
+                }
             };
         }
 
@@ -128,6 +145,11 @@ abstract class CharDecoders {
         public Object decodeStream( DataInput strm ) throws IOException {
             assert getNumItems( strm ) == 1;
             return new Character( cread.readCharFromStream( strm ) );
+        }
+
+        public void skipStream( DataInput strm ) throws IOException {
+            assert getNumItems( strm ) == 1;
+            skipBytes( strm, cread.getCharSize() );
         }
 
         public boolean isNull( Object array, int index ) {
@@ -178,6 +200,11 @@ abstract class CharDecoders {
                 cread.readCharFromStream( strm );
             }
             return new String( data );
+        }
+
+        public void skipStream( DataInput strm ) throws IOException {
+            int num = getNumItems( strm );
+            skipBytes( strm, num * cread.getCharSize() );
         }
 
         String makeString( CharSequence txt ) {
@@ -253,6 +280,11 @@ abstract class CharDecoders {
                 sbuf.append( cread.readCharFromStream( strm ) );
             }
             return makeStrings( sbuf );
+        }
+
+        public void skipStream( DataInput strm ) throws IOException {
+            int num = getNumItems( strm );
+            skipBytes( strm, cread.getCharSize() * num );
         }
         
         public String[] makeStrings( CharSequence txt ) {

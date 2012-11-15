@@ -6,6 +6,8 @@ import java.util.StringTokenizer;
 
 abstract class NumericDecoder extends Decoder {
 
+    private final int size1_;
+
     /**
      * Does required setup for a NumericDecoder.
      *
@@ -14,9 +16,12 @@ abstract class NumericDecoder extends Decoder {
      *         indicate unknown slowest-varying dimension
      * @param  clazz  class to which all return values of <tt>decode*</tt>
      *         methods will belong
+     * @param  size1  number of bytes that a call to
+     *         <code>decodeStream1</code> will read
      */
-    NumericDecoder( Class clazz, long[] arraysize ) {
+    NumericDecoder( Class clazz, long[] arraysize, int size1 ) {
         super( clazz, arraysize );
+        size1_ = size1;
     }
 
     /**
@@ -107,6 +112,11 @@ abstract class NumericDecoder extends Decoder {
             decodeStream1( result, i, strm );
         }
         return packageArray( result );
+    }
+
+    public void skipStream( DataInput strm ) throws IOException {
+        int num = getNumItems( strm );
+        skipBytes( strm, num * size1_ );
     }
 
     /**
@@ -256,10 +266,10 @@ class ShortDecoder extends NumericDecoder {
     private short bad;
     private boolean hasBad = false;
     ShortDecoder( long[] arraysize ) {
-        this( short[].class, arraysize );
+        this( short[].class, arraysize, 2 );
     }
-    ShortDecoder( Class clazz, long[] arraysize ) {
-        super( clazz, arraysize );
+    ShortDecoder( Class clazz, long[] arraysize, int size1 ) {
+        super( clazz, arraysize, size1 );
     }
     void setNullValue( String txt ) {
         bad = parseShort( txt );
@@ -285,7 +295,7 @@ class ShortDecoder extends NumericDecoder {
 
 class ScalarShortDecoder extends ShortDecoder {
     ScalarShortDecoder() {
-        super( Short.class, SCALAR_SIZE );
+        super( Short.class, SCALAR_SIZE, 2 );
     }
     Object packageArray( Object array ) {
         short[] arr = (short[]) array;
@@ -298,7 +308,7 @@ class ScalarShortDecoder extends ShortDecoder {
 
 class UnsignedByteDecoder extends ShortDecoder {
     UnsignedByteDecoder( Class clazz, long[] arraysize ) {
-        super( clazz, arraysize );
+        super( clazz, arraysize, 1 );
     }
     UnsignedByteDecoder( long[] arraysize ) {
         this( short[].class, arraysize );
@@ -327,7 +337,7 @@ class IntDecoder extends NumericDecoder {
     private int bad;
     private boolean hasBad = false;
     IntDecoder( Class clazz, long[] arraysize ) {
-        super( clazz, arraysize );
+        super( clazz, arraysize, 4 );
     }
     IntDecoder( long[] arraysize ) {
         this( int[].class, arraysize );
@@ -371,7 +381,7 @@ class LongDecoder extends NumericDecoder {
     private long bad;
     private boolean hasBad = false;
     LongDecoder( Class clazz, long[] arraysize ) {
-        super( clazz, arraysize );
+        super( clazz, arraysize, 8 );
     }
     LongDecoder( long[] arraysize ) {
         this( long[].class, arraysize );
@@ -413,7 +423,7 @@ class ScalarLongDecoder extends LongDecoder {
 
 class FloatDecoder extends NumericDecoder {
     FloatDecoder( Class clazz, long[] arraysize ) {
-        super( clazz, arraysize );
+        super( clazz, arraysize, 4 );
     }
     FloatDecoder( long[] arraysize ) {
         this( float[].class, arraysize );
@@ -454,7 +464,7 @@ class ScalarFloatDecoder extends FloatDecoder {
 
 class DoubleDecoder extends NumericDecoder {
     DoubleDecoder( Class clazz, long[] arraysize ) {
-        super( clazz, arraysize );
+        super( clazz, arraysize, 8 );
     }
     DoubleDecoder( long[] arraysize ) {
         this( double[].class, arraysize );

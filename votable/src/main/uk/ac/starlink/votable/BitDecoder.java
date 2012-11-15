@@ -14,7 +14,8 @@ import java.io.IOException;
 class BitDecoder extends NumericDecoder {
 
     BitDecoder( Class clazz, long[] arraysize ) {
-        super( clazz, arraysize );
+        // The third argument is not used, since skipStream is overridden.
+        super( clazz, arraysize, -1 );
     }
 
     BitDecoder( long[] arraysize ) {
@@ -36,6 +37,12 @@ class BitDecoder extends NumericDecoder {
             }
         }
         return result;
+    }
+
+    @Override
+    public void skipStream( DataInput strm ) throws IOException {
+        int num = getNumItems( strm );
+        skipBytes( strm, ( num + 7 ) / 8 );
     }
 
     void setNullValue( String txt ) {

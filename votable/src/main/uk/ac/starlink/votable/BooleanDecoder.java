@@ -6,7 +6,7 @@ import java.io.IOException;
 class BooleanDecoder extends NumericDecoder {
 
     BooleanDecoder( Class clazz, long[] arraysize ) {
-        super( clazz, arraysize );
+        super( clazz, arraysize, 1 );
     }
 
     BooleanDecoder( long[] arraysize ) {
