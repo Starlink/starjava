@@ -237,13 +237,15 @@ abstract class Encoder {
      *
      * @param   info  a description of the type of value which needs to
      *          be encoded
+     * @param   magicNulls  if true, the returned encoder may attempt to use
+     *          a magic value to signify null values; if false, it never will
      * @return  an encoder object which can do it
      */
-    public static Encoder getEncoder( ValueInfo info ) {
+    public static Encoder getEncoder( ValueInfo info, boolean magicNulls ) {
 
         Class clazz = info.getContentClass();
         int[] dims = info.getShape();
-        final boolean isNullable = info.isNullable();
+        final boolean isNullable = info.isNullable() && magicNulls;
         final boolean isVariable = dims != null 
                                 && dims.length > 0 
                                 && dims[ dims.length - 1 ] < 0;
@@ -282,8 +284,9 @@ abstract class Encoder {
 
         else if ( clazz == Byte.class ||
                   clazz == Short.class ) {
-            final int badVal = nullObj == null ? Short.MIN_VALUE 
-                                               : nullObj.intValue();
+            final int badVal = nullObj == null
+                             ? ( magicNulls ? Short.MIN_VALUE : (short) 0 )
+                             : nullObj.intValue();
             String badString = isNullable ? Integer.toString( badVal ) : null;
             return new ScalarEncoder( info, "short", badString ) {
                 public void encodeToStream( Object val, DataOutput out ) 
@@ -296,8 +299,9 @@ abstract class Encoder {
         }
 
         else if ( clazz == Integer.class ) {
-            final int badVal = nullObj == null ? Integer.MIN_VALUE
-                                               : nullObj.intValue();
+            final int badVal = nullObj == null
+                             ? ( magicNulls ? Integer.MIN_VALUE : 0 )
+                             : nullObj.intValue();
             String badString = isNullable ? Integer.toString( badVal ) 
                                           : null;
             return new ScalarEncoder( info, "int", badString ) {
@@ -311,8 +315,9 @@ abstract class Encoder {
         }
 
         else if ( clazz == Long.class ) {
-            final long badVal = nullObj == null ? Long.MIN_VALUE
-                                                : nullObj.longValue();
+            final long badVal = nullObj == null
+                              ? ( magicNulls ? Long.MIN_VALUE : 0L )
+                              : nullObj.longValue();
             String badString = isNullable ? Long.toString( badVal ) : null;
             return new ScalarEncoder( info, "long", badString ) {
                 public void encodeToStream( Object val, DataOutput out )
@@ -325,22 +330,24 @@ abstract class Encoder {
         }
 
         else if ( clazz == Float.class ) {
+            final float badVal = magicNulls ? Float.NaN : 0.0f;
             return new ScalarEncoder( info, "float", null ) {
                 public void encodeToStream( Object val, DataOutput out )
                         throws IOException {
                     Number value = (Number) val;
-                    out.writeFloat( value == null ? Float.NaN
+                    out.writeFloat( value == null ? badVal
                                                   : value.floatValue() );
                 }
             };
         }
 
         else if ( clazz == Double.class ) {
+            final double badVal = magicNulls ? Double.NaN : 0.0;
             return new ScalarEncoder( info, "double", null ) {
                 public void encodeToStream( Object val, DataOutput out )
                         throws IOException {
                     Number value = (Number) val;
-                    out.writeDouble( value == null ? Double.NaN
+                    out.writeDouble( value == null ? badVal
                                                    : value.doubleValue() );
                 }
             };

@@ -29,6 +29,7 @@ import uk.ac.starlink.votable.DataFormat;
 import uk.ac.starlink.votable.TableContentHandler;
 import uk.ac.starlink.votable.TableHandler;
 import uk.ac.starlink.votable.VOSerializer;
+import uk.ac.starlink.votable.VOTableVersion;
 
 /**
  * SAX content handler which takes SAX events and converts them to
@@ -48,6 +49,7 @@ public class VotCopyHandler
         implements ContentHandler, LexicalHandler, TableHandler {
 
     private final DataFormat format_;
+    private final VOTableVersion version_;
     private final boolean inline_;
     private final String baseLoc_;
     private final boolean strict_;
@@ -82,6 +84,7 @@ public class VotCopyHandler
      *                 VOTable standard
      * @param  format  encoding type for output DATA elements; may be null
      *                 for DATA-less output
+     * @param  version VOTable standard version for output
      * @param  inline  true for tables written inline, false for tables written
      *                 to an href-referenced stream
      * @param  base    base table location; used to construct URIs for
@@ -89,13 +92,15 @@ public class VotCopyHandler
      * @param  cache   whether tables will be cached prior to writing
      * @param  policy  storage policy for cached tables
      */
-    public VotCopyHandler( boolean strict, DataFormat format, boolean inline,
+    public VotCopyHandler( boolean strict, DataFormat format,
+                           VOTableVersion version, boolean inline,
                            String base, boolean cache, StoragePolicy policy ) {
         if ( ! inline && base == null ) {
             throw new IllegalArgumentException( "Must specify base location " +
                                                 "for out-of-line tables" );
         }
         format_ = format;
+        version_ = version;
         inline_ = inline;
         baseLoc_ = base;
         strict_ = strict;
@@ -313,7 +318,8 @@ public class VotCopyHandler
         iTable_++;
 
         /* Construct a serializer which can write the table data. */
-        VOSerializer voser = VOSerializer.makeSerializer( format_, table );
+        VOSerializer voser =
+            VOSerializer.makeSerializer( format_, version_, table );
 
         /* If it's out-of-line, open a new file for output and write data
          * to it. */

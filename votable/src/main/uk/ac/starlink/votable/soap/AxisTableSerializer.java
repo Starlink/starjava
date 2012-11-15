@@ -46,7 +46,6 @@ public class AxisTableSerializer implements Serializer {
         StarTable table = (StarTable) value;
         VOTableWriter vowriter = 
             new VOTableWriter( DataFormat.BINARY, true );
-        vowriter.setDoctypeDeclaration( null );
         vowriter.setXMLDeclaration( null );
         BufferedWriter writer = 
             new BufferedWriter( new ContextWriter( context ) );

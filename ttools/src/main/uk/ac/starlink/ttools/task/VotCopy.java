@@ -33,6 +33,7 @@ import uk.ac.starlink.ttools.copy.VotCopyHandler;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.StarEntityResolver;
 import uk.ac.starlink.votable.DataFormat;
+import uk.ac.starlink.votable.VOTableVersion;
 
 /**
  * Task which Copies a VOTable XML document intact but with control over the
@@ -49,7 +50,8 @@ public class VotCopy implements Task {
 
     private final Parameter inParam_;
     private final Parameter outParam_;
-    private final ChoiceParameter formatParam_;
+    private final ChoiceParameter<DataFormat> formatParam_;
+    private final ChoiceParameter<VOTableVersion> versionParam_;
     private final XmlEncodingParameter xencParam_;
     private final BooleanParameter cacheParam_;
     private final BooleanParameter hrefParam_;
@@ -83,8 +85,10 @@ public class VotCopy implements Task {
             "</p>",
         } );
 
-        formatParam_ = new ChoiceParameter( "format", new DataFormat[] {
-            DataFormat.TABLEDATA, DataFormat.BINARY, DataFormat.FITS,
+        formatParam_ = new ChoiceParameter<DataFormat>( "format",
+                                                        new DataFormat[] {
+            DataFormat.TABLEDATA, DataFormat.BINARY, DataFormat.BINARY2,
+            DataFormat.FITS,
         } );
         formatParam_.setPosition( 3 );
         formatParam_.setPrompt( "Output votable format" );
@@ -99,6 +103,19 @@ public class VotCopy implements Task {
             "data-less (will contain no DATA element), leaving only",
             "the document structure.",
             "Data-less tables are legal VOTable elements.",
+            "</p>",
+        } );
+
+        versionParam_ =
+            new ChoiceParameter<VOTableVersion>( "version",
+                                 VOTableVersion.getKnownVersions().values()
+                                .toArray( new VOTableVersion[ 0 ] ) );
+        versionParam_.setPrompt( "Output votable version" );
+        versionParam_.setDefault( VOTableVersion.getDefaultVersion()
+                                                .toString() );
+        versionParam_.setDescription( new String[] {
+            "<p>Determines the version of the VOTable standard to which",
+            "the output will conform.",
             "</p>",
         } );
 
@@ -161,6 +178,7 @@ public class VotCopy implements Task {
             inParam_,
             outParam_,
             formatParam_,
+            versionParam_,
             xencParam_,
             cacheParam_,
             hrefParam_,
@@ -172,6 +190,7 @@ public class VotCopy implements Task {
         String inLoc = inParam_.stringValue( env );
         String outLoc = outParam_.stringValue( env );
         DataFormat format = (DataFormat) formatParam_.objectValue( env );
+        VOTableVersion version = versionParam_.objectValue( env );
         cacheParam_.setDefault( format == DataFormat.FITS );
         PrintStream pstrm = env.getOutputStream();
         boolean inline;
@@ -208,7 +227,7 @@ public class VotCopy implements Task {
         boolean cache = cacheParam_.booleanValue( env );
         StoragePolicy policy = LineTableEnvironment.getStoragePolicy( env );
         return new VotCopier( inLoc, outLoc, pstrm, xenc, inline, base,
-                              format, strict, cache, policy );
+                              format, version, strict, cache, policy );
     }
 
     /**
@@ -223,14 +242,15 @@ public class VotCopy implements Task {
         final boolean inline_;
         final String base_;
         final DataFormat format_;
+        final VOTableVersion version_;
         final boolean strict_;
         final boolean cache_;
         final StoragePolicy policy_;
 
         VotCopier( String inLoc, String outLoc, PrintStream pstrm, 
                    Charset xenc, boolean inline, String base,
-                   DataFormat format, boolean strict, boolean cache,
-                   StoragePolicy policy ) {
+                   DataFormat format, VOTableVersion version,
+                   boolean strict, boolean cache, StoragePolicy policy ) {
             inLoc_ = inLoc;
             outLoc_ = outLoc;
             pstrm_ = pstrm;
@@ -238,6 +258,7 @@ public class VotCopy implements Task {
             inline_ = inline;
             base_ = base;
             format_ = format;
+            version_ = version;
             strict_ = strict;
             cache_ = cache;
             policy_ = policy;
@@ -263,7 +284,7 @@ public class VotCopy implements Task {
                 /* Construct a handler which can take SAX and SAX-like
                  * events and turn them into XML output. */
                 VotCopyHandler handler =
-                    new VotCopyHandler( strict_, format_, inline_,
+                    new VotCopyHandler( strict_, format_, version_, inline_,
                                         base_, cache_, policy_ );
                 handler.setOutput( out );
 

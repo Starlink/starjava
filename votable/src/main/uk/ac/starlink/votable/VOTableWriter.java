@@ -28,29 +28,22 @@ import uk.ac.starlink.util.IOUtils;
  * Implementation of the <tt>StarTableWriter</tt> interface for
  * VOTables.  The <tt>dataFormat</tt> and <tt>inline</tt> attributes
  * can be modified to affect how the bulk cell data are output -
- * this may be in TABLEDATA, FITS or BINARY format, and in the 
- * latter two cases may be either inline as base64 encoded CDATA or
+ * this may be in TABLEDATA, FITS, BINARY or BINARY2 format, and in the 
+ * latter three cases may be either inline as base64 encoded CDATA or
  * to a separate stream.
  *
  * @author   Mark Taylor (Starlink)
  */
 public class VOTableWriter implements StarTableWriter, MultiStarTableWriter {
 
-    private DataFormat dataFormat = DataFormat.TABLEDATA;
-    private boolean inline = true;
+    private DataFormat dataFormat;
+    private boolean inline;
+    private VOTableVersion version;
     private String xmlDeclaration = DEFAULT_XML_DECLARATION;
-    private String doctypeDeclaration = DEFAULT_DOCTYPE_DECLARATION;
-    private String votableVersion = DEFAULT_VOTABLE_VERSION;
 
     /** Default XML declaration in written documents. */
     public static final String DEFAULT_XML_DECLARATION =
         "<?xml version='1.0'?>";
-
-    /** Default document type declaration in written documents. */
-    public static final String DEFAULT_DOCTYPE_DECLARATION = "";
-
-    /** Default VOTABLE version number. */
-    public static final String DEFAULT_VOTABLE_VERSION = "1.1";
 
     private static final Logger logger =
         Logger.getLogger( "uk.ac.starlink.votable" );
@@ -64,15 +57,31 @@ public class VOTableWriter implements StarTableWriter, MultiStarTableWriter {
     }
 
     /**
-     * Constructs a VOTableWriter with specified output characteristics.
+     * Constructs a VOTableWriter with specified output type and default
+     * VOTable version.
      *
      * @param   dataFormat   the format in which tables will be written
      * @param   inline       whether output of streamed formats should be
      *                       inline and base64-encoded or not
      */
     public VOTableWriter( DataFormat dataFormat, boolean inline ) {
+        this( dataFormat, inline, VOTableVersion.getDefaultVersion() );
+    }
+
+    /**
+     * Constructs a VOTableWriter with specified output characterstics
+     * and a given version of the VOTable standard.
+     *
+     * @param   dataFormat   the format in which tables will be written
+     * @param   inline       whether output of streamed formats should be
+     *                       inline and base64-encoded or not
+     * @param   version    version of the VOTable standard
+     */
+    public VOTableWriter( DataFormat dataFormat, boolean inline,
+                          VOTableVersion version ) {
         this.dataFormat = dataFormat;
         this.inline = inline;
+        this.version = version;
     }
 
     /**
@@ -208,7 +217,7 @@ public class VOTableWriter implements StarTableWriter, MultiStarTableWriter {
             /* Get the format to provide a configuration object which describes
              * exactly how the data from each cell is going to get written. */
             VOSerializer serializer = 
-                VOSerializer.makeSerializer( dataFormat, startab );
+                VOSerializer.makeSerializer( dataFormat, version, startab );
 
             /* Begin TABLE element including FIELDs etc. */
             serializer.writePreDataXML( writer );
@@ -242,6 +251,9 @@ public class VOTableWriter implements StarTableWriter, MultiStarTableWriter {
                     }
                     else if ( dataFormat == DataFormat.BINARY ) {
                         tagname = "BINARY";
+                    }
+                    else if ( dataFormat == DataFormat.BINARY2 ) {
+                        tagname = "BINARY2";
                     }
                     else {
                         throw new AssertionError( "Unknown format " 
@@ -331,7 +343,7 @@ public class VOTableWriter implements StarTableWriter, MultiStarTableWriter {
             throws IOException {
         writePreTableXML( writer );
         for ( int i = 0; i < startabs.length; i++ ) {
-            VOSerializer.makeSerializer( dataFormat, startabs[ i ] )
+            VOSerializer.makeSerializer( dataFormat, version, startabs[ i ] )
                         .writeInlineTableElement( writer );
         }
         writePostTableXML( writer );
@@ -356,6 +368,7 @@ public class VOTableWriter implements StarTableWriter, MultiStarTableWriter {
         }
 
         /* Output document declaration if required. */
+        String doctypeDeclaration = version.getDoctypeDeclaration();
         if ( doctypeDeclaration != null && doctypeDeclaration.length() > 0 ) {
             writer.write( doctypeDeclaration );
             writer.newLine();
@@ -363,15 +376,15 @@ public class VOTableWriter implements StarTableWriter, MultiStarTableWriter {
 
         /* Output the VOTABLE start tag. */
         writer.write( "<VOTABLE" );
-        if ( votableVersion != null &&
-             votableVersion.matches( "1.[1-9]" ) ) {
+        String versionNumber = version.getVersionNumber();
+        if ( versionNumber != null ) {
             writer.write( VOSerializer.formatAttribute( "version",
-                                                        votableVersion ) );
-            if ( doctypeDeclaration == null ||
-                 doctypeDeclaration.length() == 0 ) {
-                String votableNamespace = "http://www.ivoa.net/xml/VOTable/v"
-                                        + votableVersion;
-                String votableSchemaLocation = votableNamespace;
+                                                        versionNumber ) );
+        }
+        String xmlNamespace = version.getXmlNamespace();
+        String schemaLocation = version.getSchemaLocation();
+        if ( xmlNamespace != null ) {
+            if ( schemaLocation != null ) {
                 writer.newLine();
                 writer.write( VOSerializer.formatAttribute(
                                   "xmlns:xsi",
@@ -380,13 +393,11 @@ public class VOTableWriter implements StarTableWriter, MultiStarTableWriter {
                 writer.newLine();
                 writer.write( VOSerializer.formatAttribute(
                                   "xsi:schemaLocation",
-                                  votableNamespace + " " +
-                                  votableSchemaLocation ) );
-                writer.newLine();
-                writer.write( VOSerializer.formatAttribute(
-                                  "xmlns",
-                                  votableNamespace ) );
+                                  xmlNamespace + " " + schemaLocation ) );
             }
+            writer.newLine();
+            writer.write( VOSerializer.formatAttribute( "xmlns",
+                                                        xmlNamespace ) );
         }
         writer.write( ">" );
         writer.newLine();
@@ -454,6 +465,9 @@ public class VOTableWriter implements StarTableWriter, MultiStarTableWriter {
         else if ( dataFormat == DataFormat.BINARY ) {
             fname.append( "-binary" );
         }
+        else if ( dataFormat == DataFormat.BINARY2 ) {
+            fname.append( "-binary2" );
+        }
         else {
             assert false;
         }
@@ -469,6 +483,9 @@ public class VOTableWriter implements StarTableWriter, MultiStarTableWriter {
         }
         else if ( dataFormat == DataFormat.BINARY ) {
             serialization = "BINARY";
+        }
+        else if ( dataFormat == DataFormat.BINARY2 ) {
+            serialization = "BINARY2";
         }
         else if ( dataFormat == DataFormat.FITS ) {
             serialization = "FITS";
@@ -538,52 +555,31 @@ public class VOTableWriter implements StarTableWriter, MultiStarTableWriter {
     /**
      * Returns the XML declaration which is used by this writer
      * at the head of any document written.
+     *
+     * @return  XML declaration
      */
     public String getXMLDeclaration() {
         return xmlDeclaration;
     }
 
     /**
-     * Sets the document type declaration which will be used by this writer
-     * at the head of any document written.  By default this is
-     * the value of {@link #DEFAULT_DOCTYPE_DECLARATION}.
+     * Sets the version of the VOTable standard to which the output
+     * of this writer will conform.
      *
-     * @param  doctypeDecl  new declaration
+     * @param  version   new version
      */
-    public void setDoctypeDeclaration( String doctypeDecl ) {
-        this.doctypeDeclaration = doctypeDecl;
+    public void setVotableVersion( VOTableVersion version ) {
+        this.version = version;
     }
 
     /**
-     * Returns the document type declaration which is used by this writer
-     * at the head of any document written.
+     * Returns the version of the VOTable standard to which the output
+     * of this writer conforms.
      *
-     * @return  doctypeDecl
+     * @return  version
      */
-    public String getDoctypeDeclaration() {
-        return doctypeDeclaration;
-    }
-
-    /**
-     * Sets the version attribtion of the VOTABLE element written by
-     * this writer.
-     * Note this does not necessarily change the formatting behaviour
-     * to match the stated version.
-     *
-     * @param   votableVersion  version to declare
-     */
-    public void setVotableVersion( String votableVersion ) {
-        this.votableVersion = votableVersion;
-    }
-
-    /**
-     * Returns the value of the version attribute of the VOTABLE element
-     * written by this writer.
-     *
-     * @return  declared votable version
-     */
-    public String getVotableVersion() {
-        return votableVersion;
+    public VOTableVersion getVotableVersion() {
+        return version;
     }
 
     /**
@@ -592,11 +588,14 @@ public class VOTableWriter implements StarTableWriter, MultiStarTableWriter {
      * @return   non-standard VOTableWriters.
      */
     public static StarTableWriter[] getStarTableWriters() {
+        VOTableVersion version = VOTableVersion.getDefaultVersion();
+        DataFormat binFormat = version.allowBinary2() ? DataFormat.BINARY2
+                                                      : DataFormat.BINARY;
         return new StarTableWriter[] {
             new VOTableWriter( DataFormat.TABLEDATA, true ),
-            new VOTableWriter( DataFormat.BINARY, true ),
+            new VOTableWriter( binFormat, true ),
             new VOTableWriter( DataFormat.FITS, false ),
-            new VOTableWriter( DataFormat.BINARY, false ),
+            new VOTableWriter( binFormat, false ),
             new VOTableWriter( DataFormat.FITS, true ),
         };
     }

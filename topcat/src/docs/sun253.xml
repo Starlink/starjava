@@ -1387,8 +1387,11 @@ there are two variants:
 <subhead><title>VOTable</title></subhead>
 
 <p>When a table is saved to VOTable format, a document conforming to the
-VOTable 1.0 specification containing a single TABLE element within
+VOTable specification containing a single TABLE element within
 a single RESOURCE element is written.
+The version of the VOTable specification according to which the output
+is written can be controlled using the
+<code>votable.version</code> <ref id="jvmProperties">system property</ref>.
 </p>
 
 <p>There are a number of variants which determine the form in which
@@ -1422,6 +1425,10 @@ See the
 for more explanation of what these variants mean.
 They can all be read by the 
 <ref id="inVotable">VOTable input handler</ref>.
+</p>
+
+<p>If VOTable 1.3 output is in force, the <code>*-binary-*</code>
+options will be replaced by <code>*-binary2-*</code>.
 </p>
 
 </subsubsubsect>
@@ -4051,16 +4058,8 @@ The following ones have special significance within TOPCAT:
     This determines the default from which the file browsers will start.
     </p></dd>
 
-<dt><code>votable.strict</code></dt>
-<dd><p>Set <code>true</code> for strict enforcement of the VOTable standard
-    when parsing VOTables.  This prevents the parser from working round
-    certain common errors, such as missing <code>arraysize</code>
-    attributes on FIELD/PARAM elements with <code>datatype="char"</code>.
-    False by default.
-    </p></dd>
-
 <dt><code>votable.namespacing</code></dt>
-<dd><p>Determines how namespacing is handled in VOTable documents.
+<dd><p>Determines how namespacing is handled in input VOTable documents.
     Known values are
     "<code>none</code>" (no namespacing, xmlns declarations
     in VOTable document will probably confuse parser),
@@ -4071,6 +4070,22 @@ The following ones have special significance within TOPCAT:
     May also be set to the classname of a
     <code>uk.ac.starlink.votable.Namespacing</code> implementation.
     The default is "<code>lax</code>".
+    </p></dd>
+
+<dt><code>votable.strict</code></dt>
+<dd><p>Set <code>true</code> for strict enforcement of the VOTable standard
+    when parsing VOTables.  This prevents the parser from working round
+    certain common errors, such as missing <code>arraysize</code>
+    attributes on FIELD/PARAM elements with <code>datatype="char"</code>.
+    False by default.
+    </p></dd>
+
+<dt><code>votable.version</code></dt>
+<dd><p>Selects the version of the VOTable standard which output VOTables
+    will conform to by default.
+    May take the values "<code>1.0</code>", "<code>1.1</code>", 
+    "<code>1.2</code>" or "<code>1.3</code>".
+    By default, version 1.2 VOTables are written.
     </p></dd>
 
 </dl>
@@ -15434,6 +15449,10 @@ introduced since the last version:
         for TAP capability unit values.</li>
     <li>Upgrade to JSAMP v1.3-3.</li>
     <li>Add K-Corrections functions of I&amp;I.</li>
+    <li>The version of VOTable which is written can now be selected,
+        by using the system property <code>votable.version</code>.
+        Output version is now VOTable 1.2 by default.</li>
+    <li>VOTable 1.3 output is supported.</li>
     </ul>
     </p>
     </dd>

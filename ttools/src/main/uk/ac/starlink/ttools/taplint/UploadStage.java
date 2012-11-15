@@ -25,6 +25,7 @@ import uk.ac.starlink.vo.TapQuery;
 import uk.ac.starlink.votable.DataFormat;
 import uk.ac.starlink.votable.VOStarTable;
 import uk.ac.starlink.votable.VOTableBuilder;
+import uk.ac.starlink.votable.VOTableVersion;
 import uk.ac.starlink.votable.VOTableWriter;
 
 /**
@@ -334,8 +335,8 @@ public class UploadStage implements Stage {
          * with that from the query response VOTable. */
         try {
             ByteArrayOutputStream bout = new ByteArrayOutputStream();
-            VOTableWriter vow = new VOTableWriter( DataFormat.BINARY, true );
-            vow.setVotableVersion( "1.2" );
+            VOTableWriter vow = new VOTableWriter( DataFormat.BINARY, true,
+                                                   VOTableVersion.V12 );
             vow.writeStarTable( ctable, bout );
             bout.close();
             byte[] bbuf = bout.toByteArray();
