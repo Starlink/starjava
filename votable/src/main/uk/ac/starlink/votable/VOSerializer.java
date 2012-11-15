@@ -557,13 +557,29 @@ public abstract class VOSerializer {
     }
 
     /**
-     * Factory method which returns a serializer capable of serializing
-     * a given table to a given data format.
+     * Returns a serializer capable of serializing a given table to
+     * given data format, using the default VOTable output version.
+     *
+     * @param  dataFormat  one of the supported VOTable serialization formats
+     * @param  table  the table to be serialized
+     * @return  serializer
+     */
+    public static VOSerializer makeSerializer( DataFormat dataFormat,
+                                               StarTable table )
+            throws IOException {
+        return makeSerializer( dataFormat, VOTableVersion.getDefaultVersion(),
+                               table );
+    }
+
+    /**
+     * Returns a serializer capable of serializing
+     * a given table to a given data format using a given VOTable version.
      *
      * @param  dataFormat  one of the supported VOTable serialization formats
      * @param  version  specifies the version of the VOTable standard
      *                  to which the output will conform
      * @param  table  the table to be serialized
+     * @return  serializer
      */
     public static VOSerializer makeSerializer( DataFormat dataFormat,
                                                VOTableVersion version,
