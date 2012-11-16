@@ -52,7 +52,8 @@ class VOTableParser extends SkeletonDOMBuilder {
         return readHrefs_;
     }
 
-    protected void processBinaryHref( URL url, Attributes atts )
+    protected void processBinaryHref( URL url, Attributes atts,
+                                      boolean isBinary2 )
             throws SAXException {
         TableHandler tableHandler = getTableHandler();
         TableElement tableEl = getTableElement();
@@ -64,7 +65,7 @@ class VOTableParser extends SkeletonDOMBuilder {
                 Decoder[] decoders = getDecoders( tableEl.getFields() );
                 String encoding = getAttribute( atts, "encoding" );
                 RowSequence rseq =
-                    new BinaryRowSequence( decoders, in, encoding );
+                    new BinaryRowSequence( decoders, in, encoding, isBinary2 );
                 try {
                     while ( rseq.next() ) {
                         tableHandler.rowData( rseq.getRow() );

@@ -232,27 +232,13 @@ public class TableElement extends VOElement {
         /* Try BINARY format. */
         VOElement binaryEl = dataEl.getChildByName( "BINARY" );
         if ( binaryEl != null ) {
-            final VOElement streamEl = binaryEl.getChildByName( "STREAM" );
-            if ( streamEl == null ) {
-                logger_.warning( "No BINARY/STREAM element" );
-                return new TableBodies.EmptyTabularData( clazzes );
-            }
-            String href = streamEl.getAttribute( "href" );
-            if ( href != null && href.length() > 0 ) {
-                URL url = getContextURL( href );
-                String encoding = streamEl.getAttribute( "encoding" );
-                return new TableBodies
-                          .HrefBinaryTabularData( decoders, url, encoding );
-            }
-            else {
-                return new TableBodies.SequentialTabularData( clazzes ) {
-                    public RowSequence getRowSequence() throws IOException {
-                        InputStream istrm = getTextChildrenStream( streamEl );
-                        return new BinaryRowSequence( decoders, istrm,
-                                                      "base64" );
-                    }
-                };
-            }
+            return makeBinaryTabularData( binaryEl, clazzes, decoders, false );
+        }
+
+        /* Try BINARY2 format. */
+        VOElement binary2El = dataEl.getChildByName( "BINARY2" );
+        if ( binary2El != null ) {
+            return makeBinaryTabularData( binary2El, clazzes, decoders, true );
         }
 
         /* Try FITS format. */
@@ -333,6 +319,44 @@ public class TableElement extends VOElement {
         }
         else {
             return this;
+        }
+    }
+
+    /**
+     * Constructs a TabularData from an BINARY-like element.
+     *
+     * @param  binaryEl  BINARY or BINARY2 element
+     * @param  clazzes   array of content classes, one for each column
+     * @param  decoders  array of decoders, one for each column
+     * @param  isBinary2  true for BINARY2 encoding, false for BINARY
+     * @return   tabularData containing the data
+     */
+    private TabularData makeBinaryTabularData( VOElement binaryEl,
+                                               Class[] clazzes,
+                                               final Decoder[] decoders,
+                                               final boolean isBinary2 ) {
+        final VOElement streamEl = binaryEl.getChildByName( "STREAM" );
+        if ( streamEl == null ) {
+            logger_.warning( "No " + ( isBinary2 ? "BINARY2" : "BINARY" )
+                                   + "/STREAM element" );
+            return new TableBodies.EmptyTabularData( clazzes );
+        }
+        String href = streamEl.getAttribute( "href" );
+        if ( href != null && href.length() > 0 ) {
+            URL url = getContextURL( href );
+            String encoding = streamEl.getAttribute( "encoding" );
+            return new TableBodies
+                      .HrefBinaryTabularData( decoders, url, encoding,
+                                              isBinary2 );
+        }
+        else {
+            return new TableBodies.SequentialTabularData( clazzes ) {
+                public RowSequence getRowSequence() throws IOException {
+                    InputStream istrm = getTextChildrenStream( streamEl );
+                    return new BinaryRowSequence( decoders, istrm, "base64",
+                                                  isBinary2 );
+                }
+            };
         }
     }
 

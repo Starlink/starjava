@@ -93,7 +93,8 @@ class MultiTableStreamer extends SkeletonDOMBuilder implements TableHandler {
         }
     }
 
-    protected void processBinaryHref( URL url, Attributes atts )
+    protected void processBinaryHref( URL url, Attributes atts,
+                                      boolean isBinary2 )
             throws SAXException {
         TableElement tableEl = getTableElement();
         if ( tableEl != null ) {
@@ -101,8 +102,9 @@ class MultiTableStreamer extends SkeletonDOMBuilder implements TableHandler {
                 String encoding = getAttribute( atts, "encoding" );
                 Decoder[] decoders = getDecoders( tableEl.getFields() );
                 TabularData tdata =
-                    new TableBodies.HrefBinaryTabularData( decoders, url,
-                                                           encoding );
+                    new TableBodies
+                       .HrefBinaryTabularData( decoders, url, encoding,
+                                               isBinary2 );
                 tableEl.setData( tdata );
                 tqueue_.addTable( new VOStarTable( tableEl ) );
             }

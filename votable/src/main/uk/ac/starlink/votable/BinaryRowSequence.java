@@ -20,8 +20,8 @@ class BinaryRowSequence implements RowSequence {
 
     private final PushbackInputStream pIn_;
     private final DataInput dataIn_;
-    private final Decoder[] decoders_;
     private final int ncol_;
+    private final RowReader rowReader_;
     private Object[] row_;
 
     /**
@@ -32,11 +32,12 @@ class BinaryRowSequence implements RowSequence {
      * @param  in  input stream containing binary data
      * @param  encoding  encoding string as per <tt>encoding</tt> attribute
      *         of STREAM element ("gzip" or "base64", else assumed none)
+     * @param  isBinary2 true for BINARY2 format, false for BINARY
      */
-    public BinaryRowSequence( Decoder[] decoders, InputStream in,
-                              String encoding ) throws IOException {
-        decoders_ = decoders;
-        ncol_ = decoders_.length;
+    public BinaryRowSequence( final Decoder[] decoders, InputStream in,
+                              String encoding, boolean isBinary2 )
+            throws IOException {
+        ncol_ = decoders.length;
         if ( "gzip".equals( encoding ) ) {
             in = new GZIPInputStream( in );
         }
@@ -45,18 +46,33 @@ class BinaryRowSequence implements RowSequence {
         }
         pIn_ = new PushbackInputStream( in );
         dataIn_ = new DataInputStream( pIn_ );
-    }
-
-    /**
-     * Constructs a new row sequence  from a set of decoders and an unencoded
-     * input stream.
-     *
-     * @param  n-element array of decoders for decoding n-column data
-     * @param  in  input stream containing binary data
-     */
-    public BinaryRowSequence( Decoder[] decoders, InputStream in )
-            throws IOException {
-        this( decoders, in, null );
+        rowReader_ = isBinary2
+            ? new RowReader() {
+                  final boolean[] nullFlags = new boolean[ ncol_ ];
+                  public void readRow( Object[] row ) throws IOException {
+                      FlagIO.readFlags( dataIn_, nullFlags );
+                      for ( int icol = 0; icol < ncol_; icol++ ) {
+                          Decoder decoder = decoders[ icol ];
+                          final Object cell;
+                          if ( nullFlags[ icol ] ) {
+                              decoder.skipStream( dataIn_ );
+                              cell = null;
+                          }
+                          else {
+                              cell = decoder.decodeStream( dataIn_ );
+                          }
+                          row[ icol ] = cell;
+                      }
+                  }
+              }
+            : new RowReader() {
+                  public void readRow( Object[] row ) throws IOException {
+                      for ( int icol = 0; icol < ncol_; icol++ ) {
+                          row[ icol ] = decoders[ icol ]
+                                       .decodeStream( dataIn_ );
+                      }
+                  }
+              };
     }
 
     public boolean next() throws IOException {
@@ -67,9 +83,7 @@ class BinaryRowSequence implements RowSequence {
         else {
             pIn_.unread( b );
             Object[] row = new Object[ ncol_ ];
-            for ( int icol = 0; icol < ncol_; icol++ ) {
-                row[ icol ] = decoders_[ icol ].decodeStream( dataIn_ );
-            }
+            rowReader_.readRow( row );
             row_ = row;
             return true;
         }
@@ -95,5 +109,19 @@ class BinaryRowSequence implements RowSequence {
 
     public void close() throws IOException {
         pIn_.close();
+    }
+
+    /**
+     * Interface for an object that can read a row from a binary stream.
+     */
+    private interface RowReader {
+
+        /**
+         * Populates a given row array with cell values for the next
+         * data row available.
+         *
+         * @param  row  array of objects to be filled
+         */
+        void readRow( Object[] row ) throws IOException;
     }
 }

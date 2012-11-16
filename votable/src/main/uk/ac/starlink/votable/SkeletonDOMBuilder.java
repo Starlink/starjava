@@ -90,13 +90,16 @@ abstract class SkeletonDOMBuilder extends CustomDOMBuilder {
             throws SAXException;
 
     /**
-     * Invoked if a BINARY/STREAM element with a non-empty href attribute
-     * is encountered.  In this case the TableHandler is not notified.
+     * Invoked if a BINARY/STREAM or BINARY2/STREAM element with a
+     * non-empty href attribute is encountered.
+     * In this case the TableHandler is not notified.
      *
      * @param   url   the URL corresponding to the href attribute
      * @param   atts  the full set of attributes on the STREAM element
+     * @param   isBinary2  true for BINARY2, false for BINARY
      */
-    protected abstract void processBinaryHref( URL url, Attributes atts )
+    protected abstract void processBinaryHref( URL url, Attributes atts,
+                                               boolean isBinary2 )
             throws SAXException;
 
     /**
@@ -167,6 +170,9 @@ abstract class SkeletonDOMBuilder extends CustomDOMBuilder {
                 if ( parentName.equals( "BINARY" ) ) {
                     fmt = DataFormat.BINARY;
                 }
+                else if ( parentName.equals( "BINARY2" ) ) {
+                    fmt = DataFormat.BINARY2;
+                }
                 else if ( parentName.equals( "FITS" ) ) {
                     fmt = DataFormat.FITS;
                     if ( parent.hasAttribute( "extnum" ) ) {
@@ -177,7 +183,10 @@ abstract class SkeletonDOMBuilder extends CustomDOMBuilder {
                 if ( href != null && href.trim().length() > 0 ) {
                     URL url = URLUtils.makeURL( systemId_, href.trim() );
                     if ( fmt == DataFormat.BINARY ) {
-                        processBinaryHref( url, atts );
+                        processBinaryHref( url, atts, false );
+                    }
+                    else if ( fmt == DataFormat.BINARY2 ) {
+                        processBinaryHref( url, atts, true );
                     }
                     else if ( fmt == DataFormat.FITS ) {
                         processFitsHref( url, extnum, atts );
@@ -187,7 +196,12 @@ abstract class SkeletonDOMBuilder extends CustomDOMBuilder {
                 else {
                     try {
                         if ( fmt == DataFormat.BINARY ) {
-                            setCustomHandler( new InlineBinaryStreamHandler() );
+                            setCustomHandler(
+                                new InlineBinaryStreamHandler( false ) );
+                        }
+                        else if ( fmt == DataFormat.BINARY2 ) {
+                            setCustomHandler(
+                                new InlineBinaryStreamHandler( true ) );
                         }
                         else if ( fmt == DataFormat.FITS ) {
                             setCustomHandler(
@@ -318,15 +332,21 @@ abstract class SkeletonDOMBuilder extends CustomDOMBuilder {
     }
 
     /**
-     * Custom handler for a STREAM child of a BINARY element which has
-     * data base64-encoded inline.
+     * Custom handler for a STREAM child of a BINARY or BINARY2 element
+     * which has data base64-encoded inline.
      */
     private class InlineBinaryStreamHandler extends NullContentHandler {
 
         final PipeReaderThread reader_;
         final Writer out_;
 
-        public InlineBinaryStreamHandler() throws IOException, SAXException {
+        /**
+         * Constructor.
+         *
+         * @param  isBinary2  true for BINARY2, false for BINARY
+         */
+        public InlineBinaryStreamHandler( final boolean isBinary2 )
+                throws IOException, SAXException {
             assert tableHandler_ != null;
             assert tableEl_ != null;
 
@@ -340,7 +360,8 @@ abstract class SkeletonDOMBuilder extends CustomDOMBuilder {
                         throws IOException {
                     InputStream in = new BufferedInputStream( datain );
                     RowSequence rseq =
-                        new BinaryRowSequence( decoders, in, "base64" );
+                        new BinaryRowSequence( decoders, in, "base64",
+                                               isBinary2 );
                     try {
                         while ( rseq.next() ) {
                             tableHandler_.rowData( rseq.getRow() );
