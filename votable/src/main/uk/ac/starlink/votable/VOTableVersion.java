@@ -40,7 +40,7 @@ public abstract class VOTableVersion {
      * Default VOTable version number which output will conform to
      * if not otherwise specified ({@value}).
      */
-    public static final String DEFAULT_VERSION_STRING = "1.2";
+    public static final String DEFAULT_VERSION_STRING = "1.1";
 
     /**
      * System property name whose value gives the default VOTable version
@@ -195,7 +195,7 @@ public abstract class VOTableVersion {
         }
 
         public String getXmlNamespace() {
-            return "http://vizier.u-strasbg.fr/VOTable";
+            return null;
         }
         public String getSchemaLocation() {
             return null;
