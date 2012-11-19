@@ -164,7 +164,9 @@ public class StarTableOutput {
                                                    StarTableWriter.class ) );
 
         /* Further initialization. */
-        initializeForTransferables();
+        voWriter = getTransferableWriter( (StarTableWriter[])
+                                          handlers
+                                         .toArray( new StarTableWriter[ 0 ] ) );
     }
 
     /**
@@ -625,30 +627,39 @@ public class StarTableOutput {
     }
 
     /**
-     * Sets up one serializer suitable for streaming objects during
-     * drag and drop.  Has to use reflection, since it uses VOTable classes,
-     * which are probably not around at compile time.
-     */
-    private void initializeForTransferables() {
-
-        /* Identify one which is suitable for serializing for transferables. */
-        for ( Iterator it = handlers.iterator(); it.hasNext(); ) {
-            StarTableWriter handler = (StarTableWriter) it.next();
-            if ( handler.getFormatName().equals( "votable-binary-inline" ) ) {
-                voWriter = handler;
-            }
-        }
-        if ( voWriter == null ) {
-            logger.warning( "No transferable serializer found" );
-        }
-    }
-
-    /**
      * Returns a writer suitable for data transfer (drag'n'drop) operations.
      *
      * @return  transfer writer
      */
     StarTableWriter getTransferWriter() {
         return voWriter;
+    }
+
+    /**
+     * Sets up one serializer suitable for streaming objects during
+     * drag and drop.  In the current implementation a VOTable BINARY
+     * is used if available, otherwise VOTable TABLEDATA.
+     *
+     * @param  handlers  available handler list
+     * @return  widely-understandable serializer
+     */
+    private static StarTableWriter
+            getTransferableWriter( StarTableWriter[] handlers ) {
+
+        /* Identify a suitable handler by name.  Can't easily do it by class,
+         * since the VOTable classes are probably not available at
+         * compile time. */
+        StarTableWriter tdWriter = null;
+        for ( int ih = 0; ih < handlers.length; ih++ ) {
+            StarTableWriter handler = handlers[ ih ];
+            String formatName = handler.getFormatName();
+            if ( "votable-binary-inline".equals( formatName ) ) {
+                return handler;
+            }
+            if ( "votable-tabledata".equals( formatName ) ) {
+                tdWriter = handler;
+            }
+        }
+        return tdWriter;
     }
 }
