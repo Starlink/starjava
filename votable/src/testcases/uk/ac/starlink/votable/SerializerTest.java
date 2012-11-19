@@ -24,6 +24,7 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -73,9 +74,17 @@ public class SerializerTest extends TestCase {
     public void testURLs() 
             throws IOException, TransformerException, SAXException {
         exerciseStreamSerializer( VOSerializer
-                                 .makeSerializer( DataFormat.BINARY, table0 ) );
+                                 .makeSerializer( DataFormat.BINARY,
+                                                  VOTableVersion.V10,
+                                                  table0 ) );
         exerciseStreamSerializer( VOSerializer
-                                 .makeSerializer( DataFormat.FITS, table0 ) );
+                                 .makeSerializer( DataFormat.BINARY2,
+                                                  VOTableVersion.V13, 
+                                                  table0 ) );
+        exerciseStreamSerializer( VOSerializer
+                                 .makeSerializer( DataFormat.FITS,
+                                                  VOTableVersion.V12,
+                                                  table0 ) );
     }
 
     private void exerciseStreamSerializer( VOSerializer ser ) 
@@ -137,16 +146,32 @@ public class SerializerTest extends TestCase {
 
     public void testSerializers()
             throws IOException, SAXException, TransformerException {
+        for ( VOTableVersion version :
+              VOTableVersion.getKnownVersions().values() ) {
+            exerciseSerializers( version );
+        }
+    }
+
+    private void exerciseSerializers( VOTableVersion version )
+            throws IOException, SAXException, TransformerException {
         try {
 
             int ncol = table0.getColumnCount();
 
             VOSerializer tSer = VOSerializer
-                               .makeSerializer( DataFormat.TABLEDATA, table0 );
+                               .makeSerializer( DataFormat.TABLEDATA,
+                                                version, table0 );
             VOSerializer bSer = VOSerializer
-                               .makeSerializer( DataFormat.BINARY, table0 );
+                               .makeSerializer( DataFormat.BINARY,
+                                                version, table0 );
             VOSerializer fSer = VOSerializer
-                               .makeSerializer( DataFormat.FITS, table0 );
+                               .makeSerializer( DataFormat.FITS,
+                                                version, table0 );
+            VOSerializer b2Ser = version.allowBinary2()
+                               ? VOSerializer
+                                .makeSerializer( DataFormat.BINARY2,
+                                                 version, table0 )
+                               : null;
 
             ByteArrayOutputStream bytestream = new ByteArrayOutputStream();
             BufferedWriter writer = 
@@ -160,9 +185,18 @@ public class SerializerTest extends TestCase {
             writeTableInline( fSer, writer );
             File tmpDir = new File( System.getProperty( "java.io.tmpdir" ) );
             File bTempFile = File.createTempFile( "stest", ".bin", tmpDir );
+            File b2TempFile = b2Ser == null
+                            ? null
+                            : File.createTempFile( "stest", ".bin2", tmpDir );
             File fTempFile = File.createTempFile( "stest", ".fits", tmpDir );
             writeTableHref( bSer, writer, bTempFile );
             writeTableHref( fSer, writer, fTempFile );
+            int ntable = 5;
+            if ( b2Ser != null ) {
+                writeTableInline( b2Ser, writer );
+                writeTableHref( b2Ser, writer, b2TempFile );
+                ntable += 2;
+            }
 
             /* Can't write TABLEDATA as a stream. */
             try {
@@ -178,16 +212,25 @@ public class SerializerTest extends TestCase {
             byte[] xmltext = bytestream.toByteArray();
             // new FileOutputStream( "j" ).write( xmltext );
 
-            assertResourceValidDTD( xmltext );
-            assertResourceValidXSD( xmltext );
+            if ( version.getSchema() == null ) {
+                assertResourceValidDTD( xmltext );
+            }
+            else {
+                assertResourceValidXSD( xmltext, version );
+            }
 
             /* Test all constructors, validating and not.  There are
              * significantly different paths through the code for each one,
              * in particular depending on whether the parse to DOM is
              * done inside or outside the VOTable package. */
-            xmltext = ( "<VOTABLE version='1.1'>\n"
-                      + new String( xmltext )
-                      + "</VOTABLE>" ).getBytes();
+            xmltext = new StringBuffer()
+                .append( "<VOTABLE version='" )
+                .append( version.getVersionNumber() )
+                .append( "'>\n" )
+                .append( new String( xmltext ) )
+                .append( "</VOTABLE>" )
+                .toString()
+                .getBytes();
             List vodocs = new ArrayList();
             Document docnode1 =
                 (Document) new SourceReader()
@@ -204,17 +247,18 @@ public class SerializerTest extends TestCase {
                                 false );
             DOMSource dsrc1 = factory.
                 transformToDOM( new StreamSource( asStream( 
-                                    prependDeclaration( xmltext ) ) ), 
-                                true );
+                                    prependDeclaration( xmltext, version ) ) ), 
+                                version.getDoctypeDeclaration() != null );
             vodocs.add( factory.makeVOElement( dsrc0 ) );
             vodocs.add( factory.makeVOElement( dsrc1 ) );
             for ( Iterator it = vodocs.iterator(); it.hasNext(); ) {
-                exerciseVOTableDocument( (VOElement) it.next() );
+                exerciseVOTableDocument( (VOElement) it.next(),
+                                         version.allowBinary2() );
             }
 
             /* Test the streamStarTable method; get each table in turn. */
             boolean strict = true;
-            for ( int itable = 0; itable < 5; itable++ ) {
+            for ( int itable = 0; itable < ntable; itable++ ) {
                 RowStore rstore = new RowStore();
                 InputSource saxsrc = 
                     new InputSource( new ByteArrayInputStream( xmltext ) );
@@ -237,7 +281,7 @@ public class SerializerTest extends TestCase {
             try {
                 TableStreamer.streamStarTable(
                        new InputSource( new ByteArrayInputStream( xmltext ) ),
-                       new RowStore(), 5, strict );
+                       new RowStore(), ntable, strict );
                 fail();
             }
             catch ( SAXException e ) {
@@ -258,7 +302,8 @@ public class SerializerTest extends TestCase {
         return new ByteArrayInputStream( text );
     }
 
-    private void exerciseVOTableDocument( VOElement vodoc ) throws IOException {
+    private void exerciseVOTableDocument( VOElement vodoc, boolean hasBinary2 )
+            throws IOException {
         int ncol = table0.getColumnCount();
 
         VOElement res = vodoc.getChildByName( "RESOURCE" );
@@ -266,7 +311,7 @@ public class SerializerTest extends TestCase {
         assertArrayEquals( tables, res.getChildrenByName( "TABLE" ) );
         assertEquals( tables.length,
                       res.getElementsByVOTagName( "TABLE" ).getLength() );
-        assertEquals( 5, tables.length );
+        assertEquals( hasBinary2 ? 7 : 5, tables.length );
 
         for ( int itab = 0; itab < tables.length; itab++ ) {
             checkTableValues( (TableElement) tables[ itab ] );
@@ -350,11 +395,19 @@ public class SerializerTest extends TestCase {
         file.deleteOnExit();
     }
 
-    private byte[] prependDeclaration( byte[] votext ) {
-        return
-            ( "<!DOCTYPE VOTABLE SYSTEM 'http://us-vo.org/xml/VOTable.dtd'>\n" +
-              new String( votext ) )
-           .getBytes();
+    private byte[] prependDeclaration( byte[] votext, VOTableVersion version ) {
+        String decl = version.getDoctypeDeclaration();
+        if ( decl == null ) {
+            return votext;
+        }
+        else {
+            return new StringBuffer()
+                .append( decl )
+                .append( "\n" )
+                .append( new String( votext ) )
+                .toString()
+                .getBytes();
+        }
     }
 
     private void assertResourceValidDTD( byte[] xmlbytes ) 
@@ -368,22 +421,28 @@ public class SerializerTest extends TestCase {
             new InputSource( new ByteArrayInputStream( doc.getBytes() ) ) );
     }
 
-    private void assertResourceValidXSD( byte[] xmlbytes ) throws IOException {
-        String doc = 
-            "<VOTABLE version='1.1' " +
-            " xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'" +
-            " xsi:schemaLocation='http://www.ivoa.net/xml/VOTable/v1.1" +
-                                " http://www.ivoa.net/xml/VOTable/v1.1'" +
-            " xmlns='http://www.ivoa.net/xml/VOTable/v1.1'>\n" +
-            new String( xmlbytes ) +
-            "</VOTABLE>";
-
+    private void assertResourceValidXSD( byte[] xmlbytes,
+                                         VOTableVersion version )
+            throws IOException {
+        String sl = version.getSchemaLocation();
+        String ns = version.getXmlNamespace();
+        String doc = new StringBuffer()
+            .append( "<VOTABLE version='" )
+            .append( version.getVersionNumber() )
+            .append( "' " )
+            .append( " xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'" )
+            .append( " xsi:schemaLocation='" + ns + " " + sl + "'" )
+            .append( " xmlns='" + ns + "'" )
+            .append( ">\n" )
+            .append( new String( xmlbytes ) )
+            .append( "</VOTABLE>" )
+            .toString();
         try {
-            VOTableSchema.getSchema( "1.1" ).newValidator()
-                         .validate( new SAXSource(
-                                        new InputSource(
-                                            new ByteArrayInputStream( 
-                                                doc.getBytes() ) ) ) );
+            version.getSchema().newValidator()
+                   .validate( new SAXSource(
+                                  new InputSource(
+                                      new ByteArrayInputStream( 
+                                          doc.getBytes() ) ) ) );
         }
         catch ( Exception e ) {
             throw (IOException) new IOException( e.getMessage() )

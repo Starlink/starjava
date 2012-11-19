@@ -1,9 +1,13 @@
 package uk.ac.starlink.votable;
 
+import java.net.URL;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.logging.Logger;
+import javax.xml.XMLConstants;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
 
 /**
  * Provides characteristics for a given version of the VOTable standard.
@@ -120,6 +124,14 @@ public abstract class VOTableVersion {
     public abstract boolean allowXtype();
 
     /**
+     * Returns a schema which may be used to validate document instances
+     * of this VOTable version.
+     *
+     * @return  schema
+     */
+    public abstract Schema getSchema();
+
+    /**
      * Returns version number.
      */
     @Override
@@ -213,12 +225,17 @@ public abstract class VOTableVersion {
         public boolean allowBinary2() {
             return false;
         }
+        public Schema getSchema() {
+            return null;
+        }
     }
 
     /**
      * VOTable 1.1-like version instance.
      */
     private static class VersionLike11 extends VersionLike10 {
+        private boolean schemaTried_;
+        private Schema schema_;
 
         /**
          * Constructor.
@@ -240,6 +257,31 @@ public abstract class VOTableVersion {
         @Override
         public String getDoctypeDeclaration() {
             return null;
+        }
+        @Override
+        public synchronized Schema getSchema() {
+            if ( ! schemaTried_ ) {
+                schemaTried_ = true;
+                String loc = "/uk/ac/starlink/util/text/VOTable"
+                           + getVersionNumber() + ".xsd";
+                URL surl = VOTableVersion.class.getResource( loc );
+                if ( surl == null ) {
+                    logger_.warning( "No VOTable schema found at " + loc );
+                }
+                else {
+                    try {
+                        schema_ =
+                            SchemaFactory
+                           .newInstance( XMLConstants.W3C_XML_SCHEMA_NS_URI )
+                           .newSchema( surl );
+                    }
+                    catch ( Exception e ) {
+                        logger_.warning( "Failed to initialize schema from "
+                                       + surl + " - " + e );
+                    }
+                }
+            }
+            return schema_;
         }
     }
 

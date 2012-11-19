@@ -7,6 +7,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import uk.ac.starlink.fits.FitsTableBuilder;
 import uk.ac.starlink.fits.FitsTableWriter;
+import uk.ac.starlink.table.ArrayColumn;
+import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.ColumnStarTable;
 import uk.ac.starlink.table.MultiStarTableWriter;
 import uk.ac.starlink.table.MultiTableBuilder;
 import uk.ac.starlink.table.RowSequence;
@@ -25,9 +28,9 @@ public class MultiTest extends TestCase {
 
     public void testRW() throws IOException {
         StarTable[] tables = new StarTable[] {
-            TableWriterTest.createTestTable( 1 ),
-            TableWriterTest.createTestTable( 23 ),
-            TableWriterTest.createTestTable( 109 ),
+            createTestTable( 1 ),
+            createTestTable( 23 ),
+            createTestTable( 109 ),
         };
         exerciseRW( new VOTableWriter(), new VOTableBuilder(), tables, 0 );
         exerciseRW( new FitsPlusTableWriter(), new FitsPlusTableBuilder(),
@@ -75,5 +78,25 @@ public class MultiTest extends TestCase {
             assertArrayEquals( seq1.getRow(), seq2.getRow() );
         }
         assertTrue( ! seq2.next() );
+    }
+
+    private static StarTable createTestTable( int nrow ) {
+        int[] cd1 = new int[ nrow ];
+        float[] cd2 = new float[ nrow ];
+        String[] cd3 = new String[ nrow ];
+        for ( int i = 0; i < nrow; i++ ) {
+            int j = i + 1;
+            cd1[ i ] = j;
+            cd2[ i ] = (float) j;
+            cd3[ i ] = "row " + j;
+        }
+        ColumnInfo ci1 = new ColumnInfo( "ints", Integer.class, null );
+        ColumnInfo ci2 = new ColumnInfo( "floats", Float.class, null );
+        ColumnInfo ci3 = new ColumnInfo( "strings", String.class, null );
+        ColumnStarTable t0 = ColumnStarTable.makeTableWithRows( nrow );
+        t0.addColumn( ArrayColumn.makeColumn( ci1, cd1 ) );
+        t0.addColumn( ArrayColumn.makeColumn( ci2, cd2 ) );
+        t0.addColumn( ArrayColumn.makeColumn( ci3, cd3 ) );
+        return t0;
     }
 }

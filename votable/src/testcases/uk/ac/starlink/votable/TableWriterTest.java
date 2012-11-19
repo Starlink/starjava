@@ -2,9 +2,13 @@ package uk.ac.starlink.votable;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.transform.sax.SAXSource;
+import javax.xml.validation.Schema;
 import javax.xml.validation.Validator;
 import junit.framework.TestCase;
 import org.xml.sax.InputSource;
@@ -35,51 +39,57 @@ public class TableWriterTest extends TestCase {
     }
 
     public static void checkTable( StarTable table ) throws Exception {
-        StarTableWriter[] writers = VOTableWriter.getStarTableWriters();
-        Validator validator = VOTableSchema.getSchema( "1.1" ).newValidator();
+        VOTableWriter[] writers = getAllTableWriters();
         for ( int i = 0; i < writers.length; i++ ) {
-            VOTableWriter vowriter = (VOTableWriter) writers[ i ];
+            VOTableWriter vowriter = writers[ i ];
             ByteArrayOutputStream ostrm = new ByteArrayOutputStream();
             vowriter.writeStarTable( table, ostrm );
-            validator.validate( new SAXSource(
-                                    new InputSource(
-                                        new ByteArrayInputStream(
-                                            ostrm.toByteArray() ) ) ) );
+            validate( vowriter.getVotableVersion(), ostrm.toByteArray() );
         }
     }
 
     public static void checkTables( StarTable[] tables ) throws Exception {
-        StarTableWriter[] writers = VOTableWriter.getStarTableWriters();
-        Validator validator = VOTableSchema.getSchema( "1.1" ).newValidator();
+        VOTableWriter[] writers = getAllTableWriters();
         for ( int i = 0; i < writers.length; i++ ) {
-            VOTableWriter vowriter = (VOTableWriter) writers[ i ];
+            VOTableWriter vowriter = writers[ i ];
             ByteArrayOutputStream ostrm = new ByteArrayOutputStream();
             vowriter.writeStarTables( Tables.arrayTableSequence( tables ),
                                       ostrm );
-            validator.validate( new SAXSource(
-                                    new InputSource(
-                                        new ByteArrayInputStream(
-                                            ostrm.toByteArray() ) ) ) );
+            validate( vowriter.getVotableVersion(), ostrm.toByteArray() );
         }
     }
 
-    public static StarTable createTestTable( int nrow ) {
-        int[] cd1 = new int[ nrow ];
-        float[] cd2 = new float[ nrow ];
-        String[] cd3 = new String[ nrow ];
-        for ( int i = 0; i < nrow; i++ ) {
-            int j = i + 1;
-            cd1[ i ] = j;
-            cd2[ i ] = (float) j;
-            cd3[ i ] = "row " + j;
+    private static void validate( VOTableVersion version, byte[] content )
+            throws Exception {
+        Schema schema = version.getSchema();
+        if ( schema != null ) {
+            schema.newValidator()
+                  .validate( new SAXSource(
+                                 new InputSource(
+                                     new ByteArrayInputStream( content ) ) ) );
         }
-        ColumnInfo ci1 = new ColumnInfo( "ints", Integer.class, null );
-        ColumnInfo ci2 = new ColumnInfo( "floats", Float.class, null );
-        ColumnInfo ci3 = new ColumnInfo( "strings", String.class, null );
-        ColumnStarTable t0 = ColumnStarTable.makeTableWithRows( nrow );
-        t0.addColumn( ArrayColumn.makeColumn( ci1, cd1 ) );
-        t0.addColumn( ArrayColumn.makeColumn( ci2, cd2 ) );
-        t0.addColumn( ArrayColumn.makeColumn( ci3, cd3 ) );
-        return t0;
+    }
+
+    private static StarTable createTestTable( int nrow ) {
+        return AutoStarTable.getDemoTable( 100 );
+    }
+
+    public static VOTableWriter[] getAllTableWriters() {
+        List<VOTableWriter> list = new ArrayList<VOTableWriter>();
+        for ( VOTableVersion version :
+              VOTableVersion.getKnownVersions().values() ) {
+            for ( DataFormat format :
+                  Arrays.asList( new DataFormat[] {
+                      DataFormat.TABLEDATA,
+                      DataFormat.BINARY,
+                      DataFormat.FITS,
+                      DataFormat.BINARY2,
+                  } ) ) {
+                if ( format != DataFormat.BINARY2 || version.allowBinary2() ) {
+                    list.add( new VOTableWriter( format, true, version ) );
+                }
+            }
+        }
+        return list.toArray( new VOTableWriter[ 0 ] );
     }
 }
