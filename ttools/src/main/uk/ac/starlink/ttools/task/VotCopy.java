@@ -29,6 +29,7 @@ import uk.ac.starlink.task.ExecutionException;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.task.TaskException;
+import uk.ac.starlink.task.UsageException;
 import uk.ac.starlink.ttools.copy.VotCopyHandler;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.StarEntityResolver;
@@ -55,6 +56,7 @@ public class VotCopy implements Task {
     private final XmlEncodingParameter xencParam_;
     private final BooleanParameter cacheParam_;
     private final BooleanParameter hrefParam_;
+    private final BooleanParameter nomagicParam_;
     private final Parameter baseParam_;
 
     /**
@@ -104,6 +106,9 @@ public class VotCopy implements Task {
             "the document structure.",
             "Data-less tables are legal VOTable elements.",
             "</p>",
+            "<p>The <code>BINARY2</code> format is only available for",
+            "<code>version</code>=<code>1.3</code>",
+            "</p>",
         } );
 
         versionParam_ =
@@ -134,6 +139,37 @@ public class VotCopy implements Task {
         hrefParam_ = new BooleanParameter( "href" );
         hrefParam_.setPrompt( "Output FITS/BINARY data external to " +
                               "output document?" );
+
+        nomagicParam_ = new BooleanParameter( "nomagic" );
+        nomagicParam_.setPrompt( "Eliminate VALUES/null attributes " +
+                                 "where appropriate" );
+        nomagicParam_.setDescription( new String[] {
+            "<p>Eliminate the <code>null</code> attributes of",
+            "<code>VALUES</code> elements",
+            "where they are no longer required.",
+            "In VOTable versions &lt;=1.2, the only way to specify",
+            "null values for integer-type scalar columns was to use",
+            "the <code>null</code> attribute of the <code>VALUES</code>",
+            "element to indicate an in-band magic value representing null.",
+            "From VOTable v1.3, null values can be represented using",
+            "empty <code>&lt;TD&gt;</code> elements or flagged",
+            "specially in <code>BINARY2</code> streams.",
+            "In these cases, it is recommended (though not required)",
+            "not to use the <code>VALUES</code>/<code>null</code> mechanism.",
+            "</p>",
+            "<p>If this parameter is set true, then any",
+            "<code>VALUES</code>/<code>null</code>",
+            "attributes will be removed in VOTable 1.3 BINARY2 or TABLEDATA",
+            "output.",
+            "If this results in an empty <code>VALUES</code> element,",
+            "it too will be removed.",
+            "</p>",
+            "<p>This parameter is ignored for",
+            "<code>" + versionParam_.getName() + "</code>&lt;1.3 or",
+            "<code>" + formatParam_.getName() + "</code>=BINARY/FITS.",
+            "</p>",
+        } );
+        nomagicParam_.setDefault( "true" );
 
         baseParam_ = new Parameter( "base" );
         baseParam_.setUsage( "<location>" );
@@ -182,6 +218,7 @@ public class VotCopy implements Task {
             xencParam_,
             cacheParam_,
             hrefParam_,
+            nomagicParam_,
             baseParam_,
         };
     }
@@ -191,6 +228,15 @@ public class VotCopy implements Task {
         String outLoc = outParam_.stringValue( env );
         DataFormat format = (DataFormat) formatParam_.objectValue( env );
         VOTableVersion version = versionParam_.objectValue( env );
+        if ( format == DataFormat.BINARY2 && ! version.allowBinary2() ) {
+            throw new UsageException( "BINARY2 not permitted for v" + version
+                                    + " - v1.3+ only" );
+        }
+        boolean nomagic = nomagicParam_.booleanValue( env );
+        final boolean squashMagic =
+               ( format == DataFormat.BINARY2 && version.allowBinary2() ||
+                 format == DataFormat.TABLEDATA && version.allowEmptyTd() )
+            && nomagic;
         cacheParam_.setDefault( format == DataFormat.FITS );
         PrintStream pstrm = env.getOutputStream();
         boolean inline;
@@ -199,7 +245,8 @@ public class VotCopy implements Task {
             inline = true;
         }
         else {
-            if ( format == DataFormat.BINARY ) {
+            if ( format == DataFormat.BINARY ||
+                 format == DataFormat.BINARY2 ) {
                 hrefParam_.setDefault( "false" );
             }
             else if ( format == DataFormat.FITS ) {
@@ -226,8 +273,8 @@ public class VotCopy implements Task {
         boolean strict = LineTableEnvironment.isStrictVotable( env );
         boolean cache = cacheParam_.booleanValue( env );
         StoragePolicy policy = LineTableEnvironment.getStoragePolicy( env );
-        return new VotCopier( inLoc, outLoc, pstrm, xenc, inline, base,
-                              format, version, strict, cache, policy );
+        return new VotCopier( inLoc, outLoc, pstrm, xenc, inline, squashMagic,
+                              base, format, version, strict, cache, policy );
     }
 
     /**
@@ -240,6 +287,7 @@ public class VotCopy implements Task {
         final PrintStream pstrm_;
         final Charset xenc_;
         final boolean inline_;
+        final boolean squashMagic_;
         final String base_;
         final DataFormat format_;
         final VOTableVersion version_;
@@ -248,14 +296,15 @@ public class VotCopy implements Task {
         final StoragePolicy policy_;
 
         VotCopier( String inLoc, String outLoc, PrintStream pstrm, 
-                   Charset xenc, boolean inline, String base,
-                   DataFormat format, VOTableVersion version,
+                   Charset xenc, boolean inline, boolean squashMagic,
+                   String base, DataFormat format, VOTableVersion version,
                    boolean strict, boolean cache, StoragePolicy policy ) {
             inLoc_ = inLoc;
             outLoc_ = outLoc;
             pstrm_ = pstrm;
             xenc_ = xenc;
             inline_ = inline;
+            squashMagic_ = squashMagic;
             base_ = base;
             format_ = format;
             version_ = version;
@@ -285,7 +334,7 @@ public class VotCopy implements Task {
                  * events and turn them into XML output. */
                 VotCopyHandler handler =
                     new VotCopyHandler( strict_, format_, version_, inline_,
-                                        base_, cache_, policy_ );
+                                        squashMagic_, base_, cache_, policy_ );
                 handler.setOutput( out );
 
                 /* Output the XML declaration. */

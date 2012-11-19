@@ -225,7 +225,7 @@ class SAXWriter implements ContentHandler, LexicalHandler {
      *
      * @param   text   string to write
      */
-    private void out( String text ) throws SAXException {
+    public void out( String text ) throws SAXException {
         try {
             out_.write( text );
         }

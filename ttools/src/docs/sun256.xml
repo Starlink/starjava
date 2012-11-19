@@ -8269,9 +8269,12 @@ but my thanks are especially due to the following:
         and <code>utype</code> option for <code>meta</code> filter.</li>
     <li>The version of VOTable which is written can now be selected,
         by using the system property <code>votable.version</code>.
-        Output version is VOTable 1.1 by default.
-        The <code>votcopy</code> command has a new <code>version</code>
-        parameter.</li>
+        Output version is VOTable 1.1 by default.</li>
+    <li>The <code>votcopy</code> command has a new <code>version</code>
+        parameter to control output version,
+        and a new <code>nomagic</code> parameter to control whether
+        <code>VALUES</code>/<code>null</code> attributes are removed
+        where appropriate.</li>
     <li>VOTable 1.3 input and output is supported.</li>
     </ul>
     </p></dd>

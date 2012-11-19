@@ -51,6 +51,7 @@ public class VotCopyHandler
     private final DataFormat format_;
     private final VOTableVersion version_;
     private final boolean inline_;
+    private final boolean squashMagic_;
     private final String baseLoc_;
     private final boolean strict_;
     private final TableContentHandler votParser_;
@@ -87,6 +88,8 @@ public class VotCopyHandler
      * @param  version VOTable standard version for output
      * @param  inline  true for tables written inline, false for tables written
      *                 to an href-referenced stream
+     * @param  squashMagic  if true, any VALUES/null attributes are not
+     *                 passed through
      * @param  base    base table location; used to construct URIs for
      *                 out-of-line table streams (only used if inline=false)
      * @param  cache   whether tables will be cached prior to writing
@@ -94,6 +97,7 @@ public class VotCopyHandler
      */
     public VotCopyHandler( boolean strict, DataFormat format,
                            VOTableVersion version, boolean inline,
+                           boolean squashMagic,
                            String base, boolean cache, StoragePolicy policy ) {
         if ( ! inline && base == null ) {
             throw new IllegalArgumentException( "Must specify base location " +
@@ -102,6 +106,7 @@ public class VotCopyHandler
         format_ = format;
         version_ = version;
         inline_ = inline;
+        squashMagic_ = squashMagic;
         baseLoc_ = base;
         strict_ = strict;
         votParser_ = new TableContentHandler( strict );
@@ -215,6 +220,11 @@ public class VotCopyHandler
                 atts = newAtts;
             }
         }
+        else if ( "VALUES".equals( localName ) && squashMagic_ ) {
+            handlerStack_.push( handler_ );
+            saxWriter_.flush();
+            handler_ = new SquashAttributeHandler( out_, "null", true );
+        }
         handler_.startElement( namespaceURI, localName, qName, atts );
     }
 
@@ -223,6 +233,11 @@ public class VotCopyHandler
         votParser_.endElement( namespaceURI, localName, qName );
         handler_.endElement( namespaceURI, localName, qName );
         if ( "DATA".equals( localName ) ) {
+            handler_ = handlerStack_.pop();
+        }
+        else if ( "VALUES".equals( localName ) &&
+                  handler_ instanceof SquashAttributeHandler ) {
+            ((SquashAttributeHandler) handler_).flush();
             handler_ = handlerStack_.pop();
         }
     }
@@ -323,9 +338,20 @@ public class VotCopyHandler
 
         /* If it's out-of-line, open a new file for output and write data
          * to it. */
-        if ( ( format_ == DataFormat.BINARY || format_ == DataFormat.FITS ) &&
-             ! inline_ && baseLoc_ != null ) {
-            String ext = format_ == DataFormat.BINARY ? ".bin" : ".fits";
+        final String ext;
+        if ( format_ == DataFormat.BINARY ) {
+            ext = ".bin";
+        }
+        else if ( format_ == DataFormat.BINARY2 ) {
+            ext = ".bin2";
+        }
+        else if ( format_ == DataFormat.FITS ) {
+            ext = ".fits";
+        }
+        else {
+            ext = null;
+        }
+        if ( ext != null && ! inline_ && baseLoc_ != null ) {
             File file = new File( baseLoc_ + "-" + iTable_ + ext );
             if ( file.exists() ) {
                 log( Level.WARNING, "Overwriting file " + file + " for table " +
