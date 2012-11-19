@@ -2,6 +2,7 @@ package uk.ac.starlink.votable;
 
 import java.io.DataInput;
 import java.io.DataInputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PushbackInputStream;
@@ -76,7 +77,13 @@ class BinaryRowSequence implements RowSequence {
     }
 
     public boolean next() throws IOException {
-        int b = pIn_.read();
+        final int b;
+        try {
+            b = pIn_.read();
+        }
+        catch ( EOFException e ) {
+            return false;
+        }
         if ( b < 0 ) {
             return false;
         }
