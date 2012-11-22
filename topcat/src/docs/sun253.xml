@@ -15453,6 +15453,9 @@ introduced since the last version:
         by using the system property <code>votable.version</code>.
         Output version is VOTable 1.1 by default.</li>
     <li>VOTable 1.3 input and output is supported.</li>
+    <li>Encode infinite values correctly in VOTable output
+        ("<code>+Inf</code>"/"<code>-Inf</code>",
+        not "<code>Infinity</code>"/"<code>-Infinity</code>").</li>
     </ul>
     </p>
     </dd>

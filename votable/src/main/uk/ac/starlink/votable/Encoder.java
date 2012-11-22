@@ -332,6 +332,15 @@ abstract class Encoder {
         else if ( clazz == Float.class ) {
             final float badVal = magicNulls ? Float.NaN : 0.0f;
             return new ScalarEncoder( info, "float", null ) {
+                public String encodeAsText( Object val ) {
+                    if ( val instanceof Float &&
+                         Float.isInfinite( ((Float) val).floatValue() ) ) {
+                        return infinityText( ((Float) val).floatValue() > 0 );
+                    }
+                    else {
+                        return super.encodeAsText( val );
+                    }
+                }
                 public void encodeToStream( Object val, DataOutput out )
                         throws IOException {
                     Number value = (Number) val;
@@ -344,6 +353,15 @@ abstract class Encoder {
         else if ( clazz == Double.class ) {
             final double badVal = magicNulls ? Double.NaN : 0.0;
             return new ScalarEncoder( info, "double", null ) {
+                public String encodeAsText( Object val ) {
+                    if ( val instanceof Double &&
+                         Double.isInfinite( ((Double) val).doubleValue() ) ) {
+                        return infinityText( ((Double) val).doubleValue() > 0 );
+                    }
+                    else {
+                        return super.encodeAsText( val );
+                    }
+                }
                 public void encodeToStream( Object val, DataOutput out )
                         throws IOException {
                     Number value = (Number) val;
@@ -664,6 +682,15 @@ abstract class Encoder {
 
         /* Not a type we can do anything with. */
         return null;
+    }
+
+    /**
+     * Represents infinity as permitted by the VOTable standard.
+     *
+     * @param  isPositive  true for +infinity, false for -infinity
+     */
+    private static String infinityText( boolean isPositive ) {
+        return isPositive ? "+Inf" : "-Inf";
     }
 
     /**
