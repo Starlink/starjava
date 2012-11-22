@@ -31,6 +31,7 @@ import uk.ac.starlink.task.Task;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.UsageException;
 import uk.ac.starlink.ttools.copy.VotCopyHandler;
+import uk.ac.starlink.ttools.votlint.VersionDetector;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.StarEntityResolver;
 import uk.ac.starlink.votable.DataFormat;
@@ -116,11 +117,13 @@ public class VotCopy implements Task {
                                  VOTableVersion.getKnownVersions().values()
                                 .toArray( new VOTableVersion[ 0 ] ) );
         versionParam_.setPrompt( "Output votable version" );
-        versionParam_.setDefault( VOTableVersion.getDefaultVersion()
-                                                .toString() );
+        versionParam_.setNullPermitted( true );
+        versionParam_.setDefault( null );
         versionParam_.setDescription( new String[] {
             "<p>Determines the version of the VOTable standard to which",
             "the output will conform.",
+            "If null (the default), the output table will have the same",
+            "version as the input table.",
             "</p>",
         } );
 
@@ -164,8 +167,8 @@ public class VotCopy implements Task {
             "If this results in an empty <code>VALUES</code> element,",
             "it too will be removed.",
             "</p>",
-            "<p>This parameter is ignored for",
-            "<code>" + versionParam_.getName() + "</code>&lt;1.3 or",
+            "<p>This parameter is ignored if the output VOTable version",
+            "is lower than 1.3 or if",
             "<code>" + formatParam_.getName() + "</code>=BINARY/FITS.",
             "</p>",
         } );
@@ -227,16 +230,13 @@ public class VotCopy implements Task {
         String inLoc = inParam_.stringValue( env );
         String outLoc = outParam_.stringValue( env );
         DataFormat format = (DataFormat) formatParam_.objectValue( env );
-        VOTableVersion version = versionParam_.objectValue( env );
-        if ( format == DataFormat.BINARY2 && ! version.allowBinary2() ) {
-            throw new UsageException( "BINARY2 not permitted for v" + version
-                                    + " - v1.3+ only" );
+        VOTableVersion forceVersion = versionParam_.objectValue( env );
+        if ( format == DataFormat.BINARY2 &&
+             forceVersion != null && ! forceVersion.allowBinary2() ) {
+            throw new UsageException( "BINARY2 not permitted for v"
+                                    + forceVersion + " - v1.3+ only" );
         }
         boolean nomagic = nomagicParam_.booleanValue( env );
-        final boolean squashMagic =
-               ( format == DataFormat.BINARY2 && version.allowBinary2() ||
-                 format == DataFormat.TABLEDATA && version.allowEmptyTd() )
-            && nomagic;
         cacheParam_.setDefault( format == DataFormat.FITS );
         PrintStream pstrm = env.getOutputStream();
         boolean inline;
@@ -273,8 +273,8 @@ public class VotCopy implements Task {
         boolean strict = LineTableEnvironment.isStrictVotable( env );
         boolean cache = cacheParam_.booleanValue( env );
         StoragePolicy policy = LineTableEnvironment.getStoragePolicy( env );
-        return new VotCopier( inLoc, outLoc, pstrm, xenc, inline, squashMagic,
-                              base, format, version, strict, cache, policy );
+        return new VotCopier( inLoc, outLoc, pstrm, xenc, inline, nomagic, base,
+                              format, forceVersion, strict, cache, policy );
     }
 
     /**
@@ -287,41 +287,72 @@ public class VotCopy implements Task {
         final PrintStream pstrm_;
         final Charset xenc_;
         final boolean inline_;
-        final boolean squashMagic_;
+        final boolean nomagic_;
         final String base_;
         final DataFormat format_;
-        final VOTableVersion version_;
+        final VOTableVersion forceVersion_;
         final boolean strict_;
         final boolean cache_;
         final StoragePolicy policy_;
 
         VotCopier( String inLoc, String outLoc, PrintStream pstrm, 
-                   Charset xenc, boolean inline, boolean squashMagic,
-                   String base, DataFormat format, VOTableVersion version,
+                   Charset xenc, boolean inline, boolean nomagic,
+                   String base, DataFormat format, VOTableVersion forceVersion,
                    boolean strict, boolean cache, StoragePolicy policy ) {
             inLoc_ = inLoc;
             outLoc_ = outLoc;
             pstrm_ = pstrm;
             xenc_ = xenc;
             inline_ = inline;
-            squashMagic_ = squashMagic;
+            nomagic_ = nomagic;
             base_ = base;
             format_ = format;
-            version_ = version;
+            forceVersion_ = forceVersion;
             strict_ = strict;
             cache_ = cache;
             policy_ = policy;
         }
 
         public void execute() throws IOException, ExecutionException {
-            InputStream in = null;
+            BufferedInputStream in = null;
             Writer out = null;
             try {
 
                 /* Get input stream. */
                 String systemId = inLoc_.equals( "-" ) ? "." : inLoc_;
-                in = DataSource.getInputStream( inLoc_ );
-                in = new BufferedInputStream( in );
+                in = new BufferedInputStream( DataSource
+                                             .getInputStream( inLoc_ ) );
+
+                /* Try to get an output VOTable version, from the input
+                 * table if necessary. */
+                final VOTableVersion version;
+                if ( forceVersion_ != null ) {
+                    version = forceVersion_;
+                }
+                else {
+                    String vstr = VersionDetector.getVersionString( in );
+                    if ( vstr == null ) {
+                        version = null;
+                    }
+                    else {
+                        version = VOTableVersion.getKnownVersions().get( vstr );
+                    }
+                }
+                if ( format_ == DataFormat.BINARY2 &&
+                     version != null &&
+                     ! version.allowBinary2() ) {
+                    throw new ExecutionException( "BINARY2 not permitted for v"
+                                                + version + " - v1.3+ only" );
+                }
+
+                /* Determine whether to eliminate VALUES/null attributes. */
+                boolean squashMagic =
+                       nomagic_
+                    && version != null
+                    && ( ( format_ == DataFormat.BINARY2
+                                      && version.allowBinary2() ) ||
+                         ( format_ == DataFormat.TABLEDATA
+                                      && version.allowEmptyTd() ) );
 
                 /* Get output stream */
                 OutputStream ostrm = outLoc_.equals( "-" )
@@ -333,8 +364,9 @@ public class VotCopy implements Task {
                 /* Construct a handler which can take SAX and SAX-like
                  * events and turn them into XML output. */
                 VotCopyHandler handler =
-                    new VotCopyHandler( strict_, format_, version_, inline_,
-                                        squashMagic_, base_, cache_, policy_ );
+                    new VotCopyHandler( strict_, format_, forceVersion_,
+                                        inline_, squashMagic, base_,
+                                        cache_, policy_ );
                 handler.setOutput( out );
 
                 /* Output the XML declaration. */

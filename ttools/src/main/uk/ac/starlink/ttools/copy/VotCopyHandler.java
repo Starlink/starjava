@@ -85,7 +85,9 @@ public class VotCopyHandler
      *                 VOTable standard
      * @param  format  encoding type for output DATA elements; may be null
      *                 for DATA-less output
-     * @param  version VOTable standard version for output
+     * @param  version VOTable standard version for output; may be null for
+     *                 unknown or indeterminate, in which case input version
+     *                 will be copied as far as possible
      * @param  inline  true for tables written inline, false for tables written
      *                 to an href-referenced stream
      * @param  squashMagic  if true, any VALUES/null attributes are not
@@ -177,7 +179,20 @@ public class VotCopyHandler
                               String qName, Attributes atts )
             throws SAXException {
         votParser_.startElement( namespaceURI, localName, qName, atts );
-        if ( "DATA".equals( localName ) ) {
+        if ( "VOTABLE".equals( localName ) && version_ != null ) {
+            AttributesImpl newAtts = new AttributesImpl( atts );
+            fixAttribute( newAtts, "version", version_.getVersionNumber() );
+            fixAttribute( newAtts, "xmlns", version_.getXmlNamespace() );
+            int ixsl = newAtts
+                      .getIndex( "http://www.w3.org/2001/XMLSchema-instance",
+                                 "schemaLocation" );
+            if ( ixsl >= 0 ) {
+                newAtts.setValue( ixsl, version_.getXmlNamespace() + " "
+                                      + version_.getSchemaLocation() );
+            }
+            atts = newAtts;
+        }
+        else if ( "DATA".equals( localName ) ) {
             handlerStack_.push( handler_ );
             handler_ = discardHandler_;
             saxWriter_.flush();
@@ -333,8 +348,11 @@ public class VotCopyHandler
         iTable_++;
 
         /* Construct a serializer which can write the table data. */
+        VOTableVersion serVers = version_ != null
+                               ? version_
+                               : VOTableVersion.V13;
         VOSerializer voser =
-            VOSerializer.makeSerializer( format_, version_, table );
+            VOSerializer.makeSerializer( format_, serVers, table );
 
         /* If it's out-of-line, open a new file for output and write data
          * to it. */
@@ -397,6 +415,26 @@ public class VotCopyHandler
         }
         buf.append( msg );
         logger_.log( level, buf.toString() );
+    }
+
+    /**
+     * Sets the value of a given attribute to a given value.
+     * If the value is present it will be overwritten, otherwise a new
+     * one (type CDATA) will be added.
+     *
+     * @param   atts  attribute set
+     * @param   name  qualified name of attribute
+     * @param   value  new value of attribute
+     */
+    private static void fixAttribute( AttributesImpl atts, String name,
+                                      String value ) {
+        int iatt = atts.getIndex( name );
+        if ( iatt >= 0 ) {
+            atts.setValue( iatt, value );
+        }
+        else {
+            atts.addAttribute( "", name, name, "CDATA", value );
+        }
     }
 
     /**
