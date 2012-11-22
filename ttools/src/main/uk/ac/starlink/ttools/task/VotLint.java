@@ -18,10 +18,11 @@ import uk.ac.starlink.task.Task;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.UsageException;
 import uk.ac.starlink.ttools.votlint.DoctypeInterpolator;
+import uk.ac.starlink.ttools.votlint.VersionDetector;
 import uk.ac.starlink.ttools.votlint.VotLintContext;
 import uk.ac.starlink.ttools.votlint.VotLinter;
-import uk.ac.starlink.ttools.votlint.VotableVersion;
 import uk.ac.starlink.util.DataSource;
+import uk.ac.starlink.votable.VOTableVersion;
 
 /**
  * Task which performs VOTable checking.
@@ -33,7 +34,7 @@ public class VotLint implements Task {
 
     private final InputStreamParameter inParam_;
     private final BooleanParameter validParam_;
-    private final ChoiceParameter versionParam_;
+    private final ChoiceParameter<VOTableVersion> versionParam_;
     private final OutputStreamParameter outParam_;
 
     public VotLint() {
@@ -72,22 +73,22 @@ public class VotLint implements Task {
             "</p>",
         } );
 
-        String[] versions = new String[ VotableVersion.KNOWN_VERSIONS.length ];
-        for ( int i = 0; i < VotableVersion.KNOWN_VERSIONS.length; i++ ) {
-            versions[ i ] = VotableVersion.KNOWN_VERSIONS[ i ].getNumber();
-        }
         versionParam_ =
-            new ChoiceParameter( "version", VotableVersion.KNOWN_VERSIONS );
+            new ChoiceParameter<VOTableVersion>( "version",
+                                VOTableVersion.getKnownVersions().values()
+                               .toArray( new VOTableVersion[ 0 ] ) );
         versionParam_.setNullPermitted( true );
         versionParam_.setPrompt( "VOTable standard version" );
         versionParam_.setDescription( new String[] {
             "<p>Selects the version of the VOTable standard which the input",
             "table is supposed to exemplify.",
-            "Currently the version can be 1.0, 1.1 or 1.2.",
             "The version may also be specified within the document",
             "using the \"version\" attribute of the document's VOTABLE",
             "element; if it is and it conflicts with the value specified",
             "by this flag, a warning is issued.",
+            "</p>",
+            "<p>If no value is provided for this parameter (the default),",
+            "the version will be determined from the VOTable itself.",
             "</p>",
         } );
 
@@ -116,22 +117,12 @@ public class VotLint implements Task {
     }
 
     public Executable createExecutable( Environment env ) throws TaskException {
-        VotableVersion version =
-            (VotableVersion) versionParam_.objectValue( env );
-
-        /* Create a lint context. */
+        VOTableVersion version = versionParam_.objectValue( env );
         boolean validate = validParam_.booleanValue( env );
-        final VotLintContext context = new VotLintContext( version );
-        context.setValidating( validate );
-        if ( env instanceof TableEnvironment ) {
-            context.setDebug( ((TableEnvironment) env).isDebug() );
-        }
-
-        /* Get basic input stream. */
+        boolean debug = env instanceof TableEnvironment
+                     && ((TableEnvironment) env).isDebug();
         String sysid = inParam_.stringValue( env );
         InputStream in = inParam_.inputStreamValue( env );
-
-        /* Get output stream. */
         PrintStream out;
         try {
             out = new PrintStream( outParam_.destinationValue( env )
@@ -142,51 +133,79 @@ public class VotLint implements Task {
                                      + outParam_.stringValue( env )
                                      + "\" for output: " + e.getMessage(), e );
         }
-        context.setOutput( out );
-
-        return new VotLintExecutable( in, validate, context, sysid );
+        return new VotLintExecutable( in, version, validate, debug, sysid,
+                                      out );
     }
 
     private class VotLintExecutable implements Executable {
 
         final InputStream baseIn_;
+        final VOTableVersion forceVersion_;
         final boolean validate_;
-        final VotLintContext context_;
+        final boolean debug_;
         final String sysid_;
+        final PrintStream out_;
 
-        VotLintExecutable( InputStream in, boolean validate, 
-                           VotLintContext context, String sysid ) {
+        VotLintExecutable( InputStream in, VOTableVersion forceVersion,
+                           boolean validate, boolean debug, String sysid,
+                           PrintStream out ) {
             baseIn_ = in;
+            forceVersion_ = forceVersion;
             validate_ = validate;
-            context_ = context;
+            debug_ = debug;
             sysid_ = sysid;
+            out_ = out;
         }
 
         public void execute() throws IOException, ExecutionException {
 
-            /* Buffer the stream for efficiency. */
-            InputStream in = new BufferedInputStream( baseIn_ );
+            /* Buffer the stream for efficiency and mark/reset capability. */
+            BufferedInputStream bufIn = new BufferedInputStream( baseIn_ );
 
-            /* Interpolate the VOTable DOCTYPE declaration if required. */
-            if ( validate_ ) {
-                DoctypeInterpolator interp = new DoctypeInterpolator() {
-                    public void message( String msg ) {
-                        context_.info( msg );
-                    }
-                };
-                in = interp.getStreamWithDoctype( (BufferedInputStream) in );
-                String foundVers = interp.getVotableVersion();
-                if ( foundVers != null ) {
-                    VotableVersion fvers =
-                        VotableVersion.getVersionByNumber( foundVers );
-                    if ( fvers == null ) {
-                        context_.warning( "Unknown VOTABLE version "
-                                        + foundVers + " declared" );
-                    }
-                    if ( context_.getVersion() == null && fvers != null ) {
-                        context_.setVersion( fvers );
-                    }
+            /* Determine the VOTable version against which to check. */
+            final VOTableVersion version;
+            if ( forceVersion_ != null ) {
+                version = forceVersion_;
+            }
+            else {
+
+                /* If not specified by the command, determine the version from
+                 * the document itself.  It's not necessary to report
+                 * mismatches or bad values for the declared version here,
+                 * since the linter will report such issues later. */
+                String foundVersStr = VersionDetector.getVersionString( bufIn );
+                VOTableVersion foundVersion = 
+                    VOTableVersion.getKnownVersions().get( foundVersStr );
+                if ( foundVersion != null ) {
+                    version = foundVersion;
                 }
+                else {
+                    VotLintContext preContext =
+                        new VotLintContext( null, validate_, debug_, out_ );
+                    preContext.info( "Unable to determine VOTable version"
+                                   + " from document" );
+                    version = VOTableVersion.getDefaultVersion();
+                    preContext.info( "Assuming VOTable v" + version
+                                   + " by default" );
+                }
+            }
+
+            /* Create a context. */
+            assert version != null;
+            final VotLintContext context =
+                new VotLintContext( version, validate_, debug_, out_ );
+               
+            /* Interpolate the VOTable DOCTYPE declaration if required. */
+            final InputStream in;
+            if ( validate_ && version.getDoctypeDeclaration() != null ) {
+                in = new DoctypeInterpolator() {
+                    public void message( String msg ) {
+                        context.info( msg );
+                    }
+                }.getStreamWithDoctype( bufIn );
+            }
+            else {
+                in = bufIn;
             }
 
             /* Turn the stream into a SAX source. */
@@ -195,8 +214,8 @@ public class VotLint implements Task {
 
             /* Perform the parse. */
             try {
-                new VotLinter( context_ )
-                   .createParser( context_.isValidating() )
+                new VotLinter( context )
+                   .createParser( validate_ )
                    .parse( sax );
             }
             catch ( SAXException e ) {

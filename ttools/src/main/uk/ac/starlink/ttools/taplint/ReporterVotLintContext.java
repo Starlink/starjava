@@ -2,6 +2,7 @@ package uk.ac.starlink.ttools.taplint;
 
 import org.xml.sax.Locator;
 import uk.ac.starlink.ttools.votlint.VotLintContext;
+import uk.ac.starlink.votable.VOTableVersion;
 
 /**
  * VotLintContext implementation which delivers its output via
@@ -19,7 +20,8 @@ public class ReporterVotLintContext extends VotLintContext {
      *
      * @param  reporter   validation message destination
      */
-    public ReporterVotLintContext( Reporter reporter ) {
+    public ReporterVotLintContext( VOTableVersion version, Reporter reporter ) {
+        super( version, true, false, null );
         reporter_ = reporter;
     }
 

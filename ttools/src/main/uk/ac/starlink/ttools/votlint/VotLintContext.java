@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import org.xml.sax.Locator;
+import uk.ac.starlink.votable.VOTableVersion;
 
 /**
  * Context for a VOTLint process.  This is the object which knows most of
@@ -15,42 +16,40 @@ import org.xml.sax.Locator;
  */
 public class VotLintContext {
 
-    private Locator locator_;
-    private PrintStream out_ = System.err;
-    private int errCount_;
-    private VotableVersion version_;
-    private boolean validate_;
-    private boolean debug_;
+    private final VOTableVersion version_;
+    private final boolean validate_;
+    private final boolean debug_;
+    private final PrintStream out_;
     private final Map idMap_;
     private final Map refMap_;
     private final Map msgMap_;
     private final Map namespaceMap_;
+    private Locator locator_;
+    private int errCount_;
 
     /** Maximum number of identical error messages which will be logged. */
     public final static int MAX_REPEAT = 4;
 
-    /** Version used if none is specified explicitly. */
-    public final static VotableVersion DEFAULT_VERSION = VotableVersion.V11;
-
     /**
-     * Constructor for unknown VOTable version.
-     */
-    public VotLintContext() {
-        this( null );
-    }
-
-    /**
-     * Constructs a VotLintContext to parse documents
-     * with a given VOTable version.
+     * Constructor.
      *
-     * @param  version  VOTable version object
+     * @param  version  version of VOTable for which the parse will be done
+     * @param  validate  if true, validation will be performed against
+     *                   the appropriate DTD/schema
+     * @param  debug  if true, a stack trace will be output with each
+     *                log message
+     * @param  out    output stream to which messages will be written
      */
-    public VotLintContext( VotableVersion version ) {
+    public VotLintContext( VOTableVersion version, boolean validate,
+                           boolean debug, PrintStream out ) {
+        version_ = version;
+        validate_ = validate;
+        debug_ = debug;
+        out_ = out;
         idMap_ = new HashMap();
         refMap_ = new HashMap();
         msgMap_ = new HashMap();
         namespaceMap_ = new HashMap();
-        setVersion( version );
     }
 
     /**
@@ -58,37 +57,8 @@ public class VotLintContext {
      *
      * @return   version object
      */
-    public VotableVersion getVersion() {
+    public VOTableVersion getVersion() {
         return version_;
-    }
-
-    /**
-     * Sets the version we are parsing to a given value.
-     *
-     * @param  version   VOTable version object
-     */
-    public void setVersion( VotableVersion version ) {
-        version_ = version;
-    }
-
-    /**
-     * Returns a version object for use in this context.
-     * If one has been set explicitly either in the document or externally
-     * that will be used; otherwise some default one will be returned.
-     *
-     * @return   non-null version object for this context
-     */
-    public VotableVersion getEffectiveVersion() {
-        return version_ == null ? DEFAULT_VERSION : version_;
-    }
-
-    /**
-     * Sets whether this lint is validating.
-     *
-     * @param  validate  true for validating lint
-     */
-    public void setValidating( boolean validate ) {
-        validate_ = validate;
     }
 
     /**
@@ -98,6 +68,15 @@ public class VotLintContext {
      */
     public boolean isValidating() {
         return validate_;
+    }
+
+    /**
+     * Returns whether we are in debug mode.
+     *
+     * @return   true if debugging output is on
+     */
+    public boolean isDebug() {
+        return debug_;
     }
 
     /**
@@ -119,40 +98,12 @@ public class VotLintContext {
     }
 
     /**
-     * Sets whether we are in debug mode.
-     * In debug mode a stack trace is output with each log message.
-     *
-     * @param   debug  true iff you want debugging output
-     */
-    public void setDebug( boolean debug ) {
-        debug_ = debug;
-    }
-
-    /**
-     * Returns whether we are in debug mode.
-     *
-     * @return   true if debugging output is on
-     */
-    public boolean isDebug() {
-        return debug_;
-    }
-
-    /**
      * Returns the output stream to which messages will be written.
      *
      * @return   output stream
      */
     public PrintStream getOutput() {
         return out_;
-    }
-
-    /**
-     * Sets the output stream to which messages will be written.
-     *
-     * @param   out  output stream
-     */
-    public void setOutput( PrintStream out ) {
-        out_ = out;
     }
 
     /**

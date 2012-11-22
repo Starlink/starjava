@@ -6821,11 +6821,8 @@ Contact this author if this seems to be a serious issue for you.
 
 <p>Votlint checks that the XML input is well-formed, and, unless the
 <code>valid=false</code> parameter is supplied, that it validates against the
-1.0, 1.1, 1.2 or 1.3 (as appropriate) DTD.
-Although VOTable versions &gt;1.0 are properly
-defined against an XML Schema rather than a DTD, in conjunction with
-the other checks done, the DTD validation turns out to be pretty comprehensive.
-Some of the DTD validity checks are also done by
+1.0 DTD or 1.1, 1.2 or 1.3 schema as appropriate.
+Some of the validity checks are also done by
 <code>votlint</code> internally, so that some validity-type 
 errors may give rise to more than one warning.  
 In general, the program errs on the side of verbosity.
@@ -6837,7 +6834,7 @@ and lead to ERROR reports if violations are found:
 <li><code>TD</code> contents incompatible
     <code>datatype</code>/<code>arraysize</code> attributes declared
     in <code>FIELD</code></li>
-<li>BINARY data streams which don't match metadata 
+<li>BINARY/BINARY2 data streams which don't match metadata 
     declared in <code>FIELD</code></li>
 <li><code>PARAM</code> values incompatible with declared 
     <code>datatype</code>/<code>arraysize</code></li>
@@ -6918,7 +6915,12 @@ then the output of a <code>votlint</code> run looks like this:
   WARNING (l.15): Wrong number of TDs in row (expecting 3 found 4)
   ERROR (l.18): Row count (1) not equal to nrows attribute (2)
 ]]></verbatim>
-Note the warning at line 11 has resulted from the same error as the
+(Note that the details of the reports will vary according to
+the XML parser/validator that forms part of your Java installation.)
+</p>
+
+<p>Note also that the warning at line 11 has resulted from
+the same error as the
 one at line 4 - because the <code>FIELD</code> element has no
 <code>arraysize</code> attribute, <code>arraysize="1"</code> 
 (single character) is assumed,
@@ -8282,6 +8284,11 @@ but my thanks are especially due to the following:
     <li><code>votlint</code> now stricter about floating point TD contents.</li>
     <li>VOTable output no longer writes schemaLocation
         attribute by default.</li>
+    <li>Changes to <code>votlint</code> so that it handles different VOTable
+        versions more capably.  Versions 1.1+ are now validated against a
+        schema (which is how those versions are defined) rather than against
+        a DTD hacked to do the same job as the schema.
+        VOTable 1.3 validation is now provided.</li>
     </ul>
     </p></dd>
 

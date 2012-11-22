@@ -1,11 +1,15 @@
 package uk.ac.starlink.ttools.taplint;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InterruptedIOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
 import org.xml.sax.ContentHandler;
@@ -20,7 +24,7 @@ import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.ValueInfo;
-import uk.ac.starlink.ttools.votlint.VotableVersion;
+import uk.ac.starlink.ttools.votlint.VersionDetector;
 import uk.ac.starlink.ttools.votlint.VotLintContentHandler;
 import uk.ac.starlink.ttools.votlint.VotLintContext;
 import uk.ac.starlink.ttools.votlint.VotLintEntityResolver;
@@ -35,6 +39,7 @@ import uk.ac.starlink.votable.VODocument;
 import uk.ac.starlink.votable.VOElement;
 import uk.ac.starlink.votable.VOStarTable;
 import uk.ac.starlink.votable.VOTableDOMBuilder;
+import uk.ac.starlink.votable.VOTableVersion;
 
 /**
  * TapRunner implementation which uses the VotLint validation classes
@@ -51,6 +56,9 @@ public abstract class VotLintTapRunner extends TapRunner {
     public static ValueInfo OVERFLOW_INFO =
         new DefaultValueInfo( "OVERFLOW", Boolean.class,
                               "Is TAP result overflow status set?" );
+
+    /** Minimum VOTable version required by TAP (TAP 1.0 sec 2.9). */
+    private static final VOTableVersion TAP_VOT_VERSION = VOTableVersion.V12;
 
     /**
      * Constructor.
@@ -173,10 +181,40 @@ public abstract class VotLintTapRunner extends TapRunner {
      * present and set/unset appropriately.
      *
      * @param  reporter  validation message destination
-     * @param  in  VOTable input stream
+     * @param  baseIn  VOTable input stream
      */
-    protected StarTable readResultVOTable( Reporter reporter, InputStream in )
+    protected StarTable readResultVOTable( Reporter reporter,
+                                           InputStream baseIn )
             throws IOException, SAXException {
+        final VOTableVersion version;
+        BufferedInputStream in = new BufferedInputStream( baseIn );
+        String versionString = VersionDetector.getVersionString( in );
+        if ( versionString == null ) {
+            version = TAP_VOT_VERSION;
+            reporter.report( ReportType.INFO, "VVNL",
+                             "Undeclared VOTable version; assuming v"
+                           + version );
+        }
+        else {
+            Map<String,VOTableVersion> vmap = VOTableVersion.getKnownVersions();
+            if ( vmap.containsKey( versionString ) ) {
+                List<VOTableVersion> vlist =
+                    new ArrayList<VOTableVersion>( vmap.values() );
+                version = vmap.get( versionString );
+                if ( vlist.indexOf( version )
+                     < vlist.indexOf( TAP_VOT_VERSION ) ) {
+                    reporter.report( ReportType.ERROR, "VVLO",
+                                     "Declared VOTable version " + versionString
+                                   + "<" + TAP_VOT_VERSION );
+                }
+            }
+            else {
+                version = TAP_VOT_VERSION;
+                reporter.report( ReportType.INFO, "VVUN",
+                                 "Unknown declared VOTable version '"
+                               + versionString + "' - assuming v" + version );
+            }
+        }
 
         /* Set up a SAX event handler to create a DOM. */
         VOTableDOMBuilder domHandler =
@@ -188,11 +226,7 @@ public abstract class VotLintTapRunner extends TapRunner {
         final XMLReader parser;
         if ( doChecks_ ) {
             ReporterVotLintContext vlContext =
-                new ReporterVotLintContext( reporter );
-            vlContext.setVersion( VotableVersion.V12 );
-            vlContext.setValidating( true );
-            vlContext.setDebug( false );
-            vlContext.setOutput( null );
+                new ReporterVotLintContext( version, reporter );
             parser = createParser( reporter, vlContext );
             ContentHandler vcHandler =
                     new MultiplexInvocationHandler<ContentHandler>(
