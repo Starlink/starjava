@@ -15456,6 +15456,8 @@ introduced since the last version:
     <li>Encode infinite values correctly in VOTable output
         ("<code>+Inf</code>"/"<code>-Inf</code>",
         not "<code>Infinity</code>"/"<code>-Infinity</code>").</li>
+    <li>VOTable output no longer writes schemaLocation 
+        attribute by default.</li>
     </ul>
     </p>
     </dd>

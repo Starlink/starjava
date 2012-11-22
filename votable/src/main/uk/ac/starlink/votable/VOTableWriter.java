@@ -39,6 +39,7 @@ public class VOTableWriter implements StarTableWriter, MultiStarTableWriter {
     private DataFormat dataFormat;
     private boolean inline;
     private VOTableVersion version;
+    private boolean writeSchemaLocation;
     private String xmlDeclaration = DEFAULT_XML_DECLARATION;
 
     /** Default XML declaration in written documents. */
@@ -384,7 +385,7 @@ public class VOTableWriter implements StarTableWriter, MultiStarTableWriter {
         String xmlNamespace = version.getXmlNamespace();
         String schemaLocation = version.getSchemaLocation();
         if ( xmlNamespace != null ) {
-            if ( schemaLocation != null ) {
+            if ( writeSchemaLocation && schemaLocation != null ) {
                 writer.newLine();
                 writer.write( VOSerializer.formatAttribute(
                                   "xmlns:xsi",
@@ -580,6 +581,26 @@ public class VOTableWriter implements StarTableWriter, MultiStarTableWriter {
      */
     public VOTableVersion getVotableVersion() {
         return version;
+    }
+
+    /**
+     * Determines whether the schema location attribute will be written
+     * on opening VOTABLE tags.
+     *
+     * @param  writeSchemaLocation  whether to write xsi:schemaLocation atts
+     */
+    public void setWriteSchemaLocation( boolean writeSchemaLocation ) {
+        this.writeSchemaLocation = writeSchemaLocation;
+    }
+
+    /**
+     * Indicates whether the schema location attribute will be written
+     * on opening VOTABLE tags.
+     *
+     * @return  whether xsi:schemaLocation attributes will be written
+     */
+    public boolean getWriteSchemaLocation() {
+        return writeSchemaLocation;
     }
 
     /**
