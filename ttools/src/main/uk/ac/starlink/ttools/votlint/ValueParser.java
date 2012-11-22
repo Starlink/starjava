@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Array;
 import java.util.StringTokenizer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Object which knows how to interpret the values associated with a
@@ -19,6 +21,10 @@ import java.util.StringTokenizer;
 public abstract class ValueParser {
 
     private VotLintContext context_;
+    private static final Pattern DOUBLE_REGEX =
+        Pattern.compile( "([+-])?"
+                       + "[0-9]*([0-9]|[0-9]\\.|\\.[0-9])[0-9]*"
+                       + "([Ee][+-]?[0-9]{1,3})?" );
 
     /**
      * Checks the value of a string which contains the value. 
@@ -519,8 +525,10 @@ public abstract class ValueParser {
                     return;
                 }
             }
-            else if ( text.trim().length() == 0 ) {
-                error( "Empty cell illegal for integer value" );
+            else if ( text.length() == 0 ) {
+                if ( ! getContext().getVersion().allowEmptyTd() ) {
+                    error( "Empty cell illegal for integer value" );
+                }
                 return;
             }
             else {
@@ -547,18 +555,17 @@ public abstract class ValueParser {
             super( 4, Float.class, 1 );
         }
         public void checkString( String text ) {
+            text = text.trim();
             if ( "NaN".equals( text ) ||
                  "+Inf".equals( text ) ||
                  "-Inf".equals( text ) ||
-                 text.trim().length() == 0 ) {
+                 text.length() == 0 ) {
                 return;
             }
             else {
-                try {
-                    Float.parseFloat( text );
-                }
-                catch ( NumberFormatException e ) {
-                    error( "Bad float string " + text );
+                Matcher matcher = DOUBLE_REGEX.matcher( text );
+                if ( ! matcher.matches() ) {
+                    error( "Bad float string '" + text + "'" );
                 }
             }
         }
@@ -572,18 +579,17 @@ public abstract class ValueParser {
             super( 8, Double.class, 1 );
         }
         public void checkString( String text ) {
+            text = text.trim();
             if ( "NaN".equals( text ) ||
                  "+Inf".equals( text ) ||
                  "-Inf".equals( text ) ||
-                 text.trim().length() == 0 ) {
+                 text.length() == 0 ) {
                 return;
             }
             else {
-                try {
-                    Double.parseDouble( text );
-                }
-                catch ( NumberFormatException e ) {
-                    error( "Bad double string " + text );
+                Matcher matcher = DOUBLE_REGEX.matcher( text );
+                if ( ! matcher.matches() ) {
+                    error( "Bad double string '" + text + "'" );
                 }
             }
         }
@@ -789,10 +795,24 @@ public abstract class ValueParser {
      * @param  nbyte  number of bytes to read
      */
     void slurpStream( InputStream in, int nbyte ) throws IOException {
+        slurpStream( in, nbyte, getContext() );
+    }
+
+    /**
+     * Uncritically reads in a fixed number of bytes from a stream.
+     * An error is reported if the stream ends mid-read.
+     *
+     * @param  in  input stream
+     * @param  nbyte  number of bytes to read
+     * @param  context  error reporting context
+     */
+    public static void slurpStream( InputStream in, int nbyte,
+                                    VotLintContext context )
+            throws IOException {
         for ( int i = 0; i < nbyte; i++ ) {
             if ( in.read() < 0 ) {
-                error( "Stream ended during data read; done "
-                     + i + "/" + nbyte );
+                context.error( "Stream ended during data read; done "
+                             + i + "/" + nbyte );
                 throw new EOFException();
             }
         }
