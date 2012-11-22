@@ -93,11 +93,37 @@ public abstract class VOTableVersion {
     public abstract String getSchemaLocation();
 
     /**
+     * Returns a schema which may be used to validate document instances
+     * of this VOTable version.
+     * Will return non-null iff {@link #getSchemaLocation} returns non-null.
+     *
+     * @return  validation schema, or null
+     */
+    public abstract Schema getSchema();
+
+    /**
      * Returns the text of the DOCTYPE XML declaration for this version.
      *
      * @return  doctype declaration, or null
      */
     public abstract String getDoctypeDeclaration();
+
+    /**
+     * Returns a URL from which the DTD can be retrieved.
+     * This is not the canonical DTD url, but a pointer to a local resource.
+     * Will return non-null iff {@link #getDoctypeDeclaration} returns non-null.
+     *
+     * @return  local URL from which the DTD can be retrieved, or null
+     */
+    public abstract URL getDtdUrl();
+   
+    /**
+     * Returns version number.
+     */
+    @Override
+    public String toString() {
+        return versionNumber_;
+    }
 
     /**
      * Indicates whether this version permits an empty TD element to represent
@@ -124,24 +150,10 @@ public abstract class VOTableVersion {
     public abstract boolean allowXtype();
 
     /**
-     * Returns a schema which may be used to validate document instances
-     * of this VOTable version.
-     *
-     * @return  schema
-     */
-    public abstract Schema getSchema();
-
-    /**
-     * Returns version number.
-     */
-    @Override
-    public String toString() {
-        return versionNumber_;
-    }
-
-    /**
      * Returns a number->version map for all known versions.
      * The map keys are version number strings like "1.1".
+     * The order of entries in this map is in ascending order
+     * of version number.
      *
      * @return   version map
      */
@@ -216,6 +228,10 @@ public abstract class VOTableVersion {
             return "<!DOCTYPE VOTABLE SYSTEM "
                  + "\"http://us-vo.org/xml/VOTable.dtd\">";
         }
+        public URL getDtdUrl() {
+            return VOTableVersion.class
+                  .getResource( "/uk/ac/starlink/util/text/VOTable.dtd" );
+        }
         public boolean allowXtype() {
             return false;
         }
@@ -256,6 +272,10 @@ public abstract class VOTableVersion {
         }
         @Override
         public String getDoctypeDeclaration() {
+            return null;
+        }
+        @Override
+        public URL getDtdUrl() {
             return null;
         }
         @Override
