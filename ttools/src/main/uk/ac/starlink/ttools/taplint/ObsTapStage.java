@@ -52,7 +52,7 @@ public class ObsTapStage implements Stage {
     }
 
     public String getDescription() {
-        return "Tests implementation of ObsCore Data Model";
+        return "Test implementation of ObsCore Data Model";
     }
 
     public void run( Reporter reporter, URL serviceUrl ) {
