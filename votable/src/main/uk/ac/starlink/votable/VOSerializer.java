@@ -27,6 +27,7 @@ import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.WrapperStarTable;
 import uk.ac.starlink.util.Base64OutputStream;
+import uk.ac.starlink.util.IntList;
 
 /**
  * Class which knows how to serialize a table's fields and data to 
@@ -231,7 +232,7 @@ public abstract class VOSerializer {
             pinfo.setNullable( Tables.isBlank( pvalue ) );
 
             /* Try to write it as a typed PARAM element. */
-            Encoder encoder = Encoder.getEncoder( pinfo );
+            Encoder encoder = Encoder.getEncoder( pinfo, false );
             if ( encoder != null ) {
                 String valtext = encoder.encodeAsText( pvalue );
                 String content = encoder.getFieldContent();
@@ -483,16 +484,23 @@ public abstract class VOSerializer {
     }
 
     /**
-     * Prepares a table to have a VOSerializer built from it.
-     * It ensures that columns have NULL_VALUE_INFO keys in their
-     * auxiliary metadata if they need them (that is, if they are nullable
-     * integer typed columns).  This may be requied to ensure that
-     * null values get serialized properly.
+     * Applies miscellaneous preparation steps to a table that will
+     * have a VOSerializer built from it.
      *
      * @param table  table for preparation
+     * @param magicNulls  whether magic null values may be required;
+     *        if true, then NULL_VALUE_INFO entries are added to their
+     *        auxiliary metadata where required (nullable scalar integer
+     *        columns),
+     *        if false any such entries are removed
+     * @param allowXtype  whether xtype attributes are permitted in the output;
+     *        if not, any keys which might give rise to them in the
+     *        serialization are removed
      * @return   prepared table (possibly the same as input).
      */
-    private static StarTable prepareForSerializer( StarTable table ) {
+    private static StarTable prepareForSerializer( StarTable table,
+                                                   boolean magicNulls,
+                                                   boolean allowXtype ) {
         ValueInfo badKey = Tables.NULL_VALUE_INFO;
         int ncol = table.getColumnCount();
         final ColumnInfo[] colInfos = new ColumnInfo[ ncol ];
@@ -500,7 +508,7 @@ public abstract class VOSerializer {
         for ( int icol = 0; icol < ncol; icol++ ) {
             ColumnInfo cinfo = new ColumnInfo( table.getColumnInfo( icol ) );
             Class clazz = cinfo.getContentClass();
-            if ( cinfo.isNullable() && 
+            if ( magicNulls && cinfo.isNullable() && 
                  Number.class.isAssignableFrom( clazz ) &&
                  cinfo.getAuxDatum( badKey ) == null ) {
                 Number badValue;
@@ -522,6 +530,20 @@ public abstract class VOSerializer {
                          .add( new DescribedValue( badKey, badValue ) );
                 }
             }
+            if ( ! magicNulls && ! cinfo.isArray() ) {
+                DescribedValue nv = cinfo.getAuxDatum( badKey );
+                if ( nv != null ) {
+                    cinfo.getAuxData().remove( nv );
+                    modified++;
+                }
+            }
+            if ( ! allowXtype ) {
+                DescribedValue xt = cinfo.getAuxDatum( VOStarTable.XTYPE_INFO );
+                if ( xt != null ) {
+                    cinfo.getAuxData().remove( xt );
+                    modified++;
+                }
+            }
             colInfos[ icol ] = cinfo;
         }
         if ( modified > 0 ) {
@@ -535,29 +557,61 @@ public abstract class VOSerializer {
     }
 
     /**
-     * Factory method which returns a serializer capable of serializing
-     * a given table to a given data format.
+     * Returns a serializer capable of serializing a given table to
+     * given data format, using the default VOTable output version.
      *
      * @param  dataFormat  one of the supported VOTable serialization formats
      * @param  table  the table to be serialized
+     * @return  serializer
      */
     public static VOSerializer makeSerializer( DataFormat dataFormat,
                                                StarTable table )
             throws IOException {
+        return makeSerializer( dataFormat, VOTableVersion.getDefaultVersion(),
+                               table );
+    }
+
+    /**
+     * Returns a serializer capable of serializing
+     * a given table to a given data format using a given VOTable version.
+     *
+     * @param  dataFormat  one of the supported VOTable serialization formats
+     * @param  version  specifies the version of the VOTable standard
+     *                  to which the output will conform
+     * @param  table  the table to be serialized
+     * @return  serializer
+     */
+    public static VOSerializer makeSerializer( DataFormat dataFormat,
+                                               VOTableVersion version,
+                                               StarTable table )
+            throws IOException {
 
         /* Prepare. */
-        table = prepareForSerializer( table );
+        boolean magicNulls =
+            ( dataFormat == DataFormat.BINARY ) ||
+            ( dataFormat == DataFormat.FITS ) ||
+            ( dataFormat == DataFormat.TABLEDATA && ! version.allowEmptyTd() );
+        table = prepareForSerializer( table, magicNulls, version.allowXtype() );
 
         /* Return a serializer. */
         if ( dataFormat == DataFormat.TABLEDATA ) {
-            return new TabledataVOSerializer( table);
+            return new TabledataVOSerializer( table, magicNulls );
         }
         else if ( dataFormat == DataFormat.FITS ) {
             return new FITSVOSerializer(
                 table, new StandardFitsTableSerializer( table, false ) );
         }
         else if ( dataFormat == DataFormat.BINARY ) {
-            return new BinaryVOSerializer( table );
+            return new BinaryVOSerializer( table, magicNulls );
+        }
+        else if ( dataFormat == DataFormat.BINARY2 ) {
+            if ( version.allowBinary2() ) {
+                return new Binary2VOSerializer( table, magicNulls );
+            }
+            else {
+                throw new IllegalArgumentException( "BINARY2 format not legal "
+                                                  + "for VOTable " + version );
+            }
         }
         else {
             throw new AssertionError( "No such format " 
@@ -578,7 +632,7 @@ public abstract class VOSerializer {
     public static VOSerializer makeFitsSerializer( StarTable table,
                                                    FitsTableSerializer fitser )
             throws IOException {
-        table = prepareForSerializer( table );
+        table = prepareForSerializer( table, false, true );
         return new FITSVOSerializer( table, fitser );
     }
 
@@ -600,12 +654,13 @@ public abstract class VOSerializer {
      * @param  table  the table to characterise
      * @return  an array of encoders used for encoding its data
      */
-    private static Encoder[] getEncoders( StarTable table ) {
+    private static Encoder[] getEncoders( StarTable table,
+                                          boolean magicNulls ) {
         int ncol = table.getColumnCount();
         Encoder[] encoders = new Encoder[ ncol ];
         for ( int icol = 0; icol < ncol; icol++ ) {
             ColumnInfo info = table.getColumnInfo( icol );
-            encoders[ icol ] = Encoder.getEncoder( info );
+            encoders[ icol ] = Encoder.getEncoder( info, magicNulls );
             if ( encoders[ icol ] == null ) {
                 logger.warning( "Can't serialize column " + info + " of type " +
                                 info.getContentClass().getName() );
@@ -647,9 +702,9 @@ public abstract class VOSerializer {
     private static class TabledataVOSerializer extends VOSerializer {
         private final Encoder[] encoders;
 
-        TabledataVOSerializer( StarTable table ) {
+        TabledataVOSerializer( StarTable table, boolean magicNulls ) {
             super( table, DataFormat.TABLEDATA );
-            encoders = getEncoders( table );
+            encoders = getEncoders( table, magicNulls );
         }
 
         public void writeFields( BufferedWriter writer ) throws IOException {
@@ -793,9 +848,9 @@ public abstract class VOSerializer {
     private static class BinaryVOSerializer extends StreamableVOSerializer {
         private final Encoder[] encoders;
 
-        BinaryVOSerializer( StarTable table ) {
+        BinaryVOSerializer( StarTable table, boolean magicNulls ) {
             super( table, DataFormat.BINARY, "BINARY" );
-            encoders = getEncoders( table );
+            encoders = getEncoders( table, magicNulls );
         }
 
         public void writeFields( BufferedWriter writer ) throws IOException {
@@ -813,6 +868,63 @@ public abstract class VOSerializer {
                         if ( encoder != null ) {
                             encoder.encodeToStream( row[ icol ], out );
                         }
+                    }
+                }
+            }
+            finally {
+                rseq.close();
+            }
+        }
+    }
+
+    /**
+     * BINARY2 format implementation of VOSerializer.
+     */
+    private static class Binary2VOSerializer extends StreamableVOSerializer {
+        private final Encoder[] encoders;
+
+        Binary2VOSerializer( StarTable table, boolean magicNulls ) {
+            super( table, DataFormat.BINARY2, "BINARY2" );
+            encoders = getEncoders( table, magicNulls );
+        }
+
+        public void writeFields( BufferedWriter writer ) throws IOException {
+            outputFields( encoders, getTable(), writer );
+        }
+
+        public void streamData( DataOutput out ) throws IOException {
+
+            /* Restrict attention to columns with non-null encoders,
+             * that is those which we will actually be writing out. */
+            IntList icolList = new IntList( encoders.length );
+            for ( int icol = 0; icol < encoders.length; icol++ ) {
+                if ( encoders[ icol ] != null ) {
+                    icolList.add( icol );
+                }
+            }
+            int[] icols = icolList.toIntArray();
+            int ncol = icols.length;
+            boolean[] nullFlags = new boolean[ ncol ];
+
+            /* Read data from table. */
+            RowSequence rseq = getTable().getRowSequence();
+            try {
+                while ( rseq.next() ) {
+ 
+                    /* Prepare and write the null-flag array. */
+                    Object[] row = rseq.getRow();
+                    for ( int jcol = 0; jcol < ncol; jcol++ ) {
+                        int icol = icols[ jcol ];
+                        Object cell = row[ icol ];
+                        nullFlags[ jcol ] = cell == null;
+                    }
+                    FlagIO.writeFlags( out, nullFlags );
+
+                    /* Write the data cells. */
+                    for ( int jcol = 0; jcol < ncol; jcol++ ) {
+                        int icol = icols[ jcol ];
+                        Object cell = row[ icol ];
+                        encoders[ icol ].encodeToStream( cell, out );
                     }
                 }
             }
@@ -851,7 +963,8 @@ public abstract class VOSerializer {
 
                     /* Get the basic information for this column. */
                     Encoder encoder =
-                        Encoder.getEncoder( getTable().getColumnInfo( icol ) );
+                        Encoder.getEncoder( getTable().getColumnInfo( icol ),
+                                            true );
                     String content = encoder.getFieldContent();
                     Map atts = encoder.getFieldAttributes();
 

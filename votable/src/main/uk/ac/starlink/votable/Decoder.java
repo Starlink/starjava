@@ -8,6 +8,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
 import java.util.logging.Logger;
+import uk.ac.starlink.util.IOUtils;
 
 /**
  * Decoder object associated with a Field.
@@ -53,11 +54,20 @@ abstract class Decoder {
 
     /**
      * Returns an object array read from the next bit of a given input
-     * stream as raw bytes.  The VOTable binary format is used (I hope).
+     * stream as raw bytes.  The VOTable BINARY/BINARY2 format is used.
      *
      * @param  strm  a DataInput object from which bytes are to be read
      */
     abstract public Object decodeStream( DataInput strm ) throws IOException;
+
+    /**
+     * Skips over the bytes in a stream corresponding to a single cell.
+     * The effect is the same as calling {@link #decodeStream}, but no
+     * data is returned.
+     *
+     * @param  strm  a DataInput object from which bytes are to be read
+     */
+    abstract public void skipStream( DataInput strm ) throws IOException;
 
     /**
      * Indicates whether an element of a given array matches the Null value
@@ -171,6 +181,16 @@ abstract class Decoder {
      */
     public int getElementSize() {
         return -1;
+    }
+
+    /**
+     * Skips over a given number of bytes in a stream without reading them.
+     *
+     * @param   strm  stream
+     * @return  byte count
+     */
+    static void skipBytes( DataInput strm, long num ) throws IOException {
+        IOUtils.skipBytes( strm, num );
     }
 
     /**
@@ -315,6 +335,10 @@ abstract class Decoder {
         public Object decodeStream( DataInput strm ) {
             throw new UnsupportedOperationException(
                 "Can't do STREAM decode of unknown data type " + this );
+        }
+
+        public void skipStream( DataInput strm ) {
+            decodeStream( strm );
         }
 
         void setNullValue( String txt ) {}

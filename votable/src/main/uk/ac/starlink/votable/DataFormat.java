@@ -38,4 +38,7 @@ public class DataFormat {
     /** Raw binary format. */
     public static final DataFormat BINARY = new DataFormat( "BINARY" );
 
+    /** Binary format with additional null flags.  VOTable 1.3+ only. */
+    public static final DataFormat BINARY2 = new DataFormat( "BINARY2" );
+
 }

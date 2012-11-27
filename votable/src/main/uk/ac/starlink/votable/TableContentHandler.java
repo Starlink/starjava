@@ -9,10 +9,10 @@ import org.xml.sax.SAXException;
  * Content handler which translates SAX events into table events.
  * It holds a {@link TableHandler} object which, if non-null,
  * is messaged for every suitable DATA element in the
- * input stream.  Inline tables (TABLEDATA ones and FITS or BINARY ones
+ * input stream.  Inline tables (TABLEDATA ones and FITS/BINARY/BINARY2 ones
  * in which STREAM element contains the byte data as text children)
  * are always messaged to the handler.  Externally-referenced ones
- * (FITS or BINARY ones in which the data is located from an
+ * (FITS/BINARY/BINARY2 ones in which the data is located from an
  * <tt>href</tt> attribute on the STREAM element) may either be ignored
  * or streamed to the table handler according to the setting of
  * the <tt>setReadHrefTables</tt> member.

@@ -119,15 +119,17 @@ public class VOTableDOMBuilder implements ContentHandler {
             setTableHandler( this );
         }
 
-        protected void processBinaryHref( URL url, Attributes atts ) {
+        protected void processBinaryHref( URL url, Attributes atts,
+                                          boolean isBinary2 ) {
             TableElement tableEl = getTableElement();
             if ( tableEl != null ) {
                 String encoding = getAttribute( atts, "encoding" );
                 Decoder[] decoders = 
                     SkeletonDOMBuilder.getDecoders( tableEl.getFields() );
                 TabularData tdata = 
-                    new TableBodies.HrefBinaryTabularData( decoders, url,
-                                                           encoding );
+                    new TableBodies
+                       .HrefBinaryTabularData( decoders, url, encoding,
+                                               isBinary2 );
                 tableEl.setData( tdata );
             }
         }

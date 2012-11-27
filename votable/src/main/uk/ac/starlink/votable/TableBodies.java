@@ -121,25 +121,28 @@ class TableBodies {
     }
 
     /**
-     * TabularData implementation for a BINARY STREAM element with an
-     * <tt>href</tt> attribute pointing to the data.
+     * TabularData implementation for a BINARY or BINARY2 STREAM element
+     * with an <tt>href</tt> attribute pointing to the data.
      */
     static class HrefBinaryTabularData extends SequentialTabularData {
         private final Decoder[] decoders;
         private final URL url;
         private final String encoding;
+        private final boolean isBinary2;
 
         public HrefBinaryTabularData( Decoder[] decoders, URL url,
-                                      String encoding ) {
+                                      String encoding, boolean isBinary2 ) {
             super( getClasses( decoders ) );
             this.decoders = decoders;
             this.url = url;
             this.encoding = encoding;
+            this.isBinary2 = isBinary2;
         }
 
         public RowSequence getRowSequence() throws IOException {
             InputStream istrm = new BufferedInputStream( url.openStream() );
-            return new BinaryRowSequence( decoders, istrm, encoding );
+            return new BinaryRowSequence( decoders, istrm, encoding,
+                                          isBinary2 );
         }
     }
 
