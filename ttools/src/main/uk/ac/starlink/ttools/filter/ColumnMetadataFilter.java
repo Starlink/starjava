@@ -21,6 +21,7 @@ public class ColumnMetadataFilter extends BasicFilter {
     public ColumnMetadataFilter() {
         super( "colmeta",
                "[-name <name>] [-units <units>] [-ucd <ucd>] " +
+               "[-utype <utype>]\n" +
                "[-desc <descrip>]\n" +
                "<colid-list>" );
     }
@@ -28,7 +29,7 @@ public class ColumnMetadataFilter extends BasicFilter {
     protected String[] getDescriptionLines() {
         return new String[] {
             "<p>Modifies the metadata of one or more columns.",
-            "Some or all of the name, units, ucd and description of ",
+            "Some or all of the name, units, ucd, utype and description of ",
             "the column(s), identified by <code>&lt;colid-list&gt;</code>",
             "can be set by using some or all of the listed flags.",
             "Typically, <code>&lt;colid-list&gt;</code> will simply be",
@@ -43,6 +44,7 @@ public class ColumnMetadataFilter extends BasicFilter {
         String rename = null;
         String units = null;
         String ucd = null;
+        String utype = null;
         String desc = null;
         while ( argIt.hasNext() && colidList == null ) {
             String arg = (String) argIt.next();
@@ -59,6 +61,11 @@ public class ColumnMetadataFilter extends BasicFilter {
             else if ( arg.equals( "-ucd" ) && argIt.hasNext() ) {
                 argIt.remove();
                 ucd = (String) argIt.next();
+                argIt.remove();
+            }
+            else if ( arg.equals( "-utype" ) && argIt.hasNext() ) {
+                argIt.remove();
+                utype = (String) argIt.next();
                 argIt.remove();
             }
             else if ( arg.equals( "-desc" ) && argIt.hasNext() ) {
@@ -78,7 +85,7 @@ public class ColumnMetadataFilter extends BasicFilter {
         if ( colidList == null ) {
             throw new ArgException( "No columns specified" );
         }
-        return new ColMetaStep( colidList, rename, units, ucd, desc );
+        return new ColMetaStep( colidList, rename, units, ucd, utype, desc );
     }
 
     /**
@@ -90,6 +97,7 @@ public class ColumnMetadataFilter extends BasicFilter {
         final String name_;
         final String units_;
         final String ucd_;
+        final String utype_;
         final String desc_;
 
         /**
@@ -99,14 +107,16 @@ public class ColumnMetadataFilter extends BasicFilter {
          * @param   name    new column name
          * @param   units   new column units
          * @param   ucd     new column ucd
+         * @param   utype   new column utype
          * @param   desc    new column description
          */
         public ColMetaStep( String colidList, String name, String units,
-                            String ucd, String desc ) {
+                            String ucd, String utype, String desc ) {
             colidList_ = colidList;
             name_ = name;
             units_ = units;
             ucd_ = ucd;
+            utype_ = utype;
             desc_ = desc;
         }
 
@@ -127,6 +137,9 @@ public class ColumnMetadataFilter extends BasicFilter {
                     }
                     if ( ucd_ != null ) {
                         info.setUCD( ucd_ );
+                    }
+                    if ( utype_ != null ) {
+                        info.setUtype( utype_ );
                     }
                     if ( desc_ != null ) {
                         info.setDescription( desc_ );

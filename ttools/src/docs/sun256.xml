@@ -934,7 +934,7 @@ on the command line is equivalent to having the following in your
     </p></dd>
 
 <dt><code>votable.namespacing</code></dt>
-<dd><p>Determines how namespacing is handled in VOTable documents.
+<dd><p>Determines how namespacing is handled in input VOTable documents.
     Known values are 
     "<code>none</code>" (no namespacing, xmlns declarations
     in VOTable document will probably confuse parser),
@@ -954,6 +954,14 @@ on the command line is equivalent to having the following in your
     attributes on <code>FIELD</code> or <code>PARAM</code> 
     elements with <code>datatype="char"</code>.
     False by default.
+    </p></dd>
+
+<dt><code>votable.version</code></dt>
+<dd><p>Selects the version of the VOTable standard which output VOTables
+    will conform to by default.
+    May take the values "<code>1.0</code>", "<code>1.1</code>",
+    "<code>1.2</code>" or "<code>1.3</code>".
+    By default, version 1.1 VOTables are written.
     </p></dd>
 
 </dl>
@@ -1857,7 +1865,7 @@ The following list gives the values usually allowed for this
     </p></dd>
 
 <dt><code>votable</code></dt>
-<dd><p>VOTable format - any legal version 1.0, 1.1 or 1.2 format 
+<dd><p>VOTable format - any legal version 1.0, 1.1, 1.2 or 1.3 format 
     VOTable documents, and many illegal ones, can be read.
     For commands which take a single input table, by default the first
     <code>TABLE</code> element in the document is used, but this can be
@@ -1947,11 +1955,17 @@ Matching is case-insensitive.
 
 <dt><code>votable-binary-inline</code></dt>
 <dd><p>VOTable document with BINARY-encoded data inline within a 
-    <code>STREAM</code> element</p></dd>
+    <code>STREAM</code> element.
+    If VOTable 1.3 output is in force
+    (see <code>votable.version</code> system property),
+    <code>votable-binary2-inline</code> is provided instead.</p></dd>
 
 <dt><code>votable-binary-href</code></dt>
 <dd><p>VOTable document with BINARY-encoded data in a separate file
-    (only if not writing to a stream)</p></dd>
+    (only if not writing to a stream).
+    If VOTable 1.3 output is in force
+    (see <code>votable.version</code> system property),
+    <code>votable-binary2-href</code> is provided instead.</p></dd>
 
 <dt><code>votable-fits-href</code></dt>
 <dd><p>VOTable document with FITS-encoded data in a separate file
@@ -6807,10 +6821,8 @@ Contact this author if this seems to be a serious issue for you.
 
 <p>Votlint checks that the XML input is well-formed, and, unless the
 <code>valid=false</code> parameter is supplied, that it validates against the
-1.0, 1.1 or 1.2 (as appropriate) DTD.  Although VOTable 1.1 and 1.2 are properly
-defined against an XML Schema rather than a DTD, in conjunction with
-the other checks done, the DTD validation turns out to be pretty comprehensive.
-Some of the DTD validity checks are also done by
+1.0 DTD or 1.1, 1.2 or 1.3 schema as appropriate.
+Some of the validity checks are also done by
 <code>votlint</code> internally, so that some validity-type 
 errors may give rise to more than one warning.  
 In general, the program errs on the side of verbosity.
@@ -6822,7 +6834,7 @@ and lead to ERROR reports if violations are found:
 <li><code>TD</code> contents incompatible
     <code>datatype</code>/<code>arraysize</code> attributes declared
     in <code>FIELD</code></li>
-<li>BINARY data streams which don't match metadata 
+<li>BINARY/BINARY2 data streams which don't match metadata 
     declared in <code>FIELD</code></li>
 <li><code>PARAM</code> values incompatible with declared 
     <code>datatype</code>/<code>arraysize</code></li>
@@ -6903,7 +6915,12 @@ then the output of a <code>votlint</code> run looks like this:
   WARNING (l.15): Wrong number of TDs in row (expecting 3 found 4)
   ERROR (l.18): Row count (1) not equal to nrows attribute (2)
 ]]></verbatim>
-Note the warning at line 11 has resulted from the same error as the
+(Note that the details of the reports will vary according to
+the XML parser/validator that forms part of your Java installation.)
+</p>
+
+<p>Note also that the warning at line 11 has resulted from
+the same error as the
 one at line 4 - because the <code>FIELD</code> element has no
 <code>arraysize</code> attribute, <code>arraysize="1"</code> 
 (single character) is assumed,
@@ -8248,6 +8265,30 @@ but my thanks are especially due to the following:
         for TAP capability unit values.</li>
     <li>Upgrade to JSAMP v1.3-3.</li>
     <li>Add K-Corrections functions of I&amp;I.</li>
+    <li>Add <code>-utype</code> flags for <code>addcol</code>,
+        <code>replacecol</code>, <code>colmeta</code> and
+        <code>setparam</code> filters,
+        and <code>utype</code> option for <code>meta</code> filter.</li>
+    <li>The version of VOTable which is written can now be selected,
+        by using the system property <code>votable.version</code>.
+        Output version is VOTable 1.1 by default.</li>
+    <li>The <code>votcopy</code> command has a new <code>version</code>
+        parameter to control output version,
+        and a new <code>nomagic</code> parameter to control whether
+        <code>VALUES</code>/<code>null</code> attributes are removed
+        where appropriate.</li>
+    <li>VOTable 1.3 input and output is supported.</li>
+    <li>Encode infinite values correctly in VOTable output
+        ("<code>+Inf</code>"/"<code>-Inf</code>",
+        not "<code>Infinity</code>"/"<code>-Infinity</code>").</li>
+    <li><code>votlint</code> now stricter about floating point TD contents.</li>
+    <li>VOTable output no longer writes schemaLocation
+        attribute by default.</li>
+    <li>Changes to <code>votlint</code> so that it handles different VOTable
+        versions more capably.  Versions 1.1+ are now validated against a
+        schema (which is how those versions are defined) rather than against
+        a DTD hacked to do the same job as the schema.
+        VOTable 1.3 validation is now provided.</li>
     </ul>
     </p></dd>
 

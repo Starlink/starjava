@@ -10,7 +10,8 @@ import uk.ac.starlink.table.StarTable;
 /**
  * Can identify columns of a table using string identifiers.
  * Permitted identifiers are (currently) column name (case insensitive),
- * column index (1-based), ucd$* style UCD specifiers (see JELRowReader) 
+ * column index (1-based), ucd$* / utype$* style UCD/Utype specifiers
+ * (see {@link JELRowReader}) 
  * and where requested cases simple wildcarding expressions.
  *
  * @author   Mark Taylor (Starlink)

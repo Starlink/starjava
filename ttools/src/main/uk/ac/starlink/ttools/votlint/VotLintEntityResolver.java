@@ -1,6 +1,7 @@
 package uk.ac.starlink.ttools.votlint;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
@@ -65,15 +66,26 @@ public class VotLintEntityResolver implements EntityResolver, LexicalHandler {
      * @return   SAX input source containing the DTD
      */
     private InputSource getVOTableDTD() {
-        VotableVersion version = context_.getVersion();
-        if ( version == null ) {
-            version = context_.getEffectiveVersion();
-            if ( context_.isValidating() ) {
-                context_.info( "Unspecified VOTable version"
-                             + " - validating for V" + version.getNumber() );
-            }
+        URL dtdUrl = context_.getVersion().getDtdUrl();
+        if ( dtdUrl == null ) {
+            return null;
         }
-        return version.getDTD( context_ );
+        else {
+            InputStream in;
+            try {
+                in = dtdUrl.openStream();
+            }
+            catch ( IOException e ) {
+                if ( context_.isValidating() ) {
+                    context_.warning( "Trouble opening DTD - "
+                                    + "validation may not be done" );
+                }
+                return null;
+            }
+            InputSource saxsrc = new InputSource( in );
+            saxsrc.setSystemId( dtdUrl.toString() );
+            return saxsrc;
+        }
     }
 
     /*

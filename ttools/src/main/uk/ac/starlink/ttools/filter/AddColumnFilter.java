@@ -17,7 +17,8 @@ public class AddColumnFilter extends BasicFilter {
     public AddColumnFilter() {
         super( "addcol", 
                "[-after <col-id> | -before <col-id>]\n" +
-               "[-units <units>] [-ucd <ucd>] [-desc <description>]\n" +
+               "[-units <units>] [-ucd <ucd>] [-utype <utype>] " +
+               "[-desc <descrip>]\n" +
                "<col-name> <expr>" );
     }
 
@@ -29,8 +30,8 @@ public class AddColumnFilter extends BasicFilter {
             "of the table, but you can position it either before or",
             "after a specified column using the <code>-before</code>",
             "or <code>-after</code> flags respectively.",
-            "The <code>-units</code>, <code>-ucd</code> and",
-            "<code>-desc</code> flags can be used to define",
+            "The <code>-units</code>, <code>-ucd</code> <code>-utype</code>",
+            "and <code>-desc</code> flags can be used to define",
             "metadata values for the new column.",
             "</p>",
             explainSyntax( new String[] { "expr", "col-id", } ),
@@ -43,6 +44,7 @@ public class AddColumnFilter extends BasicFilter {
         String expr = null;
         String units = null;
         String ucd = null;
+        String utype = null;
         String description = null;
         boolean after = false;
         while ( argIt.hasNext() && ( colName == null || expr == null ) ) {
@@ -71,6 +73,11 @@ public class AddColumnFilter extends BasicFilter {
                 ucd = (String) argIt.next();
                 argIt.remove();
             }
+            else if ( arg.equals( "-utype" ) && argIt.hasNext() ) {
+                argIt.remove();
+                utype = (String) argIt.next();
+                argIt.remove();
+            }
             else if ( arg.equals( "-desc" ) && argIt.hasNext() ) {
                 argIt.remove();
                 description = (String) argIt.next();
@@ -92,6 +99,9 @@ public class AddColumnFilter extends BasicFilter {
             }
             if ( ucd != null ) {
                 colinfo.setUCD( ucd );
+            }
+            if ( utype != null ) {
+                colinfo.setUtype( utype );
             }
             if ( description != null ) {
                 colinfo.setDescription( description );

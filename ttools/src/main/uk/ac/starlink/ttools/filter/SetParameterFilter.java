@@ -18,7 +18,8 @@ public class SetParameterFilter extends BasicFilter {
     public SetParameterFilter() {
         super( "setparam",
                "[-type byte|short|int|long|float|double|boolean|string]\n" +
-               "[-desc <descrip>] [-unit <units>] [-ucd <ucd>]\n" +
+               "[-desc <descrip>] [-unit <units>] [-ucd <ucd>] " +
+               "[-utype <utype>]\n" +
                "<pname> <pval>" );
     }
 
@@ -42,6 +43,7 @@ public class SetParameterFilter extends BasicFilter {
         String pval = null;
         String pdesc = null;
         String pucd = null;
+        String putype = null;
         String punits = null;
         while ( argIt.hasNext() ) {
             String arg = (String) argIt.next();
@@ -60,6 +62,12 @@ public class SetParameterFilter extends BasicFilter {
                       argIt.hasNext() ) {
                 argIt.remove();
                 pucd = (String) argIt.next();
+                argIt.remove();
+            }
+            else if ( arg.equals( "-utype" ) && putype == null &&
+                      argIt.hasNext() ) {
+                argIt.remove();
+                putype = (String) argIt.next();
                 argIt.remove();
             }
             else if ( arg.startsWith( "-unit" ) && punits == null &&
@@ -87,12 +95,14 @@ public class SetParameterFilter extends BasicFilter {
         final String value = pval;
         final String descrip = pdesc;
         final String ucd = pucd;
+        final String utype = putype;
         final String units = punits;
         final Class clazz = type == null ? null : getClass( type );
         return new ProcessingStep() {
             public StarTable wrap( StarTable base ) throws IOException {
                 base.setParameter( createDescribedValue( name, value, descrip,
-                                                         ucd, units, clazz ) );
+                                                         ucd, utype, units,
+                                                         clazz ) );
                 return base;
             }
         };
@@ -139,6 +149,7 @@ public class SetParameterFilter extends BasicFilter {
      * @param   sval  string representation of parameter value
      * @param   descrip  parameter description, or null
      * @param   ucd   parameter UCD, or null
+     * @param   utype  parameter Utype, or null
      * @param   units  parameter units, or null
      * @param   clazz  class of parameter type, or null for automatic
      *          determination
@@ -147,6 +158,7 @@ public class SetParameterFilter extends BasicFilter {
                                                         String sval,
                                                         String descrip,
                                                         String ucd,
+                                                        String utype,
                                                         String units,
                                                         Class clazz )
             throws IOException {
@@ -233,6 +245,9 @@ public class SetParameterFilter extends BasicFilter {
         DefaultValueInfo info = new DefaultValueInfo( name, clazz, descrip );
         if ( ucd != null && ucd.trim().length() > 0 ) {
             info.setUCD( ucd );
+        }
+        if ( utype != null && utype.trim().length() > 0 ) {
+            info.setUtype( utype );
         }
         if ( units != null && units.trim().length() > 0 ) {
             info.setUnitString( units );

@@ -1,98 +1,57 @@
 package uk.ac.starlink.ttools.votlint;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
-import org.xml.sax.InputSource;
+import uk.ac.starlink.votable.VOTableVersion;
 
 /**
- * Encapsulates VOTable version-specific aspects of validation process.
+ * Contains VOTable version-specific validation logic.
  *
  * @author   Mark Taylor
- * @since    3 Sep 2009
+ * @since    22 Nov 2012
  */
-public abstract class VotableVersion implements Comparable {
+public abstract class VersionDetail {
 
-    private final String number_;
-    private final URL dtdUrl_;
-    private final String namespaceUri_;
-    private final int sequence_;
-    private final Map checkersMap_;
+    private final VOTableVersion version_;
+    private final Map<String,Map<String,AttributeChecker>> checkersMap_;
 
-    /** Version object for VOTable 1.0. */
-    public static final VotableVersion V10;
-
-    /** Version object for VOTable 1.1. */
-    public static final VotableVersion V11;
-
-    /** Version object for VOTable 1.2. */
-    public static final VotableVersion V12;
-
-    /** List of known versions. */
-    public static final VotableVersion[] KNOWN_VERSIONS = new VotableVersion[] {
-        V10 = new VotableVersion10(),
-        V11 = new VotableVersion11(),
-        V12 = new VotableVersion12(),
-    };
+    private static final VersionDetail V10;
+    private static final VersionDetail V11;
+    private static final VersionDetail V12;
+    private static final VersionDetail V13;
+    private static final VersionDetail DUMMY = new DummyVersionDetail();
+    private static final Map<VOTableVersion,VersionDetail> VERSION_MAP =
+            createMap( new VersionDetail[] {
+        V10 = new VersionDetail10( VOTableVersion.V10 ),
+        V11 = new VersionDetail11( VOTableVersion.V11 ),
+        V12 = new VersionDetail12( VOTableVersion.V12 ),
+        V13 = new VersionDetail13( VOTableVersion.V13 ),
+    } );
 
     /**
      * Constructor.
+     *
+     * @param   version   VOTable version to which this detail applies
      */
-    protected VotableVersion( String number, URL dtdUrl, String namespaceUri ) {
-        number_ = number;
-        dtdUrl_ = dtdUrl;
-        namespaceUri_ = namespaceUri;
-        sequence_ = Math.round( Float.parseFloat( number ) * 10f );
-        checkersMap_ = new HashMap();
+    protected VersionDetail( VOTableVersion version ) {
+        version_ = version;
+        checkersMap_ = new HashMap<String,Map<String,AttributeChecker>>();
     }
 
     /**
-     * Returns the version number as a string.
+     * Returns a map of attribute checkers suitable for processing
+     * elements of a given name.
      *
-     * @return  version number string
+     * @param   voTagname  unqualified element name in VOTable namespace
+     * @return  String->AttributeChecker map for checking attributes
      */
-    public String getNumber() {
-        return number_;
-    }
-
-    /**
-     * Returns the DTD for this version as a SAX InputSource.
-     *
-     * @param  context  processing context (used for error reporting)
-     * @return  DTD source; null if there's a problem
-     */
-    public InputSource getDTD( VotLintContext context ) {
-        if ( dtdUrl_ != null ) {
-            InputStream in;
-            try {
-                in = dtdUrl_.openStream();
-            }
-            catch ( IOException e ) {
-                if ( context.isValidating() ) {
-                    context.warning( "Trouble opening DTD - "
-                                   + "validation may not be done" );
-                }
-                return null;
-            }
-            InputSource saxsrc = new InputSource( in );
-            saxsrc.setSystemId( dtdUrl_.toString() );
-            return saxsrc;
+    public Map<String,AttributeChecker>
+            getAttributeCheckers( String voTagname ) {
+        if ( ! checkersMap_.containsKey( voTagname ) ) {
+            checkersMap_.put( voTagname, createAttributeCheckers( voTagname ) );
         }
-        else {
-            return null;
-        }
-    }
-
-    /**
-     * Returns the namespace URI properly associated with this version.
-     * It's null in some cases.
-     *
-     * @return  XML namespace URI for VOTable elements
-     */
-    public String getNamespaceUri() {
-        return namespaceUri_;
+        return checkersMap_.get( voTagname );
     }
 
     /**
@@ -112,7 +71,7 @@ public abstract class VotableVersion implements Comparable {
             if ( handler == null ) {
                 if ( ! context.isValidating() ) {
                     context.error( "Element " + voTagname
-                                 + " not known at VOTable " + getNumber() );
+                                 + " not known at VOTable " + version_ );
                 }
                 handler = new ElementHandler();
             }
@@ -122,21 +81,7 @@ public abstract class VotableVersion implements Comparable {
     }
 
     /**
-     * Returns a map of attribute checkers suitable for processing
-     * elements of a given name.
-     *
-     * @param   voTagname  unqualified element name in VOTable namespace
-     * @return  String->AttributeChecker map for checking attributes
-     */
-    public Map getAttributeCheckers( String voTagname ) {
-        if ( ! checkersMap_.containsKey( voTagname ) ) {
-            checkersMap_.put( voTagname, createAttributeCheckers( voTagname ) );
-        }
-        return (Map) checkersMap_.get( voTagname );
-    }
-
-    /**
-     * Constructs a new element handler for an element with the given 
+     * Constructs a new element handler for an element with the given
      * unqualified VOTable tag name.
      *
      * @param  voTagname  unqualified element name
@@ -151,69 +96,51 @@ public abstract class VotableVersion implements Comparable {
      * @param   voTagname  unqualified element name in VOTable namespace
      * @return  String->AttributeChecker map for checking attributes
      */
-    protected abstract Map createAttributeCheckers( String voTagname );
+    protected abstract Map<String,AttributeChecker>
+            createAttributeCheckers( String voTagname );
 
     /**
-     * Returns the version number.
-     */
-    public String toString() {
-        return getNumber();
-    }
-
-    /**
-     * Comparison based on version number.
-     */
-    public int compareTo( Object o ) {
-        VotableVersion other = (VotableVersion) o;
-        return this.sequence_ - other.sequence_;
-    }
-
-    /**
-     * Returns the version object for a given version string.
+     * Returns a VersionDetail instance suitable for use with the given
+     * context.
      *
-     * @param   number  version string
-     * @return  version object, or null if not known
+     * @param   context   validation context
+     * @return  instance, not null
      */
-    public static VotableVersion getVersionByNumber( String number ) {
-        for ( int i = 0; i < KNOWN_VERSIONS.length; i++ ) {
-            VotableVersion version = KNOWN_VERSIONS[ i ];
-            if ( version.getNumber().equals( number ) ) {
-                return version;
-            }
+    public static VersionDetail getInstance( VotLintContext context ) {
+        VOTableVersion version = context.getVersion();
+        if ( VERSION_MAP.containsKey( version ) ) {
+            return VERSION_MAP.get( version );
         }
-        return null;
+        else {
+            context.warning( "No checking information available for version "
+                           + version );
+            return DUMMY;
+        }
     }
 
     /**
-     * Returns the version object for a given XML namespace URI.
+     * Constructs a version->detail map from a list of detail instances.
      *
-     * @param  namespaceUri  XML namespace associated with version
-     * @return  version object, or null if not known
+     * @param  vds  array of VersionDetail instances
+     * @return  map keyed by the VOTableVersion of each instance
      */
-    public static VotableVersion getVersionByNamespace( String namespaceUri ) {
-        for ( int i = 0; i < KNOWN_VERSIONS.length; i++ ) {
-            VotableVersion version = KNOWN_VERSIONS[ i ];
-            String vns = version.getNamespaceUri();
-            if ( ( vns == null && namespaceUri == null ) ||
-                 ( vns != null && vns.equals( namespaceUri ) ) ) {
-                return version;
-            }
+    private static Map<VOTableVersion,VersionDetail>
+            createMap( VersionDetail[] vds ) {
+        Map<VOTableVersion,VersionDetail> map =
+            new LinkedHashMap<VOTableVersion,VersionDetail>();
+        for ( int i = 0; i < vds.length; i++ ) {
+            map.put( vds[ i ].version_, vds[ i ] );
         }
-        return null;
+        return map;
     }
 
     /**
      * Version implementation for VOTable 1.0.
      */
-    private static class VotableVersion10 extends VotableVersion {
+    private static class VersionDetail10 extends VersionDetail {
 
-        /**
-         * Constructor.
-         */
-        VotableVersion10() {
-            super( "1.0",
-                   VotableVersion.class.getResource( "votable-1.0.dtd" ),
-                   null );
+        VersionDetail10( VOTableVersion version ) {
+            super( version );
         }
 
         protected ElementHandler createElementHandler( String name ) {
@@ -239,7 +166,7 @@ public abstract class VotableVersion implements Comparable {
                 return new StreamHandler();
             }
             else if ( "BINARY".equals( name ) ) {
-                return new BinaryHandler();
+                return new BinaryHandler( false );
             }
             else if ( "FITS".equals( name ) ) {
                 return new FitsHandler();
@@ -263,8 +190,10 @@ public abstract class VotableVersion implements Comparable {
             }
         }
 
-        protected Map createAttributeCheckers( String name ) {
-            Map map = new HashMap();
+        protected Map<String,AttributeChecker>
+                createAttributeCheckers( String name ) {
+            Map<String,AttributeChecker> map =
+                new HashMap<String,AttributeChecker>();
             boolean hasID = false;
             boolean hasName = false;
             if ( name == null ) {
@@ -336,7 +265,7 @@ public abstract class VotableVersion implements Comparable {
                 hasID = true;
                 map.put( "version", new VersionChecker() );
             }
-    
+
             if ( hasID ) {
                 map.put( "ID", new IDChecker() );
             }
@@ -348,17 +277,12 @@ public abstract class VotableVersion implements Comparable {
     }
 
     /**
-     * Version implementation for VOTable 1.1.
+     * VersionDetail implementation for VOTable 1.1.
      */
-    private static class VotableVersion11 extends VotableVersion {
+    private static class VersionDetail11 extends VersionDetail {
 
-        /**
-         * Constructor.
-         */
-        VotableVersion11() {
-            super( "1.1", 
-                   VotableVersion.class.getResource( "votable-1.1.dtd" ),
-                   "http://www.ivoa.net/xml/VOTable/v1.1" );
+        VersionDetail11( VOTableVersion version ) {
+            super( version );
         }
 
         protected ElementHandler createElementHandler( String name ) {
@@ -376,14 +300,16 @@ public abstract class VotableVersion implements Comparable {
             }
         }
 
-        protected Map createAttributeCheckers( String name ) {
-            Map map = V10.createAttributeCheckers( name );
+        protected Map<String,AttributeChecker>
+                createAttributeCheckers( String name ) {
+            Map<String,AttributeChecker> map =
+                V10.createAttributeCheckers( name );
             if ( "LINK".equals( name ) ) {
                 map.put( "gref", new DeprecatedAttChecker( "gref" ) );
             }
             else if ( "FIELDref".equals( name ) ) {
                 map.put( "ref", new RefChecker( "FIELD" ) );
-            } 
+            }
             else if ( "GROUP".equals( name ) ) {
                 map.put( "ref", new RefChecker( new String[] { "GROUP",
                                                                "COOSYS", } ) );
@@ -398,17 +324,12 @@ public abstract class VotableVersion implements Comparable {
     }
 
     /**
-     * Version implementation for VOTable 1.2.
+     * VersionDetail implementation for VOTable 1.2.
      */
-    private static class VotableVersion12 extends VotableVersion {
+    private static class VersionDetail12 extends VersionDetail {
 
-        /**
-         * Constructor.
-         */
-        VotableVersion12() {
-            super( "1.2",
-                   VotableVersion.class.getResource( "votable-1.2.dtd" ),
-                   "http://www.ivoa.net/xml/VOTable/v1.2" );
+        VersionDetail12( VOTableVersion version ) {
+            super( version );
         }
 
         protected ElementHandler createElementHandler( String name ) {
@@ -425,14 +346,57 @@ public abstract class VotableVersion implements Comparable {
             }
         }
 
-        protected Map createAttributeCheckers( String name ) {
-            Map map = V11.createAttributeCheckers( name );
+        protected Map<String,AttributeChecker>
+                createAttributeCheckers( String name ) {
+            Map<String,AttributeChecker> map =
+                V11.createAttributeCheckers( name );
             if ( "GROUP".equals( name ) ) {
                 map.put( "ref", new RefChecker( new String[] { "GROUP",
                                                                "COOSYS",
                                                                "TABLE", } ) );
             }
             return map;
+        }
+    }
+
+    /**
+     * VersionDetail implementation for VOTable 1.3.
+     */
+    private static class VersionDetail13 extends VersionDetail {
+
+        VersionDetail13( VOTableVersion version ) {
+            super( version );
+        }
+
+        protected ElementHandler createElementHandler( String name ) {
+            ElementHandler handler = V12.createElementHandler( name );
+            if ( handler != null ) {
+                return handler;
+            }
+            else if ( "BINARY2".equals( name ) ) {
+                return new BinaryHandler( true );
+            }
+            else {
+                return null;
+            }
+        }
+
+        protected Map<String,AttributeChecker>
+               createAttributeCheckers( String name ) {
+            return V12.createAttributeCheckers( name );
+        }
+    }
+
+    private static class DummyVersionDetail extends VersionDetail {
+        DummyVersionDetail() {
+            super( null );
+        }
+        protected ElementHandler createElementHandler( String voTagName ) {
+            return new ElementHandler();
+        }
+        protected Map<String,AttributeChecker>
+                createAttributeCheckers( String name ) {
+            return new HashMap<String,AttributeChecker>();
         }
     }
 }

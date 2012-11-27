@@ -20,6 +20,7 @@ import org.xml.sax.SAXParseException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.ext.LexicalHandler;
 import org.xml.sax.helpers.DefaultHandler;
+import uk.ac.starlink.util.IOUtils;
 
 /**
  * Attempts to check that a DOCTYPE declaration is present in an
@@ -69,7 +70,7 @@ public class DoctypeInterpolator {
 
             /* Mark and read the first part of the stream. */
             in.mark( leng );
-            byte[] buf = readBytes( in, leng );
+            byte[] buf = IOUtils.readBytes( in, leng );
 
             /* See if this is enough to tell whether there is a Document
              * Type Declaration in the stream. */
@@ -123,35 +124,6 @@ public class DoctypeInterpolator {
      */
     public void message( String msg ) {
         System.err.println( msg );
-    }
-
-    /**
-     * Reads a number of bytes from a document.  The specified number of
-     * bytes or the whole of the file is read, whichever is shorter.
-     *
-     * @param   in  input stream
-     * @param   maxLeng  maximum number of bytes to read
-     * @return   buffer of bytes containing <tt>maxLeng</tt> bytes
-     *           read from <tt>in</tt>, or fewer if the stream ended early
-     */
-    private byte[] readBytes( InputStream in, int maxLeng ) throws IOException {
-        byte[] buf = new byte[ maxLeng ];
-        int pos = 0;
-        while ( maxLeng - pos > 0 ) {
-            int ngot = in.read( buf, pos, maxLeng - pos );
-            if ( ngot > 0 ) {
-                pos += ngot;
-            }
-            else {
-                break;
-            }
-        }
-        if ( pos < maxLeng ) {
-            byte[] buf2 = new byte[ pos ];
-            System.arraycopy( buf, 0, buf2, 0, pos );
-            buf = buf2;
-        }
-        return buf;
     }
 
     /**

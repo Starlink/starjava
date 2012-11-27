@@ -29,10 +29,13 @@ import uk.ac.starlink.task.ExecutionException;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.task.TaskException;
+import uk.ac.starlink.task.UsageException;
 import uk.ac.starlink.ttools.copy.VotCopyHandler;
+import uk.ac.starlink.ttools.votlint.VersionDetector;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.StarEntityResolver;
 import uk.ac.starlink.votable.DataFormat;
+import uk.ac.starlink.votable.VOTableVersion;
 
 /**
  * Task which Copies a VOTable XML document intact but with control over the
@@ -49,10 +52,12 @@ public class VotCopy implements Task {
 
     private final Parameter inParam_;
     private final Parameter outParam_;
-    private final ChoiceParameter formatParam_;
+    private final ChoiceParameter<DataFormat> formatParam_;
+    private final ChoiceParameter<VOTableVersion> versionParam_;
     private final XmlEncodingParameter xencParam_;
     private final BooleanParameter cacheParam_;
     private final BooleanParameter hrefParam_;
+    private final BooleanParameter nomagicParam_;
     private final Parameter baseParam_;
 
     /**
@@ -83,8 +88,10 @@ public class VotCopy implements Task {
             "</p>",
         } );
 
-        formatParam_ = new ChoiceParameter( "format", new DataFormat[] {
-            DataFormat.TABLEDATA, DataFormat.BINARY, DataFormat.FITS,
+        formatParam_ = new ChoiceParameter<DataFormat>( "format",
+                                                        new DataFormat[] {
+            DataFormat.TABLEDATA, DataFormat.BINARY, DataFormat.BINARY2,
+            DataFormat.FITS,
         } );
         formatParam_.setPosition( 3 );
         formatParam_.setPrompt( "Output votable format" );
@@ -99,6 +106,24 @@ public class VotCopy implements Task {
             "data-less (will contain no DATA element), leaving only",
             "the document structure.",
             "Data-less tables are legal VOTable elements.",
+            "</p>",
+            "<p>The <code>BINARY2</code> format is only available for",
+            "<code>version</code>=<code>1.3</code>",
+            "</p>",
+        } );
+
+        versionParam_ =
+            new ChoiceParameter<VOTableVersion>( "version",
+                                 VOTableVersion.getKnownVersions().values()
+                                .toArray( new VOTableVersion[ 0 ] ) );
+        versionParam_.setPrompt( "Output votable version" );
+        versionParam_.setNullPermitted( true );
+        versionParam_.setDefault( null );
+        versionParam_.setDescription( new String[] {
+            "<p>Determines the version of the VOTable standard to which",
+            "the output will conform.",
+            "If null (the default), the output table will have the same",
+            "version as the input table.",
             "</p>",
         } );
 
@@ -117,6 +142,37 @@ public class VotCopy implements Task {
         hrefParam_ = new BooleanParameter( "href" );
         hrefParam_.setPrompt( "Output FITS/BINARY data external to " +
                               "output document?" );
+
+        nomagicParam_ = new BooleanParameter( "nomagic" );
+        nomagicParam_.setPrompt( "Eliminate VALUES/null attributes " +
+                                 "where appropriate" );
+        nomagicParam_.setDescription( new String[] {
+            "<p>Eliminate the <code>null</code> attributes of",
+            "<code>VALUES</code> elements",
+            "where they are no longer required.",
+            "In VOTable versions &lt;=1.2, the only way to specify",
+            "null values for integer-type scalar columns was to use",
+            "the <code>null</code> attribute of the <code>VALUES</code>",
+            "element to indicate an in-band magic value representing null.",
+            "From VOTable v1.3, null values can be represented using",
+            "empty <code>&lt;TD&gt;</code> elements or flagged",
+            "specially in <code>BINARY2</code> streams.",
+            "In these cases, it is recommended (though not required)",
+            "not to use the <code>VALUES</code>/<code>null</code> mechanism.",
+            "</p>",
+            "<p>If this parameter is set true, then any",
+            "<code>VALUES</code>/<code>null</code>",
+            "attributes will be removed in VOTable 1.3 BINARY2 or TABLEDATA",
+            "output.",
+            "If this results in an empty <code>VALUES</code> element,",
+            "it too will be removed.",
+            "</p>",
+            "<p>This parameter is ignored if the output VOTable version",
+            "is lower than 1.3 or if",
+            "<code>" + formatParam_.getName() + "</code>=BINARY/FITS.",
+            "</p>",
+        } );
+        nomagicParam_.setDefault( "true" );
 
         baseParam_ = new Parameter( "base" );
         baseParam_.setUsage( "<location>" );
@@ -161,9 +217,11 @@ public class VotCopy implements Task {
             inParam_,
             outParam_,
             formatParam_,
+            versionParam_,
             xencParam_,
             cacheParam_,
             hrefParam_,
+            nomagicParam_,
             baseParam_,
         };
     }
@@ -172,6 +230,13 @@ public class VotCopy implements Task {
         String inLoc = inParam_.stringValue( env );
         String outLoc = outParam_.stringValue( env );
         DataFormat format = (DataFormat) formatParam_.objectValue( env );
+        VOTableVersion forceVersion = versionParam_.objectValue( env );
+        if ( format == DataFormat.BINARY2 &&
+             forceVersion != null && ! forceVersion.allowBinary2() ) {
+            throw new UsageException( "BINARY2 not permitted for v"
+                                    + forceVersion + " - v1.3+ only" );
+        }
+        boolean nomagic = nomagicParam_.booleanValue( env );
         cacheParam_.setDefault( format == DataFormat.FITS );
         PrintStream pstrm = env.getOutputStream();
         boolean inline;
@@ -180,7 +245,8 @@ public class VotCopy implements Task {
             inline = true;
         }
         else {
-            if ( format == DataFormat.BINARY ) {
+            if ( format == DataFormat.BINARY ||
+                 format == DataFormat.BINARY2 ) {
                 hrefParam_.setDefault( "false" );
             }
             else if ( format == DataFormat.FITS ) {
@@ -207,8 +273,8 @@ public class VotCopy implements Task {
         boolean strict = LineTableEnvironment.isStrictVotable( env );
         boolean cache = cacheParam_.booleanValue( env );
         StoragePolicy policy = LineTableEnvironment.getStoragePolicy( env );
-        return new VotCopier( inLoc, outLoc, pstrm, xenc, inline, base,
-                              format, strict, cache, policy );
+        return new VotCopier( inLoc, outLoc, pstrm, xenc, inline, nomagic, base,
+                              format, forceVersion, strict, cache, policy );
     }
 
     /**
@@ -221,37 +287,72 @@ public class VotCopy implements Task {
         final PrintStream pstrm_;
         final Charset xenc_;
         final boolean inline_;
+        final boolean nomagic_;
         final String base_;
         final DataFormat format_;
+        final VOTableVersion forceVersion_;
         final boolean strict_;
         final boolean cache_;
         final StoragePolicy policy_;
 
         VotCopier( String inLoc, String outLoc, PrintStream pstrm, 
-                   Charset xenc, boolean inline, String base,
-                   DataFormat format, boolean strict, boolean cache,
-                   StoragePolicy policy ) {
+                   Charset xenc, boolean inline, boolean nomagic,
+                   String base, DataFormat format, VOTableVersion forceVersion,
+                   boolean strict, boolean cache, StoragePolicy policy ) {
             inLoc_ = inLoc;
             outLoc_ = outLoc;
             pstrm_ = pstrm;
             xenc_ = xenc;
             inline_ = inline;
+            nomagic_ = nomagic;
             base_ = base;
             format_ = format;
+            forceVersion_ = forceVersion;
             strict_ = strict;
             cache_ = cache;
             policy_ = policy;
         }
 
         public void execute() throws IOException, ExecutionException {
-            InputStream in = null;
+            BufferedInputStream in = null;
             Writer out = null;
             try {
 
                 /* Get input stream. */
                 String systemId = inLoc_.equals( "-" ) ? "." : inLoc_;
-                in = DataSource.getInputStream( inLoc_ );
-                in = new BufferedInputStream( in );
+                in = new BufferedInputStream( DataSource
+                                             .getInputStream( inLoc_ ) );
+
+                /* Try to get an output VOTable version, from the input
+                 * table if necessary. */
+                final VOTableVersion version;
+                if ( forceVersion_ != null ) {
+                    version = forceVersion_;
+                }
+                else {
+                    String vstr = VersionDetector.getVersionString( in );
+                    if ( vstr == null ) {
+                        version = null;
+                    }
+                    else {
+                        version = VOTableVersion.getKnownVersions().get( vstr );
+                    }
+                }
+                if ( format_ == DataFormat.BINARY2 &&
+                     version != null &&
+                     ! version.allowBinary2() ) {
+                    throw new ExecutionException( "BINARY2 not permitted for v"
+                                                + version + " - v1.3+ only" );
+                }
+
+                /* Determine whether to eliminate VALUES/null attributes. */
+                boolean squashMagic =
+                       nomagic_
+                    && version != null
+                    && ( ( format_ == DataFormat.BINARY2
+                                      && version.allowBinary2() ) ||
+                         ( format_ == DataFormat.TABLEDATA
+                                      && version.allowEmptyTd() ) );
 
                 /* Get output stream */
                 OutputStream ostrm = outLoc_.equals( "-" )
@@ -263,8 +364,9 @@ public class VotCopy implements Task {
                 /* Construct a handler which can take SAX and SAX-like
                  * events and turn them into XML output. */
                 VotCopyHandler handler =
-                    new VotCopyHandler( strict_, format_, inline_,
-                                        base_, cache_, policy_ );
+                    new VotCopyHandler( strict_, format_, forceVersion_,
+                                        inline_, squashMagic, base_,
+                                        cache_, policy_ );
                 handler.setOutput( out );
 
                 /* Output the XML declaration. */

@@ -29,6 +29,7 @@ import uk.ac.starlink.votable.DataFormat;
 import uk.ac.starlink.votable.TableContentHandler;
 import uk.ac.starlink.votable.TableHandler;
 import uk.ac.starlink.votable.VOSerializer;
+import uk.ac.starlink.votable.VOTableVersion;
 
 /**
  * SAX content handler which takes SAX events and converts them to
@@ -48,7 +49,9 @@ public class VotCopyHandler
         implements ContentHandler, LexicalHandler, TableHandler {
 
     private final DataFormat format_;
+    private final VOTableVersion version_;
     private final boolean inline_;
+    private final boolean squashMagic_;
     private final String baseLoc_;
     private final boolean strict_;
     private final TableContentHandler votParser_;
@@ -82,21 +85,30 @@ public class VotCopyHandler
      *                 VOTable standard
      * @param  format  encoding type for output DATA elements; may be null
      *                 for DATA-less output
+     * @param  version VOTable standard version for output; may be null for
+     *                 unknown or indeterminate, in which case input version
+     *                 will be copied as far as possible
      * @param  inline  true for tables written inline, false for tables written
      *                 to an href-referenced stream
+     * @param  squashMagic  if true, any VALUES/null attributes are not
+     *                 passed through
      * @param  base    base table location; used to construct URIs for
      *                 out-of-line table streams (only used if inline=false)
      * @param  cache   whether tables will be cached prior to writing
      * @param  policy  storage policy for cached tables
      */
-    public VotCopyHandler( boolean strict, DataFormat format, boolean inline,
+    public VotCopyHandler( boolean strict, DataFormat format,
+                           VOTableVersion version, boolean inline,
+                           boolean squashMagic,
                            String base, boolean cache, StoragePolicy policy ) {
         if ( ! inline && base == null ) {
             throw new IllegalArgumentException( "Must specify base location " +
                                                 "for out-of-line tables" );
         }
         format_ = format;
+        version_ = version;
         inline_ = inline;
+        squashMagic_ = squashMagic;
         baseLoc_ = base;
         strict_ = strict;
         votParser_ = new TableContentHandler( strict );
@@ -167,7 +179,20 @@ public class VotCopyHandler
                               String qName, Attributes atts )
             throws SAXException {
         votParser_.startElement( namespaceURI, localName, qName, atts );
-        if ( "DATA".equals( localName ) ) {
+        if ( "VOTABLE".equals( localName ) && version_ != null ) {
+            AttributesImpl newAtts = new AttributesImpl( atts );
+            fixAttribute( newAtts, "version", version_.getVersionNumber() );
+            fixAttribute( newAtts, "xmlns", version_.getXmlNamespace() );
+            int ixsl = newAtts
+                      .getIndex( "http://www.w3.org/2001/XMLSchema-instance",
+                                 "schemaLocation" );
+            if ( ixsl >= 0 ) {
+                newAtts.setValue( ixsl, version_.getXmlNamespace() + " "
+                                      + version_.getSchemaLocation() );
+            }
+            atts = newAtts;
+        }
+        else if ( "DATA".equals( localName ) ) {
             handlerStack_.push( handler_ );
             handler_ = discardHandler_;
             saxWriter_.flush();
@@ -210,6 +235,11 @@ public class VotCopyHandler
                 atts = newAtts;
             }
         }
+        else if ( "VALUES".equals( localName ) && squashMagic_ ) {
+            handlerStack_.push( handler_ );
+            saxWriter_.flush();
+            handler_ = new SquashAttributeHandler( out_, "null", true );
+        }
         handler_.startElement( namespaceURI, localName, qName, atts );
     }
 
@@ -218,6 +248,11 @@ public class VotCopyHandler
         votParser_.endElement( namespaceURI, localName, qName );
         handler_.endElement( namespaceURI, localName, qName );
         if ( "DATA".equals( localName ) ) {
+            handler_ = handlerStack_.pop();
+        }
+        else if ( "VALUES".equals( localName ) &&
+                  handler_ instanceof SquashAttributeHandler ) {
+            ((SquashAttributeHandler) handler_).flush();
             handler_ = handlerStack_.pop();
         }
     }
@@ -313,13 +348,28 @@ public class VotCopyHandler
         iTable_++;
 
         /* Construct a serializer which can write the table data. */
-        VOSerializer voser = VOSerializer.makeSerializer( format_, table );
+        VOTableVersion serVers = version_ != null
+                               ? version_
+                               : VOTableVersion.V13;
+        VOSerializer voser =
+            VOSerializer.makeSerializer( format_, serVers, table );
 
         /* If it's out-of-line, open a new file for output and write data
          * to it. */
-        if ( ( format_ == DataFormat.BINARY || format_ == DataFormat.FITS ) &&
-             ! inline_ && baseLoc_ != null ) {
-            String ext = format_ == DataFormat.BINARY ? ".bin" : ".fits";
+        final String ext;
+        if ( format_ == DataFormat.BINARY ) {
+            ext = ".bin";
+        }
+        else if ( format_ == DataFormat.BINARY2 ) {
+            ext = ".bin2";
+        }
+        else if ( format_ == DataFormat.FITS ) {
+            ext = ".fits";
+        }
+        else {
+            ext = null;
+        }
+        if ( ext != null && ! inline_ && baseLoc_ != null ) {
             File file = new File( baseLoc_ + "-" + iTable_ + ext );
             if ( file.exists() ) {
                 log( Level.WARNING, "Overwriting file " + file + " for table " +
@@ -365,6 +415,26 @@ public class VotCopyHandler
         }
         buf.append( msg );
         logger_.log( level, buf.toString() );
+    }
+
+    /**
+     * Sets the value of a given attribute to a given value.
+     * If the value is present it will be overwritten, otherwise a new
+     * one (type CDATA) will be added.
+     *
+     * @param   atts  attribute set
+     * @param   name  qualified name of attribute
+     * @param   value  new value of attribute
+     */
+    private static void fixAttribute( AttributesImpl atts, String name,
+                                      String value ) {
+        int iatt = atts.getIndex( name );
+        if ( iatt >= 0 ) {
+            atts.setValue( iatt, value );
+        }
+        else {
+            atts.addAttribute( "", name, name, "CDATA", value );
+        }
     }
 
     /**

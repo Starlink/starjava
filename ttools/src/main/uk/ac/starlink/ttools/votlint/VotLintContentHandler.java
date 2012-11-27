@@ -12,6 +12,7 @@ import org.xml.sax.ContentHandler;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.Locator;
 import org.xml.sax.SAXParseException;
+import uk.ac.starlink.votable.VOTableVersion;
 
 /**
  * SAX ContentHandler used for linting VOTables.
@@ -25,6 +26,7 @@ import org.xml.sax.SAXParseException;
 public class VotLintContentHandler implements ContentHandler, ErrorHandler {
 
     private final VotLintContext context_;
+    private final VersionDetail versionDetail_;
     private final HandlerStack stack_;
     private final Set namespaceSet_;
 
@@ -40,6 +42,8 @@ public class VotLintContentHandler implements ContentHandler, ErrorHandler {
      */
     public VotLintContentHandler( VotLintContext context ) {
         context_ = context;
+        versionDetail_ = VersionDetail.getInstance( context );
+        assert versionDetail_ != null;
         stack_ = new HandlerStack();
         namespaceSet_ = new HashSet();
     }
@@ -72,8 +76,7 @@ public class VotLintContentHandler implements ContentHandler, ErrorHandler {
 
         /* Create a new handler for this element. */
         ElementHandler handler =
-            context_.getEffectiveVersion()
-                    .createElementHandler( localName, context_ );
+            versionDetail_.createElementHandler( localName, context_ );
 
         /* Push it on the stack. */
         stack_.push( handler );
@@ -93,8 +96,8 @@ public class VotLintContentHandler implements ContentHandler, ErrorHandler {
         }
 
         /* Perform custom checking on each attribute as appropriate. */
-        Map attCheckers =
-            context_.getEffectiveVersion().getAttributeCheckers( localName );
+        Map<String,AttributeChecker> attCheckers =
+            versionDetail_.getAttributeCheckers( localName );
         for ( int i = 0; i < natt; i++ ) {
             AttributeChecker checker =
                 (AttributeChecker) attCheckers.get( atts.getQName( i ) );
@@ -109,46 +112,21 @@ public class VotLintContentHandler implements ContentHandler, ErrorHandler {
                                  : namespaceURI;
         if ( ! namespaceSet_.contains( declaredNamespace ) ) {
             namespaceSet_.add( declaredNamespace );
-            VotableVersion contextVersion = context_.getVersion();
+            VOTableVersion contextVersion = context_.getVersion();
 
-            /* If the version has been declared, check for consistency. */
-            if ( contextVersion != null ) {
-                String versionNamespace = contextVersion.getNamespaceUri();
-                if ( declaredNamespace == null ) {
-                    if ( versionNamespace != null ) {
-                        context_.warning( "Element not namespaced, "
-                                        + "should be in " + versionNamespace );
-                    }
-                }
-                else if ( ! declaredNamespace.equals( versionNamespace ) ) {
-                    context_.warning( "Element in wrong namespace ("
-                                    + declaredNamespace + " not "
-                                    + versionNamespace + ")" );
+            /* Check for consistency with known namespace for the
+             * VOTable version under consideration. */
+            String versionNamespace = contextVersion.getXmlNamespace();
+            if ( declaredNamespace == null ) {
+                if ( versionNamespace != null ) {
+                    context_.warning( "Element not namespaced, "
+                                    + "should be in " + versionNamespace );
                 }
             }
-
-            /* Otherwise, try to work out the correct version from the
-             * namespace. */
-            else {
-                if ( declaredNamespace == null ) {
-                    // strictly speaking, this should imply VOTable 1.0,
-                    // but in practice it's more likely that the namespacing
-                    // has just been omitted.  Ignore.
-                }
-                else {
-                    VotableVersion nsVersion =
-                        VotableVersion
-                       .getVersionByNamespace( declaredNamespace );
-                    if ( nsVersion == null ) {
-                        context_.warning( "Element in unknown namespace "
-                                        + declaredNamespace );
-                    }
-                    else if ( nsVersion != contextVersion ) {
-                        context_.info( "Inferring VOTable version " + nsVersion
-                                     + " from namespace " + declaredNamespace );
-                        context_.setVersion( nsVersion );
-                    }
-                }
+            else if ( ! declaredNamespace.equals( versionNamespace ) ) {
+                context_.warning( "Element in wrong namespace ("
+                                + declaredNamespace + " not "
+                                + versionNamespace + ")" );
             }
         }
 

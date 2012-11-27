@@ -12,6 +12,12 @@ import java.io.PushbackInputStream;
  */
 public class BinaryHandler extends StreamingHandler {
 
+    private final boolean isBinary2_;
+
+    public BinaryHandler( boolean isBinary2 ) {
+        isBinary2_ = isBinary2;
+    }
+
     public void feed( InputStream in ) throws IOException {
 
         /* Prepare to read the stream. */
@@ -26,6 +32,11 @@ public class BinaryHandler extends StreamingHandler {
                 throw new IOException( "No stream validation" );
             }
         }
+        VotLintContext context = getContext();
+
+        /* Determine how many bytes at the start of each row are used to
+         * flag null values. */
+        int nflag = isBinary2_ ? ( ncol + 7 ) / 8 : 0;
 
         /* Read the stream. */
         PushbackInputStream pushIn = new PushbackInputStream( in );
@@ -41,6 +52,9 @@ public class BinaryHandler extends StreamingHandler {
             }
 
             /* Read a row. */
+            if ( nflag > 0 ) {
+                ValueParser.slurpStream( pushIn, nflag, context );
+            }
             for ( int icol = 0; icol < ncol; icol++ ) {
                 parsers[ icol ].checkStream( pushIn );
             }

@@ -1,5 +1,7 @@
 package uk.ac.starlink.ttools.votlint;
 
+import uk.ac.starlink.votable.VOTableVersion;
+
 /**
  * Attribute checker for the VOTABLE element's version attribute.
  *
@@ -12,28 +14,20 @@ public class VersionChecker implements AttributeChecker {
         VotLintContext context = handler.getContext();
 
         /* Check the stated version is known. */
-        VotableVersion statedVersion =
-            VotableVersion.getVersionByNumber( value ); 
+        VOTableVersion statedVersion =
+            VOTableVersion.getKnownVersions().get( value ); 
         if ( statedVersion == null ) {
             context.warning( "Unknown VOTable version: " + value );
         }
         else {
 
             /* Compare with the version value in the context. */
-            VotableVersion contextVersion = context.getVersion();
-
-            /* If not yet set, set it now. */
-            if ( contextVersion == null ) {
-                context.setVersion( statedVersion );
-            }
-
-            /* If already set, check for consistency. */
-            else if ( ! contextVersion.equals( statedVersion ) ) {
-                context.warning( "Declared version ("
-                               + statedVersion.getNumber()
-                               + ") differs from version specified to linter ("
-                               + contextVersion.getNumber()
-                               + ")" );
+            VOTableVersion contextVersion = context.getVersion();
+            if ( ! contextVersion.equals( statedVersion ) ) {
+                context.warning( "Declared version "
+                               + "(" + statedVersion + ")"
+                               + " differs from version specified to linter "
+                               + "(" + contextVersion + ")" );
             }
         }
     }
