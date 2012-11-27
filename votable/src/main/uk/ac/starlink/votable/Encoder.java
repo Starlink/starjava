@@ -239,12 +239,18 @@ abstract class Encoder {
      *          be encoded
      * @param   magicNulls  if true, the returned encoder may attempt to use
      *          a magic value to signify null values; if false, it never will
+<<<<<<< HEAD
      * @param   useUnicodeChar  if true, character-type columns will be output
      *          with datatype unicodeChar, else with datatype char
      * @return  an encoder object which can do it
      */
     public static Encoder getEncoder( ValueInfo info, boolean magicNulls,
                                       boolean useUnicodeChar ) {
+=======
+     * @return  an encoder object which can do it
+     */
+    public static Encoder getEncoder( ValueInfo info, boolean magicNulls ) {
+>>>>>>> merge changes from trunk
 
         final CharWriter cwrite = useUnicodeChar ? CharWriter.UCS2
                                                  : CharWriter.ASCII;
@@ -335,6 +341,7 @@ abstract class Encoder {
         }
 
         else if ( clazz == Float.class ) {
+            final float badVal = magicNulls ? Float.NaN : 0.0f;
             return new ScalarEncoder( info, "float", null ) {
                 public String encodeAsText( Object val ) {
                     if ( val instanceof Float &&
@@ -348,13 +355,14 @@ abstract class Encoder {
                 public void encodeToStream( Object val, DataOutput out )
                         throws IOException {
                     Number value = (Number) val;
-                    out.writeFloat( value == null ? Float.NaN
+                    out.writeFloat( value == null ? badVal
                                                   : value.floatValue() );
                 }
             };
         }
 
         else if ( clazz == Double.class ) {
+            final double badVal = magicNulls ? Double.NaN : 0.0;
             return new ScalarEncoder( info, "double", null ) {
                 public String encodeAsText( Object val ) {
                     if ( val instanceof Double &&
@@ -368,7 +376,7 @@ abstract class Encoder {
                 public void encodeToStream( Object val, DataOutput out )
                         throws IOException {
                     Number value = (Number) val;
-                    out.writeDouble( value == null ? Double.NaN
+                    out.writeDouble( value == null ? badVal
                                                    : value.doubleValue() );
                 }
             };
