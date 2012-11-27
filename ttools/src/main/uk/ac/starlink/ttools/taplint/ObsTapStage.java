@@ -59,10 +59,14 @@ public class ObsTapStage implements Stage {
 
     public String getDescription() {
 <<<<<<< HEAD
+<<<<<<< HEAD
         return "Test implementation of ObsCore Data Model";
 =======
         return "Tests implementation of ObsCore Data Model";
 >>>>>>> finished merging changes in trunk to branch splat-ari
+=======
+        return "Test implementation of ObsCore Data Model";
+>>>>>>> merging changes from trunk to splat-ari branch
     }
 
     public void run( Reporter reporter, URL serviceUrl ) {

@@ -122,7 +122,11 @@ public class VotLint implements Task {
         boolean debug = env instanceof TableEnvironment
                      && ((TableEnvironment) env).isDebug();
         String sysid = inParam_.stringValue( env );
+<<<<<<< HEAD
         InputStream in = inParam_.objectValue( env );
+=======
+        InputStream in = inParam_.inputStreamValue( env );
+>>>>>>> merging changes from trunk to splat-ari branch
         PrintStream out;
         try {
             out = new PrintStream( outParam_.objectValue( env )

@@ -195,17 +195,27 @@ public abstract class VotLintTapRunner extends TapRunner {
      *
      * @param  reporter  validation message destination
      * @param  baseIn  VOTable input stream
+<<<<<<< HEAD
      * @return VOTable-aware DOM
      */
     public VODocument readResultDocument( Reporter reporter,
                                           InputStream baseIn )
+=======
+     */
+    protected StarTable readResultVOTable( Reporter reporter,
+                                           InputStream baseIn )
+>>>>>>> merging changes from trunk to splat-ari branch
             throws IOException, SAXException {
         final VOTableVersion version;
         BufferedInputStream in = new BufferedInputStream( baseIn );
         String versionString = VersionDetector.getVersionString( in );
         if ( versionString == null ) {
             version = TAP_VOT_VERSION;
+<<<<<<< HEAD
             reporter.report( FixedCode.I_VVNL,
+=======
+            reporter.report( ReportType.INFO, "VVNL",
+>>>>>>> merging changes from trunk to splat-ari branch
                              "Undeclared VOTable version; assuming v"
                            + version );
         }
@@ -217,14 +227,22 @@ public abstract class VotLintTapRunner extends TapRunner {
                 version = vmap.get( versionString );
                 if ( vlist.indexOf( version )
                      < vlist.indexOf( TAP_VOT_VERSION ) ) {
+<<<<<<< HEAD
                     reporter.report( FixedCode.E_VVLO,
+=======
+                    reporter.report( ReportType.ERROR, "VVLO",
+>>>>>>> merging changes from trunk to splat-ari branch
                                      "Declared VOTable version " + versionString
                                    + "<" + TAP_VOT_VERSION );
                 }
             }
             else {
                 version = TAP_VOT_VERSION;
+<<<<<<< HEAD
                 reporter.report( FixedCode.I_VVUN,
+=======
+                reporter.report( ReportType.INFO, "VVUN",
+>>>>>>> merging changes from trunk to splat-ari branch
                                  "Unknown declared VOTable version '"
                                + versionString + "' - assuming v" + version );
             }

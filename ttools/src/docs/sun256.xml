@@ -980,7 +980,11 @@ on the command line is equivalent to having the following in your
     will conform to by default.
     May take the values "<code>1.0</code>", "<code>1.1</code>",
     "<code>1.2</code>" or "<code>1.3</code>".
+<<<<<<< HEAD
     By default, version 1.2 VOTables are written.
+=======
+    By default, version 1.1 VOTables are written.
+>>>>>>> merging changes from trunk to splat-ari branch
     </p></dd>
 
 </dl>
@@ -8824,6 +8828,30 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         for TAP capability unit values.</li>
     <li>Upgrade to JSAMP v1.3-3.</li>
     <li>Add K-Corrections functions of I&amp;I.</li>
+    <li>Add <code>-utype</code> flags for <code>addcol</code>,
+        <code>replacecol</code>, <code>colmeta</code> and
+        <code>setparam</code> filters,
+        and <code>utype</code> option for <code>meta</code> filter.</li>
+    <li>The version of VOTable which is written can now be selected,
+        by using the system property <code>votable.version</code>.
+        Output version is VOTable 1.1 by default.</li>
+    <li>The <code>votcopy</code> command has a new <code>version</code>
+        parameter to control output version,
+        and a new <code>nomagic</code> parameter to control whether
+        <code>VALUES</code>/<code>null</code> attributes are removed
+        where appropriate.</li>
+    <li>VOTable 1.3 input and output is supported.</li>
+    <li>Encode infinite values correctly in VOTable output
+        ("<code>+Inf</code>"/"<code>-Inf</code>",
+        not "<code>Infinity</code>"/"<code>-Infinity</code>").</li>
+    <li><code>votlint</code> now stricter about floating point TD contents.</li>
+    <li>VOTable output no longer writes schemaLocation
+        attribute by default.</li>
+    <li>Changes to <code>votlint</code> so that it handles different VOTable
+        versions more capably.  Versions 1.1+ are now validated against a
+        schema (which is how those versions are defined) rather than against
+        a DTD hacked to do the same job as the schema.
+        VOTable 1.3 validation is now provided.</li>
     </ul>
     </p></dd>
 

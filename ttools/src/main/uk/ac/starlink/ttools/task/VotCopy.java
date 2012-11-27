@@ -51,15 +51,24 @@ public class VotCopy implements Task {
         Logger.getLogger( "uk.ac.starlink.ttools.task" );
     private static final String SAX_PROPERTY = "http://xml.org/sax/properties/";
 
+<<<<<<< HEAD
     private final StringParameter inParam_;
     private final StringParameter outParam_;
+=======
+    private final Parameter inParam_;
+    private final Parameter outParam_;
+>>>>>>> merging changes from trunk to splat-ari branch
     private final ChoiceParameter<DataFormat> formatParam_;
     private final ChoiceParameter<VOTableVersion> versionParam_;
     private final XmlEncodingParameter xencParam_;
     private final BooleanParameter cacheParam_;
     private final BooleanParameter hrefParam_;
     private final BooleanParameter nomagicParam_;
+<<<<<<< HEAD
     private final StringParameter baseParam_;
+=======
+    private final Parameter baseParam_;
+>>>>>>> merging changes from trunk to splat-ari branch
 
     /**
      * Constructor.
@@ -118,7 +127,11 @@ public class VotCopy implements Task {
                                 .toArray( new VOTableVersion[ 0 ] ) );
         versionParam_.setPrompt( "Output votable version" );
         versionParam_.setNullPermitted( true );
+<<<<<<< HEAD
         versionParam_.setStringDefault( null );
+=======
+        versionParam_.setDefault( null );
+>>>>>>> merging changes from trunk to splat-ari branch
         versionParam_.setDescription( new String[] {
             "<p>Determines the version of the VOTable standard to which",
             "the output will conform.",
@@ -172,9 +185,15 @@ public class VotCopy implements Task {
             "<code>" + formatParam_.getName() + "</code>=BINARY/FITS.",
             "</p>",
         } );
+<<<<<<< HEAD
         nomagicParam_.setBooleanDefault( true );
 
         baseParam_ = new StringParameter( "base" );
+=======
+        nomagicParam_.setDefault( "true" );
+
+        baseParam_ = new Parameter( "base" );
+>>>>>>> merging changes from trunk to splat-ari branch
         baseParam_.setUsage( "<location>" );
         baseParam_.setPrompt( "Base location for FITS/BINARY href data" );
         baseParam_.setNullPermitted( true );
@@ -237,7 +256,11 @@ public class VotCopy implements Task {
                                     + forceVersion + " - v1.3+ only" );
         }
         boolean nomagic = nomagicParam_.booleanValue( env );
+<<<<<<< HEAD
         cacheParam_.setBooleanDefault( format == DataFormat.FITS );
+=======
+        cacheParam_.setDefault( format == DataFormat.FITS );
+>>>>>>> merging changes from trunk to splat-ari branch
         PrintStream pstrm = env.getOutputStream();
         boolean inline;
         if ( format == DataFormat.TABLEDATA ||
@@ -247,7 +270,11 @@ public class VotCopy implements Task {
         else {
             if ( format == DataFormat.BINARY ||
                  format == DataFormat.BINARY2 ) {
+<<<<<<< HEAD
                 hrefParam_.setBooleanDefault( false );
+=======
+                hrefParam_.setDefault( "false" );
+>>>>>>> merging changes from trunk to splat-ari branch
             }
             else if ( format == DataFormat.FITS ) {
                 hrefParam_.setBooleanDefault( true );
