@@ -177,6 +177,36 @@ public class Shaders {
         LUT_STANDARD = new ResourceLutShader( "Standard", "standard.lut" ),
     };
 
+    /* ColorBrewer.
+     * Colors from www.colorbrewer.org by Cynthia A Brewer,
+     * Geography, Pennsylvania State University.
+     * These are intented for cartography. */
+
+    /** ColorBrewer blue-green shader. */
+    public static final Shader BREWER_BUGN =
+        new SampleShader( "BuGn", new int[] {
+            0xedf8fb, 0xccece6, 0x99d8c9, 0x66c2a4, 0x2ca25f, 0x006d2c, } );
+
+    /** ColorBrewer blue-purple shader. */
+    public static final Shader BREWER_BUPU =
+        new SampleShader( "BuPu", new int[] {
+            0xedf8fb, 0xbfd3e6, 0x9ebcda, 0x8c96c6, 0x8856a7, 0x810f7c, } );
+
+    /** ColorBrewer orange-red shader. */
+    public static final Shader BREWER_ORRD =
+        new SampleShader( "OrRd", new int[] {
+            0xfef0d9, 0xfdd49e, 0xfdbb84, 0xfc8d59, 0xe34a33, 0xb30000, } );
+
+    /** ColorBrewer purple-blue shader. */
+    public static final Shader BREWER_PUBU =
+        new SampleShader( "PuBu", new int[] {
+            0xf1eef6, 0xd0d1e6, 0xa6bddb, 0x74a9cf, 0x2b8cbe, 0x045a8d, } );
+
+    /** ColorBrewer purple-red shader. */
+    public static final Shader BREWER_PURD =
+        new SampleShader( "PuRd", new int[] {
+            0xf1eef6, 0xd4b9da, 0xc994c7, 0xdf65b0, 0xdd1c77, 0x980043, } );
+    
     /** Base directory for locating binary colour map lookup table resources. */
     private final static String LUT_BASE = "/uk/ac/starlink/ttools/colormaps/";
 
@@ -1018,6 +1048,49 @@ public class Shaders {
 
         protected float[] getRgbLut() {
             return lut_;
+        }
+    }
+
+    /**
+     * Shader which works with a few RGB samples supplied in the constructor
+     * and interpolates between them.
+     */
+    private static class SampleShader extends LutShader {
+        private static final float FF1 = 1f / 255f;
+        protected final float[] lut_;
+
+        /**
+         * Constructor.
+         *
+         * @param  name  shader name
+         * @param  array of rrggbb hexadecimal colour triples
+         */
+        SampleShader( String name, int[] rgbs ) {
+            super( name );
+            lut_ = interpolateRgb( toFloats( rgbs ), 256 );
+        }
+
+        protected float[] getRgbLut() {
+            return lut_;
+        }
+
+        /**
+         * Turns an N-element rrggbb int array into a
+         * 3N-element r, g, b float array.
+         *
+         * @param   rgbs  int rgb samples
+         * @return  float samples
+         */
+        private static float[] toFloats( int[] rgbs ) {
+            float[] flut = new float[ rgbs.length * 3 ];
+            for ( int i = 0; i < rgbs.length; i++ ) {
+                int j = i * 3;
+                int rgb = rgbs[ i ];
+                flut[ j++ ] = ( ( rgb >> 16 ) & 0xff ) * FF1;
+                flut[ j++ ] = ( ( rgb >> 8  ) & 0xff ) * FF1;
+                flut[ j++ ] = ( ( rgb >> 0  ) & 0xff ) * FF1;
+            }
+            return flut;
         }
     }
 
