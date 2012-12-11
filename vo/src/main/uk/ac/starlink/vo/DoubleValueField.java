@@ -149,7 +149,7 @@ public class DoubleValueField {
     /**
      * Sets the state of the GUI component controlled by this field.
      *
-     * @parm  value  value to display
+     * @param  value  value to display
      */
     public void setValue( double value ) {
         ValueConverter vc = (ValueConverter) convSelector_.getSelectedItem();
