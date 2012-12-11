@@ -60,7 +60,7 @@ public class ServerParamRelation {
     
     /**
      * gets all parameters understood by server
-     * @param   server the SSAP server
+     * @server   server the SSAP server
      * @return  the list of parameters 
      */   
     public ArrayList<String> getParams( String server ) {

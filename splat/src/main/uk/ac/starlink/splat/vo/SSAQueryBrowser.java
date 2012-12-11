@@ -2712,6 +2712,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
           
           
             resolveName();
+            isLookup=true;
            // queryLine.setPosition(raField.getText(), decField.getText());
             //updateQueryText();
             //try {
