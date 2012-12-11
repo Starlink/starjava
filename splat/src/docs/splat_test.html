@@ -1,0 +1,572 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>SPLAT Tests</title>
+<style type="text/css">
+    li { list-style: none;  margin: 0; }
+    p { margin: 0; }
+
+    span.l { color: red; font-weight: bold; }
+
+    a.mapnode:link {text-decoration: none; color: black; }
+    a.mapnode:visited {text-decoration: none; color: black; }
+    a.mapnode:active {text-decoration: none; color: black; }
+    a.mapnode:hover {text-decoration: none; color: black; background: #eeeee0; }
+
+</style>
+<!-- ^ Position is not set to relative / absolute here because of Mozilla -->
+</head>
+<body>
+<p><span style="color: #000000;font-size: 166%;font-family: SansSerif, sans-serif; font-weight: bold; ">SPLAT Tests</span>
+<ul><li><span style="font-size: 133%;font-family: SansSerif, sans-serif; font-weight: bold; ">SSAP Query Window</span>
+<ul><li>&#xa;    <p>&#xa;      <img src="splatquery.png" width="800">&#xa;      &#xa;    </p>&#xa;  
+<p><span style="font-size: 116%;font-family: SansSerif, sans-serif; font-weight: bold; ">Server Listing/Selection test</span>
+<ul><li><span style="font-family: SansSerif, sans-serif; font-weight: bold; ">check server properties</span>
+<ul><li>click on a server 
+<ul><li>server properties + capability branch will appear
+
+</li>
+
+</ul>
+</li>
+<li>Click on capabilities (in the properties)
+<ul><li>server capabilities will appear
+
+</li>
+
+</ul>
+</li>
+
+</ul>
+</li>
+<li><span style="font-family: SansSerif, sans-serif; font-weight: bold; ">remove selected / unselected</span>
+<ul><li>select any &nbsp;four servers and click remove selected
+<ul><li>the selected servers are removed
+
+</li>
+
+</ul>
+</li>
+<li>select any four servers and click remove unselected
+<ul><li>all but the selected servers are removed
+
+</li>
+
+</ul>
+</li>
+
+</ul>
+</li>
+<li><span style="font-family: SansSerif, sans-serif; font-weight: bold; ">query registry</span>
+<ul><li>click query registry button
+<ul><li>list of servers from registry is loaded
+
+</li>
+<li>manually added servers (not in the registry) remain (not removed)
+
+</li>
+<li>servers that were already in the server list are overwritten (no double entries)
+
+</li>
+
+</ul>
+</li>
+
+</ul>
+</li>
+<li><span style="font-family: SansSerif, sans-serif; font-weight: bold; ">select waveband and datasource</span>
+<ul><li> check data source = ALL and waveband=ALL
+<ul><li>data source all selected : all servers selected (black)
+
+</li>
+
+</ul>
+</li>
+<li>select waveband (data source=ALL)
+<ul><li>data source all not selected:only servers with selected wavebands are black
+
+</li>
+
+</ul>
+</li>
+<li>select data source (waveband=ALL)
+<ul><li>data source all not selected:only servers with selected data sources are black
+
+</li>
+
+</ul>
+</li>
+<li>waveband and data source != ALL
+<ul><li>check combinations for correctness
+
+</li>
+
+</ul>
+</li>
+
+</ul>
+</li>
+<li><span style="font-family: SansSerif, sans-serif; font-weight: bold; ">create new tag</span>
+<ul><li>click "add tag" without selecting servers
+<ul><li>error message appears
+
+</li>
+
+</ul>
+</li>
+<li>click "add tag" selecting one or more servers
+<ul><li>with a new tag name
+<ul><li>tag is created
+
+</li>
+
+</ul>
+</li>
+<li>with same name as an existing one
+<ul><li>error message
+
+</li>
+
+</ul>
+</li>
+
+</ul>
+</li>
+
+</ul>
+</li>
+<li><span style="font-family: SansSerif, sans-serif; font-weight: bold; ">remove tag</span>
+<ul><li>select tag and click remove tag
+<ul><li>tag is removed
+
+</li>
+
+</ul>
+</li>
+<li>click remove tag without selecting
+<ul><li>nothing happens
+
+</li>
+
+</ul>
+</li>
+
+</ul>
+</li>
+<li><span style="font-family: SansSerif, sans-serif; font-weight: bold; ">save/load current server list by quit/start</span>
+<ul><li>add/remove some servers and quit start, then start splat again
+<ul><li>the server list should be the same as when splat was quit
+
+</li>
+
+</ul>
+</li>
+
+</ul>
+</li>
+
+</ul><p><span style="font-size: 116%;font-family: SansSerif, sans-serif; font-weight: bold; ">Simple Query test</span>
+<ul><li><span style="font-family: SansSerif, sans-serif; font-weight: bold; ">object</span>
+<ul><li>type an object name (e.g. "vega") and click the LOOKUP Button
+<ul><li>Coordinates will appear
+
+</li>
+<li>Coordinates and no targetname appear in QUERY line
+
+</li>
+
+</ul>
+</li>
+<li>Clear object field, type an object name (e.g. "jupiter") and do not click LOOKUP (click GO instead)
+<ul><li>targetname will appear in QUERY line
+
+</li>
+<li>Coordinates will be removed
+
+</li>
+
+</ul>
+</li>
+<li> clear Object, RA and DEC fields and click GO
+<ul><li>Splat will ask if it' OK to query the whole sky (click OK or CANCEL)
+
+</li>
+<li>Splat will show results for all responding servers 
+
+</li>
+
+</ul>
+</li>
+
+</ul>
+</li>
+<li><span style="font-family: SansSerif, sans-serif; font-weight: bold; ">coordinates</span>
+<ul><li>type valid coordinates
+<ul><li>QUERY String only shows coordinates when both (RA,DEC) are not null
+
+</li>
+<li>Target field should be cleared
+
+</li>
+
+</ul>
+</li>
+<li>type coordinates in invalid format, e.g. "35d*xh:e" 
+<ul><li>error message will appear
+
+</li>
+
+</ul>
+</li>
+
+</ul>
+</li>
+<li><span style="font-family: SansSerif, sans-serif; font-weight: bold; ">radius</span>
+<ul><li>type a valid radius
+<ul><li>Query string accordingly updated
+
+</li>
+<li>Radius =0: no radius in query string
+
+</li>
+
+</ul>
+</li>
+<li>type an invalid radius, e.g. "344gx0:"
+<ul><li>Error message appears
+
+</li>
+
+</ul>
+</li>
+
+</ul>
+</li>
+<li><span style="font-family: SansSerif, sans-serif; font-weight: bold; ">band</span>
+<ul><li>type both values (lower/upper)
+<ul><li>resulting query string: lower/upper
+
+</li>
+
+</ul>
+</li>
+<li>type only left value (lower)
+<ul><li>resulting query string : lower/
+
+</li>
+
+</ul>
+</li>
+<li>type only right value (upper)
+<ul><li>resulting query string : /upper
+
+</li>
+
+</ul>
+</li>
+<li>type an invalid text either side, e.g. "g:x23;!"
+<ul><li>error message
+<ul><li>TO DO: COSISTENCY CHECK!
+
+</li>
+
+</ul>
+</li>
+
+</ul>
+</li>
+<li>type lower larger than upper value
+<ul><li>error message
+<ul><li>TO DO: COSISTENCY CHECK!
+
+</li>
+
+</ul>
+</li>
+
+</ul>
+</li>
+
+</ul>
+</li>
+<li><span style="font-family: SansSerif, sans-serif; font-weight: bold; ">time</span>
+<ul><li>type both values (lower/upper)
+<ul><li>resulting query string: lower/upper
+
+</li>
+
+</ul>
+</li>
+<li>type only left value (lower)
+<ul><li>resulting query string : lower/
+
+</li>
+
+</ul>
+</li>
+<li>type only right value (upper)
+<ul><li>resulting query string : /upper
+
+</li>
+
+</ul>
+</li>
+<li>type invalid text in either side, e.g. "g:x23;!"
+<ul><li>error message
+<ul><li>TO DO: COSISTENCY CHECK!
+
+</li>
+
+</ul>
+</li>
+
+</ul>
+</li>
+<li>type lower larger than upper value
+<ul><li>error message
+<ul><li>TO DO: COSISTENCY CHECK!
+
+</li>
+
+</ul>
+</li>
+
+</ul>
+</li>
+
+</ul>
+</li>
+<li><span style="font-family: SansSerif, sans-serif; font-weight: bold; ">format</span>
+<ul><li>choose a format
+<ul><li>updated in query string
+
+</li>
+<li>for "none": nothing in query string
+
+</li>
+
+</ul>
+</li>
+
+</ul>
+</li>
+<li><span style="font-family: SansSerif, sans-serif; font-weight: bold; ">wavelength calibration</span>
+<ul><li>choose a wavelength calibration 
+<ul><li>updated in query string
+
+</li>
+<li>for "none": nothing in query string
+
+</li>
+
+</ul>
+</li>
+
+</ul>
+</li>
+<li><span style="font-family: SansSerif, sans-serif; font-weight: bold; ">flux calibration</span>
+<ul><li>choose a flux calibration 
+<ul><li>updated in query string
+
+</li>
+<li>for "none": nothing in query string
+
+</li>
+
+</ul>
+</li>
+
+</ul>
+</li>
+<li><span style="font-family: SansSerif, sans-serif; font-weight: bold; ">Query String</span>
+<ul><li>change different values in query form and compare to query string field
+<ul><li>updated when form changed
+<ul><li>insert characters in form field
+
+</li>
+<li>delete characters in form field
+
+</li>
+
+</ul>
+</li>
+<li>compare query string with sent query (logfile)
+
+</li>
+
+</ul>
+</li>
+
+</ul>
+</li>
+
+</ul><p><span style="font-size: 116%;font-family: SansSerif, sans-serif; font-weight: bold; ">Optional Parameters test</span>
+<ul><li><span style="font-family: SansSerif, sans-serif; font-weight: bold; ">add parameter</span>
+<ul><li>select all servers (waveband/data source=ALL) and click Add parameter
+<ul><li>all found parameters will appear in the list
+
+</li>
+
+</ul>
+</li>
+<li>select a few servers and click Add Parameter
+<ul><li>only parameters from selected servers appear in the list
+
+</li>
+
+</ul>
+</li>
+
+</ul>
+</li>
+<li><span style="font-family: SansSerif, sans-serif; font-weight: bold; ">parameter checkbox</span>
+<ul><li>check / uncheck parameter box
+<ul><li>parameter appears/disappears from query string
+
+</li>
+
+</ul>
+</li>
+
+</ul>
+</li>
+<li><span style="font-family: SansSerif, sans-serif; font-weight: bold; ">parameter value</span>
+<ul><li>change the value of a parameter (non empty)
+<ul><li>query string will be updated if parameter is checked
+
+</li>
+
+</ul>
+</li>
+<li>parameter value is empty
+<ul><li>parameter does not appear in query string even if checked
+
+</li>
+
+</ul>
+</li>
+
+</ul>
+</li>
+<li><span style="font-family: SansSerif, sans-serif; font-weight: bold; ">Query string correctly updated</span>
+<ul><li>check query string after adding
+<ul><li>parameter will &nbsp;appear if checked and value not empty
+
+</li>
+
+</ul>
+</li>
+<li>check query string after removing parameter
+<ul><li>parameter will &nbsp;disappear from query string
+
+</li>
+
+</ul>
+</li>
+<li>check query string after changing value of a parameter
+<ul><li>correctly updated after RETURN
+
+</li>
+<li>correctly updated while typing
+
+</li>
+
+</ul>
+</li>
+
+</ul>
+</li>
+
+</ul><p><span style="font-size: 116%;font-family: SansSerif, sans-serif; font-weight: bold; ">Results test</span>
+<ul><li><span style="font-family: SansSerif, sans-serif; font-weight: bold; ">Results shown in box</span>
+
+</li>
+<li><span style="font-family: SansSerif, sans-serif; font-weight: bold; ">Download single spectra</span>
+
+</li>
+<li><span style="font-family: SansSerif, sans-serif; font-weight: bold; ">download selected spectra (more than 1)</span>
+
+</li>
+<li><span style="font-family: SansSerif, sans-serif; font-weight: bold; ">save query results</span>
+
+</li>
+<li><span style="font-family: SansSerif, sans-serif; font-weight: bold; ">load query results </span>
+
+</li>
+<li><span style="font-family: SansSerif, sans-serif; font-weight: bold; ">Authentication</span>
+
+</li>
+
+</ul></li>
+</ul>
+</li>
+<li><span style="font-size: 125%;font-family: SansSerif, sans-serif; font-weight: bold; ">SPLAT Main Window</span>
+<ul><li><span style="font-family: SansSerif, sans-serif; font-weight: bold; ">Spectrum analysis and manipulation</span>
+
+</li>
+
+</ul>
+</li>
+<li><span style="font-size: 141%;font-family: SansSerif, sans-serif; font-weight: bold; ">All Windows</span>
+<ul><li><span style="font-family: SansSerif, sans-serif; font-weight: bold; ">Help</span>
+<ul><li>main help page
+
+</li>
+<li>help for single window
+
+</li>
+
+</ul>
+</li>
+<li><span style="font-family: SansSerif, sans-serif; font-weight: bold; ">Appearance and Usability</span>
+<ul><li>Size of windows OK
+
+</li>
+<li>behaviour when resizing
+
+</li>
+<li>usability
+<ul><li>buttons make sense
+<ul><li>need more buttons/shortcuts
+
+</li>
+<li>unneccessary buttons
+
+</li>
+
+</ul>
+</li>
+
+</ul>
+</li>
+
+</ul>
+</li>
+
+</ul>
+</li>
+<li><span style="font-size: 133%;font-family: SansSerif, sans-serif; font-weight: bold; ">TO DO</span>
+<ul><li>consistency check band/time
+
+</li>
+<li>clear target field when typing new coordinates
+
+</li>
+<li>exception handling for invalid coordinates
+
+</li>
+<li>units for radius
+
+</li>
+<li>listen for DELETE and update query string
+
+</li>
+<li>save/restore tags
+
+</li>
+
+</ul>
+</li>
+
+</ul></body>
+</html>
