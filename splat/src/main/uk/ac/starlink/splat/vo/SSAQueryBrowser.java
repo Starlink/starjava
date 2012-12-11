@@ -327,6 +327,10 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
     
     /** progress frame **/
     private ProgressPanelFrame oldProgressFrame = null;
+
+    
+
+    private boolean isLookup = false;
     
     static ProgressPanelFrame progressFrame = null;
 
@@ -1121,7 +1125,12 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
 
        // queryLine.setQueryParameters(ra, dec, objectName, radiusText, lowerBandField.getText(), upperBandField.getText(), lowerTimeField.getText(), upperTimeField.getText(), 
        //                             waveCalibGroup.getSelection().getActionCommand(), fluxCalibGroup.getSelection().getActionCommand(), formatGroup.getSelection().getActionCommand());
-        queryLine.setPosition(ra, dec);
+        try {
+            queryLine.setPosition(ra, dec);
+        } catch (NumberFormatException e) {
+            ErrorDialog.showError( this, "Cannot understand this value", e );
+            return;
+        }
         queryLine.setRadius( radius );
         queryLine.setBand(lowerBandField.getText(), upperBandField.getText());
         queryLine.setTime(lowerTimeField.getText(), upperTimeField.getText());
@@ -2086,6 +2095,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         } */
         if ( source.equals( nameLookup ) /*|| source.equals( nameField ) */) {
             resolveName();
+            isLookup=true;
            // queryLine.setPosition(raField.getText(), decField.getText());
             //updateQueryText();
             //try {
@@ -2120,7 +2130,12 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                         objectName = null;
                     }
                 }
-                queryLine.setPosition( ra, dec );
+                try {
+                    queryLine.setPosition( ra, dec );
+                    } catch (NumberFormatException nfe) {
+                        ErrorDialog.showError( this, "Cannot understand this value", nfe );
+                        return;
+                    }
                 queryLine.setTargetName(objectName);
                 try {
                     queryText.setText(queryLine.getQueryURLText());
@@ -2881,7 +2896,12 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             }
             if (owner == raField || owner == decField ) {
                 if (raField.getText().length() > 0 && decField.getText().length() > 0 )
-                    queryLine.setPosition(raField.getText(), decField.getText());
+                    try {
+                            queryLine.setPosition(raField.getText(), decField.getText());
+                    } catch (NumberFormatException nfe) {
+                        ErrorDialog.showError( this, "Invalid coordinate format", nfe);
+                        return;
+                    }
             }
            
             if (owner == upperBandField || owner == lowerBandField ) {
@@ -2899,9 +2919,32 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
 
     public void removeUpdate(DocumentEvent de) {
         Object owner = de.getDocument().getProperty("owner");
+        
         if(owner != null){
             if (owner == nameField ) {
+                nameField.setForeground(Color.black);
                 queryLine.setTargetName(nameField.getText());
+                // when name is changed, remove current coordinates.
+                queryLine.setPosition(0, 0);
+                raField.setText("");
+                decField.setText("");
+            }
+            if (owner == raField || owner == decField ) {
+                
+                try {
+                        queryLine.setPosition(0, 0);
+                    } catch (NumberFormatException nfe) {
+                        ErrorDialog.showError( this, "Invalid coordinate format", nfe);
+                        return;
+                    }
+                if  ( isLookup ) {
+                    isLookup=false;
+                    nameField.setForeground(Color.black);
+                } else  {     // coordinate manually changed ( not through lookup)
+                   //queryLine.setTargetName("");
+                   nameField.setForeground(Color.gray);
+                }
+                //nameField.setText("");
             }
         }
         updateQueryText();

@@ -60,11 +60,25 @@ public class ServerParamRelation {
     
     /**
      * gets all parameters understood by server
-     * @param   server the SSAP server
+     * @server   server the SSAP server
      * @return  the list of parameters 
      */   
     public ArrayList<String> getParams( String server ) {
         return (ArrayList<String>) server2param.get(server);       
     }
+    
+    /**
+     * check if server supports the parameter
+     * @server   server - the SSAP server
+     * @param   param - the metadata parameter
+     * @return  true if param is supported by server
+     */   
+    public boolean paramSupported( String server, String param ) {
+        ArrayList<String> servers = server2param.get(server);
+        if (servers != null )
+            return servers.contains("INPUT:"+param);
+        else return false;
+    }
+    
     
 }

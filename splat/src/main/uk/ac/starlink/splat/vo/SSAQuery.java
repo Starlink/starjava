@@ -144,7 +144,7 @@ public class SSAQuery
      * Set the position used for the query. The values are in sexigesimal
      * be in ICRS (FK5/J2000 will do if accuracy isn't a problem).
      */
-    public void setPosition( String queryRA, String queryDec )
+    public void setPosition( String queryRA, String queryDec ) throws NumberFormatException
     {
         if ( queryRA != null ) {
             HMS hms = new HMS( queryRA );
