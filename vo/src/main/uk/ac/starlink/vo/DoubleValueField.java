@@ -147,6 +147,23 @@ public class DoubleValueField {
     }
 
     /**
+     * Sets the state of the GUI component controlled by this field.
+     *
+     * @parm  value  value to display
+     */
+    public void setValue( double value ) {
+        ValueConverter vc = (ValueConverter) convSelector_.getSelectedItem();
+        try {
+            getEntryField().setText( vc.unconvertValue( new Double( value ) ) );
+        }
+        catch ( RuntimeException e ) {
+            String msg = "Invalid value for " + info_.getName() + " field";
+            throw (IllegalArgumentException)
+                  new IllegalArgumentException( msg ).initCause( e );
+        }
+    }
+
+    /**
      * Sets the enabled status of the user-interacting components of this
      * field.
      *
