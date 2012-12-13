@@ -1006,8 +1006,11 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                                     new WorldCoords( info.getRaDegrees(),
                                             info.getDecDegrees() );
                             String[] radec = coords.format();
+                            isLookup=true;
                             raField.setText( radec[0] );
                             decField.setText( radec[1] );
+                            nameField.setForeground(Color.black);
+                            isLookup=false;
                          //   queryLine.setPosition(radec[0], radec[1]);
                         }
                         else {
@@ -1298,9 +1301,9 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             // inSrc.setSystemId( ssaQuery.getBaseURL() );
             inSrc.setSystemId( queryURL.toString());
             VOElementFactory vofact = new VOElementFactory();
-
+           
             starTable = DalResultXMLFilter.getDalResultTable( vofact, inSrc );
-
+          
             //  Check parameter QUERY_STATUS, this should be set to OK
             //  when the query
             String queryOK = null;
@@ -2094,8 +2097,11 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             return;
         } */
         if ( source.equals( nameLookup ) /*|| source.equals( nameField ) */) {
+            
+            
+          
+          
             resolveName();
-            isLookup=true;
            // queryLine.setPosition(raField.getText(), decField.getText());
             //updateQueryText();
             //try {
@@ -2878,6 +2884,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         Object owner = de.getDocument().getProperty("owner");
         if(owner != null){
             if (owner == nameField ) {
+                nameField.setForeground(Color.black);
                 queryLine.setTargetName(nameField.getText());
             }
             if (owner == radiusField ) {
@@ -2930,20 +2937,20 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                 decField.setText("");
             }
             if (owner == raField || owner == decField ) {
-                
-                try {
-                        queryLine.setPosition(0, 0);
+                 if  (! isLookup ) {
+                     // coordinate manually changed ( not through lookup)
+                   nameField.setForeground(Color.gray);
+                } else { 
+                    nameField.setForeground(Color.black);
+                }
+            
+                if (raField.getText().length() > 0 && decField.getText().length() > 0 )
+                    try {
+                            queryLine.setPosition(raField.getText(), decField.getText());
                     } catch (NumberFormatException nfe) {
                         ErrorDialog.showError( this, "Invalid coordinate format", nfe);
                         return;
                     }
-                if  ( isLookup ) {
-                    isLookup=false;
-                    nameField.setForeground(Color.black);
-                } else  {     // coordinate manually changed ( not through lookup)
-                   //queryLine.setTargetName("");
-                   nameField.setForeground(Color.gray);
-                }
                 //nameField.setText("");
             }
         }

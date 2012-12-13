@@ -1337,7 +1337,7 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
                             serverList.selectServer(shortname);
                         } else {
                             node.setSelected(false);               
-                            c.setForeground(Color.RED);
+                            c.setForeground(Color.GRAY);
                             serverList.unselectServer(shortname);
                         }
                     } 
@@ -1348,7 +1348,7 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
                         serverList.selectServer(shortname);
                     } else {                        
                         node.setSelected(false);
-                        c.setForeground(Color.RED);
+                        c.setForeground(Color.GRAY);
                         serverList.unselectServer(shortname);
                     }
                 }
@@ -1360,7 +1360,7 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
           //  }else 
                // c.setForeground(Color.GRAY);
             }
-            c.setForeground(Color.GRAY);
+           // c.setForeground(Color.GRAY);
             return c;
             
         }//
