@@ -30,7 +30,7 @@ public class ValueFieldPanel extends JPanel {
             }},
             new GridBagConstraints() {{
                 gridx = 1; gridy = 0; anchor = WEST; insets = ins;
-                fill = BOTH;
+                weightx = 1.0; fill = BOTH;
             }},
             new GridBagConstraints() {{
                 gridx = 2; gridy = 0; anchor = WEST; insets = ins;

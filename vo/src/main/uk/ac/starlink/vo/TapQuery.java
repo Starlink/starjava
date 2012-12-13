@@ -32,6 +32,7 @@ import uk.ac.starlink.votable.TableElement;
 import uk.ac.starlink.votable.VOElement;
 import uk.ac.starlink.votable.VOElementFactory;
 import uk.ac.starlink.votable.VOStarTable;
+import uk.ac.starlink.votable.VOTableVersion;
 import uk.ac.starlink.votable.VOTableWriter;
 
 /**
@@ -388,8 +389,7 @@ public class TapQuery {
             throws IOException {
         final Map<String,String> headerMap = new LinkedHashMap<String,String>();
         final VOTableWriter vowriter =
-            new VOTableWriter( DataFormat.BINARY, true );
-        vowriter.setVotableVersion( "1.2" );
+            new VOTableWriter( DataFormat.BINARY, true, VOTableVersion.V12 );
         headerMap.put( "Content-Type", "application/x-votable+xml" );
         if ( uploadLimit < 0 ) {
             return new HttpStreamParam() {

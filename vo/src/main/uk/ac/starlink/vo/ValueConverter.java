@@ -2,6 +2,7 @@ package uk.ac.starlink.vo;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import uk.ac.starlink.ttools.func.CoordsDegrees;
 
 /**
  * Provides some way of converting a string value into a numeric.
@@ -34,10 +35,18 @@ public abstract class ValueConverter {
      *
      * @param   sval  string value
      * @return   numeric equivalent of <tt>sval</tt>
-     * @throws   IllegalArugmentException if <tt>sval</tt> doesn't make
+     * @throws   IllegalArgumentException if <tt>sval</tt> doesn't make
      *           sense to this converter
      */
     public abstract double convertValue( String sval );
+
+    /**
+     * Converts a numeric value to a string value for this format.
+     *
+     * @param  dval  numeric value
+     * @return  string representation of <tt>dval</tt>
+     */
+    public abstract String unconvertValue( double dval );
 
     /**
      * Returns format name.
@@ -72,6 +81,10 @@ public abstract class ValueConverter {
         public double convertValue( String sval ) {
             return Double.parseDouble( sval ) * factor_;
         }
+        public String unconvertValue( double dval ) {
+            return Double.isNaN( dval ) ? null
+                                        : Double.toString( dval / factor_ );
+        }
     }
 
     /**
@@ -84,6 +97,9 @@ public abstract class ValueConverter {
         public double convertValue( String sval ) {
             return dmsToDegrees( sval );
         }
+        public String unconvertValue( double dval ) {
+            return CoordsDegrees.degreesToDms( dval );
+        }
     }
 
     /**
@@ -95,6 +111,9 @@ public abstract class ValueConverter {
         }
         public double convertValue( String sval ) {
             return 15.0 * dmsToDegrees( sval );
+        }
+        public String unconvertValue( double dval ) {
+            return CoordsDegrees.degreesToHms( dval );
         }
     }
 

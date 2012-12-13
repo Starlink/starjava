@@ -49,6 +49,7 @@ import uk.ac.starlink.votable.FitsPlusTableBuilder;
 import uk.ac.starlink.votable.FitsPlusTableWriter;
 import uk.ac.starlink.votable.VOStarTable;
 import uk.ac.starlink.votable.VOTableBuilder;
+import uk.ac.starlink.votable.VOTableVersion;
 import uk.ac.starlink.votable.VOTableWriter;
 
 public class FormatsTest extends TableCase {
@@ -268,7 +269,16 @@ public class FormatsTest extends TableCase {
     }
 
     public void testVOTable() throws IOException, SAXException {
-        VOTableWriter vohandler = new VOTableWriter();
+        for ( VOTableVersion vers :
+              VOTableVersion.getKnownVersions().values() ) {
+            exerciseVOTableVersion( vers );
+        }
+    }
+
+    public void exerciseVOTableVersion( VOTableVersion vers )
+            throws IOException, SAXException {
+        VOTableWriter vohandler =
+            new VOTableWriter( DataFormat.TABLEDATA, true, vers );
 
         assertEquals( DataFormat.TABLEDATA, vohandler.getDataFormat() );
         assertTrue( vohandler.getInline() );
@@ -292,36 +302,26 @@ public class FormatsTest extends TableCase {
 
         vohandler.setInline( true );
         exerciseVOTableWriter( vohandler, getTempFile( "in-bin.vot" ), true );
+
+        if ( vers.allowBinary2() ) {
+            vohandler.setDataFormat( DataFormat.BINARY2 );
+            vohandler.setInline( true );
+            assertEquals( DataFormat.BINARY2, vohandler.getDataFormat() );
+            assertTrue( vohandler.getInline() );
+            exerciseVOTableWriter( vohandler, getTempFile( "in-bin2.vot" ),
+                                   false );
+        }
     }
 
     public void exerciseVOTableWriter( VOTableWriter writer, File loc,
                                        boolean squashNulls )
             throws IOException, SAXException {
         StarTable t1 = table;
-        writer.setDoctypeDeclaration( 
-            "<!DOCTYPE VOTABLE SYSTEM 'some/where/VOTable.dtd'>" );
         writer.writeStarTable( t1, loc.toString(), sto );
-        assertValidXML( new InputSource( loc.toString() ) );
         StarTable t2 = new StarTableFactory()
                       .makeStarTable( loc.toString() );
         checkStarTable( t2 );
-
         assertVOTableEquals( t1, t2, squashNulls );
-
-        String docDecl = writer.getDoctypeDeclaration();
-        File tmpFile = File.createTempFile( "decltest", ".xml" );
-        tmpFile.deleteOnExit();
-        String tmpBase = tmpFile.toString();
-        tmpBase = tmpBase.substring( 0, tmpBase.lastIndexOf( ".xml" ) );
-        new File( tmpBase + "-data.fits" ).deleteOnExit();
-        new File( tmpBase + "-data.bin" ).deleteOnExit();
-        writer.setDoctypeDeclaration( 
-            "<!DOCTYPE VOTABLE SYSTEM 'http://nowhere/VOTable.dtd'>" );
-        writer.writeStarTable( t1, tmpFile.toString(), sto );
-        assertValidXML( new InputSource( tmpFile.toString() ) );
-
-        tmpFile.delete();
-        writer.setDoctypeDeclaration( docDecl );
     }
 
     public void testFits() throws IOException {

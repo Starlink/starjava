@@ -57,30 +57,32 @@ class SAXWriter implements ContentHandler, LexicalHandler {
         flushTag();
         StringBuffer buf = new StringBuffer( "<" + qName );
         for ( int i = 0; i < atts.getLength(); i++ ) {
-            buf.append( ' ' )
-               .append( atts.getQName( i ) )
-               .append( "=\"" );
             String value = atts.getValue( i );
-            for ( int j = 0; j < value.length(); j++ ) {
-                char c = value.charAt( j );
-                switch ( c ) {
-                    case '<':
-                        buf.append( "&lt;" );
-                        break;
-                    case '>':
-                        buf.append( "&gt;" );
-                        break;
-                    case '&':
-                        buf.append( "&amp;" );
-                        break;
-                    case '"':
-                        buf.append( "&quot;" );
-                        break;
-                    default:
-                        buf.append( c );
+            if ( value != null ) {
+                buf.append( ' ' )
+                   .append( atts.getQName( i ) )
+                   .append( "=\"" );
+                for ( int j = 0; j < value.length(); j++ ) {
+                    char c = value.charAt( j );
+                    switch ( c ) {
+                        case '<':
+                            buf.append( "&lt;" );
+                            break;
+                        case '>':
+                            buf.append( "&gt;" );
+                            break;
+                        case '&':
+                            buf.append( "&amp;" );
+                            break;
+                        case '"':
+                            buf.append( "&quot;" );
+                            break;
+                        default:
+                            buf.append( c );
+                    }
                 }
+                buf.append( '"' );
             }
-            buf.append( '"' );
         }
         pendingTag_ = buf.toString();
     }

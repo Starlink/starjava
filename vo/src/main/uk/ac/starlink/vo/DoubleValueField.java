@@ -50,7 +50,16 @@ public class DoubleValueField {
     public DoubleValueField( ValueInfo info, ValueConverter[] convs ) {
         info_ = new DefaultValueInfo( info );
         label_ = new JLabel( info_.getName() + ": " );
-        entryField_ = new JTextField( 12 );
+        entryField_ = new JTextField( 12 ) {
+            @Override
+            public Dimension getMaximumSize() {
+                return getPreferredSize();
+            }
+            @Override
+            public Dimension getMinimumSize() {
+                return new Dimension( 32, super.getPreferredSize().height );
+            }
+        };
         convSelector_ = new JComboBox( convs );
         convSelector_.setSelectedIndex( 0 );
         String description = info.getDescription();
@@ -138,6 +147,23 @@ public class DoubleValueField {
         ValueConverter vc = (ValueConverter) convSelector_.getSelectedItem();
         try {
             return vc.convertValue( getEntryField().getText() );
+        }
+        catch ( RuntimeException e ) {
+            String msg = "Invalid value for " + info_.getName() + " field";
+            throw (IllegalArgumentException)
+                  new IllegalArgumentException( msg ).initCause( e );
+        }
+    }
+
+    /**
+     * Sets the state of the GUI component controlled by this field.
+     *
+     * @param  value  value to display
+     */
+    public void setValue( double value ) {
+        ValueConverter vc = (ValueConverter) convSelector_.getSelectedItem();
+        try {
+            getEntryField().setText( vc.unconvertValue( new Double( value ) ) );
         }
         catch ( RuntimeException e ) {
             String msg = "Invalid value for " + info_.getName() + " field";
