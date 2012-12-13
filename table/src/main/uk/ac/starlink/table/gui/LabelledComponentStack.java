@@ -38,7 +38,8 @@ public class LabelledComponentStack extends JPanel {
     }
 
     /**
-     * Adds a (name,component) pair with an optional padding string.
+     * Adds a (name,component) pair with an optional padding string
+     * and default xfill.
      *
      * @param  name  the component label, which gets displayed as a JLabel
      * @param  pad   an extra string which is aligned between the
@@ -46,6 +47,23 @@ public class LabelledComponentStack extends JPanel {
      * @param  comp  the component 
      */
     public void addLine( String name, String pad, Component comp ) {
+        addLine( name, pad, comp, comp instanceof JTextField );
+    }
+
+
+    /**
+     * Adds a (name,component) pair with an optional padding string and
+     * explicit xfill.
+     *
+     * @param  name  the component label, which gets displayed as a JLabel
+     * @param  pad   an extra string which is aligned between the
+     *         name and component
+     * @param  comp  the component 
+     * @param  xfill  true iff the component should be stretched to the
+     *                full available width
+     */
+    public void addLine( String name, String pad, Component comp,
+                         boolean xfill ) {
 
         /* Add some vertical padding except for the first added line. */
         if ( cons.gridy > 0 ) {
@@ -81,13 +99,8 @@ public class LabelledComponentStack extends JPanel {
         cons3.gridx = 2;
         cons3.anchor = GridBagConstraints.WEST;
         cons3.weightx = 1.0;
-
-        /* JTextFields like a horizontal fill so that they can expand to
-         * the size avaiable.  This isn't appropriate (it's ugly) for
-         * most other components. */
-        cons3.fill = ( comp instanceof JTextField ) 
-                   ? GridBagConstraints.HORIZONTAL
-                   : GridBagConstraints.NONE;
+        cons3.fill = xfill ? GridBagConstraints.HORIZONTAL
+                           : GridBagConstraints.NONE;
         cons3.gridwidth = GridBagConstraints.REMAINDER;
         layer.setConstraints( comp, cons3 );
         add( comp );
