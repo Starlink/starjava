@@ -2,7 +2,8 @@ package uk.ac.starlink.vo;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import uk.ac.starlink.ttools.func.CoordsDegrees;
+import uk.ac.starlink.pal.Pal;
+import uk.ac.starlink.pal.palTime;
 
 /**
  * Provides some way of converting a string value into a numeric.
@@ -98,7 +99,7 @@ public abstract class ValueConverter {
             return dmsToDegrees( sval );
         }
         public String unconvertValue( double dval ) {
-            return CoordsDegrees.degreesToDms( dval );
+            return formatSex( new Pal().Dr2af( Math.toRadians( dval ) ) );
         }
     }
 
@@ -113,7 +114,7 @@ public abstract class ValueConverter {
             return 15.0 * dmsToDegrees( sval );
         }
         public String unconvertValue( double dval ) {
-            return CoordsDegrees.degreesToHms( dval );
+            return formatSex( new Pal().Dr2tf( Math.toRadians( dval ) ) );
         }
     }
 
@@ -141,4 +142,24 @@ public abstract class ValueConverter {
         }
     }
 
+    /**
+     * Perform basic sexagesimal formatting on a PAL time object.
+     *
+     * @param  palTime  angle
+     * @return  sexagesimal representation
+     */
+    private static String formatSex( palTime palTime ) {
+        String sh = Integer.toString( palTime.getHour() );
+        String sm = Integer.toString( palTime.getMin() );
+        String ss = Integer.toString( palTime.getSec() );
+        return new StringBuffer()
+           .append( sh )
+           .append( ':' )
+           .append( sm.length() == 1 ? "0" : "" )
+           .append( sm )
+           .append( ':' )
+           .append( ss.length() == 1 ? "0" : "" )
+           .append( ss )
+           .toString();
+    }
 }
