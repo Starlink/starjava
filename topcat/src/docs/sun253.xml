@@ -15458,6 +15458,8 @@ introduced since the last version:
         not "<code>Infinity</code>"/"<code>-Infinity</code>").</li>
     <li>VOTable output no longer writes schemaLocation 
         attribute by default.</li>
+    <li>Fixed some layout problems which could lead to zero-width text
+        entry fields for RA/Dec.</li>
     </ul>
     </p>
     </dd>

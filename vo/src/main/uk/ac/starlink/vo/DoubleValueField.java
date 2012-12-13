@@ -50,7 +50,16 @@ public class DoubleValueField {
     public DoubleValueField( ValueInfo info, ValueConverter[] convs ) {
         info_ = new DefaultValueInfo( info );
         label_ = new JLabel( info_.getName() + ": " );
-        entryField_ = new JTextField( 12 );
+        entryField_ = new JTextField( 12 ) {
+            @Override
+            public Dimension getMaximumSize() {
+                return getPreferredSize();
+            }
+            @Override
+            public Dimension getMinimumSize() {
+                return new Dimension( 32, super.getPreferredSize().height );
+            }
+        };
         convSelector_ = new JComboBox( convs );
         convSelector_.setSelectedIndex( 0 );
         String description = info.getDescription();
