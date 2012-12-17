@@ -650,6 +650,20 @@ public abstract class Plot3D extends TablePlot {
     }
 
     /**
+     * Makes any necessary adjustment to a supplied rotation matrix
+     * to ensure that the vertical data axis is vertical in the view space.
+     *
+     * @param  base  input 9-element rotation matrix
+     * @return  adjusted 9-element rotation matrix
+     */
+    public static double[] fixNorth( double[] base ) {
+        double theta = Math.atan2( base[ 2 ], base[ 5 ] );
+        double[] correction =
+            rotate( base, new double[] { 0., 0., 1., }, theta );
+        return Matrices.mmMult( base, correction );
+    }
+
+    /**
      * Calculates a rotation matrix for rotating around a screen axis
      * by a given angle.  Note this axis is in the view space, not the
      * data space.

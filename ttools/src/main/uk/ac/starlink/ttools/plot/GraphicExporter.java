@@ -288,7 +288,7 @@ public abstract class GraphicExporter {
                 PdfWriter pWriter = PdfWriter.getInstance( doc, out );
                 doc.open();
                 Graphics2D g = pWriter.getDirectContent()
-                              .createGraphics( width, height );
+                              .createGraphicsShapes( width, height );
                 picture.paintPicture( g );
                 g.dispose();
                 doc.close();

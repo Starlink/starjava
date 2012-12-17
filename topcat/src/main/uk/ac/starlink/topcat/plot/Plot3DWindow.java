@@ -271,13 +271,7 @@ public abstract class Plot3DWindow extends GraphicsWindow
      */
     public void setRotation( double[] matrix ) {
         double[] rot = (double[]) matrix.clone();
-        if ( northModel_.isSelected() ) {
-            double theta = Math.atan2( rot[ 2 ], rot[ 5 ] );
-            double[] correction = 
-                Plot3D.rotate( rot, new double[] { 0., 0., 1., }, theta );
-            rot = Matrices.mmMult( rot, correction );
-        }
-        rotation_ = rot;
+        rotation_ = northModel_.isSelected() ? Plot3D.fixNorth( rot ) : rot;
     }
 
     protected JComponent getPlotPanel() {

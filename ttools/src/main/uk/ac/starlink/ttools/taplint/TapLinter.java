@@ -44,7 +44,8 @@ public class TapLinter {
     private static final URL VODATASERVICE_XSD =
         toUrl( XSDS + "/VODataService/VODataService-v1.1.xsd" );
     private static final URL CAPABILITIES_XSD =
-        TapLinter.class.getResource( "VOSICapabilities-v1.0.xsd" );
+//      TapLinter.class.getResource( "VOSICapabilities-v1.0.xsd" );
+        toUrl( XSDS + "/TAPRegExt/v1.0" );
     private static final URL AVAILABILITY_XSD =
         TapLinter.class.getResource( "VOSIAvailability-v1.0.xsd" );
 
