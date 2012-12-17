@@ -82,20 +82,6 @@ public class Matrices {
     }
 
     /**
-     * Returns the transpose of a 3x3 matrix.
-     *
-     * @param   a  input matrix
-     * @return  transpose of a
-     */
-    public static double[] transpose( double[] a ) {
-        return new double[] {
-            a[0], a[3], a[6],
-            a[1], a[4], a[7],
-            a[2], a[5], a[8],
-        };
-    }
-
-    /**
      * Returns a unit vector along an indicated axis.
      *
      * @param   iaxis  index of axis (0, 1 or 2)

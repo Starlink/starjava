@@ -183,8 +183,6 @@ public class AxisLabeller {
      * Draw the axis labels on a given graphics context.
      * The axis will be drawn along the horizontal direction of the context,
      * starting at the origin.
-     * The current font of the supplied graphics context should have
-     * font metrics as supplied in this object's constructor.
      *
      * @param   g  graphics context
      */

@@ -4,7 +4,6 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
-import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -46,7 +45,6 @@ public class SwingPainter implements Painter {
      */
     public void postComponent( Component comp ) {
         JComponent holder = new JPanel( new BorderLayout() );
-        holder.setBorder( BorderFactory.createEmptyBorder( 4, 4, 4, 4 ) );
         holder.add( comp );
         final JFrame frame = new JFrame( winTitle_ );
         frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
