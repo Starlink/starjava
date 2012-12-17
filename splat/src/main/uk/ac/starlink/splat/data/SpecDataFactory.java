@@ -1330,6 +1330,10 @@ public class SpecDataFactory
             //  FITS format, is that image or table?
             stype = SpecDataFactory.FITS;
         }
+        else if ( simpleType.startsWith( "image/fits" ) ) {
+            //  FITS (image) format... 
+            stype = SpecDataFactory.FITS;
+        }
         else if ( simpleType.startsWith( "spectrum/fits" ) ) {
             //  FITS format, is that image or table? Don't know who
             //  thought this was a mime-type?
