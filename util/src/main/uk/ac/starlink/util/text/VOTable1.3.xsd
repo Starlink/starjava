@@ -17,6 +17,7 @@
 .Version 1.20b: FO: INFO does not accept sub-elements (2009-09-29)
 .Version 1.20c: FO: elementFormDefault="qualified" to stay compatible with 1.1
 .Version 1.3: MT: Added BINARY2 element
+.Version 1.3: MT: Further relaxed LINK content-role type to token
 -->
 <xs:schema 
    xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified"
@@ -152,14 +153,14 @@
     content-role was previsouly restricted as: <![CDATA[
     <xs:attribute name="content-role">
       <xs:simpleType>
-        <xs:restriction base="xs:NMTOKEN">
+        <xs:restriction base="xs:token">
           <xs:enumeration value="query"/>
           <xs:enumeration value="hints"/>
           <xs:enumeration value="doc"/>
           <xs:enumeration value="location"/>
         </xs:restriction>
       </xs:simpleType>
-    </xs:attribute>]]>; is now a name token.
+    </xs:attribute>]]>; is now a token.
     </xs:documentation></xs:annotation>
     <xs:attribute name="ID" type="xs:ID"/>
     <xs:attribute name="content-role" type="xs:NMTOKEN"/>
