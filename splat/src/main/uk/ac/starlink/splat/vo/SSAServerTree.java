@@ -8,6 +8,7 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -182,8 +183,8 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
     // sizes
     
     private  int WIDTH = 300;
-    private  int HEIGTH = 650;
-    private int  TAB_HEIGTH = 200;
+    private  int HEIGHT = 700;
+    private int  TAB_HEIGHT = 150;
    
    
     CheckBoxListener checkBoxlistener = null;
@@ -228,7 +229,7 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
        JPanel optionsPanel = new JPanel();      
        optionsPanel.setLayout(new BoxLayout(optionsPanel, BoxLayout.Y_AXIS));
     //   optionsPanel.setBorder ( BorderFactory.createTitledBorder( "Server Options" ) );
-       optionsPanel.setPreferredSize(new Dimension(this.WIDTH,this.TAB_HEIGTH));
+       optionsPanel.setPreferredSize(new Dimension(this.WIDTH,this.TAB_HEIGHT));
        
        treeRenderer = new ServerTreeCellRenderer();
        checkBoxlistener = new CheckBoxListener();
@@ -373,7 +374,7 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
        //tagsList.setPreferredSize(tagsPanel.getPreferredSize());
       // tagsList.setBackground(Color.WHITE);
        JScrollPane tagScroller = new JScrollPane( tagsList );
-       tagScroller.setPreferredSize(new Dimension (this.WIDTH-10, this.TAB_HEIGTH-40));
+       tagScroller.setPreferredSize(new Dimension (this.WIDTH-10, this.TAB_HEIGHT-40));
     //   tagScroller.set
        tagsPanel.add(tagScroller);
     //   tagScroller.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
@@ -576,14 +577,8 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
             new ProxyAction( "Configure connection proxy..." );
   //      optionsMenu.add( proxyAction );
 
-        //  Action to check a registry for additional/updated servers.
-        QueryNewAction newAction = new QueryNewAction( "Query registry" );
-   //     optionsMenu.add( newAction );
-        JButton newQueryButton = new JButton( newAction );
-  //      topActionBar.add( Box.createGlue() );
-        topActionBar2.add( newQueryButton );
-        newQueryButton.setToolTipText( "Query registry for new SSAP services" );
-        
+     
+ 
         //  Add action to manually add a new server to the list
    //     AddNewAction addNewAction = new AddNewAction( "New Server" );
  //       fileMenu.add( addNewAction );
@@ -596,8 +591,11 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
         RemoveAction removeAction = new RemoveAction( "Remove selected" );
  //       optionsMenu.add( removeAction );
         JButton removeButton = new JButton( removeAction );
+ 
+        removeButton.setMargin(new Insets(2,2,2,2));  
   //      topActionBar.add( Box.createGlue() );
         topActionBar1.add( removeButton );
+  //      controlPanel.add( removeButton, BorderLayout.PAGE_START );
         removeButton.setToolTipText
             ( "Remove selected servers from current list" );
 
@@ -606,10 +604,23 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
           new RemoveUnAction( "Remove unselected" );
  //       optionsMenu.add( removeUnAction );
         JButton removeUnButton = new JButton( removeUnAction );
+        removeUnButton.setMargin(new Insets(2,2,2,2));  
  //       topActionBar.add( Box.createGlue() );
-        topActionBar3.add( removeUnButton );
+        topActionBar1.add( removeUnButton );
+     //   controlPanel.add( removeUnButton, BorderLayout.CENTER );
         removeUnButton.setToolTipText
             ( "Remove unselected servers from current list" );
+        
+        //  Action to check a registry for additional/updated servers.
+        QueryNewAction newAction = new QueryNewAction( "Query registry" );
+   //     optionsMenu.add( newAction );
+        JButton newQueryButton = new JButton( newAction );
+        newQueryButton.setMargin(new Insets(2,2,2,2));  
+  //      topActionBar.add( Box.createGlue() );
+        topActionBar2.add( newQueryButton );
+       // controlPanel.add( newQueryButton, BorderLayout.PAGE_END );
+        newQueryButton.setToolTipText( "Query registry for new SSAP services" );
+        
 
         //  Add action to select all servers.
         SelectAllAction selectAllAction = new SelectAllAction( "Select all" );
@@ -622,13 +633,15 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
         //  Add action to just delete all servers.
         DeleteAction deleteAction = new DeleteAction( "Delete all" );
         
-        AddNewAction addNewAction = new AddNewAction( "+" );
-        JPanel addPanel = new JPanel();
+        AddNewAction addNewAction = new AddNewAction( "Add New Server" );
+      //  JPanel addPanel = new JPanel();
       //  addPanel.setLayout(new BorderLayout());
         JButton addButton1 = new JButton(addNewAction);
         addButton1.setToolTipText("Add new service to the list");
-        addPanel.add(addButton1);
-        mainPanel.add(addPanel, BorderLayout.EAST);
+        addButton1.setMargin(new Insets(2,2,2,2));  
+  //      addPanel.add(addButton1);
+        topActionBar2.add(addButton1);
+   //     mainPanel.add(addPanel, BorderLayout.EAST);
         
  //       optionsMenu.add( deleteAction );
         JButton deleteButton = new JButton( deleteAction );
@@ -640,9 +653,9 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
       //  topActionBar.add( Box.createGlue() );
    //     botActionBar.add( Box.createGlue() );
 
-        controlPanel.add(topActionBar1, BorderLayout.NORTH);
-        controlPanel.add(topActionBar3, BorderLayout.CENTER);
-        controlPanel.add(topActionBar2, BorderLayout.SOUTH);
+          controlPanel.add(topActionBar1, BorderLayout.NORTH);
+  //      controlPanel.add(topActionBar3, BorderLayout.CENTER);
+          controlPanel.add(topActionBar2, BorderLayout.SOUTH);
         mainPanel.add( controlPanel, BorderLayout.SOUTH );
      //   buttonsPanel.add( botActionBar, BorderLayout.SOUTH );
 
