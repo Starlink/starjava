@@ -857,7 +857,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         JPanel sendQueryPanel = new JPanel(new BorderLayout());
         sendQueryPanel.add(new JLabel("Query:"), BorderLayout.LINE_START);
   //      sendQueryPanel.add(showQueryButton, BorderLayout.LINE_START);
-        queryText = new JTextArea(2,30);
+        queryText = new JTextArea(2,25);
         queryText.setEditable(false);
         sendQueryPanel.add(queryText);
         queryText.setLineWrap(true);     
