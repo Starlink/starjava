@@ -167,6 +167,9 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
     
     private  int WIDTH = 600;
     private  int HEIGHT = 500;
+    private  int WIDTH = 300;
+    private  int HEIGHT = 700;
+    private int  TAB_HEIGHT = 150;
    
     private CheckBoxListener checkBoxlistener = null;
    
@@ -633,7 +636,6 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
    //     botActionBar.add( Box.createGlue() );
 //        botActionBar.add( saveButton );
         saveButton.setToolTipText( "Save server list to a disk-file" );
-
 
         //  Remove selected servers from table.
         RemoveAction removeAction = new RemoveAction( "Remove selected" );

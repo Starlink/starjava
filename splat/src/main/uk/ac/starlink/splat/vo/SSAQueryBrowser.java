@@ -800,8 +800,8 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
     {
         setTitle( Utilities.getTitle( "Query VO for Spectra" ) );
         setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
-        Utilities.setFrameLocation( this, defaultWindowLocation, prefs,
-                "SSAQueryBrowser" );
+  //      Utilities.setFrameLocation( this, defaultWindowLocation, prefs,
+ //               "SSAQueryBrowser" );
         setVisible( true );
     }
 
@@ -2658,7 +2658,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
      */
     protected void closeWindowEvent()
     {
-        Utilities.saveFrameLocation( this, prefs, "SSAQueryBrowser" );
+   //     Utilities.saveFrameLocation( this, prefs, "SSAQueryBrowser" );
         this.dispose();
     }
 
