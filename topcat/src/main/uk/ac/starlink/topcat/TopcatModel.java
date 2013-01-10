@@ -700,7 +700,7 @@ public class TopcatModel {
         columnModel_.addColumn( tc );
 
         /* Move the new column to the requested position. */
-        if ( colIndex >= 0 ) {
+        if ( colIndex >= 0 && colIndex < columnModel_.getColumnCount() - 1 ) {
             columnModel_.moveColumn( columnModel_.getColumnCount() - 1,
                                      colIndex );
         }
