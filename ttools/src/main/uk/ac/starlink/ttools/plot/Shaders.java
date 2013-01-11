@@ -428,6 +428,30 @@ public class Shaders {
     }
 
     /**
+     * Creates a shader which for each value either does nothing to a colour
+     * or turns it completely transparent.  The pass range is specified
+     * by a minimum and maximum value and a sense.
+     *
+     * @param  name  shader name
+     * @param  minMask  minimum value (exclusive) for range
+     * @param  maxMask  maximum value (exclusive) for range
+     * @param  sense  if true, values outside the range are transparent,
+     *                if false, values within the range are transparent
+     */
+    public static Shader createMaskShader( String name,
+                                           final float minMask,
+                                           final float maxMask,
+                                           final boolean sense ) {
+        return new BasicShader( name, Color.GRAY ) {
+            public void adjustRgba( float[] rgba, float value ) {
+                if ( ( value > minMask && value < maxMask ) ^ sense ) {
+                    rgba[ 3 ] = 0;
+                }
+            }
+        };
+    }
+
+    /**
      * Returns an array of any custom shaders specified by the 
      * {@link #LUTFILES_PROPERTY} property.
      *
