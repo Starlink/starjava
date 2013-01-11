@@ -15463,6 +15463,7 @@ introduced since the last version:
     <li>Fixed bug when attempting to explode a hidden array column.</li>
     <li>Fix error bar rendering bug which could result in diagonal lines
         being offset near the edge of plots.</li>
+    <li>Fix problem with GUI locking up when plotting outsize histograms.</li>
     </ul>
     </p>
     </dd>
