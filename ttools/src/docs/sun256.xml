@@ -8289,6 +8289,8 @@ but my thanks are especially due to the following:
         schema (which is how those versions are defined) rather than against
         a DTD hacked to do the same job as the schema.
         VOTable 1.3 validation is now provided.</li>
+    <li>Fix error bar rendering bug which could result in diagonal lines
+        being offset near the edge of plots.</li>  
     </ul>
     </p></dd>
 

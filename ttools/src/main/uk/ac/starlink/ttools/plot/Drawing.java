@@ -85,9 +85,9 @@ public class Drawing implements Pixellator {
                 y1 = y0;
                 y0 = y2;
             }
-            y0 = Math.max( y0, bounds_.y );
-            y1 = Math.min( y1, bounds_.y + bounds_.height );
-            for ( int y = y0; y <= y1; y++ ) {
+            int ya = Math.max( y0, bounds_.y );
+            int yb = Math.min( y1, bounds_.y + bounds_.height );
+            for ( int y = ya; y <= yb; y++ ) {
                 addPixel( x, y );
             }
         }
@@ -100,9 +100,9 @@ public class Drawing implements Pixellator {
                 x1 = x0;
                 x0 = x2;
             }
-            x0 = Math.max( x0, bounds_.x );
-            x1 = Math.min( x1, bounds_.x + bounds_.width );
-            for ( int x = x0; x <= x1; x++ ) {
+            int xa = Math.max( x0, bounds_.x );
+            int xb = Math.min( x1, bounds_.x + bounds_.width );
+            for ( int x = xa; x <= xb; x++ ) {
                 addPixel( x, y );
             }
         }
@@ -118,9 +118,9 @@ public class Drawing implements Pixellator {
                 y0 = y2;
             }
             double slope = (double) ( y1 - y0 ) / (double) ( x1 - x0 );
-            x0 = Math.max( x0, bounds_.x );
-            x1 = Math.min( x1, bounds_.x + bounds_.width );
-            for ( int x = x0; x <= x1; x++ ) {
+            int xa = Math.max( x0, bounds_.x );
+            int xb = Math.min( x1, bounds_.x + bounds_.width );
+            for ( int x = xa; x <= xb; x++ ) {
                 addPixel( x, y0 + (int) Math.round( ( x - x0 ) * slope ) );
             }
         }
@@ -137,9 +137,9 @@ public class Drawing implements Pixellator {
                 y0 = y2;
             }
             double slope = (double) ( x1 - x0 ) / (double) ( y1 - y0 );
-            y0 = Math.max( y0, bounds_.y );
-            y1 = Math.min( y1, bounds_.y + bounds_.height );
-            for ( int y = y0; y <= y1; y++ ) {
+            int ya = Math.max( y0, bounds_.y );
+            int yb = Math.min( y1, bounds_.y + bounds_.height );
+            for ( int y = ya; y <= yb; y++ ) {
                 addPixel( x0 + (int) Math.round( ( y - y0 ) * slope ), y );
             }
         }

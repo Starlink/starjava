@@ -15461,6 +15461,8 @@ introduced since the last version:
     <li>Fixed some layout problems which could lead to zero-width text
         entry fields for RA/Dec.</li>
     <li>Fixed bug when attempting to explode a hidden array column.</li>
+    <li>Fix error bar rendering bug which could result in diagonal lines
+        being offset near the edge of plots.</li>
     </ul>
     </p>
     </dd>
