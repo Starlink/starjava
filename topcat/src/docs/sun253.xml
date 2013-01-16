@@ -15464,6 +15464,8 @@ introduced since the last version:
     <li>Fix error bar rendering bug which could result in diagonal lines
         being offset near the edge of plots.</li>
     <li>Fix problem with GUI locking up when plotting outsize histograms.</li>
+    <li>Improve behaviour when deleting a parameter in the
+        Parameter Window.</li>
     </ul>
     </p>
     </dd>
