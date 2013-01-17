@@ -10,7 +10,7 @@ import uk.ac.starlink.vo.RegResource;
  * @since    22 Dec 2008
  */
 public class SSAPRegResource
-    implements RegResource
+//    implements RegResource
 {
     private String shortName;
     private String title;
@@ -18,8 +18,10 @@ public class SSAPRegResource
     private String publisher;
     private String contact;
     private String referenceUrl;
-    private RegCapabilityInterface[] capabilities;
+    private String version;
+    private SSAPRegCapability[] capabilities;
     private String[] subjects = null;
+    private String [] waveband = null;
 
     /**
      * Constructor.
@@ -34,7 +36,7 @@ public class SSAPRegResource
      *
      * @param   resource   resource object
      */
-    public SSAPRegResource( RegResource resource )
+    public SSAPRegResource( SSAPRegResource resource )
     {
         shortName = resource.getShortName();
         title = resource.getTitle();
@@ -43,13 +45,31 @@ public class SSAPRegResource
         contact = resource.getContact();
         referenceUrl = resource.getReferenceUrl();
         subjects = resource.getSubjects();
-
+        version = resource.getVersion();
+        waveband = resource.getWaveband();
         //  Need a copy of each capability.
-        RegCapabilityInterface[] rci = resource.getCapabilities();
+        SSAPRegCapability[] rci = (SSAPRegCapability[]) resource.getCapabilities();
         capabilities = new SSAPRegCapability[rci.length];
         for ( int i = 0; i < rci.length; i++ ) {
             capabilities[i] = new SSAPRegCapability( rci[i] );
         }
+    }
+
+    /**
+     * Constructor. Initialised from a {@link AddNewServerFrame}, allows
+     * manual insertion of a server}.
+     *
+     * @param   newshortName     resource short name
+     * @param   newTitle         resource title
+     * @param   newDescription   capability description
+     * @param   newAccessUrl     capability access url
+     */
+    public SSAPRegResource( String newShortName, String newTitle, String newDescription, String newAccessUrl )
+    {
+        setShortName(newShortName);
+        setTitle(newTitle);
+        capabilities = new SSAPRegCapability[1];
+        capabilities[0] = new SSAPRegCapability( newDescription, newAccessUrl );
     }
 
     public String getShortName()
@@ -112,12 +132,12 @@ public class SSAPRegResource
         this.referenceUrl = referenceUrl;
     }
 
-    public RegCapabilityInterface[] getCapabilities()
+    public SSAPRegCapability[] getCapabilities()
     {
         return capabilities = capabilities;
     }
 
-    public void setCapabilities( RegCapabilityInterface[] capabilities )
+    public void setCapabilities( SSAPRegCapability[] capabilities )
     {
         this.capabilities = capabilities;
     }
@@ -126,9 +146,31 @@ public class SSAPRegResource
     {
         return subjects;
     }
-
     public void setSubjects( String[] subjects )
     {
         this.subjects = subjects;
     }
+
+    public String[] getWaveband() 
+    {
+        return waveband;
+    }
+    
+    public void setWaveband( String[] waveband )
+    {
+        this.waveband = waveband;
+    }
+
+   
+    public String getVersion() 
+    {
+        return version;
+    }
+
+    public void setVersion( String version )
+    {
+        this.version = version;
+    }
+
+  
 }

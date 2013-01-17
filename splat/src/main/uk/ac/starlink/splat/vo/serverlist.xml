@@ -1,34 +1,59 @@
 <?xml version="1.0" encoding="UTF-8"?> 
-<java version="1.5.0_16" class="java.beans.XMLDecoder"> 
+<java version="1.5.0_30" class="java.beans.XMLDecoder"> 
  <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
   <void property="capabilities"> 
    <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="1"> 
     <void index="0"> 
      <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
       <void property="accessUrl"> 
-       <string>http://byurakan.phys.uniroma1.it/cgi-bin/dfbs.cgi?n=ssa&amp;c=ssa&amp;</string> 
+       <string>http://svo.cab.inta-csic.es/theory/db2vo/ssap.php?model=nextgen</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>custom</string> 
+      </void> 
+      <void property="dataType"> 
+       <string>Simulation</string> 
+      </void> 
+      <void property="description"> 
+       <string>The NextGen Model grid of theoretical spectra; Hauschildt, P.H., Allard, F., Baron, E., Schweitzer, A., ApJ 312, 377, 1999</string> 
       </void> 
       <void property="standardId"> 
        <string>ivo://ivoa.net/std/SSA</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
       </void> 
      </object> 
     </void> 
    </array> 
   </void> 
+  <void property="contact"> 
+   <string>Enrique Solano, LAEFF Archive Support Team &lt;esm@cab.inta-csic.es&gt;</string> 
+  </void> 
   <void property="identifier"> 
-   <string>ivo://byurakan.phys.uniroma1.it/DFBS-ssa</string> 
+   <string>ivo://svo.cab/models/nextgen</string> 
   </void> 
   <void property="publisher"> 
-   <string>Dipartimento di Fisica, Universita&apos; La Sapienza</string> 
+   <string>SVO CAB</string> 
   </void> 
   <void property="referenceUrl"> 
-   <string>http://byurakan.phys.uniroma1.it/</string> 
+   <string>http://svo.cab.inta-csic.es/</string> 
   </void> 
   <void property="shortName"> 
-   <string>DFBS</string> 
+   <string>Nextgen</string> 
+  </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="1"> 
+    <void index="0"> 
+     <string>star</string> 
+    </void> 
+   </array> 
   </void> 
   <void property="title"> 
-   <string>Digitized First Byurakan Survey</string> 
+   <string>Allard, NextGen</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="0"/> 
   </void> 
  </object> 
  <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
@@ -37,82 +62,34 @@
     <void index="0"> 
      <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
       <void property="accessUrl"> 
-       <string>http://archive.stsci.edu/ssap/search.php?id=FUSE&amp;</string> 
+       <string>http://www.g-vo.org/ssampe_102/SSA?archiveid=CDFS&amp;</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>pointed</string> 
+      </void> 
+      <void property="dataType"> 
+       <string>Survey</string> 
+      </void> 
+      <void property="description"> 
+       <string>SSAP implementation on the result of the spectroscopic follow-up of X-ray
+      sources in the CDS-S. The nominal aim point of the data set is RA =
+      3hr32m28s.0(53.1167 deg), and DEC = -27o48&apos;30&apos;&apos;(-27.8083 deg) (J2000)
+      covering the 1Msec Chandra X-Ray observation. It was carried out with
+      VLT/FORS in the time frame of October 2000 to December 2001. There are
+      296 spectra available.</string> 
       </void> 
       <void property="standardId"> 
        <string>ivo://ivoa.net/std/SSA</string> 
       </void> 
-      <void property="version"> 
-       <string>0.5</string> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
       </void> 
      </object> 
     </void> 
    </array> 
   </void> 
-  <void property="identifier"> 
-   <string>ivo://mast.stsci.edu/ssap/fuse</string> 
-  </void> 
-  <void property="publisher"> 
-   <string>MAST</string> 
-  </void> 
-  <void property="referenceUrl"> 
-   <string>http://archive.stsci.edu/</string> 
-  </void> 
-  <void property="shortName"> 
-   <string>FUSE</string> 
-  </void> 
-  <void property="title"> 
-   <string>Far Ultraviolet Spectroscopic Explorer</string> 
-  </void> 
- </object> 
- <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
-  <void property="capabilities"> 
-   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="1"> 
-    <void index="0"> 
-     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
-      <void property="accessUrl"> 
-       <string>http://basebe.obspm.fr/cgi-bin/ssapBE01.pl?</string> 
-      </void> 
-      <void property="standardId"> 
-       <string>ivo://ivoa.net/std/SSA</string> 
-      </void> 
-      <void property="version"> 
-       <string>0.5</string> 
-      </void> 
-     </object> 
-    </void> 
-   </array> 
-  </void> 
-  <void property="identifier"> 
-   <string>ivo://basebe.obspm.fr/bess0.1</string> 
-  </void> 
-  <void property="publisher"> 
-   <string>Observatoire de Paris-Meudon -&gt; GEPI</string> 
-  </void> 
-  <void property="referenceUrl"> 
-   <string>http://basebe.obspm.fr</string> 
-  </void> 
-  <void property="shortName"> 
-   <string>BeSS</string> 
-  </void> 
-  <void property="title"> 
-   <string>Be Stars Spectra database</string> 
-  </void> 
- </object> 
- <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
-  <void property="capabilities"> 
-   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="1"> 
-    <void index="0"> 
-     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
-      <void property="accessUrl"> 
-       <string>http://www.g-vo.org/ssa/SSA?action=Query&amp;archiveid=ssa.service.cdfs&amp;</string> 
-      </void> 
-      <void property="standardId"> 
-       <string>ivo://ivoa.net/std/SSA</string> 
-      </void> 
-     </object> 
-    </void> 
-   </array> 
+  <void property="contact"> 
+   <string>Jai Won Kim &lt;jkim@mpe.mpg.de&gt;</string> 
   </void> 
   <void property="identifier"> 
    <string>ivo://www.g-vo.org/ssa.service.cdfs</string> 
@@ -121,13 +98,83 @@
    <string>German Astrophysical Virtual Observatory</string> 
   </void> 
   <void property="referenceUrl"> 
-   <string>http://www.g-vo.org/ssa/SSA?action=Help</string> 
+   <string>http://www.g-vo.org/ssampe_102/SSA?request=Help</string> 
   </void> 
   <void property="shortName"> 
    <string>CDFS SSA</string> 
   </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="0"/> 
+  </void> 
   <void property="title"> 
    <string>SSA Service for Optical Spectroscopy in the CDF-S</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="1"> 
+    <void index="0"> 
+     <string>Optical</string> 
+    </void> 
+   </array> 
+  </void> 
+ </object> 
+ <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
+  <void property="capabilities"> 
+   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="1"> 
+    <void index="0"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://wfaudata.roe.ac.uk/6dF-ssap/</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>pointed</string> 
+      </void> 
+      <void property="dataType"> 
+       <string>Survey</string> 
+      </void> 
+      <void property="description"> 
+       <string>The 6dF Galaxy Survey (6dFGS) aims to measure the redshifts of around 150 000 galaxies, and the peculiar velocities of a 15 000-member subsample, over almost the entire southern sky. The table called Spectra contains the redshifts and qualities of all the observations. When complete, it will be the largest redshift survey of the nearby Universe, reaching out to about z ~ 0.15, and more than an order of magnitude larger than any peculiar velocity survey to date. The targets are all galaxies brighter than K tot = 12.75 in the 2MASS Extended Source Catalog (XSC), supplemented by 2MASS and SuperCOSMOS galaxies that complete the sample to limits of (H, J , r F, bJ) = (13.05, 13.75, 15.6, 16.75). This is the Data Release 3 version.</string> 
+      </void> 
+      <void property="standardId"> 
+       <string>ivo://ivoa.net/std/SSA</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
+      </void> 
+     </object> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="contact"> 
+   <string>Mark Holliman &lt;msh@roe.ac.uk&gt;</string> 
+  </void> 
+  <void property="identifier"> 
+   <string>ivo://wfau.roe.ac.uk/6dF-ssap</string> 
+  </void> 
+  <void property="publisher"> 
+   <string>WFAU, Institute for Astronomy, University of Edinburgh</string> 
+  </void> 
+  <void property="referenceUrl"> 
+   <string>http://www-wfau.roe.ac.uk/6dfgs/</string> 
+  </void> 
+  <void property="shortName"> 
+   <string>6dF Spectra</string> 
+  </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="1"> 
+    <void index="0"> 
+     <string>6dF Data Release 3 Spectra</string> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="title"> 
+   <string>6dF DR3 Simple Spectra Access</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="1"> 
+    <void index="0"> 
+     <string>Optical</string> 
+    </void> 
+   </array> 
   </void> 
  </object> 
  <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
@@ -138,15 +185,30 @@
       <void property="accessUrl"> 
        <string>http://leda.univ-lyon1.fr/G.cgi?c=ssa&amp;n=fassa&amp;</string> 
       </void> 
+      <void property="dataSource"> 
+       <string>pointed</string> 
+      </void> 
+      <void property="dataType"> 
+       <string>Archive</string> 
+      </void> 
+      <void property="description"> 
+       <string>A compilation of 1D reference spectra of stars and galaxies. Spectra         from several archives and libraries have been collected, re-documented         and re-formatted.    The spectral resolution is between R=100 and         250000.    Some spectra give the physical flux, either or not         corrected for the Galactic extinction, and some others are normalized         to the pseudo-continuum. Some are given in physical units, and some         are momalized to some particular wavelengths (often 5500 A).</string> 
+      </void> 
       <void property="standardId"> 
        <string>ivo://ivoa.net/std/SSA</string> 
       </void> 
       <void property="version"> 
        <string>0.5</string> 
       </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
+      </void> 
      </object> 
     </void> 
    </array> 
+  </void> 
+  <void property="contact"> 
+   <string>Philippe Prugniel &lt;prugniel@obs.univ-lyon1.fr&gt;</string> 
   </void> 
   <void property="identifier"> 
    <string>ivo://obs-lyon.fr/hfa/ssa</string> 
@@ -160,9 +222,23 @@
   <void property="shortName"> 
    <string>HFA</string> 
   </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="1"> 
+    <void index="0"> 
+     <string>Compilation of 1D spectra</string> 
+    </void> 
+   </array> 
+  </void> 
   <void property="title"> 
    <string>HyperLeda FITS Archive Simple Spectrum Data Access(HFA SSA)</string> 
   </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="1"> 
+    <void index="0"> 
+     <string>Optical</string> 
+    </void> 
+   </array> 
+  </void> 
  </object> 
  <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
   <void property="capabilities"> 
@@ -170,32 +246,75 @@
     <void index="0"> 
      <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
       <void property="accessUrl"> 
-       <string>http://archive.stsci.edu/ssap/search.php?id=HST&amp;</string> 
+       <string>http://vo.ned.ipac.caltech.edu/services/querySED?REQUEST=queryData&amp;</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>survey</string> 
+      </void> 
+      <void property="description"> 
+       <string>NED is built around a master list of extragalactic objects for which cross-identifications of names have been established, accurate positions and redshifts entered to the extent possible, and some basic data collected. Bibliographic references relevant to individual objects have been compiled, and abstracts of extragalactic interest are kept on line. Detailed and referenced photometry, position, and redshift data, have been taken from large compilations and from the literature. NED also includes images for over 773,000 extragalactic objects from 2MASS, from the literature, and from the Digitized Sky Survey. NED&apos;s data and references are being continually updated, with revised versions being put on-line every 4-6 months.</string> 
       </void> 
       <void property="standardId"> 
        <string>ivo://ivoa.net/std/SSA</string> 
       </void> 
       <void property="version"> 
-       <string>0.5</string> 
+       <string>1.0</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
       </void> 
      </object> 
     </void> 
    </array> 
   </void> 
+  <void property="contact"> 
+   <string>Olga Pevunova &lt;olga@ipac.caltech.edu&gt;</string> 
+  </void> 
   <void property="identifier"> 
-   <string>ivo://mast.stsci/ssap/hst</string> 
+   <string>ivo://ned.ipac/SED_Data_Near_Position</string> 
   </void> 
   <void property="publisher"> 
-   <string>MAST</string> 
+   <string>The NASA/IPAC Extragalactic Database</string> 
   </void> 
   <void property="referenceUrl"> 
-   <string>http://archive.stsci.edu/</string> 
+   <string>http://ned.ipac.caltech.edu/help/data_help.html#ptmydat</string> 
   </void> 
   <void property="shortName"> 
-   <string>HST Spectra</string> 
+   <string>NED/SED</string> 
+  </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="0"/> 
   </void> 
   <void property="title"> 
-   <string>Hubble Space Telescope Spectra</string> 
+   <string>The NASA/IPAC Extragalactic Database SED Data Discovery Service</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="8"> 
+    <void index="0"> 
+     <string>Radio</string> 
+    </void> 
+    <void index="1"> 
+     <string>Millimeter</string> 
+    </void> 
+    <void index="2"> 
+     <string>Infrared</string> 
+    </void> 
+    <void index="3"> 
+     <string>Optical</string> 
+    </void> 
+    <void index="4"> 
+     <string>UV</string> 
+    </void> 
+    <void index="5"> 
+     <string>EUV</string> 
+    </void> 
+    <void index="6"> 
+     <string>X-ray</string> 
+    </void> 
+    <void index="7"> 
+     <string>Gamma-ray</string> 
+    </void> 
+   </array> 
   </void> 
  </object> 
  <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
@@ -204,32 +323,60 @@
     <void index="0"> 
      <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
       <void property="accessUrl"> 
-       <string>http://venus.ifca.unican.es:8080/SSAPXMS</string> 
+       <string>http://ssaproxy.asu.cas.cz/heros/q/ssa/ssap.xml?</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>pointed</string> 
+      </void> 
+      <void property="dataType"> 
+       <string>Archive</string> 
+      </void> 
+      <void property="description"> 
+       <string>This archive contains about 6000 high resolution (R=20000) echelle
+      spectra obtained by the HEROS spectrograph installed at the 2m telescope
+      of the Ondrejov observatory since August 2000 to March 2003. The spectra
+      exposed simultaneously in two channels (red 580-840nm, blue 370-560nm)
+      were reduced by MIDAS HEROS pipeline ncluding the merging of echelle
+      orders, heliocentric correction and rebinning to steps of 0.1A. The
+      intensities are in instrumental flux (not normalized).</string> 
       </void> 
       <void property="standardId"> 
        <string>ivo://ivoa.net/std/SSA</string> 
       </void> 
-      <void property="version"> 
-       <string>0.5</string> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
       </void> 
      </object> 
     </void> 
    </array> 
   </void> 
+  <void property="contact"> 
+   <string>Petr Skoda &lt;skoda@sunstel.asu.cas.cz&gt;</string> 
+  </void> 
   <void property="identifier"> 
-   <string>ivo://uk.ac.le.star/ssap_temp_resource/axis</string> 
+   <string>ivo://asu.cas.cz/stel/heros</string> 
   </void> 
   <void property="publisher"> 
-   <string>IFCA(CSIC-UC)</string> 
+   <string>Stelar Department of Astronomical Institute of the Academy of Sciences of the Czech Republic</string> 
   </void> 
   <void property="referenceUrl"> 
-   <string>NOT PROVIDED</string> 
+   <string>http://stelweb.asu.cas.cz/vo-archives/heros</string> 
   </void> 
   <void property="shortName"> 
-   <string>AXIS-SVO SSAP</string> 
+   <string>HEROS OND</string> 
+  </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="1"> 
+    <void index="0"> 
+     <string>echelle spectra archives</string> 
+    </void> 
+   </array> 
   </void> 
   <void property="title"> 
-   <string>AXIS-XMS</string> 
+   <string>HEROS archive of Ondrejov observations</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="0"/> 
   </void> 
  </object> 
  <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
@@ -238,298 +385,62 @@
     <void index="0"> 
      <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
       <void property="accessUrl"> 
-       <string>http://vo.obspm.fr/cgi-bin/siap/ssapFUSE.pl?</string> 
+       <string>http://ssaproxy.asu.cas.cz/heros/q/pssa/ssap.xml?</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>pointed</string> 
+      </void> 
+      <void property="dataType"> 
+       <string>Transformation</string> 
+      </void> 
+      <void property="description"> 
+       <string>This is the cutout server for the content of HEROS archive. Using the
+      parametr BAND=l1/l2 prepares on the fly spectra extended only over given
+      range of wavelengths. This archive contains about 6000 high resolution
+      (R=20000) echelle spectra obtained by the HEROS spectrograph installed at
+      the 2m telescope of the Ondrejov observatory since August 2000 to March
+      2003. The spectra exposed simultaneously in two channels (red 580-840nm,
+      blue 370-560nm) were reduced by MIDAS HEROS pipeline ncluding the merging
+      of echelle orders, heliocentric correction and rebinning to steps of
+      0.1A. The intensities are in instrumental flux (not normalized).</string> 
       </void> 
       <void property="standardId"> 
        <string>ivo://ivoa.net/std/SSA</string> 
       </void> 
-      <void property="version"> 
-       <string>0.5</string> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
       </void> 
      </object> 
     </void> 
    </array> 
   </void> 
+  <void property="contact"> 
+   <string>Petr Skoda &lt;skoda@sunstel.asu.cas.cz&gt;</string> 
+  </void> 
   <void property="identifier"> 
-   <string>ivo://iap.fr/FUSE/SSA</string> 
+   <string>ivo://asu.cas.cz/stel/heros/cutout</string> 
   </void> 
   <void property="publisher"> 
-   <string>Institut d&apos;Astrophysique de Paris (IAP)</string> 
+   <string>Stelar Department of Astronomical Institute of the Academy of Sciences of the Czech Republic</string> 
   </void> 
   <void property="referenceUrl"> 
-   <string>http://fuse.iap.fr/</string> 
+   <string>http://stelweb.asu.cas.cz/vo-archives/heros</string> 
   </void> 
   <void property="shortName"> 
-   <string>FUSE SSA</string> 
+   <string>HEROS OND CUTOUT</string> 
   </void> 
-  <void property="title"> 
-   <string>Far Ultraviolet Spectroscopic Explorer (Simple Spectrum Data Access)</string> 
-  </void> 
- </object> 
- <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
-  <void property="capabilities"> 
-   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="1"> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="1"> 
     <void index="0"> 
-     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
-      <void property="accessUrl"> 
-       <string>http://archive.stsci.edu/ssap/search.php?id=HPOL&amp;</string> 
-      </void> 
-      <void property="standardId"> 
-       <string>ivo://ivoa.net/std/SSA</string> 
-      </void> 
-      <void property="version"> 
-       <string>0.5</string> 
-      </void> 
-     </object> 
+     <string>echelle spectra archive cutout service</string> 
     </void> 
    </array> 
   </void> 
-  <void property="identifier"> 
-   <string>ivo://mast.stsci/ssap/hpol</string> 
-  </void> 
-  <void property="publisher"> 
-   <string>MAST</string> 
-  </void> 
-  <void property="referenceUrl"> 
-   <string>http://archive.stsci.edu/</string> 
-  </void> 
-  <void property="shortName"> 
-   <string>HPOL</string> 
-  </void> 
   <void property="title"> 
-   <string>Wisconsin Halfwave Spectropolarimeter</string> 
+   <string>cutout server of HEROS archive of Ondrejov observations</string> 
   </void> 
- </object> 
- <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
-  <void property="capabilities"> 
-   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="1"> 
-    <void index="0"> 
-     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
-      <void property="accessUrl"> 
-       <string>http://archive.stsci.edu/ssap/search.php?id=HUT&amp;</string> 
-      </void> 
-      <void property="standardId"> 
-       <string>ivo://ivoa.net/std/SSA</string> 
-      </void> 
-      <void property="version"> 
-       <string>0.5</string> 
-      </void> 
-     </object> 
-    </void> 
-   </array> 
-  </void> 
-  <void property="identifier"> 
-   <string>ivo://mast.stsci/ssap/hut</string> 
-  </void> 
-  <void property="publisher"> 
-   <string>MAST</string> 
-  </void> 
-  <void property="referenceUrl"> 
-   <string>http://archive.stsci.edu/</string> 
-  </void> 
-  <void property="shortName"> 
-   <string>HUT</string> 
-  </void> 
-  <void property="title"> 
-   <string>Hopkins Ultraviolet  Telescope</string> 
-  </void> 
- </object> 
- <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
-  <void property="capabilities"> 
-   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="1"> 
-    <void index="0"> 
-     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
-      <void property="accessUrl"> 
-       <string>http://basebe.obspm.fr/cgi-bin/ssapBE_1.0.pl</string> 
-      </void> 
-      <void property="standardId"> 
-       <string>ivo://ivoa.net/std/SSA</string> 
-      </void> 
-     </object> 
-    </void> 
-   </array> 
-  </void> 
-  <void property="identifier"> 
-   <string>ivo://voparis.obspm.gepi/BeStars/BeSS/SSAP</string> 
-  </void> 
-  <void property="publisher"> 
-   <string>GEPI-VOPARIS DATA CENTRE</string> 
-  </void> 
-  <void property="referenceUrl"> 
-   <string>http://basebe.obspm.fr</string> 
-  </void> 
-  <void property="shortName"> 
-   <string>BeSS_SSAP</string> 
-  </void> 
-  <void property="title"> 
-   <string>Be Star Spectra SSAP</string> 
-  </void> 
- </object> 
- <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
-  <void property="capabilities"> 
-   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="1"> 
-    <void index="0"> 
-     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
-      <void property="accessUrl"> 
-       <string>http://ov.inaoep.mx/tsap/SyntMod.php?FORMAT=METADATA&amp;</string> 
-      </void> 
-      <void property="standardId"> 
-       <string>ivo://ivoa.net/std/SSA</string> 
-      </void> 
-      <void property="version"> 
-       <string>0.5</string> 
-      </void> 
-     </object> 
-    </void> 
-   </array> 
-  </void> 
-  <void property="identifier"> 
-   <string>ivo://svo.iaa/models/SSP/Xray</string> 
-  </void> 
-  <void property="publisher"> 
-   <string>Instituto de Astrofísica de Andalucía</string> 
-  </void> 
-  <void property="referenceUrl"> 
-   <string>http://ov.inaoep.mx/pgos3/index.php</string> 
-  </void> 
-  <void property="shortName"> 
-   <string>PGos3 X-ray SSP</string> 
-  </void> 
-  <void property="title"> 
-   <string>PGos3: X-ray SSP models</string> 
-  </void> 
- </object> 
- <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
-  <void property="capabilities"> 
-   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="1"> 
-    <void index="0"> 
-     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
-      <void property="accessUrl"> 
-       <string>http://archive.eso.org/apps/ssaserver/EsoProxySsap?</string> 
-      </void> 
-      <void property="standardId"> 
-       <string>ivo://ivoa.net/std/SSA</string> 
-      </void> 
-     </object> 
-    </void> 
-   </array> 
-  </void> 
-  <void property="identifier"> 
-   <string>ivo://archive.eso.org/ESO-SAF-SSAP</string> 
-  </void> 
-  <void property="publisher"> 
-   <string>European Southern Observatory - Science Archive Facility</string> 
-  </void> 
-  <void property="referenceUrl"> 
-   <string>http://archive.eso.org/</string> 
-  </void> 
-  <void property="shortName"> 
-   <string>ESO SAF SSA</string> 
-  </void> 
-  <void property="title"> 
-   <string>ESO Science Archive Spectrum Service</string> 
-  </void> 
- </object> 
- <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
-  <void property="capabilities"> 
-   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="1"> 
-    <void index="0"> 
-     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
-      <void property="accessUrl"> 
-       <string>http://archive.stsci.edu/ssap/search.php?id=EUVE&amp;</string> 
-      </void> 
-      <void property="standardId"> 
-       <string>ivo://ivoa.net/std/SSA</string> 
-      </void> 
-      <void property="version"> 
-       <string>0.5</string> 
-      </void> 
-     </object> 
-    </void> 
-   </array> 
-  </void> 
-  <void property="identifier"> 
-   <string>ivo://mast.stsci/ssap/euve</string> 
-  </void> 
-  <void property="publisher"> 
-   <string>MAST</string> 
-  </void> 
-  <void property="referenceUrl"> 
-   <string>http://archive.stsci.edu/</string> 
-  </void> 
-  <void property="shortName"> 
-   <string>EUVE</string> 
-  </void> 
-  <void property="title"> 
-   <string>Extreme Ultraviolet Explorer Merged Spectra</string> 
-  </void> 
- </object> 
- <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
-  <void property="capabilities"> 
-   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="1"> 
-    <void index="0"> 
-     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
-      <void property="accessUrl"> 
-       <string>http://archive.eso.org/bin/fos_ssap.pl?</string> 
-      </void> 
-      <void property="standardId"> 
-       <string>ivo://ivoa.net/std/SSA</string> 
-      </void> 
-      <void property="version"> 
-       <string>0.5</string> 
-      </void> 
-     </object> 
-    </void> 
-   </array> 
-  </void> 
-  <void property="identifier"> 
-   <string>ivo://stecf.euro-vo/SSA/HST/FOS</string> 
-  </void> 
-  <void property="publisher"> 
-   <string>Space Telescope European Coordinating Facility</string> 
-  </void> 
-  <void property="referenceUrl"> 
-   <string>http://www.stecf.org/poa/FOS/</string> 
-  </void> 
-  <void property="shortName"> 
-   <string>HST/FOS/SSAP</string> 
-  </void> 
-  <void property="title"> 
-   <string>Hubble Space Telescope Faint Object Spectrograph</string> 
-  </void> 
- </object> 
- <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
-  <void property="capabilities"> 
-   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="1"> 
-    <void index="0"> 
-     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
-      <void property="accessUrl"> 
-       <string>http://www.laeff.inta.es/projects/svo/db2vo2/html/ssap.php?model=dusty00&amp;</string> 
-      </void> 
-      <void property="standardId"> 
-       <string>ivo://ivoa.net/std/SSA</string> 
-      </void> 
-      <void property="version"> 
-       <string>0.5</string> 
-      </void> 
-     </object> 
-    </void> 
-   </array> 
-  </void> 
-  <void property="identifier"> 
-   <string>ivo://svo.laeff/models/dusty00</string> 
-  </void> 
-  <void property="publisher"> 
-   <string>INTA/LAEFF</string> 
-  </void> 
-  <void property="referenceUrl"> 
-   <string>http://svo.laeff.inta.es/</string> 
-  </void> 
-  <void property="shortName"> 
-   <string>DUSTY</string> 
-  </void> 
-  <void property="title"> 
-   <string>Allard, DUSTY 2000</string> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="0"/> 
   </void> 
  </object> 
  <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
@@ -540,12 +451,28 @@
       <void property="accessUrl"> 
        <string>http://vo.ari.uni-heidelberg.de/ssatr-0.01/ssatr?</string> 
       </void> 
+      <void property="dataSource"> 
+       <string>pointed</string> 
+      </void> 
+      <void property="dataType"> 
+       <string>Simulation</string> 
+      </void> 
+      <void property="description"> 
+       <string>SSAP prototype implementation on synthetic spectra (NLTE model
+      atmospheres published in the Tuebingen NLTE Model-Atmosphere Package)</string> 
+      </void> 
       <void property="standardId"> 
        <string>ivo://ivoa.net/std/SSA</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
       </void> 
      </object> 
     </void> 
    </array> 
+  </void> 
+  <void property="contact"> 
+   <string>Ulrike Stampa &lt;stampa@ari.uni-heidelberg.de&gt;</string> 
   </void> 
   <void property="identifier"> 
    <string>ivo://www.g-vo.org/ssa.service.tmap</string> 
@@ -559,42 +486,14 @@
   <void property="shortName"> 
    <string>GAVO TMAP-SSA</string> 
   </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="0"/> 
+  </void> 
   <void property="title"> 
    <string>SSA Service for Synthetical Spectra (TMAP)</string> 
   </void> 
- </object> 
- <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
-  <void property="capabilities"> 
-   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="1"> 
-    <void index="0"> 
-     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
-      <void property="accessUrl"> 
-       <string>http://vo.obspm.fr/cgi-bin/siap/ssapHFA.pl?</string> 
-      </void> 
-      <void property="standardId"> 
-       <string>ivo://ivoa.net/std/SSA</string> 
-      </void> 
-      <void property="version"> 
-       <string>0.5</string> 
-      </void> 
-     </object> 
-    </void> 
-   </array> 
-  </void> 
-  <void property="identifier"> 
-   <string>ivo://obspm.fr/HyperLeda/SSA</string> 
-  </void> 
-  <void property="publisher"> 
-   <string>Observatoire de Paris</string> 
-  </void> 
-  <void property="referenceUrl"> 
-   <string>http://vo.obspm.fr/</string> 
-  </void> 
-  <void property="shortName"> 
-   <string>HFA SSA</string> 
-  </void> 
-  <void property="title"> 
-   <string>HyperLeda FITS Archive Simple Spectrum Data Access</string> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="0"/> 
   </void> 
  </object> 
  <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
@@ -603,32 +502,247 @@
     <void index="0"> 
      <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
       <void property="accessUrl"> 
-       <string>http://www.laeff.inta.es/projects/svo/theory/db2vo2/html/ssap.php?model=cond00</string> 
+       <string>http://magics.bagn.obs-mip.fr/cgi-bin/get_resources</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>pointed</string> 
+      </void> 
+      <void property="dataType"> 
+       <string>Archive</string> 
+      </void> 
+      <void property="description"> 
+       <string>The Legacy Database of Espadons and Narval observations. This database
+      contents spectra from the ESPaDOnS (CFHT, Hawaii) /NARVAL (TBL, atop Pic
+      du Midi) spectropolarimeters.</string> 
       </void> 
       <void property="standardId"> 
        <string>ivo://ivoa.net/std/SSA</string> 
       </void> 
-      <void property="version"> 
-       <string>0.5</string> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
       </void> 
      </object> 
     </void> 
    </array> 
   </void> 
+  <void property="contact"> 
+   <string>Martine Lafon</string> 
+  </void> 
   <void property="identifier"> 
-   <string>ivo://svo.laeff/models/cond00</string> 
+   <string>ivo://castor/castor/ssap/V2</string> 
   </void> 
   <void property="publisher"> 
-   <string>INTA/LAEFF</string> 
+   <string>OMP</string> 
   </void> 
   <void property="referenceUrl"> 
-   <string>http://svo.laeff.inta.es/</string> 
+   <string>http://magics.bagn.obs-mip.fr/</string> 
   </void> 
   <void property="shortName"> 
-   <string>COND 2000</string> 
+   <string>castor</string> 
+  </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="0"/> 
   </void> 
   <void property="title"> 
-   <string>Allard, COND 2000</string> 
+   <string>Espadons/Narval legacy database (Castor)</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="0"/> 
+  </void> 
+ </object> 
+ <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
+  <void property="capabilities"> 
+   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="1"> 
+    <void index="0"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://svo.cab.inta-csic.es/theory/db2vo/ssap.php?model=tlusty_ostarbin</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>custom</string> 
+      </void> 
+      <void property="dataType"> 
+       <string>Simulation</string> 
+      </void> 
+      <void property="description"> 
+       <string>TLUSTY OSTAR2002 Grid: O-type stars, Teff = 27500K - 55000 K (Lanz, T., &amp; Hubeny, I. 2003, ApJS, 146, 417)</string> 
+      </void> 
+      <void property="standardId"> 
+       <string>ivo://ivoa.net/std/SSA</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
+      </void> 
+     </object> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="contact"> 
+   <string>Enrique Solano, LAEFF Archive Support Team &lt;esm@cab.inta-csic.es&gt;</string> 
+  </void> 
+  <void property="identifier"> 
+   <string>ivo://svo.cab/models/tlusty_ostarbin</string> 
+  </void> 
+  <void property="publisher"> 
+   <string>SVO CAB</string> 
+  </void> 
+  <void property="referenceUrl"> 
+   <string>http://svo.cab.inta-csic.es/</string> 
+  </void> 
+  <void property="shortName"> 
+   <string>TLUSTY OSTAR2002</string> 
+  </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="1"> 
+    <void index="0"> 
+     <string>star</string> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="title"> 
+   <string>TLUSTY OSTAR2002</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="0"/> 
+  </void> 
+ </object> 
+ <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
+  <void property="capabilities"> 
+   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="2"> 
+    <void index="0"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://archive.stsci.edu/ssap/search2.php?id=GHRS&amp;</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>pointed</string> 
+      </void> 
+      <void property="dataType"> 
+       <string>Archive</string> 
+      </void> 
+      <void property="description"> 
+       <string>Spectra from the HST GHRS instrument (processed by ESO and CADC)
+in the 1,100 - 3,300 Å range, resolution ~ 2,000, 25,000, and 80,000 (echelle), V_max ~ 18, 16, and 12 respectively, 1990 - 1997. Links point to VO-compatible FITS files created by MAST staff.</string> 
+      </void> 
+      <void property="standardId"> 
+       <string>ivo://ivoa.net/std/SSA</string> 
+      </void> 
+      <void property="version"> 
+       <string>1.0</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void index="1"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://archive.stsci.edu/ssap/search.php?id=GHRS&amp;</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>pointed</string> 
+      </void> 
+      <void property="standardId"> 
+       <string>ivo://ivoa.net/std/SSA</string> 
+      </void> 
+      <void property="version"> 
+       <string>0.4</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
+      </void> 
+     </object> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="contact"> 
+   <string>Archive Branch, STScI &lt;archive@stsci.edu&gt;</string> 
+  </void> 
+  <void property="identifier"> 
+   <string>ivo://mast.stsci/ssap/hst/ghrs</string> 
+  </void> 
+  <void property="publisher"> 
+   <string>MAST</string> 
+  </void> 
+  <void property="referenceUrl"> 
+   <string>http://archive.stsci.edu/hst/</string> 
+  </void> 
+  <void property="shortName"> 
+   <string>HST.GHRS Spectra</string> 
+  </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="1"> 
+    <void index="0"> 
+     <string>UV</string> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="title"> 
+   <string>Hubble Space Telescope Goddard High Resolution Spectrograph</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="1"> 
+    <void index="0"> 
+     <string>UV</string> 
+    </void> 
+   </array> 
+  </void> 
+ </object> 
+ <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
+  <void property="capabilities"> 
+   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="1"> 
+    <void index="0"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://svo.cab.inta-csic.es/theory/db2vo/ssap.php?model=pop_ferrini</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>custom</string> 
+      </void> 
+      <void property="dataType"> 
+       <string>Simulation</string> 
+      </void> 
+      <void property="description"> 
+       <string>PopStar Evolutionary synthesis models. Using IMF from Ferrini, Penco, Palla (1990). This grid of Single Stellar Populations covers a wide range in both, age and metallicity. The models use the most recent evolutionary tracks together with the use of new NLTE atmosphere models.</string> 
+      </void> 
+      <void property="standardId"> 
+       <string>ivo://ivoa.net/std/SSA</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
+      </void> 
+     </object> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="contact"> 
+   <string>Enrique Solano, LAEFF Archive Support Team &lt;esm@cab.inta-csic.es&gt;</string> 
+  </void> 
+  <void property="identifier"> 
+   <string>ivo://svo.cab/models/popstar/pop_ferrini</string> 
+  </void> 
+  <void property="publisher"> 
+   <string>SVO CAB</string> 
+  </void> 
+  <void property="referenceUrl"> 
+   <string>http://dl183.dinaserver.com/fractal/PopStar/downloadmodels.html</string> 
+  </void> 
+  <void property="shortName"> 
+   <string>POPSTAR+Ferrini</string> 
+  </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="1"> 
+    <void index="0"> 
+     <string>Galaxy: evolution</string> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="title"> 
+   <string>POPSTAR with Ferrini IMF</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="0"/> 
   </void> 
  </object> 
  <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
@@ -639,21 +753,33 @@
       <void property="accessUrl"> 
        <string>http://lamwws.oamp.fr/DAL/SSA/CENCOS-vvds_deep.do</string> 
       </void> 
+      <void property="dataSource"> 
+       <string>custom</string> 
+      </void> 
+      <void property="dataType"> 
+       <string>Survey</string> 
+      </void> 
+      <void property="description"> 
+       <string>This worlwide public catalog releases objects from the VVDS-F02 Deep field with IAB between 17.5 and 24, and with spectroscopic redshift between 0 and 5. The observations, data processing and redshift measurements have been conducted by the French-Italian team of the VIMOS VLT Deep Survey (VVDS). The papers relevant to this release are Le Fevre et al. (2005 A&amp;A 439, 845) for the spectroscopic survey description and baseline properties, Le Brun et al. (2007 in preparation) for the information system, Le Fevre et al. (2004 A&amp;A 417, 51) for the photometry, McCracken et al. (2003 A&amp;A 410, 17), Iovino et al. (2005 A&amp;A 442, 423) for J&amp;K photometry, Radovich et al. (2004, A&amp;A 417, 51) for U band photometry. Further publications related to these data can be found under http://www.oamp.fr/virmos/publications.htm</string> 
+      </void> 
       <void property="standardId"> 
        <string>ivo://ivoa.net/std/SSA</string> 
       </void> 
-      <void property="version"> 
-       <string>0.5</string> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
       </void> 
      </object> 
     </void> 
    </array> 
   </void> 
+  <void property="contact"> 
+   <string>Crystel Moreau &lt;crystel.moreau@oamp.fr&gt;</string> 
+  </void> 
   <void property="identifier"> 
-   <string>ivo://fr.oamp.lam/ssa/cencos-vvds_deep</string> 
+   <string>ivo://lam.cesam/ssa/cencos-vvds_deep</string> 
   </void> 
   <void property="publisher"> 
-   <string>Laboratoire d&apos;Astrophysique de Marseille - Departement d&apos;informatique      scientifique</string> 
+   <string>Laboratoire d&apos;Astrophysique de Marseille - Departement d&apos;informatique scientifique</string> 
   </void> 
   <void property="referenceUrl"> 
    <string>http://cencos.oamp.fr/VVDS/VVDS_DEEP.html</string> 
@@ -661,42 +787,18 @@
   <void property="shortName"> 
    <string>CENCOS-VVDS_DEEP</string> 
   </void> 
-  <void property="title"> 
-   <string>CENCOS-VVDS_DEEP SSA (VVDS Deep survey)</string> 
-  </void> 
- </object> 
- <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
-  <void property="capabilities"> 
-   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="1"> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="1"> 
     <void index="0"> 
-     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
-      <void property="accessUrl"> 
-       <string>http://www.laeff.inta.es/projects/svo/theory/db2vo2/html/ssap.php?model=dalessio&amp;</string> 
-      </void> 
-      <void property="standardId"> 
-       <string>ivo://ivoa.net/std/SSA</string> 
-      </void> 
-      <void property="version"> 
-       <string>0.5</string> 
-      </void> 
-     </object> 
+     <string>CENCOS-VVDS_DEEP SSA (VVDS Deep survey)</string> 
     </void> 
    </array> 
   </void> 
-  <void property="identifier"> 
-   <string>ivo://svo.laeff/models/dalessio</string> 
-  </void> 
-  <void property="publisher"> 
-   <string>INTA/LAEFF</string> 
-  </void> 
-  <void property="referenceUrl"> 
-   <string>http://www.dias.ie/protostars/</string> 
-  </void> 
-  <void property="shortName"> 
-   <string>Dalessio</string> 
-  </void> 
   <void property="title"> 
-   <string>Dalessio disk models</string> 
+   <string>CENCOS-VVDS_DEEP SSA (VVDS Deep survey)</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="0"/> 
   </void> 
  </object> 
  <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
@@ -707,15 +809,30 @@
       <void property="accessUrl"> 
        <string>http://vo.obspm.fr/cgi-bin/siap/ssapHIGI.pl?</string> 
       </void> 
+      <void property="dataSource"> 
+       <string>pointed</string> 
+      </void> 
+      <void property="dataType"> 
+       <string>Archive</string> 
+      </void> 
+      <void property="description"> 
+       <string>SSA access to a collection of calibrated 21cm hydrogen line profiles         for several thousands galaxies. Data have been obtained with the         Nancay Radiotelescope during last 10 years.</string> 
+      </void> 
       <void property="standardId"> 
        <string>ivo://ivoa.net/std/SSA</string> 
       </void> 
       <void property="version"> 
        <string>0.5</string> 
       </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
+      </void> 
      </object> 
     </void> 
    </array> 
+  </void> 
+  <void property="contact"> 
+   <string>Pierre Le Sidaner &lt;vo.paris@obspm.fr&gt;</string> 
   </void> 
   <void property="identifier"> 
    <string>ivo://obspm.fr/SSA_HIG</string> 
@@ -729,8 +846,22 @@
   <void property="shortName"> 
    <string>HiG SSA</string> 
   </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="1"> 
+    <void index="0"> 
+     <string>Radio spectra of galaxies (21cm HI)</string> 
+    </void> 
+   </array> 
+  </void> 
   <void property="title"> 
    <string>HiG - Simple Spectral Access to HI (21cm) Spectra of Galaxies</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="1"> 
+    <void index="0"> 
+     <string>Radio</string> 
+    </void> 
+   </array> 
   </void> 
  </object> 
  <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
@@ -739,17 +870,114 @@
     <void index="0"> 
      <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
       <void property="accessUrl"> 
-       <string>http://archive.stsci.edu/ssap/search.php?id=WUPPE&amp;</string> 
+       <string>http://archive.stsci.edu/ssap/search2.php?id=TUES&amp;</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>pointed</string> 
+      </void> 
+      <void property="dataType"> 
+       <string>Archive</string> 
+      </void> 
+      <void property="description"> 
+       <string>The Tübingen Echelle Spectrograph (TUES), designed and managed at the University of Tübingen, flew on the Orbiting and Retrievable Far and Extreme Ultraviolet Spectrograph (ORFEUS)-SPAS II space shuttle mission in 1996, returning spectra in the 900 Å to 1400 Å wavelength range. The instrument was designed to achieve a spectral resolution of /=10000 when used with an entrance aperture of 10&quot; diameter. During the 17.7 day flight, TUES returned 239 spectra of 62 targets. Note each file contains one echelle order.</string> 
       </void> 
       <void property="standardId"> 
        <string>ivo://ivoa.net/std/SSA</string> 
       </void> 
       <void property="version"> 
-       <string>0.5</string> 
+       <string>1.0</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
       </void> 
      </object> 
     </void> 
    </array> 
+  </void> 
+  <void property="contact"> 
+   <string>Archive Branch, STScI &lt;archive@stsci.edu&gt;</string> 
+  </void> 
+  <void property="identifier"> 
+   <string>ivo://mast.stsci/ssap/tues</string> 
+  </void> 
+  <void property="publisher"> 
+   <string>MAST</string> 
+  </void> 
+  <void property="referenceUrl"> 
+   <string>http://archive.stsci.edu/tues/</string> 
+  </void> 
+  <void property="shortName"> 
+   <string>TUES</string> 
+  </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="1"> 
+    <void index="0"> 
+     <string>UV Astronomy</string> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="title"> 
+   <string>Tubingen Echelle Spectra</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="1"> 
+    <void index="0"> 
+     <string>UV</string> 
+    </void> 
+   </array> 
+  </void> 
+ </object> 
+ <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
+  <void property="capabilities"> 
+   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="2"> 
+    <void index="0"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://archive.stsci.edu/ssap/search2.php?id=WUPPE&amp;</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>pointed</string> 
+      </void> 
+      <void property="dataType"> 
+       <string>Archive</string> 
+      </void> 
+      <void property="description"> 
+       <string>UV spectra in the 1,400 - 3,200 Å range, resolution ~ 140, V_max ~ 14,         ~ 400  observations of ~ 200 targets, 2 NASA-funded shuttle missions         (12/90 &amp; 3/95). Note spectropolarimetry data is also available.</string> 
+      </void> 
+      <void property="standardId"> 
+       <string>ivo://ivoa.net/std/SSA</string> 
+      </void> 
+      <void property="version"> 
+       <string>1.0</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void index="1"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://archive.stsci.edu/ssap/search.php?id=WUPPE&amp;</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>pointed</string> 
+      </void> 
+      <void property="standardId"> 
+       <string>ivo://ivoa.net/std/SSA</string> 
+      </void> 
+      <void property="version"> 
+       <string>0.4</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
+      </void> 
+     </object> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="contact"> 
+   <string>Archive Branch, STScI &lt;archive@stsci.edu&gt;</string> 
   </void> 
   <void property="identifier"> 
    <string>ivo://mast.stsci/ssap/wuppe</string> 
@@ -763,9 +991,23 @@
   <void property="shortName"> 
    <string>WUPPE</string> 
   </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="1"> 
+    <void index="0"> 
+     <string>UV Astronomy</string> 
+    </void> 
+   </array> 
+  </void> 
   <void property="title"> 
    <string>Wisconsin Ultraviolet Photo-Polarimeter Experiment</string> 
   </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="1"> 
+    <void index="0"> 
+     <string>UV</string> 
+    </void> 
+   </array> 
+  </void> 
  </object> 
  <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
   <void property="capabilities"> 
@@ -773,32 +1015,54 @@
     <void index="0"> 
      <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
       <void property="accessUrl"> 
-       <string>http://www.laeff.inta.es/projects/svo/theory/db2vo2/html/ssap.php?model=nextgen&amp;</string> 
+       <string>http://svo.cab.inta-csic.es/theory/db2vo/ssap.php?model=cond00</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>custom</string> 
+      </void> 
+      <void property="dataType"> 
+       <string>Simulation</string> 
+      </void> 
+      <void property="description"> 
+       <string>The COND00 Model grid of theoretical spectra (Lyon group)</string> 
       </void> 
       <void property="standardId"> 
        <string>ivo://ivoa.net/std/SSA</string> 
       </void> 
-      <void property="version"> 
-       <string>0.5</string> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
       </void> 
      </object> 
     </void> 
    </array> 
   </void> 
+  <void property="contact"> 
+   <string>Enrique Solano, LAEFF Archive Support Team &lt;esm@cab.inta-csic.es&gt;</string> 
+  </void> 
   <void property="identifier"> 
-   <string>ivo://svo.laeff/models/nextgen</string> 
+   <string>ivo://svo.cab/models/cond00</string> 
   </void> 
   <void property="publisher"> 
-   <string>INTA/LAEFF</string> 
+   <string>SVO CAB</string> 
   </void> 
   <void property="referenceUrl"> 
-   <string>http://svo.laeff.inta.es/</string> 
+   <string>http://svo.cab.inta-csic.es/</string> 
   </void> 
   <void property="shortName"> 
-   <string>Allard, NextGen</string> 
+   <string>COND00</string> 
+  </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="1"> 
+    <void index="0"> 
+     <string>star</string> 
+    </void> 
+   </array> 
   </void> 
   <void property="title"> 
-   <string>Allard, NextGen</string> 
+   <string>Allard, COND 2000</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="0"/> 
   </void> 
  </object> 
  <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
@@ -807,95 +1071,160 @@
     <void index="0"> 
      <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
       <void property="accessUrl"> 
-       <string>http://obelix.lambrate.inaf.it/vodb/SSA?CAT=VVDS_F02_DEEP&amp;</string> 
+       <string>http://svo.cab.inta-csic.es/theory/db2vo/ssap.php?model=coelho</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>custom</string> 
+      </void> 
+      <void property="dataType"> 
+       <string>Simulation</string> 
+      </void> 
+      <void property="description"> 
+       <string>Synthetic stellar library by P. Coelho, fully described in Coelho et al. (2005)</string> 
       </void> 
       <void property="standardId"> 
        <string>ivo://ivoa.net/std/SSA</string> 
       </void> 
-      <void property="version"> 
-       <string>0.5</string> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
       </void> 
      </object> 
     </void> 
    </array> 
   </void> 
-  <void property="identifier"> 
-   <string>ivo://obelix.lambrate.inaf.it/vodb/ssa/VVDS_F02_DEEP</string> 
-  </void> 
-  <void property="publisher"> 
-   <string>INAF-IASF Milano</string> 
-  </void> 
-  <void property="referenceUrl"> 
-   <string>http://cencosw.oamp.fr</string> 
-  </void> 
-  <void property="shortName"> 
-   <string>VVDS_F02_DEEP</string> 
-  </void> 
-  <void property="title"> 
-   <string>VVDS-F02 DEEP spectra</string> 
-  </void> 
- </object> 
- <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
-  <void property="capabilities"> 
-   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="1"> 
-    <void index="0"> 
-     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
-      <void property="accessUrl"> 
-       <string>http://www.laeff.inta.es/projects/svo/theory/db2vo2/html/ssap.php?model=coelho&amp;</string> 
-      </void> 
-      <void property="standardId"> 
-       <string>ivo://ivoa.net/std/SSA</string> 
-      </void> 
-      <void property="version"> 
-       <string>0.5</string> 
-      </void> 
-     </object> 
-    </void> 
-   </array> 
+  <void property="contact"> 
+   <string>Enrique Solano, LAEFF Archive Support Team &lt;esm@cab.inta-csic.es&gt;</string> 
   </void> 
   <void property="identifier"> 
-   <string>ivo://svo.laeff/models/coelho</string> 
+   <string>ivo://svo.cab/models/coelho</string> 
   </void> 
   <void property="publisher"> 
-   <string>INTA/LAEFF</string> 
+   <string>SVO CAB</string> 
   </void> 
   <void property="referenceUrl"> 
-   <string>http://svo.laeff.inta.es/</string> 
+   <string>http://svo.cab.inta-csic.es/</string> 
   </void> 
   <void property="shortName"> 
    <string>Coelho</string> 
   </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="1"> 
+    <void index="0"> 
+     <string>star</string> 
+    </void> 
+   </array> 
+  </void> 
   <void property="title"> 
    <string>Coelho Synthetic stellar library</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="0"/> 
   </void> 
  </object> 
  <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
   <void property="capabilities"> 
-   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="2"> 
+   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="1"> 
+    <void index="0"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://archive.stsci.edu/ssap/search2.php?id=STIS&amp;</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>pointed</string> 
+      </void> 
+      <void property="dataType"> 
+       <string>Archive</string> 
+      </void> 
+      <void property="description"> 
+       <string>MAST-produced spectral container files for STIS spectra. STIS spectra range from 1150 to 10,300  at low to medium spectral resolution, high spatial resolution echelle spectroscopy in the ultraviolet. STIS began operation in 1997. (Note the included echelle spectra are technically not yet supported by the SSAP.)</string> 
+      </void> 
+      <void property="standardId"> 
+       <string>ivo://ivoa.net/std/SSA</string> 
+      </void> 
+      <void property="version"> 
+       <string>1.0</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
+      </void> 
+     </object> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="contact"> 
+   <string>Randy Thompson &lt;archive@stsci.edu&gt;</string> 
+  </void> 
+  <void property="identifier"> 
+   <string>ivo://archive.stsci.edu/ssap/hst/stis</string> 
+  </void> 
+  <void property="publisher"> 
+   <string>Space Telescope Science Institute/MAST</string> 
+  </void> 
+  <void property="referenceUrl"> 
+   <string>http://archive.stsci.edu/hst/</string> 
+  </void> 
+  <void property="shortName"> 
+   <string>HST STIS Spectra</string> 
+  </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="3"> 
+    <void index="0"> 
+     <string>Stars</string> 
+    </void> 
+    <void index="1"> 
+     <string>Galaxies</string> 
+    </void> 
+    <void index="2"> 
+     <string>Planets</string> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="title"> 
+   <string>HST Space Telescope Imaging Spectrograph</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="3"> 
+    <void index="0"> 
+     <string>UV</string> 
+    </void> 
+    <void index="1"> 
+     <string>Optical</string> 
+    </void> 
+    <void index="2"> 
+     <string>Infrared</string> 
+    </void> 
+   </array> 
+  </void> 
+ </object> 
+ <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
+  <void property="capabilities"> 
+   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="1"> 
     <void index="0"> 
      <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
       <void property="accessUrl"> 
        <string>http://atlas.obs-hp.fr/elodie/E.cgi?a=t&amp;c=ssa&amp;n=ssa&amp;</string> 
       </void> 
+      <void property="dataSource"> 
+       <string>pointed</string> 
+      </void> 
+      <void property="description"> 
+       <string>The science archive of the ELODIE spectrograph contains all the         spectra collected by the instrument between 1993 and 2006 (total life         time of the instrument).  ELODIE is an echelle spectrograph providing         a resolution R=42000 in the spectral range 390-680 nm.  The web         interface of the archive distribute a variety of products, and the SSA         service gives the reconnected 1D spectra in instrumental flux (not         physical).  This service is given for test: The spectra cannot be         viewved with VOSpec because they are not flux-calibrated.</string> 
+      </void> 
       <void property="standardId"> 
        <string>ivo://ivoa.net/std/SSA</string> 
       </void> 
       <void property="version"> 
        <string>0.5</string> 
       </void> 
-     </object> 
-    </void> 
-    <void index="1"> 
-     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
-      <void property="accessUrl"> 
-       <string>http://atlas.obs-hp.fr/elodie</string> 
-      </void> 
-      <void property="standardId"> 
-       <string>ivo://ivoa.net/std/SSA</string> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
       </void> 
      </object> 
     </void> 
    </array> 
+  </void> 
+  <void property="contact"> 
+   <string>Philippe Prugniel &lt;prugniel@obs.univ-lyon1.fr&gt;</string> 
   </void> 
   <void property="identifier"> 
    <string>ivo://obs-hp.fr/elodie/ssa</string> 
@@ -909,42 +1238,106 @@
   <void property="shortName"> 
    <string>ELODIE</string> 
   </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="1"> 
+    <void index="0"> 
+     <string>spectroscopy</string> 
+    </void> 
+   </array> 
+  </void> 
   <void property="title"> 
    <string>ELODIE archive</string> 
   </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="0"/> 
+  </void> 
  </object> 
  <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
   <void property="capabilities"> 
-   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="1"> 
+   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="3"> 
     <void index="0"> 
      <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
       <void property="accessUrl"> 
-       <string>http://archive.stsci.edu/ssap/search.php?id=IUE&amp;</string> 
+       <string>http://giraffe-archive.obspm.fr</string> 
+      </void> 
+      <void property="dataType"> 
+       <string>Archive</string> 
+      </void> 
+      <void property="description"> 
+       <string>The GIRAFFE Archive contains all release observations performed with the GIRAFFE
+         spectrograph. Scientific spectra are stored in the archive in a reduced form, and no
+         calibration data are available in this database.</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void index="1"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://voparis-srv.obspm.fr/srv/ssa-giraffe_1d.php?</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>pointed</string> 
       </void> 
       <void property="standardId"> 
        <string>ivo://ivoa.net/std/SSA</string> 
       </void> 
-      <void property="version"> 
-       <string>0.5</string> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void index="2"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://voparis-srv.obspm.fr/srv/ssa-giraffe_3d.php?</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>pointed</string> 
+      </void> 
+      <void property="standardId"> 
+       <string>ivo://ivoa.net/std/SSA</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
       </void> 
      </object> 
     </void> 
    </array> 
   </void> 
+  <void property="contact"> 
+   <string>F. Royer &lt;giraffe.archive@obspm.fr&gt;</string> 
+  </void> 
   <void property="identifier"> 
-   <string>ivo://mast.stsci.edu/ssap/iue</string> 
+   <string>ivo://vopdc.obspm/gepi/giraffe</string> 
   </void> 
   <void property="publisher"> 
-   <string>MAST</string> 
+   <string>VO-Paris Data Centre - GEPI</string> 
   </void> 
   <void property="referenceUrl"> 
-   <string>http://archive.stsci.edu/</string> 
+   <string>http://giraffe-archive.obspm.fr</string> 
   </void> 
   <void property="shortName"> 
-   <string>IUE</string> 
+   <string>GIRAFFE</string> 
+  </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="2"> 
+    <void index="0"> 
+     <string>Virtual Observatory</string> 
+    </void> 
+    <void index="1"> 
+     <string>Spectrum</string> 
+    </void> 
+   </array> 
   </void> 
   <void property="title"> 
-   <string>International Ultraviolet Explorer</string> 
+   <string>GIRAFFE archive of reduced spectra</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="1"> 
+    <void index="0"> 
+     <string>Optical</string> 
+    </void> 
+   </array> 
   </void> 
  </object> 
  <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
@@ -953,63 +1346,54 @@
     <void index="0"> 
      <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
       <void property="accessUrl"> 
-       <string>http://sdc.laeff.inta.es/omc/jsp/ssap.jsp?</string> 
+       <string>http://archives.esac.esa.int/hst/hst-vo/hst_ssa?</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>custom</string> 
+      </void> 
+      <void property="description"> 
+       <string>1D Spectra (science frames only) from the classical HST archive hosted at ST-ECF/ESO. The frames are calibrated and stored in the HST Cache for immediate access. The ST-ECF HST archive interface can be accessed at http://archives.esac.esa.int/hst/</string> 
       </void> 
       <void property="standardId"> 
        <string>ivo://ivoa.net/std/SSA</string> 
       </void> 
-      <void property="version"> 
-       <string>0.5</string> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
       </void> 
      </object> 
     </void> 
    </array> 
   </void> 
-  <void property="identifier"> 
-   <string>ivo://svo/omc/ssap</string> 
-  </void> 
-  <void property="publisher"> 
-   <string>INTA/LAEFF</string> 
-  </void> 
-  <void property="shortName"> 
-   <string>OMC SSA</string> 
-  </void> 
-  <void property="title"> 
-   <string>OMC: The INTEGRAL Optical Monitoring Camera</string> 
-  </void> 
- </object> 
- <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
-  <void property="capabilities"> 
-   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="1"> 
-    <void index="0"> 
-     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
-      <void property="accessUrl"> 
-       <string>http://www.laeff.inta.es/projects/svo/theory/db2vo2/html/ssap.php?model=coelho&amp;</string> 
-      </void> 
-      <void property="standardId"> 
-       <string>ivo://ivoa.net/std/SSA</string> 
-      </void> 
-      <void property="version"> 
-       <string>0.5</string> 
-      </void> 
-     </object> 
-    </void> 
-   </array> 
+  <void property="contact"> 
+   <string>Jonas Haase &lt;jhaase@eso.org&gt;</string> 
   </void> 
   <void property="identifier"> 
-   <string>ivo://svo.laeff/models/kurucz</string> 
+   <string>ivo://stecf/HST/SSA</string> 
   </void> 
   <void property="publisher"> 
-   <string>INTA/LAEFF</string> 
+   <string>Space Telescope European Coordinating Facility</string> 
   </void> 
   <void property="referenceUrl"> 
-   <string>http://svo.laeff.inta.es/</string> 
+   <string>http://archives.esac.esa.int/hst/</string> 
   </void> 
   <void property="shortName"> 
-   <string>ODFNEW/NOVER</string> 
+   <string>ST-ECF/HST/SSA</string> 
+  </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="2"> 
+    <void index="0"> 
+     <string>Hubble Space Telescope 1D Spectra</string> 
+    </void> 
+    <void index="1"> 
+     <string>Hubble Space Telescope 1D Spectra</string> 
+    </void> 
+   </array> 
   </void> 
   <void property="title"> 
-   <string>Kurucz ODFNEW /NOVER models</string> 
+   <string>ST-ECF Hubble Space Telescope Spectra</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="0"/> 
   </void> 
  </object> 
  <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
@@ -1020,15 +1404,30 @@
       <void property="accessUrl"> 
        <string>http://ov.inaoep.mx/tsap/SyntMod.php?</string> 
       </void> 
+      <void property="dataSource"> 
+       <string>artificial</string> 
+      </void> 
+      <void property="dataType"> 
+       <string>Simulation</string> 
+      </void> 
+      <void property="description"> 
+       <string>Evolutionary synthesis models repository with SSP at high and low      resolution by GALAXEV (Bruzual and Charlot 2003), PEGASE and PEGASE-HR,      sed@ and GALEV</string> 
+      </void> 
       <void property="standardId"> 
        <string>ivo://ivoa.net/std/SSA</string> 
       </void> 
       <void property="version"> 
        <string>0.5</string> 
       </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
+      </void> 
      </object> 
     </void> 
    </array> 
+  </void> 
+  <void property="contact"> 
+   <string>Miguel Cervino &lt;mcs@iaa.es&gt;</string> 
   </void> 
   <void property="identifier"> 
    <string>ivo://svo.iaa/models/SSP/general</string> 
@@ -1042,8 +1441,34 @@
   <void property="shortName"> 
    <string>PGos3 SSP</string> 
   </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="3"> 
+    <void index="0"> 
+     <string>galaxies: evolution</string> 
+    </void> 
+    <void index="1"> 
+     <string>galaxies: stellar content</string> 
+    </void> 
+    <void index="2"> 
+     <string>stars: evolution</string> 
+    </void> 
+   </array> 
+  </void> 
   <void property="title"> 
    <string>PGos3: evolutionary synthesis models repository</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="3"> 
+    <void index="0"> 
+     <string>Infrared</string> 
+    </void> 
+    <void index="1"> 
+     <string>Optical</string> 
+    </void> 
+    <void index="2"> 
+     <string>UV</string> 
+    </void> 
+   </array> 
   </void> 
  </object> 
  <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
@@ -1054,12 +1479,27 @@
       <void property="accessUrl"> 
        <string>http://leda.univ-lyon1.fr/e31/i.cgi?c=tsa&amp;</string> 
       </void> 
+      <void property="dataSource"> 
+       <string>pointed</string> 
+      </void> 
+      <void property="dataType"> 
+       <string>Archive</string> 
+      </void> 
+      <void property="description"> 
+       <string>The ELODIE interpolator is a service buil on top of the ELODIE library         to generate a spectrum given the atmospheric parameters: Teff, log(g)         and [Fe/H].  The typical usage of this function is to generate a grid         of atmospheric spectra for a set of parameters in order to feed a         population synthesis program. The grid used for the PEGASE.HR program         has been generated with this method.     The program is based on a         method described in Prugniel &amp; Soubiran (2001) and uses the version of         the stellar library presented in Prugniel &amp; Soubiran (2004).  The         service responds to the metadata and data requests defined in VOspec         for theoretical spectra access (called TSA). A normal SSA positional         search will return an empty result.</string> 
+      </void> 
       <void property="standardId"> 
        <string>ivo://ivoa.net/std/SSA</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
       </void> 
      </object> 
     </void> 
    </array> 
+  </void> 
+  <void property="contact"> 
+   <string>Philippe Prugniel &lt;prugniel@obs.univ-lyon1.fr&gt;</string> 
   </void> 
   <void property="identifier"> 
    <string>ivo://obs-lyon.fr/elodie/interp</string> 
@@ -1073,8 +1513,2844 @@
   <void property="shortName"> 
    <string>ELODIEinterp</string> 
   </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="3"> 
+    <void index="0"> 
+     <string>spectroscopy</string> 
+    </void> 
+    <void index="1"> 
+     <string>Abundances</string> 
+    </void> 
+    <void index="2"> 
+     <string>stellar atmospheres</string> 
+    </void> 
+   </array> 
+  </void> 
   <void property="title"> 
    <string>Spectrum interpolator for the ELODIE library</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="0"/> 
+  </void> 
+ </object> 
+ <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
+  <void property="capabilities"> 
+   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="1"> 
+    <void index="0"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://tblegacy.bagn.obs-mip.fr/cgi-bin/ssap/ssa_tbl?</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>pointed</string> 
+      </void> 
+      <void property="dataType"> 
+       <string>Archive</string> 
+      </void> 
+      <void property="description"> 
+       <string>The Legacy Database of Narval observations. This database contents spectra from the NARVAL (TBL, atop Pic du Midi) spectropolarimeter.</string> 
+      </void> 
+      <void property="standardId"> 
+       <string>ivo://ivoa.net/std/SSA</string> 
+      </void> 
+      <void property="version"> 
+       <string>1.0</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
+      </void> 
+     </object> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="contact"> 
+   <string>LAFON &lt;martine.lafon@ast.obs-mip.fr&gt;</string> 
+  </void> 
+  <void property="identifier"> 
+   <string>ivo://Bass2000/Narval</string> 
+  </void> 
+  <void property="publisher"> 
+   <string>ivo://Bass2000</string> 
+  </void> 
+  <void property="referenceUrl"> 
+   <string>http://tblegacy.bagn.obs-mip.fr</string> 
+  </void> 
+  <void property="shortName"> 
+   <string>TBL Narval</string> 
+  </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="1"> 
+    <void index="0"> 
+     <string>Hight resolution stellar spectra</string> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="title"> 
+   <string>TBL Narval legacy</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="1"> 
+    <void index="0"> 
+     <string>Optical</string> 
+    </void> 
+   </array> 
+  </void> 
+ </object> 
+ <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
+  <void property="capabilities"> 
+   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="2"> 
+    <void index="0"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://archive.stsci.edu/ssap/search2.php?id=FUSE&amp;</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>pointed</string> 
+      </void> 
+      <void property="dataType"> 
+       <string>Archive</string> 
+      </void> 
+      <void property="description"> 
+       <string>The Far Ultraviolet Spectroscopic Explorer (FUSE), launched on June
+         24, 1999, covers the 905-1187 Å spectral region and obtains high
+         resolution spectra of hot and cool stars, AGNs, supernova remnants,
+         planetary nebulae, solar system objects as well as perform detailed
+         studies of the interstellar medium. This service provides access to the
+         FUSE spectra reprocessed using CalFUSE 3.2 and reformatted to be VO-
+         compatible.</string> 
+      </void> 
+      <void property="standardId"> 
+       <string>ivo://ivoa.net/std/SSA</string> 
+      </void> 
+      <void property="version"> 
+       <string>1.0</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void index="1"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://archive.stsci.edu/ssap/search.php?id=FUSE&amp;</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>pointed</string> 
+      </void> 
+      <void property="standardId"> 
+       <string>ivo://ivoa.net/std/SSA</string> 
+      </void> 
+      <void property="version"> 
+       <string>0.4</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
+      </void> 
+     </object> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="contact"> 
+   <string>Archive Branch, STScI &lt;archive@stsci.edu&gt;</string> 
+  </void> 
+  <void property="identifier"> 
+   <string>ivo://mast.stsci.edu/ssap/fuse</string> 
+  </void> 
+  <void property="publisher"> 
+   <string>MAST</string> 
+  </void> 
+  <void property="referenceUrl"> 
+   <string>http://archive.stsci.edu/fuse/</string> 
+  </void> 
+  <void property="shortName"> 
+   <string>FUSE</string> 
+  </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="1"> 
+    <void index="0"> 
+     <string>UV Astronomy</string> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="title"> 
+   <string>Far Ultraviolet Spectroscopic Explorer</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="2"> 
+    <void index="0"> 
+     <string>EUV</string> 
+    </void> 
+    <void index="1"> 
+     <string>UV</string> 
+    </void> 
+   </array> 
+  </void> 
+ </object> 
+ <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
+  <void property="capabilities"> 
+   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="1"> 
+    <void index="0"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://svo.cab.inta-csic.es/theory/db2vo/ssap.php?model=tlusty_bstarbin</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>custom</string> 
+      </void> 
+      <void property="dataType"> 
+       <string>Simulation</string> 
+      </void> 
+      <void property="description"> 
+       <string>TLUSTY BSTAR2006 Grid: Early B-type stars, Teff = 15000K - 30000 K (Lanz, T., Hubeny, I. 2007, ApJS, 169, 83)</string> 
+      </void> 
+      <void property="standardId"> 
+       <string>ivo://ivoa.net/std/SSA</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
+      </void> 
+     </object> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="contact"> 
+   <string>Enrique Solano, LAEFF Archive Support Team &lt;esm@cab.inta-csic.es&gt;</string> 
+  </void> 
+  <void property="identifier"> 
+   <string>ivo://svo.cab/models/tlusty_bstarbin</string> 
+  </void> 
+  <void property="publisher"> 
+   <string>SVO CAB</string> 
+  </void> 
+  <void property="referenceUrl"> 
+   <string>http://svo.cab.inta-csic.es/</string> 
+  </void> 
+  <void property="shortName"> 
+   <string>TLUSTY BSTAR2006</string> 
+  </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="1"> 
+    <void index="0"> 
+     <string>star</string> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="title"> 
+   <string>TLUSTY BSTAR2006</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="0"/> 
+  </void> 
+ </object> 
+ <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
+  <void property="capabilities"> 
+   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="2"> 
+    <void index="0"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://basebe.obspm.fr/basebe/</string> 
+      </void> 
+      <void property="dataType"> 
+       <string>Archive</string> 
+      </void> 
+      <void property="description"> 
+       <string>The BeSS database assembles classical Be star spectra obtained by professional and amateur astronomers at any wavelength, epoch, and spectral resolution.</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void index="1"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://basebe.obspm.fr/cgi-bin/ssapBE_1.0.pl</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>pointed</string> 
+      </void> 
+      <void property="standardId"> 
+       <string>ivo://ivoa.net/std/SSA</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
+      </void> 
+     </object> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="contact"> 
+   <string>B. de Batz &lt;webmaster.bess@obspm.fr&gt;</string> 
+  </void> 
+  <void property="identifier"> 
+   <string>ivo://vopdc.obspm/gepi/BeStars/BeSS</string> 
+  </void> 
+  <void property="publisher"> 
+   <string>VO-Paris Data Centre - GEPI</string> 
+  </void> 
+  <void property="referenceUrl"> 
+   <string>http://basebe.obspm.fr/basebe/Accueil.php?flag_lang=en</string> 
+  </void> 
+  <void property="shortName"> 
+   <string>BeSS</string> 
+  </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="3"> 
+    <void index="0"> 
+     <string>Virtual Observatory</string> 
+    </void> 
+    <void index="1"> 
+     <string>Be Stars</string> 
+    </void> 
+    <void index="2"> 
+     <string>Spectroscopy</string> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="title"> 
+   <string>Be Stars Spectra</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="2"> 
+    <void index="0"> 
+     <string>Optical</string> 
+    </void> 
+    <void index="1"> 
+     <string>UV</string> 
+    </void> 
+   </array> 
+  </void> 
+ </object> 
+ <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
+  <void property="capabilities"> 
+   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="1"> 
+    <void index="0"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://archive.stsci.edu/ssap/search.php?id=HST&amp;</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>pointed</string> 
+      </void> 
+      <void property="dataType"> 
+       <string>Archive</string> 
+      </void> 
+      <void property="description"> 
+       <string>Spectra from the following HST instruments are available: GHRS         (processed by CADC), FOS (processed by ECF), and STIS (1st order).         Service is still under development. Links point to new (but         incomplete) VO-compatible FITS files  created by MAST staff.</string> 
+      </void> 
+      <void property="standardId"> 
+       <string>ivo://ivoa.net/std/SSA</string> 
+      </void> 
+      <void property="version"> 
+       <string>0.5</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
+      </void> 
+     </object> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="contact"> 
+   <string>Archive Branch, STScI &lt;archive@stsci.edu&gt;</string> 
+  </void> 
+  <void property="identifier"> 
+   <string>ivo://mast.stsci/ssap/hst</string> 
+  </void> 
+  <void property="publisher"> 
+   <string>MAST</string> 
+  </void> 
+  <void property="referenceUrl"> 
+   <string>http://archive.stsci.edu/</string> 
+  </void> 
+  <void property="shortName"> 
+   <string>HST Spectra</string> 
+  </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="3"> 
+    <void index="0"> 
+     <string>UV</string> 
+    </void> 
+    <void index="1"> 
+     <string>Optical</string> 
+    </void> 
+    <void index="2"> 
+     <string>and Infrared Astronomy</string> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="title"> 
+   <string>Hubble Space Telescope Spectra</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="2"> 
+    <void index="0"> 
+     <string>UV</string> 
+    </void> 
+    <void index="1"> 
+     <string>Optical</string> 
+    </void> 
+   </array> 
+  </void> 
+ </object> 
+ <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
+  <void property="capabilities"> 
+   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="1"> 
+    <void index="0"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://pollux.graal.univ-montp2.fr/ssaserver/tsap</string> 
+      </void> 
+      <void property="dataType"> 
+       <string>Simulation</string> 
+      </void> 
+      <void property="description"> 
+       <string>Service allowing to query the POLLUX database using the Simple Spectrm Access Protocol. The POLLUX database provides very high resolution stellar synthetic spectra together with Spectral Energy Distributions for stars with spectral types from O to K produced with the most up-to-date stellar atmosphere and associated spectral synthesis codes (CMFGEN, ATLAS12 and MARCS).</string> 
+      </void> 
+      <void property="standardId"> 
+       <string>ivo://ivoa.net/std/TSA</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>tsa:TheoreticalSpectralAccess</string> 
+      </void> 
+     </object> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="contact"> 
+   <string>A. Palacios &lt;palacios@graal.univ-montp2.fr&gt;</string> 
+  </void> 
+  <void property="identifier"> 
+   <string>ivo://graal/ssa-pollux</string> 
+  </void> 
+  <void property="publisher"> 
+   <string>CNRS - Universite Montpellier II - GRAAL</string> 
+  </void> 
+  <void property="referenceUrl"> 
+   <string>http://pollux.graal.univ-montp2.fr</string> 
+  </void> 
+  <void property="shortName"> 
+   <string>POLLUX SSAP</string> 
+  </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="2"> 
+    <void index="0"> 
+     <string>Synthetic Stellar Spectra</string> 
+    </void> 
+    <void index="1"> 
+     <string>NOT PROVIDED</string> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="title"> 
+   <string>POLLUX Database</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="0"/> 
+  </void> 
+ </object> 
+ <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
+  <void property="capabilities"> 
+   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="1"> 
+    <void index="0"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://www.g-vo.org/ssampe_102/SSA?archiveid=ZCOSMOS_BRIGHT_DR2&amp;</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>survey</string> 
+      </void> 
+      <void property="dataType"> 
+       <string>Survey</string> 
+      </void> 
+      <void property="description"> 
+       <string>SSA service on zCOSMOS Data Release DR2. The global COSMOS project is
+      aimed at understanding the evolution of galaxies and active galactic
+      nuclei, and in particular the role of the galactic environment in that
+      evolution. It is built around observations of a single equatorial 1.7
+      deg2 field corresponding to transverse dimensions of 100 x 100 Mpc2. The
+      zCOSMOS redshift survey is a major project (ESO Large Program 175.A-0839)
+      that is using 600 hours of observing time with the VIMOS spectrograph on
+      the VLT UT3, spread over five observing seasons (2005-2009). It consists
+      of two parts (see Lilly et al., 2007, for details): the first,
+      &quot;zCOSMOS-bright&quot;, obtains spectra of about 20,000 galaxies selected to
+      have Iab &lt; 22.5 across the full 1.7 deg2 of the COSMOS field. The
+      zCOSMOS-bright sample was designed to yield a high and fairly uniform
+      sampling rate (about 70%), with a high success rate in measuring
+      redshifts (approaching 100% at 0.5 &lt; z &lt; 0.8), and with sufficient
+      velocity accuracy (about 100 km/s) to efficiently map the environments of
+      galaxies down to the scale of galaxy groups out to redshifts z ~ 1. The
+      zCOSMOS-bright sample was designed to yield a high and fairly uniform
+      sampling rate (about 70%), with a high success rate in measuring
+      redshifts (approaching 100% at 0.5 &lt; z &lt; 0.8), and with sufficient
+      velocity accuracy (about 100 km/s) to efficiently map the environments of
+      galaxies down to the scale of galaxy groups out to redshifts z ~ 1. The
+      second part, the &quot;zCOSMOS-deep&quot;, will consist of about 10,000 spectra of
+      higher redshift galaxies, colour-selected to have redshifts in the 1.4
+      &lt; z &lt; 3.0 range, and lying in the central 1 deg2 region of the
+      COSMOS field. After the first two zCOSMOS observing seasons in 2005 and
+      2006, about a half of the zCOSMOS-bright observations had been completed,
+      yielding a total of over 10,500 spectra from which redshift measurements
+      have been made. This sample, the so-called &quot;10k-sample&quot; (Lilly et al.,
+      2008, The Messenger, vol. 134, p. 35-40 ), is the one released here (DR2).</string> 
+      </void> 
+      <void property="standardId"> 
+       <string>ivo://ivoa.net/std/SSA</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
+      </void> 
+     </object> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="contact"> 
+   <string>Jai Won Kim &lt;jkim@mpe.mpg.de&gt;</string> 
+  </void> 
+  <void property="identifier"> 
+   <string>ivo://www.g-vo.org/ssa.service.zcosmos_bright_dr2</string> 
+  </void> 
+  <void property="publisher"> 
+   <string>German Astrophysical Virtual Observatory</string> 
+  </void> 
+  <void property="referenceUrl"> 
+   <string>http://www.g-vo.org/ssampe_102/SSA?request=Help</string> 
+  </void> 
+  <void property="shortName"> 
+   <string>ZCOSMOS DR2 SSA</string> 
+  </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="0"/> 
+  </void> 
+  <void property="title"> 
+   <string>SSA Service for zCOSMOS Bright Spectroscopic Observations DR2</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="1"> 
+    <void index="0"> 
+     <string>Optical</string> 
+    </void> 
+   </array> 
+  </void> 
+ </object> 
+ <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
+  <void property="capabilities"> 
+   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="1"> 
+    <void index="0"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://archives.esac.esa.int/ida/aio/jsp/siap.jsp?imageType=spectrum</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>custom</string> 
+      </void> 
+      <void property="dataType"> 
+       <string>Archive</string> 
+      </void> 
+      <void property="description"> 
+       <string>The Infrared Space Observatory (ISO) was the world&apos;s first true orbiting infrared observatory. Equipped with four highly-sophisticated and versatile scientific instruments, it was launched by Ariane in November 1995 and provided astronomers world-wide with a facility of unprecedented sensitivity and capabilities for a detailed exploration of the Universe at infrared wavelengths. The two spectrometers (SWS and LWS), a camera (ISOCAM) and an imaging photo-polarimeter (ISOPHOT) jointly covered wavelengths from 2.5 to around 240 microns with spatial resolutions ranging from 1.5 arcseconds (at the shortest wavelengths) to 90 arcseconds (at the longer wavelengths). Its 60 cm diameter telescope was cooled by superfluid liquid helium to temperatures of 2-4 K.</string> 
+      </void> 
+      <void property="standardId"> 
+       <string>ivo://ivoa.net/std/SSA</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:ProtoSpectralAccess</string> 
+      </void> 
+     </object> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="contact"> 
+   <string>European Space Agency &lt;esavo.helpdesk@sciops.esa.int&gt;</string> 
+  </void> 
+  <void property="identifier"> 
+   <string>ivo://esavo/iso/ssap</string> 
+  </void> 
+  <void property="publisher"> 
+   <string>European Space Agency</string> 
+  </void> 
+  <void property="referenceUrl"> 
+   <string>http://archives.esac.esa.int/ida/aio/doc/</string> 
+  </void> 
+  <void property="shortName"> 
+   <string>ISO SSAP</string> 
+  </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="1"> 
+    <void index="0"> 
+     <string>Infrared Satellite Astronomy</string> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="title"> 
+   <string>The ISO Data Archive InterOperability System</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="0"/> 
+  </void> 
+ </object> 
+ <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
+  <void property="capabilities"> 
+   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="1"> 
+    <void index="0"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://svo.cab.inta-csic.es/theory/db2vo5/ssap2.php?model=pop_chabrier</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>custom</string> 
+      </void> 
+      <void property="dataType"> 
+       <string>Simulation</string> 
+      </void> 
+      <void property="description"> 
+       <string>PopStar Evolutionary synthesis models. Using IMF from Chabrier (2003). This grid of Single Stellar Populations covers a wide range in both, age and metallicity. The models use the most recent evolutionary tracks together with the use of new NLTE atmosphere models.</string> 
+      </void> 
+      <void property="standardId"> 
+       <string>ivo://ivoa.net/std/SSA</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
+      </void> 
+     </object> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="contact"> 
+   <string>Enrique Solano, LAEFF Archive Support Team &lt;esm@cab.inta-csic.es&gt;</string> 
+  </void> 
+  <void property="identifier"> 
+   <string>ivo://svo.cab/models/popstar/pop_chabrier</string> 
+  </void> 
+  <void property="publisher"> 
+   <string>SVO CAB</string> 
+  </void> 
+  <void property="referenceUrl"> 
+   <string>http://dl183.dinaserver.com/fractal/PopStar/downloadmodels.html</string> 
+  </void> 
+  <void property="shortName"> 
+   <string>POPSTAR+Chabrier</string> 
+  </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="1"> 
+    <void index="0"> 
+     <string>Galaxy: evolution</string> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="title"> 
+   <string>POPSTAR with Chabrier IMF</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="0"/> 
+  </void> 
+ </object> 
+ <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
+  <void property="capabilities"> 
+   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="1"> 
+    <void index="0"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://vobs.magic.pic.es/ssa/</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>custom</string> 
+      </void> 
+      <void property="description"> 
+       <string>MAGIC (Major Atmospheric Gamma-ray Imaging Cherenkov) experiment is a two-telescope ground-based array that detects and studies very high energy (VHE, E&gt;100 GeV) gamma-rays. Located in the Canary island of La Palma, at altitude of more than 2200 m above the sea level, these instruments benefit from more than 1000 h of dark observational time per year (with additional 300h available for observations under moderate moonlight). With their 17 m diameter mirrors, the MAGIC Telescopes are today the largest instruments of their kind. MAGIC I has been operational since 2004 and it already achieved the lowest energy threshold (~25 GeV) among the current generation of IACTs. In 2009 it was joined by MAGIC-II, and together, in the stereoscopic mode, they allow for the observations of significantly improved sensitivity, lower energy threshold and better energy and angular resolution. The very energetic photons MAGIC detects can only be produced in violent processes, like in the neighbourhood of black holes, or in the aftermath of explosions of stars. As a result, MAGIC Telescopes contribute substantially to the current knowledge about Supernova Remnants, Active Galactic Nuclei, Microquasars, Pulsars, X-ray binaries, Gamma-ray bursts, search for Dark Matter, etc.</string> 
+      </void> 
+      <void property="standardId"> 
+       <string>ivo://ivoa.net/std/SSA</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
+      </void> 
+     </object> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="contact"> 
+   <string>Jelena Aleksic &lt;jelena@ifae.es&gt;</string> 
+  </void> 
+  <void property="identifier"> 
+   <string>ivo://magic/ssa</string> 
+  </void> 
+  <void property="publisher"> 
+   <string>MAGIC Collaboration</string> 
+  </void> 
+  <void property="referenceUrl"> 
+   <string>http://vobs.magic.pic.es</string> 
+  </void> 
+  <void property="shortName"> 
+   <string>MAGIC</string> 
+  </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="1"> 
+    <void index="0"> 
+     <string>MAGIC Spectra and Light Curves</string> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="title"> 
+   <string>MAGIC Spectrum Service</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="0"/> 
+  </void> 
+ </object> 
+ <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
+  <void property="capabilities"> 
+   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="1"> 
+    <void index="0"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://svo.cab.inta-csic.es/theory/db2vo5/ssap2.php?model=hres</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>custom</string> 
+      </void> 
+      <void property="dataType"> 
+       <string>Simulation</string> 
+      </void> 
+      <void property="description"> 
+       <string>A High-Resolution Stellar Library for Evolutionary Population Synthesis.</string> 
+      </void> 
+      <void property="standardId"> 
+       <string>ivo://ivoa.net/std/SSA</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
+      </void> 
+     </object> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="contact"> 
+   <string>Enrique Solano, LAEFF Archive Support Team &lt;esm@cab.inta-csic.es&gt;</string> 
+  </void> 
+  <void property="identifier"> 
+   <string>ivo://svo.cab/models/hres</string> 
+  </void> 
+  <void property="publisher"> 
+   <string>SVO CAB</string> 
+  </void> 
+  <void property="referenceUrl"> 
+   <string>http://www.iaa.es/~rosa/research/synthesis/HRES/ESPS-HRES.html</string> 
+  </void> 
+  <void property="shortName"> 
+   <string>HRES</string> 
+  </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="1"> 
+    <void index="0"> 
+     <string>Stars: evolution</string> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="title"> 
+   <string>A High-Resolution Stellar Library for Evolutionary Population Synthesis.</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="0"/> 
+  </void> 
+ </object> 
+ <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
+  <void property="capabilities"> 
+   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="1"> 
+    <void index="0"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://voparis-srv.obspm.fr/srv/ssa-h1g.php?</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>pointed</string> 
+      </void> 
+      <void property="dataType"> 
+       <string>Archive</string> 
+      </void> 
+      <void property="description"> 
+       <string>HI Extragalactic database is a collection of calibrated 21cm hydrogen line
+         profiles for several thousands galaxies.</string> 
+      </void> 
+      <void property="standardId"> 
+       <string>ivo://ivoa.net/std/SSA</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
+      </void> 
+     </object> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="contact"> 
+   <string>P. Le Sidaner &lt;vo.paris@obspm.fr&gt;</string> 
+  </void> 
+  <void property="identifier"> 
+   <string>ivo://vopdc.obspm/gepi/h1g</string> 
+  </void> 
+  <void property="publisher"> 
+   <string>VO-Paris Data Centre - GEPI</string> 
+  </void> 
+  <void property="referenceUrl"> 
+   <string>http://klun.obs-nancay.fr</string> 
+  </void> 
+  <void property="shortName"> 
+   <string>HIG</string> 
+  </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="2"> 
+    <void index="0"> 
+     <string>Virtual Observatory</string> 
+    </void> 
+    <void index="1"> 
+     <string>Spectrum</string> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="title"> 
+   <string>HI Extragalactic Database</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="1"> 
+    <void index="0"> 
+     <string>Optical</string> 
+    </void> 
+   </array> 
+  </void> 
+ </object> 
+ <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
+  <void property="capabilities"> 
+   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="2"> 
+    <void index="0"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://cardamine.imcce.fr/m4ast</string> 
+      </void> 
+      <void property="dataType"> 
+       <string>Archive</string> 
+      </void> 
+      <void property="description"> 
+       <string>COMPILED DATABASE FOR ASTEROID SPECTRA IN THE VISIBLE AND NIR
+         REGIONS</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void index="1"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://cardamine.imcce.fr/m4ast/srv/ssa-m4ast.php?</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>pointed</string> 
+      </void> 
+      <void property="standardId"> 
+       <string>ivo://ivoa.net/std/SSA</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
+      </void> 
+     </object> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="contact"> 
+   <string>M. Birlan &lt;Mirel.Birlan@imcce.fr&gt;</string> 
+  </void> 
+  <void property="identifier"> 
+   <string>ivo://vopdc.obspm/imcce/m4ast</string> 
+  </void> 
+  <void property="publisher"> 
+   <string>VO-Paris Data Centre - IMCCE</string> 
+  </void> 
+  <void property="referenceUrl"> 
+   <string>http://cardamine.imcce.fr/m4ast</string> 
+  </void> 
+  <void property="shortName"> 
+   <string>M4AST</string> 
+  </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="4"> 
+    <void index="0"> 
+     <string>Virtual Observatory</string> 
+    </void> 
+    <void index="1"> 
+     <string>Spectrum</string> 
+    </void> 
+    <void index="2"> 
+     <string>Minor Planets</string> 
+    </void> 
+    <void index="3"> 
+     <string>Solar Sytem</string> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="title"> 
+   <string>M4AST - Modeling for Asteroids</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="2"> 
+    <void index="0"> 
+     <string>Optical</string> 
+    </void> 
+    <void index="1"> 
+     <string>Infrared</string> 
+    </void> 
+   </array> 
+  </void> 
+ </object> 
+ <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
+  <void property="capabilities"> 
+   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="1"> 
+    <void index="0"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://vo.obspm.fr/cgi-bin/siap/ssapFUSE.pl?</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>pointed</string> 
+      </void> 
+      <void property="dataType"> 
+       <string>Archive</string> 
+      </void> 
+      <void property="description"> 
+       <string>FUSE is a NASA-supported astronomy mission that was launched on June         24, 1999, to explore the Universe using the technique of high-         resolution spectroscopy in the far-ultraviolet spectral region. The         Johns Hopkins University has the lead role in developing and now         operating the mission, in collaboration with The University of         Colorado at Boulder, The University of California at Berkeley,         international partners the Canadian Space Agency (CSA)  and the French         Space Agency (CNES), and corporate partners. FUSE is part of NASA&apos;s         Origins Program under the auspices of NASA&apos;s Office of Space         Science.  This service provides access to all the spectra         from the fuse mission.</string> 
+      </void> 
+      <void property="standardId"> 
+       <string>ivo://ivoa.net/std/SSA</string> 
+      </void> 
+      <void property="version"> 
+       <string>0.5</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
+      </void> 
+     </object> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="contact"> 
+   <string>Jean-Michel Desert &lt;bdfuse@iap.fr&gt;</string> 
+  </void> 
+  <void property="identifier"> 
+   <string>ivo://iap.fr/FUSE/SSA</string> 
+  </void> 
+  <void property="publisher"> 
+   <string>Institut d&apos;Astrophysique de Paris (IAP)</string> 
+  </void> 
+  <void property="referenceUrl"> 
+   <string>http://fuse.iap.fr/</string> 
+  </void> 
+  <void property="shortName"> 
+   <string>FUSE SSA</string> 
+  </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="2"> 
+    <void index="0"> 
+     <string>cosmology</string> 
+    </void> 
+    <void index="1"> 
+     <string>spectroscopy</string> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="title"> 
+   <string>Far Ultraviolet Spectroscopic Explorer (Simple Spectrum Data Access)</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="1"> 
+    <void index="0"> 
+     <string>EUV</string> 
+    </void> 
+   </array> 
+  </void> 
+ </object> 
+ <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
+  <void property="capabilities"> 
+   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="2"> 
+    <void index="0"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://archive.stsci.edu/ssap/search2.php?id=HPOL&amp;</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>pointed</string> 
+      </void> 
+      <void property="dataType"> 
+       <string>Archive</string> 
+      </void> 
+      <void property="description"> 
+       <string>Spectra from the Univsity of Wisconsin Pine Bluff Observatory 
+in the 3,200 - 7,750 Å range, resolution ~ 80, V_max ~ 15, ~ 2800 observations   of ~ 400 targets, 1989-1998. Note spectropolarimetry data is also included. Observations complement those obtained from the ASTRO WUPPE project.</string> 
+      </void> 
+      <void property="standardId"> 
+       <string>ivo://ivoa.net/std/SSA</string> 
+      </void> 
+      <void property="version"> 
+       <string>1.0</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void index="1"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://archive.stsci.edu/ssap/search.php?id=HPOL&amp;</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>pointed</string> 
+      </void> 
+      <void property="standardId"> 
+       <string>ivo://ivoa.net/std/SSA</string> 
+      </void> 
+      <void property="version"> 
+       <string>0.4</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
+      </void> 
+     </object> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="contact"> 
+   <string>Archive Branch, STScI &lt;archive@stsci.edu&gt;</string> 
+  </void> 
+  <void property="identifier"> 
+   <string>ivo://mast.stsci/ssap/hpol</string> 
+  </void> 
+  <void property="publisher"> 
+   <string>MAST</string> 
+  </void> 
+  <void property="referenceUrl"> 
+   <string>http://archive.stsci.edu/</string> 
+  </void> 
+  <void property="shortName"> 
+   <string>HPOL</string> 
+  </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="2"> 
+    <void index="0"> 
+     <string>UV</string> 
+    </void> 
+    <void index="1"> 
+     <string>Optical Astronomy</string> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="title"> 
+   <string>Wisconsin Halfwave Spectropolarimeter</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="1"> 
+    <void index="0"> 
+     <string>Optical</string> 
+    </void> 
+   </array> 
+  </void> 
+ </object> 
+ <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
+  <void property="capabilities"> 
+   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="2"> 
+    <void index="0"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://archive.stsci.edu/ssap/search2.php?id=HUT&amp;amp;</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>pointed</string> 
+      </void> 
+      <void property="dataType"> 
+       <string>Archive</string> 
+      </void> 
+      <void property="description"> 
+       <string>The Hopkins Ultraviolet Telescope (HUT) was one of three ultraviolet
+         instruments of the ASTRO-1 mission flown on the space shuttle Columbia
+         during 2-10 December 1990. 106 spectrophotometric observations of 77
+         targets were obtained in the far-UV (i.e., 912-1850 Ã…) at a resolution
+         of ~3 Ã…. A few sources were observed in the 415-912 Ã… region with a
+         1.5 Ã… resolution. The same three instruments were later flown on the
+         space shuttle Endeavour from 3-17 March 1995 as part of the ASTRO-2
+         mission. During the longer ASTRO-2 mission, 385 observations of 265
+         targets were obtained.</string> 
+      </void> 
+      <void property="standardId"> 
+       <string>ivo://ivoa.net/std/SSA</string> 
+      </void> 
+      <void property="version"> 
+       <string>1.0</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void index="1"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://archive.stsci.edu/ssap/search.php?id=HUT&amp;amp;</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>pointed</string> 
+      </void> 
+      <void property="standardId"> 
+       <string>ivo://ivoa.net/std/SSA</string> 
+      </void> 
+      <void property="version"> 
+       <string>0.4</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
+      </void> 
+     </object> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="contact"> 
+   <string>Archive Branch, STScI &lt;archive@stsci.edu&gt;</string> 
+  </void> 
+  <void property="identifier"> 
+   <string>ivo://mast.stsci/ssap/hut</string> 
+  </void> 
+  <void property="publisher"> 
+   <string>MAST</string> 
+  </void> 
+  <void property="referenceUrl"> 
+   <string>http://archive.stsci.edu/hut/</string> 
+  </void> 
+  <void property="shortName"> 
+   <string>HUT</string> 
+  </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="1"> 
+    <void index="0"> 
+     <string>UV Astronomy</string> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="title"> 
+   <string>Hopkins Ultraviolet Telescope</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="1"> 
+    <void index="0"> 
+     <string>UV</string> 
+    </void> 
+   </array> 
+  </void> 
+ </object> 
+ <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
+  <void property="capabilities"> 
+   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="1"> 
+    <void index="0"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://venus.ifca.unican.es:8080/SSAPXMS</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>custom</string> 
+      </void> 
+      <void property="description"> 
+       <string>IFCA (as a member of the XMM-Newton Survey Science Centre, SSC) has led the elaboration of AXIS (An XMM International Survey) project, which is a key element of the XMM-Newton X-ray follow-up and identification (XID) programme performed by the SSC. The AXIS survey includes 36 fields observed by the XMM-Newton satellite. An optical follow-up focused on the medium flux sources has been done using different facilities. Using quality criteria, 25 fields have been selected from the AXIS sample to comprise the XMS (X-ray Medium Survey), a flux limited sample in several X-ray bands. It contains 319 unique X-ray sources, optically identified to a level above 90%. This resource comprises the optical spectra of these sources.</string> 
+      </void> 
+      <void property="standardId"> 
+       <string>ivo://ivoa.net/std/SSA</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
+      </void> 
+     </object> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="contact"> 
+   <string>Maite Ceballos &lt;ceballos@ifca.unican.es&gt;</string> 
+  </void> 
+  <void property="identifier"> 
+   <string>ivo://svo.ifca/axis</string> 
+  </void> 
+  <void property="publisher"> 
+   <string>IFCA(CSIC-UC)</string> 
+  </void> 
+  <void property="referenceUrl"> 
+   <string>http://venus.ifca.unican.es/ifcasvo</string> 
+  </void> 
+  <void property="shortName"> 
+   <string>AXIS-XMS</string> 
+  </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="4"> 
+    <void index="0"> 
+     <string>AXIS optical spectra</string> 
+    </void> 
+    <void index="1"> 
+     <string>AXIS optical spectra</string> 
+    </void> 
+    <void index="2"> 
+     <string>AXIS optical spectra</string> 
+    </void> 
+    <void index="3"> 
+     <string>AXIS optical spectra</string> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="title"> 
+   <string>AXIS-XMS Optical Spectra</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="0"/> 
+  </void> 
+ </object> 
+ <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
+  <void property="capabilities"> 
+   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="1"> 
+    <void index="0"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://basebe.obspm.fr/cgi-bin/ssapBE_1.0.pl</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>pointed</string> 
+      </void> 
+      <void property="dataType"> 
+       <string>Archive</string> 
+      </void> 
+      <void property="description"> 
+       <string>Query of the BeSS database by SSAP version 1.0.
+The BeSS database contains a large collection 1D spectra of Be stars obtained by professional and amateur astronomers at any wavelength, from medium to high-resolution high S/N echelle spectra.</string> 
+      </void> 
+      <void property="standardId"> 
+       <string>ivo://ivoa.net/std/SSA</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
+      </void> 
+     </object> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="contact"> 
+   <string>Bertrand de Batz &lt;webmaster.bess@obspm.fr&gt;</string> 
+  </void> 
+  <void property="identifier"> 
+   <string>ivo://voparis.obspm.gepi/BeStars/BeSS/SSAP</string> 
+  </void> 
+  <void property="publisher"> 
+   <string>GEPI-VOPARIS DATA CENTRE</string> 
+  </void> 
+  <void property="referenceUrl"> 
+   <string>http://basebe.obspm.fr</string> 
+  </void> 
+  <void property="shortName"> 
+   <string>BeSS_SSAP</string> 
+  </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="0"/> 
+  </void> 
+  <void property="title"> 
+   <string>Be Star Spectra SSAP</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="5"> 
+    <void index="0"> 
+     <string>Radio</string> 
+    </void> 
+    <void index="1"> 
+     <string>Millimeter</string> 
+    </void> 
+    <void index="2"> 
+     <string>Infrared</string> 
+    </void> 
+    <void index="3"> 
+     <string>Optical</string> 
+    </void> 
+    <void index="4"> 
+     <string>UV</string> 
+    </void> 
+   </array> 
+  </void> 
+ </object> 
+ <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
+  <void property="capabilities"> 
+   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="1"> 
+    <void index="0"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://ov.inaoep.mx/tsap/SyntMod.php?FORMAT=METADATA&amp;</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>artificial</string> 
+      </void> 
+      <void property="dataType"> 
+       <string>Simulation</string> 
+      </void> 
+      <void property="description"> 
+       <string>Evolutionary synthesis models including X-ray emission by Cervino,      Mas-Hesse and Kunth (2004)</string> 
+      </void> 
+      <void property="standardId"> 
+       <string>ivo://ivoa.net/std/SSA</string> 
+      </void> 
+      <void property="version"> 
+       <string>0.5</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
+      </void> 
+     </object> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="contact"> 
+   <string>Miguel Cervino &lt;mcs@iaa.es&gt;</string> 
+  </void> 
+  <void property="identifier"> 
+   <string>ivo://svo.iaa/models/SSP/Xray</string> 
+  </void> 
+  <void property="publisher"> 
+   <string>Instituto de Astrofísica de Andalucía</string> 
+  </void> 
+  <void property="referenceUrl"> 
+   <string>http://ov.inaoep.mx/pgos3/index.php</string> 
+  </void> 
+  <void property="shortName"> 
+   <string>PGos3 X-ray SSP</string> 
+  </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="3"> 
+    <void index="0"> 
+     <string>galaxies: evolution</string> 
+    </void> 
+    <void index="1"> 
+     <string>galaxies: stellar content</string> 
+    </void> 
+    <void index="2"> 
+     <string>stars: evolution</string> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="title"> 
+   <string>PGos3: X-ray SSP models</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="4"> 
+    <void index="0"> 
+     <string>Infrared</string> 
+    </void> 
+    <void index="1"> 
+     <string>Optical</string> 
+    </void> 
+    <void index="2"> 
+     <string>UV</string> 
+    </void> 
+    <void index="3"> 
+     <string>X-ray</string> 
+    </void> 
+   </array> 
+  </void> 
+ </object> 
+ <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
+  <void property="capabilities"> 
+   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="2"> 
+    <void index="0"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://archive.stsci.edu/ssap/search2.php?id=EUVE&amp;</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>pointed</string> 
+      </void> 
+      <void property="dataType"> 
+       <string>Archive</string> 
+      </void> 
+      <void property="description"> 
+       <string>The Extreme Ultraviolet Explorer (EUVE) was a NASA-funded satelite         launched in June 1992 which obtained extreme ultraviolet spectra (70-         760 Angstroms) of over   350 unique astronomical targets. The science         payload, was designed and built   at the Space Sciences Laboratory at         the University of California, Berkeley, under the direction of Dr.         Roger F. Malina. The program ended in January, 2001.  These particular         spectra were extracted by Damian Christian, formerly of the  EUVE         project, and reformatted by MAST staff.</string> 
+      </void> 
+      <void property="standardId"> 
+       <string>ivo://ivoa.net/std/SSA</string> 
+      </void> 
+      <void property="version"> 
+       <string>1.0</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void index="1"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://archive.stsci.edu/ssap/search.php?id=EUVE&amp;</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>pointed</string> 
+      </void> 
+      <void property="standardId"> 
+       <string>ivo://ivoa.net/std/SSA</string> 
+      </void> 
+      <void property="version"> 
+       <string>0.4</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
+      </void> 
+     </object> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="contact"> 
+   <string>Archive Branch, STScI &lt;archive@stsci.edu&gt;</string> 
+  </void> 
+  <void property="identifier"> 
+   <string>ivo://mast.stsci/ssap/euve</string> 
+  </void> 
+  <void property="publisher"> 
+   <string>MAST</string> 
+  </void> 
+  <void property="referenceUrl"> 
+   <string>http://archive.stsci.edu/</string> 
+  </void> 
+  <void property="shortName"> 
+   <string>EUVE</string> 
+  </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="1"> 
+    <void index="0"> 
+     <string>UV Astronomy</string> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="title"> 
+   <string>Extreme Ultraviolet Explorer Merged Spectra</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="1"> 
+    <void index="0"> 
+     <string>UV</string> 
+    </void> 
+   </array> 
+  </void> 
+ </object> 
+ <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
+  <void property="capabilities"> 
+   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="1"> 
+    <void index="0"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://svo.cab.inta-csic.es/theory/db2vo/ssap.php?model=dusty00</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>custom</string> 
+      </void> 
+      <void property="dataType"> 
+       <string>Simulation</string> 
+      </void> 
+      <void property="description"> 
+       <string>The DUSTY00 Model grid of theoretical spectra (Lyon group)</string> 
+      </void> 
+      <void property="standardId"> 
+       <string>ivo://ivoa.net/std/SSA</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
+      </void> 
+     </object> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="contact"> 
+   <string>Enrique Solano, LAEFF Archive Support Team &lt;esm@cab.inta-csic.es&gt;</string> 
+  </void> 
+  <void property="identifier"> 
+   <string>ivo://svo.cab/models/dusty00</string> 
+  </void> 
+  <void property="publisher"> 
+   <string>SVO CAB</string> 
+  </void> 
+  <void property="referenceUrl"> 
+   <string>http://svo.cab.inta-csic.es/</string> 
+  </void> 
+  <void property="shortName"> 
+   <string>DUSTY00</string> 
+  </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="1"> 
+    <void index="0"> 
+     <string>star</string> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="title"> 
+   <string>Allard, DUSTY 2000</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="0"/> 
+  </void> 
+ </object> 
+ <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
+  <void property="capabilities"> 
+   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="1"> 
+    <void index="0"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://svo.cab.inta-csic.es/theory/db2vo/ssap.php?model=kurucz</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>custom</string> 
+      </void> 
+      <void property="dataType"> 
+       <string>Simulation</string> 
+      </void> 
+      <void property="description"> 
+       <string>Kurucz ODFNEW /NOVER models. Newly computed ODFs with better opacities and better abundances have been used. (The convective treatment is described in Castelli et al. 1997, AA 318, 841.)</string> 
+      </void> 
+      <void property="standardId"> 
+       <string>ivo://ivoa.net/std/SSA</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
+      </void> 
+     </object> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="contact"> 
+   <string>Enrique Solano, LAEFF Archive Support Team &lt;esm@cab.inta-csic.es&gt;</string> 
+  </void> 
+  <void property="identifier"> 
+   <string>ivo://svo.cab/models/kurucz</string> 
+  </void> 
+  <void property="publisher"> 
+   <string>SVO CAB</string> 
+  </void> 
+  <void property="referenceUrl"> 
+   <string>http://svo.cab.inta-csic.es/</string> 
+  </void> 
+  <void property="shortName"> 
+   <string>Kurucz</string> 
+  </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="1"> 
+    <void index="0"> 
+     <string>star</string> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="title"> 
+   <string>Kurucz ODFNEW /NOVER models</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="0"/> 
+  </void> 
+ </object> 
+ <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
+  <void property="capabilities"> 
+   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="1"> 
+    <void index="0"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://archive.eso.org/apps/ssaserver/EsoProxySsap?</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>custom</string> 
+      </void> 
+      <void property="dataType"> 
+       <string>Archive</string> 
+      </void> 
+      <void property="description"> 
+       <string>The ESO/ST-ECF Science Archive is a joint collaboration of the European Organisation for Astronomical Research in the Southern Hemisphere (ESO) and the Space Telescope - European Coordinating Facility (ST-ECF). ESO observational data can be requested after the proprietary period by the astronomical community.</string> 
+      </void> 
+      <void property="standardId"> 
+       <string>ivo://ivoa.net/std/SSA</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
+      </void> 
+     </object> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="identifier"> 
+   <string>ivo://eso.org/ssap</string> 
+  </void> 
+  <void property="publisher"> 
+   <string>ESO</string> 
+  </void> 
+  <void property="referenceUrl"> 
+   <string>http://archive.eso.org/</string> 
+  </void> 
+  <void property="shortName"> 
+   <string>ESO_SSAP</string> 
+  </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="1"> 
+    <void index="0"> 
+     <string>Stars, Galaxies, Surveys</string> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="title"> 
+   <string>ESO Spectrum Service</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="0"/> 
+  </void> 
+ </object> 
+ <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
+  <void property="capabilities"> 
+   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="1"> 
+    <void index="0"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://vo.obspm.fr/cgi-bin/siap/ssapHFA.pl?</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>pointed</string> 
+      </void> 
+      <void property="dataType"> 
+       <string>Archive</string> 
+      </void> 
+      <void property="description"> 
+       <string>A collection of 1D refernce spectra of stars and galaxies, useful for         the studies of the evolution of galaxies (e.g. for spectral         synthesis). Spectra have been taken from many different sources and         projects. See http://leda.univ-lyon1.fr/search.html to access the         whole archive of images and spectra.</string> 
+      </void> 
+      <void property="standardId"> 
+       <string>ivo://ivoa.net/std/SSA</string> 
+      </void> 
+      <void property="version"> 
+       <string>0.5</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
+      </void> 
+     </object> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="contact"> 
+   <string>Pierre Le Sidaner &lt;vo.paris@obspm.fr&gt;</string> 
+  </void> 
+  <void property="identifier"> 
+   <string>ivo://obspm.fr/HyperLeda/SSA</string> 
+  </void> 
+  <void property="publisher"> 
+   <string>Observatoire de Paris</string> 
+  </void> 
+  <void property="referenceUrl"> 
+   <string>http://vo.obspm.fr/</string> 
+  </void> 
+  <void property="shortName"> 
+   <string>HFA SSA</string> 
+  </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="1"> 
+    <void index="0"> 
+     <string>Collection of 1D spectra of different origin</string> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="title"> 
+   <string>HyperLeda FITS Archive Simple Spectrum Data Access</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="1"> 
+    <void index="0"> 
+     <string>Optical</string> 
+    </void> 
+   </array> 
+  </void> 
+ </object> 
+ <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
+  <void property="capabilities"> 
+   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="1"> 
+    <void index="0"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://svo.cab.inta-csic.es/theory/db2vo/ssap.php?model=tlusty_mergedbin</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>custom</string> 
+      </void> 
+      <void property="dataType"> 
+       <string>Simulation</string> 
+      </void> 
+      <void property="description"> 
+       <string>TLUSTY OSTAR2002+BSTAR2006 Grid, The merged files use the BSTAR2006 models for effective temperatures up to 30,000 K and the OSTAR2002 models for higher temperatures.</string> 
+      </void> 
+      <void property="standardId"> 
+       <string>ivo://ivoa.net/std/SSA</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
+      </void> 
+     </object> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="contact"> 
+   <string>Enrique Solano, LAEFF Archive Support Team &lt;esm@cab.inta-csic.es&gt;</string> 
+  </void> 
+  <void property="identifier"> 
+   <string>ivo://svo.cab/models/tlusty_mergedbin</string> 
+  </void> 
+  <void property="publisher"> 
+   <string>SVO CAB</string> 
+  </void> 
+  <void property="referenceUrl"> 
+   <string>http://svo.cab.inta-csic.es/</string> 
+  </void> 
+  <void property="shortName"> 
+   <string>TLUSTY Merged</string> 
+  </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="1"> 
+    <void index="0"> 
+     <string>star</string> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="title"> 
+   <string>TLUSTY OSTAR2002+BSTAR2006</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="0"/> 
+  </void> 
+ </object> 
+ <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
+  <void property="capabilities"> 
+   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="1"> 
+    <void index="0"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://svo.cab.inta-csic.es/theory/db2vo/ssap.php?model=pop_kroupa</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>custom</string> 
+      </void> 
+      <void property="dataType"> 
+       <string>Simulation</string> 
+      </void> 
+      <void property="description"> 
+       <string>PopStar Evolutionary synthesis models. Using IMF from Kroupa (2002). This grid of Single Stellar Populations covers a wide range in both, age and metallicity. The models use the most recent evolutionary tracks together with the use of new NLTE atmosphere models.</string> 
+      </void> 
+      <void property="standardId"> 
+       <string>ivo://ivoa.net/std/SSA</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
+      </void> 
+     </object> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="contact"> 
+   <string>Enrique Solano, LAEFF Archive Support Team &lt;esm@cab.inta-csic.es&gt;</string> 
+  </void> 
+  <void property="identifier"> 
+   <string>ivo://svo.cab/models/popstar/pop_kroupa</string> 
+  </void> 
+  <void property="publisher"> 
+   <string>SVO CAB</string> 
+  </void> 
+  <void property="referenceUrl"> 
+   <string>http://dl183.dinaserver.com/fractal/PopStar/downloadmodels.html</string> 
+  </void> 
+  <void property="shortName"> 
+   <string>POPSTAR+Kroupa</string> 
+  </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="1"> 
+    <void index="0"> 
+     <string>Galaxy: evolution</string> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="title"> 
+   <string>POPSTAR with Kroupa IMF</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="0"/> 
+  </void> 
+ </object> 
+ <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
+  <void property="capabilities"> 
+   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="1"> 
+    <void index="0"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://svo2.cab.inta-csic.es/theory/iue/ssap3.php?</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>custom</string> 
+      </void> 
+      <void property="dataType"> 
+       <string>Archive</string> 
+      </void> 
+      <void property="description"> 
+       <string>IUE HPDP spectra</string> 
+      </void> 
+      <void property="standardId"> 
+       <string>ivo://ivoa.net/std/SSA</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
+      </void> 
+     </object> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="contact"> 
+   <string>Enrique Solano, LAEFF Archive Support Team &lt;esm@cab.inta-csic.es&gt;</string> 
+  </void> 
+  <void property="identifier"> 
+   <string>ivo://svo.cab/iue/ssap3</string> 
+  </void> 
+  <void property="publisher"> 
+   <string>SVO CAB</string> 
+  </void> 
+  <void property="referenceUrl"> 
+   <string>http://svo.cab.inta-csic.es</string> 
+  </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="1"> 
+    <void index="0"> 
+     <string>Stars:evolution</string> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="title"> 
+   <string>IUE highly processed spectra</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="0"/> 
+  </void> 
+ </object> 
+ <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
+  <void property="capabilities"> 
+   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="1"> 
+    <void index="0"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://sdc.cab.inta-csic.es/herbig/ssap.jsp?</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>custom</string> 
+      </void> 
+      <void property="description"> 
+       <string>The SVO EXPORT Herbig AeBe SSAP service gives access to a homogeneous spectroscopic database of HAeBe stars. It consists of 337 multi-epoch optical spectra of 38 object observed by the EXPORT consortium (Eiroa, C., Alberdi, A., Camron, A. et al. 2000, ESASP, 451, 189) in 1998/1999.The multi-epoch observation is a useful approach for understanding the origin of the CS lines and their variability, and to establish distinctions in the physical processes operating in pre-main sequence stars.</string> 
+      </void> 
+      <void property="standardId"> 
+       <string>ivo://ivoa.net/std/SSA</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
+      </void> 
+     </object> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="contact"> 
+   <string>Enrique Solano Marquez &lt;herbig-support@cab.inta-csic.es&gt;</string> 
+  </void> 
+  <void property="identifier"> 
+   <string>ivo://svo.cab/svo_export_herbigAeBe</string> 
+  </void> 
+  <void property="publisher"> 
+   <string>SVO</string> 
+  </void> 
+  <void property="referenceUrl"> 
+   <string>http://svo.cab.inta-csic.es</string> 
+  </void> 
+  <void property="shortName"> 
+   <string>SVO HERBIG AeBe</string> 
+  </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="1"> 
+    <void index="0"> 
+     <string>Herbig AeBe</string> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="title"> 
+   <string>SVO EXPORT HERBIG AeBe SSAP</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="0"/> 
+  </void> 
+ </object> 
+ <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
+  <void property="capabilities"> 
+   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="2"> 
+    <void index="0"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://archive.stsci.edu/ssap/search2.php?id=FOS&amp;</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>pointed</string> 
+      </void> 
+      <void property="dataType"> 
+       <string>Archive</string> 
+      </void> 
+      <void property="description"> 
+       <string>Spectra from the HST FOS instrument (processed by ESO and CADC)
+in the 1,150 - 8,500 Å range, resolution ~ 250 and 1,300, V_max ~ 20, 1990 - 1997. Links point to VO-compatible FITS files created by MAST staff.</string> 
+      </void> 
+      <void property="standardId"> 
+       <string>ivo://ivoa.net/std/SSA</string> 
+      </void> 
+      <void property="version"> 
+       <string>1.0</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void index="1"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://archive.stsci.edu/ssap/search.php?id=FOS&amp;</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>pointed</string> 
+      </void> 
+      <void property="standardId"> 
+       <string>ivo://ivoa.net/std/SSA</string> 
+      </void> 
+      <void property="version"> 
+       <string>0.4</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
+      </void> 
+     </object> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="contact"> 
+   <string>Archive Branch, STScI &lt;archive@stsci.edu&gt;</string> 
+  </void> 
+  <void property="identifier"> 
+   <string>ivo://mast.stsci/ssap/hst/fos</string> 
+  </void> 
+  <void property="publisher"> 
+   <string>MAST</string> 
+  </void> 
+  <void property="referenceUrl"> 
+   <string>http://archive.stsci.edu/hst/</string> 
+  </void> 
+  <void property="shortName"> 
+   <string>HST.FOS Spectra</string> 
+  </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="2"> 
+    <void index="0"> 
+     <string>UV</string> 
+    </void> 
+    <void index="1"> 
+     <string>OPTICAL</string> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="title"> 
+   <string>Hubble Space Telescope Faint Object Spectrograph</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="2"> 
+    <void index="0"> 
+     <string>UV</string> 
+    </void> 
+    <void index="1"> 
+     <string>OPTICAL</string> 
+    </void> 
+   </array> 
+  </void> 
+ </object> 
+ <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
+  <void property="capabilities"> 
+   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="1"> 
+    <void index="0"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://svo.cab.inta-csic.es/theory/db2vo/ssap.php?model=dalessio</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>custom</string> 
+      </void> 
+      <void property="dataType"> 
+       <string>Simulation</string> 
+      </void> 
+      <void property="description"> 
+       <string>Models of irradiated accretion disks around pre-main sequence stars</string> 
+      </void> 
+      <void property="standardId"> 
+       <string>ivo://ivoa.net/std/SSA</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
+      </void> 
+     </object> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="contact"> 
+   <string>Enrique Solano, LAEFF Archive Support Team &lt;esm@cab.inta-csic.es&gt;</string> 
+  </void> 
+  <void property="identifier"> 
+   <string>ivo://svo.cab/models/dalessio</string> 
+  </void> 
+  <void property="publisher"> 
+   <string>SVO CAB</string> 
+  </void> 
+  <void property="referenceUrl"> 
+   <string>http://svo.cab.inta-csic.es/</string> 
+  </void> 
+  <void property="shortName"> 
+   <string>Dalessio</string> 
+  </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="1"> 
+    <void index="0"> 
+     <string>star</string> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="title"> 
+   <string>Dalessio disk models</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="0"/> 
+  </void> 
+ </object> 
+ <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
+  <void property="capabilities"> 
+   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="1"> 
+    <void index="0"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://xcatdb.u-strasbg.fr/2xmmidr3/</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>custom</string> 
+      </void> 
+      <void property="description"> 
+       <string>2XMMi is the incremental second catalogue of serendipitous X-ray sources from the European Space Agency&apos;s (ESA) XMM-Newton observatory. The catalogue has been constructed by the XMM-Newton Survey Science Centre (SSC) on behalf of ESA. More than 90,000 EPIC spectra related to individual sources have been made available. Spectra returned by the service are not calibrated but are returned with calibration files.</string> 
+      </void> 
+      <void property="standardId"> 
+       <string>ivo://ivoa.net/std/SSA</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:ProtoSpectralAccess</string> 
+      </void> 
+     </object> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="contact"> 
+   <string>Laurent MICHEL &lt;laurent.michel@unistra.fr&gt;</string> 
+  </void> 
+  <void property="identifier"> 
+   <string>ivo://xcatdb/2xmmidr3/epicssa</string> 
+  </void> 
+  <void property="publisher"> 
+   <string>Observatory of Strasbourg, SSC Team</string> 
+  </void> 
+  <void property="referenceUrl"> 
+   <string>http://xmmssc-www.star.le.ac.uk/Catalogue/xcat_public.html</string> 
+  </void> 
+  <void property="shortName"> 
+   <string>XCATDBDR3-SSA</string> 
+  </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="1"> 
+    <void index="0"> 
+     <string>EPIC spectra of 2XMMi DR3 sources</string> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="title"> 
+   <string>Epic Spectra SSAP of the SSC Interface for the 2XMMi DR3 Catalogue</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="0"/> 
+  </void> 
+ </object> 
+ <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
+  <void property="capabilities"> 
+   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="1"> 
+    <void index="0"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://svo.cab.inta-csic.es/theory/db2vo/ssap.php?model=sedssp</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>custom</string> 
+      </void> 
+      <void property="dataType"> 
+       <string>Simulation</string> 
+      </void> 
+      <void property="description"> 
+       <string>Evolutionary stellar population synthesis at high spectral resolution. Sed@ is a synthesis code included in the Legacy Tool project of the Violent Star Formation Network</string> 
+      </void> 
+      <void property="standardId"> 
+       <string>ivo://ivoa.net/std/SSA</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
+      </void> 
+     </object> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="contact"> 
+   <string>Enrique Solano, LAEFF Archive Support Team &lt;esm@cab.inta-csic.es&gt;</string> 
+  </void> 
+  <void property="identifier"> 
+   <string>ivo://svo.cab/models/sedssp</string> 
+  </void> 
+  <void property="publisher"> 
+   <string>SVO CAB</string> 
+  </void> 
+  <void property="referenceUrl"> 
+   <string>http://www.iaa.es/~rosa/research/synthesis/HRES/ESPS-HRES.html</string> 
+  </void> 
+  <void property="shortName"> 
+   <string>SEDSSP</string> 
+  </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="2"> 
+    <void index="0"> 
+     <string>Galaxy: evolution</string> 
+    </void> 
+    <void index="1"> 
+     <string>Galaxy: formation</string> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="title"> 
+   <string>SED@ Evolutionary Synthesis Models</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="0"/> 
+  </void> 
+ </object> 
+ <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
+  <void property="capabilities"> 
+   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="2"> 
+    <void index="0"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://hess.obspm.fr/</string> 
+      </void> 
+      <void property="dataType"> 
+       <string>Archive</string> 
+      </void> 
+      <void property="description"> 
+       <string>H.E.S.S. is a system of Imaging Atmospheric Cherenkov Telescopes that
+         investigates cosmic gamma rays in the 100 GeV to 100 TeV energy range. The name H.E.S.S.
+         stands for High Energy Stereoscopic System.</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void index="1"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://voparis-srv.obspm.fr/srv/ssa-hess_spectrum.php?</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>pointed</string> 
+      </void> 
+      <void property="standardId"> 
+       <string>ivo://ivoa.net/std/SSA</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
+      </void> 
+     </object> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="contact"> 
+   <string>C. Boisson &lt;Catherine.Boisson@obspm.fr&gt;</string> 
+  </void> 
+  <void property="identifier"> 
+   <string>ivo://vopdc.obspm/luth/hess</string> 
+  </void> 
+  <void property="publisher"> 
+   <string>VO-Paris Data Centre - LUTH</string> 
+  </void> 
+  <void property="referenceUrl"> 
+   <string>http://www.mpi-hd.mpg.de/hfm/HESS/</string> 
+  </void> 
+  <void property="shortName"> 
+   <string>H.E.S.S.</string> 
+  </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="5"> 
+    <void index="0"> 
+     <string>Virtual Observatory</string> 
+    </void> 
+    <void index="1"> 
+     <string>Cosmology</string> 
+    </void> 
+    <void index="2"> 
+     <string>Gamma Rays</string> 
+    </void> 
+    <void index="3"> 
+     <string>High Energy Astrophysics</string> 
+    </void> 
+    <void index="4"> 
+     <string>Extragalactic Objects</string> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="title"> 
+   <string>High Energy Stereoscopic System</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="1"> 
+    <void index="0"> 
+     <string>Gamma-ray</string> 
+    </void> 
+   </array> 
+  </void> 
+ </object> 
+ <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
+  <void property="capabilities"> 
+   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="1"> 
+    <void index="0"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://obelix.lambrate.inaf.it/vodb/SSA?CAT=VVDS_F02_DEEP&amp;</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>pointed</string> 
+      </void> 
+      <void property="dataType"> 
+       <string>Archive</string> 
+      </void> 
+      <void property="description"> 
+       <string>This SSA (v1.0 prototype) service allows to access the VVDS-F02-DEEP         spectra available at http://cencosw.oamp.fr in a VO compliant format.         It comprises spectra for 8980 objects from the VVDS-F02 Deep field         with IAB between 17.5 and 24, and with spectroscopic redshift between         0 and 5. The observations and data processing have been conducted by         the French-Italian team of the VIMOS VLT Deep Survey (VVDS).</string> 
+      </void> 
+      <void property="standardId"> 
+       <string>ivo://ivoa.net/std/SSA</string> 
+      </void> 
+      <void property="version"> 
+       <string>0.5</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
+      </void> 
+     </object> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="contact"> 
+   <string>VODB Manager &lt;luigi@lambrate.inaf.it&gt;</string> 
+  </void> 
+  <void property="identifier"> 
+   <string>ivo://obelix.lambrate.inaf.it/vodb/ssa/VVDS_F02_DEEP</string> 
+  </void> 
+  <void property="publisher"> 
+   <string>INAF-IASF Milano</string> 
+  </void> 
+  <void property="referenceUrl"> 
+   <string>http://cencosw.oamp.fr</string> 
+  </void> 
+  <void property="shortName"> 
+   <string>VVDS_F02_DEEP</string> 
+  </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="2"> 
+    <void index="0"> 
+     <string>Galaxy</string> 
+    </void> 
+    <void index="1"> 
+     <string>Spectroscopy</string> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="title"> 
+   <string>VVDS-F02 DEEP spectra</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="1"> 
+    <void index="0"> 
+     <string>Optical</string> 
+    </void> 
+   </array> 
+  </void> 
+ </object> 
+ <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
+  <void property="capabilities"> 
+   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="1"> 
+    <void index="0"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://archives.esac.esa.int/hst/hst-vo/hla_ssa?</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>custom</string> 
+      </void> 
+      <void property="description"> 
+       <string>The Hubble Legacy Archive (HLA) is a collaboration between the Space Telescope Science Institute (STScI), the Canadian Astronomy Data Centre (CADC) and the Space Telescope - European Coordinating Facility (ST-ECF) to extract calibrated science data from the Hubble Space telescope archive and make them accessible via user-friendly and VO compatible interfaces. As part of the HLA project, the ST-ECF aims to provide calibrated spectra for all objects observed with these HST slitless modes. The ST-ECF HLA archive interface can be accessed at http://archives.esac.esa.int/hst/wdb/wdb/hla/product_science/form</string> 
+      </void> 
+      <void property="standardId"> 
+       <string>ivo://ivoa.net/std/SSA</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
+      </void> 
+     </object> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="contact"> 
+   <string>Jonas Haase &lt;jhaase@eso.org&gt;</string> 
+  </void> 
+  <void property="identifier"> 
+   <string>ivo://stecf/HLA/SSA</string> 
+  </void> 
+  <void property="publisher"> 
+   <string>Space Telescope European Coordinating Facility</string> 
+  </void> 
+  <void property="referenceUrl"> 
+   <string>http://hla.stecf.org</string> 
+  </void> 
+  <void property="shortName"> 
+   <string>ST-ECF/HLA/SSA</string> 
+  </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="1"> 
+    <void index="0"> 
+     <string>Hubble Legacy Archive ST-ECF extracted grism spectra</string> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="title"> 
+   <string>ST-ECF Hubble Legacy Archive High-Level Spectra</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="0"/> 
+  </void> 
+ </object> 
+ <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
+  <void property="capabilities"> 
+   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="1"> 
+    <void index="0"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://sdc.cab.inta-csic.es/omc/jsp/ssap.jsp?</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>custom</string> 
+      </void> 
+      <void property="description"> 
+       <string>The Optical Monitoring Camera (OMC) observes the optical emission from the prime targets of the gamma-ray instruments on-board the ESA mission INTEGRAL (launched on Oct. 17, 2002). OMC has also the capability to monitor serendipitously a large number of optically variable sources within its field of view.</string> 
+      </void> 
+      <void property="standardId"> 
+       <string>ivo://ivoa.net/std/SSA</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
+      </void> 
+     </object> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="contact"> 
+   <string>Enrique Solano Marquez &lt;corot-support@laeff.cab.inta-csic.es&gt;</string> 
+  </void> 
+  <void property="identifier"> 
+   <string>ivo://svo.cab/omc/ssap</string> 
+  </void> 
+  <void property="publisher"> 
+   <string>SVO</string> 
+  </void> 
+  <void property="referenceUrl"> 
+   <string>http://svo.cab.inta-csic.es</string> 
+  </void> 
+  <void property="shortName"> 
+   <string>OMC SSA</string> 
+  </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="5"> 
+    <void index="0"> 
+     <string>OMC</string> 
+    </void> 
+    <void index="1"> 
+     <string>Space Observatory</string> 
+    </void> 
+    <void index="2"> 
+     <string>Time Series</string> 
+    </void> 
+    <void index="3"> 
+     <string>Light Curves</string> 
+    </void> 
+    <void index="4"> 
+     <string>INTEGRAL</string> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="title"> 
+   <string>OMC: The INTEGRAL Optical Monitoring Camera</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="0"/> 
+  </void> 
+ </object> 
+ <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
+  <void property="capabilities"> 
+   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="1"> 
+    <void index="0"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://sdc.cab.inta-csic.es/corotfa/jsp/ssap.jsp?</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>custom</string> 
+      </void> 
+      <void property="description"> 
+       <string>SSAP service for CoRot COROT: (&quot;COnvection, ROtation and Transits&quot;), is a mission with two principal objectives: the study of stellar interiors using asteroseismology techniques, and the discovery of extrasolar planets using the transit method. Successfully launched in December 2006, CoRoT has been providing the astronomical community with a number of revolutionary results on the internal structure of stars and on the physical properties of extrasolar planets. The need for an archive for the CoRoT data was identified in the early phases of the project. In March 2003, LAEFF was selected, together with the CDS, to be responsible for the long-term storage and maintenance of the CoRoT Final Archive, which will contain all CoRoT data processed in a homogeneous and uniform way. This Final Archive will represent the legacy of the mission for future generations of researchers and educators. In addition to the Final Archive, efficient data management and data interchange mechanisms have been set up to work during the operational phase of CoRoT. In this framework two types of archives have been defined. - The Mission Archive: Located at the Institut d&apos;Astrophysique Spatiale (IAS) in Paris, the Mission Archive is the only access point for CoRoT data during the proprietary period. - The Public Archives: Containing only publicly available data, these are dynamic archives since new data as well as re-calibrations of previous data will be ingested during the mission lifetime. The Public Archives are being developed at the IAS (Paris), CDS (Strasbourg), NStED (Pasadena, California), and LAEX (Madrid). For the sake of integrity, the data are stored at IAS and remotely accessed from the Public Archives.</string> 
+      </void> 
+      <void property="standardId"> 
+       <string>ivo://ivoa.net/std/SSA</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
+      </void> 
+     </object> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="contact"> 
+   <string>Enrique Solano Marquez &lt;corot-support@cab.inta-csic.es&gt;</string> 
+  </void> 
+  <void property="identifier"> 
+   <string>ivo://svo.cab/corot</string> 
+  </void> 
+  <void property="publisher"> 
+   <string>SVO</string> 
+  </void> 
+  <void property="referenceUrl"> 
+   <string>http://svo.laeff.inta.es</string> 
+  </void> 
+  <void property="shortName"> 
+   <string>COROT ARCHIVE</string> 
+  </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="1"> 
+    <void index="0"> 
+     <string>CoRoT</string> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="title"> 
+   <string>The COROT PUBLIC ARCHIVE AT LAEFF</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="0"/> 
+  </void> 
+ </object> 
+ <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
+  <void property="capabilities"> 
+   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="2"> 
+    <void index="0"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://archive.stsci.edu/ssap/search2.php?id=IUE&amp;</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>pointed</string> 
+      </void> 
+      <void property="dataType"> 
+       <string>Archive</string> 
+      </void> 
+      <void property="description"> 
+       <string>The International Ultraviolet Explorer (IUE) performed         spectrophotometry at high (0.1-0.3 Å) and low (6-7 Å) resolution         between 1150 Å and 3200 Å. This service  currently provides access to         the low dispersion &quot;NEWSIPS&quot; data, reformatted to be VO-compatible.</string> 
+      </void> 
+      <void property="standardId"> 
+       <string>ivo://ivoa.net/std/SSA</string> 
+      </void> 
+      <void property="version"> 
+       <string>1.0</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
+      </void> 
+     </object> 
+    </void> 
+    <void index="1"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://archive.stsci.edu/ssap/search.php?id=IUE&amp;</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>pointed</string> 
+      </void> 
+      <void property="standardId"> 
+       <string>ivo://ivoa.net/std/SSA</string> 
+      </void> 
+      <void property="version"> 
+       <string>0.4</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
+      </void> 
+     </object> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="contact"> 
+   <string>Archive Branch, STScI &lt;archive@stsci.edu&gt;</string> 
+  </void> 
+  <void property="identifier"> 
+   <string>ivo://mast.stsci.edu/ssap/iue</string> 
+  </void> 
+  <void property="publisher"> 
+   <string>MAST</string> 
+  </void> 
+  <void property="referenceUrl"> 
+   <string>http://archive.stsci.edu/</string> 
+  </void> 
+  <void property="shortName"> 
+   <string>IUE</string> 
+  </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="1"> 
+    <void index="0"> 
+     <string>UV Astronomy</string> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="title"> 
+   <string>International Ultraviolet Explorer</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="1"> 
+    <void index="0"> 
+     <string>UV</string> 
+    </void> 
+   </array> 
+  </void> 
+ </object> 
+ <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
+  <void property="capabilities"> 
+   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="1"> 
+    <void index="0"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://xcatdb.u-strasbg.fr/xidresult/home</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>custom</string> 
+      </void> 
+      <void property="description"> 
+       <string>The SSC&apos;s XID programme is a follow-up and identification project designed to ensure that the potential of the XMM-Newton serendipitous survey can be exploited by the community in the context of a wide range of scientific programmes. Its main elements are a number of complementary sub-programmes designed to obtain the identifications for well-defined samples of X-ray sources drawn from selected XMM-Newton fields using optical/IR spectroscopy. The programme is also supported by a substantial imaging programme, needed for the selection of the spectroscopic targets, but which is also an important resource in its own right given the large sky area and hence X-ray source sample it covers. One of the principal objectives of the programme is to obtain completely identified samples which can be used to characterise the overall XMM-Newton source population sufficiently well that the basic X-ray and optical parameters can be used to assign a statistical identification for a large fraction of all the sources in the XMM-Newton serendipitous source catalogue. The XID programme started in mid-2000. Most of the programme is now complete. The XIDResult Database collects together the main results from the XID programme in a uniform way, providing access to the individual source identifications and the key optical and X-ray data for each object. Currently in the XIDResult Database contains 3 key XID programme subsamples, the XBS (XID bright flux sample), the XMS (XID medium flux sample) and the GPS (Galactic source sample), all of which have been published or are in press. The main references for each of these subsamples are as follows: * XBS: Caccianiga et al. 2008, A&amp;A 477, 735 (400 sources, 238 spectra) * XMS: Barcons et al. 2007, A&amp;A 476, 1191 (319 sources, 280 spectra) * GPS: Motch et al. 2010, A&amp;A in press (43 sources, 27 spectra)</string> 
+      </void> 
+      <void property="standardId"> 
+       <string>ivo://ivoa.net/std/SSA</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:ProtoSpectralAccess</string> 
+      </void> 
+     </object> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="contact"> 
+   <string>Laurent MICHEL &lt;laurent.michel@astro.unistra.fr&gt;</string> 
+  </void> 
+  <void property="identifier"> 
+   <string>ivo://xcatdb/xidresult/ssa</string> 
+  </void> 
+  <void property="publisher"> 
+   <string>Observatory of Strasbourg, SSC Team</string> 
+  </void> 
+  <void property="referenceUrl"> 
+   <string>http://xmmssc-www.star.le.ac.uk/XID/</string> 
+  </void> 
+  <void property="shortName"> 
+   <string>XIDResult SSA</string> 
+  </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="1"> 
+    <void index="0"> 
+     <string>XID Result Database</string> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="title"> 
+   <string>Optical spectra of the XMM-Newton Optical Follow-up results database (XIDResult)</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="0"/> 
+  </void> 
+ </object> 
+ <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
+  <void property="capabilities"> 
+   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="1"> 
+    <void index="0"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://galex.stsci.edu/gxWS/SSAP/gxSSAP.aspx?</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>survey</string> 
+      </void> 
+      <void property="dataType"> 
+       <string>Archive</string> 
+      </void> 
+      <void property="description"> 
+       <string>The Galexy Evolution Explorer (GALEX), GALEX was successfully launched on 
+		 April 28, 2003. GALEX data products include a series of all sky surveys and 
+		 deep sky surveys in the imaging mode and partial surveys in the near and far UV 
+		 spectroscopic modes. These are respectively, the Nearby Galaxy Survey (NGS), 
+		 Deep (DIS), Medium (MIS), and All Sky Surveys (AIS:imaging) and a somewhat 
+		 smaller Spectroscopic (SPECTRA:imaging or &quot;grism&quot;) survey.  This service provides 
+		 access to the GALEX SPECTRA survey as a &apos;Spectral Cutout Service&apos; where the BAND 
+		 parameter defines the region of spectra to extract for retreival.  Ommitting the BAND
+		 parameter will allow for retreival of the entire spectra dataset for each object.</string> 
+      </void> 
+      <void property="standardId"> 
+       <string>ivo://ivoa.net/std/SSA</string> 
+      </void> 
+      <void property="version"> 
+       <string>1.0</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
+      </void> 
+     </object> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="contact"> 
+   <string>Archive Branch, STScI &lt;archive@stsci.edu&gt;</string> 
+  </void> 
+  <void property="identifier"> 
+   <string>ivo://mast.stsci.edu/ssap/galex</string> 
+  </void> 
+  <void property="publisher"> 
+   <string>MAST</string> 
+  </void> 
+  <void property="referenceUrl"> 
+   <string>http://archive.stsci.edu/</string> 
+  </void> 
+  <void property="shortName"> 
+   <string>GALEX</string> 
+  </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="1"> 
+    <void index="0"> 
+     <string>UV Astronomy</string> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="title"> 
+   <string>Galexy Evolution Explorer</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="1"> 
+    <void index="0"> 
+     <string>UV</string> 
+    </void> 
+   </array> 
+  </void> 
+ </object> 
+ <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
+  <void property="capabilities"> 
+   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="1"> 
+    <void index="0"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://www.isdc.unige.ch/vo-services/lc</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>pointed</string> 
+      </void> 
+      <void property="dataType"> 
+       <string>Survey</string> 
+      </void> 
+      <void property="description"> 
+       <string>With time, all HEAVENS products should become available on the Virtual Observatory.
+In some cases this requires an enhancement of the Virtual Observatory standards.
+
+For now the following HEAVENS services are available through the VO:
+
+- SIAP Image cutout service for INTEGRAL/ISGRI and JEM-X
+- Timeseries service for INTEGRAL/ISGRI, JEM-X and OMC
+
+Wished features include:
+
+- Extended Query Parameters for time intervals
+- Extended Query Parameters for energy bands
+- Timeseries service for INTEGRAL/IREM and SPI-ACS
+- Spectra service for all INTEGRAL instruments</string> 
+      </void> 
+      <void property="standardId"> 
+       <string>ivo://ivoa.net/std/SSA</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
+      </void> 
+     </object> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="contact"> 
+   <string>Pavel Binko &lt;isdc-heavens@unige.ch&gt;</string> 
+  </void> 
+  <void property="identifier"> 
+   <string>ivo://wfau.roe.ac.uk/HEAVENS_at_ISDC/light-curves</string> 
+  </void> 
+  <void property="publisher"> 
+   <string>WFAU</string> 
+  </void> 
+  <void property="referenceUrl"> 
+   <string>http://www.isdc.unige.ch/heavens/</string> 
+  </void> 
+  <void property="shortName"> 
+   <string>HEAVENS @ ISDC</string> 
+  </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="1"> 
+    <void index="0"> 
+     <string>HEAVENS light curves (ISDC - Data Centre for Astrophysics)</string> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="title"> 
+   <string>Mining the HEAVENS with the Virtual Observatory</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="2"> 
+    <void index="0"> 
+     <string>X-ray</string> 
+    </void> 
+    <void index="1"> 
+     <string>Gamma-ray</string> 
+    </void> 
+   </array> 
+  </void> 
+ </object> 
+ <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
+  <void property="capabilities"> 
+   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="1"> 
+    <void index="0"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://svo.cab.inta-csic.es/theory/db2vo/ssap.php?model=husfeld</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>custom</string> 
+      </void> 
+      <void property="dataType"> 
+       <string>Simulation</string> 
+      </void> 
+      <void property="description"> 
+       <string>Husfeld et al models for non-LTE Helium-rich stars</string> 
+      </void> 
+      <void property="standardId"> 
+       <string>ivo://ivoa.net/std/SSA</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
+      </void> 
+     </object> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="contact"> 
+   <string>Enrique Solano, LAEFF Archive Support Team &lt;esm@cab.inta-csic.es&gt;</string> 
+  </void> 
+  <void property="identifier"> 
+   <string>ivo://svo.cab/models/husfeld</string> 
+  </void> 
+  <void property="publisher"> 
+   <string>SVO CAB</string> 
+  </void> 
+  <void property="referenceUrl"> 
+   <string>http://svo.cab.inta-csic.es/</string> 
+  </void> 
+  <void property="shortName"> 
+   <string>Husfeld</string> 
+  </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="1"> 
+    <void index="0"> 
+     <string>star</string> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="title"> 
+   <string>Husfeld et al models for non-LTE Helium-rich stars</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="0"/> 
+  </void> 
+ </object> 
+ <object class="uk.ac.starlink.splat.vo.SSAPRegResource"> 
+  <void property="capabilities"> 
+   <array class="uk.ac.starlink.splat.vo.SSAPRegCapability" length="1"> 
+    <void index="0"> 
+     <object class="uk.ac.starlink.splat.vo.SSAPRegCapability"> 
+      <void property="accessUrl"> 
+       <string>http://sdc.cab.inta-csic.es/ines/jsp/ssap.jsp?</string> 
+      </void> 
+      <void property="dataSource"> 
+       <string>custom</string> 
+      </void> 
+      <void property="description"> 
+       <string>IUE (International Ultraviolet Explorer) performed UV spectrophotometry at resolutions of 0.2 and 6 Angstroms from 1150 to 3350 Angstroms, acquiring more than 104000 spectra of some 9600 objects.</string> 
+      </void> 
+      <void property="standardId"> 
+       <string>ivo://ivoa.net/std/SSA</string> 
+      </void> 
+      <void property="xsiType"> 
+       <string>ssa:SimpleSpectralAccess</string> 
+      </void> 
+     </object> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="contact"> 
+   <string>Enrique Solano Marquez &lt;ines-support@laeff.inta.es&gt;</string> 
+  </void> 
+  <void property="identifier"> 
+   <string>ivo://svo.cab/ines</string> 
+  </void> 
+  <void property="publisher"> 
+   <string>SVO</string> 
+  </void> 
+  <void property="referenceUrl"> 
+   <string>http://svo.laeff.inta.es</string> 
+  </void> 
+  <void property="shortName"> 
+   <string>INES ARCHIVE</string> 
+  </void> 
+  <void property="subjects"> 
+   <array class="java.lang.String" length="5"> 
+    <void index="0"> 
+     <string>INES</string> 
+    </void> 
+    <void index="1"> 
+     <string>IUE</string> 
+    </void> 
+    <void index="2"> 
+     <string>Space Observatory</string> 
+    </void> 
+    <void index="3"> 
+     <string>Ultraviolet Astronomy</string> 
+    </void> 
+    <void index="4"> 
+     <string>spectrophotometry</string> 
+    </void> 
+   </array> 
+  </void> 
+  <void property="title"> 
+   <string>INES: The IUE Newly Extracted Spectra</string> 
+  </void> 
+  <void property="waveband"> 
+   <array class="java.lang.String" length="0"/> 
   </void> 
  </object> 
 </java> 

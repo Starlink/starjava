@@ -1,15 +1,25 @@
-This is pdfTeX, Version 3.1415926-1.40.10 (TeX Live 2009/Debian) (format=latex 2011.4.5)  9 OCT 2012 11:20
+This is pdfTeX, Version 3.1415926-2.3-1.40.12 (TeX Live 2011) (format=latex 2011.7.3)  24 OCT 2012 23:21
 entering extended mode
+ restricted \write18 enabled.
  %&-line parsing enabled.
 **./images.tex
 (./images.tex
 LaTeX2e <2009/09/24>
-Babel <v3.8l> and hyphenation patterns for english, usenglishmax, dumylang, noh
-yphenation, loaded.
+Babel <v3.8l> and hyphenation patterns for english, dumylang, nohyphenation, ge
+rman-x-2009-06-19, ngerman-x-2009-06-19, afrikaans, ancientgreek, ibycus, arabi
+c, armenian, basque, bulgarian, catalan, pinyin, coptic, croatian, czech, danis
+h, dutch, ukenglish, usenglishmax, esperanto, estonian, ethiopic, farsi, finnis
+h, french, galician, german, ngerman, swissgerman, monogreek, greek, hungarian,
+ icelandic, assamese, bengali, gujarati, hindi, kannada, malayalam, marathi, or
+iya, panjabi, tamil, telugu, indonesian, interlingua, irish, italian, kurmanji,
+ lao, latin, latvian, lithuanian, mongolian, mongolianlmc, bokmal, nynorsk, pol
+ish, portuguese, romanian, russian, sanskrit, serbian, serbianc, slovak, sloven
+ian, spanish, swedish, turkish, turkmen, ukrainian, uppersorbian, welsh, loaded
+.
 
-(/usr/share/texmf-texlive/tex/latex/base/article.cls
+(/usr/local/texlive/2011/texmf-dist/tex/latex/base/article.cls
 Document Class: article 2007/10/19 v1.4h Standard LaTeX document class
-(/usr/share/texmf-texlive/tex/latex/base/size11.clo
+(/usr/local/texlive/2011/texmf-dist/tex/latex/base/size11.clo
 File: size11.clo 2007/10/19 v1.4h Standard LaTeX file (size option)
 )
 \c@part=\count79
@@ -23,38 +33,39 @@ File: size11.clo 2007/10/19 v1.4h Standard LaTeX file (size option)
 \abovecaptionskip=\skip41
 \belowcaptionskip=\skip42
 \bibindent=\dimen102
-) (/usr/share/texmf-texlive/tex/latex/base/ifthen.sty
+) (/usr/local/texlive/2011/texmf-dist/tex/latex/base/ifthen.sty
 Package: ifthen 2001/05/26 v1.1c Standard LaTeX ifthen package (DPC)
-) (/loc/pwda/pdraper/starjava_svn/source/splat/src/docs/programming_htx/html.st
-y)
-(/loc/pwda/pdraper/starjava_svn/source/splat/src/docs/programming_htx/star2html
-.sty) (/usr/share/texmf-texlive/tex/latex/graphics/graphicx.sty
+)
+(/Users/mm/Development/SPLAT-ALL/starjava/splat/src/docs/programming_htx/html.s
+ty)
+(/Users/mm/Development/SPLAT-ALL/starjava/splat/src/docs/programming_htx/star2h
+tml.sty) (/usr/local/texlive/2011/texmf-dist/tex/latex/graphics/graphicx.sty
 Package: graphicx 1999/02/16 v1.0f Enhanced LaTeX Graphics (DPC,SPQR)
-(/usr/share/texmf-texlive/tex/latex/graphics/keyval.sty
+(/usr/local/texlive/2011/texmf-dist/tex/latex/graphics/keyval.sty
 Package: keyval 1999/03/16 v1.13 key=value parser (DPC)
 \KV@toks@=\toks14
-) (/usr/share/texmf-texlive/tex/latex/graphics/graphics.sty
+) (/usr/local/texlive/2011/texmf-dist/tex/latex/graphics/graphics.sty
 Package: graphics 2009/02/05 v1.0o Standard LaTeX Graphics (DPC,SPQR)
-(/usr/share/texmf-texlive/tex/latex/graphics/trig.sty
+(/usr/local/texlive/2011/texmf-dist/tex/latex/graphics/trig.sty
 Package: trig 1999/03/16 v1.09 sin cos tan (DPC)
-) (/etc/texmf/tex/latex/config/graphics.cfg
-File: graphics.cfg 2009/08/28 v1.8 graphics configuration of TeX Live
+) (/usr/local/texlive/2011/texmf-dist/tex/latex/latexconfig/graphics.cfg
+File: graphics.cfg 2010/04/23 v1.9 graphics configuration of TeX Live
 )
 Package graphics Info: Driver file: dvips.def on input line 91.
-(/usr/share/texmf-texlive/tex/latex/graphics/dvips.def
+(/usr/local/texlive/2011/texmf-dist/tex/latex/graphics/dvips.def
 File: dvips.def 1999/02/16 v3.0i Driver-dependant file (DPC,SPQR)
 ))
 \Gin@req@height=\dimen103
 \Gin@req@width=\dimen104
-) (/usr/share/texmf-texlive/tex/latex/graphics/color.sty
+) (/usr/local/texlive/2011/texmf-dist/tex/latex/graphics/color.sty
 Package: color 2005/11/14 v1.0j Standard LaTeX Color (DPC)
-(/etc/texmf/tex/latex/config/color.cfg
+(/usr/local/texlive/2011/texmf-dist/tex/latex/latexconfig/color.cfg
 File: color.cfg 2007/01/18 v1.5 color configuration of teTeX/TeXLive
 )
 Package color Info: Driver file: dvips.def on input line 130.
-(/usr/share/texmf-texlive/tex/latex/graphics/dvipsnam.def
+(/usr/local/texlive/2011/texmf-dist/tex/latex/graphics/dvipsnam.def
 File: dvipsnam.def 1999/02/16 v3.0i Driver-dependant file (DPC,SPQR)
-)) (/usr/share/texmf-texlive/tex/latex/base/inputenc.sty
+)) (/usr/local/texlive/2011/texmf-dist/tex/latex/base/inputenc.sty
 Package: inputenc 2008/03/30 v1.1d Input encoding file
 \inpenc@prehook=\toks15
 \inpenc@posthook=\toks16
@@ -167,14 +178,19 @@ Overfull \hbox (10.50653pt too wide) in paragraph at lines 374--375
 
 
 ]
-l2hSize :tex2html_wrap_inline3459:8.7125pt::8.7125pt::6.02254pt.
+l2hSize :tex2html_wrap_inline3946:11.50415pt::11.50415pt::705.34752pt.
+
+Overfull \hbox (10.50653pt too wide) in paragraph at lines 385--386
+[]|[] 
+ []
+
 [8
 
 
 ]
-l2hSize :tex2html_wrap_inline3946:11.50415pt::11.50415pt::705.34752pt.
+l2hSize :tex2html_wrap_inline3964:11.50415pt::11.50415pt::705.34752pt.
 
-Overfull \hbox (10.50653pt too wide) in paragraph at lines 391--392
+Overfull \hbox (10.50653pt too wide) in paragraph at lines 395--396
 []|[] 
  []
 
@@ -182,9 +198,9 @@ Overfull \hbox (10.50653pt too wide) in paragraph at lines 391--392
 
 
 ]
-l2hSize :tex2html_wrap_inline3964:11.50415pt::11.50415pt::705.34752pt.
+l2hSize :tex2html_wrap_inline5474:11.50415pt::11.50415pt::705.34752pt.
 
-Overfull \hbox (10.50653pt too wide) in paragraph at lines 401--402
+Overfull \hbox (10.50653pt too wide) in paragraph at lines 406--407
 []|[] 
  []
 
@@ -192,53 +208,28 @@ Overfull \hbox (10.50653pt too wide) in paragraph at lines 401--402
 
 
 ]
-l2hSize :tex2html_wrap_inline3930:8.7125pt::8.7125pt::6.02254pt.
+l2hSize :tex2html_wrap_inline5560:11.50415pt::11.50415pt::705.34752pt.
+
+Overfull \hbox (10.50653pt too wide) in paragraph at lines 416--417
+[]|[] 
+ []
+
 [11
 
 
 ]
-l2hSize :tex2html_wrap_inline3932:8.7125pt::8.7125pt::6.02254pt.
-[12
-
-
-]
-l2hSize :tex2html_wrap_inline5474:11.50415pt::11.50415pt::705.34752pt.
-
-Overfull \hbox (10.50653pt too wide) in paragraph at lines 424--425
-[]|[] 
- []
-
-[13
-
-
-]
-l2hSize :tex2html_wrap_inline5560:11.50415pt::11.50415pt::705.34752pt.
-
-Overfull \hbox (10.50653pt too wide) in paragraph at lines 434--435
-[]|[] 
- []
-
-[14
-
-
-]
 l2hSize :tex2html_wrap_inline5788:8.7125pt::8.7125pt::3.5892pt.
-[15
-
-
-]
-l2hSize :tex2html_wrap_inline5796:8.7125pt::8.7125pt::6.63087pt.
-[16
+[12
 
 
 ] (./images.aux) ) 
 Here is how much of TeX's memory you used:
- 881 strings out of 495062
- 11559 string characters out of 1182645
- 55776 words of memory out of 3000000
- 4097 multiletter control sequences out of 15000+50000
+ 880 strings out of 493634
+ 11885 string characters out of 3143401
+ 57598 words of memory out of 3000000
+ 4220 multiletter control sequences out of 15000+200000
  6725 words of font info for 24 fonts, out of 3000000 for 9000
- 28 hyphenation exceptions out of 8191
+ 831 hyphenation exceptions out of 8191
  25i,5n,19p,185b,151s stack positions out of 5000i,500n,10000p,200000b,50000s
 
-Output written on images.dvi (16 pages, 4752 bytes).
+Output written on images.dvi (12 pages, 3944 bytes).

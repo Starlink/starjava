@@ -172,7 +172,8 @@ public class PathParser
              type_.indexOf( ".lis" ) > -1 ) {
             return "TEXT";
         }
-        if ( type_.indexOf( ".xml" ) > -1 ) {
+        if ( type_.indexOf( ".xml" ) > -1  
+                ||  type_.indexOf( ".vot" ) > -1 ) { // Changed: MCN 08/2012
             return "XML";
         }
         if ( type_.equals( ".sdf" ) ) {
@@ -312,7 +313,7 @@ public class PathParser
     {
         File file = new File( specpath );
         String name = file.getName();
-        int i1 = name.indexOf( "." );
+        int i1 = name.lastIndexOf( "." ); // Changed: from IndexOf to LastIndexOf MCN 08/2012
         if ( i1 > -1 ) {
             if ( ! fitsext_.equals( "") ) {
                 int i2 = name.indexOf( fitsext_ );

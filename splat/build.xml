@@ -91,7 +91,7 @@
   <!-- Define the package name and current versions -->
   <property name="Name" value="SPLAT-VO"/>
   <property name="name" value="splat"/>
-  <property name="version" value="3.9-8"/>
+  <property name="version" value="3.9-9"/>
 
   <!-- The Java package name -->
   <property name="package.name" value="uk.ac.starlink.splat"/>
@@ -100,7 +100,7 @@
   <property name="debug" value="true"/>
   <property name="deprecation" value="false"/>
   <property name="optimize" value="true"/>
-  <property name="source.version" value="1.4"/>
+  <property name="source.version" value="1.5"/>
 
   <!-- Extra task options, if any -->
   <property name="chmod.fail" value="false"/>

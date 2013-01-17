@@ -32,6 +32,8 @@ import java.util.logging.Logger;
 import uk.ac.starlink.splat.imagedata.NDFJ;
 import uk.ac.starlink.splat.util.SEDSplatException;
 import uk.ac.starlink.splat.util.SplatException;
+import uk.ac.starlink.splat.vo.SSAPAuthenticator;
+
 
 import uk.ac.starlink.datanode.factory.DataNodeFactory;
 import uk.ac.starlink.datanode.nodes.IconFactory;
@@ -51,6 +53,7 @@ import uk.ac.starlink.votable.VOElement;
 import uk.ac.starlink.votable.VOElementFactory;
 import uk.ac.starlink.votable.VOStarTable;
 import uk.ac.starlink.votable.VOTableBuilder;
+
 
 /**
  * This class creates and clones instances of SpecData and derived
@@ -125,6 +128,7 @@ public class SpecDataFactory
         "table",
         "line ids",
         "guess"
+   
     };
 
     /**
@@ -148,7 +152,7 @@ public class SpecDataFactory
         {"fits", "fit"},
         {"sdf"},
         {"txt", "lis"},
-        {"xml"},
+        {"xml", "vot"}, // changed MCN 
         {"*"},
         {"ids"}
     };
@@ -182,7 +186,10 @@ public class SpecDataFactory
      *  Create the single class instance.
      */
     private static SpecDataFactory instance = null;
-
+    
+    /** the authenticator for access control **/
+    private SSAPAuthenticator authenticator;
+    
     /**
      *  Hide the constructor from use.
      */
@@ -215,12 +222,14 @@ public class SpecDataFactory
      *  @exception SplatException thrown if specification does not
      *             specify a spectrum that can be accessed.
      */
+
     public SpecData get( String specspec, int type )
         throws SplatException
     {
         //  Type established by file name rules.
         if ( type == DEFAULT ) {
             return get( specspec );
+          
         }
 
         //  The specification could be for a local or remote file and in URL
@@ -228,15 +237,17 @@ public class SpecDataFactory
         //  copy and construct a RemoteSpecData. Note that when we're using
         //  the full guessing mechanisms remote resources are always
         //  downloaded by SPLAT.
+        
         NameParser namer = new NameParser( specspec );
+  
         boolean isRemote = namer.isRemote();
         if ( isRemote ) {
-            if ( ( type != TABLE && type != HDX ) || ( type == GUESS ) ) {
-                PathParser pathParser = remoteToLocalFile( namer.getURL(),
-                                                           type );
+                
+             if ( ( type != TABLE && type != HDX ) || ( type == GUESS ) ) {
+                PathParser pathParser = remoteToLocalFile( namer.getURL(), type );
                 specspec = pathParser.ndfname();
-            }
-        }
+             }
+        } 
 
         if ( type != GUESS ) {
             SpecDataImpl impl = null;
@@ -266,7 +277,8 @@ public class SpecDataFactory
                 }
                     break;
                 case TABLE: {
-                    impl = makeTableSpecDataImpl( specspec );
+                   impl = makeTableSpecDataImpl( specspec );
+
                 }
                     break;
                 case IDS: {
@@ -287,7 +299,7 @@ public class SpecDataFactory
 
         //  Only get here for guessed spectra.
         return makeGuessedSpecData( specspec, namer.getURL() );
-    }
+      }
 
     /**
      *  Check the format of the incoming specification and create an
@@ -304,31 +316,30 @@ public class SpecDataFactory
      *             specify a spectrum that can be accessed.
      */
     public SpecData get( String specspec )
-        throws SplatException
-    {
+            throws SplatException
+     {
         SpecDataImpl impl = null;
-        URL url = null;
         boolean isRemote = false;
         String guessedType = null;
-
+        URL specurl = null;
+      
+        
         //  See what kind of specification we have.
         try {
             NameParser namer = new NameParser( specspec );
             isRemote = namer.isRemote();
-            url = namer.getURL();
-
+     
+            specurl = namer.getURL();
             //  Remote HDX/VOTable-like files should be downloaded by the
             //  library. A local copy loses the basename context.
             if ( isRemote && namer.getFormat().equals( "XML" ) ) {
-                impl = makeXMLSpecDataImpl( specspec, true, url );
+                impl = makeXMLSpecDataImpl( specspec, true, specurl );
             }
             else {
                 //  Remote plainer formats (FITS, NDF) need a local copy.
                 if ( isRemote ) {
-                    PathParser p = remoteToLocalFile( url, DEFAULT );
-                    if ( p != null ) {
-                        namer = new NameParser( p.ndfname() );
-                    }
+                    PathParser p = remoteToLocalFile( specurl, DEFAULT  );
+                                           namer = new NameParser( p.ndfname() );                   
                 }
                 guessedType = namer.getFormat();
                 impl = makeLocalFileImpl( namer.getName(), namer.getFormat() );
@@ -345,7 +356,7 @@ public class SpecDataFactory
         if ( impl == null ) {
             throwReport( specspec, false, guessedType );
         }
-        return makeSpecDataFromImpl( impl, isRemote, url );
+        return makeSpecDataFromImpl( impl, isRemote, specurl );
     }
 
     /**
@@ -560,6 +571,10 @@ public class SpecDataFactory
             }
         }
         else {
+            // check if there is any authentication status message
+            if (authenticator.getStatus() != null ) // in this case there as an error concerning authentication
+                throw new SplatException(authenticator.getStatus() + " " + specspec );
+            else 
             //  Just a file that doesn't exist.
             throw new SplatException( "Spectrum not found: " + specspec );
         }
@@ -912,7 +927,7 @@ public class SpecDataFactory
         return result;
     }
 
-
+   
     /**
      * Given a URL for a remote resource make a local, temporary, copy. The
      * temporary file should have the correct file extension for the type of
@@ -920,11 +935,14 @@ public class SpecDataFactory
      * if a failure occurs).
      */
     protected PathParser remoteToLocalFile( URL url, int type )
-        throws SplatException
+            throws SplatException
     {
         PathParser namer = null;
         try {
+            
             //  Contact the resource.
+           
+            
             URLConnection connection = url.openConnection();
 
             //  Handle switching from HTTP to HTTPS, if a HTTP 30x redirect is
@@ -1312,6 +1330,10 @@ public class SpecDataFactory
             //  FITS format, is that image or table?
             stype = SpecDataFactory.FITS;
         }
+        else if ( simpleType.startsWith( "image/fits" ) ) {
+            //  FITS (image) format... 
+            stype = SpecDataFactory.FITS;
+        }
         else if ( simpleType.startsWith( "spectrum/fits" ) ) {
             //  FITS format, is that image or table? Don't know who
             //  thought this was a mime-type?
@@ -1367,4 +1389,9 @@ public class SpecDataFactory
         return specData;
     }
 
+    public void setAuthenticator(SSAPAuthenticator auth) {
+        authenticator=auth;
+    }
 }
+
+

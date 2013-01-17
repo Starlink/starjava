@@ -5,14 +5,24 @@
  *  History:
  *     11-NOV-2004 (Peter W. Draper):
  *       Original version.
+ *     23-FEB-2012 (Margarida Castro Neves, mcneves@ari.uni-heidelberg.de)
+ *       Added support for customized metadata parameters.  
+ *       Ported SwingWorker from jsky.util.SwingWorker to javax.swing.SwingWorker
+ *     08-OCT-2012 Redesigned new GUI
  */
 package uk.ac.starlink.splat.vo;
 
+
 import java.awt.BorderLayout;
+import java.awt.Checkbox;
+import java.awt.CheckboxGroup;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
@@ -20,39 +30,56 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.Authenticator;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
+import java.net.HttpURLConnection;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Properties;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
-import javax.swing.Box;
 import javax.swing.ButtonGroup;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
-import javax.swing.border.TitledBorder;
+import javax.swing.border.Border;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+//import javax.swing.SwingWorker;
 
 import jsky.catalog.BasicQueryArgs;
 import jsky.catalog.QueryArgs;
@@ -64,27 +91,26 @@ import jsky.coords.Coordinates;
 import jsky.coords.WorldCoords;
 import jsky.util.SwingWorker;
 
+import org.apache.commons.codec.binary.Base64;
 import org.xml.sax.InputSource;
 
 import uk.ac.starlink.splat.data.SpecDataFactory;
 import uk.ac.starlink.splat.iface.HelpFrame;
 import uk.ac.starlink.splat.iface.ProgressPanel;
-import uk.ac.starlink.splat.iface.SpectrumIO.Props;
 import uk.ac.starlink.splat.iface.SpectrumIO;
 import uk.ac.starlink.splat.iface.SplatBrowser;
 import uk.ac.starlink.splat.iface.ToolButtonBar;
+import uk.ac.starlink.splat.iface.SpectrumIO.Props;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.util.SplatCommunicator;
 import uk.ac.starlink.splat.util.SplatException;
-import uk.ac.starlink.splat.util.StarTableTransmitter;
 import uk.ac.starlink.splat.util.Transmitter;
 import uk.ac.starlink.splat.util.Utilities;
+//import uk.ac.starlink.splat.vo.SSAMetadataFrame.MetadataInputParameter;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
-import uk.ac.starlink.table.StarTableFactory;
-import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.gui.StarJTable;
 import uk.ac.starlink.util.ProxySetup;
@@ -97,13 +123,15 @@ import uk.ac.starlink.vo.DalResultXMLFilter;
 import uk.ac.starlink.vo.RegResource;
 import uk.ac.starlink.vo.ResolverInfo;
 import uk.ac.starlink.votable.DataFormat;
+import uk.ac.starlink.votable.ParamElement;
 import uk.ac.starlink.votable.TableElement;
 import uk.ac.starlink.votable.VOElement;
 import uk.ac.starlink.votable.VOElementFactory;
 import uk.ac.starlink.votable.VOSerializer;
 import uk.ac.starlink.votable.VOStarTable;
-import uk.ac.starlink.votable.VOTableBuilder;
 import uk.ac.starlink.votable.VOTableWriter;
+import javax.swing.BoxLayout;
+
 
 /**
  * Display a page of controls for querying a list of  SSA servers and
@@ -112,23 +140,24 @@ import uk.ac.starlink.votable.VOTableWriter;
  *
  * @author Peter W. Draper
  * @author Mark Taylor
+ * @author Margarida Castro Neves 
  * @version $Id$
+ *
  */
 public class SSAQueryBrowser
-    extends JFrame
-    implements ActionListener, MouseListener
+extends JFrame
+implements ActionListener, MouseListener, DocumentListener, PropertyChangeListener
 {
     // Logger.
-    private static Logger logger =
-        Logger.getLogger( "uk.ac.starlink.splat.vo.SSAQueryBrowser" );
+    private static Logger logger =  Logger.getLogger( "uk.ac.starlink.splat.vo.SSAQueryBrowser" );
 
     /** UI preferences. */
-    protected static Preferences prefs =
-        Preferences.userNodeForPackage( SSAQueryBrowser.class );
+  //  protected static Preferences prefs = 
+ //           Preferences.userNodeForPackage( SSAQueryBrowser.class );
 
     /** Initial window size and location */
     private static final Rectangle defaultWindowLocation =
-        new Rectangle( 0, 0, 600, 650 );
+            new Rectangle( 0, 0, 800, 700 );
 
     /** The object holding the list of servers that we should use for SSA
      *  queries. */
@@ -148,6 +177,20 @@ public class SSAQueryBrowser
 
     /** Centre panel */
     protected JPanel centrePanel = null;
+
+    /** Servers panel */
+    protected JPanel leftPanel = null;
+    private JPanel leftPanel_1;
+    
+    
+    /** Query panel */
+    protected JPanel queryPanel = null;
+
+    /** Basic Query panel */
+    protected JPanel basicQueryPanel = null;
+
+    /** Customized Query panel */
+    protected JPanel customQueryPanel = null;
 
     /** Object name */
     protected JTextField nameField = null;
@@ -173,8 +216,21 @@ public class SSAQueryBrowser
     /** Deselect all spectra in all tables */
     protected JButton deselectAllButton = null;
 
+    /** Display basic search parameters */
+    protected JRadioButton  basicSearchButton;
+
+    /** Display extended search parameters */
+    protected JRadioButton  customSearchButton;
+
+
     /** Make the query to all known servers */
     protected JButton goButton = null;
+    
+    /** update/display query string */
+    JButton showQueryButton = null;
+
+    /** Allows user to customize search parameters */
+    protected JButton customButton = null;
 
     /** Central RA */
     protected JTextField raField = null;
@@ -197,20 +253,31 @@ public class SSAQueryBrowser
     /** Upper limits for TIME */
     protected JTextField upperTimeField = null;
 
+    /** The query text */
+    protected JTextArea queryText = null;
+    
+    /** The extended query text */
+    protected String extendedQueryText = null;
+    
+
     /** ButtonGroup for the format selection */
     protected ButtonGroup formatGroup = null;
+    protected JComboBox formatList = null;
 
     /** ButtonGroup for the FLUXCALIB selection */
     protected ButtonGroup fluxCalibGroup = null;
+    protected JComboBox flcalibList = null;
+    
 
     /** ButtonGroup for the WAVECALIB selection */
     protected ButtonGroup waveCalibGroup = null;
+    protected JComboBox wlcalibList = null;
 
     /** Tabbed pane showing the query results tables */
     protected JTabbedPane resultsPane = null;
 
     /** The list of StarJTables in use */
-    protected ArrayList starJTables = null;
+    protected ArrayList<StarJTable> starJTables = null;
 
     /** NED name resolver catalogue */
     protected SkycatCatalog nedCatalogue = null;
@@ -225,12 +292,44 @@ public class SSAQueryBrowser
     protected ProxySetupFrame proxyWindow = null;
 
     /** The SSA servers window */
-    protected SSAServerFrame serverWindow = null;
+   // protected SSAServerFrame serverWindow = null;
+
+    /** The Button for adding optional parameters to the query */
+    protected JButton addParamButton = null;
+    /** The Button for removing optional parameters from the optional parameters list */
+    protected JButton removeParamButton = null;
+    
+    /** The list of all input parameters read from the servers */
+   // protected static SSAMetadataFrame metaFrame = null;
+    protected static SSAMetadataPanel metaPanel = null;
 
     /** Make sure the proxy environment is setup */
     static {
         ProxySetup.getInstance().restore();
     }
+
+    /* The Query text that will be displayed */
+    private SSAQuery queryLine;
+    
+    /** The list of all input parameters read from the servers as a hash map */
+    private static HashMap<String, MetadataInputParameter> metaParam=null;  
+    
+    /** The list of all input parameters read from the servers as a hash map */
+    private static HashMap< JTextField, String > queryMetaParam=null; 
+    
+    /** the authenticator for access control **/
+    private static SSAPAuthenticator authenticator;
+    
+    /** two way mapping servers-metadata parameters **/
+    private static ServerParamRelation serverParam;
+    
+    /** the serverlist as a tree **/
+    private SSAServerTree tree;
+    
+    private boolean isLookup = false;
+    
+    static ProgressPanelFrame progressFrame = null;
+
 
     /**
      * Create an instance.
@@ -239,26 +338,98 @@ public class SSAQueryBrowser
     {
         this.serverList = serverList;
         this.browser = browser;
+        
+        
+        authenticator = new SSAPAuthenticator();
+        Authenticator.setDefault(authenticator);
+        specDataFactory.setAuthenticator(authenticator);
+        serverParam = new ServerParamRelation();
+        queryMetaParam = new HashMap< JTextField, String >();
+        if (serverList != null) customParameters();
+       
+       
         initUI();
+        this.pack();
+      
+        this.setVisible(true);
         initMenusAndToolbar();
-        initFrame();
+        initFrame(); 
+        
     }
 
+    public SSAPAuthenticator getAuthenticator() {
+        return authenticator;
+    }
     /**
      * Create and display the UI components.
      */
     private void initUI()
     {
-        contentPane = (JPanel) getContentPane();
-        contentPane.setLayout( new BorderLayout() );
+       
+        JPanel contentPane = (JPanel) getContentPane();
+        contentPane.setPreferredSize(new Dimension(900,700));
+        //contentPane.setLayout( new BorderLayout() );
+       // contentPane.setLayout( new GridLayout(1,2,3,3) );
+        contentPane.setLayout( new BoxLayout(contentPane, BoxLayout.X_AXIS) );
+      
+      //  GridBagLayout gblayout = new GridBagLayout();
+     //   contentPane.setLayout(gblayout); 
+       
+     //   GridBagConstraints c = new GridBagConstraints();
+      //  c.fill = GridBagConstraints.HORIZONTAL;
+        
+        
+        leftPanel_1 = new JPanel( );
+        leftPanel_1.setPreferredSize( new Dimension(300,700));
+      //  c.gridx=0; c.gridy=0;c.weightx=0;
+        
+     //   c.gridwidth = GridBagConstraints.RELATIVE; 
+     //   gblayout.setConstraints(leftPanel_1, c);
+        initServerComponents();
+        //contentPane. 
+      
+       
         centrePanel = new JPanel( new BorderLayout() );
-        contentPane.add( centrePanel, BorderLayout.CENTER );
-
-        initQueryComponents();
-        initResultsComponent();
-        setDefaultNameServers();
+        centrePanel.setPreferredSize(new Dimension(600,700));
+     
+     //   c.gridx=1; c.gridy=0;//c.weightx=3;
+     //   c.gridwidth = GridBagConstraints.REMAINDER; //end row
+     //   gblayout.setConstraints(centrePanel, c);
+   //     contentPane.add( centrePanel);//, BorderLayout.LINE_END );
+        
+       // this.setPreferredSize(ç);
+      //  contentPane.setSize(800, 600);
+       // this.setSize(new Dimension(800,600));
+      
+        //leftPanel_1.setPreferredSize(new Dimension(300,600));
+        // centrePanel.setPreferredSize(new Dimension(500,600));
+        
+        
+         initQueryComponents();
+         initResultsComponent();
+         setDefaultNameServers();
+         contentPane.add( leftPanel_1 ); 
+         contentPane.add(centrePanel);
+      
     }
 
+
+    public void initServerComponents()
+    {
+        leftPanel_1.setLayout(new BoxLayout(leftPanel_1, BoxLayout.Y_AXIS));
+
+        tree=new SSAServerTree( serverList, serverParam );   
+        leftPanel_1.add(tree);
+        //serverPanel.add(tree); 
+       // leftPanel_1.add(serverPanel);
+       // tree.adaptTreeHeight( leftPanel.getHeight());
+     //   JPanel paramPanel = new JPanel();
+       // paramPanel.setBorder ( BorderFactory.createTitledBorder( "SSAP Parameters" ) );
+        //metaPanel = new SSAMetadataPanel();
+      //  paramPanel.add(metaPanel);
+      //  leftPanel.add(paramPanel);
+        //tree.setSize(getMaximumSize());
+    }
     /**
      * Initialise the menu bar, action bar and related actions.
      */
@@ -269,20 +440,20 @@ public class SSAQueryBrowser
         setJMenuBar( menuBar );
 
         //  Create the toolbar.
-        ToolButtonBar toolBar = new ToolButtonBar( contentPane );
+       // ToolButtonBar toolBar = new ToolButtonBar( contentPane );
         JPanel actionBarContainer = new JPanel();
 
         //  Get icons.
         ImageIcon closeImage =
-            new ImageIcon( ImageHolder.class.getResource( "close.gif" ) );
+                new ImageIcon( ImageHolder.class.getResource( "close.gif" ) );
         ImageIcon saveImage =
-            new ImageIcon( ImageHolder.class.getResource( "savefile.gif" ) );
+                new ImageIcon( ImageHolder.class.getResource( "savefile.gif" ) );
         ImageIcon readImage =
-            new ImageIcon( ImageHolder.class.getResource( "openfile.gif" ) );
+                new ImageIcon( ImageHolder.class.getResource( "openfile.gif" ) );
         ImageIcon helpImage =
-            new ImageIcon( ImageHolder.class.getResource( "help.gif" ) );
+                new ImageIcon( ImageHolder.class.getResource( "help.gif" ) );
         ImageIcon ssaImage =
-            new ImageIcon( ImageHolder.class.getResource("ssapservers.gif") );
+                new ImageIcon( ImageHolder.class.getResource("ssapservers.gif") );
 
         //  Create the File menu.
         JMenu fileMenu = new JMenu( "File" );
@@ -291,30 +462,30 @@ public class SSAQueryBrowser
 
         //  Add options to save and restore the query result.
         LocalAction saveAction = new LocalAction( LocalAction.SAVE,
-                                                  "Save query results",
-                                                  saveImage,
-                                                  "Save results of query " +
-                                                  "to disk file" );
+                "Save query results",
+                saveImage,
+                "Save results of query " +
+                "to disk file" );
 
         fileMenu.add( saveAction );
         JButton saveButton = new JButton( saveAction );
         actionBarContainer.add( saveButton );
 
         LocalAction readAction = new LocalAction( LocalAction.READ,
-                                                  "Restore query results",
-                                                  readImage,
-                                                  "Read results of a " +
-                                                  "previous query back " +
-                                                  "from disk file" );
+                "Restore query results",
+                readImage,
+                "Read results of a " +
+                        "previous query back " +
+                "from disk file" );
         fileMenu.add( readAction );
         JButton readButton = new JButton( readAction );
         actionBarContainer.add( readButton );
 
         //  Add an action to close the window.
         LocalAction closeAction = new LocalAction( LocalAction.CLOSE,
-                                                   "Close", closeImage,
-                                                   "Close window",
-                                                   "control W" );
+                "Close", closeImage,
+                "Close window",
+                "control W" );
         fileMenu.add( closeAction ).setMnemonic( KeyEvent.VK_C );
 
         JButton closeButton = new JButton( closeAction );
@@ -326,24 +497,24 @@ public class SSAQueryBrowser
         menuBar.add( optionsMenu );
 
         LocalAction proxyAction = new LocalAction( LocalAction.PROXY,
-                                                   "Configure connection " +
-                                                   "proxy..." );
+                "Configure connection " +
+                "proxy..." );
         optionsMenu.add( proxyAction );
 
-        //  Add item to control the use of SSA servers.
+ /*       //  Add item to control the use of SSA servers.
         LocalAction serverAction = new LocalAction(LocalAction.SERVER,
-                                                   "Configure SSAP servers...",
-                                                   ssaImage,
-                                                   "Configure SSAP servers" );
+                "Configure SSAP servers...",
+                ssaImage,
+                "Configure SSAP servers" );
         optionsMenu.add( serverAction );
-        toolBar.add( serverAction );
+    //    toolBar.add( serverAction );
 
         //  SSAP version 1 format control, wavelength calibation and
         //  flux calibration options.
         initFormatOptions( optionsMenu );
         initWaveCalibOptions( optionsMenu );
         initFluxCalibOptions( optionsMenu );
-
+*/
         //  Create a menu containing all the name resolvers.
         JMenu resolverMenu = new JMenu( "Resolver" );
         resolverMenu.setMnemonic( KeyEvent.VK_R );
@@ -356,7 +527,7 @@ public class SSAQueryBrowser
         jrbmi.setSelected( false );
         bg.add( jrbmi );
         jrbmi.setAction( new ResolverAction( "SIMBAD via CADC",
-                                             simbadCatalogue ) );
+                simbadCatalogue ) );
         jrbmi.setToolTipText( "SIMBAD service served by CADC" );
 
         jrbmi = new JRadioButtonMenuItem();
@@ -373,7 +544,7 @@ public class SSAQueryBrowser
         jrbmi.setAction( new ResolverAction( "CDS Sesame", null  ) );
         resolverCatalogue = null;
         jrbmi.setToolTipText
-            ( "CDS Sesame service queries SIMBAD, NED and Vizier" );
+        ( "CDS Sesame service queries SIMBAD, NED and Vizier" );
 
 
         //  Create a menu for inter-client communications.
@@ -388,16 +559,16 @@ public class SSAQueryBrowser
         // Add table transmit options.
         Transmitter transmitter = communicator.createTableTransmitter( this );
         interopMenu.add( transmitter.getBroadcastAction() )
-            .setMnemonic( KeyEvent.VK_B );
+        .setMnemonic( KeyEvent.VK_B );
         interopMenu.add( transmitter.createSendMenu() )
-            .setMnemonic( KeyEvent.VK_T );
+        .setMnemonic( KeyEvent.VK_T );
 
         //  Create the Help menu.
-        HelpFrame.createButtonHelpMenu( "ssa-window", "Help on window",
-                                        menuBar, toolBar );
+        HelpFrame.createButtonHelpMenu( "ssa-window", "Help on window", menuBar, null /*toolBar*/ );
 
         //  ActionBar goes at bottom.
-        contentPane.add( actionBarContainer, BorderLayout.SOUTH );
+        //contentPane.add( actionBarContainer, BorderLayout.SOUTH );
+        centrePanel.add( actionBarContainer, BorderLayout.SOUTH );
     }
 
     /**
@@ -407,8 +578,8 @@ public class SSAQueryBrowser
     {
         setTitle( Utilities.getTitle( "Query VO for Spectra" ) );
         setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
-        Utilities.setFrameLocation( this, defaultWindowLocation, prefs,
-                                    "SSAQueryBrowser" );
+  //      Utilities.setFrameLocation( this, defaultWindowLocation, prefs,
+ //               "SSAQueryBrowser" );
         setVisible( true );
     }
 
@@ -418,121 +589,286 @@ public class SSAQueryBrowser
      */
     private void initQueryComponents()
     {
-        JPanel queryPanel = new JPanel();
-        queryPanel.setBorder
-            ( BorderFactory.createTitledBorder( "Search region:" ) );
+        queryLine = new SSAQuery("<SERVER>");
+        queryPanel = new JPanel();
+        JPanel queryParamPanel = new JPanel();
+        queryParamPanel.setPreferredSize(new Dimension(600, 215));
+       /// customQueryPanel = new JPanel();
+        queryPanel.setBorder ( BorderFactory.createTitledBorder( "Search parameters:" ) );
+        queryPanel.setLayout( new BorderLayout());
+      // customScrollPanel = new JScrollPane( customQueryPanel );
+        queryParamPanel.setLayout(new GridBagLayout());
+        GridBagConstraints c = new GridBagConstraints();
+        c.fill=GridBagConstraints.HORIZONTAL;
+        c.gridx = 0;
+        c.gridy = 0;
+        
+        JPanel simpleQueryPanel = new JPanel();
+        simpleQueryPanel.setPreferredSize(new Dimension(300,200));
+        simpleQueryPanel.setBorder(BorderFactory.createTitledBorder("Simple Query"));
+        queryParamPanel.add(simpleQueryPanel, c);
+        
+        c.fill = GridBagConstraints.BOTH;
+        c.weightx = 0.5;
+        c.gridx = 1;
+        c.gridy = 0;
+       
+        JPanel optionalQueryPanel = new JPanel();
+        optionalQueryPanel.setBorder(BorderFactory.createTitledBorder("Optional Parameters"));
+        optionalQueryPanel.setPreferredSize(new Dimension(300,200));
+        queryParamPanel.add(optionalQueryPanel, c);
+        
+       
+        
+      
+        // The simple query panel
+        //------------------------
+        
+       // GridBagLayouter layouter =  new GridBagLayouter( queryPanel, GridBagLayouter.SCHEME3 /*SCHEME4*/ );
+        GridBagLayouter layouter =  new GridBagLayouter( simpleQueryPanel, GridBagLayouter.SCHEME4 /*SCHEME4*/ );
 
-        GridBagLayouter layouter =
-            new GridBagLayouter( queryPanel, GridBagLayouter.SCHEME3 );
-        centrePanel.add( queryPanel, BorderLayout.NORTH );
 
         //  Object name. Arrange for a resolver to look up the coordinates of
         //  the object name, when return or the lookup button are pressed.
         JLabel nameLabel = new JLabel( "Object:" );
-        nameField = new JTextField( 15 );
+        nameField = new JTextField( 10 );
+        nameField.setFocusable(true);
         nameField.setToolTipText( "Enter the name of an object " +
-                                  " -- press return to get coordinates" );
+                " -- press return to get coordinates" );
         nameField.addActionListener( this );
-        layouter.add( nameLabel, false );
-        layouter.add( nameField, false );
-
+        nameField.getDocument().putProperty("owner", nameField); //set the owner
+        nameField.getDocument().addDocumentListener( this );
+      //  nameField.addMouseListener( this );
+        
         nameLookup = new JButton( "Lookup" );
         nameLookup.addActionListener( this );
         nameLookup.setToolTipText( "Press to get coordinates of Object" );
-
-        layouter.add( nameLookup, false );
+        
+        JPanel objPanel = new JPanel( new GridBagLayout());
+        GridBagConstraints gbcs = new GridBagConstraints();
+        gbcs.weightx = 1.0;
+        gbcs.fill = GridBagConstraints.HORIZONTAL;
+        gbcs.ipadx = 15;
+        objPanel.add(nameField, gbcs);
+        objPanel.add(nameLookup, gbcs);
+        layouter.add( nameLabel, false );
+     
+        layouter.add(objPanel, true);
+ 
         layouter.eatLine();
 
+       
         //  RA and Dec fields. We're free-formatting on these (decimal degrees
         //  not required).
+
         JLabel raLabel = new JLabel( "RA:" );
-        raField = new JTextField( 30 );
-        layouter.add( raLabel, false );
-        layouter.add( raField, true );
-        raField.setToolTipText( "Enter the RA of field centre, " +
-                                "decimal degrees or hh:mm:ss.ss" );
+        raField = new JTextField( 10 );
+        raField.addActionListener(this);
+        raField.getDocument().putProperty("owner", raField); //set the owner
+        raField.getDocument().addDocumentListener( this );
 
         JLabel decLabel = new JLabel( "Dec:" );
-        decField = new JTextField( 30 );
-        layouter.add( decLabel, false );
-        layouter.add( decField, true );
-        decField.setToolTipText( "Enter the Dec of field centre, " +
-                                 "decimal degrees or dd:mm:ss.ss" );
+        decField = new JTextField( 10 );
+        decField.addActionListener(this);
+        decField.getDocument().putProperty("owner", decField); //set the owner
+        decField.getDocument().addDocumentListener( this );
+
+        JPanel posPanel = new JPanel( new GridBagLayout() );
+        GridBagConstraints gbc = new GridBagConstraints();
+     
+        gbc.weightx = 1.0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        posPanel.add( raField, gbc );
+        gbc.weightx=0.0;
+        gbc.fill = GridBagConstraints.NONE;
+        posPanel.add(decLabel, gbc);
+        gbc.weightx = 1.0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        posPanel.add(decField, gbc);
+        
+        layouter.add( raLabel, false );
+        layouter.add(posPanel,true);
+        decField.setToolTipText( "Enter the Dec of field centre, decimal degrees or dd:mm:ss.ss" );
+        raField.setToolTipText( "Enter the RA of field centre, decimal degrees or hh:mm:ss.ss" );
+
+    
+
 
         //  Radius field.
         JLabel radiusLabel = new JLabel( "Radius:" );
-        radiusField = new JTextField( "10.0", 15 );
+        radiusField = new JTextField( "10.0", 10 );
+        queryLine.setRadius(10.0);
+        radiusField.addActionListener( this );
         layouter.add( radiusLabel, false );
         layouter.add( radiusField, true );
         radiusField.setToolTipText( "Enter radius of field to search" +
-                                    " from given centre, arcminutes" );
+                " from given centre, arcminutes" );
         radiusField.addActionListener( this );
+        radiusField.getDocument().putProperty("owner", radiusField); //set the owner
+        radiusField.getDocument().addDocumentListener( this );
+
 
         //  Band fields.
         JLabel bandLabel = new JLabel( "Band:" );
-        lowerBandField = new JTextField( 15 );
-        upperBandField = new JTextField( 15 );
+        lowerBandField = new JTextField( 8 );
+        lowerBandField.addActionListener( this );
+        lowerBandField.getDocument().putProperty("owner", lowerBandField); //set the owner
+        lowerBandField.getDocument().addDocumentListener( this );
+
+        upperBandField = new JTextField( 8 );
+        upperBandField.addActionListener( this );
+        upperBandField.getDocument().putProperty("owner", upperBandField); //set the owner
+        upperBandField.getDocument().addDocumentListener( this );
+
 
         JPanel bandPanel = new JPanel( new GridBagLayout() );
-        GridBagConstraints gbc = new GridBagConstraints();
+        GridBagConstraints gbc2 = new GridBagConstraints();
 
-        gbc.weightx = 1.0;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        bandPanel.add( lowerBandField, gbc );
+        gbc2.weightx = 1.0;
+        gbc2.fill = GridBagConstraints.HORIZONTAL;
+        bandPanel.add( lowerBandField, gbc2 );
 
-        gbc.weightx = 0.0;
-        gbc.fill = GridBagConstraints.NONE;
-        bandPanel.add( new JLabel( "/" ), gbc );
+     
+        gbc2.weightx = 0.0;
+        gbc2.fill = GridBagConstraints.NONE;
+        bandPanel.add( new JLabel( "/" ), gbc2 );
 
-        gbc.weightx = 1.0;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        bandPanel.add( upperBandField, gbc );
+ 
+        gbc2.weightx = 1.0;
+        gbc2.fill = GridBagConstraints.HORIZONTAL;
+        bandPanel.add( upperBandField, gbc2 );
 
         layouter.add( bandLabel, false );
         layouter.add( bandPanel, true );
         lowerBandField.setToolTipText( "Lower limit, or single include " +
-                                       "value, for spectral band, in meters" );
+                "value, for spectral band, in meters" );
         upperBandField.setToolTipText
-            ( "Upper limit for spectral band, in meters" );
+        ( "Upper limit for spectral band, in meters" );
 
         //  Time fields, note this shares a line with the band fields.
         JLabel timeLabel = new JLabel( "Time:" );
-        lowerTimeField = new JTextField( 15 );
-        upperTimeField = new JTextField( 15 );
+        lowerTimeField = new JTextField( 8 );
+        lowerTimeField.addActionListener( this );
+        lowerTimeField.getDocument().putProperty("owner", lowerTimeField); //set the owner
+        lowerTimeField.getDocument().addDocumentListener( this );
+
+        upperTimeField = new JTextField( 8 );
+        upperTimeField.addActionListener( this );
+        upperTimeField.getDocument().putProperty("owner", upperTimeField); //set the owner
+        upperTimeField.getDocument().addDocumentListener( this );
 
         JPanel timePanel = new JPanel( new GridBagLayout() );
 
-        gbc.weightx = 1.0;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        timePanel.add( lowerTimeField, gbc );
+        GridBagConstraints gbc4 = new GridBagConstraints();
+        gbc4.weightx = 1.0;
+        gbc4.fill = GridBagConstraints.HORIZONTAL;
+        timePanel.add( lowerTimeField, gbc4 );
 
-        gbc.weightx = 0.0;
-        gbc.fill = GridBagConstraints.NONE;
-        timePanel.add( new JLabel( "/" ), gbc );
+        GridBagConstraints gbc5 = new GridBagConstraints();
+        gbc5.weightx = 0.0;
+        gbc5.fill = GridBagConstraints.NONE;
+        timePanel.add( new JLabel( "/" ), gbc5 );
 
-        gbc.weightx = 1.0;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        timePanel.add( upperTimeField, gbc );
+        GridBagConstraints gbc6 = new GridBagConstraints();
+        gbc6.weightx = 1.0;
+        gbc6.fill = GridBagConstraints.HORIZONTAL;
+        timePanel.add( upperTimeField, gbc6 );
 
         layouter.add( timeLabel, false );
         layouter.add( timePanel, true );
         lowerTimeField.setToolTipText( "Lower limit, or single include " +
-                                       "value for time coverage, " +
-                                       "ISO 8601 format " +
-                                       "(e.g 2008-10-15T20:48Z)" );
+                "value for time coverage, " +
+                "ISO 8601 format " +
+                "(e.g 2008-10-15T20:48Z)" );
         upperTimeField.setToolTipText( "Upper limit for time coverage, " +
-                                       "in ISO 8601 format " +
-                                       "(e.g 2008-10-15T20:48Z)" );
-
-        //  Do the search.
-        goButton = new JButton( "Go" );
-        goButton.addActionListener( this );
-        JPanel buttonPanel = new JPanel();
-        buttonPanel.add( goButton );
-
-        layouter.add( buttonPanel, true );
+                "in ISO 8601 format " +
+                "(e.g 2008-10-15T20:48Z)" );
+        
+        // format and calibration options:
+        JPanel calibOptions = new JPanel(new GridLayout(3,2));
+        
+        // Formats
+        String[] formats =  { "None", "ALL", "COMPLIANT", "votable", "fits", "xml", "native" };
+        formatList = new JComboBox(formats);
+        formatList.setSelectedIndex(0);
+        formatList.addActionListener(this);
+        calibOptions.add(new JLabel("Query Format:"), false);
+        calibOptions.add( formatList, true);
+        
+        //Wavelength Calibration
+        String[] wlcalibs = { "None", "any", "absolute", "relative" };
+        wlcalibList = new JComboBox(wlcalibs);      
+        wlcalibList.setSelectedIndex(0);
+        wlcalibList.addActionListener(this);
+        calibOptions.add(new JLabel( "Wavelength calibration:"), false);
+        calibOptions.add( wlcalibList, true);
+        
+        //Flux Calibration
+        String[] flcalibs = { "None", "any", "absolute", "relative", "normalized" };
+        flcalibList = new JComboBox(flcalibs);
+        flcalibList.setSelectedIndex(0);
+        flcalibList.addActionListener(this);
+        calibOptions.add(new JLabel( "Flux calibration:"), false);
+        calibOptions.add( flcalibList, true);
+        layouter.add(calibOptions, true);
+     
         layouter.eatSpare();
+        
+        
+        // The optional query parameter (metadata) Panel
+        //----------------------------------------------
+     
+        optionalQueryPanel.setLayout( new BoxLayout(optionalQueryPanel, BoxLayout.PAGE_AXIS) );
+       metaPanel = new SSAMetadataPanel();
+       metaPanel.addPropertyChangeListener(this);
+       metaPanel.setVisible(false);
+      // layouter.add(metaPanel, true);
+    //   metaPanel.setTableWidth(200);
+       optionalQueryPanel.add(metaPanel);//, BorderLayout.NORTH);
 
+    //   queryTextPanel.add(new JLabel("Query:"));
+        JPanel paramButtonsPanel = new JPanel( );
+        addParamButton = new JButton("Add Parameter");
+        addParamButton.addActionListener( this );
+        addParamButton.setToolTipText("Add Optional Parameters");
+        addParamButton.setMargin(new Insets(2,2,2,2));  
+       // optionalQueryPanel.add(addParamButton, BorderLayout.WEST);
+        removeParamButton = new JButton("Remove Parameter");
+        removeParamButton.addActionListener( this );
+        removeParamButton.setToolTipText("Remove selected Parameters");
+        removeParamButton.setMargin(new Insets(2,2,2,2));  
+    //    optionalQueryPanel.add(removeParamButton, BorderLayout.EAST);
+        paramButtonsPanel.add( addParamButton );
+        paramButtonsPanel.add( removeParamButton );
+        optionalQueryPanel.add(paramButtonsPanel, BorderLayout.SOUTH);
+    
+        queryPanel.add(queryParamPanel, BorderLayout.NORTH);
+        
+        // the query string display Panel
+        //-------------------------------
+        goButton = new JButton( "    SEND QUERY    " );
+        goButton.setBackground(Color.green);
+        goButton.addActionListener( this );
+      
+  //      showQueryButton = new JButton( "Query: ");
+  //      showQueryButton.setToolTipText("show/update query string");
+  //      showQueryButton.addActionListener( this );
+        JPanel sendQueryPanel = new JPanel(new BorderLayout());
+        sendQueryPanel.add(new JLabel("Query:"), BorderLayout.LINE_START);
+  //      sendQueryPanel.add(showQueryButton, BorderLayout.LINE_START);
+        queryText = new JTextArea(2,25);
+        queryText.setEditable(false);
+        sendQueryPanel.add(queryText);
+        queryText.setLineWrap(true);     
+        sendQueryPanel.add(goButton, BorderLayout.LINE_END);
+       
+        
+        queryPanel.add( sendQueryPanel, BorderLayout.SOUTH);
+       
+        centrePanel.add( queryPanel, BorderLayout.NORTH );
+        
+        // add query text to query text area
+        updateQueryText();
     }
 
     /**
@@ -544,13 +880,15 @@ public class SSAQueryBrowser
     {
         JPanel resultsPanel = new JPanel( new BorderLayout() );
         resultsPanel.setBorder
-            ( BorderFactory.createTitledBorder( "Query results:" ) );
+        ( BorderFactory.createTitledBorder( "Query results:" ) );
         resultsPanel.setToolTipText( "Results of query to the current list "+
-                                     "of SSAP servers. One table per server" );
-
+                "of SSAP servers. One table per server" );
+     
+     
         resultsPane = new JTabbedPane();
-        resultsPanel.add( resultsPane, BorderLayout.CENTER );
-
+        resultsPane.setPreferredSize(new Dimension(600,300));
+        resultsPanel.add( resultsPane, BorderLayout.NORTH );
+        
         JPanel controlPanel = new JPanel( new BorderLayout() );
         JPanel controlPanel1 = new JPanel();
         JPanel controlPanel2 = new JPanel();
@@ -558,46 +896,55 @@ public class SSAQueryBrowser
         //  Download and display.
         displaySelectedButton = new JButton( "Display selected" );
         displaySelectedButton.addActionListener( this );
+        displaySelectedButton.setMargin(new Insets(2,2,2,2));  
         displaySelectedButton.setToolTipText
-            ( "Download and display all spectra selected in all tables" );
+        ( "Download and display all spectra selected in all tables" );
         controlPanel1.add( displaySelectedButton );
 
 
         displayAllButton = new JButton( "Display all" );
         displayAllButton.addActionListener( this );
+        displayAllButton.setMargin(new Insets(2,2,2,2));  
         displayAllButton.setToolTipText
-            ( "Download and display all spectra in all tables" );
+        ( "Download and display all spectra in all tables" );
         controlPanel1.add( displayAllButton );
 
         //  Just download.
         downloadSelectedButton = new JButton( "Download selected" );
         downloadSelectedButton.addActionListener( this );
+        downloadSelectedButton.setMargin(new Insets(2,2,2,2));  
         downloadSelectedButton.setToolTipText
-            ( "Download all spectra selected in all tables");
+        ( "Download all spectra selected in all tables");
         controlPanel1.add( downloadSelectedButton );
 
         downloadAllButton = new JButton( "Download all" );
         downloadAllButton.addActionListener( this );
+        downloadAllButton.setMargin(new Insets(2,2,2,2));  
         downloadAllButton.setToolTipText
-            ( "Download all spectra in all tables");
+        ( "Download all spectra in all tables");
         controlPanel1.add( downloadAllButton );
 
 
         //  Deselect
         deselectVisibleButton = new JButton( "Deselect" );
         deselectVisibleButton.addActionListener( this );
+        deselectVisibleButton.setMargin(new Insets(2,2,2,2));  
         deselectVisibleButton.setToolTipText
-            ( "Deselect all spectra in displayed table" );
-        controlPanel2.add( deselectVisibleButton );
+        ( "Deselect all spectra in displayed table" );
+      //  controlPanel2.add( deselectVisibleButton );
+        controlPanel1.add( deselectVisibleButton );
+
 
         deselectAllButton = new JButton( "Deselect all" );
         deselectAllButton.addActionListener( this );
+        deselectAllButton.setMargin(new Insets(2,2,2,2));  
         deselectAllButton.setToolTipText
-            ( "Deselect all spectra in all tables" );
-        controlPanel2.add( deselectAllButton );
+        ( "Deselect all spectra in all tables" );
+     //   controlPanel2.add( deselectAllButton );
+        controlPanel1.add( deselectAllButton );
 
         controlPanel.add( controlPanel1, BorderLayout.NORTH );
-        controlPanel.add( controlPanel2, BorderLayout.SOUTH );
+     //   controlPanel.add( controlPanel2, BorderLayout.SOUTH );
         resultsPanel.add( controlPanel, BorderLayout.SOUTH );
         centrePanel.add( resultsPanel, BorderLayout.CENTER );
     }
@@ -610,7 +957,7 @@ public class SSAQueryBrowser
     {
         JMenu formatMenu = new JMenu( "Query format" );
         String[] names =
-            { "None", "ALL", "COMPLIANT", "votable", "fits", "xml" };
+            { "None", "ALL", "COMPLIANT", "votable", "fits", "xml", "native" };
         JRadioButtonMenuItem item;
         formatGroup = new ButtonGroup();
         for ( int i = 0; i < names.length; i++ ) {
@@ -698,26 +1045,32 @@ public class SSAQueryBrowser
                     try {
                         if ( queryArgs == null ) {
                             ResolverInfo info =
-                                ResolverInfo.resolve( objectName );
+                                    ResolverInfo.resolve( objectName );
                             WorldCoords coords =
-                                new WorldCoords( info.getRaDegrees(),
-                                                 info.getDecDegrees() );
+                                    new WorldCoords( info.getRaDegrees(),
+                                            info.getDecDegrees() );
                             String[] radec = coords.format();
+                            isLookup=true;
                             raField.setText( radec[0] );
                             decField.setText( radec[1] );
+                            nameField.setForeground(Color.black);
+                            isLookup=false;
+                         //   queryLine.setPosition(radec[0], radec[1]);
                         }
                         else {
                             QueryResult r =
-                                resolverCatalogue.query( queryArgs );
+                                    resolverCatalogue.query( queryArgs );
                             if ( r instanceof TableQueryResult ) {
                                 Coordinates coords =
-                                    ((TableQueryResult) r).getCoordinates( 0 );
+                                        ((TableQueryResult) r).getCoordinates( 0 );
                                 if ( coords instanceof WorldCoords ) {
                                     //  Enter values into RA and Dec fields.
                                     String[] radec =
-                                        ((WorldCoords) coords).format();
+                                            ((WorldCoords) coords).format();
                                     raField.setText( radec[0] );
                                     decField.setText( radec[1] );
+                                    // 
+                           //         queryLine.setPosition(radec[0], radec[1]);
                                 }
                             }
                         }
@@ -750,8 +1103,8 @@ public class SSAQueryBrowser
         p1.setProperty( "long_name", "SIMBAD Names via CADC" );
         p1.setProperty( "short_name", "simbad_ns@cadc" );
         p1.setProperty
-            ( "url",
-              "http://cadcwww.dao.nrc.ca/cadcbin/sim-server?&o=%id" );
+        ( "url",
+                "http://cadcwww.dao.nrc.ca/cadcbin/sim-server?&o=%id" );
         SkycatConfigEntry entry = new SkycatConfigEntry( p1 );
         simbadCatalogue = new SkycatCatalog( entry );
 
@@ -760,8 +1113,8 @@ public class SSAQueryBrowser
         p2.setProperty( "long_name", "NED Names" );
         p2.setProperty( "short_name", "ned@eso" );
         p2.setProperty
-            ( "url",
-              "http://archive.eso.org/skycat/servers/ned-server?&o=%id" );
+        ( "url",
+                "http://archive.eso.org/skycat/servers/ned-server?&o=%id" );
         entry = new SkycatConfigEntry( p2 );
         nedCatalogue = new SkycatCatalog( entry );
     }
@@ -777,7 +1130,7 @@ public class SSAQueryBrowser
         String dec = decField.getText();
         String objectName = nameField.getText().trim();
         if ( ra == null || ra.length() == 0 ||
-             dec == null || dec.length() == 0 ) {
+                dec == null || dec.length() == 0 ) {
 
             //  Check for an object name. Need one or the other.
             if ( objectName != null && objectName.length() > 0 ) {
@@ -786,11 +1139,11 @@ public class SSAQueryBrowser
             }
             else {
                 int n = JOptionPane.showConfirmDialog( this,
-                                              "You have not supplied " +
-                                              "a search centre or object " +
-                                              "name, do you want to proceed?",
-                                              "No RA or Dec",
-                                              JOptionPane.YES_NO_OPTION );
+                        "You have not supplied " +
+                                "a search centre or object " +
+                                "name, do you want to proceed?",
+                                "No RA or Dec",
+                                JOptionPane.YES_NO_OPTION );
                 if ( n == JOptionPane.NO_OPTION ) {
                     return;
                 }
@@ -804,71 +1157,54 @@ public class SSAQueryBrowser
 
         //  And the radius.
         String radiusText = radiusField.getText();
-        double radius = 10.0;
+        double radius=0;// = 10.0;
         if ( radiusText != null && radiusText.length() > 0 ) {
             try {
                 radius = Double.parseDouble( radiusText );
             }
             catch (NumberFormatException e) {
-                ErrorDialog.showError( this, "Cannot understand radius value",
-                                       e );
+                ErrorDialog.showError( this, "Cannot understand radius value", e );
                 return;
             }
         }
 
-        //  Spectral bandpass. These should be in meters. XXX allow other
-        //  units and do the conversion.
-        String lowerBand = lowerBandField.getText();
-        if ( "".equals( lowerBand ) ) {
-            lowerBand = null;
-        }
-        String upperBand = upperBandField.getText();
-        if ( "".equals( upperBand ) ) {
-            upperBand = null;
-        }
+       
 
-        //  Time coverage.
-        String lowerTime = lowerTimeField.getText();
-        if ( "".equals( lowerTime ) ) {
-            lowerTime = null;
+       // queryLine.setQueryParameters(ra, dec, objectName, radiusText, lowerBandField.getText(), upperBandField.getText(), lowerTimeField.getText(), upperTimeField.getText(), 
+       //                             waveCalibGroup.getSelection().getActionCommand(), fluxCalibGroup.getSelection().getActionCommand(), formatGroup.getSelection().getActionCommand());
+        try {
+            queryLine.setPosition(ra, dec);
+        } catch (NumberFormatException e) {
+            ErrorDialog.showError( this, "Cannot understand this value", e );
+            return;
         }
-        String upperTime = upperTimeField.getText();
-        if ( "".equals( upperTime ) ) {
-            upperTime = null;
-        }
-
-        //  See if there's a data format choice.
-        String format = formatGroup.getSelection().getActionCommand();
-        if ( format.equals( "None" ) ) {
-            format = null;
-        }
-
-        //  See if there are wavelength and flux calibration options.
-        String waveCalib = waveCalibGroup.getSelection().getActionCommand();
-        if ( waveCalib.equals( "None" ) ) {
-            waveCalib = null;
-        }
-        String fluxCalib = fluxCalibGroup.getSelection().getActionCommand();
-        if ( fluxCalib.equals( "None" ) ) {
-            fluxCalib = null;
-        }
-
+        queryLine.setRadius( radius );
+        queryLine.setBand(lowerBandField.getText(), upperBandField.getText());
+        queryLine.setTime(lowerTimeField.getText(), upperTimeField.getText());
+        queryLine.setWaveCalib(wlcalibList.getSelectedItem().toString());
+        queryLine.setFluxCalib(flcalibList.getSelectedItem().toString());
+        queryLine.setFormat(formatList.getSelectedItem().toString());
+        
         //  Create a stack of all queries to perform.
-        ArrayList queryList = new ArrayList();
+        ArrayList<SSAQuery> queryList = new ArrayList<SSAQuery>();
         Iterator i = serverList.getIterator();
-        RegResource server = null;
+        SSAPRegResource server = null;
         while( i.hasNext() ) {
-            server = (RegResource) i.next();
-            SSAQuery ssaQuery = new SSAQuery( server );
-            ssaQuery.setTargetName( objectName );
+            server = (SSAPRegResource) i.next();
+            if (serverList.isServerSelected(server.getShortName())) {
+            
+            SSAQuery ssaQuery =  new SSAQuery(queryLine);//new SSAQuery( server );
+            ssaQuery.setServer( server) ; //Parameters(queryLine); // copy the query parameters to the new query
+ /*           ssaQuery.setTargetName( objectName );
             ssaQuery.setPosition( ra, dec );
             ssaQuery.setRadius( radius );
             ssaQuery.setBand( lowerBand, upperBand );
             ssaQuery.setTime( lowerTime, upperTime );
             ssaQuery.setFormat( format );
             ssaQuery.setWaveCalib( waveCalib );
-            ssaQuery.setFluxCalib( fluxCalib );
+            ssaQuery.setFluxCalib( fluxCalib );*/
             queryList.add( ssaQuery );
+            }
         }
 
         // Now actually do the queries, these are performed in a separate
@@ -878,8 +1214,8 @@ public class SSAQueryBrowser
         }
         else {
             JOptionPane.showMessageDialog( this,
-               "There are no SSA servers currently selected",
-               "No SSA servers", JOptionPane.ERROR_MESSAGE );
+                    "There are no SSA servers currently selected",
+                    "No SSA servers", JOptionPane.ERROR_MESSAGE );
         }
     }
 
@@ -887,102 +1223,142 @@ public class SSAQueryBrowser
      * Process a list of URL queries to SSA servers and display the
      * results. All processing is performed in a background Thread.
      */
-    protected void processQueryList( ArrayList queryList )
+    protected void processQueryList( ArrayList<SSAQuery> queryList )
     {
-        final ArrayList localQueryList = queryList;
+        //  final ArrayList localQueryList = queryList;
         makeResultsDisplay( null );
+        
+        if (progressFrame != null) {
+            progressFrame.closeWindowEvent();
+            progressFrame=null;
+        }
+       // final ProgressPanelFrame 
+        progressFrame = new ProgressPanelFrame( "Querying SSAP servers" );
+        
 
-        final ProgressPanelFrame progressFrame =
-            new ProgressPanelFrame( "Querying SSAP servers" );
-
-        Iterator i = queryList.iterator();
+        Iterator<SSAQuery> i = queryList.iterator();
         while ( i.hasNext() ) {
-            final SSAQuery ssaQuery = (SSAQuery) i.next();
-            final ProgressPanel progressPanel =
-                new ProgressPanel( "Querying: " + ssaQuery.getDescription() );
+            final SSAQuery ssaQuery = i.next();
+            final ProgressPanel progressPanel = new ProgressPanel( "Querying: " + ssaQuery.getDescription());
             progressFrame.addProgressPanel( progressPanel );
 
             final SwingWorker worker = new SwingWorker()
+            {
+                boolean interrupted = false;
+                public Object construct() 
                 {
-                    boolean interrupted = false;
-                    public Object construct()
-                    {
-                        progressPanel.start();
-                        try {
-                            runProcessQuery( ssaQuery, progressPanel );
-                        }
-                        catch (InterruptedException e) {
-                            interrupted = true;
-                        }
-                        return null;
+                    progressPanel.start();
+                    try {
+                        runProcessQuery( ssaQuery, progressPanel );
                     }
-
-                    public void finished()
-                    {
-                        progressPanel.stop();
-                        queryThread = null;
-
-                        //  Display the results.
-                        if ( ! interrupted ) {
-                            addResultsDisplay( ssaQuery );
-                        }
+                    catch (InterruptedException e) {
+                        interrupted = true;
                     }
-                };
+                    return null;
+                }
+
+                public void finished()
+                {
+                    progressPanel.stop();
+                    //  Display the results.
+                    if ( ! interrupted ) {
+                        addResultsDisplay( ssaQuery );
+                    }
+                }
+            };
 
             progressPanel.addActionListener( new ActionListener()
+            {
+                public void actionPerformed( ActionEvent e )
                 {
-                    public void actionPerformed( ActionEvent e )
-                    {
-                        if ( worker != null ) {
-                            worker.interrupt();
-                        }
+                    if ( worker != null ) {
+                         worker.interrupt();
                     }
-                });
+                }
+            });
 
-            worker.start();
+            worker.start();  
         }
     }
-
-    private Thread queryThread = null;
 
     /**
      * Do a query to an SSAP server.
      */
     private void runProcessQuery( SSAQuery ssaQuery,
-                                  ProgressPanel progressPanel )
-        throws InterruptedException
-    {
+            ProgressPanel progressPanel )
+                    throws InterruptedException
+                    {
         boolean failed = false;
+        boolean overflow = false;
 
         //  We just download VOTables, so avoid attempting to build the other
         //  formats.
         StarTable starTable = null;
+        URL queryURL = null;
 
         // int j = 0;
 
         try {
-            URL url = ssaQuery.getQueryURL();
-            progressPanel.logMessage( ssaQuery.getBaseURL() );
-            logger.info( "Querying: " + url );
+            queryURL = ssaQuery.getQueryURL();
+          
 
-            //  Do the query and get the result as a StarTable. Uses this
-            //  method for efficiency as non-result tables are ignored.
-            InputSource inSrc = new InputSource( url.openStream() );
-            inSrc.setSystemId( url.toString() );
+            // check if more parameters have been added
+            // Not very nice... should think of a better way to do that
+            //
+        //    if (metaFrame != null) {
+            //       String extendedQuery=metaFrame.getParamsQueryString();
+            String extendedQuery = null;
+    //        if (querystring != null)
+                extendedQuery=metaPanel.getParamsQueryString();
+            logger.info( "Extended Query string " + extendedQuery );
+            if (extendedQuery != null && extendedQuery.length() > 0) 
+            {
+                String newURL = queryURL.toString() + extendedQuery;
+                logger.info( "Query string " + newURL );
+                queryURL = new URL(newURL);
+            }
+            //     }
+        }   
+        catch ( MalformedURLException mue ) {
+            progressPanel.logMessage( mue.getMessage() );
+            logger.info( "Malformed URL "+queryURL );
+            failed = true;
+        }
+        catch ( UnsupportedEncodingException uee) {
+            progressPanel.logMessage( uee.getMessage() );
+            logger.info( "URL Encoding Exception "+queryURL );
+            failed = true;
+        } 
+        //   accessControl = new HashMap<String,String>;
+        //    accessControl.addPropertyChangeListener(this);
+
+        logger.info( "Querying: " + queryURL );
+
+        progressPanel.logMessage( ssaQuery.getBaseURL() );
+    
+    
+        //  Do the query and get the result as a StarTable. Uses this
+        //  method for efficiency as non-result tables are ignored.
+        try {
+            InputSource inSrc = new InputSource( queryURL.openStream() );
+            
+            // inSrc.setSystemId( ssaQuery.getBaseURL() );
+            inSrc.setSystemId( queryURL.toString());
             VOElementFactory vofact = new VOElementFactory();
+           
             starTable = DalResultXMLFilter.getDalResultTable( vofact, inSrc );
-
+          
             //  Check parameter QUERY_STATUS, this should be set to OK
             //  when the query
             String queryOK = null;
             String queryDescription = null;
             try {
                 queryOK = starTable
-                    .getParameterByName( "QUERY_STATUS" )
-                    .getValueAsString( 100 );
+                        .getParameterByName( "QUERY_STATUS" )
+                        .getValueAsString( 100 );
                 queryDescription = starTable
-                    .getParameterByName( "QUERY_STATUS" )
-                    .getInfo().getDescription();
+                        .getParameterByName( "QUERY_STATUS" )
+                        .getInfo().getDescription();
             }
             catch (NullPointerException ne) {
                 // Whoops, that's not good, but see what we can do.
@@ -991,6 +1367,12 @@ public class SSAQueryBrowser
             if ( "OK".equalsIgnoreCase( queryOK ) ) {
                 ssaQuery.setStarTable( starTable );
                 progressPanel.logMessage( "Done" );
+            }
+            else if ("OVERFLOW".equalsIgnoreCase( queryOK ) ) {
+                ssaQuery.setStarTable( starTable );
+                progressPanel.logMessage( queryDescription );
+                logger.info( queryDescription);
+                overflow=true;
             }
             else {
                 //  Some problem with the service, report that.
@@ -1025,24 +1407,25 @@ public class SSAQueryBrowser
             progressPanel.logMessage( ge.getMessage() );
             logger.info( ssaQuery.getDescription() + ": " + ge.getMessage() );
             failed = true;
-        }
+        } 
+
         if ( Thread.interrupted() ) {
             throw new InterruptedException();
         }
-        if ( ! failed ) {
+        if ( ! failed && ! overflow ) {
             progressPanel.logMessage( "Completed download" );
         }
-    }
+} //runProcessQUery
 
     /**
      * Display the results of the queries to the SSA servers. The results can
      * be either a list of SSAQuery instances, or the StarTables themselves
      * (usually these are from a disk-file restoration, not a live query).
      */
-    protected void makeResultsDisplay( ArrayList tableList )
+    protected void makeResultsDisplay( ArrayList<VOStarTable> tableList )
     {
         if ( starJTables == null ) {
-            starJTables = new ArrayList();
+            starJTables = new ArrayList<StarJTable>();
         }
 
         //  Remove existing tables.
@@ -1050,7 +1433,7 @@ public class SSAQueryBrowser
         starJTables.clear();
 
         if ( tableList != null ) {
-            Iterator i = tableList.iterator();
+            Iterator<VOStarTable> i = tableList.iterator();
             while ( i.hasNext() ) {
                 addResultsDisplay( i.next() );
             }
@@ -1090,6 +1473,7 @@ public class SSAQueryBrowser
             if (  nrows > 0 ) {
                 table = new StarJTable( starTable, true );
                 scrollPane = new JScrollPane( table );
+              //  scrollPane.setPreferredSize(new Dimension(600,400));
                 resultsPane.addTab( shortName, scrollPane );
                 starJTables.add( table );
 
@@ -1112,9 +1496,9 @@ public class SSAQueryBrowser
     {
         if ( all ) {
             //  Visit all the tabbed StarJTables.
-            Iterator i = starJTables.iterator();
+            Iterator<StarJTable> i = starJTables.iterator();
             while ( i.hasNext() ) {
-                ((StarJTable) i.next()).clearSelection();
+                i.next().clearSelection();
             }
         }
         else {
@@ -1138,18 +1522,18 @@ public class SSAQueryBrowser
      * spectra.
      */
     protected void displaySpectra( boolean selected, boolean display,
-                                   StarJTable table, int row )
+            StarJTable table, int row )
     {
         //  List of all spectra to be loaded and their data formats and short
         //  names etc.
-        ArrayList specList = new ArrayList();
+        ArrayList<Props> specList = new ArrayList<Props>();
 
         if ( table == null ) {
             //  Visit all the tabbed StarJTables.
-            Iterator i = starJTables.iterator();
+            Iterator<StarJTable> i = starJTables.iterator();
             while ( i.hasNext() ) {
-                extractSpectraFromTable( (StarJTable) i.next(), specList,
-                                         selected, -1 );
+                extractSpectraFromTable( i.next(), specList,
+                        selected, -1 );
             }
         }
         else {
@@ -1166,13 +1550,25 @@ public class SSAQueryBrowser
                 mess = "No spectra available";
             }
             JOptionPane.showMessageDialog( this, mess, "No spectra",
-                                           JOptionPane.ERROR_MESSAGE );
+                    JOptionPane.ERROR_MESSAGE );
             return;
         }
 
         //  And load and display...
         SpectrumIO.Props[] propList = new SpectrumIO.Props[specList.size()];
         specList.toArray( propList );
+        
+        // check for authentication
+        for (int p=0; p<propList.length; p++ ) {
+            URL url=null;
+            try {
+                 url = new URL(propList[p].getSpectrum());
+            } catch (MalformedURLException mue) {
+                logger.info(mue.getMessage());
+            }
+        }
+        
+
         browser.threadLoadSpectra( propList, display );
         browser.toFront();
     }
@@ -1185,11 +1581,12 @@ public class SSAQueryBrowser
      * <p>
      * Can return the selected spectra, if requested, otherwise all spectra
      * are returned or if a row value other than -1 is given just one row.
+     * @throws SplatException 
      */
     private void extractSpectraFromTable( StarJTable starJTable,
-                                          ArrayList specList,
-                                          boolean selected,
-                                          int row )
+            ArrayList<Props> specList,
+            boolean selected,
+            int row )
     {
         int[] selection = null;
 
@@ -1287,8 +1684,8 @@ public class SSAQueryBrowser
             //  that are appropriate.
             if ( linkcol != -1 ) {
                 RowSequence rseq = null;
-                SpectrumIO.Props props;
-                String value;
+                SpectrumIO.Props props = null;
+                String value = null;
                 String[] axes;
                 String[] units;
                 try {
@@ -1296,20 +1693,20 @@ public class SSAQueryBrowser
                         //  Using all rows.
                         rseq = starTable.getRowSequence();
                         while ( rseq.next() ) {
-                            value = ( (String)rseq.getCell( linkcol ) );
+                            value = ( (String) rseq.getCell( linkcol ).toString() );
                             value = value.trim();
                             props = new SpectrumIO.Props( value );
                             if ( typecol != -1 ) {
-                                value = ((String)rseq.getCell( typecol ) );
+                                value = ((String)rseq.getCell( typecol ).toString() );
                                 if ( value != null ) {
                                     value = value.trim();
                                     props.setType
-                                        ( specDataFactory
-                                          .mimeToSPLATType( value ) );
+                                    ( specDataFactory
+                                            .mimeToSPLATType( value ) );
                                 }
                             }
                             if ( namecol != -1 ) {
-                                value = ( (String)rseq.getCell( namecol ) );
+                                value = ( (String)rseq.getCell( namecol ).toString() );
                                 if ( value != null ) {
                                     value = value.trim();
                                     props.setShortName( value );
@@ -1319,7 +1716,7 @@ public class SSAQueryBrowser
                             if ( axescol != -1 ) {
 
                                 //  Old style column names.
-                                value = ( (String)rseq.getCell( axescol ) );
+                                value = ( (String)rseq.getCell( axescol ).toString() );
                                 if ( value != null ) {
                                     value = value.trim();
                                     axes = value.split("\\s");
@@ -1334,15 +1731,15 @@ public class SSAQueryBrowser
 
                                 //  Version 1.0 style.
                                 if ( specaxiscol != -1 ) {
-                                    value = (String)rseq.getCell(specaxiscol);
+                                    value = (String)rseq.getCell(specaxiscol).toString();
                                     props.setCoordColumn( value );
                                 }
                                 if ( fluxaxiscol != -1 ) {
-                                    value = (String)rseq.getCell(fluxaxiscol);
+                                    value = (String)rseq.getCell(fluxaxiscol).toString();
                                     props.setDataColumn( value );
                                 }
                                 if ( fluxerrorcol != -1 ) {
-                                    value = (String)rseq.getCell(fluxerrorcol);
+                                    value = (String)rseq.getCell(fluxerrorcol).toString();
                                     props.setErrorColumn( value );
                                 }
                             }
@@ -1350,7 +1747,7 @@ public class SSAQueryBrowser
                             if ( unitscol != -1 ) {
 
                                 //  Old style column names.
-                                value = ( (String)rseq.getCell( unitscol ) );
+                                value = ( (String)rseq.getCell( unitscol ).toString() );
                                 if ( value != null ) {
                                     value = value.trim();
                                     units = value.split("\\s");
@@ -1363,11 +1760,11 @@ public class SSAQueryBrowser
 
                                 //  Version 1.0 style.
                                 if ( specunitscol != -1 ) {
-                                    value = (String)rseq.getCell(specunitscol);
+                                    value = (String)rseq.getCell(specunitscol).toString();
                                     props.setCoordUnits( value );
                                 }
                                 if ( fluxunitscol != -1 ) {
-                                    value = (String)rseq.getCell(fluxunitscol);
+                                    value = (String)rseq.getCell(fluxunitscol).toString();
                                     props.setDataUnits( value );
                                 }
                             }
@@ -1386,36 +1783,52 @@ public class SSAQueryBrowser
                             if ( k == selection[l] ) {
 
                                 // Store this one as matches selection.
-                                value = ( (String)rseq.getCell( linkcol ) );
-                                value = value.trim();
-                                props = new SpectrumIO.Props( value );
+                                if (rseq.getCell( linkcol ) != null)                                      
+                                    value = ( (String)rseq.getCell( linkcol ).toString() );
+                                if (value != null ) {         
+                                    value = value.trim();
+                                    props = new SpectrumIO.Props( value );
+                                } 
                                 if ( typecol != -1 ) {
-                                    value =((String)rseq.getCell(typecol));
+                                    value = null;
+                                    Object obj = rseq.getCell(typecol);
+                                    if (obj != null) 
+                                        value =((String)rseq.getCell(typecol).toString());
                                     if ( value != null ) {
                                         value = value.trim();
                                         props.setType
-                                            ( specDataFactory
-                                              .mimeToSPLATType( value ) );
+                                        ( specDataFactory
+                                                .mimeToSPLATType( value ) );
                                     }
                                 }
                                 if ( namecol != -1 ) {
-                                    value = ((String)rseq.getCell( namecol ));
+                                    value = null;
+                                    Object obj = rseq.getCell(namecol);
+                                    if (obj != null) 
+                                    value = ((String)rseq.getCell( namecol ).toString());
                                     if ( value != null ) {
                                         value = value.trim();
                                         props.setShortName( value );
                                     }
                                 }
                                 if ( axescol != -1 ) {
-                                    value = ((String)rseq.getCell( axescol ));
-                                    if ( value != null ) {
-                                        value = value.trim();
+                                    value = null;
+                                    Object obj = rseq.getCell(axescol);
+                                    if (obj != null) 
+                                        value = ((String)obj.toString());
+                                    
+                                    if (value != null ) {
+                                         value = value.trim();
                                         axes = value.split("\\s");
                                         props.setCoordColumn( axes[0] );
                                         props.setDataColumn( axes[1] );
                                     }
                                 }
                                 if ( unitscol != -1 ) {
-                                    value = ((String)rseq.getCell(unitscol));
+                                    value = null;
+                                    Object obj = rseq.getCell(unitscol);
+                                    if (obj != null) 
+                                        value = ((String)rseq.getCell(unitscol).toString());
                                     if ( value != null ) {
                                         units = value.split("\\s");
                                         props.setCoordUnits( units[0] );
@@ -1436,6 +1849,9 @@ public class SSAQueryBrowser
                 }
                 catch (IOException ie) {
                     ie.printStackTrace();
+                }
+                catch (NullPointerException ee) {
+                    ErrorDialog.showError( this, "Failed to parse query results file", ee );
                 }
                 finally {
                     try {
@@ -1459,7 +1875,7 @@ public class SSAQueryBrowser
     {
         initFileChooser();
         int result = fileChooser.showOpenDialog( this );
-        if ( result == fileChooser.APPROVE_OPTION ) {
+        if ( result == JFileChooser.APPROVE_OPTION ) {
             File file = fileChooser.getSelectedFile();
             try {
                 readQuery( file );
@@ -1476,8 +1892,8 @@ public class SSAQueryBrowser
      *  the various query results as TABLEs.
      */
     protected void readQuery( File file )
-        throws SplatException
-    {
+            throws SplatException
+            {
         VOElement rootElement = null;
         try {
             rootElement = new VOElementFactory().makeVOElement( file );
@@ -1489,7 +1905,7 @@ public class SSAQueryBrowser
         //  First element should be a RESOURCE.
         VOElement[] resource = rootElement.getChildren();
         VOStarTable table = null;
-        ArrayList tableList = new ArrayList();
+        ArrayList<VOStarTable> tableList = new ArrayList<VOStarTable>();
         String tagName = null;
         for ( int i = 0; i < resource.length; i++ ) {
             tagName = resource[i].getTagName();
@@ -1517,7 +1933,7 @@ public class SSAQueryBrowser
         else {
             throw new SplatException( "No query results found" );
         }
-    }
+            }
 
     /**
      *  Interactively get a file name and save current query results to it as
@@ -1527,14 +1943,14 @@ public class SSAQueryBrowser
     {
         if ( starJTables == null || starJTables.size() == 0 ) {
             JOptionPane.showMessageDialog( this,
-                                           "There are no queries to save",
-                                           "No queries", JOptionPane.ERROR_MESSAGE );
+                    "There are no queries to save",
+                    "No queries", JOptionPane.ERROR_MESSAGE );
             return;
         }
 
         initFileChooser();
         int result = fileChooser.showSaveDialog( this );
-        if ( result == fileChooser.APPROVE_OPTION ) {
+        if ( result == JFileChooser.APPROVE_OPTION ) {
             File file = fileChooser.getSelectedFile();
             try {
                 saveQuery( file );
@@ -1549,8 +1965,8 @@ public class SSAQueryBrowser
      *  Save current query to a File, writing the results as a VOTable.
      */
     protected void saveQuery( File file )
-        throws SplatException
-    {
+            throws SplatException
+            {
         BufferedWriter writer = null;
         try {
             writer = new BufferedWriter( new FileWriter( file ) );
@@ -1565,7 +1981,7 @@ public class SSAQueryBrowser
         catch (IOException e) {
             throw new SplatException( e );
         }
-    }
+            }
 
     /**
      *  Save current query results to a BufferedWriter. The resulting document
@@ -1573,8 +1989,8 @@ public class SSAQueryBrowser
      *  query results.
      */
     protected void saveQuery( BufferedWriter writer )
-        throws SplatException
-    {
+            throws SplatException
+            {
         String xmlDec = VOTableWriter.DEFAULT_XML_DECLARATION;
         try {
             writer.write( xmlDec );
@@ -1593,9 +2009,9 @@ public class SSAQueryBrowser
             StarJTable starJTable = null;
             StarTable table = null;
             VOSerializer serializer = null;
-            Iterator i = starJTables.iterator();
+            Iterator<StarJTable> i = starJTables.iterator();
             while ( i.hasNext() ) {
-                starJTable = (StarJTable) i.next();
+                starJTable = i.next();
                 table = starJTable.getStarTable();
 
                 //  Write <TABLE> element. First need to remove FIELD
@@ -1615,9 +2031,9 @@ public class SSAQueryBrowser
             writer.close();
         }
         catch (IOException e) {
-                throw new SplatException( "Failed to save queries", e );
+            throw new SplatException( "Failed to save queries", e );
         }
-    }
+            }
 
     /**
      * Return a StarTable of the currently selected tab of query results.
@@ -1627,7 +2043,7 @@ public class SSAQueryBrowser
         if ( starJTables != null && starJTables.size() > 0 ) {
             int index = resultsPane.getSelectedIndex();
             if ( index > -1 ) {
-                StarJTable jTable = (StarJTable) starJTables.get( index );
+                StarJTable jTable = starJTables.get( index );
                 return jTable.getStarTable();
             }
         }
@@ -1645,12 +2061,12 @@ public class SSAQueryBrowser
 
             //  Add a filter for XML files.
             BasicFileFilter xmlFileFilter =
-                new BasicFileFilter( "xml", "XML files" );
+                    new BasicFileFilter( "xml", "XML files" );
             fileChooser.addChoosableFileFilter( xmlFileFilter );
 
             //  But allow all files as well.
             fileChooser.addChoosableFileFilter
-                ( fileChooser.getAcceptAllFileFilter() );
+            ( fileChooser.getAcceptAllFileFilter() );
         }
     }
 
@@ -1671,13 +2087,13 @@ public class SSAQueryBrowser
      */
     protected void closeWindowEvent()
     {
-        Utilities.saveFrameLocation( this, prefs, "SSAQueryBrowser" );
+   //     Utilities.saveFrameLocation( this, prefs, "SSAQueryBrowser" );
         this.dispose();
     }
 
     /**
      * Configure the SSA servers.
-     */
+     *
     protected void showServerWindow()
     {
         if ( serverWindow == null ) {
@@ -1685,12 +2101,12 @@ public class SSAQueryBrowser
         }
         serverWindow.setVisible( true );
     }
-
+    */
     public static void main( String[] args )
     {
         try {
             SSAQueryBrowser b =
-                new SSAQueryBrowser( new SSAServerList(), null );
+                    new SSAQueryBrowser( new SSAServerList(), null );
             b.pack();
             b.setVisible( true );
         }
@@ -1705,13 +2121,226 @@ public class SSAQueryBrowser
     public void actionPerformed( ActionEvent e )
     {
         Object source = e.getSource();
-        if ( source.equals( nameLookup ) || source.equals( nameField ) ) {
-            resolveName();
-            return;
-        }
+        String cmd = e.getActionCommand();
 
-        if ( source.equals( radiusField ) || source .equals( goButton ) ) {
-            doQuery();
+        if ( source.equals( goButton ) ) {
+            {
+                doQuery();
+               
+            }        
+            return;
+        } 
+      /*  if ( source.equals( showQueryButton ) ) {
+            {
+                try {
+                    queryText.setText(queryLine.getQueryURLText()+ extendedQueryText);
+                } catch (UnsupportedEncodingException e1) {
+                    // TODO Auto-generated catch block
+                    e1.printStackTrace();
+                }
+            }        
+            return;
+        } */
+        if ( source.equals( nameLookup ) /*|| source.equals( nameField ) */) {
+            
+            
+          
+          
+            resolveName();
+           // queryLine.setPosition(raField.getText(), decField.getText());
+            //updateQueryText();
+            //try {
+            //    String q = queryLine.getQueryURLText();
+           //     queryText.setText(q);
+         //   } catch (UnsupportedEncodingException e1) {
+          //      // TODO Auto-generated catch block
+           //     e1.printStackTrace();
+          //  }
+            return;
+        } 
+           
+        if (source.equals(raField) || source.equals(decField) || source.equals(nameField)) {
+
+                //  Get the position. Allow the object name to be passed using
+                //  TARGETNAME, useful for solar system objects.
+                String ra = raField.getText();
+                String dec = decField.getText();
+                String objectName = nameField.getText();
+                if ( ra == null || ra.length() == 0 ||
+                        dec == null || dec.length() == 0 ) {
+
+                    //  Check for an object name. Need one or the other.
+                    if ( objectName != null && objectName.length() > 0 ) {
+                        ra = null;
+                        dec = null;
+                    }
+                    else { 
+                        //  To be clear.
+                        ra = null;
+                        dec = null;
+                        objectName = null;
+                    }
+                }
+                try {
+                    queryLine.setPosition( ra, dec );
+                    } catch (NumberFormatException nfe) {
+                        ErrorDialog.showError( this, "Cannot understand this value", nfe );
+                        return;
+                    }
+                queryLine.setTargetName(objectName);
+                try {
+                    queryText.setText(queryLine.getQueryURLText());
+                } catch (UnsupportedEncodingException e1) {
+                // TODO Auto-generated catch block
+                    e1.printStackTrace();
+                }
+                return;   
+            }
+            if ( source.equals( radiusField )  ) {
+            
+                String radiusText = radiusField.getText();
+                double radius = 0.0;
+                if ( radiusText != null && radiusText.length() > 0 ) {
+                    try {
+                        radius = Double.parseDouble( radiusText );
+                    }
+                    catch (NumberFormatException e1) {
+                        ErrorDialog.showError( this, "Cannot understand radius value", e1);                         
+                        return;
+                    }
+                }
+                queryLine.setRadius(radius);
+            
+                try {
+                    queryText.setText(queryLine.getQueryURLText());
+                } catch (UnsupportedEncodingException e1) {
+                // TODO Auto-generated catch block
+                    e1.printStackTrace();
+                }
+                return;            
+            }
+            
+            //  Spectral bandpass. These should be in meters. XXX allow other
+            //  units and do the conversion.
+            if (  source.equals( lowerBandField ) || source.equals( upperBandField )) {
+                 
+                String lowerBand = lowerBandField.getText();
+                if ( "".equals( lowerBand ) ) {
+                    lowerBand = null;
+                }
+                String upperBand = upperBandField.getText();
+                if ( "".equals( upperBand ) ) {
+                    upperBand = null;
+                }
+                  queryLine.setBand(lowerBand, upperBand);
+                  try {
+                      queryText.setText(queryLine.getQueryURLText());
+                  } catch (UnsupportedEncodingException e1) {
+                  // TODO Auto-generated catch block
+                      e1.printStackTrace();
+                  }
+                  return;            
+            }
+           
+            if (  source.equals( upperTimeField ) || source.equals( lowerTimeField ))  {
+                
+                String lowerTime = lowerTimeField.getText();
+                if ( "".equals( lowerTime ) ) {
+                    lowerTime = null;
+                }
+                String upperTime = upperTimeField.getText();
+                if ( "".equals( upperTime ) ) {
+                    upperTime = null;
+                }
+                  queryLine.setTime(lowerTime, upperTime);
+                  try {
+                      queryText.setText(queryLine.getQueryURLText());
+                  } catch (UnsupportedEncodingException e1) {
+                  // TODO Auto-generated catch block
+                      e1.printStackTrace();
+                  }
+                  return;            
+            }
+            if ( source.equals(formatList)) {
+                    queryLine.setFormat(formatList.getSelectedItem().toString());
+                    try {
+                        queryText.setText(queryLine.getQueryURLText());
+                    } catch (UnsupportedEncodingException e1) {
+                        // TODO Auto-generated catch block
+                        e1.printStackTrace();
+                    }
+                
+                return;     
+            }
+            if ( source.equals(wlcalibList)) {
+                
+                    queryLine.setWaveCalib(wlcalibList.getSelectedItem().toString());
+                    try {
+                        queryText.setText(queryLine.getQueryURLText());
+                    } catch (UnsupportedEncodingException e1) {
+                        // TODO Auto-generated catch block
+                        e1.printStackTrace();
+                    }
+                
+                return;     
+            }
+            if ( source.equals(flcalibList)) {
+            
+                    queryLine.setFluxCalib(flcalibList.getSelectedItem().toString());
+                    try {
+                        queryText.setText(queryLine.getQueryURLText());
+                    } catch (UnsupportedEncodingException e1) {
+                        // TODO Auto-generated catch block
+                        e1.printStackTrace();
+                    }
+                
+                return;     
+            }
+
+        if ( (source.getClass() == JTextField.class) && queryMetaParam.get(source) != null) {
+        //    queryLine.setParam()
+        }
+                                 
+        if ( source.equals( addParamButton ) ) 
+        {
+            //tree.setParamMap(serverParam);
+            addParameter();
+            if (extendedQueryText != null && extendedQueryText.length() > 0) 
+            {
+                try {
+                    queryText.setText(queryLine.getQueryURLText() + extendedQueryText );
+                } catch (UnsupportedEncodingException e1) {
+                        // TODO Auto-generated catch block
+                    e1.printStackTrace();
+                }
+            }
+          
+            return;
+        } 
+        if ( source.equals( removeParamButton ) ) 
+        {
+            // de-select and update query text
+            
+            metaPanel.removeSelectedMetadata();
+        /*    if (extendedQueryText != null && extendedQueryText.length() > 0) 
+            {
+                try {
+                    queryText.setText(queryLine.getQueryURLText() + extendedQueryText );
+                } catch (UnsupportedEncodingException e1) {
+                        // TODO Auto-generated catch block
+                    e1.printStackTrace();
+                }
+            }
+         */ 
+            return;
+        } 
+
+        if ( source.equals( customButton ) ) {
+   //         if (metaFrame == null) {
+                customParameters();
+   //         } else {
+   //             metaFrame.openWindow();
+    //        }
             return;
         }
 
@@ -1741,8 +2370,364 @@ public class SSAQueryBrowser
             deselectSpectra( true );
             return;
         }
+
     }
 
+    /**
+     * Event listener to trigger a metadata update. Triggered by SSAMetadataFrame
+     * the table has been updated
+     */
+    public void propertyChange(PropertyChangeEvent pvt)
+    {
+       updateQueryText();        
+    }
+    
+    private void updateQueryText() {
+        
+        if (metaPanel != null)
+            extendedQueryText=metaPanel.getParamsQueryString(); 
+      
+            try {
+                queryText.setText(queryLine.getQueryURLText() + extendedQueryText);
+            } catch (UnsupportedEncodingException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }           
+    }
+
+    /**
+     * addParameter
+     * Adds an optional metadata parameter to the query.
+     * Allows the user to select a list of parameters, according to the selected list of servers
+     * update the parameter table
+     */
+    private void addParameter() 
+    {
+        // check serverlist (selected servers!!)
+        ArrayList<String> parameters = new ArrayList();
+        Iterator srv=serverList.getIterator();
+        while ( srv.hasNext() ) {
+            SSAPRegResource server = (SSAPRegResource) srv.next();
+            if (serverList.isServerSelected(server.getShortName())) {
+                ArrayList<String> serverpars = serverParam.getParams(server.getShortName());
+                if (serverpars != null )
+                    parameters.addAll(serverpars);
+            }
+        }
+        // make the list unique 
+        HashSet<String> hs = new HashSet<String>();
+        hs.addAll(parameters);
+        parameters.clear();
+        parameters.addAll(hs);
+        Collections.sort(parameters);
+        
+        // remove the INPUT: Prefix from the parameters
+        for (int i=0; i<parameters.size(); i++) {
+           // String param = parameters.get(i).substring(6); // INPUT: = 6 characters
+            parameters.set(i,parameters.get(i).substring(6));// INPUT: = 6 characters
+        }
+        
+         
+        Object selectedValue = JOptionPane.showInputDialog(this, "Supported Parameters", "Input", JOptionPane.INFORMATION_MESSAGE, null, 
+                (Object[]) parameters.toArray(), null);
+        if (selectedValue != null) {
+            
+            metaPanel.addRow(metaParam.get("INPUT:"+selectedValue.toString()), false); // INPUT: has to be added again
+    //        metaPanel.
+            metaPanel.setVisible(true);
+        }
+        metaPanel.repaint();
+       // queryMetaParam.put(txtf, selectedValue.toString());
+      //  JLabel label = new JLabel(selectedValue.toString() + ":");
+      //  customQueryPanel.add(label); queryPanel.add(txtf);
+       // customQueryPanel.repaint();
+      
+    }
+    /**
+     * Customize metadata parameters
+     * Query metadata from known servers to retrieve all possible parameters. Every
+     * query is performed in a different thread, which will perform the query and
+     * update the parameter table
+     */
+    private void customParameters() 
+    {
+        int nrServers = serverList.getSize();
+        final WorkQueue workQueue = new WorkQueue(nrServers);
+
+        metaParam = new HashMap<String, MetadataInputParameter>();
+     
+/*
+        if ( metaFrame == null ) {
+            metaFrame = new SSAMetadataFrame( metaParam );
+            metaFrame.addPropertyChangeListener(this);
+        } else
+            metaFrame.updateMetadata( metaParam );
+*/
+        final ProgressPanelFrame metadataProgressFrame = new ProgressPanelFrame( "Querying Metadata" );
+
+        Iterator i = serverList.getIterator();
+
+        while( i.hasNext() ) {
+
+            final SSAPRegResource server = (SSAPRegResource) i.next();
+            final ProgressPanel metadataProgressPanel = new ProgressPanel( "Querying: " + server.getShortName());
+            metadataProgressFrame.addProgressPanel( metadataProgressPanel );
+            //final MetadataQueryWorker queryWorker  = new MetadataQueryWorker(server, workQueue);
+            final MetadataQueryWorker queryWorker  = new MetadataQueryWorker(workQueue, server, metadataProgressPanel);
+            queryWorker.start();
+            final MetadataProcessWorker processWorker  = new MetadataProcessWorker(workQueue);           
+            processWorker.start();
+
+        }// while
+
+
+        /*
+         *  XXX to do eventually: create the parameter frame only after the first parameter has been found. After all threads are
+         *  done, show a dialog message in case no parameters have been found.
+         */
+       // tree.setParamMap(serverParam);
+    } // customParameters
+
+    /**
+     *  Metadata Query worker class
+     *  makes the query, adds resulting metadata to the queue, notify the metadata process worker 
+     *  
+     * @author mm
+     *
+     */
+
+    class MetadataQueryWorker extends SwingWorker 
+    {
+        URL queryURL=null;
+        SSAPRegResource server=null;
+        ParamElement [] metadata = null;
+        WorkQueue workQueue=null;
+        ProgressPanel progressPanel = null;
+
+        /**
+         * Constructor
+         * @param queue  the work queue
+         * @param server the server which to query for metadata
+         */
+        public MetadataQueryWorker(WorkQueue queue, SSAPRegResource server) {
+            this.server=server;
+            this.workQueue=queue;
+        }
+        /**
+         * Constructor
+         * @param queue  the work queue
+         * @param server the server which to query for metadata
+         * @param panel  the progress panel
+         */
+        public MetadataQueryWorker(WorkQueue queue, SSAPRegResource server,ProgressPanel panel) {
+            this.server=server;
+            this.workQueue=queue;
+            this.progressPanel=panel;
+        }
+
+        public Object construct()
+        {   
+            final SSAMetadataParser ssaMetaParser = new SSAMetadataParser( server );    
+               if (progressPanel != null)
+                progressPanel.start();            
+
+            try {
+                queryURL = ssaMetaParser.getQueryURL();
+                logger.info( "Querying metadata from " + queryURL + " contact:" + server.getContact() );
+            } catch (MalformedURLException e) {
+                if (progressPanel != null)
+                    progressPanel.logMessage("Malformed URL");
+                queryURL=null;
+            }
+            if ( queryURL != null ) 
+            {
+                try {                 
+                    if (progressPanel != null)
+                        metadata = ssaMetaParser.queryMetadata( queryURL, progressPanel );
+                    else
+                        metadata = ssaMetaParser.queryMetadata( queryURL );
+
+                } catch (InterruptedException e) {
+                    if (progressPanel != null)
+                        progressPanel.logMessage("Interrupted");
+                    metadata = null;
+                }
+                catch (Exception e) {
+                    if (progressPanel != null)
+                        progressPanel.logMessage("Other Exception"); // this should not happen
+                    e.printStackTrace();
+                    metadata = null;
+                }
+            } else
+                metadata = null;
+
+            if (progressPanel != null)
+                progressPanel.stop();  
+            // add results to the queue
+            workQueue.setServer(server);
+            workQueue.addWork(metadata);
+            return null;
+        } //doinbackground
+
+        public void finished()
+        {
+            //  display the final status of the query
+            if ( metadata != null ) {
+                // adds parameter information into the metaParam hash
+                logger.info("RESPONSE "+queryURL+"returned "+ metadata.length +"parameters ");
+                progressPanel.logMessage( metadata.length +"  input parameters found");
+            } else {
+                logger.info( "RESPONSE No input parameters loaded from " + queryURL );                
+            }
+            if (progressPanel != null)
+                progressPanel.stop();  
+
+        } // done
+
+    };
+
+    /**
+     *  Metadata Process worker class
+     *  makes the query, adds resulting metadata to the queue, notify the metadata process worker 
+     *  
+     * @author Margarida Castro Neves
+     *
+     */
+
+    class MetadataProcessWorker extends SwingWorker 
+    {
+        WorkQueue workQueue=null;
+
+        public MetadataProcessWorker( WorkQueue queue) {          
+            this.workQueue=queue;
+        }
+        public Object construct()
+        {
+            // progressPanel.start();
+            try {
+                ParamElement [] data = workQueue.getWork();
+                if ( data != null)
+                    processMetadata(data, workQueue.getServer());
+            } 
+            catch (InterruptedException e) {
+            }
+            catch (Exception e) {
+            }
+
+            return null;
+        } //construct
+
+
+        public void finished()
+        {
+        } // done
+
+    };
+
+
+
+    /**
+     * queue that receives information from the QueryWorker threads
+     * and process them
+     */
+    class WorkQueue {
+        LinkedList<Object> queue = new LinkedList<Object>();
+        int workedItems = 0;
+        int maxItems=0;
+        SSAPRegResource server;
+
+        public WorkQueue( int total ) {
+            maxItems = total;
+        }
+
+        // add work to the queue
+        public synchronized void addWork(Object o) {
+            //  logger.info( "ADDWORK " + workedItems);
+            queue.addLast(o);
+            this.notify();
+        }
+
+        // takes the work from the queue as soon as it's not empty
+        public synchronized ParamElement[] getWork() throws InterruptedException {
+            //  logger.info( "GETWORK " + workedItems + " " + maxItems);
+            if (workedItems >= maxItems) return null;
+            while (queue.isEmpty()) {
+                this.wait();
+            }
+            ParamElement [] data = (ParamElement[]) queue.removeFirst();     
+            workedItems++;
+            return (data);
+        }
+        
+        public void setServer( SSAPRegResource server ) {
+            this.server=server;
+        }
+        public SSAPRegResource getServer(  ) {
+            return this.server;
+        }
+    } // WorkerQueue
+
+
+    /**
+     * adds the parameters to a hashmap. Every parameter should be unique, 
+     * and a counter shows how many servers support each parameter  
+     * Exclude the parameters that are already included in the main menues of splat query browser
+     * @param - metadata the parameters read from all servers 
+     * 
+     */
+    private void processMetadata( ParamElement[] metadata, SSAPRegResource server) {
+
+        int i=0;
+        //boolean changed = false;
+
+        while ( i < metadata.length ) {
+            String paramName = metadata[i].getName();
+            if (! paramName.equalsIgnoreCase("INPUT:POS") &&        // these parameters should be entered in the main browser
+                    ! paramName.equalsIgnoreCase("INPUT:SIZE") &&
+                    ! paramName.equalsIgnoreCase("INPUT:BAND") &&
+                    ! paramName.equalsIgnoreCase("INPUT:TIME") && 
+                    ! paramName.equalsIgnoreCase("INPUT:FORMAT") && 
+                    ! paramName.equalsIgnoreCase("INPUT:WAVECALIB") && 
+                    ! paramName.equalsIgnoreCase("INPUT:FLUXCALIB") && 
+                    ! paramName.equalsIgnoreCase("INPUT:TARGETNAME") ) 
+            {
+                addRelation( server.getShortName(), paramName);
+                MetadataInputParameter mip = new MetadataInputParameter(metadata[i]);
+                addMetaParam(mip);    // call static synchronized method to change the data with mutual exclusion             
+            } // if
+            i++;
+        } // while
+
+    }//processMetadata
+    private synchronized static void addRelation( String server, String param ) {
+        
+        serverParam.addRelation(server, param);
+
+    }
+
+    /*
+     * Adds parameters to the hash and to the parameter table
+     * 
+     * @param mip - the metadata parameter object
+     */
+    private synchronized static void addMetaParam( MetadataInputParameter mip) {
+
+        if (! metaParam.containsKey(mip.getName())) 
+        {
+            metaParam.put( mip.getName(), mip );
+            // add new element to the parameter table
+         //   metaPanel.addRow(mip); //!! frame
+
+        } else {
+            // increase counter of existing hash member
+            mip = metaParam.get(mip.getName());
+            mip.increase();
+            metaParam.put( mip.getName(), mip );
+            // update nr server column in the table
+    //        metaPanel.setNrServers(mip.getCounter(), mip.getName()); // !! Frame
+        }
+        
+    }
     //
     // MouseListener interface. Double clicks display the clicked spectrum.
     //
@@ -1752,19 +2737,24 @@ public class SSAQueryBrowser
     public void mouseExited( MouseEvent e ) {}
     public void mouseClicked( MouseEvent e )
     {
-        if ( e.getClickCount() == 2 ) {
-            StarJTable table = (StarJTable) e.getSource();
-            Point p = e.getPoint();
-            int row = table.rowAtPoint( p );
-            displaySpectra( false, true, table, row );
-        }
+       
+        //requestFocusInWindow();
+     //   if (e.getSource().getClass() == StarTable.class ) {
+
+            if ( e.getClickCount() == 2 ) {
+                StarJTable table = (StarJTable) e.getSource();
+                Point p = e.getPoint();
+                int row = table.rowAtPoint( p );
+                displaySpectra( false, true, table, row );
+            }
+      //  }
     }
 
     //
     //  Action for switching name resolvers.
     //
     class ResolverAction
-        extends AbstractAction
+    extends AbstractAction
     {
         SkycatCatalog resolver = null;
         public ResolverAction( String name, SkycatCatalog resolver )
@@ -1782,7 +2772,7 @@ public class SSAQueryBrowser
     // LocalAction to encapsulate all trivial local Actions into one class.
     //
     class LocalAction
-        extends AbstractAction
+    extends AbstractAction
     {
         //  Types of action.
         public static final int PROXY = 0;
@@ -1801,7 +2791,7 @@ public class SSAQueryBrowser
         }
 
         public LocalAction( int actionType, String name, Icon icon,
-                            String help )
+                String help )
         {
             super( name, icon );
             putValue( SHORT_DESCRIPTION, help );
@@ -1809,7 +2799,7 @@ public class SSAQueryBrowser
         }
 
         public LocalAction( int actionType, String name, Icon icon,
-                            String help, String accel )
+                String help, String accel )
         {
             this( actionType, name, icon, help );
             putValue( ACCELERATOR_KEY, KeyStroke.getKeyStroke( accel ) );
@@ -1824,7 +2814,7 @@ public class SSAQueryBrowser
                     break;
                 }
                 case SERVER: {
-                    showServerWindow();
+                 //   showServerWindow();
                     break;
                 }
                 case SAVE: {
@@ -1841,5 +2831,175 @@ public class SSAQueryBrowser
                 }
             }
         }
+    }
+
+
+ 
+    /**
+     * A Metadata input parameter class, to contain the parameter element and the number of servers that
+     * accept this parameter
+     */
+
+    public class MetadataInputParameter
+    {
+        ParamElement param;
+        String paramName = null;
+        String description = null;
+        String unit = null;
+        String value = null;
+        String nullValue = null;
+        String[] options;
+        //ValuesElement values = null;
+        String datatype = null;
+        String min=null;    
+        String max=null;
+
+
+        int counter;
+
+        MetadataInputParameter(ParamElement param) {
+
+            this.param = param; // TO DO  decide if it is really necessary to keep this object here...
+            counter=1; 
+            paramName = param.getName();
+            description = param.getDescription();
+            if (description == null)
+                description = "";
+            datatype = param.getDatatype();
+            value = param.getValue();
+            //if (value.equals("NaN") || value.contains("null") || value.contains("NULL") || value.contains("Null"))
+            //    value = "";
+            unit = param.getUnit();
+
+            /* To be done later after some questions have been cleared:
+             * what to do if different servers have parameter with same name and different default values, units and limits?
+             * 
+             * 
+    		ValuesElement values = param.getActualValues(); // or legal values??
+    		if  (values != null) {
+    		        options = values.getOptions();
+    		        max = values.getMaximum();
+    		        min = values.getMinimum();
+    		        nullValue=values.getNull();
+    		}
+             */	    		
+        }
+        protected int getCounter() {
+            return counter;
+        }
+        protected String getName() {
+            return paramName;
+        }
+        protected String getValue() {
+            return value;
+        }
+        protected String getDescription() {
+            return description;
+        }
+        protected String getDatatype() {
+            return datatype;
+        }
+        protected String getUnit() {
+            return unit;
+        }
+        /*
+    	protected void setDescription(String description) {
+    		 this.description = description;
+    	}
+    	protected void setDatatype(String datatype) {
+   		 this.datatype = datatype;
+    	}
+    	protected void setUnit(String unit) {
+      		 this.datatype = unit;
+       	}
+         */
+        protected void increase() {
+            counter++;
+        }
+    } // MetadataInputParameter
+
+
+    public void changedUpdate(DocumentEvent de) {
+        // Plain text components don't fire these events.
+    }
+
+    public void insertUpdate(DocumentEvent de) {
+        
+        //get the owner of this document
+        Object owner = de.getDocument().getProperty("owner");
+        if(owner != null){
+            if (owner == nameField ) {
+                nameField.setForeground(Color.black);
+                queryLine.setTargetName(nameField.getText());
+            }
+            if (owner == radiusField ) {
+                String radiusText = radiusField.getText();
+                double radius = 0.0;
+                if ( radiusText != null && radiusText.length() > 0 ) {
+                    try {
+                        radius = Double.parseDouble( radiusText );
+                    }
+                    catch (NumberFormatException e1) {
+                        ErrorDialog.showError( this, "Cannot understand radius value", e1);                         
+                        return;
+                    }
+                }
+                queryLine.setRadius(radius);
+            }
+            if (owner == raField || owner == decField ) {
+                if (raField.getText().length() > 0 && decField.getText().length() > 0 )
+                    try {
+                            queryLine.setPosition(raField.getText(), decField.getText());
+                    } catch (NumberFormatException nfe) {
+                        ErrorDialog.showError( this, "Invalid coordinate format", nfe);
+                        return;
+                    }
+            }
+           
+            if (owner == upperBandField || owner == lowerBandField ) {
+                queryLine.setBand(lowerBandField.getText(), upperBandField.getText());
+            }
+            
+            if (owner == upperTimeField || owner == lowerTimeField) {
+                queryLine.setTime(lowerTimeField.getText(), upperTimeField.getText());
+            }
+            
+        }
+        updateQueryText();
+        
+    }
+
+    public void removeUpdate(DocumentEvent de) {
+        Object owner = de.getDocument().getProperty("owner");
+        
+        if(owner != null){
+            if (owner == nameField ) {
+                nameField.setForeground(Color.black);
+                queryLine.setTargetName(nameField.getText());
+                // when name is changed, remove current coordinates.
+                queryLine.setPosition(0, 0);
+                raField.setText("");
+                decField.setText("");
+            }
+            if (owner == raField || owner == decField ) {
+                 if  (! isLookup ) {
+                     // coordinate manually changed ( not through lookup)
+                   nameField.setForeground(Color.gray);
+                } else { 
+                    nameField.setForeground(Color.black);
+                }
+            
+                if (raField.getText().length() > 0 && decField.getText().length() > 0 )
+                    try {
+                            queryLine.setPosition(raField.getText(), decField.getText());
+                    } catch (NumberFormatException nfe) {
+                        ErrorDialog.showError( this, "Invalid coordinate format", nfe);
+                        return;
+                    }
+                //nameField.setText("");
+            }
+        }
+        updateQueryText();
+        
     }
 }

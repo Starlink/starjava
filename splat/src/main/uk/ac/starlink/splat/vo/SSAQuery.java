@@ -9,8 +9,10 @@
 
 package uk.ac.starlink.splat.vo;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.MalformedURLException;
+import java.net.URLEncoder;
 
 import jsky.coords.DMS;
 import jsky.coords.HMS;
@@ -19,6 +21,7 @@ import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.util.gui.ErrorDialog;
 
 import uk.ac.starlink.vo.RegCapabilityInterface;
 import uk.ac.starlink.vo.RegResource;
@@ -88,14 +91,39 @@ public class SSAQuery
     public SSAQuery( String baseURL )
     {
         this.baseURL = baseURL;
-    }
+        this.description = null;
 
+ 
+    }
+    /**
+     * Create an instance copying another query
+     */
+    public SSAQuery( SSAQuery q )
+    {
+        this.baseURL = q.baseURL;
+        this.description = q.description;
+        this.queryRA = q.queryRA;
+        this.queryDec = q.queryDec;
+        this.targetName = q.targetName; 
+        this.queryRadius = q.queryRadius ;
+        this.queryFormat = q.queryFormat ;
+        this.waveCalib = q.waveCalib ;
+        this.fluxCalib = q.fluxCalib ;
+        this.queryBandUpper = q.queryBandUpper;
+        this.queryBandLower = q.queryBandLower;
+        this.queryTimeUpper = q.queryTimeUpper ;
+        this.queryTimeLower = q.queryTimeLower ;
+        this.starTable = q.starTable; 
+
+    }
+  
     /**
      * Create an instance with the given SSA service.
      */
-    public SSAQuery( RegResource server )
+    public SSAQuery( SSAPRegResource server )
     {
-        RegCapabilityInterface[] rci = server.getCapabilities();
+        //RegCapabilityInterface[] 
+                SSAPRegCapability [] rci = server.getCapabilities();
         this.baseURL = rci[0].getAccessUrl();  //  Fudge one capability per
                                                //  interface. 
         this.description = server.getShortName();
@@ -116,7 +144,7 @@ public class SSAQuery
      * Set the position used for the query. The values are in sexigesimal
      * be in ICRS (FK5/J2000 will do if accuracy isn't a problem).
      */
-    public void setPosition( String queryRA, String queryDec )
+    public void setPosition( String queryRA, String queryDec ) throws NumberFormatException
     {
         if ( queryRA != null ) {
             HMS hms = new HMS( queryRA );
@@ -206,6 +234,7 @@ public class SSAQuery
      */
     public void setBand( String lower, String upper )
     {
+       
         queryBandLower = lower;
         queryBandUpper = upper;
     }
@@ -248,9 +277,15 @@ public class SSAQuery
      * server and the content downloaded as a VOTable (which should then be
      * used to create a StarTable).
      */
-    public URL getQueryURL()
-        throws MalformedURLException
+    public URL getQueryURL() 
+        throws MalformedURLException, UnsupportedEncodingException
+    {  
+        return new URL(getQueryURLText());
+    }
+    
+    public String getQueryURLText() throws UnsupportedEncodingException
     {
+          
         //  Note that some baseURLs may have an embedded ?.
         StringBuffer buffer = new StringBuffer( baseURL );
         if ( baseURL.indexOf( '?' ) == -1 ) {
@@ -264,49 +299,67 @@ public class SSAQuery
         //  Else ends with a ?, so that's OK already.
 
         //  Start with "VERSION=1.0&REQUEST=queryData".
-        buffer.append( SSAPVERSION + "&REQUEST=queryData" );
+       // buffer.append( SSAPVERSION + "&REQUEST=queryData" );       
+        // (MCN 04.2012) At the moment Splat will not send any version information, because
+        // it causes more problems than it helps... To be changed later
+        buffer.append( "REQUEST=queryData" );
 
         //  Add basic search parameters, POS or TARGETNAME, FORMAT and SIZE.
-        if ( queryRA >= 0.0 ) {
+        // TO DO this way you cannot search for objects in the position 0,0. Should be done in a more elegant way
+        if ( queryRA > 0.0 || queryDec > 0.0 ) {
             buffer.append( "&POS=" + queryRA + "," + queryDec );
         }
         else if ( targetName != null ) {
-            buffer.append( "&TARGETNAME=" + targetName );
+            buffer.append( "&TARGETNAME=" + URLEncoder.encode(targetName,"UTF-8"));
         }
-        if ( queryFormat != null ) {
+        if ( queryFormat != null && !queryFormat.equalsIgnoreCase("None")) {
             buffer.append( "&FORMAT=" + queryFormat );
         }
-        buffer.append( "&SIZE=" + queryRadius );
+        if (queryRadius > 0)
+            buffer.append( "&SIZE=" + queryRadius );
 
         //  The spectral bandpass. SSAP spec allows "lower/upper" range,
         //  or bounded from above or below.
-        if ( queryBandUpper != null && queryBandLower != null ) {
+        if ( (queryBandUpper != null && queryBandUpper.length() > 0 ) && (queryBandLower != null && queryBandLower.length() > 0)) { 
             buffer.append( "&BAND=" + queryBandLower + "/" + queryBandUpper );
         }
-        else if ( queryBandUpper != null ) {
+        else if ( queryBandUpper != null && queryBandUpper.length() > 0) {
             buffer.append( "&BAND=" + "/" + queryBandUpper );
         }
-        else if ( queryBandLower != null ) {
-            buffer.append( "&BAND=" + queryBandLower );
+        else if ( queryBandLower != null && queryBandLower.length() > 0) {
+            buffer.append( "&BAND=" + queryBandLower + "/");
         }
+        
 
         //  The time coverage. Assume "lower/upper" range or includes
         //  a single value.
-        if ( queryTimeUpper != null && queryTimeLower != null ) {
+        if ( (queryTimeUpper != null && queryTimeUpper.length() > 0 ) && (queryTimeLower != null && queryTimeLower.length() > 0 ) ) {
             buffer.append( "&TIME=" + queryTimeLower + "/" + queryTimeUpper );
         }
-        else if ( queryTimeLower != null ) {
-            buffer.append( "&TIME=" + queryTimeLower );
+        else if ( queryTimeLower != null && queryTimeLower.length() > 0 ) {
+            buffer.append( "&TIME=" + queryTimeLower + "/" );
         }
+        else if ( queryTimeUpper != null && queryTimeUpper.length() > 0) {
+            buffer.append( "&TIME=" + "/" + queryTimeUpper );
+        }
+        
 
         //  Wavelength and flux calibrations.
-        if ( waveCalib != null ) {
+        if ( waveCalib != null && !waveCalib.equalsIgnoreCase("None")) {
             buffer.append( "&WAVECALIB=" + waveCalib );
         }
-        if ( fluxCalib != null ) {
+        if ( fluxCalib != null && !fluxCalib.equalsIgnoreCase("None")) {
             buffer.append( "&FLUXCALIB=" + fluxCalib );
         }
-
-        return new URL( buffer.toString() );
+        return  buffer.toString();
     }
+    
+    public void setServer( SSAPRegResource server) {             
+   
+        SSAPRegCapability [] rci = server.getCapabilities();
+        this.baseURL = rci[0].getAccessUrl();  //  Fudge one capability per   interface. 
+        this.description = server.getShortName();
+    }
+        
+ 
 }
