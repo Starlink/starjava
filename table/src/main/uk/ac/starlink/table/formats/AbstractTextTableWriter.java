@@ -135,6 +135,7 @@ public abstract class AbstractTextTableWriter extends StreamStarTableWriter {
 
         /* Print parameters. */
         if ( writeParams_ ) {
+            int maxleng = getMaximumParameterLength();
             String name = startab.getName();
             if ( name != null && name.trim().length() > 0 ) {
                 printParam( strm, "Table name", name, String.class );
@@ -143,7 +144,8 @@ public abstract class AbstractTextTableWriter extends StreamStarTableWriter {
                   it.hasNext(); ) {
                 DescribedValue param = (DescribedValue) it.next();
                 ValueInfo info = param.getInfo();
-                printParam( strm, info.getName(), param.getValueAsString( 160 ),
+                printParam( strm, info.getName(),
+                            param.getValueAsString( maxleng ),
                             info.getContentClass() );
             }
         }
@@ -180,6 +182,16 @@ public abstract class AbstractTextTableWriter extends StreamStarTableWriter {
 
         /* Finish off. */
         printSeparator( strm, cwidths );
+    }
+
+    /**
+     * Returns the maximum length for the value of a parameter as passed to
+     * {@link #printParam}.  The default implementation currently returns 160.
+     *
+     * @return  maximum length for output string parameters
+     */
+    protected int getMaximumParameterLength() {
+        return 160;
     }
 
     /**

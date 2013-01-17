@@ -2,6 +2,8 @@ package uk.ac.starlink.table.formats;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
@@ -129,15 +131,46 @@ public class IpacTableWriter extends AbstractTextTableWriter {
     protected void printParam( OutputStream out, String name, String value,
                                Class clazz )
             throws IOException {
-        out.write( '\\' );
-        out.write( getBytes( name.trim() ) );
-        out.write( ' ' );
-        out.write( '=' );
-        out.write( ' ' );
-        out.write( getBytes( clazz.equals( String.class )
-                             ? quoteString( value )
-                             : value ) );
-        out.write( '\n' );
+        String[] lines = value.split( "[\\n\\r]+" );
+        int maxl = 320;
+        if ( IpacTableBuilder.COMMENT_INFO.getName().equals( name ) ) {
+            for ( int il = 0; il < lines.length; il++ ) {
+                out.write( '\\' );
+                out.write( ' ' );
+                out.write( getBytes( truncateLine( lines[ il ], maxl ) ) );
+                out.write( '\n' );
+            }
+        }
+        else {
+            out.write( '\\' );
+            out.write( getBytes( name.trim() ) );
+            out.write( ' ' );
+            out.write( '=' );
+            out.write( ' ' );
+            out.write( getBytes( clazz.equals( String.class )
+                               ? quoteString( truncateLine( lines[ 0 ], maxl ) )
+                               : value ) );
+            out.write( '\n' );
+        }
+    }
+
+    /**
+     * The comments parameter may be many lines long.
+     */
+    @Override
+    protected int getMaximumParameterLength() {
+        return 100000;
+    }
+
+    /**
+     * Truncate a string to avoid it being very long.
+     *
+     * @param   txt   string
+     * @param   maxLeng  maximum length
+     * @return  txt or a version of it truncated to maxLeng
+     */
+    private String truncateLine( String txt, int maxLeng ) {
+        return txt.length() > maxLeng ? txt.substring( 0, maxLeng ) : txt;
     }
 
     /**

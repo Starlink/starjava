@@ -9,11 +9,13 @@ import java.util.Arrays;
 import java.util.List;
 import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.table.TableSink;
+import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.util.DataSource;
 
 /**
@@ -26,6 +28,15 @@ import uk.ac.starlink.util.DataSource;
  * @since    7 Feb 2006
  */
 public class IpacTableBuilder implements TableBuilder {
+
+    /**
+     * Parameter used for IPAC format comments, of which there may be
+     * many, one per line.  This is represented as a single string
+     * with embedded newlines.
+     */
+    public static final ValueInfo COMMENT_INFO =
+        new DefaultValueInfo( "Ipac_Comments", String.class,
+                              "IPAC format comment lines" );
 
     /**
      * Returns "IPAC".
