@@ -95,7 +95,7 @@ public class AboutFrame extends JDialog
         enableEvents( AWTEvent.WINDOW_EVENT_MASK );
         try {
             initUI();
-            setSize( new Dimension( 600, 350 ) );
+            setSize( new Dimension( 600, 400 ) );
         }
         catch( Exception e ) {
             e.printStackTrace();

@@ -95,7 +95,7 @@ public class Utilities
      */
     public static String getAuthors()
     {
-        return "Peter W. Draper &amp; Mark B. Taylor";
+        return "Peter W. Draper, Mark B. Taylor &amp; Margarida Castro Neves";
     }
 
     /**
