@@ -26,6 +26,12 @@
      - TARGETNAME values are now correctly encoded to allow the use of special
        characters ($+$ etc.).
 
+   The column name used to select spectral coordinates in tables without any
+   other metadata has changed from "wavelength*" to "wave*".
+  
+   When changing the spectral coordinates column of a table in the main
+   window the change wasn't seen immediately. This issue should now be fixed.
+
    3.9-8
    =====
 

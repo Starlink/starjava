@@ -49,7 +49,7 @@ public class TableColumnChooser
     {
         //  Default patterns.
         coordPatterns = new ArrayList();
-        addCoordPattern( "wavelength.*" );
+        addCoordPattern( "wave.*" );
         addCoordPattern( "freq.*" );
         addCoordPattern( "velo.*" );
         addCoordPattern( "redshift.*" );

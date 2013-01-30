@@ -725,7 +725,7 @@ public class SplatSelectedProperties
                 spec = globalList.getSpectrum( indices[i] );
                 if ( spec != null ) {
                     try {
-                        spec.setXDataColumnName( column );
+                        spec.setXDataColumnName( column, true );
                         globalList.notifySpecListenersModified( spec );
                     }
                     catch (SplatException e) {

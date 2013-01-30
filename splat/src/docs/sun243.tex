@@ -30,7 +30,7 @@ Copyright \copyright\ 2007-2009 Science and Technology Facilities Council
 % Variable part - replace [xxx] as appropriate.
 \newcommand{\stardocnumber}    {243.41}
 \newcommand{\stardocauthors}   {Peter W. Draper, Mark Taylor \& Margarida Castro Neves}
-\newcommand{\stardocdate}      {18 Jan 2013}
+\newcommand{\stardocdate}      {30 Jan 2013}
 \newcommand{\stardoctitle}     {SPLAT-VO -- A VO-enabled Spectral Analysis Tool}
 \newcommand{\stardocversion}   {3.10-0}
 \newcommand{\stardocmanual}    {User's Manual}
@@ -3936,6 +3936,13 @@ spectra to the available limit.
 \item TARGETNAME values are now correctly encoded to allow the use of special
 characters ($+$ etc.).
 \end{itemize}
+
+The column name used to select spectral coordinates in tables without any
+other metadata has changed from "wavelength*" to "wave*".
+  
+When changing the spectral coordinates column of a table in the main window
+the change wasn't seen immediately. This issue should now be fixed.
+
 
 \subsection{3.9-8}
 
