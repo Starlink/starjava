@@ -1,30 +1,5 @@
 1 Starlink SPLAT news.
 
-   3.10-0
-   ======
-
-   The major change in this release is much improved support for more complex
-   SSAP queries. For instance you can now create server groups for more targeted
-   queries according to the waveband or data source (theory/archive/survey for
-   instance), as well as using your specific tags to create such groups.
-
-   It is now also possible to add additional metadata parameters to the
-   queries for the currently selected server list.
-
-   New SSAP servers not currently registered can now be added  manually.
-
-   Access control for servers that use HTTP passwords is now implemented.
-
-   Bug fixes in this release include:
-
-     - If the SSAP server maximum record limit is reached (MAXREC), SPLAT will
-       no longer return an error, it just continues downloading spectra to the
-       available limit. 
-
-     - The BAND parameter now handles the case when the upper limit is null.
-
-     - TARGETNAME values are now correctly encoded to allow the use of special
-       characters ($+$ etc.).
 
    3.11-0
    ======
