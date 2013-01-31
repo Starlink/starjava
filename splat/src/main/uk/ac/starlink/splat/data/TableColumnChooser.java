@@ -18,8 +18,8 @@ import uk.ac.starlink.table.ColumnInfo;
  * data values and data errors columns in tables.
  * <p>
  * The choices are controlled by a series of regular expressions that can be
- * extended as needed, or by looking for the standard set of utypes defined
- * by the IVOA spectral data model (1.0).
+ * extended as needed. We prefer columns that have recognised model utypes
+ * (SSAP or SLAP) over picking a column just using the name.
  *
  * @author Peter W. Draper
  * @version $Id$
@@ -29,17 +29,29 @@ public class TableColumnChooser
     /** The instance of this class */
     private static TableColumnChooser instance = null;
 
-    /** Patterns for the column containing the coordinates */
-    private static ArrayList coordPatterns = null;
+    /** Patterns for the names of column containing the coordinates */
+    private static ArrayList coordNamePatterns = null;
 
-    /** Patterns for the column containing the data values */
-    private static ArrayList dataPatterns = null;
+    /** Patterns for the utypes of column containing the coordinates */
+    private static ArrayList coordUtypePatterns = null;
 
-    /** Patterns for the column containing the data errors */
-    private static ArrayList errorPatterns = null;
+    /** Patterns for the names of column containing the data values */
+    private static ArrayList dataNamePatterns = null;
 
-    /** Patterns for the column containing the line identifier labels */
-    private static ArrayList labelPatterns = null;
+    /** Patterns for the utypes of column containing the data values */
+    private static ArrayList dataUtypePatterns = null;
+
+    /** Patterns for the names of column containing the data errors */
+    private static ArrayList errorNamePatterns = null;
+
+    /** Patterns for the utypes of column containing the data errors */
+    private static ArrayList errorUtypePatterns = null;
+
+    /** Patterns for the names of column containing the line identifier labels */
+    private static ArrayList labelNamePatterns = null;
+
+    /** Patterns for the utypes of column containing the line identifier labels */
+    private static ArrayList labelUtypePatterns = null;
 
     /** Flags used for any pattern matching */
     private static final int flags = Pattern.CASE_INSENSITIVE;
@@ -47,32 +59,45 @@ public class TableColumnChooser
     /** Singleton class */
     private TableColumnChooser()
     {
-        //  Default patterns.
-        coordPatterns = new ArrayList();
-        addCoordPattern( "wave.*" );
-        addCoordPattern( "freq.*" );
-        addCoordPattern( "velo.*" );
-        addCoordPattern( "redshift.*" );
-        addCoordPattern( "pos.*" );
-        addCoordPattern( "x*." );
+        //  Default patterns for column names and utypes.
+        coordNamePatterns = new ArrayList();
+        addCoordNamePattern( "wave.*" );
+        addCoordNamePattern( "freq.*" );
+        addCoordNamePattern( "velo.*" );
+        addCoordNamePattern( "redshift.*" );
+        addCoordNamePattern( "pos.*" );
+        addCoordNamePattern( "x*." );
 
-        dataPatterns = new ArrayList();
-        addDataPattern( "flux.*" );
-        addDataPattern( "inten.*" );
-        addDataPattern( "temp.*" );
-        addDataPattern( "mag.*" );
-        addDataPattern( "energy.*" );
-        addDataPattern( "y.*" );
+        coordUtypePatterns = new ArrayList();
+        addCoordUtypePattern( ".*spectralaxis.*" );       // SSAP
+        addCoordUtypePattern( ".*line\\.wavelength" );     // SLAP
 
-        errorPatterns = new ArrayList();
-        addErrorPattern( "error.*" );
-        addErrorPattern( "sigma.*" );
-        addErrorPattern( "stddev.*" );
+        dataNamePatterns = new ArrayList();
+        addDataNamePattern( "flux.*" );
+        addDataNamePattern( "inten.*" );
+        addDataNamePattern( "temp.*" );
+        addDataNamePattern( "mag.*" );
+        addDataNamePattern( "energy.*" );
+        addDataNamePattern( "y.*" );
 
-        labelPatterns = new ArrayList();
-        addLabelPattern( "identifiers.*" );
-        addLabelPattern( "label.*" );
-        addLabelPattern( "name.*" );
+        dataUtypePatterns = new ArrayList();
+        addCoordUtypePattern( ".*fluxaxis.*" );           // SSAP
+
+        errorNamePatterns = new ArrayList();
+        addErrorNamePattern( "error.*" );
+        addErrorNamePattern( "sigma.*" );
+        addErrorNamePattern( "stddev.*" );
+
+        errorUtypePatterns = new ArrayList();
+        addErrorUtypePattern( ".*fluxaxis\\.accuracy.*" ); // SSAP
+
+        labelNamePatterns = new ArrayList();
+        addLabelNamePattern( "identifiers.*" );
+        addLabelNamePattern( "label.*" );
+        addLabelNamePattern( "name.*" );
+
+        labelUtypePatterns = new ArrayList();
+        addLabelUtypePattern( "line.title" );             // SLAP
    }
 
     /**
@@ -88,111 +113,101 @@ public class TableColumnChooser
 
     /**
      * Return the index of the coordinate column of the table.
-     * Matches either the spectral data model utype, or the current set of 
+     * Matches either the spectral data model utype, or the current set of
      * patterns.
      * Returns -1 if no match is located.
      */
     public int getCoordMatch( ColumnInfo[] infos, String[] names )
     {
-        //  First check column infos for the IVOA spectral data model utype.
-        int column = matchUtype( infos, "data.spectralaxis.value" );
+        //  Check for utypes then column names.
+        int column = matchInfo( infos, coordUtypePatterns );
         if ( column == -1 ) {
-
-            // SLAP utype.
-            column = matchUtype( infos, "line.wavelength" );
-            if ( column == -1 ) {
-                column = match( coordPatterns, names );
-            }
+            column = matchName( coordNamePatterns, names );
         }
         return column;
     }
-    
+
     /**
      * Return the index of the data values column of the table.
-     * Matches either the spectral data model utype, or the current set of 
+     * Matches either the spectral data model utype, or the current set of
      * patterns.
      * Returns -1 if no match is located.
      */
     public int getDataMatch( ColumnInfo[] infos, String[] names )
     {
-        //  First check column infos for the IVOA spectral data model utype.
-        int column = matchUtype( infos, "data.fluxaxis.value" );
+        //  Check for utypes then column names.
+        int column = matchInfo( infos, dataUtypePatterns );
         if ( column == -1 ) {
-            column = match( dataPatterns, names );
+            column = matchName( dataNamePatterns, names );
         }
         return column;
     }
-    
+
     /**
      * Return the index of the data errors column of the table.
-     * Matches either the spectral data model utypes, or the current set of 
+     * Matches either the spectral data model utypes, or the current set of
      * patterns.
      * Returns -1 if no match is located.
      */
     public int getErrorMatch( ColumnInfo[] infos, String[] names )
     {
-        //  First check column infos for the IVOA spectral data model utypes.
-        int column = matchUtype( infos, "data.fluxaxis.accuracy.staterror" );
+        //  Check for utypes then column names.
+        int column = matchInfo( infos, errorUtypePatterns );
         if ( column == -1 ) {
-            column = matchUtype( infos, "data.fluxaxis.accuracy.staterrlow" );
-            if ( column == -1 ) {
-                column = matchUtype( infos, 
-                                     "data.fluxaxis.accuracy.staterrhigh" );
-                if ( column == -1 ) {
-                    column = match( errorPatterns, names );
-                }
-            }
+            column = matchName( errorNamePatterns, names );
         }
         return column;
     }
 
     /**
      * Return the index of the line identifier labels column.
-     * Matches either the spectral line data model utypes? 
+     * Matches either the spectral line data model utypes?
      * or the current set of patterns.
      * Returns -1 if no match is located.
      */
     public int getLabelMatch( ColumnInfo[] infos, String[] names )
     {
-        //  First check column infos for the IVOA spectral data model utypes.
-        int column = matchUtype( infos, "Line.title" );
+        //  Check for utypes then column names.
+        int column = matchInfo( infos, labelUtypePatterns );
         if ( column == -1 ) {
-            column = match( labelPatterns, names );
+            column = matchName( labelNamePatterns, names );
         }
         return column;
     }
 
-    /** 
-     * Match the utype to that of the spectral data model. Returns the index
-     * of the matched column or -1. Note modelUtype should be lower case and
-     * only have the trailing context (no ssa: or Spectrum.).
+    /**
+     * Match the column info utypes against the recognised utype patterns.
+     * Returns the index of the matched column or -1.
      */
-    protected int matchUtype( ColumnInfo[] infos, String modelUtype )
+    protected int matchInfo( ColumnInfo[] infos, ArrayList utypes )
     {
-        String utype;
-        for( int k = 0; k < infos.length; k++ ) {
-            utype = infos[k].getUtype();
-            if ( utype != null ) {
-                utype = utype.toLowerCase();
-                if ( utype.endsWith( modelUtype ) ) {
-                    return k;
+        String utype = null;
+        Pattern p = null;
+        int size = utypes.size();
+        for ( int i = 0; i < size; i++ ) {
+            p = (Pattern) utypes.get( i );
+            for( int k = 0; k < infos.length; k++ ) {
+                utype = infos[k].getUtype();
+                if ( utype != null ) {
+                    utype = utype.toLowerCase();
+                    if ( p.matcher( utype ).matches() ) {
+                        return k;
+                    }
                 }
             }
         }
         return -1;
     }
 
-    
     /**
      * Compares the Patterns stored in list against the strings stored in
      * names and returns the index of the first match in names, otherwise
      * returns -1.
      */
-    protected int match( ArrayList list, String[] names )
+    protected int matchName( ArrayList list, String[] names )
     {
         int size = list.size();
         Pattern p = null;
-        Matcher m = null;
         for ( int i = 0; i < size; i++ ) {
             p = (Pattern) list.get( i );
             for ( int j = 0; j < names.length; j++ ) {
@@ -204,51 +219,43 @@ public class TableColumnChooser
         return -1;
     }
 
-    /** Add a new regular expression pattern for matching coordinates.*/
-    public void addCoordPattern( String pattern ) 
+    public void addCoordNamePattern( String pattern )
     {
-       coordPatterns.add( Pattern.compile( pattern, flags ) );
+       coordNamePatterns.add( Pattern.compile( pattern, flags ) );
     }
 
-    /** Insert a new regular expression pattern for matching coordinates.*/
-    public void addCoordPattern( String pattern, int index ) 
+    public void addCoordUtypePattern( String pattern )
     {
-       coordPatterns.add( index, Pattern.compile( pattern, flags ) );
+       coordUtypePatterns.add( Pattern.compile( pattern, flags ) );
     }
 
-    /** Add a new regular expression pattern for matching data values.*/
-    public void addDataPattern( String pattern ) 
+    public void addDataNamePattern( String pattern )
     {
-       dataPatterns.add( Pattern.compile( pattern, flags ) );
+       dataNamePatterns.add( Pattern.compile( pattern, flags ) );
     }
 
-    /** Insert a new regular expression pattern for matching data values.*/
-    public void addDataPattern( String pattern, int index ) 
+    public void addDataUtypePattern( String pattern )
     {
-       dataPatterns.add( index, Pattern.compile( pattern, flags ) );
+       dataUtypePatterns.add( Pattern.compile( pattern, flags ) );
     }
 
-    /** Add a new regular expression pattern for matching data errors.*/
-    public void addErrorPattern( String pattern ) 
+    public void addErrorNamePattern( String pattern )
     {
-        errorPatterns.add( Pattern.compile( pattern, flags ) );
+        errorNamePatterns.add( Pattern.compile( pattern, flags ) );
     }
 
-    /** Insert a new regular expression pattern for matching data errors.*/
-    public void addErrorPattern( String pattern, int index ) 
+    public void addErrorUtypePattern( String pattern )
     {
-        errorPatterns.add( index, Pattern.compile( pattern, flags ) );
+        errorUtypePatterns.add( Pattern.compile( pattern, flags ) );
     }
 
-    /** Add a new regular expression pattern for matching labels.*/
-    public void addLabelPattern( String pattern ) 
+    public void addLabelNamePattern( String pattern )
     {
-        labelPatterns.add( Pattern.compile( pattern, flags ) );
+        labelNamePatterns.add( Pattern.compile( pattern, flags ) );
     }
 
-    /** Insert a new regular expression pattern for matching labels.*/
-    public void addLabelPattern( String pattern, int index ) 
+    public void addLabelUtypePattern( String pattern )
     {
-        labelPatterns.add( index, Pattern.compile( pattern, flags ) );
+        labelUtypePatterns.add( Pattern.compile( pattern, flags ) );
     }
 }
