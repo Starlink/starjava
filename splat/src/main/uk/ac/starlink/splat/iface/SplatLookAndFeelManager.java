@@ -257,8 +257,8 @@ public class SplatLookAndFeelManager implements ActionListener
             if ( themeMapping[i][0].equals( name ) ) {
                 try {
                     Constructor ct = 
-                        ((Class)themeMapping[i][1]).getConstructor(null);
-                    setTheme( (DefaultMetalTheme)ct.newInstance(null) );
+                        ((Class)themeMapping[i][1]).getConstructor((Class)null);
+                    setTheme( (DefaultMetalTheme)ct.newInstance((Object)null) );
                     prefs.put( "SplatLookAndFeelManager_theme", name );
                 }
                 catch (Exception ex) {
