@@ -219,6 +219,7 @@ public class TableColumnChooser
                                     result = k;
                                 }
                             }
+        }
                         }
                     }
                 }
