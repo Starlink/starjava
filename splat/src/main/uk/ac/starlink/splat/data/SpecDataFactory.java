@@ -330,7 +330,8 @@ public class SpecDataFactory
             isRemote = namer.isRemote();
      
             specurl = namer.getURL();
-            //  Remote HDX/VOTable-like files should be downloaded by the
+            //  Remote HDX/VOTable-like files should be downloaded by thile
+            
             //  library. A local copy loses the basename context.
             if ( isRemote && namer.getFormat().equals( "XML" ) ) {
                 impl = makeXMLSpecDataImpl( specspec, true, specurl );
@@ -950,15 +951,26 @@ public class SpecDataFactory
             //  when moving from secure to non-secure).
             if ( connection instanceof HttpURLConnection ) {
                 int code = ((HttpURLConnection)connection).getResponseCode();
+                
+               
                 if ( code == HttpURLConnection.HTTP_MOVED_PERM ||
                      code == HttpURLConnection.HTTP_MOVED_TEMP ) {
                     String newloc = connection.getHeaderField( "Location" );
                     URL newurl = new URL( newloc );
                     connection = newurl.openConnection();
                 }
+                code = ((HttpURLConnection)connection).getResponseCode();
+                if ( code >= 500  ) // 5** codes, server is not available so we can stop right now.
+                {
+                    throw new SplatException( "Server returned " + ((HttpURLConnection)connection).getResponseMessage() + " " + 
+                            " for the URL : " + url.toString()    );
+                }
+              
             }
+            connection.setConnectTimeout(10*1000); // 10 seconds
+            connection.setReadTimeout(30*1000); // 30 seconds read timeout??? 
             InputStream is = connection.getInputStream();
-
+  
             //  And read it into a local file. Use the existing file extension
             //  if available and we're not guessing the type.
             namer = new PathParser( url.toString() );
