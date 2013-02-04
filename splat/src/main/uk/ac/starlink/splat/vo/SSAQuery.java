@@ -84,6 +84,9 @@ public class SSAQuery
 
     /** The StarTable formed from the results of the query */
     private StarTable starTable = null;
+    
+    /** The StarTable formed from the getData Parameters of the query */
+    private GetDataTable getDataTable = null;
 
     /**
      * Create an instance with the given base URL for an SSA service.
@@ -114,6 +117,7 @@ public class SSAQuery
         this.queryTimeUpper = q.queryTimeUpper ;
         this.queryTimeLower = q.queryTimeLower ;
         this.starTable = q.starTable; 
+        this.getDataTable = q.getDataTable; 
 
     }
   
@@ -272,6 +276,21 @@ public class SSAQuery
         return starTable;
     }
 
+    /**
+     * Set the StarTable created as a result of downloading the VOTables GETDATA table.
+     */
+    public void setGetDataTable( GetDataTable gdTable )
+    {
+        this.getDataTable = gdTable;
+    }
+
+    /**
+     * Get then getDataTable, if defined, if not return null.
+     */
+    public GetDataTable getGetDataTable()
+    {
+        return getDataTable;
+    }
     /**
      * Get the constructed query as a URL. This should be used to contact the
      * server and the content downloaded as a VOTable (which should then be

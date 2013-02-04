@@ -49,6 +49,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Properties;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
@@ -93,6 +94,10 @@ import jsky.util.SwingWorker;
 
 import org.apache.commons.codec.binary.Base64;
 import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXNotRecognizedException;
+import org.xml.sax.SAXNotSupportedException;
+import org.xml.sax.XMLReader;
 
 import uk.ac.starlink.splat.data.SpecDataFactory;
 import uk.ac.starlink.splat.iface.HelpFrame;
@@ -112,6 +117,7 @@ import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.TableFormatException;
+import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.gui.StarJTable;
 import uk.ac.starlink.util.ProxySetup;
 import uk.ac.starlink.util.gui.BasicFileChooser;
@@ -130,7 +136,13 @@ import uk.ac.starlink.votable.VOElementFactory;
 import uk.ac.starlink.votable.VOSerializer;
 import uk.ac.starlink.votable.VOStarTable;
 import uk.ac.starlink.votable.VOTableWriter;
+import uk.ac.starlink.votable.ValuesElement;
+
 import javax.swing.BoxLayout;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParserFactory;
+import javax.xml.transform.Source;
+import javax.xml.transform.sax.SAXSource;
 
 
 /**
@@ -308,6 +320,17 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         ProxySetup.getInstance().restore();
     }
 
+    // Panel for components and options from GetData parameters
+    protected JPanel getDataSelectionPanel;
+    protected JScrollPane  getDataScroller; 
+    
+
+    /** The list of all getData parameters read from the servers as a hash map */
+    private static HashMap< String, String > getDataParam=null; 
+    
+    
+    
+    
     /* The Query text that will be displayed */
     private SSAQuery queryLine;
     
@@ -316,6 +339,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
     
     /** The list of all input parameters read from the servers as a hash map */
     private static HashMap< JTextField, String > queryMetaParam=null; 
+    
     
     /** the authenticator for access control **/
     private static SSAPAuthenticator authenticator;
@@ -327,7 +351,8 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
     private SSAServerTree tree;
     
     private boolean isLookup = false;
-    
+    private boolean getDataSelection = false;
+   
     static ProgressPanelFrame progressFrame = null;
 
 
@@ -398,7 +423,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
      //   gblayout.setConstraints(centrePanel, c);
    //     contentPane.add( centrePanel);//, BorderLayout.LINE_END );
         
-       // this.setPreferredSize();
+       // this.setPreferredSize(ç);
       //  contentPane.setSize(800, 600);
        // this.setSize(new Dimension(800,600));
       
@@ -1196,6 +1221,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             
             SSAQuery ssaQuery =  new SSAQuery(queryLine);//new SSAQuery( server );
             ssaQuery.setServer( server) ; //Parameters(queryLine); // copy the query parameters to the new query
+           
  /*           ssaQuery.setTargetName( objectName );
             ssaQuery.setPosition( ra, dec );
             ssaQuery.setRadius( radius );
@@ -1226,6 +1252,16 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
      */
     protected void processQueryList( ArrayList<SSAQuery> queryList )
     {
+        
+ 
+        // RESET getData panels
+        
+        getDataSelectionPanel = null;
+        getDataScroller  = null; 
+        
+        getDataParam = new HashMap<String, String>();
+
+        
         //  final ArrayList localQueryList = queryList;
         makeResultsDisplay( null );
         
@@ -1240,6 +1276,8 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         Iterator<SSAQuery> i = queryList.iterator();
         while ( i.hasNext() ) {
             final SSAQuery ssaQuery = i.next();
+         
+
             final ProgressPanel progressPanel = new ProgressPanel( "Querying: " + ssaQuery.getDescription());
             progressFrame.addProgressPanel( progressPanel );
 
@@ -1285,7 +1323,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
     /**
      * Do a query to an SSAP server.
      */
-    private void runProcessQuery( SSAQuery ssaQuery,
+    private void runProcessQuery( SSAQuery ssaQuery, 
             ProgressPanel progressPanel )
                     throws InterruptedException
                     {
@@ -1295,10 +1333,12 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         //  We just download VOTables, so avoid attempting to build the other
         //  formats.
         StarTable starTable = null;
+        GetDataTable getDataTable = null;
         URL queryURL = null;
 
         // int j = 0;
-
+        
+       
         try {
             queryURL = ssaQuery.getQueryURL();
           
@@ -1337,17 +1377,28 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
 
         progressPanel.logMessage( ssaQuery.getBaseURL() );
     
-    
+       
         //  Do the query and get the result as a StarTable. Uses this
         //  method for efficiency as non-result tables are ignored.
         try {
-            InputSource inSrc = new InputSource( queryURL.openStream() );
             
+            
+            URLConnection con =  queryURL.openConnection();
+           
+            con.setConnectTimeout(10 * 1000); // 10 seconds
+            con.connect();
+            
+            InputSource inSrc = new InputSource( con.getInputStream() );
+                 
             // inSrc.setSystemId( ssaQuery.getBaseURL() );
             inSrc.setSystemId( queryURL.toString());
+            
             VOElementFactory vofact = new VOElementFactory();
-           
-            starTable = DalResultXMLFilter.getDalResultTable( vofact, inSrc );
+            
+            VOElement voe = DalResourceXMLFilter.parseDalResult(vofact, inSrc);
+           // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\
+            starTable = DalResourceXMLFilter.getDalResultTable( voe );
+            getDataTable = DalResourceXMLFilter.getDalGetDataTable( voe );
           
             //  Check parameter QUERY_STATUS, this should be set to OK
             //  when the query
@@ -1385,6 +1436,9 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                 }
                 failed = true;
             }
+            if (getDataTable != null) {
+                ssaQuery.setGetDataTable( getDataTable);
+            }
 
             //  Dump query results as VOTables.
             //uk.ac.starlink.table.StarTableOutput sto =
@@ -1418,6 +1472,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         }
 } //runProcessQUery
 
+ 
     /**
      * Display the results of the queries to the SSA servers. The results can
      * be either a list of SSAQuery instances, or the StarTables themselves
@@ -1425,6 +1480,8 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
      */
     protected void makeResultsDisplay( ArrayList<VOStarTable> tableList )
     {
+      
+        
         if ( starJTables == null ) {
             starJTables = new ArrayList<StarJTable>();
         }
@@ -1437,26 +1494,41 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             Iterator<VOStarTable> i = tableList.iterator();
             while ( i.hasNext() ) {
                 addResultsDisplay( i.next() );
+               
             }
         }
     }
-
-    protected void addResultsDisplay( Object next )
+    protected synchronized void addResultsDisplay( Object next )
     {
         DescribedValue dValue = null;
         JScrollPane scrollPane = null;
         SSAQuery ssaQuery = null;
         StarJTable table = null;
         StarTable starTable = null;
+        GetDataTable getDataTable = null;
         String shortName = null;
-
+     
+        boolean hasParams = false;
+       
+   
         if ( next instanceof SSAQuery && next != null ) {
             ssaQuery = (SSAQuery) next;
             starTable = ssaQuery.getStarTable();
+            getDataTable = ssaQuery.getGetDataTable();
             shortName = ssaQuery.getDescription();
+            if ( starTable != null ) {
+            String baseurl = ssaQuery.getBaseURL();
+                try {
+                    starTable.setURL(new URL(baseurl));
+                } catch (MalformedURLException e) {
+                    logger.info( "Malformed base URL for " + baseurl );
+                } 
+            }
+            
         }
         else if ( next instanceof StarTable) {
             starTable = (StarTable) next;
+                
             dValue = starTable.getParameterByName( "ShortName" );
             if ( dValue == null ) {
                 shortName = starTable.getName();
@@ -1464,6 +1536,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             else {
                 shortName = (String)dValue.getValue();
             }
+           
         }
         else {
             logger.info( "Couldn't handle: " + next );
@@ -1475,6 +1548,10 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                 table = new StarJTable( starTable, true );
                 scrollPane = new JScrollPane( table );
               //  scrollPane.setPreferredSize(new Dimension(600,400));
+                if (getDataTable != null) {
+                    shortName = "✂ " + shortName;
+                    addToSelectionTab(shortName, getDataTable ); // adds found parameters to the selection tab
+                }
                 resultsPane.addTab( shortName, scrollPane );
                 starJTables.add( table );
 
@@ -1488,6 +1565,84 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                 table.addMouseListener( this );
             }
         }
+    }
+
+    protected void addToSelectionTab( String shortname, GetDataTable getDataTable)
+    {
+        
+        if (getDataScroller == null ) {
+            
+            getDataSelectionPanel = new JPanel();
+            getDataSelectionPanel.setLayout((new BoxLayout(getDataSelectionPanel, BoxLayout.PAGE_AXIS)));
+            getDataScroller  = new JScrollPane( getDataSelectionPanel); 
+            getDataSelectionPanel.add(new JLabel("Parameters for Server-Generated data processing"));
+        }
+     
+       /// get parameter list and options
+    //    ParamElement[] params = gdparam.getParams();
+       /// add to paramPanel
+   
+        JPanel paramPanel = new JPanel();
+        paramPanel.setBorder(BorderFactory.createTitledBorder( shortname ));
+    //    paramPanel.setLayout((new BoxLayout(paramPanel, BoxLayout.PAGE_AXIS)));
+      
+        if (getDataTable != null) {
+                                 
+                resultsPane.addTab( "GetData Params", getDataScroller );
+                int i=0;
+               /// !!How to access the parameters?
+                ParamElement[] params = getDataTable.getParams();
+             
+              while ( i < params.length ) {
+                    String paramName = params[i].getName();
+                    paramPanel.add(new JLabel(paramName+" : "));
+                    String description = params[i].getAttribute("Description");                  
+                    String datatype = params[i].getAttribute("datatype");
+                    String value = params[i].getValue();
+                    ValuesElement values = (ValuesElement) params[i].getChildByName("VALUES");
+                    String [] options = values.getOptions();
+                    if ( options.length > 0 ) {
+                        JComboBox optbox = new JComboBox(options);
+                     //   optbox.setName("gd:"+shortname+":"+paramName);
+                        optbox.setName("gd:"+paramName);
+                        optbox.addActionListener(this);
+                        if (description.length() > 0)
+                            optbox.setToolTipText(description);
+                        paramPanel.add(optbox);
+                        
+                    } else {
+                        JPanel inputPanel = new JPanel();
+                        String max = values.getMaximum();
+                        String min = values.getMinimum();
+                        JTextField minField = new JTextField(5);
+                        JTextField maxField = new JTextField(5);
+                        inputPanel.add(minField);
+                        inputPanel.add(maxField);                        
+                        //minField.setName("gd:"+shortname+":"+paramName+":Min");
+                        //maxField.setName("gd:"+shortname+":"+paramName+":Max");
+                        minField.setName("gd:"+paramName+":Min");
+                        maxField.setName("gd:"+paramName+":Max");
+                        if (description.length() > 0) {
+                            minField.setToolTipText(description);
+                            maxField.setToolTipText(description);
+                        }
+                        minField.addActionListener(this);
+                        maxField.addActionListener(this);
+                        inputPanel.add(new JLabel("["+min+".."+max+"]"));
+                        paramPanel.add(inputPanel);
+                        
+                        JButton submitButton = new JButton("set Parameters");
+                        submitButton.addActionListener(this);
+                        submitButton.setName("gd:"+shortname+":setParams");
+                        submitButton.setName("gd:setParams");
+                        paramPanel.add(submitButton);
+                    }
+                    getDataSelectionPanel.add(paramPanel);
+                    i++;
+                }
+                
+        }
+       
     }
 
     /**
@@ -1517,7 +1672,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
     /**
      * Get the main SPLAT browser to download and display spectra.
      * <p>
-     * Can either display all the spectra, just the selected spectra, or the
      * spectrum from a row in a given table. If table is null, then the
      * selected parameter determines the behaviour of all or just the selected
      * spectra.
@@ -1528,6 +1682,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         //  List of all spectra to be loaded and their data formats and short
         //  names etc.
         ArrayList<Props> specList = new ArrayList<Props>();
+     
 
         if ( table == null ) {
             //  Visit all the tabbed StarJTables.
@@ -1620,13 +1775,16 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             int specunitscol = -1;
             int fluxunitscol = -1;
             int fluxerrorcol = -1;
+            int pubdidcol=-1;
             ColumnInfo colInfo;
             String ucd;
             String utype;
+            String getDataRequest="";
+            
             for( int k = 0; k < ncol; k++ ) {
                 colInfo = starTable.getColumnInfo( k );
                 ucd = colInfo.getUCD();
-
+              
                 //  Old-style UCDs for backwards compatibility.
                 if ( ucd != null ) {
                     ucd = ucd.toLowerCase();
@@ -1678,6 +1836,23 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                     else if ( utype.endsWith( "char.fluxaxis.unit" ) ) {
                         fluxunitscol = k;
                     }
+                    else if ( utype.endsWith( "Curation.PublisherDID" ) ) {
+                        pubdidcol = k;
+                    }
+                }
+                if (colInfo.getName().equals("ssa_pubDID"))
+                    pubdidcol = k;
+                
+            } // for
+            
+            // if we have a pubDID col, check if the getData parameters are set.
+            if (pubdidcol != -1  && getDataParam != null) {
+                if (! getDataParam.isEmpty()) {                   
+                    for (String key : getDataParam.keySet()) {
+                        String value = getDataParam.get(key);
+                                if (value == null || value.length() > 0)
+                                    getDataRequest+="&"+key+"="+value;              
+                    }
                 }
             }
 
@@ -1705,7 +1880,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                                     ( specDataFactory
                                             .mimeToSPLATType( value ) );
                                 }
-                            }
+                            } //while
                             if ( namecol != -1 ) {
                                 value = ( (String)rseq.getCell( namecol ).toString() );
                                 if ( value != null ) {
@@ -1727,7 +1902,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                                         props.setErrorColumn( axes[2] );
                                     }
                                 }
-                            }
+                            } // if axescol !- 1
                             else {
 
                                 //  Version 1.0 style.
@@ -1743,7 +1918,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                                     value = (String)rseq.getCell(fluxerrorcol).toString();
                                     props.setErrorColumn( value );
                                 }
-                            }
+                            } //else 
 
                             if ( unitscol != -1 ) {
 
@@ -1769,9 +1944,16 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                                     props.setDataUnits( value );
                                 }
                             }
+                            if (pubdidcol != -1  && getDataParam != null) {
+                                if (! getDataParam.isEmpty()) { 
+                                   props.setPubdidValue(rseq.getCell(pubdidcol).toString());
+                                   props.setGetDataRequest(getDataRequest);
+                                   props.setServerURL(starTable.getURL().toString());
+                                }
+                            }
                             specList.add( props );
-                        }
-                    }
+                        } //while
+                    } // if selected
                     else {
                         //  Just using selected rows. To do this we step
                         //  through the table and check if that row is the
@@ -1836,6 +2018,13 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                                         props.setDataUnits( units[1] );
                                     }
                                 }
+                                if (pubdidcol != -1  && getDataParam != null) {
+                                    if (! getDataParam.isEmpty()) { 
+                                       props.setPubdidValue(rseq.getCell(pubdidcol).toString());
+                                       props.setGetDataRequest(getDataRequest);
+                                       props.setServerURL(starTable.getURL().toString());
+                                    }
+                                }
                                 specList.add( props );
 
                                 //  Move to next selection.
@@ -1846,8 +2035,8 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                             }
                             k++;
                         }
-                    }
-                }
+                    } // if selected
+                } // try
                 catch (IOException ie) {
                     ie.printStackTrace();
                 }
@@ -1864,8 +2053,8 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                         // Ignore.
                     }
                 }
-            }
-        }
+            }// if linkcol != -1
+        } 
     }
 
     /**
@@ -2379,6 +2568,50 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         if ( source.equals( deselectAllButton ) ) {
             deselectSpectra( true );
             return;
+        }
+        //
+        // dynamically generated getdata parameters
+        //
+        Class srcClass = source.getClass();
+        if (srcClass.equals(JComboBox.class)) {
+            JComboBox cb = (JComboBox) source;
+            String name = cb.getName();
+            if (name.startsWith("gd:")) {
+                getDataParam.put(name.substring(3), cb.getSelectedItem().toString());                
+            }
+        }else 
+        if (srcClass.equals(JTextField.class)) {
+            JTextField tf = (JTextField) source;
+            String name = tf.getName();
+            if (name.startsWith("gd:") ) {
+                String keyname = name.substring(3, name.length()-4); // remove ":max"or "min"
+                String limit = name.substring(name.length()-3);
+                // has this parameter already been edited?
+                String oldvalue = getDataParam.get(keyname);
+                String newvalue = null;
+                String max="", min="";
+                if (oldvalue != null && oldvalue.length() > 0) {
+                    int dashindex = oldvalue.indexOf('/');
+                    if (oldvalue.endsWith("/"))
+                        min=oldvalue.substring(0, dashindex);
+                    else if ( oldvalue.startsWith("/"))
+                        max=oldvalue.substring(1);
+                    else if (dashindex > 0){
+                        min=oldvalue.substring(0,dashindex);
+                        max=oldvalue.substring(dashindex+1);
+                    }          
+                } 
+                if (limit.equals("Max")) {
+                    newvalue = min+"/"+tf.getText();
+                } else if (limit.equals("Min")) {
+                    newvalue = tf.getText()+"/"+max;
+                } 
+                if (newvalue == "/")
+                    newvalue="";
+                getDataParam.put(keyname, newvalue);               
+            } else if (srcClass.equals(JButton.class) ){
+                
+            }
         }
 
     }
