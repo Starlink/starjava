@@ -10,6 +10,8 @@ package uk.ac.starlink.splat.iface;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.Vector;
 
 import uk.ac.starlink.ast.FrameSet;
@@ -354,6 +356,9 @@ public class SpectrumIO
         protected String dataColumn;
         protected String coordColumn;
         protected String errorColumn;
+        protected String pubdidValue;
+        protected String getDataRequest;
+        protected String serverURL;
 
         public Props( String spectrum )
         {
@@ -375,9 +380,18 @@ public class SpectrumIO
         }
 
         public Props( String spectrum, int type, String shortName,
+                String dataUnits, String coordUnits,
+                String dataColumn, String coordColumn,
+                String errorColumn )
+        {
+            this( spectrum, type, shortName, dataUnits, coordUnits,
+                  dataColumn, coordColumn, null, null );
+        }
+        
+        public Props( String spectrum, int type, String shortName,
                       String dataUnits, String coordUnits,
                       String dataColumn, String coordColumn,
-                      String errorColumn )
+                      String errorColumn, String pubdidValue )
         {
             this.spectrum = spectrum;
             this.type = type;
@@ -387,10 +401,34 @@ public class SpectrumIO
             this.dataColumn = dataColumn;
             this.coordColumn = coordColumn;
             this.errorColumn = errorColumn;
+            this.getDataRequest=null;
+            this.pubdidValue=pubdidValue;
+            this.serverURL=null;
         }
 
         public String getSpectrum()
         {
+            if (serverURL == null )
+                return spectrum;
+            
+            if (pubdidValue != null && getDataRequest != null ) 
+                if ( serverURL.endsWith("?"))
+           //         try {
+                        //return (serverURL+"REQUEST=getData"+URLEncoder.encode(getDataRequest+"&PUBDID="+pubdidValue, "UTF-8"));
+                        return (serverURL+"REQUEST=getData"+getDataRequest+"&PUBDID="+pubdidValue);
+             //       } catch (UnsupportedEncodingException e1) {
+                        // TODO Auto-generated catch block
+                       // e1.printStackTrace();
+             //       }
+                else
+              //      try {
+                       return (serverURL+"?REQUEST=getData"+getDataRequest+"&PUBDID="+pubdidValue);
+                     //     return (serverURL+"?REQUEST=getData"+URLEncoder.encode(getDataRequest+"&PUBDID="+pubdidValue, "UTF-8"));
+             //       } catch (UnsupportedEncodingException e) {
+                        // TODO Auto-generated catch block
+                        //e.printStackTrace();
+           //         }
+            
             return spectrum;
         }
 
@@ -468,6 +506,34 @@ public class SpectrumIO
         {
             this.errorColumn = errorColumn;
         }
+        
+        public String getPubdidValue()
+        {
+            return pubdidValue;
+        }
+
+        public void setPubdidValue( String pubdidValue )
+        {
+            this.pubdidValue = pubdidValue;
+        }
+        public String getGetDataRequest()
+        {
+            return getDataRequest;
+        }
+
+        public void setGetDataRequest( String getDataRequest )
+        {
+            this.getDataRequest = getDataRequest;
+        }
+        public String getServerURL()
+        {
+            return serverURL;
+        }
+
+        public void setServerURL( String serverURL )
+        {
+            this.serverURL = serverURL;
+        }
 
         //  Create a copy of this object.
         public Props copy()
@@ -533,7 +599,16 @@ public class SpectrumIO
                     e.printStackTrace();
                 }
             }
-
+            /*
+            if ( pubdidColumn != null && pubdidColumn.length() != 0 ) {
+                try {
+                    spectrum.setsetGetDataColumnName( pubdidColumn );
+                }
+                catch (SplatException e) {
+                    e.printStackTrace();
+                }
+            }
+             */
             if ( initialiseNeeded ) {
                 //  Probably changed something important to the coordinate
                 //  systems, so make sure AST descriptions are up to date.

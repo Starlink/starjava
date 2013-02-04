@@ -160,6 +160,19 @@ public class SSAServerList
            shortname = shortname.trim();
         return (SSAPRegResource) serverList.get(shortname);
     }
+    
+    /**
+     * Return a {@link SSAPRegResource} instance matching the short name given
+     * current list of servers.
+     * @param shortname
+     */
+    public String getBaseURL(String shortname)
+    {
+        SSAPRegResource res = (SSAPRegResource) serverList.get(shortname);
+        SSAPRegCapability[] cap = res.getCapabilities();
+        return cap[0].getAccessUrl();
+    } 
+
 
 
     /**
