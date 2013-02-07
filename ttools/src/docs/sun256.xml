@@ -8291,6 +8291,7 @@ but my thanks are especially due to the following:
         VOTable 1.3 validation is now provided.</li>
     <li>Fix error bar rendering bug which could result in diagonal lines
         being offset near the edge of plots.</li>  
+    <li>Add <code>split</code> functions for string splitting.</li>
     </ul>
     </p></dd>
 

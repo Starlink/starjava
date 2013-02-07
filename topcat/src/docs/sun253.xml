@@ -15466,6 +15466,7 @@ introduced since the last version:
     <li>Fix problem with GUI locking up when plotting outsize histograms.</li>
     <li>Improve behaviour when deleting a parameter in the
         Parameter Window.</li>
+    <li>Add <code>split</code> functions for string splitting.</li>
     </ul>
     </p>
     </dd>
