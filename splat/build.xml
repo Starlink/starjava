@@ -507,6 +507,7 @@
       <sysproperty key="java.library.path" value="${jni-ldpath}"/>
       <arg value="${src.etc}/ids"/>
       <arg value="${build.dir}/ids/ids"/>
+      <jvmarg value="-Djava.awt.headless=true"/>
     </java>
 
     <mkdir dir="${dist.lib.pkg}"/>
