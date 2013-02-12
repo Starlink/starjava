@@ -497,6 +497,7 @@
           fork="true"
           logerror="yes">
       <classpath refid="classpath"/>
+      <jvmarg value="-Djava.awt.headless=true"/>
     </java>
   </target>
 
