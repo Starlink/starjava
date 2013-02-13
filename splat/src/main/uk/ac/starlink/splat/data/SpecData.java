@@ -2083,7 +2083,6 @@ public class SpecData
                         }
                     }
                     Header header = getHeaders();
-                    astref.norm( out );
                     String ra = astref.format( lonaxis, out[lonaxis-1] );
                     String dec = astref.format( lataxis, out[lataxis-1] );
                     header.addValue( "EXRAX", ra, "Spectral position" );
