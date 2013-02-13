@@ -73,6 +73,9 @@ public class AboutFrame extends JDialog
         "<h5 align=center>Authors:<i> " +
         Utilities.getAuthors() +
         "</i></h5>" +
+        "<h5 align=center>VO Mission Advisor:<i> " +
+        Utilities.getSpecialMentions() +
+        "</i></h5>" +
         "<h5 align=center>Licensing:<i> " +
         Utilities.getLicense() +
         "</i></h5>" +

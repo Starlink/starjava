@@ -32,6 +32,10 @@
    When changing the spectral coordinates column of a table in the main
    window the change wasn't seen immediately. This issue should now be fixed.
 
+   A bug in the spectral synopsis that misidentified the celestial coordinate
+   axes has been fixed. This means the "Spec position:" item should now be 
+   correct for DSB spectral frames with permuted axes.
+
    3.9-8
    =====
 
