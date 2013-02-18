@@ -12,31 +12,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import junit.framework.AssertionFailedError;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-import uk.ac.starlink.fits.BintableStarTable;
-import uk.ac.starlink.fits.ColFitsTableWriter;
-import uk.ac.starlink.fits.ColFitsTableBuilder;
-import uk.ac.starlink.fits.FitsTableBuilder;
-import uk.ac.starlink.fits.FitsTableWriter;
-import uk.ac.starlink.table.storage.DiskRowStore;
-import uk.ac.starlink.table.storage.ListRowStore;
-import uk.ac.starlink.table.storage.SidewaysRowStore;
-import uk.ac.starlink.table.formats.AsciiTableBuilder;
-import uk.ac.starlink.table.formats.AsciiTableWriter;
-import uk.ac.starlink.table.formats.CsvTableBuilder;
-import uk.ac.starlink.table.formats.CsvTableWriter;
-import uk.ac.starlink.util.DataSource;
-import uk.ac.starlink.util.FileDataSource;
 import uk.ac.starlink.util.TestCase;
-import uk.ac.starlink.votable.DataFormat;
-import uk.ac.starlink.votable.ColFitsPlusTableBuilder;
-import uk.ac.starlink.votable.ColFitsPlusTableWriter;
-import uk.ac.starlink.votable.FitsPlusTableBuilder;
-import uk.ac.starlink.votable.FitsPlusTableWriter;
-import uk.ac.starlink.votable.VOStarTable;
-import uk.ac.starlink.votable.VOTableBuilder;
-import uk.ac.starlink.votable.VOTableWriter;
 
 public class TableCase extends TestCase {
 
