@@ -42,6 +42,10 @@ import java.net.Authenticator;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+<<<<<<< HEAD
+=======
+import java.net.HttpURLConnection;
+>>>>>>> further development of GET DATA functionality 
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -165,7 +169,11 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
 
     /** Initial window size and location */
     private static final Rectangle defaultWindowLocation =
+<<<<<<< HEAD
             new Rectangle( 0, 0, 800, 600 );
+=======
+            new Rectangle( 0, 0, 800, 720 );
+>>>>>>> further development of GET DATA functionality 
 
     /**
      * The object holding the list of servers that we should use for SSA queries.
@@ -314,6 +322,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
     protected JRadioButton  customSearchButton;
 
     /** Display GET DATA  parameters and activation status */
+<<<<<<< HEAD
 //    protected JButton  getDataButton;
     
 //    protected boolean getDataEnabled = false;
@@ -335,6 +344,13 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
      * @uml.property  name="goButton"
      * @uml.associationEnd  
      */
+=======
+    protected JButton  getDataButton;
+    
+    protected boolean getDataEnabled = false;
+
+    /** Make the query to all known servers */
+>>>>>>> further development of GET DATA functionality 
     protected JButton goButton = null;
     
     /**
@@ -518,16 +534,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         ProxySetup.getInstance().restore();
     }
 
-    // Panel for components and options from GetData parameters
-    protected JPanel getDataSelectionPanel;
-    protected JScrollPane  getDataScroller; 
-    
-
-    /** The list of all getData parameters read from the servers as a hash map */
-    private static HashMap< String, String > getDataParam=null; 
-    
-    
-    
     
     /* The Query text that will be displayed */
     /**
@@ -570,6 +576,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
    
     static ProgressPanelFrame progressFrame = null;
 
+<<<<<<< HEAD
     /**
      * @uml.property  name="getDataFrame"
      * @uml.associationEnd  
@@ -580,6 +587,9 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
      * @uml.associationEnd  
      */
     private DataLinkQueryFrame dataLinkFrame = null;
+=======
+    private GetDataQueryFrame getDataFrame = null;
+>>>>>>> further development of GET DATA functionality 
 
     /**
      * Create an instance.
@@ -617,6 +627,20 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
     {
        
         JPanel contentPane = (JPanel) getContentPane();
+<<<<<<< HEAD
+=======
+        contentPane.setPreferredSize(new Dimension(900,720));
+        //contentPane.setLayout( new BorderLayout() );
+       // contentPane.setLayout( new GridLayout(1,2,3,3) );
+        contentPane.setLayout( new BoxLayout(contentPane, BoxLayout.X_AXIS) );
+      
+      //  GridBagLayout gblayout = new GridBagLayout();
+     //   contentPane.setLayout(gblayout); 
+       
+     //   GridBagConstraints c = new GridBagConstraints();
+      //  c.fill = GridBagConstraints.HORIZONTAL;
+        
+>>>>>>> further development of GET DATA functionality 
         
       
         contentPane.setPreferredSize(new Dimension(800,720));
@@ -859,10 +883,15 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
        // customScrollPanel = new JScrollPane( customQueryPanel );
         queryParamPanel.setLayout(new GridBagLayout());
         GridBagConstraints c = new GridBagConstraints();
+<<<<<<< HEAD
         c.fill=GridBagConstraints.BOTH;
         c.anchor=GridBagConstraints.NORTHWEST;
         c.weightx=.5;
         c.weighty=1.;
+=======
+        c.fill=GridBagConstraints.HORIZONTAL;
+        
+>>>>>>> further development of GET DATA functionality 
         c.gridx = 0;
         c.gridy = 0;
         
@@ -1171,6 +1200,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         gbc.anchor=GridBagConstraints.NORTHWEST;
         gbc.fill=GridBagConstraints.BOTH;
         resultsPane = new JTabbedPane();
+<<<<<<< HEAD
 //        resultsPane.setPreferredSize(new (600,310));
         resultsPanel.add( resultsPane , gbc);
         resultsPane.addChangeListener(new ChangeListener() {
@@ -1194,6 +1224,10 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                 }
             }
         });
+=======
+        resultsPane.setPreferredSize(new Dimension(600,310));
+        resultsPanel.add( resultsPane, BorderLayout.NORTH );
+>>>>>>> further development of GET DATA functionality 
         
      
         JPanel controlPanel = new JPanel(new GridBagLayout());
@@ -1227,8 +1261,12 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         downloadSelectedButton.setMargin(new Insets(1,10,1,10));  
         downloadSelectedButton.setToolTipText
         ( "Download all spectra selected in all tables");
+<<<<<<< HEAD
         gbcontrol.gridx=2;
         controlPanel.add( downloadSelectedButton, gbcontrol );
+=======
+        controlPanel1.add( downloadSelectedButton );
+>>>>>>> further development of GET DATA functionality 
       
 
         downloadAllButton = new JButton( "<html>Download<BR> all</html>" );
@@ -1257,6 +1295,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         deselectAllButton.setToolTipText
         ( "Deselect all spectra in all tables" );
      //   controlPanel2.add( deselectAllButton );
+<<<<<<< HEAD
         gbcontrol.gridx=5;
         controlPanel.add( deselectAllButton , gbcontrol);
 /*
@@ -1287,6 +1326,25 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         resultsPanel.add( controlPanel, gbc );
         centrePanel.add( resultsPanel, gbcentre );
      
+=======
+        controlPanel1.add( deselectAllButton );
+
+        getDataButton = new JButton( "<html>GET<BR> DATA</html>" );
+        getDataButton.addActionListener( this );
+        getDataButton.setMargin(new Insets(1,10,1,10));  
+        getDataButton.setToolTipText
+        ( "Server-side processing parameters" );
+        getDataButton.setEnabled(false);
+        getDataButton.setVisible(false);
+     //   controlPanel2.add( deselectAllButton );
+        
+      
+        controlPanel1.add( getDataButton );
+        controlPanel.add( controlPanel1, BorderLayout.NORTH );
+     //   controlPanel.add( controlPanel2, BorderLayout.SOUTH );
+        resultsPanel.add( controlPanel, BorderLayout.SOUTH );
+        centrePanel.add( resultsPanel, BorderLayout.CENTER );
+>>>>>>> further development of GET DATA functionality 
     }
 
     /**
@@ -1614,6 +1672,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
    
 =======
         
+<<<<<<< HEAD
  
         // RESET getData panels
         
@@ -1624,6 +1683,8 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
 
         
 >>>>>>> 
+=======
+>>>>>>> further development of GET DATA functionality 
         //  final ArrayList localQueryList = queryList;
         makeResultsDisplay( null );
         
@@ -1702,6 +1763,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         StarTable starTable = null;
         GetDataTable getDataTable = null;
 <<<<<<< HEAD
+<<<<<<< HEAD
         DataLinkParams dataLinkParams = null;
       
         URL queryURL = null;
@@ -1714,6 +1776,9 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             //queryURL = ssaQuery.getBaseURL();
  
 =======
+=======
+      
+>>>>>>> further development of GET DATA functionality 
         URL queryURL = null;
 
         // int j = 0;
@@ -1808,7 +1873,15 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
            // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\
             starTable = DalResourceXMLFilter.getDalResultTable( voe );
             getDataTable = DalResourceXMLFilter.getDalGetDataTable( voe );
+<<<<<<< HEAD
 >>>>>>> 
+=======
+            if (getDataTable != null) {
+                ssaQuery.setGetDataTable( getDataTable);
+
+            }
+
+>>>>>>> further development of GET DATA functionality 
           
             //  Check parameter QUERY_STATUS, this should be set to OK
             //  when the query
@@ -1847,6 +1920,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                 failed = true;
             }
 <<<<<<< HEAD
+<<<<<<< HEAD
            
 =======
             if (getDataTable != null) {
@@ -1854,6 +1928,9 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             }
 
 >>>>>>> 
+=======
+           
+>>>>>>> further development of GET DATA functionality 
             //  Dump query results as VOTables.
             //uk.ac.starlink.table.StarTableOutput sto =
             //    new uk.ac.starlink.table.StarTableOutput();
@@ -1955,9 +2032,13 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                 } 
             }
 <<<<<<< HEAD
+<<<<<<< HEAD
            
 =======
 >>>>>>> 
+=======
+           
+>>>>>>> further development of GET DATA functionality 
             
         }
         else if ( next instanceof StarTable) {
@@ -2028,7 +2109,12 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
 =======
                 if (getDataTable != null) {
                     shortName = "✂ " + shortName;
-                    addToSelectionTab(shortName, getDataTable ); // adds found parameters to the selection tab
+                    if ( getDataFrame == null )
+                        getDataFrame = new GetDataQueryFrame();
+                    getDataFrame.addService(shortName, getDataTable);
+                    getDataButton.setEnabled(true);
+                    getDataButton.setVisible(true);
+                    getDataButton.setForeground(Color.GRAY);
                 }
                 resultsPane.addTab( shortName, scrollPane );
 >>>>>>> 
@@ -2046,6 +2132,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         }
     }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
   
        
@@ -2129,6 +2216,10 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
     }
 
 >>>>>>> 
+=======
+  
+       
+>>>>>>> further development of GET DATA functionality 
     /**
      * Deselect all spectra in the visible table, or deselect all tables.
      */
@@ -2170,6 +2261,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         ArrayList<Props> specList = new ArrayList<Props>();
      
 <<<<<<< HEAD
+<<<<<<< HEAD
        
         
         if ( table == null ) { 
@@ -2180,6 +2272,14 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
 
         if ( table == null ) {
 >>>>>>> 
+=======
+       
+        
+        if ( table == null ) {
+            
+            if (starJTables == null)  // avoids NPE if no results are present
+                return;
+>>>>>>> further development of GET DATA functionality 
             //  Visit all the tabbed StarJTables.
             Iterator<StarJTable> i = starJTables.iterator();
             while ( i.hasNext() ) {
@@ -2242,6 +2342,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
     {
         int[] selection = null;
         
+<<<<<<< HEAD
       
         HashMap< String, String > getDataParam = null;
         
@@ -2260,6 +2361,13 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         
        
         
+=======
+       
+        HashMap< String, String > getDataParam = null;
+        if ( getDataFrame.isVisible() ) 
+            getDataParam = getDataFrame.getParams();
+
+>>>>>>> further development of GET DATA functionality 
         //  Check for a selection if required, otherwise we're using the given
         //  row.
         if ( selected && row == -1 ) {
@@ -2425,11 +2533,12 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             } // for
             
             // if we have a pubDID col, check if the getData parameters are set.
-            if (pubdidcol != -1  && getDataParam != null) {
-                if (! getDataParam.isEmpty()) {                   
+            if (pubdidcol != -1  && getDataParam != null )
+                if ( ! getDataParam.isEmpty() ) {                   
                     for (String key : getDataParam.keySet()) {
                         String value = getDataParam.get(key);
                                 if (value == null || value.length() > 0)
+<<<<<<< HEAD
                                     getDataRequest+="&"+key+"="+value;              
 >>>>>>> 
                     }
@@ -2437,6 +2546,18 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             }
            
         
+=======
+                                    try {
+                                        getDataRequest+="&"+key+"="+URLEncoder.encode(value, "UTF-8");
+                                    } catch (UnsupportedEncodingException e) {
+                                        // TODO Auto-generated catch block
+                                        e.printStackTrace();
+                                    }                                           
+                    }
+                }
+            
+
+>>>>>>> further development of GET DATA functionality 
             //  If we have a DATA_LINK column, gather the URLs it contains
             //  that are appropriate.
             if ( linkcol != -1 ) {
@@ -3251,66 +3372,48 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                 
             return;
         }
-        //
-        // dynamically generated getdata parameters
-        //
-        Class srcClass = source.getClass();
-        if (srcClass.equals(JComboBox.class)) {
-            JComboBox cb = (JComboBox) source;
-            String name = cb.getName();
-            if (name.startsWith("gd:")) {
-                getDataParam.put(name.substring(3), cb.getSelectedItem().toString());                
-            }
-        }else 
-        if (srcClass.equals(JTextField.class)) {
-            JTextField tf = (JTextField) source;
-            String name = tf.getName();
-            if (name.startsWith("gd:") ) {
-                String keyname = name.substring(3, name.length()-4); // remove ":max"or "min"
-                String limit = name.substring(name.length()-3);
-                // has this parameter already been edited?
-                String oldvalue = getDataParam.get(keyname);
-                String newvalue = null;
-                String max="", min="";
-                if (oldvalue != null && oldvalue.length() > 0) {
-                    int dashindex = oldvalue.indexOf('/');
-                    if (oldvalue.endsWith("/"))
-                        min=oldvalue.substring(0, dashindex);
-                    else if ( oldvalue.startsWith("/"))
-                        max=oldvalue.substring(1);
-                    else if (dashindex > 0){
-                        min=oldvalue.substring(0,dashindex);
-                        max=oldvalue.substring(dashindex+1);
-                    }          
-                } 
-                if (limit.equals("Max")) {
-                    newvalue = min+"/"+tf.getText();
-                } else if (limit.equals("Min")) {
-                    newvalue = tf.getText()+"/"+max;
-                } 
-                if (newvalue == "/")
-                    newvalue="";
-                getDataParam.put(keyname, newvalue);               
-            } else if (srcClass.equals(JButton.class) ){
+        if ( source.equals( getDataButton ) ) {
+            if (getDataFrame == null || getDataFrame.getParams() == null)
+                return;
+            if (getDataFrame.isVisible()) { // deactivate
+                getDataFrame.setVisible(false);
+                //getDataButton.set.setEnabled(false);
+                deactivateGetDataSupport();
                 
+                // activateAll !!!!!!!
+            } else {
+                getDataFrame.setVisible(true);
+               // getDataButton.setEnabled(true);
+                activateGetDataSupport();
+                //deactivatenotSupportedServices!!!!!!!!!
             }
+            return;
         }
+     
 
     }
     /**
      * ActivateGetDataSupport
      * deactivate all sites that do not support getData
      * activate getData queries on supported sites
+<<<<<<< HEAD
      *//*
     private void activateGetDataSupport() {
         
         getDataEnabled=true;
         int selected=-1;
         int anyGDIndex = -1;
+=======
+     */
+    private void activateGetDataSupport() {
+        
+        getDataEnabled=true;
+>>>>>>> further development of GET DATA functionality 
         getDataButton.setForeground(Color.BLACK);
         int nrTabs = resultsPane.getTabCount();
         for(int i = 0; i < nrTabs; i++)
         {
+<<<<<<< HEAD
            if (resultsPane.getIconAt(i) == null) {
                resultsPane.setEnabledAt(i, false);
            }
@@ -3369,14 +3472,25 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         if (dataLinkFrame.setServer(resultsPane.getTitleAt(selected)) == null)
             getDataFrame.setService(resultsPane.getTitleAt(selected));
             
+=======
+           if ( ! resultsPane.getTitleAt(i).startsWith("✂") ) 
+               resultsPane.setEnabledAt(i, false);
+           else 
+               resultsPane.setSelectedIndex(i);
+        }
+>>>>>>> further development of GET DATA functionality 
     }
     /**
      * DeactivateGetDataSupport
      * activate all sites, without getData support
      */
+<<<<<<< HEAD
   /*
    *   private void deactivateGetDataSupport() {
   
+=======
+    private void deactivateGetDataSupport() {
+>>>>>>> further development of GET DATA functionality 
         
         getDataEnabled=false;
         getDataButton.setForeground(Color.GRAY);
@@ -3386,6 +3500,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             resultsPane.setEnabledAt(i, true);      
         }
     }
+<<<<<<< HEAD
   */  
     /**
      * DeactivateDataLinkSupport
@@ -3401,6 +3516,8 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             resultsPane.setEnabledAt(i, true);      
         }
     }
+=======
+>>>>>>> further development of GET DATA functionality 
 
     /**
      * Event listener 
