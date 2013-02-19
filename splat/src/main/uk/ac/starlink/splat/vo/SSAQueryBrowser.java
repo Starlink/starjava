@@ -43,6 +43,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.HttpURLConnection;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -169,7 +170,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
 
     /** Initial window size and location */
     private static final Rectangle defaultWindowLocation =
-            new Rectangle( 0, 0, 800, 700 );
+            new Rectangle( 0, 0, 800, 720 );
 
     /** The object holding the list of servers that we should use for SSA
      *  queries. */
@@ -234,6 +235,10 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
     /** Display extended search parameters */
     protected JRadioButton  customSearchButton;
 
+    /** Display GET DATA  parameters and activation status */
+    protected JButton  getDataButton;
+    
+    protected boolean getDataEnabled = false;
 
     /** Make the query to all known servers */
     protected JButton goButton = null;
@@ -320,16 +325,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         ProxySetup.getInstance().restore();
     }
 
-    // Panel for components and options from GetData parameters
-    protected JPanel getDataSelectionPanel;
-    protected JScrollPane  getDataScroller; 
-    
-
-    /** The list of all getData parameters read from the servers as a hash map */
-    private static HashMap< String, String > getDataParam=null; 
-    
-    
-    
     
     /* The Query text that will be displayed */
     private SSAQuery queryLine;
@@ -355,6 +350,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
    
     static ProgressPanelFrame progressFrame = null;
 
+    private GetDataQueryFrame getDataFrame = null;
 
     /**
      * Create an instance.
@@ -392,7 +388,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
     {
        
         JPanel contentPane = (JPanel) getContentPane();
-        contentPane.setPreferredSize(new Dimension(900,700));
+        contentPane.setPreferredSize(new Dimension(900,720));
         //contentPane.setLayout( new BorderLayout() );
        // contentPane.setLayout( new GridLayout(1,2,3,3) );
         contentPane.setLayout( new BoxLayout(contentPane, BoxLayout.X_AXIS) );
@@ -625,6 +621,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         queryParamPanel.setLayout(new GridBagLayout());
         GridBagConstraints c = new GridBagConstraints();
         c.fill=GridBagConstraints.HORIZONTAL;
+        
         c.gridx = 0;
         c.gridy = 0;
         
@@ -911,7 +908,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
      
      
         resultsPane = new JTabbedPane();
-        resultsPane.setPreferredSize(new Dimension(600,300));
+        resultsPane.setPreferredSize(new Dimension(600,310));
         resultsPanel.add( resultsPane, BorderLayout.NORTH );
         
         JPanel controlPanel = new JPanel( new BorderLayout() );
@@ -919,55 +916,67 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         JPanel controlPanel2 = new JPanel();
 
         //  Download and display.
-        displaySelectedButton = new JButton( "Display selected" );
+        displaySelectedButton = new JButton( "<html>Display<BR> selected</html>" );
         displaySelectedButton.addActionListener( this );
-        displaySelectedButton.setMargin(new Insets(2,2,2,2));  
+        displaySelectedButton.setMargin(new Insets(1, 10, 1, 10));  
         displaySelectedButton.setToolTipText
         ( "Download and display all spectra selected in all tables" );
         controlPanel1.add( displaySelectedButton );
 
 
-        displayAllButton = new JButton( "Display all" );
+        displayAllButton = new JButton( "<html>Display<BR>all</html>" );
         displayAllButton.addActionListener( this );
-        displayAllButton.setMargin(new Insets(2,2,2,2));  
+        displayAllButton.setMargin(new Insets(1,10,1,10));  
         displayAllButton.setToolTipText
         ( "Download and display all spectra in all tables" );
         controlPanel1.add( displayAllButton );
 
         //  Just download.
-        downloadSelectedButton = new JButton( "Download selected" );
+        downloadSelectedButton = new JButton( "<html>Download<BR>selected</html>" );
         downloadSelectedButton.addActionListener( this );
-        downloadSelectedButton.setMargin(new Insets(2,2,2,2));  
+        downloadSelectedButton.setMargin(new Insets(1,10,1,10));  
         downloadSelectedButton.setToolTipText
         ( "Download all spectra selected in all tables");
         controlPanel1.add( downloadSelectedButton );
+      
 
-        downloadAllButton = new JButton( "Download all" );
+        downloadAllButton = new JButton( "<html>Download<BR> all</html>" );
         downloadAllButton.addActionListener( this );
-        downloadAllButton.setMargin(new Insets(2,2,2,2));  
+        downloadAllButton.setMargin(new Insets(1,10,1,10));  
         downloadAllButton.setToolTipText
         ( "Download all spectra in all tables");
         controlPanel1.add( downloadAllButton );
 
 
         //  Deselect
-        deselectVisibleButton = new JButton( "Deselect" );
+        deselectVisibleButton = new JButton( "<html>Deselect<br>table</html>" );
         deselectVisibleButton.addActionListener( this );
-        deselectVisibleButton.setMargin(new Insets(2,2,2,2));  
+        deselectVisibleButton.setMargin(new Insets(1,10,1,10));  
         deselectVisibleButton.setToolTipText
         ( "Deselect all spectra in displayed table" );
       //  controlPanel2.add( deselectVisibleButton );
         controlPanel1.add( deselectVisibleButton );
 
 
-        deselectAllButton = new JButton( "Deselect all" );
+        deselectAllButton = new JButton( "<html>Deselect <BR>all</html>" );
         deselectAllButton.addActionListener( this );
-        deselectAllButton.setMargin(new Insets(2,2,2,2));  
+        deselectAllButton.setMargin(new Insets(1,10,1,10));  
         deselectAllButton.setToolTipText
         ( "Deselect all spectra in all tables" );
      //   controlPanel2.add( deselectAllButton );
         controlPanel1.add( deselectAllButton );
 
+        getDataButton = new JButton( "<html>GET<BR> DATA</html>" );
+        getDataButton.addActionListener( this );
+        getDataButton.setMargin(new Insets(1,10,1,10));  
+        getDataButton.setToolTipText
+        ( "Server-side processing parameters" );
+        getDataButton.setEnabled(false);
+        getDataButton.setVisible(false);
+     //   controlPanel2.add( deselectAllButton );
+        
+      
+        controlPanel1.add( getDataButton );
         controlPanel.add( controlPanel1, BorderLayout.NORTH );
      //   controlPanel.add( controlPanel2, BorderLayout.SOUTH );
         resultsPanel.add( controlPanel, BorderLayout.SOUTH );
@@ -1252,15 +1261,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
     protected void processQueryList( ArrayList<SSAQuery> queryList )
     {
         
- 
-        // RESET getData panels
-        
-        getDataSelectionPanel = null;
-        getDataScroller  = null; 
-        
-        getDataParam = new HashMap<String, String>();
-
-        
         //  final ArrayList localQueryList = queryList;
         makeResultsDisplay( null );
         
@@ -1333,6 +1333,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         //  formats.
         StarTable starTable = null;
         GetDataTable getDataTable = null;
+      
         URL queryURL = null;
 
         // int j = 0;
@@ -1398,6 +1399,11 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
            // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\
             starTable = DalResourceXMLFilter.getDalResultTable( voe );
             getDataTable = DalResourceXMLFilter.getDalGetDataTable( voe );
+            if (getDataTable != null) {
+                ssaQuery.setGetDataTable( getDataTable);
+
+            }
+
           
             //  Check parameter QUERY_STATUS, this should be set to OK
             //  when the query
@@ -1435,10 +1441,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                 }
                 failed = true;
             }
-            if (getDataTable != null) {
-                ssaQuery.setGetDataTable( getDataTable);
-            }
-
+           
             //  Dump query results as VOTables.
             //uk.ac.starlink.table.StarTableOutput sto =
             //    new uk.ac.starlink.table.StarTableOutput();
@@ -1523,6 +1526,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                     logger.info( "Malformed base URL for " + baseurl );
                 } 
             }
+           
             
         }
         else if ( next instanceof StarTable) {
@@ -1549,7 +1553,12 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
               //  scrollPane.setPreferredSize(new Dimension(600,400));
                 if (getDataTable != null) {
                     shortName = "✂ " + shortName;
-                    addToSelectionTab(shortName, getDataTable ); // adds found parameters to the selection tab
+                    if ( getDataFrame == null )
+                        getDataFrame = new GetDataQueryFrame();
+                    getDataFrame.addService(shortName, getDataTable);
+                    getDataButton.setEnabled(true);
+                    getDataButton.setVisible(true);
+                    getDataButton.setForeground(Color.GRAY);
                 }
                 resultsPane.addTab( shortName, scrollPane );
                 starJTables.add( table );
@@ -1566,89 +1575,15 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         }
     }
 
-    protected void addToSelectionTab( String shortname, GetDataTable getDataTable)
-    {
-        
-        if (getDataScroller == null ) {
-            
-            getDataSelectionPanel = new JPanel();
-            getDataSelectionPanel.setLayout((new BoxLayout(getDataSelectionPanel, BoxLayout.PAGE_AXIS)));
-            getDataScroller  = new JScrollPane( getDataSelectionPanel); 
-            getDataSelectionPanel.add(new JLabel("Parameters for Server-Generated data processing"));
-        }
-     
-       /// get parameter list and options
-    //    ParamElement[] params = gdparam.getParams();
-       /// add to paramPanel
-   
-        JPanel paramPanel = new JPanel();
-        paramPanel.setBorder(BorderFactory.createTitledBorder( shortname ));
-    //    paramPanel.setLayout((new BoxLayout(paramPanel, BoxLayout.PAGE_AXIS)));
-      
-        if (getDataTable != null) {
-                                 
-                resultsPane.addTab( "GetData Params", getDataScroller );
-                int i=0;
-               /// !!How to access the parameters?
-                ParamElement[] params = getDataTable.getParams();
-             
-              while ( i < params.length ) {
-                    String paramName = params[i].getName();
-                    paramPanel.add(new JLabel(paramName+" : "));
-                    String description = params[i].getAttribute("Description");                  
-                    String datatype = params[i].getAttribute("datatype");
-                    String value = params[i].getValue();
-                    ValuesElement values = (ValuesElement) params[i].getChildByName("VALUES");
-                    String [] options = values.getOptions();
-                    if ( options.length > 0 ) {
-                        JComboBox optbox = new JComboBox(options);
-                     //   optbox.setName("gd:"+shortname+":"+paramName);
-                        optbox.setName("gd:"+paramName);
-                        optbox.addActionListener(this);
-                        if (description.length() > 0)
-                            optbox.setToolTipText(description);
-                        paramPanel.add(optbox);
-                        
-                    } else {
-                        JPanel inputPanel = new JPanel();
-                        String max = values.getMaximum();
-                        String min = values.getMinimum();
-                        JTextField minField = new JTextField(5);
-                        JTextField maxField = new JTextField(5);
-                        inputPanel.add(minField);
-                        inputPanel.add(maxField);                        
-                        //minField.setName("gd:"+shortname+":"+paramName+":Min");
-                        //maxField.setName("gd:"+shortname+":"+paramName+":Max");
-                        minField.setName("gd:"+paramName+":Min");
-                        maxField.setName("gd:"+paramName+":Max");
-                        if (description.length() > 0) {
-                            minField.setToolTipText(description);
-                            maxField.setToolTipText(description);
-                        }
-                        minField.addActionListener(this);
-                        maxField.addActionListener(this);
-                        inputPanel.add(new JLabel("["+min+".."+max+"]"));
-                        paramPanel.add(inputPanel);
-                        
-                        JButton submitButton = new JButton("set Parameters");
-                        submitButton.addActionListener(this);
-                        submitButton.setName("gd:"+shortname+":setParams");
-                        submitButton.setName("gd:setParams");
-                        paramPanel.add(submitButton);
-                    }
-                    getDataSelectionPanel.add(paramPanel);
-                    i++;
-                }
-                
-        }
+  
        
-    }
-
     /**
      * Deselect all spectra in the visible table, or deselect all tables.
      */
     protected void deselectSpectra( boolean all )
     {
+        if (starJTables == null)  // avoids NPE if no results are present
+            return;
         if ( all ) {
             //  Visit all the tabbed StarJTables.
             Iterator<StarJTable> i = starJTables.iterator();
@@ -1682,8 +1617,12 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         //  names etc.
         ArrayList<Props> specList = new ArrayList<Props>();
      
-
+       
+        
         if ( table == null ) {
+            
+            if (starJTables == null)  // avoids NPE if no results are present
+                return;
             //  Visit all the tabbed StarJTables.
             Iterator<StarJTable> i = starJTables.iterator();
             while ( i.hasNext() ) {
@@ -1744,6 +1683,11 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             int row )
     {
         int[] selection = null;
+        
+       
+        HashMap< String, String > getDataParam = null;
+        if ( getDataFrame.isVisible() ) 
+            getDataParam = getDataFrame.getParams();
 
         //  Check for a selection if required, otherwise we're using the given
         //  row.
@@ -1845,15 +1789,20 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             } // for
             
             // if we have a pubDID col, check if the getData parameters are set.
-            if (pubdidcol != -1  && getDataParam != null) {
-                if (! getDataParam.isEmpty()) {                   
+            if (pubdidcol != -1  && getDataParam != null )
+                if ( ! getDataParam.isEmpty() ) {                   
                     for (String key : getDataParam.keySet()) {
                         String value = getDataParam.get(key);
                                 if (value == null || value.length() > 0)
-                                    getDataRequest+="&"+key+"="+value;              
+                                    try {
+                                        getDataRequest+="&"+key+"="+URLEncoder.encode(value, "UTF-8");
+                                    } catch (UnsupportedEncodingException e) {
+                                        // TODO Auto-generated catch block
+                                        e.printStackTrace();
+                                    }                                           
                     }
                 }
-            }
+            
 
             //  If we have a DATA_LINK column, gather the URLs it contains
             //  that are appropriate.
@@ -2485,10 +2434,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                 
                 return;     
             }
-
-        if ( (source.getClass() == JTextField.class) && queryMetaParam.get(source) != null) {
-        //    queryLine.setParam()
-        }
                                  
         if ( source.equals( addParamButton ) ) 
         {
@@ -2559,51 +2504,57 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             deselectSpectra( true );
             return;
         }
-        //
-        // dynamically generated getdata parameters
-        //
-        Class srcClass = source.getClass();
-        if (srcClass.equals(JComboBox.class)) {
-            JComboBox cb = (JComboBox) source;
-            String name = cb.getName();
-            if (name.startsWith("gd:")) {
-                getDataParam.put(name.substring(3), cb.getSelectedItem().toString());                
-            }
-        }else 
-        if (srcClass.equals(JTextField.class)) {
-            JTextField tf = (JTextField) source;
-            String name = tf.getName();
-            if (name.startsWith("gd:") ) {
-                String keyname = name.substring(3, name.length()-4); // remove ":max"or "min"
-                String limit = name.substring(name.length()-3);
-                // has this parameter already been edited?
-                String oldvalue = getDataParam.get(keyname);
-                String newvalue = null;
-                String max="", min="";
-                if (oldvalue != null && oldvalue.length() > 0) {
-                    int dashindex = oldvalue.indexOf('/');
-                    if (oldvalue.endsWith("/"))
-                        min=oldvalue.substring(0, dashindex);
-                    else if ( oldvalue.startsWith("/"))
-                        max=oldvalue.substring(1);
-                    else if (dashindex > 0){
-                        min=oldvalue.substring(0,dashindex);
-                        max=oldvalue.substring(dashindex+1);
-                    }          
-                } 
-                if (limit.equals("Max")) {
-                    newvalue = min+"/"+tf.getText();
-                } else if (limit.equals("Min")) {
-                    newvalue = tf.getText()+"/"+max;
-                } 
-                if (newvalue == "/")
-                    newvalue="";
-                getDataParam.put(keyname, newvalue);               
-            } else if (srcClass.equals(JButton.class) ){
+        if ( source.equals( getDataButton ) ) {
+            if (getDataFrame == null || getDataFrame.getParams() == null)
+                return;
+            if (getDataFrame.isVisible()) { // deactivate
+                getDataFrame.setVisible(false);
+                //getDataButton.set.setEnabled(false);
+                deactivateGetDataSupport();
                 
+                // activateAll !!!!!!!
+            } else {
+                getDataFrame.setVisible(true);
+               // getDataButton.setEnabled(true);
+                activateGetDataSupport();
+                //deactivatenotSupportedServices!!!!!!!!!
             }
+            return;
         }
+     
 
+    }
+    /**
+     * ActivateGetDataSupport
+     * deactivate all sites that do not support getData
+     * activate getData queries on supported sites
+     */
+    private void activateGetDataSupport() {
+        
+        getDataEnabled=true;
+        getDataButton.setForeground(Color.BLACK);
+        int nrTabs = resultsPane.getTabCount();
+        for(int i = 0; i < nrTabs; i++)
+        {
+           if ( ! resultsPane.getTitleAt(i).startsWith("✂") ) 
+               resultsPane.setEnabledAt(i, false);
+           else 
+               resultsPane.setSelectedIndex(i);
+        }
+    }
+    /**
+     * DeactivateGetDataSupport
+     * activate all sites, without getData support
+     */
+    private void deactivateGetDataSupport() {
+        
+        getDataEnabled=false;
+        getDataButton.setForeground(Color.GRAY);
+        int nrTabs = resultsPane.getTabCount();
+        for(int i = 0; i < nrTabs; i++)
+        {
+            resultsPane.setEnabledAt(i, true);      
+        }
     }
 
     /**
