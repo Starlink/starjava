@@ -2364,7 +2364,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
 =======
        
         HashMap< String, String > getDataParam = null;
-        if ( getDataFrame.isVisible() ) 
+        if ( getDataFrame != null && getDataFrame.isVisible() ) 
             getDataParam = getDataFrame.getParams();
 
 >>>>>>> further development of GET DATA functionality 
