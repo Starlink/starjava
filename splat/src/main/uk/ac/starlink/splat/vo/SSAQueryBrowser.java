@@ -1687,7 +1687,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         
        
         HashMap< String, String > getDataParam = null;
-        if ( getDataFrame.isVisible() ) 
+        if ( getDataFrame != null && getDataFrame.isVisible() ) 
             getDataParam = getDataFrame.getParams();
 
         //  Check for a selection if required, otherwise we're using the given
