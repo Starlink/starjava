@@ -18,6 +18,7 @@ import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.ttools.plot.ErrorMode;
 import uk.ac.starlink.util.Wrapper;
+import uk.ac.starlink.util.gui.ComboBoxBumper;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 /**

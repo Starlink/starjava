@@ -227,10 +227,6 @@ public class ResourceIcon implements Icon {
         SYNTAX = makeIcon( "syntax.gif" ),
         FOOTPRINT = makeIcon( "footprint.gif" ),
 
-        /* Non-standard sizes. */
-        SMALL_DEC = makeIcon( "dec.gif" ),
-        SMALL_INC = makeIcon( "inc.gif" ),
-
         /* Datanode (hierarchy browser) icons. */
         COLLAPSED = makeIcon( "handle1.gif" ),
         EXPANDED = makeIcon( "handle2.gif" ),

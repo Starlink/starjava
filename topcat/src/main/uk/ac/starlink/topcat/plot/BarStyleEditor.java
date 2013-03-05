@@ -11,6 +11,7 @@ import uk.ac.starlink.topcat.AuxWindow;
 import uk.ac.starlink.ttools.plot.BarStyle;
 import uk.ac.starlink.ttools.plot.BarStyles;
 import uk.ac.starlink.ttools.plot.Style;
+import uk.ac.starlink.util.gui.ComboBoxBumper;
 import uk.ac.starlink.util.gui.RenderingComboBox;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 import uk.ac.starlink.util.gui.ValueButtonGroup;

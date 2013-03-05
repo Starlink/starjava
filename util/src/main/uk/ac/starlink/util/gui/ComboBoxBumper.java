@@ -1,18 +1,19 @@
-package uk.ac.starlink.topcat.plot;
+package uk.ac.starlink.util.gui;
 
 import java.awt.Dimension;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BoxLayout;
 import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
-import uk.ac.starlink.topcat.BasicAction;
-import uk.ac.starlink.topcat.ResourceIcon;
+import uk.ac.starlink.util.images.ImageHolder;
 
 /**
  * Icon providing arrows to cycle the value of a JComboBox up or down.
@@ -26,6 +27,10 @@ public class ComboBoxBumper extends JPanel {
 
     private final JComboBox comboBox_;
     private final Action[] bumpActions_;
+    private static Icon DEC_ICON =
+        new ImageIcon( ImageHolder.class.getResource( "dec.gif" ) );
+    private static Icon INC_ICON =
+        new ImageIcon( ImageHolder.class.getResource( "inc.gif" ) );
 
     /**
      * Constructs a new bumper based on a given combo box.
@@ -38,10 +43,8 @@ public class ComboBoxBumper extends JPanel {
 
         /* Construct and place buttons. */
         bumpActions_ = new Action[] {
-            new BumpAction( "Prev", ResourceIcon.SMALL_DEC,
-                            "Select previous column", -1 ),
-            new BumpAction( "Next", ResourceIcon.SMALL_INC,
-                            "Select next column", 1 ),
+            new BumpAction( "Prev", DEC_ICON, "Select previous column", -1 ),
+            new BumpAction( "Next", INC_ICON, "Select next column", 1 ),
         };
         for ( int i = 0; i < bumpActions_.length; i++ ) {
             JButton butt = new JButton( bumpActions_[ i ] );
@@ -86,7 +89,7 @@ public class ComboBoxBumper extends JPanel {
     /**
      * Action which cycles the associated combo box up or down.
      */
-    private class BumpAction extends BasicAction {
+    private class BumpAction extends AbstractAction {
 
         private final int inc_;
 
@@ -100,7 +103,8 @@ public class ComboBoxBumper extends JPanel {
          *               of the combo box when this action is invoked
          */
         public BumpAction( String name, Icon icon, String desc, int inc ) {
-            super( name, icon, desc );
+            super( name, icon );
+            putValue( SHORT_DESCRIPTION, desc );
             inc_ = inc;
         }
 
