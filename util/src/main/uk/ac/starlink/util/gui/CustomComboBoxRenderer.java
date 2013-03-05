@@ -1,4 +1,4 @@
-package uk.ac.starlink.topcat;
+package uk.ac.starlink.util.gui;
 
 import java.awt.Component;
 import javax.swing.JList;

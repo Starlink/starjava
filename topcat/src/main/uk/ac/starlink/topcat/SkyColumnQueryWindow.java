@@ -22,6 +22,7 @@ import uk.ac.starlink.table.gui.LabelledComponentStack;
 import uk.ac.starlink.table.gui.StarTableColumn;
 import uk.ac.starlink.ttools.convert.SkySystem;
 import uk.ac.starlink.ttools.convert.SkyUnits;
+import uk.ac.starlink.util.gui.CustomComboBoxRenderer;
 
 /**
  * Query window which allows the user to specify new sky coordinate columns
