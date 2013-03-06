@@ -11,6 +11,7 @@ import javax.swing.JRadioButton;
 import uk.ac.starlink.topcat.AuxWindow;
 import uk.ac.starlink.ttools.gui.ColorComboBox;
 import uk.ac.starlink.ttools.gui.DashComboBox;
+import uk.ac.starlink.ttools.gui.MarkStyleSelectors;
 import uk.ac.starlink.ttools.gui.ThicknessComboBox;
 import uk.ac.starlink.ttools.plot.ErrorMode;
 import uk.ac.starlink.ttools.plot.ErrorRenderer;
@@ -79,16 +80,16 @@ public class LinesStyleEditor extends StyleEditor {
         dashSelector_.addActionListener( this );
 
         /* Marker style selectors. */
-        shapeSelector_ = MarkStyleEditor.createShapeSelector();
+        shapeSelector_ = MarkStyleSelectors.createShapeSelector();
         shapeSelector_.addActionListener( this );
-        sizeSelector_ = MarkStyleEditor.createSizeSelector();
+        sizeSelector_ = MarkStyleSelectors.createSizeSelector();
         sizeSelector_.addActionListener( this );
 
         /* Error style selector. */
         errorSelector_ =
-            MarkStyleEditor.createErrorSelector( errorRenderers,
-                                                 defaultRenderer,
-                                                 errorModeModels );
+            MarkStyleSelectors.createErrorSelector( errorRenderers,
+                                                    defaultRenderer,
+                                                    errorModeModels );
         errorSelector_.addActionListener( this );
         for ( int idim = 0; idim < errorModeModels.length; idim++ ) {
             errorModeModels[ idim ].addActionListener( this );

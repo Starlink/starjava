@@ -4,8 +4,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.ComboBoxModel;
-import javax.swing.DefaultComboBoxModel;
 import javax.swing.Icon;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
@@ -230,20 +228,5 @@ public abstract class StyleEditor extends JPanel
      */
     public Icon getLegendIcon() {
         return getStyle().getLegendIcon();
-    }
-
-    /**
-     * Convenience method to construct a new ComboBoxModel which
-     * contains Integers numbered from 0 to <code>count-1</code>.
-     *
-     * @param   count  number of entries in the model
-     * @return  new ComboBoxModel filled with Integers
-     */
-    public static ComboBoxModel createNumberedModel( int count ) {
-        Object[] items = new Object[ count ];
-        for ( int i = 0; i < count; i++ ) {
-            items[ i ] = new Integer( i );
-        }
-        return new DefaultComboBoxModel( items );
     }
 }
