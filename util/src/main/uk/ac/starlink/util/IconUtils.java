@@ -4,6 +4,7 @@ import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Composite;
+import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import javax.swing.Icon;
@@ -24,6 +25,27 @@ public class IconUtils {
      * Private constructor prevents instantiation.
      */
     private IconUtils() {
+    }
+
+    /**
+     * Modifies an existing icon by changing its colour.
+     * The colour attribute of the graphics context is changed before the
+     * icon is painted.
+     *
+     * @param  icon  input icon
+     * @param  color   colour to use as default for painting
+     * @return  output icon
+     */
+    public static Icon colorIcon( final Icon icon, final Color color ) {
+        return new WrapperIcon( icon ) {
+            @Override
+            public void paintIcon( Component c, Graphics g, int x, int y ) {
+                Color color0 = g.getColor();
+                g.setColor( color );
+                super.paintIcon( c, g, x, y );
+                g.setColor( color0 );
+            }
+        };
     }
 
     /**
@@ -88,5 +110,32 @@ public class IconUtils {
             dummyComponent_ = new JPanel();
         }
         return dummyComponent_;
+    }
+
+    /**
+     * Wrapper implementation for Icon.
+     * All methods are deferred to base.
+     * Convenience skeleton class for altering behaviour.
+     */
+    private static class WrapperIcon implements Icon {
+        private final Icon base_;
+
+        /**
+         * Constructor.
+         *
+         * @param  base  base icon
+         */
+        WrapperIcon( Icon base ) {
+            base_ = base;
+        }
+        public int getIconWidth() {
+            return base_.getIconWidth();
+        }
+        public int getIconHeight() {
+            return base_.getIconHeight();
+        }
+        public void paintIcon( Component c, Graphics g, int x, int y ) {
+            base_.paintIcon( c, g, x, y );
+        }
     }
 }
