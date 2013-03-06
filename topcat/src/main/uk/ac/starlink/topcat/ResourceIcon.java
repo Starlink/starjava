@@ -1,15 +1,10 @@
 package uk.ac.starlink.topcat;
 
 import Acme.JPM.Encoders.GifEncoder;
-import java.awt.AlphaComposite;
-import java.awt.Color;
 import java.awt.Component;
-import java.awt.Composite;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.MediaTracker;
-import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
@@ -35,7 +30,6 @@ import java.util.Map;
 import javax.help.JHelp;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
-import javax.swing.JPanel;
 import javax.swing.plaf.metal.MetalCheckBoxIcon;
 import uk.ac.starlink.table.gui.FileChooserTableLoadDialog;
 import uk.ac.starlink.table.gui.FilestoreTableLoadDialog;
@@ -44,6 +38,7 @@ import uk.ac.starlink.topcat.interop.TopcatServer;
 import uk.ac.starlink.topcat.plot.ErrorModeSelectionModel;
 import uk.ac.starlink.topcat.plot.SphereWindow;
 import uk.ac.starlink.ttools.plot.ErrorMode;
+import uk.ac.starlink.util.IconUtils;
 import uk.ac.starlink.vo.ConeSearchDialog;
 import uk.ac.starlink.vo.RegistryTableLoadDialog;
 import uk.ac.starlink.vo.SiapTableLoadDialog;
@@ -64,8 +59,6 @@ import uk.ac.starlink.vo.TapTableLoadDialog;
  * @author   Mark Taylor (Starlink)
  */
 public class ResourceIcon implements Icon {
-
-    private static Component dummyComponent_;
 
     /** Location of image resource files relative to this class. */
     public static final String PREFIX = "images/";
@@ -401,18 +394,6 @@ public class ResourceIcon implements Icon {
     }
 
     /**
-     * Provides an empty component.
-     *
-     * @return   lazily constructed component
-     */
-    private static Component getDummyComponent() {
-        if ( dummyComponent_ == null ) {
-            dummyComponent_ = new JPanel();
-        }
-        return dummyComponent_;
-    }
-
-    /**
      * Checks that all the required resource files are present for 
      * this class.  If any of the image files are not present, it will
      * return throw an informative FileNotFoundException.
@@ -632,58 +613,6 @@ public class ResourceIcon implements Icon {
     }
 
     /**
-     * Returns an ImageIcon based on a given Icon object.  If the supplied
-     * <code>icon</code> is already an ImageIcon, it is returned.  Otherwise,
-     * it is painted to an Image and an ImageIcon is constructed from that.
-     * The reason this is useful is that some Swing components will only
-     * grey out disabled icons if they are ImageIcon subclasses (which is
-     * naughty).
-     *
-     * @param  icon  input icon
-     * @return   image icon
-     */
-    public static ImageIcon toImageIcon( Icon icon ) {
-        if ( icon instanceof ImageIcon ) {
-            return (ImageIcon) icon;
-        }
-        else {
-            return new ImageIcon( createImage( icon ) );
-        }
-    }
-
-    /**
-     * Returns an image got by drawing an Icon.
-     *
-     * @param  icon 
-     * @return  image
-     */
-    private static BufferedImage createImage( Icon icon ) {
-        int w = icon.getIconWidth();
-        int h = icon.getIconHeight();
-
-        /* Create an image to draw on. */
-        BufferedImage image =
-            new BufferedImage( w, h, BufferedImage.TYPE_INT_ARGB );
-        Graphics2D g2 = image.createGraphics();
-
-        /* Clear it to transparent white. */
-        Color color = g2.getColor();
-        Composite compos = g2.getComposite();
-        g2.setComposite( AlphaComposite.getInstance( AlphaComposite.SRC ) );
-        g2.setColor( new Color( 1f, 1f, 1f, 0f ) );
-        g2.fillRect( 0, 0, w, h );
-        g2.setColor( color );
-        g2.setComposite( compos );
-
-        /* Paint the icon. */
-        icon.paintIcon( getDummyComponent(), g2, 0, 0 );
-
-        /* Tidy up and return the image. */
-        g2.dispose();
-        return image;
-    }
-
-    /**
      * Writes an icon as a GIF to a given filename.
      *
      * @param   icon  icon to draw
@@ -693,7 +622,7 @@ public class ResourceIcon implements Icon {
         OutputStream out = new FileOutputStream( file );
         try {
             out = new BufferedOutputStream( out );
-            new GifEncoder( createImage( icon ), out ).encode();
+            new GifEncoder( IconUtils.createImage( icon ), out ).encode();
         }
         finally {
             out.close();
