@@ -16,6 +16,7 @@ import uk.ac.starlink.table.WrapperRowSequence;
 import uk.ac.starlink.table.WrapperStarTable;
 import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.ttools.gui.ShaderListCellRenderer;
 import uk.ac.starlink.ttools.plot.ErrorMode;
 import uk.ac.starlink.util.Wrapper;
 import uk.ac.starlink.util.gui.ComboBoxBumper;

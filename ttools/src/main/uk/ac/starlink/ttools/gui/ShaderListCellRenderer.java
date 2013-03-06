@@ -1,4 +1,4 @@
-package uk.ac.starlink.topcat.plot;
+package uk.ac.starlink.ttools.gui;
 
 import java.awt.Component;
 import java.beans.PropertyChangeEvent;
@@ -11,8 +11,8 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.ListCellRenderer;
 import javax.swing.plaf.basic.BasicComboBoxRenderer;
-import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.ttools.plot.Shader;
+import uk.ac.starlink.util.IconUtils;
 
 /**
  * ListCellRenderer suitable for a combo box containing 
@@ -83,7 +83,7 @@ public class ShaderListCellRenderer extends BasicComboBoxRenderer {
              * drawn each time, so probably this is more efficient.
              * Second, only ImageIcons can be greyed out
              * (Swing limitation). */
-            rendererIconMap_.put( shader, ResourceIcon.toImageIcon( icon ) );
+            rendererIconMap_.put( shader, IconUtils.toImageIcon( icon ) );
         }
         return (Icon) rendererIconMap_.get( shader );
     }

@@ -49,6 +49,7 @@ import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatUtils;
 import uk.ac.starlink.topcat.interop.TopcatCommunicator;
 import uk.ac.starlink.topcat.interop.Transmitter;
+import uk.ac.starlink.ttools.gui.ShaderListCellRenderer;
 import uk.ac.starlink.ttools.plot.BinGrid;
 import uk.ac.starlink.ttools.plot.DensityPlot;
 import uk.ac.starlink.ttools.plot.DensityPlotEvent;
