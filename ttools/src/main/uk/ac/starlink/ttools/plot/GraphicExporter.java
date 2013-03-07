@@ -14,6 +14,8 @@ import java.awt.image.IndexColorModel;
 import java.awt.image.WritableRaster;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.logging.Logger;
@@ -270,6 +272,35 @@ public abstract class GraphicExporter {
 
     /** Exports to gzipped Encapsulated PostScript. */
     public static final GraphicExporter EPS_GZIP = new GzipExporter( EPS );
+
+    /**
+     * Returns a standard list of available GraphicExporter objects.
+     * However, the one for exporting PDFs must be supplied explicitly,
+     * since which to choose (if any) depends on configuration.
+     *
+     * @param  pdfEx   exporter for PDF graphics, or null if none required
+     * @return   list of available exporters including the supplied PDF one
+     */
+    public static GraphicExporter[]
+           getKnownExporters( PdfGraphicExporter pdfEx ) {
+        List<GraphicExporter> list = new ArrayList<GraphicExporter>();
+        list.add( GraphicExporter.PNG );
+        list.add( GraphicExporter.GIF );
+        list.add( GraphicExporter.JPEG );
+        if ( pdfEx != null ) {
+            list.add( pdfEx );
+        }
+
+        /* Note there is another option for postscript - net.sf.epsgraphics.
+         * On brief tests seems to work, may or may not produce more compact
+         * output than jibble implementation.  At time of testing, it was
+         * using J2SE5 and codebase was at J2SE1.4, so didn't investigate
+         * further. */
+        list.add( GraphicExporter.EPS );
+        list.add( GraphicExporter.EPS_GZIP );
+
+        return list.toArray( new GraphicExporter[ 0 ] );
+    }
 
     /**
      * GraphicExporter implementation which uses the ImageIO framework.

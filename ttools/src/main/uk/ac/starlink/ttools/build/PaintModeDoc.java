@@ -30,7 +30,7 @@ public class PaintModeDoc {
      */
     private void write() {
         GraphicExporter[] exporters =
-            PaintMode.getKnownExporters( PdfGraphicExporter.BASIC );
+            GraphicExporter.getKnownExporters( PdfGraphicExporter.BASIC );
         PaintModeParameter modeParam =
             new PaintModeParameter( "omode", exporters );
         PaintMode[] modes = PaintMode.getKnownModes( exporters );

@@ -110,7 +110,7 @@ public abstract class PlotTask implements Task {
         paramList_.add( titleParam_ );
 
         GraphicExporter[] exporters =
-            PaintMode.getKnownExporters( PdfGraphicExporter.BASIC );
+            GraphicExporter.getKnownExporters( PdfGraphicExporter.BASIC );
         painterParam_ = new PaintModeParameter( "omode", exporters );
         paramList_.add( painterParam_ );
         paramList_.add( painterParam_.getOutputParameter() );
