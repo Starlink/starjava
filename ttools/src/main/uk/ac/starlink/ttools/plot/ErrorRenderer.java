@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import javax.swing.Icon;
+import uk.ac.starlink.util.IconUtils;
 
 /**
  * Renders error bars.
@@ -1952,7 +1953,7 @@ public abstract class ErrorRenderer {
          */
         Blank( String name ) {
             super( name );
-            legend_ = new EmptyIcon( 0, 0 );
+            legend_ = IconUtils.emptyIcon( 0, 0 );
         }
 
         public Icon getLegendIcon() {
@@ -1961,7 +1962,7 @@ public abstract class ErrorRenderer {
 
         public Icon getLegendIcon( ErrorMode[] modes, int width, int height,
                                    int xpad, int ypad ) {
-            return new EmptyIcon( width, height );
+            return IconUtils.emptyIcon( width, height );
         }
 
         public boolean supportsDimensionality( int ndim ) {

@@ -28,6 +28,25 @@ public class IconUtils {
     }
 
     /**
+     * Returns an icon with a given size and no content.
+     *
+     * @param  width   icon width
+     * @param  height  icon height
+     */
+    public static Icon emptyIcon( final int width, final int height ) {
+        return new Icon() {
+            public int getIconWidth() {
+                return width;
+            }
+            public int getIconHeight() {
+                return height;
+            }
+            public void paintIcon( Component c, Graphics g, int x, int y ) {
+            }
+        };
+    }
+
+    /**
      * Modifies an existing icon by changing its colour.
      * The colour attribute of the graphics context is changed before the
      * icon is painted.
