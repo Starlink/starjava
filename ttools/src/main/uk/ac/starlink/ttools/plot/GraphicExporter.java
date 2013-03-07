@@ -1,9 +1,6 @@
 package uk.ac.starlink.ttools.plot;
 
 import Acme.JPM.Encoders.GifEncoder;
-import com.lowagie.text.Document;
-import com.lowagie.text.DocumentException;
-import com.lowagie.text.pdf.PdfWriter;
 import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Component;
@@ -273,32 +270,6 @@ public abstract class GraphicExporter {
 
     /** Exports to gzipped Encapsulated PostScript. */
     public static final GraphicExporter EPS_GZIP = new GzipExporter( EPS );
-
-    /** Exports to PDF. */
-    public static final GraphicExporter PDF =
-            new GraphicExporter( "pdf", "application/pdf",
-                                 new String[] { "pdf", } ) {
-        public void exportGraphic( Picture picture, OutputStream out )
-                throws IOException {
-            int width = picture.getPictureWidth();
-            int height = picture.getPictureHeight();
-            Document doc =
-                new Document( new com.lowagie.text.Rectangle( width, height ) );
-            try {
-                PdfWriter pWriter = PdfWriter.getInstance( doc, out );
-                doc.open();
-                Graphics2D g = pWriter.getDirectContent()
-                              .createGraphics( width, height );
-                picture.paintPicture( g );
-                g.dispose();
-                doc.close();
-            }
-            catch ( DocumentException e ) {
-                throw (IOException)
-                      new IOException( e.getMessage() ).initCause( e );
-            }
-        }
-    };
 
     /**
      * GraphicExporter implementation which uses the ImageIO framework.
