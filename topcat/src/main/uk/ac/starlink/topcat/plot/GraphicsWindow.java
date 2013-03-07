@@ -77,6 +77,7 @@ import uk.ac.starlink.ttools.plot.GraphicExporter;
 import uk.ac.starlink.ttools.plot.Legend;
 import uk.ac.starlink.ttools.plot.MarkStyle;
 import uk.ac.starlink.ttools.plot.MarkStyles;
+import uk.ac.starlink.ttools.plot.PdfGraphicExporter;
 import uk.ac.starlink.ttools.plot.PlotData;
 import uk.ac.starlink.ttools.plot.PlotState;
 import uk.ac.starlink.ttools.plot.Range;
@@ -479,7 +480,7 @@ public abstract class GraphicsWindow extends AuxWindow {
             new GraphicExportAction( GraphicExporter.GIF, ResourceIcon.IMAGE,
                                      "Save plot as a GIF file" );
         Action pdfAction =
-            new GraphicExportAction( GraphicExporter.PDF, ResourceIcon.PDF,
+            new GraphicExportAction( PdfGraphicExporter.BASIC, ResourceIcon.PDF,
                                      "Save plot as a PDF file" );
         Action epsAction =
             new GraphicExportAction( GraphicExporter.EPS, ResourceIcon.PRINT,
