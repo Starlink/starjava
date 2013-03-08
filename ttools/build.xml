@@ -489,8 +489,8 @@
              source="${source.version}"/>
 
     <!-- Write and compile JyStilts module source code. -->
-    <mkdir dir="${build.etc}"/>
     <echo message="Generating stilts.py"/>
+    <mkdir dir="${build.etc}"/>
     <java classname="uk.ac.starlink.ttools.build.JyStilts"
           output="${build.etc}/stilts.py"
           failonerror="yes"
@@ -502,6 +502,7 @@
 
     <!-- Write LaTeX fonts resource list. -->
     <echo message="Assembling list of LaTeX fonts"/>
+    <mkdir dir="${build.classes}/uk/ac/starlink/ttools/plot2"/>
     <java classname="uk.ac.starlink.ttools.plot.ExternalFontMapper"
           output="${build.classes}/uk/ac/starlink/ttools/plot2/latex_fonts.txt"
           failonerror="yes"
