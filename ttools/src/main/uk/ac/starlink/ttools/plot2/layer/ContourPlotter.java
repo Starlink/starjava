@@ -6,6 +6,7 @@ import java.awt.Rectangle;
 import java.util.Map;
 import java.util.Arrays;
 import java.util.logging.Logger;
+import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.DataGeom;
@@ -13,7 +14,6 @@ import uk.ac.starlink.ttools.plot2.Decal;
 import uk.ac.starlink.ttools.plot2.Drawing;
 import uk.ac.starlink.ttools.plot2.LayerOpt;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
-import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.PointCloud;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
@@ -52,7 +52,7 @@ public class ContourPlotter extends TuplePlotter<ContourStyle> {
      * Constructor.
      */
     public ContourPlotter() {
-        super( "Contour", PlotUtil.icon( "plot-contour.gif" ), new Coord[ 0 ] );
+        super( "Contour", ResourceIcon.PLOT_CONTOUR, new Coord[ 0 ] );
     }
 
     public ConfigKey[] getStyleKeys() {

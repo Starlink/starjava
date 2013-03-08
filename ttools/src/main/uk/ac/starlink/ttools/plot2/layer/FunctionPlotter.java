@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 import javax.swing.Icon;
+import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.jel.JELFunction;
 import uk.ac.starlink.ttools.plot.MarkShape;
 import uk.ac.starlink.ttools.plot.MarkStyle;
@@ -97,7 +98,7 @@ public class FunctionPlotter implements Plotter<FunctionPlotter.FunctionStyle> {
     }
 
     public Icon getPlotterIcon() {
-        return PlotUtil.icon( "fx2.gif" );
+        return ResourceIcon.PLOT_FUNCTION;
     }
 
     public boolean hasPosition() {

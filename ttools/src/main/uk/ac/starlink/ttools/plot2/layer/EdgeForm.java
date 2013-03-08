@@ -10,13 +10,13 @@ import java.util.Map;
 import javax.swing.Icon;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.plot.Pixellator;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.AuxReader;
 import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Glyph;
-import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
@@ -68,8 +68,8 @@ public class EdgeForm implements ShapeForm {
     }
 
     public Icon getFormIcon() {
-        return nEdge_ == 1 ? PlotUtil.icon( "form-link2.gif" )
-                           : PlotUtil.icon( "form-link3.gif" );
+        return nEdge_ == 1 ? ResourceIcon.FORM_LINK2
+                           : ResourceIcon.FORM_LINK3;
     }
 
     public Coord[] getExtraCoords() {

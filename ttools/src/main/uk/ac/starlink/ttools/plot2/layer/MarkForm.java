@@ -8,6 +8,7 @@ import java.awt.Rectangle;
 import java.util.HashMap;
 import java.util.Map;
 import javax.swing.Icon;
+import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.plot.MarkShape;
 import uk.ac.starlink.ttools.plot.MarkStyle;
 import uk.ac.starlink.ttools.plot.Pixellator;
@@ -45,7 +46,7 @@ public class MarkForm implements ShapeForm {
     }
 
     public Icon getFormIcon() {
-        return uk.ac.starlink.ttools.plot2.PlotUtil.icon( "form-mark.gif" );
+        return ResourceIcon.FORM_MARK;
     }
 
     public Coord[] getExtraCoords() {

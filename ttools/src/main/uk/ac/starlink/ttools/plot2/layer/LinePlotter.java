@@ -7,11 +7,11 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Stroke;
+import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.plot.MarkShape;
 import uk.ac.starlink.ttools.plot.MarkStyle;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.LayerOpt;
-import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
@@ -33,7 +33,7 @@ public class LinePlotter extends SimpleDecalPlotter<MarkStyle> {
      * Constructor.
      */
     public LinePlotter() {
-        super( "Line", PlotUtil.icon( "plot-line.gif" ), new Coord[ 0 ] );
+        super( "Line", ResourceIcon.PLOT_LINE, new Coord[ 0 ] );
     }
 
     public ConfigKey[] getStyleKeys() {

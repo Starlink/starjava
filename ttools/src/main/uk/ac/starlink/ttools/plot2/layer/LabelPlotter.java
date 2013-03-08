@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.plot.Pixellator;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.AuxScale;
@@ -17,7 +18,6 @@ import uk.ac.starlink.ttools.plot2.Drawing;
 import uk.ac.starlink.ttools.plot2.Glyph;
 import uk.ac.starlink.ttools.plot2.LayerOpt;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
-import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
@@ -51,8 +51,7 @@ public class LabelPlotter extends TuplePlotter<LabelStyle> {
      * Constructor.
      */
     public LabelPlotter() {
-        super( "Label", PlotUtil.icon( "plot-label.gif" ),
-               new Coord[] { LABEL_COORD } );
+        super( "Label", ResourceIcon.PLOT_LABEL, new Coord[] { LABEL_COORD } );
     }
 
     public ConfigKey[] getStyleKeys() {

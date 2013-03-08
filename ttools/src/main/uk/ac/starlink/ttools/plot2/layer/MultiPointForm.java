@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
 import javax.swing.Icon;
+import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.plot.ErrorMode;
 import uk.ac.starlink.ttools.plot.ErrorRenderer;
 import uk.ac.starlink.ttools.plot.Pixellator;
@@ -18,7 +19,6 @@ import uk.ac.starlink.ttools.plot2.AuxReader;
 import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Glyph;
-import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
@@ -121,8 +121,7 @@ public class MultiPointForm implements ShapeForm {
     public static MultiPointForm
                   createVectorForm( MultiPointCoordSet extraCoordSet,
                                     boolean canScale ) {
-        return new MultiPointForm( "Vector",
-                                   PlotUtil.icon( "form-vector.gif" ),
+        return new MultiPointForm( "Vector", ResourceIcon.FORM_VECTOR,
                                    extraCoordSet, canScale,
                                    StyleKeys.VECTOR_SHAPE );
     }
@@ -140,8 +139,7 @@ public class MultiPointForm implements ShapeForm {
     public static MultiPointForm
                   createEllipseForm( MultiPointCoordSet extraCoordSet,
                                      boolean canScale ) {
-        return new MultiPointForm( "Ellipse",
-                                   PlotUtil.icon( "form-ellipse2.gif" ),
+        return new MultiPointForm( "Ellipse", ResourceIcon.FORM_ELLIPSE,
                                    extraCoordSet, canScale,
                                    StyleKeys.ELLIPSE_SHAPE );
     }

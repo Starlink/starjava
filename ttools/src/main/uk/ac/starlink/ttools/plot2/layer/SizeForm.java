@@ -6,6 +6,7 @@ import java.awt.Rectangle;
 import java.util.HashMap;
 import java.util.Map;
 import javax.swing.Icon;
+import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.plot.MarkShape;
 import uk.ac.starlink.ttools.plot.MarkStyle;
 import uk.ac.starlink.ttools.plot.Range;
@@ -55,7 +56,7 @@ public class SizeForm implements ShapeForm {
     }
 
     public Icon getFormIcon() {
-        return PlotUtil.icon( "form-size.gif" );
+        return ResourceIcon.FORM_SIZE;
     }
 
     public Coord[] getExtraCoords() {

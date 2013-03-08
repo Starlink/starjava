@@ -7,7 +7,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import uk.ac.starlink.ttools.plot.PdfGraphicExporter;
 import uk.ac.starlink.ttools.plot.Picture;
 import uk.ac.starlink.ttools.plot.Range;
@@ -88,10 +87,6 @@ public class PlotUtil {
      */
     public static boolean storeFullPrecision() {
         return false;
-    }
-
-    public static Icon icon( String name ) {
-        return new ImageIcon( PlotUtil.class.getResource( "/" + name ) );
     }
 
     /**
