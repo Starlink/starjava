@@ -139,17 +139,7 @@ public class TopcatPlasticListener extends HubManager {
 
         /* Get TOPCAT icon. */
         else if ( MessageId.INFO_GETICONURL.equals( message ) ) {
-            // return "http://www.starlink.ac.uk/topcat/tc3.gif";
-
-            /* This image is currently hosted at WFAU at John Taylor's 
-             * request, since www.starlink.ac.uk was experiencing some
-             * unreliability in early 2007; this in turn was causing 
-             * long timeouts when TOPCAT was attempting to register with
-             * the AG WorkBench hub.  If/when the hub becomes more robust
-             * against this kind of problem it may make sense to return
-             * the image hosting to somewhere closer to TOPCAT's 'home'
-             * for the sake of tidiness. */
-            return "http://eurovotech.org/wfau/tc3.gif";
+            return "http://www.starlink.ac.uk/topcat/images/tc_sok.gif";
         }
 
         else if ( MessageId.INFO_GETDESCRIPTION.equals( message ) ) {
