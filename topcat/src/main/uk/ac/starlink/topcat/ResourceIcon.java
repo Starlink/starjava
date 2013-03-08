@@ -220,6 +220,11 @@ public class ResourceIcon implements Icon {
         SYNTAX = makeIcon( "syntax.gif" ),
         FOOTPRINT = makeIcon( "footprint.gif" ),
 
+        /* Plot2 icons. */
+        UP_DOWN = makeIcon( "updown8.gif" ),
+        FLOAT = makeIcon( "float1.gif" ),
+        PLOT_DATA = makeIcon( "dataplot.gif" ),
+
         /* Datanode (hierarchy browser) icons. */
         COLLAPSED = makeIcon( "handle1.gif" ),
         EXPANDED = makeIcon( "handle2.gif" ),
