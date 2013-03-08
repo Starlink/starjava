@@ -212,7 +212,12 @@ public class ExternalFontMapper extends DefaultFontMapper {
     public static void main( String[] args ) throws IOException {
         String usage = "Usage: " + ExternalFontMapper.class.getName()
                                  + " <font-zipfile> ...";
-        if ( args.length == 0 || args[ 0 ].startsWith( "-h" ) ) {
+        if ( args.length == 0 ) {
+            System.err.println( usage );
+            System.exit( 1 );
+            return;
+        }
+        if ( args[ 0 ].startsWith( "-h" ) ) {
             System.err.println( usage );
             return;
         }
