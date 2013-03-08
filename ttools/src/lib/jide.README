@@ -1,0 +1,21 @@
+The rangeslider is supplied by the JIDE Common Layer, developed by
+Jidesoft (http://www.jidesoft.com/products/oss.htm).
+
+The jide_rangeslider.jar file is derived from the distributed file
+jide-oss-3.4.5.jar but with some of the classes removed since they
+are not used by ttools.  The only part used is the rangeslider widget.
+
+The stripping was done by proguard, using the following incancation:
+
+   java -jar proguard.jar \
+        -libraryjars '<java.home>/lib/rt.jar' \
+        -injars jide-oss-3.4.5.jar \
+        -keep 'public class com.jidesoft.swing.RangeSlider {public *;}' \
+        -keep 'public class **RangeSlider** {public *;}' \
+        -outjars jide-rangeslider.jar \
+        -dontoptimize -dontobfuscate -ignorewarnings
+
+The stripping cuts it down from 1.9 to 0.5 Mb (which still seems a lot
+for a single widget).
+
+JIDE Common Layer is available under the GPL with classpath exception.
