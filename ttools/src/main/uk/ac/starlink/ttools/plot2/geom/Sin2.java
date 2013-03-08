@@ -1,4 +1,4 @@
-package uk.ac.starlink.ttools.plot2;
+package uk.ac.starlink.ttools.plot2.geom;
 
 /** This class implements the Sine (Orthographic)
  *  projection.  Note that the tangent point
@@ -11,6 +11,21 @@ import skyview.geometry.Projecter;
 import skyview.geometry.Deprojecter;
 import skyview.geometry.Transformer;
 
+/**
+ *  Sine (Orthographic) projecter implementation.
+ *
+ *  <p>This class is copied from the Skyview original class
+ *  <code>skyview.geometry.projecter.Sin</code>.
+ *  Apart from changing the name to Sin2 (which is significant since
+ *  some implementation behaviour is name-dependent), it just shuffles
+ *  the order of the coordinates so that the tangent point is
+ *  at (1,0,0) instead of (0,0,1).
+ *
+ *  @author   Tom McGlynn
+ *  @author   Mark Taylor
+ *  @see      <a href="http://skyview.gsfc.nasa.gov/"
+ *                    >http://skyview.gsfc.nasa.gov/</a>
+ */
 public final class Sin2 extends Projecter {
     
 
@@ -79,7 +94,7 @@ public final class Sin2 extends Projecter {
     
         /** Deproject a point from the plane to the sphere.
          *  @param plane a double[2] vector in the tangent plane.
-         *  @param spehre a preallocated double[3] vector.
+         *  @param sphere a preallocated double[3] vector.
          */
         public final void transform(double[] plane, double[] sphere) {
 	
