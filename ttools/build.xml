@@ -497,7 +497,19 @@
           fork="true"
           logerror="yes">
       <classpath refid="classpath"/>
-      <jvmarg value="-Djava.awt.headless=true"/>
+      <sysproperty key="java.awt.headless" value="true"/>
+    </java>
+
+    <!-- Write LaTeX fonts resource list. -->
+    <echo message="Assembling list of LaTeX fonts"/>
+    <java classname="uk.ac.starlink.ttools.plot.ExternalFontMapper"
+          output="${build.classes}/uk/ac/starlink/ttools/plot2/latex_fonts.txt"
+          failonerror="yes"
+          fork="true"
+          logerror="yes">
+      <classpath refid="classpath"/>
+      <sysproperty key="java.awt.headless" value="true"/>
+      <arg value="${src.jars.dir}/jlatexmath.jar"/>
     </java>
   </target>
 
