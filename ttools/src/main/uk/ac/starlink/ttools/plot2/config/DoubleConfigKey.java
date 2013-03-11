@@ -70,7 +70,7 @@ public abstract class DoubleConfigKey extends ConfigKey<Double> {
                                                  double dflt ) {
         return new DoubleConfigKey( meta, dflt ) {
             public Specifier<Double> createSpecifier() {
-                return new TextSpecifier();
+                return new TextSpecifier( this );
             }
         };
     }
@@ -120,14 +120,18 @@ public abstract class DoubleConfigKey extends ConfigKey<Double> {
     /**
      * Text field specifier for double values.
      */
-    private class TextSpecifier extends SpecifierPanel<Double> {
+    private static class TextSpecifier extends SpecifierPanel<Double> {
+        private final DoubleConfigKey key_;
         private final JTextField txtField_;
 
         /**
          * Constructor.
+         *
+         * @param  key  key on behalf of which this specifier will work
          */
-        TextSpecifier() {
+        TextSpecifier( DoubleConfigKey key ) {
             super( true );
+            key_ = key;
             txtField_ = new JTextField();
         }
 
@@ -138,7 +142,7 @@ public abstract class DoubleConfigKey extends ConfigKey<Double> {
 
         public Double getSpecifiedValue() {
             try {
-                return stringToValue( txtField_.getText() );
+                return key_.stringToValue( txtField_.getText() );
             }
             catch ( ConfigException e ) {
                 JOptionPane.showMessageDialog( txtField_, e.getMessage(),
@@ -150,7 +154,7 @@ public abstract class DoubleConfigKey extends ConfigKey<Double> {
         }
 
         public void setSpecifiedValue( Double value ) {
-            txtField_.setText( valueToString( value ) );
+            txtField_.setText( key_.valueToString( value ) );
             fireAction();
         }
     }
