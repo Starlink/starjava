@@ -113,16 +113,6 @@ public class ConfigMap {
         return map_.keySet();
     }
 
-    /**
-     * Explicitly adds the default value of a key to this map.
-     * For most purposes removing the entry is equivalent.
-     *
-     * @param  key  key
-     */
-    public <T> void putDefault( ConfigKey<T> key ) {
-        put( key, key.getDefaultValue() );
-    }
-
     @Override
     public boolean equals( Object o ) {
         return o instanceof ConfigMap
