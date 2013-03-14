@@ -124,6 +124,7 @@ import javax.swing.SwingConstants;
  */
 
 
+
 public class SSAServerTree extends JPanel  implements PropertyChangeListener {
     
     
@@ -443,7 +444,7 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
     /**
      * Add SSAServerList elements to the tree.
      *
-     * @param serverList the SSAServerList reference.
+     * @param root: the root of the tree.
      */
     private void populateTree( ServerTreeNode root )
     {      
@@ -456,6 +457,8 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
     //            name = "<>" ;
             ServerTreeNode stn = new ServerTreeNode( name  ); 
             addInfoNodes(server, stn);
+            if (stn.isSelected())
+                serverList.selectServer(server.getShortName());
             root.addsort( stn );
             
         }
@@ -463,7 +466,7 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
     }
     
     /**
-     * Add SSAServerList elements to the tree.
+     * Add SSAServerList Resource und Capability elements to the tree.
      *
      * @param serverList the SSAServerList reference.
      */
@@ -999,11 +1002,13 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
                 Object[] resources = ((BeanStarTable)table).getData();
                 for ( int i = 0; i < resources.length; i++ ) {
                     serverList.addServer( (SSAPRegResource)resources[i] );
+                    serverList.unselectServer(((SSAPRegResource)resources[i]).getShortName());
                 }
             }
            
         }
         updateTree();
+        this.firePropertyChange("changeServerlist", false, true);
     }
     
 
@@ -1176,8 +1181,15 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
     public void propertyChange(PropertyChangeEvent pvt)
     {
         serverList.addServer(addServerWindow.getResource());
+        serverList.unselectServer(addServerWindow.getResource().getShortName());
         updateTree();
     }
+    
+    // returns the serverlist
+    public SSAServerList getServerList() {
+        return serverList;
+    }
+    
 
   
     /**
@@ -1192,12 +1204,13 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
         proxyWindow.setVisible(true);
     }
     
-    private class ServerTreeNode extends DefaultMutableTreeNode {
+    public class ServerTreeNode extends DefaultMutableTreeNode {
         
  
-        ArrayList<String> tags = null;
+        protected ArrayList<String> tags = null;
        // String sortingTag="";
-        boolean isSelected = false;
+        protected boolean isSelected = false;
+        protected String accessUrl = null;
   
         public ServerTreeNode( Object o) {
             super(o);
@@ -1522,6 +1535,7 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
                 
             } // valueChanged
     } // TagsListSelectionListener
+
             
 
 }
