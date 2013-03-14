@@ -300,7 +300,7 @@ public class SpecDataFactory
         //  Only get here for guessed spectra.
         return makeGuessedSpecData( specspec, namer.getURL() );
       }
-
+    
     /**
      *  Check the format of the incoming specification and create an
      *  instance of SpecData for it.
@@ -356,6 +356,79 @@ public class SpecDataFactory
         //  Try construct an intelligent report.
         if ( impl == null ) {
             throwReport( specspec, false, guessedType );
+        }
+        return makeSpecDataFromImpl( impl, isRemote, specurl );
+    }
+
+
+    /**
+     *  Create an instance of SpecData for the given format.
+     *
+     *  @param specspec the specification of the spectrum to be
+     *                  opened (i.e. file.fits, file.sdf,
+     *                  file.fits[2], file.more.ext_1 etc.).
+     *                  
+     * @param specspec the specification of the spectrum to be
+     *                  opened (i.e. file.fits, file.sdf,
+     *                  file.fits[2], file.more.ext_1 etc.).
+     *
+     *  @return the SpecData object created from the given
+     *          specification.
+     *
+     *  @exception SplatException thrown if specification does not
+     *             specify a spectrum that can be accessed.
+     *             
+     *  @author Margarida Castro Neves (adapted for "strange" URL formats
+     *          that cannot be easily guessed, like in getdata request.) 
+     */
+    public SpecData get( String specspec, String format )
+            throws SplatException
+     {
+        SpecDataImpl impl = null;
+        boolean isRemote = false;
+        String guessedType = null;
+        URL specurl = null;
+      
+        
+        //  See what kind of specification we have.
+        try {
+            NameParser namer = new NameParser( specspec );
+            isRemote = namer.isRemote();
+     
+            specurl = namer.getURL();
+            //  Remote HDX/VOTable-like files should be downloaded by thile
+            
+            //  library. A local copy loses the basename context.
+            if ( isRemote && format.equals( "XML" ) ) {
+                impl = makeXMLSpecDataImpl( specspec, true, specurl );
+            }
+            else {
+                //  Remote plainer formats (FITS, NDF) need a local copy.
+                if ( isRemote ) {
+                    int ftype;
+                    if (format.equals("FITS"))
+                        ftype = FITS;
+                    else if (format.equals("TEXT"))
+                        ftype = TEXT;
+                    else if (format.equals("XML"))
+                        ftype = HDX;
+                    else ftype = DEFAULT;
+                    PathParser p = remoteToLocalFile( specurl, ftype  );
+                                           namer = new NameParser( p.ndfname() );                   
+                }
+                impl = makeLocalFileImpl( namer.getName(), format );
+            }
+        }
+        catch (SEDSplatException se) {
+            throw se;
+        }
+        catch (Exception e ) {
+            impl = null;
+        }
+
+        //  Try construct an intelligent report.
+        if ( impl == null ) {
+            throwReport( specspec, false, format);
         }
         return makeSpecDataFromImpl( impl, isRemote, specurl );
     }
@@ -432,12 +505,11 @@ public class SpecDataFactory
         if ( exttype.equals( "TABLE" ) || exttype.equals( "BINTABLE" ) ||
              dims == null || dims[0] == 0 ) {
             try {
+               // File specfile = new File (specspec); // MCN: trying to skip first HDU
+              //  DataSource datsrc = new FileDataSource( specfile , "1");
                 DataSource datsrc = new FileDataSource( specspec );
-                StarTable starTable =
-                    new FitsTableBuilder().makeStarTable( datsrc, true,
-                                                          storagePolicy );
-                impl = new TableSpecDataImpl( starTable, specspec,
-                                              datsrc.getURL().toString() );
+                StarTable starTable = new FitsTableBuilder().makeStarTable( datsrc, true, storagePolicy );
+                impl = new TableSpecDataImpl( starTable, specspec, datsrc.getURL().toString() );
             }
             catch (SEDSplatException se) {
                 throw se;
