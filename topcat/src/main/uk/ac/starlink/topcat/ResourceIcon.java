@@ -192,6 +192,7 @@ public class ResourceIcon implements Icon {
         SEND = makeIcon( "phone2.gif" ),
         ADD_TAB = makeIcon( "atab3.gif" ),
         REMOVE_TAB = makeIcon( "rtab3.gif" ),
+        COLORS = makeIcon( "colours2.gif" ),
         ADD_COLORS = makeIcon( "acolour1.gif" ),
         REMOVE_COLORS = makeIcon( "rcolour1.gif" ),
         NORTH = makeIcon( "north2.gif" ),
