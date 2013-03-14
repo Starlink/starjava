@@ -546,5 +546,14 @@ public class CubeSurfaceFactory
             zcrowd_ = zcrowd;
             minor_ = minor;
         }
+
+        /**
+         * Returns a 3-element array giving X, Y and Z log flags.
+         *
+         * @return   (xlog, ylog, zlog) array
+         */
+        public boolean[] getLogFlags() {
+            return new boolean[] { xlog_, ylog_, zlog_ };
+        }
     }
 }

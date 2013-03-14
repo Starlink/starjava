@@ -315,5 +315,14 @@ public class PlaneSurfaceFactory
             ycrowd_ = ycrowd;
             minor_ = minor;
         }
+
+        /**
+         * Returns a 2-element array giving X and Y log flags.
+         *
+         * @return  (xlog, ylog) array
+         */
+        public boolean[] getLogFlags() {
+            return new boolean[] { xlog_, ylog_ };
+        }
     }
 }
