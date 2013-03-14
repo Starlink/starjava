@@ -1986,17 +1986,20 @@ public class SplatBrowser
         }
         else {
               
-            try {            
-                SpecData spectrum = specDataFactory.get( props.getSpectrum(), props.getType() );
+            try {      
+                String specstr = props.getSpectrum();
+                SpecData spectrum;
+                if ( specstr.contains("REQUEST=getData"))
+                    spectrum = specDataFactory.get( props.getSpectrum(), props.getGetDataFormat() );
+                else
+                    spectrum = specDataFactory.get( props.getSpectrum(), props.getType() );
                 addSpectrum( spectrum );
                 props.apply( spectrum );
             }
             catch (SEDSplatException e) {
                 //  Could be a FITS table with an SED representation.
                 if ( props.getType() == SpecDataFactory.FITS ) {
-                    SpecData spectra[] =
-                        specDataFactory.expandFITSSED( props.getSpectrum(),
-                                                       e.getRows() );
+                    SpecData spectra[] = specDataFactory.expandFITSSED( props.getSpectrum(), e.getRows() );
                     for ( int i = 0; i < spectra.length; i++ ) {
                         addSpectrum( spectra[i] );
                         props.apply( spectra[i] );
