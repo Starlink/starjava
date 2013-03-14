@@ -132,11 +132,16 @@ class SSAMetadataParser
         InputSource inSrc=null;
         VOElement voElement = null;
 
- 
+      
         // open the URL
         try {
-           // inSrc = new InputSource( queryCon.getInputStream() );
-            inSrc = new InputSource( url.openStream() );            
+            URLConnection con =  url.openConnection();
+            
+            con.setConnectTimeout(10 * 1000); // 10 seconds
+            con.setReadTimeout(30*1000);
+            con.connect();
+            inSrc = new InputSource( con.getInputStream() );
+           // inSrc = new InputSource( url.openStream() );            
         } catch (IOException ioe) {
             if ( progressPanel != null )
                 progressPanel.logMessage( ioe.getMessage() );

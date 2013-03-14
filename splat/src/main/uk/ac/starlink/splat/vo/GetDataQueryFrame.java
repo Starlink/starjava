@@ -143,7 +143,7 @@ public class GetDataQueryFrame extends JFrame implements ActionListener {
                         }
                         minField.addActionListener(this);
                         maxField.addActionListener(this);
-                        inputPanel.add(new JLabel("["+min+".."+max+"]"));
+                     //   inputPanel.add(new JLabel("["+min+".."+max+"]"));
                         
                         queryComponents.add(minField);
                         queryComponents.add(maxField);
@@ -203,7 +203,7 @@ public class GetDataQueryFrame extends JFrame implements ActionListener {
                        cb.setSelectedItem("");
                    } else if (source.equals(submitButton)) {
                       // if ( cb.getSelectedItem().toString().length() > 0)
-                           getDataParam.put(name, cb.getSelectedItem().toString());         
+                           getDataParam.put(name, cb.getSelectedItem().toString());   
                    }
                }
                if (c instanceof JTextField) {
@@ -235,7 +235,7 @@ public class GetDataQueryFrame extends JFrame implements ActionListener {
                        } else if (limit.equals("Min")) {
                            newvalue = tf.getText()+"/"+max;
                        } 
-                       if (newvalue == "/")
+                       if (newvalue.trim().equals("/"))
                            newvalue="";
                        getDataParam.put(keyname, newvalue);    
                    }
