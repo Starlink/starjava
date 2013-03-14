@@ -265,5 +265,14 @@ public class SkySurfaceFactory
         public boolean isReflected() {
             return reflect_;
         }
+
+        /**
+         * Returns the sky system into which coordinates are projected.
+         *
+         * @return  sky view system
+         */
+        public SkySys getViewSystem() {
+            return viewSystem_;
+        }
     }
 }
