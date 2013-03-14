@@ -71,7 +71,7 @@ public class StyleKeys {
     public static final ConfigKey<Double> OPAQUE =
         DoubleConfigKey
        .createSliderKey( new ConfigMeta( "opaque", "Opaque limit" ),
-                         4, 1, 1000, true );
+                         4, 1, 10000, true );
 
     /** Config key for the opacity limit of auxiliary shaded plots. */
     public static final ConfigKey<Double> AUX_OPAQUE =
