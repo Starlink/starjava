@@ -132,7 +132,7 @@ class SSAMetadataParser
         InputSource inSrc=null;
         VOElement voElement = null;
 
- 
+      
         // open the URL
         try {
             URLConnection con =  url.openConnection();
