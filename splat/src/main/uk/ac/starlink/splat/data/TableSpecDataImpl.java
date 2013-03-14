@@ -526,6 +526,11 @@ public class TableSpecDataImpl
                 ( "Tables must contain at least two numeric columns" );
         }
 
+        if ( coordColumn == dataColumn  ) {
+            throw new SplatException
+                ( "Tables must contain at least two numeric columns" );
+        }
+
         //  No fallback for errors, just don't have any.
         errorColumn =
             TableColumnChooser.getInstance().getErrorMatch( columnInfos,
@@ -533,7 +538,8 @@ public class TableSpecDataImpl
 
         //  Find the size of the table. Limited to 2G cells.
         dims[0] = (int) starTable.getRowCount();
-
+        
+      
         //  If dims is 1, the data could be be vector cells. Allow a test for
         //  that, but we do the next part whenever we have a row.
         if ( dims[0] == 1 && row == -1 ) {
