@@ -43,9 +43,12 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 import java.net.HttpURLConnection;
 >>>>>>> further development of GET DATA functionality 
+=======
+>>>>>>> Bug fix on server selection after querying registry for updates
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -114,6 +117,11 @@ import uk.ac.starlink.splat.util.SplatCommunicator;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.Transmitter;
 import uk.ac.starlink.splat.util.Utilities;
+<<<<<<< HEAD
+=======
+import uk.ac.starlink.splat.vo.SSAServerTree.ServerTreeNode;
+//import uk.ac.starlink.splat.vo.SSAMetadataFrame.MetadataInputParameter;
+>>>>>>> Bug fix on server selection after querying registry for updates
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RowSequence;
@@ -1591,10 +1599,17 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         
         //  Create a stack of all queries to perform.
         ArrayList<SSAQuery> queryList = new ArrayList<SSAQuery>();
+<<<<<<< HEAD
         
         //serverList = tree.getServerList();
         Iterator i = slist.getIterator();
 
+=======
+        // update serverlist from servertree class
+        serverList = tree.getServerList();
+        Iterator i = serverList.getIterator();
+       
+>>>>>>> Bug fix on server selection after querying registry for updates
         SSAPRegResource server = null;
         while( i.hasNext() ) {
             server = (SSAPRegResource) i.next();
@@ -1635,7 +1650,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             
             SSAQuery ssaQuery =  new SSAQuery(queryLine);//new SSAQuery( server );
             ssaQuery.setServer( server) ; //Parameters(queryLine); // copy the query parameters to the new query
-           
+          
  /*           ssaQuery.setTargetName( objectName );
             ssaQuery.setPosition( ra, dec );
             ssaQuery.setRadius( radius );
@@ -1791,6 +1806,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
 >>>>>>> 
             // check if more parameters have been added
             // Not very nice... should think of a better way to do that
+<<<<<<< HEAD
             //     
             //String extendedQuery =metaPanel.getParamsQueryString();
            // logger.info( "Extended Query string " + extendedQuery );
@@ -1801,6 +1817,18 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                 logger.info( "Query string " + queryURL.toString() );
                 //queryURL = new URL(newURL);
            // }
+=======
+            //
+     
+            String extendedQuery = extendedQuery=metaPanel.getParamsQueryString();
+            logger.info( "Extended Query string " + extendedQuery );
+            if (extendedQuery != null && extendedQuery.length() > 0) 
+            {
+                String newURL = queryURL.toString() + extendedQuery;
+                logger.info( "Query string " + newURL );
+                queryURL = new URL(newURL);
+            }
+>>>>>>> Bug fix on server selection after querying registry for updates
             
         }   
         catch ( MalformedURLException mue ) {
@@ -1837,9 +1865,13 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
            
             con.setConnectTimeout(10 * 1000); // 10 seconds
 <<<<<<< HEAD
+<<<<<<< HEAD
             con.setReadTimeout(30*1000);
 =======
 >>>>>>> 
+=======
+            con.setReadTimeout(30*1000);
+>>>>>>> Bug fix on server selection after querying registry for updates
             con.connect();
             
             InputSource inSrc = new InputSource( con.getInputStream() );
@@ -2275,7 +2307,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
 =======
        
         
-        if ( table == null ) {
+        if ( table == null ) { 
             
             if (starJTables == null)  // avoids NPE if no results are present
                 return;
@@ -2537,6 +2569,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                 if ( ! getDataParam.isEmpty() ) {                   
                     for (String key : getDataParam.keySet()) {
                         String value = getDataParam.get(key);
+<<<<<<< HEAD
                                 if (value == null || value.length() > 0)
 <<<<<<< HEAD
                                     getDataRequest+="&"+key+"="+value;              
@@ -2547,12 +2580,16 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
            
         
 =======
+=======
+                                if (value == null || value.length() > 0) {
+>>>>>>> Bug fix on server selection after querying registry for updates
                                     try {
                                         getDataRequest+="&"+key+"="+URLEncoder.encode(value, "UTF-8");
                                     } catch (UnsupportedEncodingException e) {
                                         // TODO Auto-generated catch block
                                         e.printStackTrace();
-                                    }                                           
+                                    }                                     
+                                }
                     }
                 }
             
@@ -2676,7 +2713,13 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                                    props.setPubdidValue(rseq.getCell(pubdidcol).toString());
                                    props.setGetDataRequest(getDataRequest);
                                    props.setServerURL(starTable.getURL().toString());
+<<<<<<< HEAD
 >>>>>>> 
+=======
+                                   String format = getDataParam.get("FORMAT");
+                                   if (format != "")
+                                       props.setGetDataFormat(format);
+>>>>>>> Bug fix on server selection after querying registry for updates
                                 }
                             }
                             specList.add( props );
@@ -2758,6 +2801,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                                        props.setGetDataRequest(getDataRequest);
                                        props.setServerURL(starTable.getURL().toString());
 <<<<<<< HEAD
+<<<<<<< HEAD
                                        String format = getDataParam.get("FORMAT");
                                        if (format != "")
                                            props.setGetDataFormat(format);
@@ -2791,6 +2835,11 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                                 }
                             }
 =======
+=======
+                                       String format = getDataParam.get("FORMAT");
+                                       if (format != "")
+                                           props.setGetDataFormat(format);
+>>>>>>> Bug fix on server selection after querying registry for updates
                                     }
                                 }
 >>>>>>> 
@@ -3526,6 +3575,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
     public void propertyChange(PropertyChangeEvent pvt) //!!!!!!!!!!!!!!!!!!
     {
         // trigger a metadata update if metadata has been added
+<<<<<<< HEAD
         if (pvt.getPropertyName().equals("changeQuery")) {
             updateQueryText(); 
             String txt = "";
@@ -3536,6 +3586,13 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             updateParameters();
             metaPanel.updateUI();
         }
+=======
+        if (pvt.getPropertyName().equals("changeQuery"))
+            updateQueryText(); 
+            // update if the server list has been modifyed at ssaservertree (for example, new registry query)
+        else if (pvt.getPropertyName().equals("changeServerlist"))
+            serverList = tree.getServerList();
+>>>>>>> Bug fix on server selection after querying registry for updates
     }
     
     private void updateQueryText() {

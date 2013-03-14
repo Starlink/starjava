@@ -97,6 +97,7 @@ import uk.ac.starlink.util.gui.ProxySetupFrame;
  */
 
 
+
 public class SSAServerTree extends JPanel  implements PropertyChangeListener {
     
     
@@ -540,10 +541,16 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
             SSAPRegCapability caps[] = server.getCapabilities();
 
             ServerTreeNode stn = new ServerTreeNode( name  ); 
+<<<<<<< HEAD
                 
             addInfoNodes(server, caps[0], stn);
             if (stn.isSelected())
                  serverList.selectServer(server.getShortName());
+=======
+            addInfoNodes(server, stn);
+            if (stn.isSelected())
+                serverList.selectServer(server.getShortName());
+>>>>>>> Bug fix on server selection after querying registry for updates
             root.addsort( stn );
                  
          }
@@ -1048,6 +1055,7 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
             if ( table instanceof BeanStarTable ) {
                 Object[] resources = ((BeanStarTable)table).getData();
                 for ( int i = 0; i < resources.length; i++ ) {
+<<<<<<< HEAD
                     
                     SSAPRegResource server = (SSAPRegResource)resources[i];
                     String shortname = server.getShortName();
@@ -1075,6 +1083,10 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
                     }
                   //  serverList.addServer( (SSAPRegResource)resources[i] );
                 //    serverList.unselectServer(((SSAPRegResource)resources[i]).getShortName());
+=======
+                    serverList.addServer( (SSAPRegResource)resources[i] );
+                    serverList.unselectServer(((SSAPRegResource)resources[i]).getShortName());
+>>>>>>> Bug fix on server selection after querying registry for updates
                 }
             }
            
@@ -1408,6 +1420,10 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
         return serverList;
     }
     
+<<<<<<< HEAD
+=======
+
+>>>>>>> Bug fix on server selection after querying registry for updates
   
     /**
      * Set the proxy server and port.
@@ -1874,6 +1890,11 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
                 
             } // valueChanged
     } // TagsListSelectionListener
+<<<<<<< HEAD
+=======
+
+            
+>>>>>>> Bug fix on server selection after querying registry for updates
 
     class resizeListener extends ComponentAdapter {
         public void componentResized(ComponentEvent e) {
