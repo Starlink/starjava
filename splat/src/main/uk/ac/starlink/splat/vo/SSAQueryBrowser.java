@@ -42,7 +42,6 @@ import java.net.Authenticator;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.net.HttpURLConnection;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -112,6 +111,7 @@ import uk.ac.starlink.splat.util.SplatCommunicator;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.Transmitter;
 import uk.ac.starlink.splat.util.Utilities;
+import uk.ac.starlink.splat.vo.SSAServerTree.ServerTreeNode;
 //import uk.ac.starlink.splat.vo.SSAMetadataFrame.MetadataInputParameter;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DescribedValue;
@@ -1222,7 +1222,10 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         
         //  Create a stack of all queries to perform.
         ArrayList<SSAQuery> queryList = new ArrayList<SSAQuery>();
+        // update serverlist from servertree class
+        serverList = tree.getServerList();
         Iterator i = serverList.getIterator();
+       
         SSAPRegResource server = null;
         while( i.hasNext() ) {
             server = (SSAPRegResource) i.next();
@@ -1230,7 +1233,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             
             SSAQuery ssaQuery =  new SSAQuery(queryLine);//new SSAQuery( server );
             ssaQuery.setServer( server) ; //Parameters(queryLine); // copy the query parameters to the new query
-           
+          
  /*           ssaQuery.setTargetName( objectName );
             ssaQuery.setPosition( ra, dec );
             ssaQuery.setRadius( radius );
@@ -1347,11 +1350,8 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             // check if more parameters have been added
             // Not very nice... should think of a better way to do that
             //
-        //    if (metaFrame != null) {
-            //       String extendedQuery=metaFrame.getParamsQueryString();
-            String extendedQuery = null;
-    //        if (querystring != null)
-                extendedQuery=metaPanel.getParamsQueryString();
+     
+            String extendedQuery = extendedQuery=metaPanel.getParamsQueryString();
             logger.info( "Extended Query string " + extendedQuery );
             if (extendedQuery != null && extendedQuery.length() > 0) 
             {
@@ -1359,7 +1359,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                 logger.info( "Query string " + newURL );
                 queryURL = new URL(newURL);
             }
-            //     }
+            
         }   
         catch ( MalformedURLException mue ) {
             progressPanel.logMessage( mue.getMessage() );
@@ -1387,6 +1387,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             URLConnection con =  queryURL.openConnection();
            
             con.setConnectTimeout(10 * 1000); // 10 seconds
+            con.setReadTimeout(30*1000);
             con.connect();
             
             InputSource inSrc = new InputSource( con.getInputStream() );
@@ -1620,7 +1621,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
      
        
         
-        if ( table == null ) {
+        if ( table == null ) { 
             
             if (starJTables == null)  // avoids NPE if no results are present
                 return;
@@ -1658,6 +1659,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             URL url=null;
             try {
                  url = new URL(propList[p].getSpectrum());
+                 logger.info("Spectrum URL"+url);
             } catch (MalformedURLException mue) {
                 logger.info(mue.getMessage());
             }
@@ -1794,13 +1796,14 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                 if ( ! getDataParam.isEmpty() ) {                   
                     for (String key : getDataParam.keySet()) {
                         String value = getDataParam.get(key);
-                                if (value == null || value.length() > 0)
+                                if (value == null || value.length() > 0) {
                                     try {
                                         getDataRequest+="&"+key+"="+URLEncoder.encode(value, "UTF-8");
                                     } catch (UnsupportedEncodingException e) {
                                         // TODO Auto-generated catch block
                                         e.printStackTrace();
-                                    }                                           
+                                    }                                     
+                                }
                     }
                 }
             
@@ -1898,6 +1901,9 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                                    props.setPubdidValue(rseq.getCell(pubdidcol).toString());
                                    props.setGetDataRequest(getDataRequest);
                                    props.setServerURL(starTable.getURL().toString());
+                                   String format = getDataParam.get("FORMAT");
+                                   if (format != "")
+                                       props.setGetDataFormat(format);
                                 }
                             }
                             specList.add( props );
@@ -1972,6 +1978,9 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                                        props.setPubdidValue(rseq.getCell(pubdidcol).toString());
                                        props.setGetDataRequest(getDataRequest);
                                        props.setServerURL(starTable.getURL().toString());
+                                       String format = getDataParam.get("FORMAT");
+                                       if (format != "")
+                                           props.setGetDataFormat(format);
                                     }
                                 }
                                 specList.add( props );
@@ -2568,12 +2577,17 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
     }
 
     /**
-     * Event listener to trigger a metadata update. Triggered by SSAMetadataFrame
-     * the table has been updated
+     * Event listener 
+     * 
      */
     public void propertyChange(PropertyChangeEvent pvt)
     {
-       updateQueryText();        
+        // trigger a metadata update if metadata has been added
+        if (pvt.getPropertyName().equals("changeQuery"))
+            updateQueryText(); 
+            // update if the server list has been modifyed at ssaservertree (for example, new registry query)
+        else if (pvt.getPropertyName().equals("changeServerlist"))
+            serverList = tree.getServerList();
     }
     
     private void updateQueryText() {
@@ -2598,6 +2612,8 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
     private void addParameter() 
     {
         // check serverlist (selected servers!!)
+        // update serverlist
+        serverList = tree.getServerList();
         ArrayList<String> parameters = new ArrayList();
         Iterator srv=serverList.getIterator();
         while ( srv.hasNext() ) {
