@@ -44,7 +44,8 @@ import uk.ac.starlink.votable.VOStarTable;
  * @see <a href="http://www.ivoa.net/Documents/SIA/"
  *         >Simple Image Access Protocol</a>
  *         
- *         Adapted from uk.ac.starlink.vo.DalResultXMLFilter by Margarida Castro Neves
+ *         Adapted from uk.ac.starlink.vo.DalResultXMLFilter to recognise tables with 
+ *         name = "getDataMeta" by Margarida Castro Neves
  */
 public class DalResourceXMLFilter extends XMLFilterImpl {
 
