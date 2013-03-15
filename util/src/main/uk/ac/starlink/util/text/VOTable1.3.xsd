@@ -153,7 +153,7 @@
     content-role was previsouly restricted as: <![CDATA[
     <xs:attribute name="content-role">
       <xs:simpleType>
-        <xs:restriction base="xs:token">
+        <xs:restriction base="xs:NMTOKEN">
           <xs:enumeration value="query"/>
           <xs:enumeration value="hints"/>
           <xs:enumeration value="doc"/>
@@ -163,8 +163,8 @@
     </xs:attribute>]]>; is now a token.
     </xs:documentation></xs:annotation>
     <xs:attribute name="ID" type="xs:ID"/>
-    <xs:attribute name="content-role" type="xs:NMTOKEN"/>
-    <xs:attribute name="content-type" type="xs:NMTOKEN"/>
+    <xs:attribute name="content-role" type="xs:token"/>
+    <xs:attribute name="content-type" type="xs:token"/>
     <xs:attribute name="title" type="xs:string"/>
     <xs:attribute name="value" type="xs:string"/>
     <xs:attribute name="href" type="xs:anyURI"/>
