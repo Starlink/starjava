@@ -21,7 +21,7 @@ public class ZBufferPaperType3D extends RgbPaperType3D {
      * Constructor.
      */
     public ZBufferPaperType3D() {
-        super( "ZBuffer", true );
+        super( "ZBuffer", false );
     }
 
     protected RgbPaper3D createPaper3D( Rectangle bounds ) {
