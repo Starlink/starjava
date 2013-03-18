@@ -15467,6 +15467,8 @@ introduced since the last version:
     <li>Improve behaviour when deleting a parameter in the
         Parameter Window.</li>
     <li>Add <code>split</code> functions for string splitting.</li>
+    <li>Fixed bug in stacked line plot which caused scribbly drawing in the
+        presence of null X axis values.</li>
     </ul>
     </p>
     </dd>

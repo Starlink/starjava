@@ -535,14 +535,36 @@ public class LinesPlot extends TablePlot {
     private static int compareByX( PointData p1, PointData p2 ) {
         double x1 = p1.getPoint()[ 0 ];
         double x2 = p2.getPoint()[ 0 ];
+
+        /* Compare numerically. */
         if ( x1 < x2 ) {
             return -1;
         }
         else if ( x1 > x2 ) {
             return +1;
         }
+
+        /* If neither of those tests returns true, then either the two
+         * numbers are equal, or at least one of them is NaN.
+         * It's important to perform a consistent ordering or the sort will
+         * be ill-conditioned and the result will be indeterminate.
+         * If both are equal, come up with an ordering based on other
+         * information about the row.  If just one is NaN, behave as if
+         * NaNs are larger than all other numbers. */
         else {
-            return p2.hashCode() - p1.hashCode();
+            boolean nan1 = Double.isNaN( x1 );
+            boolean nan2 = Double.isNaN( x2 );
+            if ( x1 == x2 || nan1 && nan2 ) {
+                return System.identityHashCode( p2 )
+                     - System.identityHashCode( p1 );
+            }
+            else if ( nan1 ) {
+                return +1;
+            }
+            else {
+                assert nan2;
+                return -1;
+            }
         }
     }
 
