@@ -22,7 +22,7 @@ public class StringCoord extends SingleCoord {
 
     public Object userToStorage( Object[] userCoords ) {
         Object c = userCoords[ 0 ];
-        return c == null ? null : c.toString();
+        return c == null ? "" : c.toString();
     }
 
     /**
