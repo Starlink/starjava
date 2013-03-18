@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.swing.Icon;
+import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot.Shader;
 import uk.ac.starlink.ttools.plot.Shaders;
@@ -54,6 +55,7 @@ import uk.ac.starlink.util.IconUtils;
  */
 public abstract class ShapeMode implements ModePlotter.Mode {
     private final String name_;
+    private final Icon icon_;
     private final Coord[] extraCoords_;
 
     /**
@@ -93,16 +95,22 @@ public abstract class ShapeMode implements ModePlotter.Mode {
      * Constructor.
      *
      * @param  name  mode name
+     * @param  icon  mode icon
      * @param  extraCoords  data coordinates associated with this mode
      *                      (not positional ones)
      */
-    public ShapeMode( String name, Coord[] extraCoords ) {
+    public ShapeMode( String name, Icon icon, Coord[] extraCoords ) {
         name_ = name;
+        icon_ = icon;
         extraCoords_ = extraCoords;
     }
 
     public String getModeName() {
         return name_;
+    }
+
+    public Icon getModeIcon() {
+        return icon_;
     }
 
     /**
@@ -168,7 +176,10 @@ public abstract class ShapeMode implements ModePlotter.Mode {
          *          if that looks sensible
          */
         FlatMode( boolean transparent, int binThresh ) {
-            super( transparent ? "transparent" : "flat", new Coord[ 0 ] );
+            super( transparent ? "transparent" : "flat",
+                   transparent ? ResourceIcon.MODE_TRANSPARENT
+                               : ResourceIcon.MODE_FLAT,
+                   new Coord[ 0 ] );
             transparent_ = transparent;
             binThresh_ = binThresh;
         }
@@ -429,9 +440,10 @@ public abstract class ShapeMode implements ModePlotter.Mode {
          * Constructor.
          *
          * @param  name  mode name
+         * @param  icon  mode icon
          */
-        AbstractDensityMode( String name ) {
-            super( name, new Coord[ 0 ] );
+        AbstractDensityMode( String name, Icon icon ) {
+            super( name, icon, new Coord[ 0 ] );
         }
 
         public PlotLayer createLayer( ShapePlotter plotter,
@@ -641,7 +653,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
          * Constructor.
          */
         AutoDensityMode() {
-            super( "auto" );
+            super( "auto", ResourceIcon.MODE_AUTO );
         }
 
         public ConfigKey[] getConfigKeys() {
@@ -669,7 +681,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
          * Constructor.
          */
         CustomDensityMode() {
-            super( "density" );
+            super( "density", ResourceIcon.MODE_DENSITY );
         }
 
         public ConfigKey[] getConfigKeys() {
@@ -791,7 +803,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
          * @param   transparent   if true, allow variable transparency
          */
         AuxShadingMode( boolean transparent ) {
-            super( "aux", new Coord[] { SHADE_COORD } );
+            super( "aux", ResourceIcon.MODE_AUX, new Coord[] { SHADE_COORD } );
             transparent_ = transparent;
         }
 

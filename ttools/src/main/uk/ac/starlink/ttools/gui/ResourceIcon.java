@@ -35,6 +35,11 @@ public class ResourceIcon {
         FORM_VECTOR = readIcon( "form-vector.gif" ),
         FORM_LINK2 = readIcon( "form-link2.gif" ),
         FORM_LINK3 = readIcon( "form-link3.gif" ),
+        MODE_FLAT = readIcon( "mode-flat.gif" ),
+        MODE_AUTO = readIcon( "mode-auto.gif" ),
+        MODE_DENSITY = readIcon( "mode-density.gif" ),
+        MODE_TRANSPARENT = readIcon( "mode-transparent.gif" ),
+        MODE_AUX = readIcon( "mode-aux.gif" ),
 
         /* Placeholder and terminator. */
         DO_WHAT = readIcon( "burst.gif" );

@@ -46,6 +46,13 @@ public interface ModePlotter<S extends Style> extends Plotter<S> {
          * @return  mode name
          */
         String getModeName();
+
+        /**
+         * Returns an icon to identify this mode in the GUI.
+         *
+         * @return   mode icon
+         */
+        Icon getModeIcon();
     }
 
     /**
