@@ -228,6 +228,10 @@ public class ResourceIcon implements Icon {
         UP_DOWN = makeIcon( "updown8.gif" ),
         FLOAT = makeIcon( "float1.gif" ),
         PLOT_DATA = makeIcon( "dataplot.gif" ),
+        PLOT2_PLANE = makeIcon( "plot2plane.gif" ),
+        PLOT2_SKY = makeIcon( "plot2sky.gif" ),
+        PLOT2_CUBE = makeIcon( "plot2cube.gif" ),
+        PLOT2_SPHERE = makeIcon( "plot2sphere.gif" ),
 
         /* Datanode (hierarchy browser) icons. */
         COLLAPSED = makeIcon( "handle1.gif" ),
