@@ -189,23 +189,23 @@ public class StyleKeys {
 
     /** Config key for density shader colour map. */
     public static final ConfigKey<Shader> DENSITY_SHADER =
-        new ShaderConfigKey( new ConfigMeta( "densemap", "Density Map" ),
+        new ShaderConfigKey( new ConfigMeta( "densemap", "Map" ),
                              createDensityShaders(),
                              createDensityShaders()[ 0 ] );
 
     /** Config key for density shader subrange. */
     public static final ConfigKey<Subrange> DENSITY_SUBRANGE =
         new SubrangeConfigKey( new ConfigMeta( "densescale",
-                                               "Density Sub-range" ) );
+                                               "Sub-range" ) );
 
     /** Config key for density shader log flag. */
     public static final ConfigKey<Boolean> DENSITY_LOG =
-        new BooleanConfigKey( new ConfigMeta( "denselog", "Density Log" ),
+        new BooleanConfigKey( new ConfigMeta( "denselog", "Log" ),
                               Boolean.TRUE );
 
     /** Config key for density shader flip flag. */
     public static final ConfigKey<Boolean> DENSITY_FLIP =
-        new BooleanConfigKey( new ConfigMeta( "denseflip", "Density Flip" ),
+        new BooleanConfigKey( new ConfigMeta( "denseflip", "Flip" ),
                               Boolean.FALSE );
 
     /** Config key for sized marker scaling. */
