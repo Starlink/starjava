@@ -203,6 +203,11 @@ public class StyleKeys {
         new BooleanConfigKey( new ConfigMeta( "denselog", "Density Log" ),
                               Boolean.TRUE );
 
+    /** Config key for density shader flip flag. */
+    public static final ConfigKey<Boolean> DENSITY_FLIP =
+        new BooleanConfigKey( new ConfigMeta( "denseflip", "Density Flip" ),
+                              Boolean.FALSE );
+
     /** Config key for sized marker scaling. */
     public static final ConfigKey<Double> SCALE =
         DoubleConfigKey.createSliderKey( new ConfigMeta( "scale", "Scale" ),
@@ -357,11 +362,11 @@ public class StyleKeys {
     private static Shader[] createDensityShaders() {
         return new Shader[] {
             Shaders.invert( Shaders.SCALE_V ),
-            Shaders.invert( Shaders.LUT_HEAT ),
-            Shaders.invert( Shaders.LUT_LIGHT ),
             Shaders.invert( Shaders.LUT_PASTEL ),
             Shaders.invert( Shaders.LUT_RAINBOW ),
             Shaders.RED_BLUE,
+            Shaders.invert( Shaders.LUT_HEAT ),
+            Shaders.invert( Shaders.LUT_LIGHT ),
             Shaders.WHITE_BLACK,
             Shaders.SCALE_V,
             Shaders.SCALE_S,

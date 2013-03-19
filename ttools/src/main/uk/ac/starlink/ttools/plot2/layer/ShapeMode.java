@@ -690,6 +690,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                 StyleKeys.DENSITY_SHADER,
                 StyleKeys.DENSITY_SUBRANGE,
                 StyleKeys.DENSITY_LOG,
+                StyleKeys.DENSITY_FLIP,
             };
         }
 
@@ -698,8 +699,12 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             Shader baseShader = config.get( StyleKeys.DENSITY_SHADER );
             Subrange subrange = config.get( StyleKeys.DENSITY_SUBRANGE );
             boolean logFlag = config.get( StyleKeys.DENSITY_LOG );
+            boolean flipFlag = config.get( StyleKeys.DENSITY_FLIP );
             Shader densityShader =
                 Shaders.applyShader( baseShader, baseColor, COLOR_MAP_SIZE );
+            if ( flipFlag ) {
+                densityShader = Shaders.invert( densityShader );
+            }
             Scaling scaling = new CustomScaling( subrange, logFlag, false );
             return new DensityStamper( densityShader, scaling );
         }
