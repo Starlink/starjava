@@ -7,8 +7,10 @@ import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.PlotType;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
+import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
+import uk.ac.starlink.ttools.plot2.layer.CartesianErrorCoordSet;
 import uk.ac.starlink.ttools.plot2.layer.CartesianVectorCoordSet;
 import uk.ac.starlink.ttools.plot2.layer.ContourPlotter;
 import uk.ac.starlink.ttools.plot2.layer.EdgeForm;
@@ -66,6 +68,9 @@ public class CubePlotType implements PlotType {
             MultiPointForm
            .createVectorForm( new CartesianVectorCoordSet( axisNames_ ),
                               true ),
+            MultiPointForm
+           .createErrorForm( new CartesianErrorCoordSet( axisNames_ ),
+                             StyleKeys.ERROR_SHAPE_3D ),
             new EdgeForm( 1, dataGeoms_[ 0 ] ),
             new EdgeForm( 2, dataGeoms_[ 0 ] ),
         };

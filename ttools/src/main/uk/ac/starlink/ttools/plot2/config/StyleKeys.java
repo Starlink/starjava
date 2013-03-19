@@ -155,6 +155,21 @@ public class StyleKeys {
                                  new ErrorMode[] { ErrorMode.SYMMETRIC,
                                                    ErrorMode.SYMMETRIC } );
 
+    /** Config key for 2d error marker style. */
+    public static final MultiPointConfigKey ERROR_SHAPE_2D =
+        new MultiPointConfigKey( new ConfigMeta( "errorbar", "Error Bar" ),
+                                 ErrorRenderer.getOptions2d(),
+                                 new ErrorMode[] { ErrorMode.SYMMETRIC,
+                                                   ErrorMode.SYMMETRIC } );
+
+    /** Config key for 3d error marker style. */
+    public static final MultiPointConfigKey ERROR_SHAPE_3D =
+        new MultiPointConfigKey( new ConfigMeta( "errorbar", "Error Bar" ),
+                                 ErrorRenderer.getOptions3d(),
+                                 new ErrorMode[] { ErrorMode.SYMMETRIC,
+                                                   ErrorMode.SYMMETRIC,
+                                                   ErrorMode.SYMMETRIC } );
+
     /** Config key for aux shader colour ramp. */
     public static final ConfigKey<Shader> AUX_SHADER =
         new ShaderConfigKey( new ConfigMeta( "shader", "Shader" ),

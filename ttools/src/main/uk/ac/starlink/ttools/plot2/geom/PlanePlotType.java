@@ -7,8 +7,10 @@ import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.PlotType;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
+import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
+import uk.ac.starlink.ttools.plot2.layer.CartesianErrorCoordSet;
 import uk.ac.starlink.ttools.plot2.layer.CartesianVectorCoordSet;
 import uk.ac.starlink.ttools.plot2.layer.ContourPlotter;
 import uk.ac.starlink.ttools.plot2.layer.EdgeForm;
@@ -64,10 +66,13 @@ public class PlanePlotType implements PlotType {
             new SizeForm(),
             MultiPointForm
            .createVectorForm( new CartesianVectorCoordSet( axisNames_ ), true ),
+            MultiPointForm
+           .createErrorForm( new CartesianErrorCoordSet( axisNames_ ),
+                             StyleKeys.ERROR_SHAPE_2D ),
+            MultiPointForm
+           .createEllipseForm( new PlaneEllipseCoordSet(), true ),
             new EdgeForm( 1, dataGeoms_[ 0 ] ),
             new EdgeForm( 2, dataGeoms_[ 0 ] ),
-            MultiPointForm.createEllipseForm( new PlaneEllipseCoordSet(),
-                                              true ),
         };
         Plotter[] shapePlotters =
             ShapePlotter.createShapePlotters( forms, ShapeMode.MODES_2D );

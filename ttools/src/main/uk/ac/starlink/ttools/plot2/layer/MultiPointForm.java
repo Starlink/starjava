@@ -145,6 +145,20 @@ public class MultiPointForm implements ShapeForm {
     }
 
     /**
+     * Returns a MultiPointForm for drawing error bars.
+     *
+     * @param  extraCoordSet  coord set specifying error bar position endpoints
+     * @param  rendererKey   config key for specifying error renderers
+     * @return  new error form instance
+     */
+    public static MultiPointForm
+                  createErrorForm( MultiPointCoordSet extraCoordSet,
+                                   MultiPointConfigKey rendererKey ) {
+        return new MultiPointForm( "Error", ResourceIcon.FORM_ERROR,
+                                   extraCoordSet, false, rendererKey );
+    }
+
+    /**
      * Returns the column index in a tuple sequence at which the
      * extra (multi-point) coordinates start.
      *

@@ -29,7 +29,8 @@ public class MultiPointConfigKey extends OptionConfigKey<ErrorRenderer> {
      */
     public MultiPointConfigKey( ConfigMeta meta, ErrorRenderer[] renderers,
                                 ErrorMode[] modes ) {
-        super( meta, ErrorRenderer.class, renderers, renderers[ 0 ] );
+        super( meta, ErrorRenderer.class, renderers,
+               chooseDefault( renderers )  );
         renderers_ = renderers;
         modes_ = modes;
     }
@@ -65,12 +66,31 @@ public class MultiPointConfigKey extends OptionConfigKey<ErrorRenderer> {
             };
         }
         JComboBox rendererComboBox =
-            MarkStyleSelectors.createErrorSelector( renderers_, renderers_[ 0 ],
+            MarkStyleSelectors.createErrorSelector( renderers_,
+                                                    getDefaultValue(),
                                                     modeSelections );
         return new ComboBoxSpecifier<ErrorRenderer>( rendererComboBox ) {
             public String stringify( ErrorRenderer value ) {
                 return valueToString( value );
             }
         };
+    }
+
+    /**
+     * Selects a sensible default from a list of renderers.
+     * It just picks the first non-blank one.
+     *
+     * @param  renderers  list of all options
+     * @return  sensible default
+     */
+    private static ErrorRenderer chooseDefault( ErrorRenderer[] renderers ) {
+        for ( int ir = 0; ir < renderers.length; ir++ ) {
+            ErrorRenderer rend = renderers[ ir ];
+            if ( rend != null && rend != ErrorRenderer.NONE ) {
+                return rend;
+            }
+        }
+        assert false;
+        return ErrorRenderer.DEFAULT;
     }
 }
