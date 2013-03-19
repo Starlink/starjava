@@ -188,6 +188,7 @@ public class ResourceIcon implements Icon {
         FINE = makeIcon( "smallpix.gif" ),
         ROUGH = makeIcon( "bigpix2.gif" ),
         AXIS_EDIT = makeIcon( "axed3.gif" ),
+        AXIS_LOCK = makeIcon( "axlock.gif" ),
         BROADCAST = makeIcon( "tx3.gif" ),
         SEND = makeIcon( "phone2.gif" ),
         ADD_TAB = makeIcon( "atab3.gif" ),
@@ -220,6 +221,8 @@ public class ResourceIcon implements Icon {
         TO_BROWSER = makeIcon( "toBrowser.gif" ),
         SYNTAX = makeIcon( "syntax.gif" ),
         FOOTPRINT = makeIcon( "footprint.gif" ),
+        ZOOM_IN = makeIcon( "mag-plus.gif" ),
+        ZOOM_OUT = makeIcon( "mag-minus.gif" ),
 
         /* Plot2 icons. */
         UP_DOWN = makeIcon( "updown8.gif" ),
