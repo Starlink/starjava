@@ -142,7 +142,7 @@ public class MarkStyleSelectors {
         private final ErrorRenderer defaultRenderer_;
         private final ErrorModeSelection[] modeSelections_;
         private List activeRendererList_;
-        private ErrorRenderer selected_;;
+        private ErrorRenderer selected_;
 
         /**
          * Constructor.
