@@ -36,12 +36,19 @@ public class ActionSpecifierPanel extends SpecifierPanel<ConfigMap> {
         baseSpecifier_ = baseSpecifier;
         final ActionListener forwarder = getActionForwarder();
 
+        /* Action to clear the map to default values. */
+        final ConfigMap clearMap = new ConfigMap();
+        for ( ConfigKey<?> key : baseSpecifier.getSpecifiedValue().keySet() ) {
+            putDefaultValue( clearMap, key );
+        }
         clearAction_ = new BasicAction( "Clear", null,
                                         "Reset values in this panel" ) {
             public void actionPerformed( ActionEvent evt ) {
-                baseSpecifier_.setSpecifiedValue( new ConfigMap() );
+                baseSpecifier_.setSpecifiedValue( clearMap );
             }
         };
+
+        /* Action to configure the plot with the currently filled in values. */
         submitAction_ = new BasicAction( "Submit", null,
                                          "Use the values in this panel "
                                        + "to configure the plot" ) {
@@ -81,5 +88,15 @@ public class ActionSpecifierPanel extends SpecifierPanel<ConfigMap> {
     
     public void setSpecifiedValue( ConfigMap config ) {
         baseSpecifier_.setSpecifiedValue( config );
+    }
+
+    /**
+     * Enters the default value for a given key into a config map.
+     *
+     * @param  map  config map
+     * @param  key  config key
+     */
+    private static <T> void putDefaultValue( ConfigMap map, ConfigKey<T> key ) {
+        map.put( key, key.getDefaultValue() );
     }
 }
