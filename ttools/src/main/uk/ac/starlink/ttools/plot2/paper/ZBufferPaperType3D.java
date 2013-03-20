@@ -21,7 +21,7 @@ public class ZBufferPaperType3D extends RgbPaperType3D {
      * Constructor.
      */
     public ZBufferPaperType3D() {
-        super( "ZBuffer", false );
+        super( "ZBuffer", true );
     }
 
     protected RgbPaper3D createPaper3D( Rectangle bounds ) {
@@ -61,7 +61,7 @@ public class ZBufferPaperType3D extends RgbPaperType3D {
             float fz = (float) dz;
             for ( pixer.start(); pixer.next(); ) {
                 int index = getPixelIndex( xoff, yoff, pixer );
-                if ( fz < zs_[ index ] ) {
+                if ( fz <= zs_[ index ] ) {
                     zs_[ index ] = fz;
                     rgbs_[ index ] = rgb;
                 }
