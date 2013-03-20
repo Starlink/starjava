@@ -433,7 +433,7 @@ public class Tick {
                     .append( "." )
                     .append( digits.substring( pexp ) );
             }
-            else if ( pexp < 0 && pexp <= -sciLimit ) {
+            else if ( pexp < 0 && pexp >= -sciLimit ) {
                 sbuf.append( "0." )
                     .append( zeros( -pexp ) )
                     .append( digits );
@@ -443,7 +443,7 @@ public class Tick {
                     .append( "." )
                     .append( digits.substring( 1 ) )
                     .append( "e" )
-                    .append( Integer.toString( pexp ) );
+                    .append( Integer.toString( pexp - 1 ) );
             }
             else {
                 assert false;
