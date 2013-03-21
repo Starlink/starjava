@@ -144,11 +144,16 @@ public class LegendControl extends TabberControl {
     public Icon getLegendIcon() {
         if ( visibleModel_.isSelected() ) {
             LegendEntry[] entries = getLegendEntries();
-            Captioner captioner =
-                StyleKeys.createCaptioner( configger_.getConfig() );
-            boolean border = borderModel_.isSelected();
-            Color bgColor = opaqueModel_.isSelected() ? Color.WHITE : null;
-            return new LegendIcon( entries, captioner, border, bgColor );
+            if ( entries.length == 0 ) {
+                return null;
+            }
+            else {
+                Captioner captioner =
+                    StyleKeys.createCaptioner( configger_.getConfig() );
+                boolean border = borderModel_.isSelected();
+                Color bgColor = opaqueModel_.isSelected() ? Color.WHITE : null;
+                return new LegendIcon( entries, captioner, border, bgColor );
+            }
         }
         else {
             return null;
