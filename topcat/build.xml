@@ -80,7 +80,7 @@
   <!-- Define the package name and current versions -->
   <property name="Name" value="TOPCAT"/>
   <property name="name" value="topcat"/>
-  <property name="version" value="3.9+"/>
+  <property name="version" value="4.0b-"/>
 
   <!-- The Java package name -->
   <property name="package.name" value="uk.ac.starlink.topcat"/>
@@ -573,13 +573,16 @@
 
     <delete file="${dist.lib.pkg}/extras.zip"/>
 
-    <signjar alias="${webstart.alias}"
-             keystore="${webstart.keystore}"
-             keypass="${webstart.keypass}"
-             storepass="${webstart.storepass}">
-      <fileset dir="${dist.lib.pkg}"
-               includes="topcat-lite.jar topcat-full.jar"/>
-    </signjar>
+    <echo message="standalone jar files not signed"/>
+    <!--
+     !   <signjar alias="${webstart.alias}"
+     !            keystore="${webstart.keystore}"
+     !            keypass="${webstart.keypass}"
+     !            storepass="${webstart.storepass}">
+     !     <fileset dir="${dist.lib.pkg}"
+     !              includes="topcat-lite.jar topcat-full.jar"/>
+     !   </signjar>
+     !-->
   </target>
 
   <!--
