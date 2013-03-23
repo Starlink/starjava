@@ -70,7 +70,6 @@ public class ResourceIcon implements Icon {
         DO_WHAT = makeIcon( "burst.gif" ),
 
         /* Adverts. */
-        TOPCAT = makeIcon( "TopCat2.gif" ),
         STARLINK = makeIcon( "starlinklogo3.gif" ),
         TABLE = makeIcon( "browser1.gif" ),
         TOPCAT_LOGO = makeIcon( "tc_sok.gif" ),
