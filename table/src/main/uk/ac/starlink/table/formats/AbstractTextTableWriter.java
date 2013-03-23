@@ -310,7 +310,7 @@ public abstract class AbstractTextTableWriter extends StreamStarTableWriter {
      *
      * @param  str  string to decode
      */
-    protected static byte[] getBytes( String str ) {
+    protected byte[] getBytes( String str ) {
 
         /* The decoding here is not that respectable (doesn't properly
          * handle Unicode), but it makes a big performance difference,
