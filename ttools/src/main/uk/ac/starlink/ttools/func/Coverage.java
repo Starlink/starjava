@@ -15,7 +15,7 @@ import uk.ac.starlink.ttools.cone.PixtoolsHealpix;
 import uk.ac.starlink.util.DataSource;
 
 /**
- * Functions related to footprints and coverage.
+ * Functions related to coverage and footprints.
  * One coverage standard is Multi-Order Coverage maps, described at
  * <a href="http://www.ivoa.net/Documents/Notes/MOC/"
  *         >http://www.ivoa.net/Documents/Notes/MOC/</a>.
@@ -23,7 +23,7 @@ import uk.ac.starlink.util.DataSource;
  * @author   Mark Taylor
  * @since    29 May 2012
  */
-public class Footprints {
+public class Coverage {
 
     private static final Map<String,HealpixMoc> mocMap_ =
         new HashMap<String,HealpixMoc>();
@@ -35,7 +35,7 @@ public class Footprints {
     /**
      * Private constructor prevents instantiation.
      */
-    private Footprints() {
+    private Coverage() {
     }
 
     /**
