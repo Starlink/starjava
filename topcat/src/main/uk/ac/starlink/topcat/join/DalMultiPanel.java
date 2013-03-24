@@ -277,9 +277,11 @@ public class DalMultiPanel extends JPanel {
 
         /* Configure footprint display toggle. */
         footprintModel_ =
-            new ToggleButtonModel( "Show Footprints", ResourceIcon.FOOTPRINT,
-                                   "Display sky footprints for service and "
-                                 + "query where available" );
+            new ToggleButtonModel( "Use Service Coverage",
+                                   ResourceIcon.FOOTPRINT,
+                                   "Use service coverage information (MOCs) "
+                                 + "where available to avoid unnecessary "
+                                 + "queries" );
         footprintModel_.setSelected( service_.hasFootprints() );
         footprintModel_.setEnabled( service_.hasFootprints() );
         footprintModel_.addChangeListener( new ChangeListener() {

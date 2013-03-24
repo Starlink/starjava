@@ -128,6 +128,13 @@ public class DalMultiWindow extends AuxWindow {
         JMenu colMenu = regPanel_.makeColumnVisibilityMenu( "Columns" );
         colMenu.setMnemonic( KeyEvent.VK_C );
         getJMenuBar().add( colMenu );
+        if ( service.hasFootprints() ) {
+            JMenu searchMenu = new JMenu( "Search" );
+            searchMenu.setMnemonic( KeyEvent.VK_S );
+            searchMenu.add( multiPanel.getFootprintModel().createMenuItem() );
+            getJMenuBar().add( searchMenu );
+        }
+        
         JMenu regMenu = new JMenu( "Registry" );
         regMenu.add( queryFactory_.getRegistrySelector()
                                   .getRegistryUpdateAction() );
