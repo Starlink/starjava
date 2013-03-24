@@ -17,8 +17,8 @@ import uk.ac.starlink.util.DataSource;
 /**
  * Functions related to coverage and footprints.
  * One coverage standard is Multi-Order Coverage maps, described at
- * <a href="http://www.ivoa.net/Documents/Notes/MOC/"
- *         >http://www.ivoa.net/Documents/Notes/MOC/</a>.
+ * <a href="http://www.ivoa.net/Documents/MOC/"
+ *         >http://www.ivoa.net/Documents/MOC/</a>.
  *
  * @author   Mark Taylor
  * @since    29 May 2012
