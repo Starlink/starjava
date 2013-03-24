@@ -11406,6 +11406,40 @@ Some services will take notice of this parameter and return narrower
 or wider tables respectively, and others will ignore it.
 </p>
 
+<p>The following item is available in the toolbar and <label>Search</label>
+menu:
+<dl>
+<dt>&IMG.FOOTPRINT; Use Service Coverage</dt>
+<dd><p>If this option is selected, then the search attempts to query
+    the service for the sky coverage it represents, if that information
+    is available.  Then it only dispatches queries for positions in the
+    input table which fall within that coverage region, since any
+    queries outside that region are bound to return an empty result.
+    Depending on the coverage, this can substantially reduce the number
+    of queries made, and hence the time taken.  If there is no overlap
+    between the input table and service coverage, the query is bound to
+    return no results at all, and the time will be reduced effectively
+    to zero.
+    </p>
+
+    <p>When in operation (i.e. when this option is selected and the
+    service provides coverage information) the coverage of the
+    service, input table and their overlap is summarised with small
+    (Mollweide equatorial) all-sky icons
+    in blue, red and magenta respectively, as in the
+    screenshot above.  This makes it easy to see the sky regions in
+    which results may be obtained, and also the amount by which
+    this option reduces useless queries.
+    </p>
+
+    <p>Currently, this option effectively works only for cone searches
+    provided by CDS's VizieR service (publisher "CDS")
+    which provide coverage information using Multi-Order Coverage maps (MOCs).
+    For non-VizieR services this option has no effect.
+    </p></dd>
+</dl>
+</p>
+
 </subsubsect>
 
 <subsubsect id="SiaMultiWindow">
