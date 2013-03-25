@@ -117,7 +117,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         ToggleButtonModel axlockModel = axisControl_.getAxisLockModel();
         surfFact_ = axisControl_.getSurfaceFactory();
         configger.addConfigger( axisControl_ );
-        ShaderControl shaderControl =
+        final ShaderControl shaderControl =
             new ShaderControl( stackModel_, configger );
         configger.addConfigger( shaderControl );
         DataStoreFactory storeFact =
@@ -154,9 +154,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         stackModel_.addPlotActionListener( plotPanel_ );
         legendControl.addActionListener( plotPanel_ );
         axisControl_.addActionListener( plotPanel_ );
-        if ( shaderControl != null ) {
-            shaderControl.addActionListener( plotPanel_ );
-        }
+        shaderControl.addActionListener( plotPanel_ );
 
         /* Arrange for user gestures (zoom, pan, click) on the plot panel
          * itself to result in appropriate actions. */
@@ -277,13 +275,27 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         /* Prepare the panel containing the user controls.  This may appear
          * either at the bottom of the plot window or floated into a
          * separate window. */
-        Control[] fixedControls = new Control[] {
-            axisControl_,
-            shaderControl,
-            legendControl,
-        };
-        ControlStackPanel stackPanel =
-            new ControlStackPanel( fixedControls, stack_ );
+        final ControlStackPanel stackPanel = new ControlStackPanel( stack_ );
+        stackPanel.addFixedControl( axisControl_ );
+        stackPanel.addFixedControl( legendControl );
+
+        /* The shader control is only visible in the stack when one of the
+         * layers is making use of it. */
+        stackModel_.addPlotActionListener( new ActionListener() {
+            boolean hasShader;
+            public void actionPerformed( ActionEvent evt ) {
+                boolean requiresShader = hasShadedLayers( readPlotLayers() );
+                if ( hasShader ^ requiresShader ) {
+                    if ( requiresShader ) {
+                        stackPanel.addFixedControl( shaderControl );
+                    }
+                    else {
+                        stackPanel.removeFixedControl( shaderControl );
+                    }
+                    hasShader = requiresShader;
+                }
+            }
+        } );
 
         /* Prepare the panel that holds the plot itself.  Blob drawing
          * is superimposed using an OverlayLayout. */
@@ -815,6 +827,23 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                                                MouseInputListener lnr ) {
         comp.addMouseListener( lnr );
         comp.addMouseMotionListener( lnr );
+    }
+
+    /**
+     * Indicates whether any of the submitted list of plot layers
+     * makes use of a colour scale.
+     *
+     * @param  layers  plot layers
+     * @return   true iff any uses an aux colour shader
+     */
+    private static boolean hasShadedLayers( PlotLayer[] layers ) {
+        for ( int il = 0; il < layers.length; il++ ) {
+            if ( layers[ il ].getAuxRangers().keySet()
+                                             .contains( AuxScale.COLOR ) ) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

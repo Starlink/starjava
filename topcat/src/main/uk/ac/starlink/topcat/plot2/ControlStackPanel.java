@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import javax.swing.DefaultListCellRenderer;
+import javax.swing.DefaultListModel;
 import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
 import javax.swing.JComponent;
@@ -32,19 +33,21 @@ import javax.swing.event.ListSelectionListener;
  */
 public class ControlStackPanel extends JPanel {
 
+    private final DefaultListModel fixListModel_;
+
     /**
      * Constructor.
      *
-     * @param  fixedControls  controls which cannot be moved or deleted
      * @param  stack   stack in which controls can be added and moved around
      */
-    public ControlStackPanel( Control[] fixedControls, ControlStack stack ) {
+    public ControlStackPanel( ControlStack stack ) {
         super( new BorderLayout() );
         JComponent holder = new JPanel( new BorderLayout() );
         holder.setMinimumSize( new Dimension( 200, 100 ) );
 
         /* Set up a list for the fixed controls. */
-        JList fixList = new JList( fixedControls );
+        fixListModel_ = new DefaultListModel();
+        JList fixList = new JList( fixListModel_ );
         fixList.setCellRenderer( new FixRenderer() );
 
         /* Set up an object which keeps track of when a control has been
@@ -76,6 +79,25 @@ public class ControlStackPanel extends JPanel {
         splitter.setResizeWeight( 0.0 );
         add( splitter );
         splitter.setDividerLocation( 120 );
+    }
+
+    /**
+     * Add a control to the fixed part of the stack.
+     * These controls cannot be reordered or (de)activated under user control.
+     *
+     * @param  control  control to add
+     */
+    public void addFixedControl( Control control ) {
+        fixListModel_.addElement( control );
+    }
+
+    /**
+     * Removes a control from the fixed part of the stack.
+     *
+     * @param  control  control previously added
+     */
+    public void removeFixedControl( Control control ) {
+        fixListModel_.removeElement( control );
     }
 
     /**
