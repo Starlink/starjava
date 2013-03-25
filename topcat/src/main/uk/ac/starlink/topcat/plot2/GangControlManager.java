@@ -65,8 +65,9 @@ public class GangControlManager implements ControlManager {
 
         /* Add a gang action which offers a unified way to access all the
          * positional plotters. */
-        actList.add( new BasicAction( "Add Table Plot", ResourceIcon.PLOT_DATA,
-                                      "Add new table plot to the stack" ) {
+        actList.add( new BasicAction( "Add Table Layer", ResourceIcon.PLOT_DATA,
+                                      "Add a new table plot layer control"
+                                    + " to the stack" ) {
             public void actionPerformed( ActionEvent evt ) {
                 stack_.addControl( createGangControl() );
             }

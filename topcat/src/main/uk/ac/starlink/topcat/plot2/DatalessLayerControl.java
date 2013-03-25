@@ -102,7 +102,8 @@ public class DatalessLayerControl<S extends Style> extends ConfigControl
 
     public static Action createStackAction( final ControlStack stack,
                                             final Plotter plotter ) {
-        Action act = new AbstractAction( plotter.getPlotterName(),
+        Action act = new AbstractAction( "Add " + plotter.getPlotterName()
+                                       + " Layer",
                                          plotter.getPlotterIcon() ) {
             public void actionPerformed( ActionEvent evt ) {
                 @SuppressWarnings( "unchecked" )
@@ -112,7 +113,8 @@ public class DatalessLayerControl<S extends Style> extends ConfigControl
             }
         };
         act.putValue( Action.SHORT_DESCRIPTION,
-                      "Add new " + plotter.getPlotterName() + " layer" );
+                      "Add a new " + plotter.getPlotterName().toLowerCase()
+                    + " layer control to the stack" );
         return act;
     }
 }

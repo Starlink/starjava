@@ -9,6 +9,7 @@ import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -30,6 +31,7 @@ import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JMenu;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.OverlayLayout;
@@ -288,28 +290,59 @@ public class StackPlotWindow<P,A> extends AuxWindow {
 
         /* Action for deleting a control from the stack. */
         Action removeAction =
-            stack_.createRemoveAction( "Remove",
-                                       "Delete the current layer control" );
+            stack_.createRemoveAction( "Remove Current Layer",
+                                       "Delete the current layer control"
+                                     + " from the stack" );
      
         /* Add actions etc to the toolbar. */
         getToolBar().add( floatModel_.createToolbarButton() );
         getToolBar().addSeparator();
+        getToolBar().add( exportAction );
         getToolBar().add( replotAction );
         getToolBar().add( resizeAction );
-        getToolBar().add( exportAction );
-        getToolBar().add( fromVisibleAction );
-        getToolBar().add( blobAction );
+        getToolBar().add( zoomInAction );
+        getToolBar().add( zoomOutAction );
         if ( axlockModel != null ) {
             getToolBar().add( axlockModel.createToolbarButton() );
         }
-        getToolBar().add( zoomInAction );
-        getToolBar().add( zoomOutAction );
+        getToolBar().add( fromVisibleAction );
+        getToolBar().add( blobAction );
         getToolBar().addSeparator();
         for ( int i = 0; i < stackActions.length; i++ ) {
             getToolBar().add( stackActions[ i ] );
         }
         getToolBar().add( removeAction );
         getToolBar().addSeparator();
+
+        /* Add actions etc to menus. */
+        JMenu exportMenu = new JMenu( "Export" );
+        exportMenu.setMnemonic( KeyEvent.VK_E );
+        exportMenu.add( exportAction );
+        getJMenuBar().add( exportMenu );
+        JMenu plotMenu = new JMenu( "Plot" );
+        plotMenu.setMnemonic( KeyEvent.VK_P );
+        plotMenu.add( replotAction );
+        plotMenu.add( resizeAction );
+        plotMenu.add( zoomInAction );
+        plotMenu.add( zoomOutAction );
+        if ( axlockModel != null ) {
+            plotMenu.add( axlockModel.createMenuItem() );
+        }
+        getJMenuBar().add( plotMenu );
+        JMenu subsetMenu = new JMenu( "Subsets" );
+        subsetMenu.setMnemonic( KeyEvent.VK_S );
+        subsetMenu.add( fromVisibleAction );
+        subsetMenu.add( blobAction );
+        getJMenuBar().add( subsetMenu );
+        JMenu layerMenu = new JMenu( "Layers" );
+        layerMenu.setMnemonic( KeyEvent.VK_L );
+        for ( int i = 0; i < stackActions.length; i++ ) {
+            layerMenu.add( stackActions[ i ] );
+        }
+        layerMenu.add( removeAction );
+        getJMenuBar().add( layerMenu );
+
+        /* Add standard help actions. */
         addHelp( name );
 
         /* Prepare the panel containing the user controls.  This may appear
