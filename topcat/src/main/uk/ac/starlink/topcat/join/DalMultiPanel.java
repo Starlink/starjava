@@ -60,11 +60,11 @@ import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.TopcatUtils;
 import uk.ac.starlink.ttools.cone.ConeErrorPolicy;
 import uk.ac.starlink.ttools.cone.ConeMatcher;
-import uk.ac.starlink.ttools.cone.ConeQueryFootprint;
+import uk.ac.starlink.ttools.cone.ConeQueryCoverage;
 import uk.ac.starlink.ttools.cone.ConeQueryRowSequence;
 import uk.ac.starlink.ttools.cone.ConeSearcher;
-import uk.ac.starlink.ttools.cone.Footprint;
-import uk.ac.starlink.ttools.cone.MocFootprint;
+import uk.ac.starlink.ttools.cone.Coverage;
+import uk.ac.starlink.ttools.cone.MocCoverage;
 import uk.ac.starlink.ttools.cone.QuerySequenceFactory;
 import uk.ac.starlink.ttools.task.TableProducer;
 import uk.ac.starlink.util.gui.ErrorDialog;
@@ -82,9 +82,9 @@ public class DalMultiPanel extends JPanel {
     private final DalMultiService service_;
     private final JProgressBar progBar_;
     private final JTextField urlField_;
-    private final FootprintView serviceFootprintView_;
-    private final FootprintView queryFootprintView_;
-    private final FootprintView overlapFootprintView_;
+    private final CoverageView serviceCoverageView_;
+    private final CoverageView queryCoverageView_;
+    private final CoverageView overlapCoverageView_;
     private final ColumnSelector raSelector_;
     private final ColumnSelector decSelector_;
     private final ColumnSelector srSelector_;
@@ -95,9 +95,9 @@ public class DalMultiPanel extends JPanel {
     private final Action stopAction_;
     private final JComponent[] components_;
     private final TopcatListener tcListener_;
-    private final ToggleButtonModel footprintModel_;
-    private Footprint lastFootprint_;
-    private URL lastFootprintUrl_;
+    private final ToggleButtonModel coverageModel_;
+    private Coverage lastCoverage_;
+    private URL lastCoverageUrl_;
     private TopcatModel tcModel_;
     private MatchWorker matchWorker_;
 
@@ -217,81 +217,81 @@ public class DalMultiPanel extends JPanel {
         main.add( modeLine );
         main.add( Box.createVerticalStrut( 5 ) );
 
-        /* Set up footprint icons. */
-        if ( service_.hasFootprints() ) {
+        /* Set up coverage icons. */
+        if ( service_.hasCoverages() ) {
 
-            /* Service footprint icon. */
-            serviceFootprintView_ =
-                new FootprintView( service_.getLabel() + " service" );
-            serviceFootprintView_.setForeground( new Color( 0x0000ff ) );
-            serviceFootprintView_.setBackground( new Color( 0xc0c0ff ) );
+            /* Service coverage icon. */
+            serviceCoverageView_ =
+                new CoverageView( service_.getLabel() + " service" );
+            serviceCoverageView_.setForeground( new Color( 0x0000ff ) );
+            serviceCoverageView_.setBackground( new Color( 0xc0c0ff ) );
             urlField_.addActionListener( new ActionListener() {
                 public void actionPerformed( ActionEvent evt ) {
-                    updateServiceFootprint();
+                    updateServiceCoverage();
                 }
             } );
             urlField_.addFocusListener( new FocusListener() {
                 public void focusLost( FocusEvent evt ) {
-                    updateServiceFootprint();
+                    updateServiceCoverage();
                 }
                 public void focusGained( FocusEvent evt ) {
                 }
             } );
             urlLine.add( Box.createHorizontalStrut( 5 ) );
-            urlLine.add( serviceFootprintView_ );
+            urlLine.add( serviceCoverageView_ );
 
-            /* Table footprint icon. */
-            queryFootprintView_ = new FootprintView( "table" );
-            queryFootprintView_.setForeground( new Color( 0xff0000 ) );
-            queryFootprintView_.setBackground( new Color( 0xffc0c0 ) );
+            /* Table coverage icon. */
+            queryCoverageView_ = new CoverageView( "table" );
+            queryCoverageView_.setForeground( new Color( 0xff0000 ) );
+            queryCoverageView_.setBackground( new Color( 0xffc0c0 ) );
             ActionListener tableListener = new ActionListener() {
                 public void actionPerformed( ActionEvent evt ) {
-                    updateQueryFootprint();
+                    updateQueryCoverage();
                 }
             };
             tableSelector.addActionListener( tableListener );
             raSelector_.addActionListener( tableListener );
             decSelector_.addActionListener( tableListener );
             srSelector_.addActionListener( tableListener );
-            tableLine.add( new ShrinkWrapper( queryFootprintView_ ) );
+            tableLine.add( new ShrinkWrapper( queryCoverageView_ ) );
             tcListener_ = new TopcatListener() {
                 public void modelChanged( TopcatEvent evt ) {
                     if ( evt.getCode() == TopcatEvent.CURRENT_SUBSET ) {
-                        updateQueryFootprint();
+                        updateQueryCoverage();
                     }
                 }
             };
 
-            /* Overlap footprint icon. */
-            overlapFootprintView_ = new FootprintView( "potential matches" );
-            overlapFootprintView_.setForeground( new Color( 0xd000d0 ) );
-            overlapFootprintView_.setBackground( new Color( 0xffc0ff ) );
-            modeLine.add( new ShrinkWrapper( overlapFootprintView_ ) );
+            /* Overlap coverage icon. */
+            overlapCoverageView_ = new CoverageView( "potential matches" );
+            overlapCoverageView_.setForeground( new Color( 0xd000d0 ) );
+            overlapCoverageView_.setBackground( new Color( 0xffc0ff ) );
+            modeLine.add( new ShrinkWrapper( overlapCoverageView_ ) );
         }
         else {
             tcListener_ = null;
-            queryFootprintView_ = null;
-            serviceFootprintView_ = null;
-            overlapFootprintView_ = null;
+            queryCoverageView_ = null;
+            serviceCoverageView_ = null;
+            overlapCoverageView_ = null;
         }
 
-        /* Configure footprint display toggle. */
-        footprintModel_ =
+        /* Configure coverage display toggle. */
+        coverageModel_ =
             new ToggleButtonModel( "Use Service Coverage",
                                    ResourceIcon.FOOTPRINT,
                                    "Use service coverage information (MOCs) "
                                  + "where available to avoid unnecessary "
                                  + "queries" );
-        footprintModel_.setSelected( service_.hasFootprints() );
-        footprintModel_.setEnabled( service_.hasFootprints() );
-        footprintModel_.addChangeListener( new ChangeListener() {
-            private boolean wasSelected_ = footprintModel_.isSelected();
+        coverageModel_.setSelected( service_.hasCoverages() );
+        coverageModel_.setEnabled( service_.hasCoverages() );
+        coverageModel_.addChangeListener( new ChangeListener() {
+            private boolean wasSelected_ = coverageModel_.isSelected();
             public void stateChanged( ChangeEvent evt ) {
-                boolean isSelected = footprintModel_.isSelected();
+                boolean isSelected = coverageModel_.isSelected();
                 if ( isSelected ^ wasSelected_ ) {
-                    updateServiceFootprint();
-                    updateQueryFootprint();
-                    updateOverlapFootprint();
+                    updateServiceCoverage();
+                    updateQueryCoverage();
+                    updateOverlapCoverage();
                     wasSelected_ = isSelected;
                 }
             }
@@ -346,40 +346,40 @@ public class DalMultiPanel extends JPanel {
     public void setServiceUrl( String url ) {
         urlField_.setText( url );
         urlField_.setCaretPosition( 0 );
-        updateServiceFootprint();
+        updateServiceCoverage();
     }
 
     /**
-     * Update the service footprint component if the currently selected
+     * Update the service coverage component if the currently selected
      * service URL has changed.
      */
-    private void updateServiceFootprint() {
-        if ( footprintModel_.isSelected() ) {
+    private void updateServiceCoverage() {
+        if ( coverageModel_.isSelected() ) {
             URL url = toUrl( urlField_.getText() );
-            if ( ( url == null && lastFootprintUrl_ != null ) ||
-                 ( url != null && ! url.equals( lastFootprintUrl_ ) ) ) {
-                Footprint fp = url == null ? null
-                                           : service_.getFootprint( url );
-                serviceFootprintView_.setFootprint( fp );
-                lastFootprintUrl_ = url;
-                updateOverlapFootprint();
+            if ( ( url == null && lastCoverageUrl_ != null ) ||
+                 ( url != null && ! url.equals( lastCoverageUrl_ ) ) ) {
+                Coverage cov = url == null ? null
+                                           : service_.getCoverage( url );
+                serviceCoverageView_.setCoverage( cov );
+                lastCoverageUrl_ = url;
+                updateOverlapCoverage();
             }
         }
         else {
-            serviceFootprintView_.setFootprint( null );
-            lastFootprintUrl_ = null;
+            serviceCoverageView_.setCoverage( null );
+            lastCoverageUrl_ = null;
         }
     }
 
     /**
-     * Update the query footprint component.
+     * Update the query coverage component.
      * Call this method if the effective selected table may have changed.
      */
-    private void updateQueryFootprint() {
-        if ( footprintModel_.isSelected() ) {
-            Footprint footprint;
+    private void updateQueryCoverage() {
+        if ( coverageModel_.isSelected() ) {
+            Coverage coverage;
             if ( tcModel_ == null ) {
-                footprint = null;
+                coverage = null;
             }
             else {
                 int[] rowMap = tcModel_.getViewModel().getRowMap();
@@ -395,38 +395,38 @@ public class DalMultiPanel extends JPanel {
                         ConeQueryRowSequence qseq =
                             qsf.createQuerySequence( table );
                         double resDeg = 1.0;
-                        footprint = new ConeQueryFootprint( qseq, resDeg );
+                        coverage = new ConeQueryCoverage( qseq, resDeg );
                     }
                     catch ( IOException e ) {
-                        footprint = null;
+                        coverage = null;
                     }
                 }
                 else {
-                    footprint = null;
+                    coverage = null;
                 }
             }
-            queryFootprintView_.setFootprint( footprint );
-            updateOverlapFootprint();
+            queryCoverageView_.setCoverage( coverage );
+            updateOverlapCoverage();
         }
         else {
-            queryFootprintView_.setFootprint( null );
+            queryCoverageView_.setCoverage( null );
         }
     }
 
     /**
-     * Update the overlap footprint component.
-     * Call this method if the query table footprint, or the service footprint,
+     * Update the overlap coverage component.
+     * Call this method if the query table coverage, or the service coverage,
      * or both, may have changed.
      */
-    private void updateOverlapFootprint() {
-        Footprint tfp = queryFootprintView_.getFootprint();
-        Footprint sfp = serviceFootprintView_.getFootprint();
-        Footprint ofp =
-            tfp instanceof MocFootprint && sfp instanceof MocFootprint
-            ? new OverlapFootprint( new MocFootprint[] { (MocFootprint) tfp,
-                                                         (MocFootprint) sfp } )
+    private void updateOverlapCoverage() {
+        Coverage tcov = queryCoverageView_.getCoverage();
+        Coverage scov = serviceCoverageView_.getCoverage();
+        Coverage ocov =
+            tcov instanceof MocCoverage && scov instanceof MocCoverage
+            ? new OverlapCoverage( new MocCoverage[] { (MocCoverage) tcov,
+                                                       (MocCoverage) scov } )
             : null;
-        overlapFootprintView_.setFootprint( ofp );
+        overlapCoverageView_.setCoverage( ocov );
     }
 
     /**
@@ -450,13 +450,13 @@ public class DalMultiPanel extends JPanel {
     }
 
     /**
-     * Returns a toggle model which controls whether footprint icons
+     * Returns a toggle model which controls whether coverage icons
      * are displayed in this panel.
      *
-     * @return   footprint display model
+     * @return   coverage display model
      */
-    public ToggleButtonModel getFootprintModel() {
-        return footprintModel_;
+    public ToggleButtonModel getCoverageModel() {
+        return coverageModel_;
     }
 
     /**
@@ -626,13 +626,13 @@ public class DalMultiPanel extends JPanel {
         /* Assemble objects based on this information. */
         ConeSearcher searcher = service_.createSearcher( serviceUrl, tfact );
         searcher = erract.adjustConeSearcher( searcher );
-        Footprint footprint = footprintModel_.isSelected()
-                            ? service_.getFootprint( serviceUrl )
-                            : null;
+        Coverage coverage = coverageModel_.isSelected()
+                          ? service_.getCoverage( serviceUrl )
+                          : null;
         DatasQuerySequenceFactory qsf =
             new DatasQuerySequenceFactory( raData, decData, srData, rowMap );
         ConeMatcher matcher =
-            mcMode.createConeMatcher( searcher, inTable, qsf, footprint,
+            mcMode.createConeMatcher( searcher, inTable, qsf, coverage,
                                       parallelism );
         ResultHandler resultHandler =
             mcMode.createResultHandler( this, tfact.getStoragePolicy(),
@@ -1064,7 +1064,7 @@ public class DalMultiPanel extends JPanel {
          * @param  inTable  input table
          * @param  qsFact   object which can produce a ConeQueryRowSequence
          *                  from the <code>inTable</code>
-         * @param  footprint  coverage footprint of coneSearcher, or null
+         * @param  coverage  coverage of coneSearcher, or null
          * @param  parallelism  number of threads to execute matches
          * @return   new cone matcher
          */
@@ -1072,7 +1072,7 @@ public class DalMultiPanel extends JPanel {
                 createConeMatcher( ConeSearcher coneSearcher,
                                    StarTable inTable,
                                    QuerySequenceFactory qsFact,
-                                   Footprint footprint, int parallelism );
+                                   Coverage coverage, int parallelism );
 
         /**
          * Constructs a ResultHandler suitable for use with this mode.
@@ -1247,11 +1247,11 @@ public class DalMultiPanel extends JPanel {
         public ConeMatcher createConeMatcher( ConeSearcher coneSearcher,
                                               StarTable inTable,
                                               QuerySequenceFactory qsFact,
-                                              Footprint footprint,
+                                              Coverage coverage,
                                               int parallelism ) {
             return
                 new ConeMatcher( coneSearcher, toProducer( inTable ), qsFact,
-                                 best_, footprint, includeBlanks_, true,
+                                 best_, coverage, includeBlanks_, true,
                                  parallelism, "*", DIST_NAME,
                                  JoinFixAction.NO_ACTION,
                                  JoinFixAction
@@ -1294,11 +1294,11 @@ public class DalMultiPanel extends JPanel {
         public ConeMatcher createConeMatcher( ConeSearcher coneSearcher,
                                               StarTable inTable,
                                               QuerySequenceFactory qsFact,
-                                              Footprint footprint,
+                                              Coverage coverage,
                                               int parallelism ) {
             return new ConeMatcher( coneSearcher,
                                     toProducer( prependIndex( inTable ) ),
-                                    qsFact, true, footprint, false, true,
+                                    qsFact, true, coverage, false, true,
                                     parallelism, INDEX_INFO.getName(), null,
                                     JoinFixAction.NO_ACTION,
                                     JoinFixAction.NO_ACTION );

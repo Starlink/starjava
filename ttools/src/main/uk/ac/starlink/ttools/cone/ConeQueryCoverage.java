@@ -7,13 +7,13 @@ import java.io.InterruptedIOException;
 import uk.ac.starlink.ttools.mode.MocMode;
 
 /**
- * Footprint implementation giving the coverage defined by a sequence of
+ * Coverage implementation giving the area defined by a sequence of
  * positional (cone search-like) queries.
  *
  * @author   Mark Taylor
  * @since    9 Jan 2012
  */
-public class ConeQueryFootprint extends MocFootprint {
+public class ConeQueryCoverage extends MocCoverage {
 
     private ConeQueryRowSequence qseq_;
     private final double resolutionDeg_;
@@ -22,10 +22,10 @@ public class ConeQueryFootprint extends MocFootprint {
      * Constructor.
      *
      * @param   qseq  defines a sequence of cone searches
-     * @param   resolutionDeg   approximate resolution of footprint in degrees
+     * @param   resolutionDeg   approximate resolution of coverage in degrees
      */
-    public ConeQueryFootprint( ConeQueryRowSequence qseq,
-                               double resolutionDeg ) {
+    public ConeQueryCoverage( ConeQueryRowSequence qseq,
+                              double resolutionDeg ) {
         super( PixtoolsHealpix.getInstance() );
         qseq_ = qseq;
         resolutionDeg_ = resolutionDeg;
@@ -128,7 +128,7 @@ public class ConeQueryFootprint extends MocFootprint {
            .createQuerySequence( new uk.ac.starlink.table.StarTableFactory()
                                 .makeStarTable( tname ) );
         long start = System.currentTimeMillis();
-        HealpixMoc moc = new ConeQueryFootprint( qseq, resDeg ).createMoc();
+        HealpixMoc moc = new ConeQueryCoverage( qseq, resDeg ).createMoc();
         long time = System.currentTimeMillis() - start;
         System.out.println( summariseMoc( moc ) );
         System.out.println( "time: " + time + " ms" );

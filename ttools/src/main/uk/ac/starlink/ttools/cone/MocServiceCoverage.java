@@ -15,7 +15,7 @@ import java.util.logging.Logger;
 import uk.ac.starlink.util.CgiQuery;
 
 /**
- * Footprint implementation which acquires footprint information by
+ * Coverage implementation which acquires state by
  * querying the MOC service operated by CDS.
  * This can take a Cone Search URL as an argument to identify the
  * target service.
@@ -29,7 +29,7 @@ import uk.ac.starlink.util.CgiQuery;
  * @author   Mark Taylor
  * @since    16 Dec 2011
  */
-public class MocServiceFootprint extends MocFootprint {
+public class MocServiceCoverage extends MocCoverage {
 
     private final URL serviceUrl_;
 
@@ -51,7 +51,7 @@ public class MocServiceFootprint extends MocFootprint {
      * @param  serviceUrl  cone search service URL as recognised by CDS MOC
      *                     service
      */
-    public MocServiceFootprint( URL serviceUrl ) {
+    public MocServiceCoverage( URL serviceUrl ) {
         super( defaultHpi_ );
         serviceUrl_ = serviceUrl;
     }
@@ -166,7 +166,7 @@ public class MocServiceFootprint extends MocFootprint {
             throw e;
         }
         catch ( Exception e ) {
-            throw (IOException) new IOException( "Footprint error" )
+            throw (IOException) new IOException( "Coverage error" )
                                .initCause( e );
         }
         finally {
@@ -179,9 +179,8 @@ public class MocServiceFootprint extends MocFootprint {
     }
 
     public static void main( String[] args ) throws IOException {
-        MocServiceFootprint fp =
-            new MocServiceFootprint( new URL( args[ 0 ] ) );
-        fp.initFootprint();
-        System.out.println( summariseMoc( fp.getMoc() ) );
+        MocServiceCoverage cov = new MocServiceCoverage( new URL( args[ 0 ] ) );
+        cov.initCoverage();
+        System.out.println( summariseMoc( cov.getMoc() ) );
     }
 }

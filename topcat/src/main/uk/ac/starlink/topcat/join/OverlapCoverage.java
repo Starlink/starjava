@@ -2,7 +2,7 @@ package uk.ac.starlink.topcat.join;
 
 import cds.moc.HealpixMoc;
 import java.io.IOException;
-import uk.ac.starlink.ttools.cone.MocFootprint;
+import uk.ac.starlink.ttools.cone.MocCoverage;
 import uk.ac.starlink.ttools.cone.PixtoolsHealpix;
 
 /**
@@ -12,31 +12,31 @@ import uk.ac.starlink.ttools.cone.PixtoolsHealpix;
  * @author   Mark Taylor
  * @since    9 Jan 2012
  */
-public class OverlapFootprint extends MocFootprint {
+public class OverlapCoverage extends MocCoverage {
 
-    private final MocFootprint[] footprints_;
+    private final MocCoverage[] coverages_;
     
     /**
      * Constructor.
-     * The supplied footprints must all be based on MOCs, there must be
+     * The supplied coverages must all be based on MOCs, there must be
      * at least one of them, and none must be null.
      *
-     * @param   footprints whose intersection defines the new footprint
+     * @param   coverages whose intersection defines the new coverage
      */
-    public OverlapFootprint( MocFootprint[] footprints ) {
+    public OverlapCoverage( MocCoverage[] coverages ) {
         super( PixtoolsHealpix.getInstance() );
-        footprints_ = footprints;
+        coverages_ = coverages;
     }
 
     @Override
     protected HealpixMoc createMoc() throws IOException {
-        MocFootprint fp0 = footprints_[ 0 ];
-        fp0.initFootprint();
-        HealpixMoc moc = fp0.getMoc();
-        for ( int i = 1; i < footprints_.length; i++ ) {
-            MocFootprint fp1 = footprints_[ i ];
-            fp1.initFootprint();
-            HealpixMoc moc1 = fp1.getMoc();
+        MocCoverage cov0 = coverages_[ 0 ];
+        cov0.initCoverage();
+        HealpixMoc moc = cov0.getMoc();
+        for ( int i = 1; i < coverages_.length; i++ ) {
+            MocCoverage cov1 = coverages_[ i ];
+            cov1.initCoverage();
+            HealpixMoc moc1 = cov1.getMoc();
             if ( moc1 == null ) {
                 return null;
             }

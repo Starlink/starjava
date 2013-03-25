@@ -7,17 +7,17 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Abstract superclass for Footprint implementations based on MOC
+ * Abstract superclass for Coverage implementations based on MOC
  * (HEALPix Multi-Order Coverage) objects.
  *
  * @author   Mark Taylor
  * @since    9 Jan 2012
  */
-public abstract class MocFootprint implements Footprint {
+public abstract class MocCoverage implements Coverage {
 
     private final HealpixImpl hpi_;
     private volatile HealpixMoc moc_;
-    private volatile Coverage coverage_;
+    private volatile Amount amount_;
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.cone" );
@@ -27,41 +27,41 @@ public abstract class MocFootprint implements Footprint {
      *
      * @param   hpi  HEALPix implementation to use for calculations
      */
-    protected MocFootprint( HealpixImpl hpi ) {
+    protected MocCoverage( HealpixImpl hpi ) {
         hpi_ = hpi;
     }
 
     /**
-     * Constructs the MOC which will define this object's footprint.
+     * Constructs the MOC which will define this object's coverage.
      * This method, which may be time-consuming, will be called a
-     * maximum of once by the {@link #initFootprint} method of
-     * {@link MocFootprint}, and should not be called by anyone else.
+     * maximum of once by the {@link #initCoverage} method of
+     * {@link MocCoverage}, and should not be called by anyone else.
      *
      * @return  new MOC defining footprint
      */
     protected abstract HealpixMoc createMoc() throws IOException;
 
-    public synchronized void initFootprint() throws IOException {
-        if ( coverage_ == null ) {
+    public synchronized void initCoverage() throws IOException {
+        if ( amount_ == null ) {
             assert moc_ == null;
             try {
                 moc_ = createMoc();
             }
             finally {
-                coverage_ = determineCoverage( moc_ );
-                assert coverage_ != null;
+                amount_ = determineAmount( moc_ );
+                assert amount_ != null;
             }
         }
     }
 
-    public Coverage getCoverage() {
-        return coverage_;
+    public Amount getAmount() {
+        return amount_;
     }
 
     public boolean discOverlaps( double alphaDeg, double deltaDeg,
                                  double radiusDeg ) {
         checkInitialised();
-        Boolean knownResult = coverage_.getKnownResult();
+        Boolean knownResult = amount_.getKnownResult();
         if ( knownResult != null ) {
             return knownResult.booleanValue();
         }
@@ -89,7 +89,7 @@ public abstract class MocFootprint implements Footprint {
      * Checks that this object is initialised, and throws an exception if not.
      */
     private void checkInitialised() {
-        if ( coverage_ == null ) {
+        if ( amount_ == null ) {
             throw new IllegalStateException( "Not initialised" );
         }
     }
@@ -102,7 +102,7 @@ public abstract class MocFootprint implements Footprint {
      */
     static String summariseMoc( HealpixMoc moc ) { 
         return new StringBuffer()
-           .append( "Coverage: " )
+           .append( "Amount: " )
            .append( (float) moc.getCoverage() )
            .append( ", " )
            .append( "Pixels: " )
@@ -114,25 +114,25 @@ public abstract class MocFootprint implements Footprint {
     }
 
     /**
-     * Returns the coverage type for a given Moc.
+     * Returns the amount category for a given Moc.
      *
      * @param   moc, may be null
-     * @return   coverage type
+     * @return   amount category
      */
-    private static Coverage determineCoverage( HealpixMoc moc ) {
+    private static Amount determineAmount( HealpixMoc moc ) {
         if ( moc == null ) {
-            return Coverage.NO_DATA;
+            return Amount.NO_DATA;
         }
         else {
             double frac = moc.getCoverage();
             if ( frac == 0 ) {
-                return Coverage.NO_SKY;
+                return Amount.NO_SKY;
             }
             else if ( frac == 1 ) {
-                return Coverage.ALL_SKY;
+                return Amount.ALL_SKY;
             }
             else {
-                return Coverage.SOME_SKY;
+                return Amount.SOME_SKY;
             }
         }
     }

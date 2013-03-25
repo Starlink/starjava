@@ -211,7 +211,7 @@ public class JdbcConer implements Coner {
         }
     }
 
-    public Footprint getFootprint( Environment env ) {
+    public Coverage getCoverage( Environment env ) {
         return null;
     }
 }

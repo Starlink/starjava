@@ -178,10 +178,10 @@ public class ConeSearchConer implements Coner {
               .createSearcher( env, url.toString(), believeEmpty, tfact );
     }
 
-    public Footprint getFootprint( Environment env ) throws TaskException {
+    public Coverage getCoverage( Environment env ) throws TaskException {
         ServiceType serviceType = serviceParam_.objectValue( env );
         URL url = urlParam_.urlValue( env );
-        return serviceType.getFootprint( url );
+        return serviceType.getCoverage( url );
     }
 
     /**
@@ -251,7 +251,7 @@ public class ConeSearchConer implements Coner {
          * @param  url  cone search service URL
          * @return  coverage footprint, or null
          */
-        abstract Footprint getFootprint( URL url );
+        abstract Coverage getCoverage( URL url );
 
         public String toString() {
             return name_;
@@ -326,8 +326,8 @@ public class ConeSearchConer implements Coner {
             };
         }
 
-        public Footprint getFootprint( URL url ) {
-            return new MocServiceFootprint( url );
+        public Coverage getCoverage( URL url ) {
+            return new MocServiceCoverage( url );
         }
     }
 
@@ -385,7 +385,7 @@ public class ConeSearchConer implements Coner {
             };
         }
 
-        public Footprint getFootprint( URL url ) {
+        public Coverage getCoverage( URL url ) {
             return null;
         }
     }
@@ -445,7 +445,7 @@ public class ConeSearchConer implements Coner {
             };
         }
 
-        public Footprint getFootprint( URL url ) {
+        public Coverage getCoverage( URL url ) {
             return null;
         }
     } 

@@ -8,7 +8,7 @@ import java.io.IOException;
  * @author   Mark Taylor
  * @since    16 Dec 2011
  */
-public interface Footprint {
+public interface Coverage {
 
     /**
      * Must be called before any of the query methods are used.
@@ -19,27 +19,27 @@ public interface Footprint {
      * Following a successful or error return of this method,
      * {@link #getCoverage} will return non-null.
      */
-    void initFootprint() throws IOException;
+    void initCoverage() throws IOException;
 
     /**
-     * Returns the footprint coverage type.
+     * Returns the amount category for coverage.
      * If the footprint is not ready for use, null is returned.
-     * In that case, {@link #initFootprint} must be called before use.
+     * In that case, {@link #initCoverage} must be called before use.
      *
-     * @return  footprint coverage
+     * @return  coverage amount category
      */
-    Coverage getCoverage();
+    Amount getAmount();
 
     /**
      * Indicates whether a given disc on the sphere overlaps, or may overlap
-     * with this footprint.  False positives are permitted.
+     * with this coverage.  False positives are permitted.
      *
      * @param  alphaDeg   central longitude in degrees
      * @param  deltaDeg   central latitude in degrees
      * @param  radiusDeg  radius in degrees
      * @return   false if the given disc definitely does not overlap
      *                 this footprint; otherwise true
-     * @throws  IllegalStateException  if <code>initFootprint</code>
+     * @throws  IllegalStateException  if <code>initCoverage</code>
      *                                 has not been called
      */
     boolean discOverlaps( double alphaDeg, double deltaDeg, double radiusDeg );
@@ -47,7 +47,7 @@ public interface Footprint {
     /**
      * Describes a type of coverage.
      */
-    public enum Coverage {
+    public enum Amount {
 
         /** No coverage data is known. */
         NO_DATA( Boolean.TRUE ),
@@ -68,13 +68,13 @@ public interface Footprint {
          *
          * @param  knownResult  fixed result value
          */
-        Coverage( Boolean knownResult ) {
+        Amount( Boolean knownResult ) {
             knownResult_ = knownResult;
         }
 
         /**
-         * Returns the single fixed answer to all footprint coverage queries.
-         * For an interesting footprint, the result is null (no fixed answer),
+         * Returns the single fixed answer to all coverage queries.
+         * For an interesting coverage, the result is null (no fixed answer),
          * but for other types a fixed value of True or False may be returned.
          *
          * @return  constant answer to footprint queries

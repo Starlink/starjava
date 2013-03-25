@@ -210,7 +210,7 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
             "</p>",
         } );
         nsideParam_.setMinimum( 1 );
-        nsideParam_.setDefault( Integer.toString( MocServiceFootprint
+        nsideParam_.setDefault( Integer.toString( MocServiceCoverage
                                                  .getServiceNside() ) );
         paramList.add( nsideParam_ );
 
@@ -367,13 +367,13 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
         TableProducer inProd = createInputProducer( env );
         ConeSearcher coneSearcher =
             erract.adjustConeSearcher( coner_.createSearcher( env, bestOnly ) );
-        final Footprint footprint;
+        final Coverage footprint;
         if ( usefootParam_.booleanValue( env ) ) {
-            footprint = coner_.getFootprint( env );
+            footprint = coner_.getCoverage( env );
             int nside = nsideParam_.intValue( env );
-            if ( nside != MocServiceFootprint.getServiceNside() ) {
+            if ( nside != MocServiceCoverage.getServiceNside() ) {
                 try {
-                    MocServiceFootprint.setServiceNside( nside );
+                    MocServiceCoverage.setServiceNside( nside );
                 }
                 catch ( IllegalArgumentException e ) {
                     throw new ParameterValueException( nsideParam_,

@@ -14,33 +14,33 @@ import java.util.logging.Logger;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
-import uk.ac.starlink.ttools.cone.Footprint;
+import uk.ac.starlink.ttools.cone.Coverage;
 
 /**
- * Small component which gives a visual representation of a coverage footprint.
+ * Small component which gives a visual representation of a coverage area.
  * This is currently a pixel-resolution Mollweide projection of of the
  * coverage.  Component foreground and background colours are used.
  *
  * @author   Mark Taylor
  * @since    5 Jan 2012
  */
-public class FootprintView extends JComponent {
+public class CoverageView extends JComponent {
 
-    private volatile Footprint footprint_;
-    private Icon fpIcon_;
+    private volatile Coverage coverage_;
+    private Icon covIcon_;
     private Object iconKey_;
     private String subject_;
-    private volatile Thread footprintThread_;
+    private volatile Thread coverageThread_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.topcat.join" );
 
     /**
-     * Constructs a footprint with subject description.
+     * Constructs a coverage with subject description.
      *
-     * @param   subject   short description of what the footprint is of,
+     * @param   subject   short description of what the coverage is of,
      *                    used in tooltip
      */
-    public FootprintView( String subject ) {
+    public CoverageView( String subject ) {
         super();
         subject_ = subject;
     }
@@ -48,42 +48,42 @@ public class FootprintView extends JComponent {
     /**
      * Constructor.
      */
-    public FootprintView() {
+    public CoverageView() {
         this( null );
     }
 
     /**
-     * Sets the footprint for this component to display.
-     * The footprint is initialised asynchronously; the initialising
-     * thread will be <code>interrrupt</code>ed if a new footprint needs
+     * Sets the coverage for this component to display.
+     * The coverage is initialised asynchronously; the initialising
+     * thread will be <code>interrrupt</code>ed if a new coverage needs
      * initialising before it's done.
      *
-     * @param  footprint  footprint for display
+     * @param  coverage  coverage for display
      */
-    public void setFootprint( final Footprint footprint ) {
-        footprint_ = footprint;
-        if ( footprint != null && footprint.getCoverage() == null ) {
-            final Thread thread = new Thread( "Footprinter" ) {
+    public void setCoverage( final Coverage coverage ) {
+        coverage_ = coverage;
+        if ( coverage != null && coverage.getAmount() == null ) {
+            final Thread thread = new Thread( "Coverager" ) {
                 public void run() {
-                    final Thread fthread = this;
-                    if ( footprint == footprint_ ) {
+                    final Thread cthread = this;
+                    if ( coverage == coverage_ ) {
                         try {
-                            footprint.initFootprint();
+                            coverage.initCoverage();
                             SwingUtilities.invokeLater( new Runnable() {
                                 public void run() {
-                                    FootprintView.this.repaint();
+                                    CoverageView.this.repaint();
                                 }
                             } );
                         }
                         catch ( IOException e ) {
-                            logger_.info( "Footprint initialization did not "
+                            logger_.info( "Coverage initialization did not "
                                         + "complete: " + e );
                         }
                         finally {
                             SwingUtilities.invokeLater( new Runnable() {
                                 public void run() {
-                                    if ( footprintThread_ == fthread ) {
-                                        footprintThread_ = null;
+                                    if ( coverageThread_ == cthread ) {
+                                        coverageThread_ = null;
                                     }
                                 }
                             } );
@@ -91,22 +91,22 @@ public class FootprintView extends JComponent {
                     }
                 }
             };
-            if ( footprintThread_ != null ) {
-                footprintThread_.interrupt();
+            if ( coverageThread_ != null ) {
+                coverageThread_.interrupt();
             }
-            footprintThread_ = thread;
+            coverageThread_ = thread;
             thread.start();
         }
         repaint();
     }
 
     /**
-     * Returns the footprint currently displayed by this component.
+     * Returns the coverage currently displayed by this component.
      *
-     * @return   footprint
+     * @return   coverage
      */
-    public Footprint getFootprint() {
-        return footprint_;
+    public Coverage getCoverage() {
+        return coverage_;
     }
 
     @Override
@@ -128,35 +128,35 @@ public class FootprintView extends JComponent {
             y -= wover / 4;
         }
         Ellipse2D orb = new Ellipse2D.Float( x, y, w, h );
-        Footprint.Coverage coverage =
-            footprint_ == null ? null : footprint_.getCoverage();
+        Coverage.Amount amount =
+            coverage_ == null ? null : coverage_.getAmount();
         Graphics2D g2 = (Graphics2D) g;
-        if ( coverage == Footprint.Coverage.ALL_SKY ) {
+        if ( amount == Coverage.Amount.ALL_SKY ) {
             g2.fill( orb );
         }
-        else if ( coverage == Footprint.Coverage.NO_SKY ) {
+        else if ( amount == Coverage.Amount.NO_SKY ) {
             Color color = g2.getColor();
             g2.setColor( getBackground() );
             g2.fill( orb );
             g2.setColor( color );
         }
-        else if ( coverage == Footprint.Coverage.SOME_SKY ) {
-            getFootprintIcon( footprint_, h ).paintIcon( this, g2, x, y );
+        else if ( amount == Coverage.Amount.SOME_SKY ) {
+            getCoverageIcon( coverage_, h ).paintIcon( this, g2, x, y );
         }
         else {
-            assert coverage == Footprint.Coverage.NO_DATA || coverage == null;
+            assert amount == Coverage.Amount.NO_DATA || amount == null;
             Color color = g2.getColor();
             g2.setColor( getBackground() );
             g2.draw( orb );
             g2.setColor( color );
         }
-        StringBuffer sbuf = new StringBuffer( "Sky footprint" );
+        StringBuffer sbuf = new StringBuffer( "Sky coverage" );
         if ( subject_ != null ) {
             sbuf.append( " for " )
                 .append( subject_ );
         }
         sbuf.append( ": " )
-            .append( coverage );
+            .append( amount );
         setToolTipText( sbuf.toString() );
     }
 
@@ -172,31 +172,30 @@ public class FootprintView extends JComponent {
     }
 
     /**
-     * Returns an icon at a given size for a given footprint object.
+     * Returns an icon at a given size for a given coverage object.
      * Some caching (the most recently-used icon) is performed.
      *
-     * @param  footprint  footprint to represent
+     * @param  coverage  coverage to represent
      * @param  height   height in pixels of icon
      */
-    private synchronized Icon getFootprintIcon( Footprint footprint,
-                                                int height ) {
+    private synchronized Icon getCoverageIcon( Coverage coverage, int height ) {
         Object iconKey =
-            Arrays.asList( new Object[] { footprint, new Integer( height ) } );
+            Arrays.asList( new Object[] { coverage, new Integer( height ) } );
         if ( ! iconKey.equals( iconKey_ ) ) {
             iconKey_ = iconKey;
-            fpIcon_ = new MollweideIcon( footprint, height );
+            covIcon_ = new MollweideIcon( coverage, height );
         }
-        return fpIcon_;
+        return covIcon_;
     }
 
     /**
-     * Icon displaying footprint coverage by colouring in covered pixels
+     * Icon displaying coverage by colouring in covered pixels
      * on a Mollweide projection of the sky.
      * Component foreground and background colours are used.
      */
     private static class MollweideIcon implements Icon {
         
-        private final Footprint footprint_;
+        private final Coverage coverage_;
         private final int nx_;
         private final int ny_;
         private final BitSet mask_;
@@ -205,11 +204,11 @@ public class FootprintView extends JComponent {
         /** 
          * Constructor.
          *
-         * @param  footprint  footprint
+         * @param  coverage  coverage
          * @param  height  icon height in pixels (width will be 2*height)
          */
-        MollweideIcon( Footprint footprint, int height ) {
-            footprint_ = footprint;
+        MollweideIcon( Coverage coverage, int height ) {
+            coverage_ = coverage;
 
             nx_ = height * 2;
             ny_ = height;
@@ -231,7 +230,7 @@ public class FootprintView extends JComponent {
              * i.e. both directions are negative of screen directions,
              * Y because screen directions increase towards the bottom, and
              * X because astronomers like it that way (as per CDS portal
-             * footprint display). */
+             * coverage display). */
             for ( int iy = 0; iy < ny_; iy++ ) {
                 double y = ( ( 2.0 * iy / ny_ ) - 1 ) * - Math.sqrt( 2 );
                 double theta = Math.asin( y * Math.sqrt( 0.5 ) );
@@ -245,8 +244,8 @@ public class FootprintView extends JComponent {
                     if ( lambda >= -Math.PI && lambda <= +Math.PI ) {
                         double alphaDeg = lambda / Math.PI * 180;
                         double deltaDeg = phi / Math.PI * 180;
-                        if ( footprint.discOverlaps( alphaDeg, deltaDeg,
-                                                     radiusDeg ) ) {
+                        if ( coverage.discOverlaps( alphaDeg, deltaDeg,
+                                                    radiusDeg ) ) {
                              mask_.set( pixIndex( ix, iy ) );
                         }
                     }
