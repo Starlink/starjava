@@ -97,6 +97,10 @@ public class Shaders {
     public static final Shader RED_BLUE =
         createInterpolationShader( "Red-Blue", Color.RED, Color.BLUE );
 
+    /** Interpolates between cyan (0) and magenta (1). */
+    public static final Shader CYAN_MAGENTA =
+        createInterpolationShader( "Cyan-Magenta", Color.CYAN, Color.MAGENTA );
+
     /** Interpolates between white (0) and black (1). */
     public static final Shader WHITE_BLACK =
         createInterpolationShader( "Greyscale", Color.WHITE, Color.BLACK );
