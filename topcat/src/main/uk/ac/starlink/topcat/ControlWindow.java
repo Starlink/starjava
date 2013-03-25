@@ -605,6 +605,7 @@ public class ControlWindow extends AuxWindow
         for ( int i = 0; i < graphicsActs_.length; i++ ) {
             graphicsMenu.add( graphicsActs_[ i ] );
         }
+        graphicsMenu.addSeparator();
         for ( int i = 0; i < plot2Acts_.length; i++ ) {
             graphicsMenu.add( plot2Acts_[ i ] );
         }

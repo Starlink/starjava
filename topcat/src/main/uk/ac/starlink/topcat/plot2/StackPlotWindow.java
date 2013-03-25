@@ -316,7 +316,13 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             getToolBar().add( floatModel.createToolbarButton() );
             getToolBar().addSeparator();
         }
-        getToolBar().add( exportAction );
+        for ( int i = 0; i < stackActions.length; i++ ) {
+            getToolBar().add( stackActions[ i ] );
+        }
+        getToolBar().add( removeAction );
+        getToolBar().addSeparator();
+        getToolBar().add( fromVisibleAction );
+        getToolBar().add( blobAction );
         getToolBar().add( replotAction );
         getToolBar().add( resizeAction );
         getToolBar().add( zoomInAction );
@@ -324,20 +330,25 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         if ( axlockModel != null ) {
             getToolBar().add( axlockModel.createToolbarButton() );
         }
-        getToolBar().add( fromVisibleAction );
-        getToolBar().add( blobAction );
-        getToolBar().addSeparator();
-        for ( int i = 0; i < stackActions.length; i++ ) {
-            getToolBar().add( stackActions[ i ] );
-        }
-        getToolBar().add( removeAction );
+        getToolBar().add( exportAction );
         getToolBar().addSeparator();
 
         /* Add actions etc to menus. */
-        JMenu exportMenu = new JMenu( "Export" );
-        exportMenu.setMnemonic( KeyEvent.VK_E );
-        exportMenu.add( exportAction );
-        getJMenuBar().add( exportMenu );
+        if ( floatModel != null ) {
+            getFileMenu().insert( floatModel.createMenuItem(), 1 );
+        }
+        JMenu layerMenu = new JMenu( "Layers" );
+        layerMenu.setMnemonic( KeyEvent.VK_L );
+        for ( int i = 0; i < stackActions.length; i++ ) {
+            layerMenu.add( stackActions[ i ] );
+        }
+        layerMenu.add( removeAction );
+        getJMenuBar().add( layerMenu );
+        JMenu subsetMenu = new JMenu( "Subsets" );
+        subsetMenu.setMnemonic( KeyEvent.VK_S );
+        subsetMenu.add( fromVisibleAction );
+        subsetMenu.add( blobAction );
+        getJMenuBar().add( subsetMenu );
         JMenu plotMenu = new JMenu( "Plot" );
         plotMenu.setMnemonic( KeyEvent.VK_P );
         plotMenu.add( replotAction );
@@ -348,18 +359,10 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             plotMenu.add( axlockModel.createMenuItem() );
         }
         getJMenuBar().add( plotMenu );
-        JMenu subsetMenu = new JMenu( "Subsets" );
-        subsetMenu.setMnemonic( KeyEvent.VK_S );
-        subsetMenu.add( fromVisibleAction );
-        subsetMenu.add( blobAction );
-        getJMenuBar().add( subsetMenu );
-        JMenu layerMenu = new JMenu( "Layers" );
-        layerMenu.setMnemonic( KeyEvent.VK_L );
-        for ( int i = 0; i < stackActions.length; i++ ) {
-            layerMenu.add( stackActions[ i ] );
-        }
-        layerMenu.add( removeAction );
-        getJMenuBar().add( layerMenu );
+        JMenu exportMenu = new JMenu( "Export" );
+        exportMenu.setMnemonic( KeyEvent.VK_E );
+        exportMenu.add( exportAction );
+        getJMenuBar().add( exportMenu );
 
         /* Add standard help actions. */
         addHelp( name );
