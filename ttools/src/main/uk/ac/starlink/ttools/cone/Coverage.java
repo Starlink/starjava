@@ -14,10 +14,10 @@ public interface Coverage {
      * Must be called before any of the query methods are used.
      * May be time consuming (it may contact an external service).
      * It is legal to call this method multiple times from the same or
-     * different threads.  If {@link #getCoverage} returns non-null,
+     * different threads.  If {@link #getAmount} returns non-null,
      * this method will return directly.
      * Following a successful or error return of this method,
-     * {@link #getCoverage} will return non-null.
+     * {@link #getAmount} will return non-null.
      */
     void initCoverage() throws IOException;
 
