@@ -216,7 +216,7 @@ public class ResourceIcon implements Icon {
         PROFILE = makeIcon( "vu-meter.gif" ),
         SYSTEM = makeIcon( "sysbrowser.gif" ),
         KEEP_OPEN = makeIcon( "tack2.gif" ),
-        LISTEN = makeIcon( "tcear3.gif" ),
+        LISTEN = makeIcon( "tcear_sok.gif" ),
         TO_BROWSER = makeIcon( "toBrowser.gif" ),
         SYNTAX = makeIcon( "syntax.gif" ),
         FOOTPRINT = makeIcon( "footprint.gif" ),
