@@ -7004,7 +7004,7 @@ grant ST/H008470/1 from the UK's Science and Technology Facilities Council
 (STFC),
 and the <webref url="http://www.g-vo.org/">GAVO</webref> project
 (BMBF Bewilligungsnummer 05A08VHA),
-and grants ST/I00176X/1 and ST/J001414/1 from STFC.
+and grants ST/H008470/1, ST/I00176X/1 and ST/J001414/1 from STFC.
 All of this support is gratefully acknowledged.
 </p>
 
@@ -7051,6 +7051,17 @@ but my thanks are especially due to the following:
 <li>David Giaretta (Starlink, RAL)</li>
 <li>Clive Page (AstroGrid, Leicester)</li>
 </ul>
+</p>
+
+<p>If you use this software in published work, the following citation
+would be appreciated:
+<blockquote>
+<webref url="http://adsabs.harvard.edu/abs/2006ASPC..351..666T"
+                                          >2006ASPC..351..666T</webref>:
+M. B. Taylor, "STILTS - A Package for Command-Line Processing of Tabular Data",
+in Astronomical Data Analysis Software and Systems XV,
+eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
+</blockquote>
 </p>
 
 </subsect>
