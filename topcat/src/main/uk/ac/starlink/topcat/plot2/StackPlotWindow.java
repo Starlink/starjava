@@ -11,9 +11,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -29,11 +26,9 @@ import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.Icon;
 import javax.swing.JComponent;
-import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JPanel;
-import javax.swing.JSplitPane;
 import javax.swing.OverlayLayout;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -93,12 +88,8 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     private final PlotPanel<P,A> plotPanel_;
     private final ControlStack stack_;
     private final ControlStackModel stackModel_;
-    private final JComponent stackPanel_;
-    private final JComponent displayPanel_;
     private final JLabel posLabel_;
     private final JLabel countLabel_;
-    private final ToggleButtonModel floatModel_;
-    private JDialog floater_;
     private static final double CLICK_ZOOM_UNIT = 1.2;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.plot2" );
@@ -262,17 +253,6 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         Action zoomInAction = new ZoomAction( true );
         Action zoomOutAction = new ZoomAction( false );
  
-        /* Prepare the action for floating the control panel. */
-        floatModel_ =
-            new ToggleButtonModel( "Float Controls", ResourceIcon.FLOAT,
-                                   "Present plot controls in a floating window "
-                                 + "rather than below the plot" );
-        floatModel_.addActionListener( new ActionListener() {
-            public void actionPerformed( ActionEvent evt ) {
-                placeControls();
-            }
-        } );
-
         /* Prepare the actions that allow the user to populate the plot
          * with data layers appropriate to this window's plot type. */
         TopcatListener tcListener = new TopcatListener() {
@@ -293,10 +273,37 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             stack_.createRemoveAction( "Remove Current Layer",
                                        "Delete the current layer control"
                                      + " from the stack" );
+
+        /* Prepare the panel containing the user controls.  This may appear
+         * either at the bottom of the plot window or floated into a
+         * separate window. */
+        Control[] fixedControls = new Control[] {
+            axisControl_,
+            shaderControl,
+            legendControl,
+        };
+        ControlStackPanel stackPanel =
+            new ControlStackPanel( fixedControls, stack_ );
+
+        /* Prepare the panel that holds the plot itself.  Blob drawing
+         * is superimposed using an OverlayLayout. */
+        JPanel displayPanel = new JPanel();
+        displayPanel.setLayout( new OverlayLayout( displayPanel ) );
+        displayPanel.add( blobPanel );
+        displayPanel.add( plotPanel_ );
+
+        /* Prepare management of floating the control stack into a separate
+         * window. */
+        FloatManager floater =
+            FloatManager
+           .createFloatManager( getMainArea(), displayPanel, stackPanel );
+        ToggleButtonModel floatModel = floater.getFloatToggle();
      
         /* Add actions etc to the toolbar. */
-        getToolBar().add( floatModel_.createToolbarButton() );
-        getToolBar().addSeparator();
+        if ( floatModel != null ) {
+            getToolBar().add( floatModel.createToolbarButton() );
+            getToolBar().addSeparator();
+        }
         getToolBar().add( exportAction );
         getToolBar().add( replotAction );
         getToolBar().add( resizeAction );
@@ -345,23 +352,6 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         /* Add standard help actions. */
         addHelp( name );
 
-        /* Prepare the panel containing the user controls.  This may appear
-         * either at the bottom of the plot window or floated into a
-         * separate window. */
-        Control[] fixedControls = new Control[] {
-            axisControl_,
-            shaderControl,
-            legendControl,
-        };
-        stackPanel_ = new ControlStackPanel( fixedControls, stack_ );
-
-        /* Prepare the panel that holds the plot itself.  Blob drawing
-         * is superimposed using an OverlayLayout. */
-        displayPanel_ = new JPanel();
-        displayPanel_.setLayout( new OverlayLayout( displayPanel_ ) );
-        displayPanel_.add( blobPanel );
-        displayPanel_.add( plotPanel_ );
-
         /* Place position and count status panels at the bottom of the
          * window. */
         JComponent statusLine = new JPanel( new GridLayout( 1, 2, 5, 0 ) );
@@ -382,59 +372,14 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         }
 
         /* Set default component dimensions. */
-        displayPanel_.setMinimumSize( new Dimension( 150, 150 ) );
-        displayPanel_.setPreferredSize( new Dimension( 500, 400 ) );
-        stackPanel_.setMinimumSize( new Dimension( 200, 100 ) );
-        stackPanel_.setPreferredSize( new Dimension( 500, 240 ) );
+        displayPanel.setMinimumSize( new Dimension( 150, 150 ) );
+        displayPanel.setPreferredSize( new Dimension( 500, 400 ) );
+        stackPanel.setMinimumSize( new Dimension( 200, 100 ) );
+        stackPanel.setPreferredSize( new Dimension( 500, 240 ) );
 
         /* Place the plot and control components. */
         getMainArea().setLayout( new BorderLayout() );
-        placeControls();
-   }
-
-   /**
-    * Places the controls in appropriate windows.
-    * They may go in the same window or in two separate windows according
-    * to whether the control panel is currently requested to be floating.
-    */
-   private void placeControls() {
-        boolean external = floatModel_.isSelected();
-        JComponent main = getMainArea();
-        main.removeAll();
-        if ( floater_ != null ) {
-            floater_.getContentPane().removeAll();
-            floater_.dispose();
-            floater_ = null;
-        }
-        if ( external ) {
-            main.add( displayPanel_ );
-
-            /* This should possibly be a JFrame rather than a JDialog.
-             * If it was a JFrame it could go under its controlling window,
-             * which might be useful for screen management.
-             * If so, I'd need to add a WindowListener to make sure that
-             * the floater closes and iconifies when the parent does.
-             * Any other Dialog behaviour I'd need to add by hand? */
-            floater_ = new JDialog( this );
-            floater_.getContentPane().setLayout( new BorderLayout() );
-            floater_.getContentPane().add( stackPanel_ );
-            floater_.pack();
-            floater_.setVisible( true );
-            floater_.addWindowListener( new WindowAdapter() {
-                public void windowClosing( WindowEvent evt ) {
-                    floatModel_.setSelected( false );
-                    placeControls();
-                }
-            } );
-        }
-        else {
-            JSplitPane splitter = new JSplitPane( JSplitPane.VERTICAL_SPLIT,
-                                                  displayPanel_, stackPanel_ );
-            splitter.setResizeWeight( 0.75 );
-            splitter.setOneTouchExpandable( true );
-            main.add( splitter, BorderLayout.CENTER );
-        }
-        main.validate();
+        floater.init();
     }
 
     @Override

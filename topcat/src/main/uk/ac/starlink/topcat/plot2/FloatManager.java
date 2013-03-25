@@ -1,0 +1,167 @@
+package uk.ac.starlink.topcat.plot2;
+
+import java.awt.BorderLayout;
+import java.awt.Dialog;
+import java.awt.Frame;
+import java.awt.Window;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JSplitPane;
+import javax.swing.SwingUtilities;
+import uk.ac.starlink.topcat.ResourceIcon;
+import uk.ac.starlink.topcat.ToggleButtonModel;
+
+/**
+ * Manages components which may either be contained in the same window,
+ * or one of which may be floated out into a separate dialogue.
+ *
+ * @author   Mark Taylor
+ * @since    25 Mar 2013
+ */
+public abstract class FloatManager {
+
+    /**
+     * Returns a toggle button model which can be used to control float status.
+     * If this manager implementation is not controlled by a toggler,
+     * the return value may be null.
+     *
+     * @return   float toggler, or null
+     */
+    public abstract ToggleButtonModel getFloatToggle();
+
+    /**
+     * Called to initialise this manager when the components are populated.
+     */
+    public abstract void init();
+
+    /**
+     * Returns an instance of this class.
+     *
+     * @param  container   containing panel which contains one or both of
+     *                     the others
+     * @param  fixedPanel  component which is always inside container
+     * @param  floatablePanel  component which may be inside container
+     *                         or may be floated out of it
+     * @return   new float manager
+     */
+    public static FloatManager createFloatManager( JComponent container,
+                                                   JComponent fixedPanel,
+                                                   JComponent floatablePanel ) {
+        return new ActionFloatManager( container, fixedPanel, floatablePanel );
+    }
+
+    /**
+     * FloatManager implemenation which is controlled by explicit
+     * toggle actions of the user.
+     */
+    private static class ActionFloatManager extends FloatManager {
+        private final JComponent container_;
+        private final JComponent fixedPanel_;
+        private final JComponent floatablePanel_;
+        private final ToggleButtonModel floatModel_;
+        private JDialog floater_;
+
+        /**
+         * Constructor.
+         *
+         * @param  container   containing panel which contains one or both of
+         *                     the others
+         * @param  fixedPanel  component which is always inside container
+         * @param  floatablePanel  component which may be inside container
+         */
+        ActionFloatManager( JComponent container, JComponent fixedPanel,
+                            JComponent floatablePanel ) {
+            container_ = container;
+            fixedPanel_ = fixedPanel;
+            floatablePanel_ = floatablePanel;
+            floatModel_ =
+                new ToggleButtonModel( "Float Controls", ResourceIcon.FLOAT,
+                                       "Present plot controls in a floating "
+                                     + "window rather than below the plot" );
+            floatModel_.addActionListener( new ActionListener() {
+                public void actionPerformed( ActionEvent evt ) {
+                    placeControls();
+                }
+            } );
+        }
+
+        @Override
+        public void init() {
+            placeControls();
+        }
+
+        @Override
+        public ToggleButtonModel getFloatToggle() {
+            return floatModel_;
+        }
+
+        /**
+         * Places the controls in appropriate windows.
+         * They may go in the same window or in two separate windows according
+         * to whether the control panel is currently requested to be floating.
+         */       
+        private void placeControls() {
+            boolean external = floatModel_.isSelected();
+            container_.removeAll();
+            if ( floater_ != null ) {
+                 floater_.getContentPane().removeAll();
+                 floater_.dispose();
+                floater_ = null;
+            }
+            if ( external ) {
+                container_.add( fixedPanel_ );
+
+                /* This should possibly be a JFrame rather than a JDialog.
+                 * If it was a JFrame it could go under its controlling window,
+                 * which might be useful for screen management.
+                 * If so, I'd need to add a WindowListener to make sure that
+                 * the floater closes and iconifies when the parent does.
+                 * Any other Dialog behaviour I'd need to add by hand? */
+                floater_ = createDialog( container_ );
+                floater_.getContentPane().setLayout( new BorderLayout() );
+                floater_.getContentPane().add( floatablePanel_ );
+                floater_.pack();
+                floater_.setVisible( true ); 
+                floater_.addWindowListener( new WindowAdapter() {
+                    public void windowClosing( WindowEvent evt ) {
+                        floatModel_.setSelected( false ); 
+                        placeControls();
+                    }
+                } );
+            }
+            else {
+                JSplitPane splitter =
+                    new JSplitPane( JSplitPane.VERTICAL_SPLIT,
+                                    fixedPanel_, floatablePanel_ );
+                splitter.setResizeWeight( 0.75 );
+                splitter.setOneTouchExpandable( true );
+                container_.add( splitter, BorderLayout.CENTER );
+            }
+            container_.validate();
+        }
+    }
+
+    /**
+     * Returns a new dialogue parented from the containing window of a given
+     * component.
+     *
+     * @param  comp   parent component
+     * @return   new dialogue
+     */
+    private static JDialog createDialog( JComponent comp ) {
+        Window win = SwingUtilities.windowForComponent( comp );
+        if ( win instanceof Frame ) {
+            return new JDialog( (Frame) win );
+        }
+        else if ( win instanceof Dialog ) {
+            return new JDialog( (Dialog) win );
+        }
+        else {
+            return new JDialog();
+        }
+    }
+}
