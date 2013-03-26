@@ -245,6 +245,25 @@ public class ResourceIcon implements Icon {
         FUNCTION_NODE = makeIcon( "fx_leaf.gif" ),
         CONSTANT_NODE = makeIcon( "c_leaf.gif" ),
 
+        /* Imports from TTOOLS. */
+        PLOT_FUNCTION = uk.ac.starlink.ttools.gui.ResourceIcon.PLOT_FUNCTION,
+        PLOT_CONTOUR = uk.ac.starlink.ttools.gui.ResourceIcon.PLOT_CONTOUR,
+        PLOT_LINE = uk.ac.starlink.ttools.gui.ResourceIcon.PLOT_LINE,
+        PLOT_LABEL = uk.ac.starlink.ttools.gui.ResourceIcon.PLOT_LABEL,
+        FORM_MARK = uk.ac.starlink.ttools.gui.ResourceIcon.FORM_MARK,
+        FORM_SIZE = uk.ac.starlink.ttools.gui.ResourceIcon.FORM_SIZE,
+        FORM_ELLIPSE = uk.ac.starlink.ttools.gui.ResourceIcon.FORM_ELLIPSE,
+        FORM_ERROR = uk.ac.starlink.ttools.gui.ResourceIcon.FORM_ERROR,
+        FORM_VECTOR = uk.ac.starlink.ttools.gui.ResourceIcon.FORM_VECTOR,
+        FORM_LINK2 = uk.ac.starlink.ttools.gui.ResourceIcon.FORM_LINK2,
+        FORM_LINK3 = uk.ac.starlink.ttools.gui.ResourceIcon.FORM_LINK3,
+        MODE_FLAT = uk.ac.starlink.ttools.gui.ResourceIcon.MODE_FLAT,
+        MODE_AUTO = uk.ac.starlink.ttools.gui.ResourceIcon.MODE_AUTO,
+        MODE_DENSITY = uk.ac.starlink.ttools.gui.ResourceIcon.MODE_DENSITY,
+        MODE_TRANSPARENT =
+                 uk.ac.starlink.ttools.gui.ResourceIcon.MODE_TRANSPARENT,
+        MODE_AUX = uk.ac.starlink.ttools.gui.ResourceIcon.MODE_AUX,
+
         /* Dummy terminator. */
         dummy = DO_WHAT;
 
