@@ -12,6 +12,7 @@ import uk.ac.starlink.ttools.plot.Styles;
 import uk.ac.starlink.ttools.plot2.PlotType;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
+import uk.ac.starlink.ttools.plot2.layer.FunctionPlotter;
 
 /**
  * Control manager that uses GangLayerControls to provide
@@ -31,7 +32,7 @@ public class GangControlManager implements ControlManager {
     private final TopcatListener tcListener_;
     private final NextSupplier nextSupplier_;
     private final Plotter[] posPlotters_;
-    private final Plotter[] datalessPlotters_;
+    private final FunctionPlotter[] functionPlotters_;
 
     /**
      * Constructor.
@@ -49,15 +50,24 @@ public class GangControlManager implements ControlManager {
 
         /* Split the list of plotters into positional and dataless ones. */
         List<Plotter> posPlotterList = new ArrayList<Plotter>();
-        List<Plotter> datalessPlotterList = new ArrayList<Plotter>();
+        List<FunctionPlotter> functionPlotterList =
+            new ArrayList<FunctionPlotter>();
         Plotter[] plotters = plotType_.getPlotters();
         for ( int i = 0; i < plotters.length; i++ ) {
             Plotter plotter = plotters[ i ];
-            ( plotter.hasPosition() ? posPlotterList
-                                    : datalessPlotterList ).add( plotter );
+            if ( plotter.hasPosition() ) {
+                posPlotterList.add( plotter );
+            }
+            else if ( plotter instanceof FunctionPlotter ) {
+                functionPlotterList.add( (FunctionPlotter) plotter );
+            }
+            else {
+                assert false;
+            }
         }
         posPlotters_ = posPlotterList.toArray( new Plotter[ 0 ] );
-        datalessPlotters_ = datalessPlotterList.toArray( new Plotter[ 0 ] );
+        functionPlotters_ =
+            functionPlotterList.toArray( new FunctionPlotter[ 0 ] );
     }
 
     public Action[] createStackActions() {
@@ -74,9 +84,9 @@ public class GangControlManager implements ControlManager {
         } );
  
         /* Add a separate action for each dataless plotter. */
-        for ( int i = 0; i < datalessPlotters_.length; i++ ) {
-            actList.add( DatalessLayerControl
-                        .createStackAction( stack_, datalessPlotters_[ i ] ) );
+        for ( int i = 0; i < functionPlotters_.length; i++ ) {
+            actList.add( FunctionLayerControl
+                        .createStackAction( stack_, functionPlotters_[ i ] ) );
         }
         return actList.toArray( new Action[ 0 ] );
     }

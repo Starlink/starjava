@@ -121,6 +121,20 @@ public class FunctionPlotter implements Plotter<FunctionPlotter.FunctionStyle> {
         };
     }
 
+    /**
+     * Returns the subset of the style keys which defines the function
+     * itself.
+     *
+     * @return   style keys for function definition
+     */
+    public ConfigKey[] getFunctionStyleKeys() {
+        return new ConfigKey[] {
+            axisKey_,
+            XNAME_KEY,
+            FEXPR_KEY,
+        };
+    }
+
     public FunctionStyle createStyle( ConfigMap config ) {
         String xname = config.get( XNAME_KEY );   
         String fexpr = config.get( FEXPR_KEY );
