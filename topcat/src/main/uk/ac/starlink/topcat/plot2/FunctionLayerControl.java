@@ -15,6 +15,7 @@ import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
 import uk.ac.starlink.ttools.plot2.config.StringConfigKey;
+import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.layer.FunctionPlotter;
 
@@ -40,7 +41,9 @@ public class FunctionLayerControl extends ConfigControl
         super( plotter.getPlotterName(), plotter.getPlotterIcon() );
         plotter_ = plotter;
         AutoConfigSpecifier legendSpecifier =
-            new AutoConfigSpecifier( new ConfigKey[] { FUNCLABEL_KEY } );
+            new AutoConfigSpecifier( new ConfigKey[] { FUNCLABEL_KEY,
+                                                       StyleKeys.SHOW_LABEL },
+                                     new ConfigKey[] { FUNCLABEL_KEY } );
         final AutoSpecifier<String> labelSpecifier =
             legendSpecifier.getAutoSpecifier( FUNCLABEL_KEY );
 
@@ -89,8 +92,9 @@ public class FunctionLayerControl extends ConfigControl
     public LegendEntry[] getLegendEntries() {
         ConfigMap config = getConfig();
         FunctionPlotter.FunctionStyle style = getFunctionStyle( config );;
+        Boolean showLabel = config.get( StyleKeys.SHOW_LABEL );
         String label = config.get( FUNCLABEL_KEY );
-        return style != null && label != null
+        return showLabel && style != null && label != null
              ? new LegendEntry[] { new LegendEntry( label, style ) }
              : new LegendEntry[ 0 ];
     }
