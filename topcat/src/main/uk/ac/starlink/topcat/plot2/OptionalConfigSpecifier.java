@@ -21,8 +21,7 @@ import uk.ac.starlink.ttools.plot2.config.SpecifierPanel;
  * be used for the result or not.  Where they are not used, the relevant
  * GUI controls are disabled.
  *
- * <p>This is quite like {@link AutoConfigSpecifier}, but not all the
- * specifiers need to have override buttons, and the override value is
+ * <p>This is quite like {@link AutoConfigSpecifier}, but the override value is
  * not reflected in the GUI.  Perhaps the two classes should be combined?
  *
  * @author   Mark Taylor
