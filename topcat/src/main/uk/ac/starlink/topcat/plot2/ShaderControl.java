@@ -86,7 +86,7 @@ public class ShaderControl extends ConfigControl {
         rangeSpecifier_.addActionListener( forwarder );
 
         addSpecifierTab( "Style", new ConfigSpecifier( SHADER_KEYS ) );
-        addSpecifierTab( "Label", axisSpecifier );
+        addSpecifierTab( "Scale", axisSpecifier );
         addSpecifierTab( "Range", rangeSpecifier_ );
     }
 
