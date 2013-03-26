@@ -245,25 +245,6 @@ public class ResourceIcon implements Icon {
         FUNCTION_NODE = makeIcon( "fx_leaf.gif" ),
         CONSTANT_NODE = makeIcon( "c_leaf.gif" ),
 
-        /* Imports from TTOOLS. */
-        PLOT_FUNCTION = uk.ac.starlink.ttools.gui.ResourceIcon.PLOT_FUNCTION,
-        PLOT_CONTOUR = uk.ac.starlink.ttools.gui.ResourceIcon.PLOT_CONTOUR,
-        PLOT_LINE = uk.ac.starlink.ttools.gui.ResourceIcon.PLOT_LINE,
-        PLOT_LABEL = uk.ac.starlink.ttools.gui.ResourceIcon.PLOT_LABEL,
-        FORM_MARK = uk.ac.starlink.ttools.gui.ResourceIcon.FORM_MARK,
-        FORM_SIZE = uk.ac.starlink.ttools.gui.ResourceIcon.FORM_SIZE,
-        FORM_ELLIPSE = uk.ac.starlink.ttools.gui.ResourceIcon.FORM_ELLIPSE,
-        FORM_ERROR = uk.ac.starlink.ttools.gui.ResourceIcon.FORM_ERROR,
-        FORM_VECTOR = uk.ac.starlink.ttools.gui.ResourceIcon.FORM_VECTOR,
-        FORM_LINK2 = uk.ac.starlink.ttools.gui.ResourceIcon.FORM_LINK2,
-        FORM_LINK3 = uk.ac.starlink.ttools.gui.ResourceIcon.FORM_LINK3,
-        MODE_FLAT = uk.ac.starlink.ttools.gui.ResourceIcon.MODE_FLAT,
-        MODE_AUTO = uk.ac.starlink.ttools.gui.ResourceIcon.MODE_AUTO,
-        MODE_DENSITY = uk.ac.starlink.ttools.gui.ResourceIcon.MODE_DENSITY,
-        MODE_TRANSPARENT =
-                 uk.ac.starlink.ttools.gui.ResourceIcon.MODE_TRANSPARENT,
-        MODE_AUX = uk.ac.starlink.ttools.gui.ResourceIcon.MODE_AUX,
-
         /* Dummy terminator. */
         dummy = DO_WHAT;
 
@@ -595,6 +576,29 @@ public class ResourceIcon implements Icon {
         nameMap.put( "HELP_SEARCH",
                      new ImageIcon( JHelp.class
                              .getResource( "plaf/basic/images/search.gif" ) ) );
+
+        /* Pull in icons from TTOOLS package. */
+        Field[] fields = uk.ac.starlink.ttools.gui.ResourceIcon.class
+                        .getDeclaredFields();
+        for ( int i = 0; i < fields.length; i++ ) {
+            Field field = fields[ i ];
+            int mods = field.getModifiers();
+            String name = field.getName();
+            if ( Icon.class.isAssignableFrom( field.getType() ) &&
+                 Modifier.isPublic( mods ) &&
+                 Modifier.isStatic( mods ) &&
+                 Modifier.isFinal( mods ) &&
+                 name.equals( name.toUpperCase() ) ) {
+                 Icon icon;
+                 try {
+                     icon = (Icon) field.get( null );
+                 }
+                 catch ( IllegalAccessException e ) {
+                     throw new AssertionError( e );
+                 }
+                 nameMap.put( name, icon );
+            }
+        }
         return nameMap;
     }
 

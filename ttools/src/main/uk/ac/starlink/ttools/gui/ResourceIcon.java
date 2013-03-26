@@ -16,7 +16,7 @@ import javax.swing.ImageIcon;
  */
 public class ResourceIcon {
 
-    public static final ImageIcon
+    public static final Icon
 
         /* MethodBrowser icons. */
         FOLDER_NODE = readIcon( "folder_node.gif" ),
@@ -57,7 +57,7 @@ public class ResourceIcon {
      *
      * @param  name  image name in this package
      */
-    private static ImageIcon readIcon( String name ) {
+    private static Icon readIcon( String name ) {
         try {
             URL url = ResourceIcon.class.getResource( name );
             if ( url == null ) {
