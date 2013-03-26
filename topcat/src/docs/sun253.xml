@@ -103,6 +103,12 @@
   <!ENTITY FIG.PairMatchSpec '&figs;PairMatchSpec.gif'>
   <!ENTITY FIG.InterMatchSpec '&figs;InterMatchSpec.gif'>
   <!ENTITY FIG.BaSTITableLoadDialog '&figs;BaSTITableLoadDialog.gif'>
+  <!ENTITY FIG.StackPlotWindow '&figs;StackPlotWindow.gif'>
+  <!ENTITY FIG.StackPlotWindow_float '&figs;StackPlotWindow_float.gif'>
+  <!ENTITY FIG.FunctionLayerControl '&figs;FunctionLayerControl.gif'>
+  <!ENTITY FIG.GangLayerControl_position '&figs;GangLayerControl_position.gif'>
+  <!ENTITY FIG.GangLayerControl_subsets '&figs;GangLayerControl_subsets.gif'>
+  <!ENTITY FIG.GangLayerControl_form '&figs;GangLayerControl_form.gif'>
 
   <!-- Define external URLs. -->
   <!ENTITY URL.VOTABLE "http://www.ivoa.net/Documents/latest/VOT.html">
@@ -268,7 +274,7 @@ read in its HTML form than on paper.
 It was initially developed within the now-terminated
 <webref url="http://www.starlink.ac.uk/">Starlink</webref> project,
 and has subsequently been supported by PPARC grant PP/D002486/1,
-<webref url="http://eurovotech.org/">VOTech</webref>,
+<webref url="http://www.eurovotc.org/">VOTech</webref>,
 <webref url="http://www.astrogrid.org/">AstroGrid</webref>,
 <webref url="http://cds.u-strasbg.fr/twikiAIDA/bin/view/EuroVOAIDA/WebHome"
         >AIDA</webref>,
@@ -6230,7 +6236,7 @@ are described in the later subsections.
 </p>
 
 <p>These visualisation windows are fairly sophisticated, and the plots 
-can exported to vector (EPS) or image (GIF, JPEG, PNG) files for 
+can exported to vector (PDF, EPS) or image (GIF, JPEG, PNG) files for 
 later presentation (see <ref id="exportGraphics"/>).
 However, at least at present, TOPCAT does
 not claim to be a full end-to-end system for generating publication
@@ -8633,6 +8639,544 @@ it has no effect and is disabled.
 
 </subsubsubsect>
 
+</subsubsect>
+
+</subsect>
+
+<subsect id="plot2">
+<subhead><title>Layer Plot Windows</title></subhead>
+
+<p>At version 4, TOPCAT introduces a new set of plotting windows.
+These provide most of the same functionality as the classic plot windows,
+but additionally much more flexibility, configurability, extensibility
+and better capabilities for making sense of very large data sets.
+</p>
+
+<p>In the initial release v4.0b these windows are considered experimental.
+To access them, use the <label>Graphics</label> menu in the main
+<ref id="ControlWindow">Control Window</ref>.
+In future releases the capabilities will be extended,
+the details of the user interface may change following user feedback,
+and they will be made more prominent in the main window,
+possibly replacing the classic plot windows.
+</p>
+
+<p>The rest of this section describes the layer plot functions in detail.
+</p>
+
+<subsubsect>
+<subhead><title>Differences From Classic Plot Windows</title></subhead>
+
+<p>A brief summary of improvements these windows offer over the classic
+plot windows is:
+<dl>
+
+<dt>New Sky Coordinate Plot</dt>
+<dd><p>
+    <ul>
+    <li>Choice of projection: Sin (rotatable), Aitoff, Plate Carree</li>
+    <li>Data and view sky coordinate systems selected separately:
+        options are equatorial, galactic, supergalactic, ecliptic</li>
+    <li>Sky coordinate grid labelled and visible at all zooms</li>
+    </ul>
+    </p></dd>
+
+<dt>New data plot options</dt>
+<dd><p>
+    <ul>
+    <li>vectors</li>
+    <li>ellipses (with position angle)</li>
+    <li>pair, triple, ... data point lines/polygons</li>
+    <li>contours</li>
+    <li>variable size markers</li>
+    </ul>
+    </p></dd>
+
+<dt>Improved interactive response</dt>
+<dd><p>
+    <ul>
+    <li>In 2d and sky plots mouse wheel zooms around cursor position</li>
+    <li>In 2d and sky plots you can drag the plot around</li>
+    <li>In 3d plots right mouse button recentres cube on selected point</li>
+    <li>In 3d plots zooming zooms data in the cube rather than enlarging the
+        cube wireframe itself</li>
+    <li>Many controls are sliders which update the plot as you slide</li>
+    </ul>
+    </p></dd>
+
+<dt>Better support for large datasets</dt>
+<dd><p>Several features have been introduced to provide more meaningful
+    visualisation of large datasets.  Improved density-like plots
+    and contours give you better ways to understand plots containing
+    many more points than there are pixels to plot them on.
+    There is separately some improvement in scalability:
+    up to roughly 10 million points is currently feasible depending
+    on available memory etc, though it depends what you're doing.
+    However, I hope to improve this limit in future.
+    </p></dd>
+
+<dt>New plot colouring modes</dt>
+<dd><p>Density colour coding for all plot types,
+    with density colour map based either on dataset colour or
+    chosen from a fixed set.
+    Flat, transparent and aux colour coding still available as before.
+    </p></dd>
+
+<dt>Improved axis labelling</dt>
+<dd><p>
+    <ul>
+    <li>Choice of font size and style</li>
+    <li>Option of LaTeX input for non-ASCII characters etc</li>
+    <li>Log axes labelled better</li>
+    <li>Minor tick option</li>
+    </ul>
+    </p></dd>
+
+<dt>Legend options</dt>
+<dd><p>External or manually positioned internal placement.
+    </p></dd>
+
+<dt>Analytic function plotting in 2D</dt>
+<dd><p>Plot functions of X or Y coordinate using TOPCAT expression language.
+    </p></dd>
+
+</dl>
+</p>
+
+<p>The new windows allow you to assemble a stack of layers representing
+different plot types of different data sets on the same axes.
+The user interface for controlling this is quite a bit different than
+for the classic plot windows, and is described in the subsequent sections.
+However, making a simple plot is still simple: select a table, select
+the columns, and you're off.
+</p>
+
+<p>Some features <em>not</em> currently available in the layer plots
+include the 1-d histogram, the stacked line plot, and true RGB
+density maps (though density colouring modes will often do as good or
+a better job).
+The intention is to introduce these in a future release.
+</p>
+
+</subsubsect>
+
+<subsubsect>
+<subhead><title>Window Overview</title></subhead>
+
+<figure>
+<caption><px>Layer plot window</px></caption>
+<figureimage src="&FIG.StackPlotWindow;"/>
+</figure>
+
+<p>Layer plot windows consist of two main parts: at the top is the
+plot itself, and at the bottom is the control panel.
+The control panel is where you configure what will be plotted.
+For a simple scatter plot it may just be a case of selecting what
+columns to plot against each other, but it can get quite detailed.
+If you want more screen space to play with, it can be helpful
+to float the control panel into a separate window using the
+<label>Float Controls</label> (&IMG.FLOAT;) toolbar button.
+To unfloat the control panel, either just close the control panel window,
+or click the Float Controls toolbar button again.
+With floating controls, the window looks like the following figure.
+</p>
+
+<figure>
+<caption><px>Layer plot window with floated control panel</px></caption>
+<figureimage src="&FIG.StackPlotWindow_float;"/>
+</figure>
+
+<p>The control panel itself has two parts: a list on the left of
+currently active controls (represented by names and icons),
+and a panel on the right which shows the currently selected control.
+Click on one of the control entries on the left to see its details
+on the right.
+Different controls have different detail panels, but in general each
+one will have multiple tabs for configuring different things.
+You can select these by clicking on the tab names.
+In general the best way to learn about the options is to click on
+the different controls and their tabs to see what's available
+and experiment with the various options to see what happens to the plot.
+</p>
+
+<p>The control list has two types of entry:
+<dl>
+<dt>Fixed controls:</dt>
+<dd><p>These control the overall plot appearance.
+    In the above figure, the fixed controls
+    <label>Axes</label> (&IMG.AXIS_EDIT;) and
+    <label>Legend</label> (&IMG.LEGEND;) are visible.
+    The different fixed controls are described in
+    <ref id="plot2FixedControls"/>.
+    </p></dd>
+<dt>Layer controls:</dt>
+<dd><p>These determine the actual data that will be plotted and what
+    graphical form it takes.
+    Layer controls can be added
+    (using the <label>Layers</label> menu or corresponding toolbar buttons),
+    removed
+    (using the <label>Remove Current Layer</label> (&IMG.DELETE;)
+    toolbar button),
+    and moved up and down
+    (by dragging with the grab handle (&IMG.UP_DOWN;).
+    Each one contributes a layer or layers to the plot.
+    Layers lower down the list are plotted later
+    (perhaps obscuring earlier ones), 
+    so you can drag them up and down until you have the layers you want on top.
+    The different layer controls are described in
+    <ref id="plot2LayerControls"/>.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsect>
+
+<subsubsect id="plot2FixedControls">
+<subhead><title>Fixed Controls</title></subhead>
+
+<p>Fixed controls are those controls that appear first in the
+plot Control Panel and configure the overall appearance of the plot,
+independent of any particular plot layer or data set.
+</p>
+
+<p>Each plot type has its own <label>Axes</label> control,
+specific to its own geometry.
+These are described under the relevant plot windows.
+</p>
+
+<p>The other fixed controls are described in the following subsections.
+</p>
+
+<subsubsubsect id="LegendControl">
+<subhead><title>Legend</title></subhead>
+
+<p>The <label>Legend</label> control (&IMG.LEGEND;)
+is always visible in a layer plot Control Panel.
+It allows you to configure whether and how the plot legend appears.
+</p>
+
+<p>This control has the following tabs:
+<dl>
+<dt>Style tab:</dt>
+<dd><p>This has the following options:
+    <dl>
+    <dt>Show Legend</dt>
+    <dd><p>Whether the legend appears in the plot.
+        This is set automatically: if only one data set is present
+        no legend is shown, but once multiple datasets are present
+        the legend is visible.
+        But the option can be overridden manually using this control.
+        </p></dd>
+    <dt>Opaque</dt>
+    <dd><p>If true, the legend has an opaque white background.
+        If false, it is transparent, and any plot data underneath it
+        is visible.
+        </p></dd>
+    <dt>Border</dt>
+    <dd><p>If true, a black line border is shown around the legend.
+        If false, there is no border.
+        </p></dd>
+    </dl>
+    </p></dd>
+<dt>Position tab:</dt>
+<dd><p>Configures where on the plot the legend is plotted (if present).
+    There are two options, <label>External</label> and <label>Internal</label>.
+    If Internal is chosen, then a control is activated showing a small box
+    inside a large box.  Drag the small box around with the mouse to
+    change the position of the legend inside the plot bounds.
+    </p></dd>
+</dl>
+</p>
+
+<p>Note the font used in the legend is currently controlled by the font from
+the <label>Axes</label> selector.
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="ShaderControl">
+<subhead><title>Aux Axis</title></subhead>
+
+<p>The <label>Aux Axis</label> control (&IMG.COLORS;) is only
+visible when the Aux colour mode has been selected for one of the
+data layers.  It controls a single colour scale for points which
+are coloured by data value to represent an additional dimension in the data.
+</p>
+
+<p>This control has the following tabs:
+<dl>
+<dt>Style</dt>
+<dd><p>This has the following options:
+    <dl>
+    <dt>Shader</dt>
+    <dd><p>Select the colour map from a list of options.</p></dd>
+    <dt>Shade Log</dt>
+    <dd><p>Whether the aux scale should map linearly or logarithmically
+        into the colour map.
+        </p></dd>
+    <dt>Shade Flip</dt>
+    <dd><p>Whether the aux scale should map forwards or backwards
+        into the colour map.
+        </p></dd>
+    <dt>Null Colour</dt>
+    <dd><p>What colour should be used to represent points with a null value
+        for the aux data coordinate. 
+        If the associated <label>Hide</label> option is selected,
+        then those points will not appear in the plot at all.
+        </p></dd>
+    </dl>
+    </p></dd>
+<dt>Scale</dt>
+<dd><p>This has the following options:
+    <dl>
+    <dt>Show Scale</dt>
+    <dd><p>Whether the aux scale ramp is visible;
+        if so an appropriately labelled colour ramp
+        appears at the right of the plot.
+        The associated <label>Auto</label> option makes this decision
+        automatically: if any aux data is plotted, the scale will appear,
+        otherwise it won't.
+        Deselect Auto if you want to determine visibility by hand.
+        </p></dd>
+    <dt>Aux Axis Label</dt>
+    <dd><p>Selects the axis label to be displayed near the aux colour ramp
+        if it is visible.
+        The associated <label>Auto</label> option, if selected, uses the
+        name of one of the coordinates supplying aux data;
+        deselect Auto if you want to enter a label by hand.
+        </p></dd>
+    </dl>
+    </p></dd>
+<dt>Range</dt>
+<dd><p>The range tab lets you enter lower and upper values for the aux data
+    range by hand, and provides a double slider to restrict the range
+    within these limits.  If either the lower or upper range is left blank,
+    it will be determined from the data.
+    </p></dd>
+</dl>
+</p>
+
+<p>Note the font used for labelling the aux axis is currently controlled by 
+the font from the <label>Axes</label> selector.
+</p>
+
+</subsubsubsect>
+
+
+</subsubsect>
+
+<subsubsect id="plot2LayerControls">
+<subhead><title>Layer Controls</title></subhead>
+
+<p>The layer controls are controls that can be added, removed and
+moved around to determine what layers go to make up the contents of a plot.
+You can have zero, one or several of each.
+Which ones are available is dependent on which plot type you are using
+(for instance the Function control is only available for the Plane plot).
+Add instances of each control to the control stack by using the
+entries in the plot window <label>Layers</label> menu,
+or the corresponding toolbar button.
+</p>
+
+<p>The available layer controls are described in the following subsections.
+At present there are only two of them, and one of those is
+only available for the Plane plot.
+More may become available in future releases.  
+</p>
+
+<subsubsubsect id="GangLayerControl">
+<subhead><title>Table Layer Control</title></subhead>
+
+<p>The <label>Table</label> layer control (&IMG.PLOT_DATA;)
+is available for all the plot types.
+Use the <label>Layers</label> menu item or corresponding toolbar button to
+add an instance to the control stack.
+</p>
+
+<p>This is the control which is used for most of the data plotting in
+the layer plot windows.
+Each instance of this control in the stack does plotting for a
+particular set of positions from a single table.
+The set of positions is defined in the <label>Positions</label> tab
+as a column name or expression for each
+plot coordinate (e.g. for X and Y in a plane plot).
+However, the control can generate multiple layers from these positions;
+the <label>Subsets</label> tab controls which subsets are plotted
+and how each one is identified,
+and the <label>Form</label> tab provides many options for what graphics
+will be plotted based on the positions.
+</p>
+
+<p>The three tabs,
+<label>Position</label>, <label>Subsets</label> and <label>Form</label>,
+are described in more detail below.
+</p>
+
+<figure>
+<caption><px>Position tab of Table layer control</px></caption>
+<figureimage src="&FIG.GangLayerControl_position;"/>
+</figure>
+
+<p>In the <label>Position</label> tab you enter the base positions
+for each plotted point.  This generally means selecting a table and
+providing a value (table column or expression) for each
+positional coordinate.
+When you first open a plot window, TOPCAT gives you a table layer control
+by default, and attempts to fill in the positional coordinates with
+some reasonable values from the table (for instance the first few
+numeric columns).
+</p>
+
+<figure>
+<caption><px>Subsets tab of Table layer control</px></caption>
+<figureimage src="&FIG.GangLayerControl_subsets;"/>
+</figure>
+
+<p>The <label>Subsets</label> tab lists the defined Row Subsets for
+the table you have selected in the Position tab.
+The subset <label>All</label> is always present;
+others may or may not be depending on whether any have been defined.
+Note that actions you take in the plot (for instance selecting
+a new subset <ref id="plotSubsets">by region</ref>)
+can result in new entries being added to this list.
+</p>
+
+<p>The list on the left names the subsets with an activation checkbox
+and a grab handle; the panel on the right gives the detail for the
+currently selected subset.  Select a subset to see/change its detail
+by clicking on it.
+</p>
+
+<p>For each subset you can select:
+<ul>
+<li>Whether it is plotted (using the activation checkbox)</li>
+<li>The plotting sequence (by dragging it up and down using
+    its grab handle)</li>
+<li>The default plotting colour</li>
+<li>The label with which it is annotated in the legend (if visible)</li>
+<li>Whether it appears in the legend at all</li>
+</ul>
+Although you can select plotting colours in the Form tab as well,
+it's generally better to do it here since this changes the colour of
+all the forms plotted for a given subset, rather than one form at a time.
+</p>
+
+<figure>
+<caption><px>Form tab of Table layer control</px></caption>
+<figureimage src="&FIG.GangLayerControl_form;"/>
+</figure>
+
+<p>The <label>Form</label> tab lets you define how each data set is plotted.
+The list on the left gives a list of forms currently being plotted,
+and the panel on the right shows the detailed configuration for the
+currently selected form.
+</p>
+
+<p>When first added, the list contains a single entry, <label>Mark</label>,
+which plots a marker of a given fixed shape and size.
+The colour is by default determined by the setting in the Subsets tab.
+For a simple scatter plot, this is all that you need.
+However, there are a number of other forms that you can plot as well
+or instead of the simple markers - vectors, error bars, ellipses,
+contours, text markers etc.  You add a new form to the stack by
+clicking on one of the buttons in the toolbar in the tab.
+You can remove a form with the <label>Remove</label> (&IMG.DELETE;)
+button in the same toolbar.  You can also activate/deactivate and
+change their order with the checkbox and drag handles as usual.
+The list of forms that are avaiable depends on the plot type;
+they are listed in <ref id="ShapeForm"/>.
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="FunctionControl">
+<subhead><title>Function Layer Control</title></subhead>
+
+<p>The <label>Function</label> layer control (&IMG.PLOT_FUNCTION;)
+is only available for the Plane plot.
+Use the <label>Layers</label> menu item or corresponding toolbar button to
+add an instance to the control stack.
+</p>
+
+<figure>
+<caption><px>Plane plot with two function layers plotted,
+             one as a function of Horizontal axis value, and
+             one as a function of Vertical axis value</px></caption>
+<figureimage src="&FIG.FunctionLayerControl;"/>
+</figure>
+
+<p>This control has the following tabs:
+<dl>
+<dt>Function</dt>
+<dd><p>This defines the function to be plotted and has the following fields:
+    <dl>
+    <dt>Independent Axis</dt>
+    <dd><p>Which axis the independent variable varies along;
+        options are currently
+        <label>Horizontal</label> and <label>Vertical</label>.
+        </p></dd>
+    <dt>Independent Variable Name</dt>
+    <dd><p>Name of the independent variable.
+        This is typically <code>x</code> for a horizontal independent variable
+        and <code>y</code> for a vertical independent variable,
+        but any string that is a legal expression language identifier
+        (starts with a letter, continues with letters, numbers, underscores)
+        can be used.
+        </p></dd>
+    <dt>Function Expression</dt>
+    <dd><p>An expression using TOPCAT's <ref id="jel">expression language</ref>
+        in terms of the independent variable that defines the function.
+        This expression must be standalone - it cannot reference any tables.
+        </p></dd>
+    </dl>
+    </p></dd>
+<dt>Style</dt>
+<dd><p>This configures the plotting style.  Options are:
+    <dl>
+    <dt>Colour</dt>
+    <dd><p>Colour of the line.
+        </p></dd>
+    <dt>Thickness</dt>
+    <dd><p>Thickness of the line in pixels.
+        </p></dd>
+    <dt>Dash</dt>
+    <dd><p>Dash pattern of the line - solid is the default, but various
+        options are available.
+        </p></dd>
+    <dt>Antialiasing</dt>
+    <dd><p>If true, lines are antialiased, which makes them look smoother
+        on the screen or bitmapped export images.
+        Has no effect on vector export images (PDF, EPS).
+        </p></dd>
+    </dl>
+    </p></dd>
+<dt>Label</dt>
+<dd><p>Allows you to choose the text that appears in the legend.  Options are:
+    <dl>
+    <dt>Label</dt>
+    <dd><p>Gives the label that will appear in the legend.
+        By default the function expression is used, but if you want to
+        override this you can deselect the associated <label>Auto</label>
+        checkbox and enter your own value.
+        </p></dd>
+    <dt>In Legend</dt>
+    <dd><p>If true, an entry for this function appears in the legend,
+        if false it does not.
+        Note the setting of this value does not affect whether the legend
+        itself appears, which is controlled by the
+        <ref id="LegendControl">Legend</ref> control.
+        </p></dd>
+    </dl>
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
+</subsubsect>
+
+<subsubsect id="ShapeForm">
+<subhead><title>Table Plot Forms</title></subhead>
 </subsubsect>
 
 </subsect>
