@@ -552,7 +552,9 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             byte[] blue = new byte[ COLOR_MAP_SIZE ];
             float[] rgb = new float[ 4 ];
             float scale = 1f / ( COLOR_MAP_SIZE - 1 );
+            int iTransparent = 0;
             for ( int i = 1; i < COLOR_MAP_SIZE; i++ ) {
+                assert i != iTransparent;
                 rgb[ 3 ] = 1f;
                 double level = ( i - 1 ) * scale;
                 shader.adjustRgba( rgb, (float) level );
@@ -560,8 +562,19 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                 green[ i ] = (byte) ( rgb[ 1 ] * 255 );
                 blue[ i ] = (byte) ( rgb[ 2 ] * 255 );
             }
+
+            /* Set the transparent colour to transparent white
+             * not transparent black.
+             * In most cases this makes no difference, but for rendering
+             * targets which ignore transparency (PostScript) it can
+             * help a bit, though such renderers are not going to work
+             * well for multi-layer plots. */
+            red[ iTransparent ] = (byte) 0xff;
+            green[ iTransparent ] = (byte) 0xff;
+            blue[ iTransparent ] = (byte) 0xff;
             IndexColorModel model =
-                new IndexColorModel( 8, COLOR_MAP_SIZE, red, green, blue, 0 );
+                new IndexColorModel( 8, COLOR_MAP_SIZE, red, green, blue,
+                                     iTransparent );
             assert model.getTransparency() == Transparency.BITMASK;
             assert model.getMapSize() == COLOR_MAP_SIZE;
             assert model.getTransparentPixel() == 0;
