@@ -69,9 +69,9 @@ import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 
 /**
  * Window for all plots.
- * This is generic and currently not expected to be subclassed;
- * plot-type-specific behaviour is defined by supplied PlotType and
- * PlotTypeGui objects.
+ * This is generic and currently not expected to have much behaviour
+ * implemented by subclasses; plot-type-specific behaviour is
+ * defined by supplied PlotType and PlotTypeGui objects.
  * It uses a PlotPanel to do the actual plotting work; this class
  * handles placing the PlotPanel, gathering and supplying user configuration
  * information to it, invoking replots at appropriate times, and
@@ -363,9 +363,6 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         exportMenu.setMnemonic( KeyEvent.VK_E );
         exportMenu.add( exportAction );
         getJMenuBar().add( exportMenu );
-
-        /* Add standard help actions. */
-        addHelp( name );
 
         /* Place position and count status panels at the bottom of the
          * window. */

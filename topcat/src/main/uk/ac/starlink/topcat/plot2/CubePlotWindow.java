@@ -23,6 +23,7 @@ public class CubePlotWindow
      */
     public CubePlotWindow( Component parent ) {
         super( "Cube2", parent, PLOT_TYPE, PLOT_GUI );
+        addHelp( "CubePlotWindow" );
     }
 
     /**

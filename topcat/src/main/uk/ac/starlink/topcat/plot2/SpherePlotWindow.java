@@ -24,6 +24,7 @@ public class SpherePlotWindow
      */
     public SpherePlotWindow( Component parent ) {
         super( "Sphere2", parent, PLOT_TYPE, PLOT_GUI );
+        addHelp( "SpherePlotWindow" );
     }
 
     /**

@@ -43,6 +43,7 @@ public class SkyPlotWindow
      */
     public SkyPlotWindow( Component parent ) {
         super( "Sky2", parent, PLOT_TYPE, new SkyPlotTypeGui() );
+        addHelp( "SkyPlotWindow" );
     }
 
     /**

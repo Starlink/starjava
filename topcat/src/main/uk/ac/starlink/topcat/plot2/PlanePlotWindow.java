@@ -24,6 +24,7 @@ public class PlanePlotWindow
      */
     public PlanePlotWindow( Component parent ) {
         super( "Plane2", parent, PLOT_TYPE, PLOT_GUI );
+        addHelp( "PlanePlotWindow" );
     }
 
     /**
