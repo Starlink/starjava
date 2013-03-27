@@ -128,6 +128,26 @@
   <!-- Define external URLs. -->
   <!ENTITY URL.VOTABLE "http://www.ivoa.net/Documents/latest/VOT.html">
   <!ENTITY URL.J2SE_DOCS "http://java.sun.com/j2se/1.5.0/docs/">
+
+  <!-- Plot2 control references. -->
+  <!ENTITY CONTROL.data
+           '&IMG.PLOT_DATA;
+            <ref id="GangLayerControl">Table Layer Control</ref>'>
+  <!ENTITY CONTROL.function
+           '&IMG.PLOT_FUNCTION;
+            <ref id="FunctionControl">Function Layer Control</ref>'>
+  <!ENTITY FORM.mark '&IMG.FORM_MARK; <ref id="form-mark">Mark</ref>'>
+  <!ENTITY FORM.size '&IMG.FORM_SIZE; <ref id="form-size">Size</ref>'>
+  <!ENTITY FORM.vector '&IMG.FORM_VECTOR; <ref id="form-vector">Vector</ref>'>
+  <!ENTITY FORM.error '&IMG.FORM_ERROR; <ref id="form-error">Error Bars</ref>'>
+  <!ENTITY FORM.ellipse '&IMG.FORM_ELLIPSE;
+                        <ref id="form-ellipse">Ellipse</ref>'>
+  <!ENTITY FORM.link2 '&IMG.FORM_LINK2; <ref id="form-link2">Pair Link</ref>'>
+  <!ENTITY FORM.link3 '&IMG.FORM_LINK3; <ref id="form-link3">Triple Link</ref>'>
+  <!ENTITY FORM.line '&IMG.PLOT_LINE; <ref id="form-line">Line</ref>'>
+  <!ENTITY FORM.label '&IMG.PLOT_LABEL; <ref id="form-label">Text Label</ref>'>
+  <!ENTITY FORM.contour '&IMG.PLOT_CONTOUR;
+                        <ref id="form-contour">Contour</ref>'>
 ]>
 
 <sun>
@@ -6242,7 +6262,7 @@ the superceded calculation will be stopped.
 </subsect>
 
 <subsect id="GraphicsWindow">
-<subhead><title>Graphics Windows</title></subhead>
+<subhead><title>Classic Plot Windows</title></subhead>
 
 <p>TOPCAT has a number of windows for performing data visualisation of
 various kinds.  These share various characteristics which are described
@@ -8662,12 +8682,13 @@ it has no effect and is disabled.
 <subhead><title>Layer Plot Windows</title></subhead>
 
 <p>At version 4, TOPCAT introduces a new set of plotting windows.
-These provide most of the same functionality as the classic plot windows,
+These provide most of the same functionality as the 
+<ref id="GraphicsWindow">classic plot windows</ref>,
 but additionally much more flexibility, configurability, extensibility
 and better capabilities for making sense of very large data sets.
 </p>
 
-<p>In the initial release v4.0b these windows are considered experimental.
+<p>In their initial release v4.0b these windows are considered experimental.
 To access them, use the <label>Graphics</label> menu in the main
 <ref id="ControlWindow">Control Window</ref>.
 In future releases the capabilities will be extended,
@@ -9519,7 +9540,7 @@ It can be useful for visualising the results of a three-way crossmatch.
 <figureimage src="&FIG.form_line;"/>
 </figure>
 
-<p>The <label>Line</label> form (@IMG.PLOT_LINE;)
+<p>The <label>Line</label> form (&IMG.PLOT_LINE;)
 draws a point-to-point line joining
 up the points making up the data set.
 Note that for a large and unordered data set this can lead to a big
@@ -9539,7 +9560,7 @@ scribble on the screen.
 
 </subsubsubsect>
 
-<subsubsubsect id="form-text">
+<subsubsubsect id="form-label">
 <subhead><title>Text Label Form</title></subhead>
 
 <figure>
@@ -9663,7 +9684,7 @@ subsections.
 <figureimage src="&FIG.mode_flat;"/>
 </figure>
 
-<p>The <label>Flat</label> shading mode
+<p>The <label>Flat</label> shading mode (&IMG.MODE_FLAT;)
 simply colours points in the colour selected by their style.
 It has no additional parameters or coordinates.
 </p>
@@ -9719,7 +9740,7 @@ layers will be completely obscured.
 <figureimage src="&FIG.mode_auto;"/>
 </figure>
 
-<p>The <label>Auto</label> shading mode
+<p>The <label>Auto</label> shading mode (&IMG.MODE_AUTO;)
 colours isolated points in their selected colour,
 but where multiple points <em>from the same data set</em>
 overlap it adjusts the colour by darkening it.
@@ -9763,7 +9784,8 @@ In the case of PostScript, this completely obscures any previous layers.
 <figureimage src="&FIG.mode_density;"/>
 </figure>
 
-<p>The <label>Density</label> shading mode uses a configurable colour map
+<p>The <label>Density</label> shading mode (&IMG.MODE_DENSITY;)
+uses a configurable colour map
 to indicate how many points are plotted over each other.
 Specifically, it colours each pixel according to how many times that
 pixel has has been covered by one of the shapes plotted by the layer
@@ -9820,7 +9842,7 @@ In the case of PostScript, this completely obscures any previous layers.
 <figureimage src="&FIG.mode_aux;"/>
 </figure>
 
-<p>The <label>Aux</label> shading mode
+<p>The <label>Aux</label> shading mode (&IMG.MODE_AUX;)
 colours each point according to the value of an additional
 data coordinate.
 The point colours then represent an additional dimension of the plot.
@@ -9864,23 +9886,302 @@ layers will be completely obscured.
 
 </subsubsect>
 
-<subsubsect id="plot2Windows">
-<subhead><title>Plot Windows</title></subhead>
+<subsubsect id="PlanePlotWindow">
+<subhead><title>Plane Plot Window</title></subhead>
 
-<subsubsubsect id="PlanePlotWindow">
-<subhead><title>Plane Plot</title></subhead>
+<p>The <label>Plane Plot</label> (&IMG.PLOT2_PLANE;)
+plots 2-dimensional Cartesian positions on a plane.
+</p>
+
+<p>The positional coordinates are <label>X</label> and <label>Y</label>.
+To control the direction and linear/log scaling of the axes,
+see the <label>Coords</label> tab of the
+<ref id="PlaneAxisControl">Axes</ref> control.
+</p>
+
+<p>Navigation controls:
+<dl>
+<dt>Panning</dt>
+<dd><p>Drag the plot around by holding down the left mouse button.
+    </p></dd>
+<dt>Zooming</dt>
+<dd><p>The best way to zoom is using the mouse wheel on the plot
+    (some machines with no wheel can simulate this with a
+    two-fingered slide on the mouse pad),
+    since this zooms around the current mouse position.
+    An alternative is to use the zoom buttons (&IMG.ZOOM_IN;/&IMG.ZOOM_OUT;)
+    on the toolbar, which zoom around the center of the plot.
+    This zooming is isotropic - both axes zoom by the same factor.
+    </p>
+    <p>You can also change the zoom using the <label>Range</label> tab
+    in the <ref id="PlaneAxisControl">Axes</ref> control.
+    This lets you assign different
+    magnifications to the two axes.
+    </p></dd>
+</dl>
+</p>
+
+<p>The Plane Plot offers the following plot controls:
+<ul>
+<li>&CONTROL.data;, with these form options:
+    <ul>
+    <li>&FORM.mark;</li>
+    <li>&FORM.size;</li>
+    <li>&FORM.vector;</li>
+    <li>&FORM.error;</li>
+    <li>&FORM.ellipse;</li>
+    <li>&FORM.link2;</li>
+    <li>&FORM.link3;</li>
+    <li>&FORM.line;</li>
+    <li>&FORM.label;</li>
+    <li>&FORM.contour;</li>
+    </ul>
+    </li>
+<li>&CONTROL.function;</li>
+</ul>
+</p>
+
+<p>The <label>Axes</label> control (&IMG.AXIS_EDIT;) is described in
+<ref id="PlaneAxisControl">the next subsection</ref>.
+</p>
+
+<subsubsubsect id="PlaneAxisControl">
+<subhead><title>Plane Axes Control</title></subhead>
 </subsubsubsect>
 
-<subsubsubsect id="SkyPlotWindow">
-<subhead><title>Sky Plot</title></subhead>
+</subsubsect>
+
+<subsubsect id="SkyPlotWindow">
+<subhead><title>Sky Plot Window</title></subhead>
+
+<p>The <label>Sky Plot</label> (&IMG.PLOT2_SKY;)
+plots latitude/longitude positions onto the celestial sphere.
+It can plot to a number of projections
+(currently Sin, Aitoff and Plate Carr&#x00e9;e).
+</p>
+
+<p>The positional coordinates are
+<label>Longitude</label> and <label>Latitude</label>, specified in degrees.
+When supplying them, you can specify an associated
+<label>Data Sky System</label>
+(Equatorial, Galactic, Supergalactic or Ecliptic2000).
+Note that this is the sky system of the data coordinates,
+not (necessarily) of the plot you want to see.
+To specify the coordinates you want the data to be plotted on,
+use the <label>View Sky System</label> option in the <label>Projection</label>
+tab of the <ref id="SkyAxisControl">Axes</ref> control.
+However, if you just want to view the data using the same system
+as the coordinates you are supplying, you can ignore leave these
+values as their default (both Equatorial) and no conversion will be done.
+</p>
+
+<p>Navigation controls:
+<dl>
+<dt>Panning</dt>
+<dd><p>The Sin projection is like the surface of a globe that can be
+    rotated by dragging it around, while the Aitoff and
+    Plate Car&#x00e9;e projections are like maps drawn on a
+    piece of paper which can be dragged around.
+    In all cases, drag by holding the left mouse button.
+    </p>
+    <p>Dragging will attempt to keep the same sky position under the
+    cursor.  This is usually possible, but in the Sin projection if the
+    mouse starts off on the sphere and moves off it, that can't happen,
+    so the panning can be jerky in that case.  This only happens at
+    low magnifications.
+    </p></dd>
+<dt>Zooming</dt>
+<dd><p>The best way to zoom is using the mouse wheel on the plot
+    (some machines with no wheel can simulate this with a
+    two-fingered slide on the mouse pad),
+    since this zooms around the current mouse position.
+    An alternative is to use the zoom buttons (&IMG.ZOOM_IN;/&IMG.ZOOM_OUT;)
+    on the toolbar, which zoom around the center of the plot.
+    </p>
+    <p>In the Sin projection, the zoom will rotate the sphere as well as
+    increase its magnification, so that the cursor can stay on the same
+    sky position while north remains pointing upwards.
+    </p></dd>
+</dl>
+</p>
+
+<p>The sky plot offers the following plot controls:
+<ul>
+<li>&CONTROL.data;, with these form options:
+    <ul>
+    <li>&FORM.mark;</li>
+    <li>&FORM.size;</li>
+    <li>&FORM.vector;</li>
+    <li>&FORM.ellipse;</li>
+    <li>&FORM.label;</li>
+    <li>&FORM.contour;</li>
+    </ul>
+    </li>
+</ul>
+</p>
+
+<p>The <label>Axes</label> control (&IMG.AXIS_EDIT;)
+is described in 
+<ref id="SkyAxisControl">the next subsection</ref>.
+</p>
+
+<subsubsubsect id="SkyAxisControl">
+<subhead><title>Sky Axes Control</title></subhead>
 </subsubsubsect>
 
-<subsubsubsect id="CubePlotWindow">
-<subhead><title>Cube Plot</title></subhead>
+</subsubsect>
+
+<subsubsect id="CubePlotWindow">
+<subhead><title>Cube Plot Window</title></subhead>
+
+<p>The <label>Cube Plot</label> (&IMG.PLOT2_CUBE;)
+plots 3-dimensional Cartesian positions in a 3-d space.
+</p>
+
+<p>The positional coordinates are
+<label>X</label>, <label>Y</label> and <label>Z</label>.
+To control the direction and linear/log scaling of the axes,
+see the <label>Coords</label> tab of the
+<ref id="CubeAxisControl">Axes</ref> control.
+</p>
+
+<p>Navigation controls:
+<dl>
+<dt>Panning</dt>
+<dd><p>Rotate the plot by holding the left mouse button.
+    It's also possible to rotate by using the rotation sliders in the
+    <label>View</label> tab of the
+    <ref id="CubeAxisControl">Axes</ref> control.
+    </p>
+    <p>To re-center the plot in the visible cube, <strong>right-click</strong>
+    on the position you're interested in.
+    A screen position represents a line not a point, so there is a
+    degeneracy here; the new central position is actually the average
+    of data point positions near the mouse click.  The upshot is that
+    if you click on a point or clump of interest, it should do what you want.
+    </p></dd>
+<dt>Zooming</dt>
+<dd><p>You can zoom using the mouse wheel or the zoom buttons
+    (&IMG.ZOOM_IN;/&IMG.ZOOM_OUT;) on the toolbar.
+    Either of these zooms the <em>data volume</em> in the visible cube
+    about its centre, so the cube wireframe axes stay in the same place
+    on the screen, but the axis annotations move.
+    </p>
+    <p>If you want to get zoom in or out on the cube wireframe itself,
+    you can do it using the <label>Zoom Factor</label> slider in the
+    <label>View</label> tab of the <ref id="CubeAxisControl">Axes</ref>
+    control.
+    </p></dd>
+</dl>
+</p>
+
+<p>The cube plot offers the following plot controls:
+<ul>
+<li>&CONTROL.data;, with these form options:
+    <ul>
+    <li>&FORM.mark;</li>
+    <li>&FORM.size;</li>
+    <li>&FORM.vector;</li>
+    <li>&FORM.error;</li>
+    <li>&FORM.ellipse;</li>
+    <li>&FORM.link2;</li>
+    <li>&FORM.link3;</li>
+    <li>&FORM.line;</li>
+    <li>&FORM.label;</li>
+    <li>&FORM.contour;</li>
+    </ul>
+    </li>
+</ul>
+Note that use of the
+<ref id="mode-auto">Auto</ref> and <ref id="mode-density">Density</ref>
+shading modes can be confusing in 3 dimensions with multiple datasets.
+This is because pixels based on density along a line of sight are not
+located at any point on that line, so shaded pixels can't appear
+at the "right" place in the 3-d space.  The same applies to a lesser
+extent with contours.  They work fine with a single dataset though.
+</p>
+
+<p>The <label>Axes</label> control (&IMG.AXIS_EDIT;) is described in
+<ref id="CubeAxisControl">the next subsection</ref>.
+</p>
+
+<subsubsubsect id="CubeAxisControl">
+<subhead><title>Cube Axes Control</title></subhead>
 </subsubsubsect>
 
-<subsubsubsect id="SpherePlotWindow">
-<subhead><title>Sphere Plot</title></subhead>
+</subsubsect>
+
+<subsubsect id="SpherePlotWindow">
+<subhead><title>Sphere Plot Window</title></subhead>
+
+<p>The <label>Sphere Plot</label> (&IMG.PLOT2_SPHERE;)
+plots spherical polar coordinates in an isotropic 3-dimensional space.
+Although the supplied coordinates are spherical polar,
+the visible space is not necessarily centred on the coordinate origin,
+and the visible axes are Cartesian.
+</p>
+
+<p>The positional coordinates are
+<label>Longitude</label> and <label>Latitude</label> (in degrees) and
+<label>Radius</label>.
+</p>
+
+<p>Navigation is like that for the <ref id="CubePlotWindow">Cube Plot</ref>:
+<dl>
+<dt>Panning</dt>
+<dd><p>Rotate the plot by holding the left mouse button.
+    It's also possible to rotate by using the rotation sliders in the
+    <label>View</label> tab of the
+    <ref id="CubeAxisControl">Axes</ref> control.
+    </p>
+    <p>To re-center the plot in the visible cube, <strong>right-click</strong>
+    on the position you're interested in.
+    A screen position represents a line not a point, so there is a
+    degeneracy here; the new central position is actually the average
+    of data point positions near the mouse click.  The upshot is that
+    if you click on a point or clump of interest, it should do what you want.
+    </p></dd>
+<dt>Zooming</dt>
+<dd><p>You can zoom using the mouse wheel or the zoom buttons
+    (&IMG.ZOOM_IN;/&IMG.ZOOM_OUT;) on the toolbar.
+    Either of these zooms the <em>data volume</em> in the visible cube
+    about its centre, so the cube wireframe axes stay in the same place
+    on the screen, but the axis annotations move.
+    </p>
+    <p>If you want to get zoom in or out on the cube wireframe itself,
+    you can do it using the <label>Zoom Factor</label> slider in the
+    <label>View</label> tab of the <ref id="CubeAxisControl">Axes</ref>
+    control.
+    </p></dd>
+</dl>
+</p>
+
+<p>The sphere plot offers the following plot controls:
+<ul>
+<li>&CONTROL.data;, with these form options:
+    <ul>
+    <li>&FORM.mark;</li>
+    <li>&FORM.size;</li>
+    <li>&FORM.label;</li>
+    <li>&FORM.contour;</li>
+    </ul>
+    </li>
+</ul>
+Note that use of the
+<ref id="mode-auto">Auto</ref> and <ref id="mode-density">Density</ref>
+shading modes can be confusing in 3 dimensions with multiple datasets.
+This is because pixels based on density along a line of sight are not
+located at any point on that line, so shaded pixels can't appear
+at the "right" place in the 3-d space.  The same applies to a lesser
+extent with contours.  They work fine with a single dataset though.
+</p>
+
+<p>The <label>Axes</label> control (&IMG.AXIS_EDIT;) is described in
+<ref id="CubeAxisControl_sphere">the next subsection</ref>.
+</p>
+
+<subsubsubsect id="CubeAxisControl_sphere">
+<subhead><title>Sphere Axes Control</title></subhead>
 </subsubsubsect>
 
 </subsubsect>
