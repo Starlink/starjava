@@ -124,6 +124,20 @@
   <!ENTITY FIG.form_line '&figs;form_line.gif'>
   <!ENTITY FIG.form_label '&figs;form_label.gif'>
   <!ENTITY FIG.form_contour '&figs;form_contour.gif'>
+  <!ENTITY FIG.font_tab '&figs;font_tab.gif'>
+  <!ENTITY FIG.PlaneAxisControl_coords '&figs;PlaneAxisControl_coords.gif'>
+  <!ENTITY FIG.PlaneAxisControl_range '&figs;PlaneAxisControl_range.gif'>
+  <!ENTITY FIG.PlaneAxisControl_grid '&figs;PlaneAxisControl_grid.gif'>
+  <!ENTITY FIG.PlaneAxisControl_labels '&figs;PlaneAxisControl_labels.gif'>
+  <!ENTITY FIG.SkyAxisControl_projection '&figs;SkyAxisControl_projection.gif'>
+  <!ENTITY FIG.SkyAxisControl_fov '&figs;SkyAxisControl_fov.gif'>
+  <!ENTITY FIG.SkyAxisControl_grid '&figs;SkyAxisControl_grid.gif'>
+  <!ENTITY FIG.CubeAxisControl_coords '&figs;CubeAxisControl_coords.gif'>
+  <!ENTITY FIG.CubeAxisControl_range '&figs;CubeAxisControl_range.gif'>
+  <!ENTITY FIG.CubeAxisControl_view '&figs;CubeAxisControl_view.gif'>
+  <!ENTITY FIG.CubeAxisControl_grid '&figs;CubeAxisControl_grid.gif'>
+  <!ENTITY FIG.CubeAxisControl_labels '&figs;CubeAxisControl_labels.gif'>
+  <!ENTITY FIG.SphereAxisControl_range '&figs;SphereAxisControl_range.gif'>
 
   <!-- Define external URLs. -->
   <!ENTITY URL.VOTABLE "http://www.ivoa.net/Documents/latest/VOT.html">
@@ -9703,7 +9717,7 @@ This mode works without problem for both bitmapped and vector output.
 <figureimage src="&FIG.mode_transparent;"/>
 </figure>
 
-<p>The <label>Transparent</label> shading mode
+<p>The <label>Transparent</label> shading mode (&IMG.MODE_TRANSPARENT;)
 colours shapes in a transparent version of the
 colour selected by their style.
 The degree of transparency is determined by the
@@ -9947,6 +9961,119 @@ see the <label>Coords</label> tab of the
 
 <subsubsubsect id="PlaneAxisControl">
 <subhead><title>Plane Axes Control</title></subhead>
+
+<p>The <label>Axes</label> control (&IMG.AXIS_EDIT;) for the
+plane plot window has five tabs.
+</p>
+
+<figure>
+<caption><px>Coords tab of plane axes control</px></caption>
+<figureimage src="&FIG.PlaneAxisControl_coords;"/>
+</figure>
+
+<p>The <label>Coords</label> tab controls the axis coordinates.
+It has the following options:
+<dl>
+<dt>X/Y Log</dt>
+<dd><p>If selected, horizontal/vertical axis coordinates are logarithmic,
+    otherwise they are linear.
+    </p></dd>
+<dt>X/Y Flip</dt>
+<dd><p>If selected, horizontal/vertical axis coordinate axes run in the
+    opposite direction to normal.
+    </p></dd>
+<dt>Aspect Lock</dt>
+<dd><p>If selected, the number of pixels per unit is always the same
+    on both axes, i.e. the unit square is always a square.
+    Otherwise, there is no constraint on the relative sizes of the 
+    X and Y axis units.
+    </p></dd>
+</dl>
+</p>
+
+<figure>
+<caption><px>Range tab of plane axes control</px></caption>
+<figureimage src="&FIG.PlaneAxisControl_range;"/>
+</figure>
+
+<p>The <label>Range</label> tab provides manual configuration of the
+visible range of the plot.  Making changes to this tab will reset
+the visible plot range, but not vice versa - zooming and panning
+in the usual way will not change the settings of this panel.
+</p>
+
+<p>Filling in the <label>Minimum</label>/<label>Maximum</label>
+fields for either or both axes will
+constrain the corresponding range of the visible data.
+The limits corresponding to any of those fields that are left blank
+will initially be worked out from the data.
+The <label>Subrange</label> double-sliders restrict the ranges
+within the (explicit or automatic) min/max ranges.
+Note you can move both sliders at once by grabbing a position between the two.
+</p>
+
+<p>The <label>Clear</label> button resets all the fields.
+The <label>Submit</label> button updates the plot with the current values
+in this tab, as does making any changes to it.
+</p>
+
+<figure>
+<caption><px>Grid tab of plane axes control</px></caption>
+<figureimage src="&FIG.PlaneAxisControl_grid;"/>
+</figure>
+
+<p>The <label>Grid</label> tab configures appearance of the axis grid.
+<dl>
+<dt>Draw Grid</dt>
+<dd><p>If true, grid lines will be plotted across the plot
+    for every tick mark.
+    </p></dd>
+<dt>Minor Ticks</dt>
+<dd><p>If set, minor (unlabelled) tick marks will be drawn between the
+    major (labelled) ones.
+    </p></dd>
+<dt>X/Y Tick Crowding</dt>
+<dd><p>Use the slider to influence how many tick marks are draw on each axis.
+    </p></dd>
+</dl>
+</p>
+
+<figure>
+<caption><px>Labels tab of plane axes control</px></caption>
+<figureimage src="&FIG.PlaneAxisControl_labels;"/>
+</figure>
+
+<p>The <label>Labels</label> tab controls the text labels on the axes.
+If the <label>Auto</label> checkbox is set, the text will be taken
+from one of the data coordinates being plotted on that axis.
+To override those with your own axis labels, unset Auto and type
+text in to the <label>Label</label> fields.
+</p>
+
+<figure>
+<caption><px>Font tab of plane axes control</px></caption>
+<figureimage src="&FIG.font_tab;"/>
+</figure>
+
+<p>The <label>Font</label> tab configures the font used for axis annotation.
+It also affects some other things like the legend.
+<dl>
+<dt>Text Syntax</dt>
+<dd><p>Whether to use plain text or LaTeX rules to make sense of the text
+    value.
+    </p></dd>
+<dt>Font Size</dt>
+<dd><p>Size of the font in points.
+    </p></dd>
+<dt>Font Style</dt>
+<dd><p>Style of the font.
+    </p></dd>
+<dt>Font Weight</dt>
+<dd><p>Whether the font is to be plain, bold or italic.
+    </p></dd>
+</dl>
+</p>
+
 </subsubsubsect>
 
 </subsubsect>
@@ -10027,6 +10154,125 @@ is described in
 
 <subsubsubsect id="SkyAxisControl">
 <subhead><title>Sky Axes Control</title></subhead>
+
+<p>The <label>Axes</label> control (&IMG.AXIS_EDIT;) for the
+sky plot window has four tabs.
+</p>
+
+<figure>
+<caption><px>Projection tab of the sky axes control</px></caption>
+<figureimage src="&FIG.SkyAxisControl_projection;"/>
+</figure>
+
+<p>The <label>Projection</label> tab controls how the sky position
+coordinates are projected onto the screen.
+<dl>
+<dt>Projection</dt>
+<dd><p>Selects the sky projection to use.
+    The options are <label>Sin</label>, <label>Ait</label> for Aitoff and
+    <label>Car</label> for Plate Car&#x00e9;e.
+    Sin is rotatable, the other two are essentially flat all-sky projections.
+    </p></dd>
+<dt>Reflect longitude axis</dt>
+<dd><p>Determines whether longitude increases left to right or right to left.
+    </p></dd>
+<dt>View Sky System</dt>
+<dd><p>Determines the sky coordinate system in which the data positions will
+    be viewed.  This interacts with the 
+    <label>Data Sky System</label> selected in the 
+    <label>Positions</label> tab of the table layer control
+    for data coordinates;
+    supplied data points are projected from the data system to the view 
+    system before being plotted.
+    If you have (for instance) data in equatorial coordinates that you
+    want to view in galactic coordinates, then select the
+    Data Sky System as Equatorial and the View Sky System as Galactic.
+    If the data and view systems are the same, it's OK to leave both
+    as their defaults, even if they're not equatorial.
+    </p></dd>
+</dl>
+</p>
+
+<figure>
+<caption><px>Field Of View tab of the sky axes control</px></caption>
+<figureimage src="&FIG.SkyAxisControl_fov;"/>
+</figure>
+
+<p>The <label>FOV</label> (Field Of View) tab allows you to
+enter a sky position or object name and a radius and positions
+the view at that region.
+Filling in the fields and hitting <label>Submit</label>
+will reposition the sky view, but not vice versa;
+normal pan/zoom operations will not affect the content of this panel.
+<dl>
+<dt>Object Name</dt>
+<dd><p>If you fill this in with the name of a celestial object and hit
+    the <label>Resolve</label> button, a Simbad query will execute
+    to fill in the <label>RA</label> and <label>Dec</label> fields
+    with its position.
+    </p></dd>
+<dt>Radius</dt>
+<dd><p>Gives the radius of the desired field of view.
+    </p></dd>
+<dt>Clear</dt>
+<dd><p>Clears the fields in this tab.
+    </p></dd>
+</dl>
+</p>
+
+<figure>
+<caption><px>Grid tab of the sky axes control</px></caption>
+<figureimage src="&FIG.SkyAxisControl_grid;"/>
+</figure>
+
+<p>The <label>Grid</label> tab controls how the sky coordinate axes
+appear.
+<dl>
+<dt>Draw Grid</dt>
+<dd><p>If selected, grid lines will be drawn on the plot.
+    </p></dd>
+<dt>Sexagesimal</dt>
+<dd><p>If selected sky coordinate annotations of the grid will be in
+    sexagesimal format, otherwise in decimal degrees.
+    </p></dd>
+<dt>Grid Crowding</dt>
+<dd><p>Use the slider to control how closely packed grid lines are
+    on the axes.
+    </p></dd>
+<dt>Label Positioning</dt>
+<dd><p>Controls whether and where the numeric annotations of the lon/lat
+    axes are put.  The default option <label>Auto</label> usually does
+    the sensible thing, but other options exist to force labelling
+    internally or externally to the plot region, or to remove numeric
+    labels altogether.
+    </p></dd>
+</dl>
+</p>
+
+<figure>
+<caption><px>Font tab of the sky axes control</px></caption>
+<figureimage src="&FIG.font_tab;"/>
+</figure>
+
+<p>The <label>Font</label> tab configures the font used for axis annotation.
+It also affects some other things like the legend.
+<dl>
+<dt>Text Syntax</dt>
+<dd><p>Whether to use plain text or LaTeX rules to make sense of the text
+    value.
+    </p></dd>
+<dt>Font Size</dt>
+<dd><p>Size of the font in points.
+    </p></dd>
+<dt>Font Style</dt>
+<dd><p>Style of the font.
+    </p></dd>
+<dt>Font Weight</dt>
+<dd><p>Whether the font is to be plain, bold or italic.
+    </p></dd>
+</dl>
+</p>
+
 </subsubsubsect>
 
 </subsubsect>
@@ -10107,6 +10353,144 @@ extent with contours.  They work fine with a single dataset though.
 
 <subsubsubsect id="CubeAxisControl">
 <subhead><title>Cube Axes Control</title></subhead>
+
+<p>The <label>Axes</label> control (&IMG.AXIS_EDIT;) for the
+cube plot window has six tabs.
+</p>
+
+<figure>
+<caption><px>Coords tab of the cube axes control</px></caption>
+<figureimage src="&FIG.CubeAxisControl_coords;"/>
+</figure>
+
+<p>The <label>Coords</label> tab controls the axis coordinates.
+It has the following options:
+<dl>
+<dt>X/Y/Z Log</dt>
+<dd><p>If selected, X/Y/Z axis coordinates are logarithmic,
+    otherwise they are linear.
+    </p></dd>
+<dt>X/Y/Z Flip</dt>
+<dd><p>If selected, X/Y/Z axis coordinate axes run in the
+    opposite direction to normal.
+    </p></dd>
+</dl>
+</p>
+
+<figure>
+<caption><px>Range tab of the cube axes control</px></caption>
+<figureimage src="&FIG.CubeAxisControl_range;"/>
+</figure>
+
+<p>The <label>Range</label> tab provides manual configuration of the
+visible range of the plot.  Making changes to this tab will reset
+the visible plot range, but not vice versa - zooming and panning
+in the usual way will not change the settings of this panel.
+</p>
+
+<p>Filling in the <label>Minimum</label>/<label>Maximum</label>
+fields for one or more axes will
+constrain the corresponding range of the visible data.
+The limits corresponding to any of those fields that are left blank
+will initially be worked out from the data.
+The <label>Subrange</label> double-sliders restrict the ranges
+within the (explicit or automatic) min/max ranges.
+Note you can move both sliders at once by grabbing a position between the two.
+</p>
+
+<p>The <label>Clear</label> button resets all the fields.
+The <label>Submit</label> button updates the plot with the current values
+in this tab, as does making any changes to it.
+</p>
+
+<figure>
+<caption><px>View tab of the cube axes control</px></caption>
+<figureimage src="&FIG.CubeAxisControl_labels;"/>
+</figure>
+
+<p>The <label>View</label> tab can configure how the cube containng
+the data is viewed in the plot window, though it does not control
+the content of the cube.
+<dl>
+<dt>Rotation about Z axis</dt>
+<dd><p>Explicitly sets the angular rotation about the Z axis,
+    regardless of its current value, which may have been set by
+    mouse actions.
+    </p></dd>
+<dt>Rotation from vertical</dt>
+<dd><p>Explicitly sets the angular rotation from vertical,
+    regardless of its current value, which may have been set by
+    mouse actions.
+    </p></dd>
+<dt>Zoom factor</dt>
+<dd><p>Sets the magnification of the cube wireframe itself, without
+    affecting the data volume it contains.  This cannot be done with
+    the mouse.
+    </p></dd>
+<dt>X/Y offset of centre</dt>
+<dd><p>Controls where on the screen the cube wireframe is centred.
+    This cannot be done with the mouse.
+    </p></dd>
+</dl>
+</p>
+
+<figure>
+<caption><px>Grid tab of the cube axes control</px></caption>
+<figureimage src="&FIG.CubeAxisControl_grid;"/>
+</figure>
+
+<p>The <label>Grid</label> tab configures the appearance of the
+cube wire frame enclosing the data volume.
+<dl>
+<dt>Draw wire frame</dt>
+<dd><p>Whether the enclosing cube is drawn at all.
+    </p></dd>
+<dt>Minor Ticks</dt>
+<dd><p>If set, minor (unlabelled) tick marks will be drawn between the
+    major (labelled) ones.
+    </p></dd>
+<dt>X/Y/X Tick Crowding</dt>
+<dd><p>Use the slider to influence how many tick marks are draw on each axis.
+    </p></dd>
+</dl>
+</p>
+
+<figure>
+<caption><px>Labels tab of the cube axes control</px></caption>
+<figureimage src="&FIG.CubeAxisControl_labels;"/>
+</figure>
+
+<p>The <label>Labels</label> tab controls the text labels on the axes.
+If the <label>Auto</label> checkbox is set, the text will be taken
+from one of the data coordinates being plotted on that axis.
+To override those with your own axis labels, unset Auto and type
+text in to the <label>Label</label> fields.
+</p>
+
+<figure>
+<caption><px>Font tab of the cube axes control</px></caption>
+<figureimage src="&FIG.font_tab;"/>
+</figure>
+
+<p>The <label>Font</label> tab configures the font used for axis annotation.
+It also affects some other things like the legend.
+<dl>
+<dt>Text Syntax</dt>
+<dd><p>Whether to use plain text or LaTeX rules to make sense of the text
+    value.
+    </p></dd>
+<dt>Font Size</dt>
+<dd><p>Size of the font in points.
+    </p></dd>
+<dt>Font Style</dt>
+<dd><p>Style of the font.
+    </p></dd>
+<dt>Font Weight</dt>
+<dd><p>Whether the font is to be plain, bold or italic.
+    </p></dd>
+</dl>
+</p>
+
 </subsubsubsect>
 
 </subsubsect>
@@ -10177,11 +10561,116 @@ extent with contours.  They work fine with a single dataset though.
 </p>
 
 <p>The <label>Axes</label> control (&IMG.AXIS_EDIT;) is described in
-<ref id="CubeAxisControl_sphere">the next subsection</ref>.
+<ref id="SphereAxisControl">the next subsection</ref>.
 </p>
 
-<subsubsubsect id="CubeAxisControl_sphere">
+<subsubsubsect id="SphereAxisControl">
 <subhead><title>Sphere Axes Control</title></subhead>
+
+<p>The <label>Axes</label> control (&IMG.AXIS_EDIT;) for the
+sphere plot window has five tabs.
+</p>
+
+<figure>
+<caption><px>Range tab of the sphere axes control</px></caption>
+<figureimage src="&FIG.SphereAxisControl_range;"/>
+</figure>
+
+<p>The <label>Range</label> tab provides manual configuration of
+the data range of the plot.  Making changes to this tab will reset
+the visible plot range, but not vice versa - zooming and panning
+in the usual way will not change the settings of this panel.
+Any values not filled in will be determined from the data.
+</p>
+
+<figure>
+<caption><px>View tab of the sphere axes control</px></caption>
+<figureimage src="&FIG.CubeAxisControl_view;"/>
+</figure>
+
+<p>The <label>View</label> tab can configure how the cube containng
+the data is viewed in the plot window, though it does not control
+the content of the cube.
+<dl>
+<dt>Rotation about Z axis</dt>
+<dd><p>Explicitly sets the angular rotation about the Z axis,
+    regardless of its current value, which may have been set by
+    mouse actions.
+    </p></dd>
+<dt>Rotation from vertical</dt>
+<dd><p>Explicitly sets the angular rotation from vertical,
+    regardless of its current value, which may have been set by
+    mouse actions.
+    </p></dd>
+<dt>Zoom factor</dt>
+<dd><p>Sets the magnification of the cube wireframe itself, without
+    affecting the data volume it contains.  This cannot be done with
+    the mouse.
+    </p></dd>
+<dt>X/Y offset of centre</dt>
+<dd><p>Controls where on the screen the cube wireframe is centred.
+    This cannot be done with the mouse.
+    </p></dd>
+</dl>
+</p>
+
+<figure>
+<caption><px>Grid tab of the sphere axes control</px></caption>
+<figureimage src="&FIG.CubeAxisControl_grid;"/>
+</figure>
+
+<p>The <label>Grid</label> tab configures the appearance of the
+cube wire frame enclosing the data volume.
+<dl>
+<dt>Draw wire frame</dt>
+<dd><p>Whether the enclosing cube is drawn at all.
+    </p></dd>
+<dt>Minor Ticks</dt>
+<dd><p>If set, minor (unlabelled) tick marks will be drawn between the
+    major (labelled) ones.
+    </p></dd>
+<dt>X/Y/X Tick Crowding</dt>
+<dd><p>Use the slider to influence how many tick marks are draw on each axis.
+    </p></dd>
+</dl>
+</p>
+
+<figure>
+<caption><px>Labels tab of the sphere axes control</px></caption>
+<figureimage src="&FIG.CubeAxisControl_labels;"/>
+</figure>
+
+<p>The <label>Labels</label> tab controls the text labels on the axes.
+If the <label>Auto</label> checkbox is set, the text will be taken
+from one of the data coordinates being plotted on that axis.
+To override those with your own axis labels, unset Auto and type
+text in to the <label>Label</label> fields.
+</p>
+
+<figure>
+<caption><px>Font tab of the cube axes control</px></caption>
+<figureimage src="&FIG.font_tab;"/>
+</figure>
+
+<p>The <label>Font</label> tab configures the font used for axis annotation.
+It also affects some other things like the legend.
+<dl>
+<dt>Text Syntax</dt>
+<dd><p>Whether to use plain text or LaTeX rules to make sense of the text
+    value.
+    </p></dd>
+<dt>Font Size</dt>
+<dd><p>Size of the font in points.
+    </p></dd>
+<dt>Font Style</dt>
+<dd><p>Style of the font.
+    </p></dd>
+<dt>Font Weight</dt>
+<dd><p>Whether the font is to be plain, bold or italic.
+    </p></dd>
+</dl>
+</p>
+
 </subsubsubsect>
 
 </subsubsect>

@@ -247,9 +247,4 @@ public class SkyAxisControl
             || ! oldProfile.getViewSystem().equals( newProfile.getViewSystem() )
             || oldProfile.isReflected() != newProfile.isReflected();
     }
-
-    @Override
-    public Icon getControlIcon() {
-        return ResourceIcon.SPHERE;
-    }
 }
