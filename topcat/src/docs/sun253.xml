@@ -114,6 +114,16 @@
   <!ENTITY FIG.mode_auto '&figs;mode_auto.gif'>
   <!ENTITY FIG.mode_density '&figs;mode_density.gif'>
   <!ENTITY FIG.mode_aux '&figs;mode_aux.gif'>
+  <!ENTITY FIG.form_mark '&figs;form_mark.gif'>
+  <!ENTITY FIG.form_size '&figs;form_size.gif'>
+  <!ENTITY FIG.form_vector '&figs;form_vector.gif'>
+  <!ENTITY FIG.form_error '&figs;form_error.gif'>
+  <!ENTITY FIG.form_ellipse '&figs;form_ellipse.gif'>
+  <!ENTITY FIG.form_link2 '&figs;form_link2.gif'>
+  <!ENTITY FIG.form_link3 '&figs;form_link3.gif'>
+  <!ENTITY FIG.form_line '&figs;form_line.gif'>
+  <!ENTITY FIG.form_label '&figs;form_label.gif'>
+  <!ENTITY FIG.form_contour '&figs;form_contour.gif'>
 
   <!-- Define external URLs. -->
   <!ENTITY URL.VOTABLE "http://www.ivoa.net/Documents/latest/VOT.html">
@@ -9213,44 +9223,408 @@ add an instance to the control stack.
 <subsubsect id="ShapeForm">
 <subhead><title>Plot Forms</title></subhead>
 
+<p>Plot "forms" are the instructions for what shapes to actually paint
+on the plotting surface given some positional data from a table.
+The most obvious (<ref id="form-mark">Mark</ref>)
+is simply to plot a marker with a fixed size and shape
+at each data position.
+However, there is a range of other things you might want to do,
+including error bars, vectors, contours, text labels, ...
+</p>
+
+<p>The options provided are described, with the additional configuration
+information required, in the following sections.
+Not all are available for every plot type.
+</p>
+
 <subsubsubsect id="form-mark">
 <subhead><title>Mark Form</title></subhead>
+
+<figure>
+<caption><px>Mark form configuration panel</px></caption>
+<figureimage src="&FIG.form_mark;"/>
+</figure>
+
+<p>The <label>Mark</label> form (&IMG.FORM_MARK;)
+simply plots markers with a fixed shape and size.
+</p>
+
+<p>Configuration options are:
+<dl>
+<dt>Shape</dt>
+<dd><p>Marker shape from a list of options.
+    </p></dd>
+<dt>Size</dt>
+<dd><p>Marker size in pixels.
+    </p></dd>
+</dl>
+</p>
+
 </subsubsubsect>
 
 <subsubsubsect id="form-size">
 <subhead><title>Size Form</title></subhead>
+
+<figure>
+<caption><px>Size form configuration panel</px></caption>
+<figureimage src="&FIG.form_size;"/>
+</figure>
+
+<p>The <label>Size</label> form (&IMG.FORM_SIZE;)
+plots markers of a fixed shape
+whose size varies according to a supplied data coordinate.
+The marker size thus represents an additional dimension of the plot.
+</p>
+
+<p>The marker size is scaled according to the values of the data.
+The data range in the visible part of the plot is determined,
+the maximum value is assigned to the maximum marker size,
+and the size of each marker is determined as (data value/max data value).
+Currently data values of zero always correspond to marker size of zero,
+negative data values are not represented, and the mapping is linear.
+Other options may be introduced in future.
+</p>
+
+<p>Note the scaling to size is in terms of screen dimensions (pixels).
+For sizes that correspond to actual data values,
+the <ref id="form-error">Error</ref> form may be more appropriate.
+</p>
+
+<p>The configuration options are:
+<dl>
+<dt>Size</dt>
+<dd><p>The size coordinate data values.
+    Fill this in with a column name or expression from the table
+    just like for the positional coordinate.
+    </p></dd>
+<dt>Shape</dt>
+<dd><p>Marker shape from a list of options.
+    </p></dd>
+<dt>Max Marker Size</dt>
+<dd><p>Scales the maximum marker size in pixels.
+    Slide this along to scale the sizes of all the markers up or down.
+    </p></dd>
+</dl>
+</p>
+
 </subsubsubsect>
 
 <subsubsubsect id="form-vector">
 <subhead><title>Vector Form</title></subhead>
+
+<figure>
+<caption><px>Vector form configuration panel</px></caption>
+<figureimage src="&FIG.form_vector;"/>
+</figure>
+
+<p>The <label>Vector</label> form (&IMG.FORM_VECTOR;)
+plots directed lines from the
+data position given delta values for the coordinates.
+The plotted markers are typically little arrows, but there are
+other options.
+</p>
+
+<p>In some cases such delta values may be the actual magnitude required
+for the plot, but more often the vector data represents a value which
+has a different magnitude or is in different units to the positional data.
+As a convenience for this case, the plotter can optionally
+(and does by default) scale the magnitudes of all the vectors to make
+them a sensible size (so the largest ones are a few tens of pixels long).
+This scaling can be adjusted or turned off using the
+<label>Scale</label> and <label>Auto Scale</label> options below.
+</p>
+
+<p>The configuration options are:
+<dl>
+<dt>DeltaX, DeltaY, ...</dt>
+<dd><p>The coordinates of the changes in each coordinate which gives the
+    vector.  The coordinates here match the coordinates of the plot.
+    For sky coordinates, the supplied longitude delta values are
+    in degrees and <em>are</em>
+    considered to have been already multiplied by cos(latitude).
+    </p></dd>
+<dt>Arrow</dt>
+<dd><p>Arrow shape selected from a range of options.
+    </p></dd>
+<dt>Scale</dt>
+<dd><p>Changes the factor by which all vector sizes are scaled.
+    If the arrows are too small, slide it right, if they are too big,
+    slide it left.  The scale is logarithmic.
+    </p></dd>
+<dt>Auto Scale</dt>
+<dd><p>If selected, this option will determine the default arrow scale size
+    from the data - it will fix it so that the largest arrows are a
+    few tens of pixels long by default.
+    That scaling can then be adjusted using the <label>Scale</label> slider.
+    If unselected, then the default position of the Scale slider corresponds
+    to the actual positions given by the submitted delta coordinates.
+    </p></dd>
+</dl>
+</p>
+
 </subsubsubsect>
 
 <subsubsubsect id="form-error">
 <subhead><title>Error Bars Form</title></subhead>
+
+<figure>
+<caption><px>Error Bars form configuration panel</px></caption>
+<figureimage src="&FIG.form_error;"/>
+</figure>
+
+<p>The <label>Error Bars</label> form (&IMG.FORM_ERROR;)
+draws symmetric or asymmetric
+error bars in some or all of the dimensions of a Cartesian plot.
+The shape of the error "bars" is quite configurable, including
+(for 2- and 3-d errors) ellipses, rectangles etc, aligned with the axes
+(for rotated ellipses and rectangles,
+see the <ref id="form-ellipse">Ellipse</ref> form).
+</p>
+
+<p>The configuration options are:
+<dl>
+<dt>X Positive Error, X Negative Error, ...</dt>
+<dd><p>For each dimension of the plot, you can enter positive and/or
+    negative error values as columns or expressions from the table.
+    All of these values must be positive; any negative values will
+    be ignored.
+    If both positive and negative values are filled in for an axis,
+    the errors will be asymmetric.
+    If the negative value is blank (either because the coordinate is not
+    filled in, or because its value is blank for that row),
+    the error bars will be symmetric,
+    i.e. the negative error bar will be the same size as the positive one.
+    If you want to ensure only a positive error bar is plotted,
+    enter "<code>0</code>" for the corresponding negative error.
+    </p></dd>
+<dt>Error Bar</dt>
+<dd><p>Error bar shape from a list of options.
+    Exact appearence will also depend on the dimensionality of the supplied
+    errors.
+    </p></dd>
+</dl>
+</p>
+
 </subsubsubsect>
 
 <subsubsubsect id="form-ellipse">
 <subhead><title>Ellipse Form</title></subhead>
+
+<figure>
+<caption><px>Ellipse form configuration panel</px></caption>
+<figureimage src="&FIG.form_ellipse;"/>
+</figure>
+
+<p>The <label>Ellipse</label> form (&IMG.FORM_ELLIPSE;)
+draws an ellipse (or rectangle, or other similar figure) defined by 
+major and minor radii and an optional rotation angle.
+</p>
+
+<p>The configuration options are:
+<dl>
+<dt>Major Radius, Minor Radius</dt>
+<dd><p>Two radii for the ellipse, in the same units as the
+    position coordinates (which is degrees for the sky plot).
+    It doesn't matter whether the major one is larger than the minor one.
+    </p></dd>
+<dt>Orientation</dt>
+<dd><p>Position angle in degrees.
+    For the plane plot it is the angle anticlockwise from the X axis
+    to the major radius.
+    For the sky plot it is the angle from the North pole to the major axis
+    in the direction of positive RA.
+    </p></dd>
+<dt>Ellipse</dt>
+<dd><p>Ellipse shape, selected from a range of options
+    (includes also rectangles, crosses etc).
+    </p></dd>
+<dt>Scale</dt>
+<dd><p>Changes the factor by which all ellipse sizes are scaled.
+    If the ellipses are too small, slide it right, if they are too big,
+    slide it left.  The scale is logarithmic.
+    </p></dd>
+<dt>Auto Scale</dt>
+<dd><p>If selected, this option will determine the default ellipse scale size
+    from the data - it will fix it so that the largest ellipses are a few
+    tens of pixels long by default.
+    That scaling can then be adjusted using the <label>Scale</label> slider.
+    If unselected, then the default position of the Scale slider corresponds
+    to the actual positions given by the submitted ellipse radii coordinates.
+    </p></dd>
+</dl>
+</p>
+
 </subsubsubsect>
 
 <subsubsubsect id="form-link2">
 <subhead><title>Pair Link Form</title></subhead>
+
+<figure>
+<caption><px>Pair Link form configuration panel</px></caption>
+<figureimage src="&FIG.form_link2;"/>
+</figure>
+
+<p>The <label>Pair Link</label> form (&IMG.FORM_LINK2;)
+draws a line between two absolute positions
+(the basic plot position, and one additional supplied position).
+It can be very useful for visualising the results of a crossmatch.
+</p>
+
+<p>The configuration options are:
+<dl>
+<dt>X2, Y2, ...</dt>
+<dd><p>The coordinates of the second point of the pair
+    (the first is given in the <label>Position</label> tab).
+    The coordinates here match the coordinates of the plot.
+    </p></dd>
+</dl>
+</p>
+
 </subsubsubsect>
 
 <subsubsubsect id="form-link3">
-<subhead><title>Triple Linke Form</title></subhead>
+<subhead><title>Triple Link Form</title></subhead>
+
+<figure>
+<caption><px>Triple Link form configuration panel</px></caption>
+<figureimage src="&FIG.form_link3;"/>
+</figure>
+
+<p>The <label>Triple Link</label> form (&IMG.FORM_LINK3;)
+draws a triangle of lines between three absolute positions
+(the basic plot position, and two additional supplied positions).
+It can be useful for visualising the results of a three-way crossmatch.
+</p>
+
+<p>The configuration options are:
+<dl>
+<dt>X2, Y2, ...</dt>
+<dd><p>The coordinates of the second point in the triple.
+    The coordinates here match the coordinates of the plot.
+    </p></dd>
+<dt>X3, Y3, ...</dt>
+<dd><p>The coordinates of the third point in the triple.
+    The coordinates here match the coordinates of the plot.
+    </p></dd>
+</dl>
+</p>
+
 </subsubsubsect>
 
 <subsubsubsect id="form-line">
 <subhead><title>Line Form</title></subhead>
+
+<figure>
+<caption><px>Line form configuration panel</px></caption>
+<figureimage src="&FIG.form_line;"/>
+</figure>
+
+<p>The <label>Line</label> form (@IMG.PLOT_LINE;)
+draws a point-to-point line joining
+up the points making up the data set.
+Note that for a large and unordered data set this can lead to a big
+scribble on the screen.
+</p>
+
+<p>The configuration options are:
+<dl>
+<dt>Dash</dt>
+<dd><p>Dash pattern.  The line is solid by default.
+    </p></dd>
+<dt>Thickness</dt>
+<dd><p>Line thickness in pixels.
+    </p></dd>
+</dl>
+</p>
+
 </subsubsubsect>
 
 <subsubsubsect id="form-text">
 <subhead><title>Text Label Form</title></subhead>
+
+<figure>
+<caption><px>Text Label form configuration panel</px></caption>
+<figureimage src="&FIG.form_label;"/>
+</figure>
+
+<p>The <label>Text Label</label> form (&IMG.PLOT_LABEL;)
+draws a text label by each point position.
+</p>
+
+<p>The configuration options are:
+<dl>
+<dt>Text</dt>
+<dd><p>A column or expression from the table supplying the text to
+    write on the plot.  Any data type (string or numeric) is permitted.
+    </p></dd>
+<dt>Text Syntax</dt>
+<dd><p>Whether to use plain text or LaTeX rules to make sense of the text
+    value.
+    </p></dd>
+<dt>Font Size</dt>
+<dd><p>Size of the font in points.
+    </p></dd>
+<dt>Font Style</dt>
+<dd><p>Style of the font.
+    </p></dd>
+<dt>Font Weight</dt>
+<dd><p>Whether the font is to be plain, bold or italic.
+    </p></dd>
+<dt>Anchor</dt>
+<dd><p>The position of the text relative to the data position.
+    </p></dd>
+</dl>
+</p>
+
 </subsubsubsect>
 
 <subsubsubsect id="form-contour">
 <subhead><title>Contour Form</title></subhead>
+
+<figure>
+<caption><px>Contour form configuration panel</px></caption>
+<figureimage src="&FIG.form_contour;"/>
+</figure>
+
+<p>The <label>Contour</label> form (&IMG.PLOT_CONTOUR;) form
+plots position density contours.
+These provide another way
+(alongside the <ref id="mode-auto">Auto</ref> and
+<ref id="mode-density">Density</ref> shading modes)
+to visualise the characteristics of overdense regions in a crowded plot.
+</p>
+
+<p>The contours are currently drawn as pixels rather than lines,
+so they don't look very beautiful in exported vector output formats
+(PDF, PostScript).
+</p>
+
+<p>The configuration options are:
+<dl>
+<dt>Level Count</dt>
+<dd><p>The number of countours drawn.
+    In fact this is an upper limit; if there is not enough variation
+    in the plot's density, then fewer contour lines will be drawn.
+    </p></dd>
+<dt>Smoothing</dt>
+<dd><p>The size of the smoothing kernel applied to the density before
+    performing the contour determination.  If set too low the contours
+    will be too crinkly, and if too high they will lose definition.
+    </p></dd>
+<dt>Scaling</dt>
+<dd><p>How the smoothed density is treated before the contours levels
+    are determined.  Options are linear, logarithmic and equal area.
+    </p></dd>
+<dt>Zero Point</dt>
+<dd><p>Determines the level at which the first contour (and hence all the
+    others, which are separated from it by a fixed amount) are drawn.
+    By sliding this from side to side you can sweep the contours over
+    the density range and get a good idea of where interesting features lie.
+    </p></dd>
+</dl>
+</p>
+
+
 </subsubsubsect>
 
 </subsubsect>
