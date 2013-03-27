@@ -109,6 +109,11 @@
   <!ENTITY FIG.GangLayerControl_position '&figs;GangLayerControl_position.gif'>
   <!ENTITY FIG.GangLayerControl_subsets '&figs;GangLayerControl_subsets.gif'>
   <!ENTITY FIG.GangLayerControl_form '&figs;GangLayerControl_form.gif'>
+  <!ENTITY FIG.mode_flat '&figs;mode_flat.gif'>
+  <!ENTITY FIG.mode_transparent '&figs;mode_transparent.gif'>
+  <!ENTITY FIG.mode_auto '&figs;mode_auto.gif'>
+  <!ENTITY FIG.mode_density '&figs;mode_density.gif'>
+  <!ENTITY FIG.mode_aux '&figs;mode_aux.gif'>
 
   <!-- Define external URLs. -->
   <!ENTITY URL.VOTABLE "http://www.ivoa.net/Documents/latest/VOT.html">
@@ -8715,7 +8720,7 @@ plot windows is:
     However, I hope to improve this limit in future.
     </p></dd>
 
-<dt>New plot colouring modes</dt>
+<dt>New plot shading modes</dt>
 <dd><p>Density colour coding for all plot types,
     with density colour map based either on dataset colour or
     chosen from a fixed set.
@@ -8753,7 +8758,7 @@ the columns, and you're off.
 
 <p>Some features <em>not</em> currently available in the layer plots
 include the 1-d histogram, the stacked line plot, and true RGB
-density maps (though density colouring modes will often do as good or
+density maps (though density shading modes will often do as good or
 a better job).
 The intention is to introduce these in a future release.
 </p>
@@ -9081,10 +9086,40 @@ or instead of the simple markers - vectors, error bars, ellipses,
 contours, text markers etc.  You add a new form to the stack by
 clicking on one of the buttons in the toolbar in the tab.
 You can remove a form with the <label>Remove</label> (&IMG.DELETE;)
-button in the same toolbar.  You can also activate/deactivate and
-change their order with the checkbox and drag handles as usual.
+button in the same toolbar.  You can also activate/deactivate them
+with the checkbox and move them up and down with the drag handle as usual.
 The list of forms that are avaiable depends on the plot type;
-they are listed in <ref id="ShapeForm"/>.
+the full list is in <ref id="ShapeForm"/>.
+</p>
+
+<p>The detail panel of each form depends on the form itself.
+It is divided into the following panels, though not all
+forms have all the panels.
+<dl>
+<dt>Shading</dt>
+<dd><p>The shading mode controls how points are shaded based on their
+    chosen colour.  The various options are described in <ref id="ShapeMode"/>.
+    Depending on the mode there may be more settings to fill in here.
+    </p></dd>
+<dt>Coordinates</dt>
+<dd><p>If additional coordinates are required for this form,
+    for instance the size of error bars, you need to enter the
+    column or expression here.  Each coordinate effectively adds
+    another dimension to the plot.
+    Some forms, like Mark, do not require any additional coordinates.
+    </p></dd>
+<dt>Global Style</dt>
+<dd><p>Controls the style details for the chosen form, for instance
+    marker shape and size.  Options here affect all subsets,
+    though by default the colour is taken from the <label>Subsets</label> tab.
+    </p></dd>
+<dt>Subset Styles</dt>
+<dd><p>If you want to have different subsets represented with different
+    styles, for instance different shapes for different subsets,
+    you can select a subset here and alter style details for
+    that subset only, overriding the Global settings above.
+    </p></dd>
+</dl>
 </p>
 
 </subsubsubsect>
@@ -9176,7 +9211,304 @@ add an instance to the control stack.
 </subsubsect>
 
 <subsubsect id="ShapeForm">
-<subhead><title>Table Plot Forms</title></subhead>
+<subhead><title>Plot Forms</title></subhead>
+
+<subsubsubsect id="form-mark">
+<subhead><title>Mark Form</title></subhead>
+</subsubsubsect>
+
+<subsubsubsect id="form-size">
+<subhead><title>Size Form</title></subhead>
+</subsubsubsect>
+
+<subsubsubsect id="form-vector">
+<subhead><title>Vector Form</title></subhead>
+</subsubsubsect>
+
+<subsubsubsect id="form-error">
+<subhead><title>Error Bars Form</title></subhead>
+</subsubsubsect>
+
+<subsubsubsect id="form-ellipse">
+<subhead><title>Ellipse Form</title></subhead>
+</subsubsubsect>
+
+<subsubsubsect id="form-link2">
+<subhead><title>Pair Link Form</title></subhead>
+</subsubsubsect>
+
+<subsubsubsect id="form-link3">
+<subhead><title>Triple Linke Form</title></subhead>
+</subsubsubsect>
+
+<subsubsubsect id="form-line">
+<subhead><title>Line Form</title></subhead>
+</subsubsubsect>
+
+<subsubsubsect id="form-text">
+<subhead><title>Text Label Form</title></subhead>
+</subsubsubsect>
+
+<subsubsubsect id="form-contour">
+<subhead><title>Contour Form</title></subhead>
+</subsubsubsect>
+
+</subsubsect>
+
+<subsubsect id="ShapeMode">
+<subhead><title>Shading Modes</title></subhead>
+
+<p>Most of the <ref id="ShapeForm" plaintextref="yes">Plot Forms</ref>
+have a style colour associated with them for each data set.
+This defines the basic colour used to plot the shape at each data point.
+However, many of the forms also ask you to select a
+<label>Shading Mode</label>,
+which determines the actual colour displayed in the plot for the
+plotted points.
+The shaded colour is based on the selected style colour, but may also be
+influenced by the number of points plotted there, some extra
+data coordinate, or other configuration information.
+</p>
+
+<p>When exporting plots to an external vector graphics format 
+(EPS or PDF), some of the shading modes may not behave the same
+as in a bitmap (on the screen, or to a bitmapped format such as 
+GIF or PNG).
+Any such anomalies are noted in the in the mode descriptions below.
+</p>
+
+<p>The different mode shading mode options are described in the following
+subsections.
+</p>
+
+<subsubsubsect id="mode-flat">
+<subhead><title>Flat Mode</title></subhead>
+
+<figure>
+<caption><px>Flat shading mode selection</px></caption>
+<figureimage src="&FIG.mode_flat;"/>
+</figure>
+
+<p>The <label>Flat</label> shading mode
+simply colours points in the colour selected by their style.
+It has no additional parameters or coordinates.
+</p>
+
+<p><strong>Exporting:</strong>
+This mode works without problem for both bitmapped and vector output.
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="mode-transparent">
+<subhead><title>Transparent Mode</title></subhead>
+
+<figure>
+<caption><px>Transparent shading mode selection</px></caption>
+<figureimage src="&FIG.mode_transparent;"/>
+</figure>
+
+<p>The <label>Transparent</label> shading mode
+colours shapes in a transparent version of the
+colour selected by their style.
+The degree of transparency is determined by the
+<label>Opaque Limit</label> slider - at the left end,
+points are fully opaque and this is equivalent to
+<ref id="mode-flat">Flat mode</ref>,
+and as you slide further to the right,
+the points get more transparent.
+The higher the opaque limit, the more points have to be plotted
+on top of each other to reach colour that fully obscures the background.
+</p>
+
+<p><strong>Exporting:</strong>
+When the points are opaque, this mode works without problem for
+both bitmapped and vector output, but when the transparency is set
+there may be anomalies.
+Transparent points are rendered in PDF output, though the 
+transparency levels may not be exactly the same as on the screen.
+This can be fixed by using the <label>Force Bitmap</label> option
+in the plot export dialogue.
+For PostScript, transparent points are rendered as opaque.
+You can use <label>Force Bitmap</label> with PostScript which
+will get transparency right for this layer, but then any earlier
+layers will be completely obscured.
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="mode-auto">
+<subhead><title>Auto Mode</title></subhead>
+
+<figure>
+<caption><px>Auto shading mode selection</px></caption>
+<figureimage src="&FIG.mode_auto;"/>
+</figure>
+
+<p>The <label>Auto</label> shading mode
+colours isolated points in their selected colour,
+but where multiple points <em>from the same data set</em>
+overlap it adjusts the colour by darkening it.
+This means for that isolated points
+(most or all points in a non-crowded plot, or outliers in a crowded plot)
+it behaves just like <ref id="mode-flat">Flat</ref> mode,
+but it's easy to see where overdense regions lie.
+</p>
+
+<p>This is like <ref id="mode-density">Density</ref> mode,
+but with no user-configurable options.
+</p>
+
+<p>This is the default mode for 2d plots, since it gives you a good
+first idea of what the data is doing.
+For 3d plots it can be used, and it works well for single dataset plots,
+but in the case of multiple datasets it can be misleading since the
+coloured pixels can't be placed sensibly in the 3d space.
+</p>
+
+<p>The colour darkening is based on the asinh function;
+the intention is that two points overlaid should be just enough
+different in colour for the difference to be visible,
+and the mapping is scaled so that if there are very dense regions
+they will come out nearly black.
+</p>
+
+<p><strong>Exporting:</strong>
+When exported to vector formats, the output is automatically forced to a
+bitmap for Auto-mode layers.
+In the case of PostScript, this completely obscures any previous layers.
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="mode-density">
+<subhead><title>Density Mode</title></subhead>
+
+<figure>
+<caption><px>Density mode selection</px></caption>
+<figureimage src="&FIG.mode_density;"/>
+</figure>
+
+<p>The <label>Density</label> shading mode uses a configurable colour map
+to indicate how many points are plotted over each other.
+Specifically, it colours each pixel according to how many times that
+pixel has has been covered by one of the shapes plotted by the layer
+in question.
+To put it another way, it generates a false-colour density map
+with pixel granularity using a smoothing kernel of the form of
+the shapes plotted by the layer.
+The upshot is that you can see the plot density of points or other
+shapes plotted.
+</p>
+
+<p>This is like <ref id="mode-auto">Auto</ref> mode, but with more
+user-configurable options.  The options are:
+<dl>
+<dt>Map</dt>
+<dd><p>The colour map for displaying density values.
+    There are two types, relative and absolute.
+    Relative maps have names marked by a star ("*"), and alter the
+    basic dataset colour, for instance by darkening or lightening it,
+    while absolute maps (the rest) ignore the basic dataset colour altogether.
+    For a single-dataset plot, the absolute maps are best, but for
+    multiple subsets it may be less confusing to use a relative one.
+    </p></dd>
+<dt>Sub-range</dt>
+<dd><p>Adjusts the density range over which the colour
+    map is applied.  By default the colour map is scaled using limits
+    found from the data density in the plot (the most dense few pixels are
+    ignored), but you can restrict the range using this slider.
+    </p></dd>
+<dt>Log</dt>
+<dd><p>Selects whether the colour map should be applied linearly or
+    logarithmically to the range of densities.  The default is logarithmic.
+    </p></dd>
+<dt>Flip</dt>
+<dd><p>Selects whether the colour map should be applied forwards or
+    backwards to the range of densities.
+    </p></dd>
+</dl>
+</p>
+
+<p><strong>Exporting:</strong>
+When exported to vector formats, the output is automatically forced to a
+bitmap for Density-mode layers.
+In the case of PostScript, this completely obscures any previous layers.
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="mode-aux">
+<subhead><title>Aux Mode</title></subhead>
+
+<figure>
+<caption><px>Aux mode selection</px></caption>
+<figureimage src="&FIG.mode_aux;"/>
+</figure>
+
+<p>The <label>Aux</label> shading mode
+colours each point according to the value of an additional
+data coordinate.
+The point colours then represent an additional dimension of the plot.
+There is an additional option to draw the points with a fixed transparency.
+</p>
+
+<p>The shading is done according to a single fixed scale for all
+the data in the plot.  When at least one Aux-mode layer is being plotted,
+the <ref id="ShaderControl" plaintextref="yes"/> control is visible
+in the control panel, which allows you to configure the colour map,
+range, ramp display etc.
+</p>
+
+<p>The options are:
+<dl>
+<dt>Aux</dt>
+<dd><p>The auxiliary coordinate data values.
+    Fill this in with a column name or expression from the table
+    just like for a positional coordinate.
+    </p></dd>
+<dt>Opaque Limit</dt>
+<dd><p>Determines transparency of the points.
+    By default, they are fully opaque, but if you slide the slider to
+    the right, they will become progressively more transparent.
+    </p></dd>
+</dl>
+</p>
+
+<p><strong>Exporting:</strong>
+Transparent points are rendered in PDF output, though the 
+transparency levels may not be exactly the same as on the screen.
+This can be fixed by using the <label>Force Bitmap</label> option
+in the plot export dialogue.
+For PostScript, transparent points are rendered as opaque.
+You can use <label>Force Bitmap</label> with PostScript which
+will get transparency right for this layer, but then any earlier
+layers will be completely obscured.
+</p>
+
+</subsubsubsect>
+
+</subsubsect>
+
+<subsubsect id="plot2Windows">
+<subhead><title>Plot Windows</title></subhead>
+
+<subsubsubsect id="PlanePlotWindow">
+<subhead><title>Plane Plot</title></subhead>
+</subsubsubsect>
+
+<subsubsubsect id="SkyPlotWindow">
+<subhead><title>Sky Plot</title></subhead>
+</subsubsubsect>
+
+<subsubsubsect id="CubePlotWindow">
+<subhead><title>Cube Plot</title></subhead>
+</subsubsubsect>
+
+<subsubsubsect id="SpherePlotWindow">
+<subhead><title>Sphere Plot</title></subhead>
+</subsubsubsect>
+
 </subsubsect>
 
 </subsect>
