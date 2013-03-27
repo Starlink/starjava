@@ -97,7 +97,7 @@ public class EdgeForm implements ShapeForm {
      * @return   new coord like the input one
      */
     private Coord relabel( final Coord baseCoord, int iPoint ) {
-        String iptxt = Integer.toString( iPoint + 1 );
+        String iptxt = Integer.toString( iPoint + 2 );
         final ValueInfo[] infos = baseCoord.getUserInfos().clone();
         int nuc = infos.length;
         for ( int iuc = 0; iuc < nuc; iuc++ ) { 
