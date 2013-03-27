@@ -15,7 +15,7 @@ import java.util.Arrays;
  * <code>BufferedImage</code> <code>setRGB</code>/<code>getRGB</code>,
  * but can (presumably) be manipulated more efficiently by addressing the
  * array here directly.
- * These RGB valueas are also the same as those used by {@link Compositor}.
+ * These RGB values are also the same as those used by {@link Compositor}.
  *
  * @author   Mark Taylor
  * @since    14 Feb 2013
