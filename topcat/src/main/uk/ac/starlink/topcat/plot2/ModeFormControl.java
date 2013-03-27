@@ -150,7 +150,7 @@ public class ModeFormControl extends FormControl {
                                     true ) );
         modePanel.add( modeCoordHolder_ );
         modePanel.add( modeConfigHolder_ );
-        modePanel.setBorder( AuxWindow.makeTitledBorder( "Colouring" ) );
+        modePanel.setBorder( AuxWindow.makeTitledBorder( "Shading" ) );
         panel_ = new JPanel( new BorderLayout() );
         panel_.add( modePanel, BorderLayout.NORTH );
         panel_.add( commonExtraCoordPanel_, BorderLayout.CENTER );
