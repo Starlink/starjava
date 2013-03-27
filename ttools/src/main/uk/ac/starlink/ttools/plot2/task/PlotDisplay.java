@@ -173,8 +173,6 @@ public class PlotDisplay<P,A> extends JComponent {
                                  .getPixelPaperType( opts, this );
 
             /* Perform the plot to a possibly cached image. */
-            logger_.info( "Layers: " + layers_.length
-                        + ", Paper: " + paperType );
             long start = System.currentTimeMillis();
             icon_ = createIcon( placer, layers_, auxRanges, dataStore_,
                                 paperType, true );
@@ -318,6 +316,7 @@ public class PlotDisplay<P,A> extends JComponent {
                                     boolean cached ) {
         Surface surface = placer.getSurface();
         int nl = layers.length;
+        logger_.info( "Layers: " + nl + ", Paper: " + paperType );
         Drawing[] drawings = new Drawing[ nl ];
         Object[] plans = new Object[ nl ];
         long t1 = System.currentTimeMillis();

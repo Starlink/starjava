@@ -204,6 +204,7 @@ public class PlotExporter {
                                         PaperType paperType ) {
         Surface surface = placer.getSurface();
         int nl = layers.length;
+        logger_.info( "Layers: " + nl + ", Paper: " + paperType );
         Drawing[] drawings = new Drawing[ nl ];
         Object[] plans = new Object[ nl ];
         long t1 = System.currentTimeMillis();
