@@ -150,6 +150,10 @@
   <!ENTITY FIG.CubeAxisControl_view '&figs;CubeAxisControl_view.gif'>
   <!ENTITY FIG.CubeAxisControl_grid '&figs;CubeAxisControl_grid.gif'>
   <!ENTITY FIG.CubeAxisControl_labels '&figs;CubeAxisControl_labels.gif'>
+  <!ENTITY FIG.PlanePlotWindow '&figs;PlanePlotWindow.gif'>
+  <!ENTITY FIG.SkyPlotWindow '&figs;SkyPlotWindow.gif'>
+  <!ENTITY FIG.CubePlotWindow '&figs;CubePlotWindow.gif'>
+  <!ENTITY FIG.SpherePlotWindow '&figs;SpherePlotWindow.gif'>
   <!ENTITY FIG.SphereAxisControl_range '&figs;SphereAxisControl_range.gif'>
 
   <!-- Define external URLs. -->
@@ -10207,6 +10211,11 @@ layers will be completely obscured.
 <subsubsect id="PlanePlotWindow">
 <subhead><title>Plane Plot Window</title></subhead>
 
+<figure>
+<caption><px>Plane Plot Window</px></caption>
+<figureimage src="&FIG.PlanePlotWindow;"/>
+</figure>
+
 <p>The <label>Plane Plot</label> (&IMG.PLOT2_PLANE;)
 plots 2-dimensional Cartesian positions on a plane.
 See the <ref id="StackPlotWindow" plaintextref="yes">Window Overview</ref>
@@ -10386,6 +10395,11 @@ It also affects some other things like the legend.
 
 <subsubsect id="SkyPlotWindow">
 <subhead><title>Sky Plot Window</title></subhead>
+
+<figure>
+<caption><px>Sky Plot Window</px></caption>
+<figureimage src="&FIG.SkyPlotWindow;"/>
+</figure>
 
 <p>The <label>Sky Plot</label> (&IMG.PLOT2_SKY;)
 plots longitude/latitude positions onto the celestial sphere.
@@ -10594,6 +10608,11 @@ It also affects some other things like the legend.
 <subsubsect id="CubePlotWindow">
 <subhead><title>Cube Plot Window</title></subhead>
 
+<figure>
+<caption><px>Cube Plot Window</px></caption>
+<figureimage src="&FIG.CubePlotWindow;"/>
+</figure>
+
 <p>The <label>Cube Plot</label> (&IMG.PLOT2_CUBE;)
 plots 3-dimensional Cartesian positions in a 3-d space.
 See the <ref id="StackPlotWindow" plaintextref="yes">Window Overview</ref>
@@ -10615,7 +10634,8 @@ see the <label>Coords</label> tab of the
     <label>View</label> tab of the
     <ref id="CubeAxisControl">Axes</ref> control.
     </p>
-    <p>To re-center the plot in the visible cube, <strong>right-click</strong>
+    <p>To <strong>re-centre</strong> the plot in the visible cube,
+    <strong>right-click</strong>
     on the position you're interested in.
     A screen position represents a line not a point, so there is a
     degeneracy here; the new central position is actually the average
@@ -10815,6 +10835,11 @@ It also affects some other things like the legend.
 <subsubsect id="SpherePlotWindow">
 <subhead><title>Sphere Plot Window</title></subhead>
 
+<figure>
+<caption><px>Sphere Plot Window</px></caption>
+<figureimage src="&FIG.SpherePlotWindow;"/>
+</figure>
+
 <p>The <label>Sphere Plot</label> (&IMG.PLOT2_SPHERE;)
 plots spherical polar coordinates in an isotropic 3-dimensional space.
 Although the supplied coordinates are spherical polar,
@@ -10839,7 +10864,8 @@ for features common to all layer plots.
     <label>View</label> tab of the
     <ref id="CubeAxisControl">Axes</ref> control.
     </p>
-    <p>To re-center the plot in the visible cube, <strong>right-click</strong>
+    <p>To <strong>re-centre</strong> the plot in the visible cube,
+    <strong>right-click</strong>
     on the position you're interested in.
     A screen position represents a line not a point, so there is a
     degeneracy here; the new central position is actually the average
