@@ -165,14 +165,18 @@ public class PlaneSurface implements Surface {
         if ( grid_ ) {
             g.setColor( Color.LIGHT_GRAY );
             for ( int it = 0; it < xticks_.length; it++ ) {
-                double dx = xticks_[ it ].getValue();
-                int gx = xAxis_.dataToGraphics( dx );
-                g.drawLine( gx, gylo_, gx, gyhi_ );
+                Tick tick = xticks_[ it ];
+                if ( tick.getLabel() != null ) {
+                    int gx = xAxis_.dataToGraphics( tick.getValue() );
+                    g.drawLine( gx, gylo_, gx, gyhi_ );
+                }
             }
             for ( int it = 0; it < yticks_.length; it++ ) {
-                double dy = yticks_[ it ].getValue();
-                int gy = yAxis_.dataToGraphics( dy );
-                g.drawLine( gxlo_, gy, gxhi_, gy );
+                Tick tick = yticks_[ it ];
+                if ( tick.getLabel() != null ) {
+                    int gy = yAxis_.dataToGraphics( tick.getValue() );
+                    g.drawLine( gxlo_, gy, gxhi_, gy );
+                }
             }
         }
         g.setColor( color0 );
