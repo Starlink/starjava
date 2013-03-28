@@ -105,7 +105,18 @@
   <!ENTITY FIG.BaSTITableLoadDialog '&figs;BaSTITableLoadDialog.gif'>
   <!ENTITY FIG.StackPlotWindow '&figs;StackPlotWindow.gif'>
   <!ENTITY FIG.StackPlotWindow_float '&figs;StackPlotWindow_float.gif'>
+  <!ENTITY FIG.LegendControl_style '&figs;LegendControl_style.gif'>
+  <!ENTITY FIG.LegendControl_position '&figs;LegendControl_position.gif'>
+  <!ENTITY FIG.ShaderControl_map '&figs;ShaderControl_map.gif'>
+  <!ENTITY FIG.ShaderControl_ramp '&figs;ShaderControl_ramp.gif'>
+  <!ENTITY FIG.ShaderControl_range '&figs;ShaderControl_range.gif'>
   <!ENTITY FIG.FunctionLayerControl '&figs;FunctionLayerControl.gif'>
+  <!ENTITY FIG.FunctionLayerControl_function
+           '&figs;FunctionLayerControl_function.gif'>
+  <!ENTITY FIG.FunctionLayerControl_style
+           '&figs;FunctionLayerControl_style.gif'>
+  <!ENTITY FIG.FunctionLayerControl_label
+           '&figs;FunctionLayerControl_label.gif'>
   <!ENTITY FIG.GangLayerControl_position '&figs;GangLayerControl_position.gif'>
   <!ENTITY FIG.GangLayerControl_subsets '&figs;GangLayerControl_subsets.gif'>
   <!ENTITY FIG.GangLayerControl_form '&figs;GangLayerControl_form.gif'>
@@ -8724,7 +8735,7 @@ plot windows is:
 <dt>New Sky Coordinate Plot</dt>
 <dd><p>
     <ul>
-    <li>Choice of projection: Sin (rotatable), Aitoff, Plate Carree</li>
+    <li>Choice of projection: Sin (rotatable), Aitoff, Plate Carr&#x00e9;e</li>
     <li>Data and view sky coordinate systems selected separately:
         options are equatorial, galactic, supergalactic, ecliptic</li>
     <li>Sky coordinate grid labelled and visible at all zooms</li>
@@ -8767,8 +8778,7 @@ plot windows is:
 
 <dt>New plot shading modes</dt>
 <dd><p>Density colour coding for all plot types,
-    with density colour map based either on dataset colour or
-    chosen from a fixed set.
+    with colour map either absolute or modifying dataset base colour.
     Flat, transparent and aux colour coding still available as before.
     </p></dd>
 
@@ -8905,37 +8915,47 @@ is always visible in a layer plot Control Panel.
 It allows you to configure whether and how the plot legend appears.
 </p>
 
-<p>This control has the following tabs:
+<p>This control has two tabs.
+</p>
+
+<figure>
+<caption><px>Legend control Style tab</px></caption>
+<figureimage src="&FIG.LegendControl_style;"/>
+</figure>
+
+<p>The <label>Style</label> tab configures the appearance of the legend
+panel, and has the folowing options:
 <dl>
-<dt>Style tab:</dt>
-<dd><p>This has the following options:
-    <dl>
-    <dt>Show Legend</dt>
-    <dd><p>Whether the legend appears in the plot.
-        This is set automatically: if only one data set is present
-        no legend is shown, but once multiple datasets are present
-        the legend is visible.
-        But the option can be overridden manually using this control.
-        </p></dd>
-    <dt>Opaque</dt>
-    <dd><p>If true, the legend has an opaque white background.
-        If false, it is transparent, and any plot data underneath it
-        is visible.
-        </p></dd>
-    <dt>Border</dt>
-    <dd><p>If true, a black line border is shown around the legend.
-        If false, there is no border.
-        </p></dd>
-    </dl>
+<dt>Show Legend</dt>
+<dd><p>Whether the legend appears in the plot.
+    This is set automatically: if only one data set is present
+    no legend is shown, but once multiple datasets are present
+    the legend is visible.
+    But the option can be overridden manually using this control.
     </p></dd>
-<dt>Position tab:</dt>
-<dd><p>Configures where on the plot the legend is plotted (if present).
-    There are two options, <label>External</label> and <label>Internal</label>.
-    If Internal is chosen, then a control is activated showing a small box
-    inside a large box.  Drag the small box around with the mouse to
-    change the position of the legend inside the plot bounds.
+<dt>Opaque</dt>
+<dd><p>If true, the legend has an opaque white background.
+    If false, it is transparent, and any plot data underneath it
+    is visible.
+    </p></dd>
+<dt>Border</dt>
+<dd><p>If true, a black line border is shown around the legend.
+    If false, there is no border.
     </p></dd>
 </dl>
+</p>
+
+<figure>
+<caption><px>Legend control Position tab</px></caption>
+<figureimage src="&FIG.LegendControl_position;"/>
+</figure>
+
+<p>The <label>Position</label> tab configures where on the plot
+the legend is drawn (if present).
+There are two options, <label>External</label> and <label>Internal</label>.
+If Internal is chosen, then a control is activated showing a small box
+inside a large box.  Drag the small box around with the mouse to
+change the position of the legend inside the plot bounds.
 </p>
 
 <p>Note the font used in the legend is currently controlled by the font from
@@ -8948,62 +8968,80 @@ the <label>Axes</label> selector.
 <subhead><title>Aux Axis</title></subhead>
 
 <p>The <label>Aux Axis</label> control (&IMG.COLORS;) is only
-visible when the Aux colour mode has been selected for one of the
-data layers.  It controls a single colour scale for points which
+visible when the <ref id="mode-aux" plaintextref="yes">Aux colour mode</ref>
+has been selected for one of the data layers.
+It controls a single colour scale for points which
 are coloured by data value to represent an additional dimension in the data.
 </p>
 
-<p>This control has the following tabs:
+<p>This control has three following tabs.
+</p>
+
+<figure>
+<caption><px>Aux axis control Map tab</px></caption>
+<figureimage src="&FIG.ShaderControl_map;"/>
+</figure>
+
+<p>The <label>Map</label> tab controls the aux axis colour map.
+It has the following options:
 <dl>
-<dt>Style</dt>
-<dd><p>This has the following options:
-    <dl>
-    <dt>Shader</dt>
-    <dd><p>Select the colour map from a list of options.</p></dd>
-    <dt>Shade Log</dt>
-    <dd><p>Whether the aux scale should map linearly or logarithmically
-        into the colour map.
-        </p></dd>
-    <dt>Shade Flip</dt>
-    <dd><p>Whether the aux scale should map forwards or backwards
-        into the colour map.
-        </p></dd>
-    <dt>Null Colour</dt>
-    <dd><p>What colour should be used to represent points with a null value
-        for the aux data coordinate. 
-        If the associated <label>Hide</label> option is selected,
-        then those points will not appear in the plot at all.
-        </p></dd>
-    </dl>
+<dt>Shader</dt>
+<dd><p>Select the colour map from a list of options.</p></dd>
+<dt>Shade Log</dt>
+<dd><p>Whether the aux scale should map linearly or logarithmically
+    into the colour map.
     </p></dd>
-<dt>Scale</dt>
-<dd><p>This has the following options:
-    <dl>
-    <dt>Show Scale</dt>
-    <dd><p>Whether the aux scale ramp is visible;
-        if so an appropriately labelled colour ramp
-        appears at the right of the plot.
-        The associated <label>Auto</label> option makes this decision
-        automatically: if any aux data is plotted, the scale will appear,
-        otherwise it won't.
-        Deselect Auto if you want to determine visibility by hand.
-        </p></dd>
-    <dt>Aux Axis Label</dt>
-    <dd><p>Selects the axis label to be displayed near the aux colour ramp
-        if it is visible.
-        The associated <label>Auto</label> option, if selected, uses the
-        name of one of the coordinates supplying aux data;
-        deselect Auto if you want to enter a label by hand.
-        </p></dd>
-    </dl>
+<dt>Shade Flip</dt>
+<dd><p>Whether the aux scale should map forwards or backwards
+    into the colour map.
     </p></dd>
-<dt>Range</dt>
-<dd><p>The range tab lets you enter lower and upper values for the aux data
-    range by hand, and provides a double slider to restrict the range
-    within these limits.  If either the lower or upper range is left blank,
-    it will be determined from the data.
+<dt>Null Colour</dt>
+<dd><p>What colour should be used to represent points with a null value
+    for the aux data coordinate. 
+    If the associated <label>Hide</label> option is selected,
+    then those points will not appear in the plot at all.
     </p></dd>
 </dl>
+</p>
+
+<figure>
+<caption><px>Aux axis control Ramp tab</px></caption>
+<figureimage src="&FIG.ShaderControl_ramp;"/>
+</figure>
+
+<p>The <label>Ramp</label> tab controls the display and annotation of
+the colour ramp that displays the colour map on the plot.
+It has the following options:
+<dl>
+<dt>Show Scale</dt>
+<dd><p>Whether the aux scale ramp is visible;
+    if so an appropriately labelled colour ramp
+    appears at the right of the plot.
+    The associated <label>Auto</label> option makes this decision
+    automatically: if any aux data is plotted, the scale will appear,
+    otherwise it won't.
+    Deselect Auto if you want to determine visibility by hand.
+    </p></dd>
+<dt>Aux Axis Label</dt>
+<dd><p>Selects the axis label to be displayed near the aux colour ramp
+    if it is visible.
+    The associated <label>Auto</label> option, if selected, uses the
+    name of one of the coordinates supplying aux data;
+    deselect Auto if you want to enter a label by hand.
+</p></dd>
+</dl>
+</p>
+
+<figure>
+<caption><px>Aux axis control Range tab</px></caption>
+<figureimage src="&FIG.ShaderControl_range;"/>
+</figure>
+
+<p>The <label>Range</label> tab lets you enter lower and upper values
+for the aux data range by hand,
+and provides a double slider to restrict the range within these limits.
+If either the lower or upper range is left blank,
+it will be determined from the data.
 </p>
 
 <p>Note the font used for labelling the aux axis is currently controlled by 
@@ -9185,68 +9223,84 @@ add an instance to the control stack.
 <figureimage src="&FIG.FunctionLayerControl;"/>
 </figure>
 
-<p>This control has the following tabs:
+<p>This control has three tabs.
+</p>
+
+<figure>
+<caption><px>Function control Function tab</px></caption>
+<figureimage src="&FIG.FunctionLayerControl_function;"/>
+</figure>
+
+<p>The <label>Function</label> tab defines the function to be plotted
+and has the following fields:
 <dl>
-<dt>Function</dt>
-<dd><p>This defines the function to be plotted and has the following fields:
-    <dl>
-    <dt>Independent Axis</dt>
-    <dd><p>Which axis the independent variable varies along;
-        options are currently
-        <label>Horizontal</label> and <label>Vertical</label>.
-        </p></dd>
-    <dt>Independent Variable Name</dt>
-    <dd><p>Name of the independent variable.
-        This is typically <code>x</code> for a horizontal independent variable
-        and <code>y</code> for a vertical independent variable,
-        but any string that is a legal expression language identifier
-        (starts with a letter, continues with letters, numbers, underscores)
-        can be used.
-        </p></dd>
-    <dt>Function Expression</dt>
-    <dd><p>An expression using TOPCAT's <ref id="jel">expression language</ref>
-        in terms of the independent variable that defines the function.
-        This expression must be standalone - it cannot reference any tables.
-        </p></dd>
-    </dl>
+<dt>Independent Axis</dt>
+<dd><p>Which axis the independent variable varies along;
+    options are currently
+    <label>Horizontal</label> and <label>Vertical</label>.
     </p></dd>
-<dt>Style</dt>
-<dd><p>This configures the plotting style.  Options are:
-    <dl>
-    <dt>Colour</dt>
-    <dd><p>Colour of the line.
-        </p></dd>
-    <dt>Thickness</dt>
-    <dd><p>Thickness of the line in pixels.
-        </p></dd>
-    <dt>Dash</dt>
-    <dd><p>Dash pattern of the line - solid is the default, but various
-        options are available.
-        </p></dd>
-    <dt>Antialiasing</dt>
-    <dd><p>If true, lines are antialiased, which makes them look smoother
-        on the screen or bitmapped export images.
-        Has no effect on vector export images (PDF, EPS).
-        </p></dd>
-    </dl>
+<dt>Independent Variable Name</dt>
+<dd><p>Name of the independent variable.
+    This is typically <code>x</code> for a horizontal independent variable
+    and <code>y</code> for a vertical independent variable,
+    but any string that is a legal expression language identifier
+    (starts with a letter, continues with letters, numbers, underscores)
+    can be used.
     </p></dd>
+<dt>Function Expression</dt>
+<dd><p>An expression using TOPCAT's <ref id="jel">expression language</ref>
+    in terms of the independent variable that defines the function.
+    This expression must be standalone - it cannot reference any tables.
+    </p></dd>
+</dl>
+</p>
+
+<figure>
+<caption><px>Function control Style tab</px></caption>
+<figureimage src="&FIG.FunctionLayerControl_style;"/>
+</figure>
+
+<p>The <label>Style</label> tab configures the plotting style.
+Options are:
+<dl>
+<dt>Colour</dt>
+<dd><p>Colour of the line.
+    </p></dd>
+<dt>Thickness</dt>
+<dd><p>Thickness of the line in pixels.
+    </p></dd>
+<dt>Dash</dt>
+<dd><p>Dash pattern of the line - solid is the default, but various
+    options are available.
+    </p></dd>
+<dt>Antialiasing</dt>
+<dd><p>If true, lines are antialiased, which makes them look smoother
+    on the screen or bitmapped export images.
+    Has no effect on vector export images (PDF, EPS).
+    </p></dd>
+</dl>
+</p>
+
+<figure>
+<caption><px>Function control Label tab</px></caption>
+<figureimage src="&FIG.FunctionLayerControl_label;"/>
+</figure>
+
+<p>The <label>Label</label> tab allows you to choose the text
+that appears in the legend.  Options are:
+<dl>
 <dt>Label</dt>
-<dd><p>Allows you to choose the text that appears in the legend.  Options are:
-    <dl>
-    <dt>Label</dt>
-    <dd><p>Gives the label that will appear in the legend.
-        By default the function expression is used, but if you want to
-        override this you can deselect the associated <label>Auto</label>
-        checkbox and enter your own value.
-        </p></dd>
-    <dt>In Legend</dt>
-    <dd><p>If true, an entry for this function appears in the legend,
-        if false it does not.
-        Note the setting of this value does not affect whether the legend
-        itself appears, which is controlled by the
-        <ref id="LegendControl">Legend</ref> control.
-        </p></dd>
-    </dl>
+<dd><p>Gives the label that will appear in the legend.
+    By default the function expression is used, but if you want to
+    override this you can deselect the associated <label>Auto</label>
+    checkbox and enter your own value.
+    </p></dd>
+<dt>In Legend</dt>
+<dd><p>If true, an entry for this function appears in the legend,
+    if false it does not.
+    Note the setting of this value does not affect whether the legend
+    itself appears, which is controlled by the
+    <ref id="LegendControl">Legend</ref> control.
     </p></dd>
 </dl>
 </p>
@@ -9286,6 +9340,9 @@ simply plots markers with a fixed shape and size.
 
 <p>Configuration options are:
 <dl>
+<dt>Shading Mode</dt>
+<dd><p>See <ref id="ShapeMode"/>.
+    </p></dd>
 <dt>Shape</dt>
 <dd><p>Marker shape from a list of options.
     </p></dd>
@@ -9314,7 +9371,7 @@ The marker size thus represents an additional dimension of the plot.
 <p>The marker size is scaled according to the values of the data.
 The data range in the visible part of the plot is determined,
 the maximum value is assigned to the maximum marker size,
-and the size of each marker is determined as (data value/max data value).
+and the size of each marker is determined as (data value)/(max data value).
 Currently data values of zero always correspond to marker size of zero,
 negative data values are not represented, and the mapping is linear.
 Other options may be introduced in future.
@@ -9327,10 +9384,13 @@ the <ref id="form-error">Error</ref> form may be more appropriate.
 
 <p>The configuration options are:
 <dl>
+<dt>Shading Mode</dt>
+<dd><p>See <ref id="ShapeMode"/>.
+    </p></dd>
 <dt>Size</dt>
 <dd><p>The size coordinate data values.
     Fill this in with a column name or expression from the table
-    just like for the positional coordinate.
+    just like for the positional coordinates.
     </p></dd>
 <dt>Shape</dt>
 <dd><p>Marker shape from a list of options.
@@ -9371,6 +9431,9 @@ This scaling can be adjusted or turned off using the
 
 <p>The configuration options are:
 <dl>
+<dt>Shading Mode</dt>
+<dd><p>See <ref id="ShapeMode"/>.
+    </p></dd>
 <dt>DeltaX, DeltaY, ...</dt>
 <dd><p>The coordinates of the changes in each coordinate which gives the
     vector.  The coordinates here match the coordinates of the plot.
@@ -9418,6 +9481,9 @@ see the <ref id="form-ellipse">Ellipse</ref> form).
 
 <p>The configuration options are:
 <dl>
+<dt>Shading Mode</dt>
+<dd><p>See <ref id="ShapeMode"/>.
+    </p></dd>
 <dt>X Positive Error, X Negative Error, ...</dt>
 <dd><p>For each dimension of the plot, you can enter positive and/or
     negative error values as columns or expressions from the table.
@@ -9457,6 +9523,9 @@ major and minor radii and an optional rotation angle.
 
 <p>The configuration options are:
 <dl>
+<dt>Shading Mode</dt>
+<dd><p>See <ref id="ShapeMode"/>.
+    </p></dd>
 <dt>Major Radius, Minor Radius</dt>
 <dd><p>Two radii for the ellipse, in the same units as the
     position coordinates (which is degrees for the sky plot).
@@ -9468,6 +9537,8 @@ major and minor radii and an optional rotation angle.
     to the major radius.
     For the sky plot it is the angle from the North pole to the major axis
     in the direction of positive RA.
+    If the value is missing (either this field not filled in or blank in
+    the data) it is considered to be zero.
     </p></dd>
 <dt>Ellipse</dt>
 <dd><p>Ellipse shape, selected from a range of options
@@ -9507,6 +9578,9 @@ It can be very useful for visualising the results of a crossmatch.
 
 <p>The configuration options are:
 <dl>
+<dt>Shading Mode</dt>
+<dd><p>See <ref id="ShapeMode"/>.
+    </p></dd>
 <dt>X2, Y2, ...</dt>
 <dd><p>The coordinates of the second point of the pair
     (the first is given in the <label>Position</label> tab).
@@ -9533,6 +9607,9 @@ It can be useful for visualising the results of a three-way crossmatch.
 
 <p>The configuration options are:
 <dl>
+<dt>Shading Mode</dt>
+<dd><p>See <ref id="ShapeMode"/>.
+    </p></dd>
 <dt>X2, Y2, ...</dt>
 <dd><p>The coordinates of the second point in the triple.
     The coordinates here match the coordinates of the plot.
@@ -9603,7 +9680,7 @@ draws a text label by each point position.
 <dd><p>Style of the font.
     </p></dd>
 <dt>Font Weight</dt>
-<dd><p>Whether the font is to be plain, bold or italic.
+<dd><p>Whether the font is plain, bold or italic.
     </p></dd>
 <dt>Anchor</dt>
 <dd><p>The position of the text relative to the data position.
@@ -10025,7 +10102,7 @@ in this tab, as does making any changes to it.
 <p>The <label>Grid</label> tab configures appearance of the axis grid.
 <dl>
 <dt>Draw Grid</dt>
-<dd><p>If true, grid lines will be plotted across the plot
+<dd><p>If true, grid lines will be drawn across the plot
     for every tick mark.
     </p></dd>
 <dt>Minor Ticks</dt>
@@ -10069,7 +10146,7 @@ It also affects some other things like the legend.
 <dd><p>Style of the font.
     </p></dd>
 <dt>Font Weight</dt>
-<dd><p>Whether the font is to be plain, bold or italic.
+<dd><p>Whether the font is plain, bold or italic.
     </p></dd>
 </dl>
 </p>
@@ -10082,7 +10159,7 @@ It also affects some other things like the legend.
 <subhead><title>Sky Plot Window</title></subhead>
 
 <p>The <label>Sky Plot</label> (&IMG.PLOT2_SKY;)
-plots latitude/longitude positions onto the celestial sphere.
+plots longitude/latitude positions onto the celestial sphere.
 It can plot to a number of projections
 (currently Sin, Aitoff and Plate Carr&#x00e9;e).
 </p>
@@ -10180,7 +10257,8 @@ coordinates are projected onto the screen.
 <dd><p>Determines the sky coordinate system in which the data positions will
     be viewed.  This interacts with the 
     <label>Data Sky System</label> selected in the 
-    <label>Positions</label> tab of the table layer control
+    <label>Positions</label> tab of the 
+    <ref id="GangLayerControl">table layer control</ref>
     for data coordinates;
     supplied data points are projected from the data system to the view 
     system before being plotted.
@@ -10210,6 +10288,11 @@ normal pan/zoom operations will not affect the content of this panel.
     the <label>Resolve</label> button, a Simbad query will execute
     to fill in the <label>RA</label> and <label>Dec</label> fields
     with its position.
+    </p></dd>
+<dt>RA/Dec</dt>
+<dd><p>J2000 positions required field centre.
+    These values can either be filled in by the object name resolution
+    as described above, or by hand.
     </p></dd>
 <dt>Radius</dt>
 <dd><p>Gives the radius of the desired field of view.
@@ -10268,7 +10351,7 @@ It also affects some other things like the legend.
 <dd><p>Style of the font.
     </p></dd>
 <dt>Font Weight</dt>
-<dd><p>Whether the font is to be plain, bold or italic.
+<dd><p>Whether the font is plain, bold or italic.
     </p></dd>
 </dl>
 </p>
@@ -10294,7 +10377,7 @@ see the <label>Coords</label> tab of the
 <p>Navigation controls:
 <dl>
 <dt>Panning</dt>
-<dd><p>Rotate the plot by holding the left mouse button.
+<dd><p>Rotate the plot by holding down the left mouse button.
     It's also possible to rotate by using the rotation sliders in the
     <label>View</label> tab of the
     <ref id="CubeAxisControl">Axes</ref> control.
@@ -10304,7 +10387,8 @@ see the <label>Coords</label> tab of the
     A screen position represents a line not a point, so there is a
     degeneracy here; the new central position is actually the average
     of data point positions near the mouse click.  The upshot is that
-    if you click on a point or clump of interest, it should do what you want.
+    if you click on a point or clump of interest,
+    it should end up in the centre of the cube.
     </p></dd>
 <dt>Zooming</dt>
 <dd><p>You can zoom using the mouse wheel or the zoom buttons
@@ -10313,7 +10397,7 @@ see the <label>Coords</label> tab of the
     about its centre, so the cube wireframe axes stay in the same place
     on the screen, but the axis annotations move.
     </p>
-    <p>If you want to get zoom in or out on the cube wireframe itself,
+    <p>If you want to zoom in or out on the cube wireframe itself,
     you can do it using the <label>Zoom Factor</label> slider in the
     <label>View</label> tab of the <ref id="CubeAxisControl">Axes</ref>
     control.
@@ -10405,7 +10489,7 @@ in this tab, as does making any changes to it.
 
 <figure>
 <caption><px>View tab of the cube axes control</px></caption>
-<figureimage src="&FIG.CubeAxisControl_labels;"/>
+<figureimage src="&FIG.CubeAxisControl_view;"/>
 </figure>
 
 <p>The <label>View</label> tab can configure how the cube containng
@@ -10413,12 +10497,12 @@ the data is viewed in the plot window, though it does not control
 the content of the cube.
 <dl>
 <dt>Rotation about Z axis</dt>
-<dd><p>Explicitly sets the angular rotation about the Z axis,
+<dd><p>Explicitly sets the rotation angle about the Z axis,
     regardless of its current value, which may have been set by
     mouse actions.
     </p></dd>
 <dt>Rotation from vertical</dt>
-<dd><p>Explicitly sets the angular rotation from vertical,
+<dd><p>Explicitly sets the rotation angle from vertical,
     regardless of its current value, which may have been set by
     mouse actions.
     </p></dd>
@@ -10427,7 +10511,7 @@ the content of the cube.
     affecting the data volume it contains.  This cannot be done with
     the mouse.
     </p></dd>
-<dt>X/Y offset of centre</dt>
+<dt>X/Y/Z offset of centre</dt>
 <dd><p>Controls where on the screen the cube wireframe is centred.
     This cannot be done with the mouse.
     </p></dd>
@@ -10449,7 +10533,7 @@ cube wire frame enclosing the data volume.
 <dd><p>If set, minor (unlabelled) tick marks will be drawn between the
     major (labelled) ones.
     </p></dd>
-<dt>X/Y/X Tick Crowding</dt>
+<dt>X/Y/Z Tick Crowding</dt>
 <dd><p>Use the slider to influence how many tick marks are draw on each axis.
     </p></dd>
 </dl>
@@ -10486,7 +10570,7 @@ It also affects some other things like the legend.
 <dd><p>Style of the font.
     </p></dd>
 <dt>Font Weight</dt>
-<dd><p>Whether the font is to be plain, bold or italic.
+<dd><p>Whether the font is plain, bold or italic.
     </p></dd>
 </dl>
 </p>
@@ -10503,6 +10587,8 @@ plots spherical polar coordinates in an isotropic 3-dimensional space.
 Although the supplied coordinates are spherical polar,
 the visible space is not necessarily centred on the coordinate origin,
 and the visible axes are Cartesian.
+In many respects this works like the
+<ref id="CubePlotWindow">Cube Plot Window</ref>
 </p>
 
 <p>The positional coordinates are
@@ -10593,12 +10679,12 @@ the data is viewed in the plot window, though it does not control
 the content of the cube.
 <dl>
 <dt>Rotation about Z axis</dt>
-<dd><p>Explicitly sets the angular rotation about the Z axis,
+<dd><p>Explicitly sets the rotation angle about the Z axis,
     regardless of its current value, which may have been set by
     mouse actions.
     </p></dd>
 <dt>Rotation from vertical</dt>
-<dd><p>Explicitly sets the angular rotation from vertical,
+<dd><p>Explicitly sets the rotation angle from vertical,
     regardless of its current value, which may have been set by
     mouse actions.
     </p></dd>
@@ -10629,7 +10715,7 @@ cube wire frame enclosing the data volume.
 <dd><p>If set, minor (unlabelled) tick marks will be drawn between the
     major (labelled) ones.
     </p></dd>
-<dt>X/Y/X Tick Crowding</dt>
+<dt>X/Y/Z Tick Crowding</dt>
 <dd><p>Use the slider to influence how many tick marks are draw on each axis.
     </p></dd>
 </dl>
@@ -10666,7 +10752,7 @@ It also affects some other things like the legend.
 <dd><p>Style of the font.
     </p></dd>
 <dt>Font Weight</dt>
-<dd><p>Whether the font is to be plain, bold or italic.
+<dd><p>Whether the font is plain, bold or italic.
     </p></dd>
 </dl>
 </p>
@@ -17592,7 +17678,8 @@ introduced since the last version:
         <li>Fix minor bug associated with deleting the current row subset
             (this now causes All to become current).</li>
         <li>Cope with 1-column CSV files.</li>
-        <li>Fix possible bug(s) related to running on Java 1.7 on Mac.</li>
+        <li>Fix (some, though probably not all) possible bug(s)
+            related to running on Java 1.7 on Mac.</li>
         <li>Use the correct form "<code>rows</code>"/"<code>bytes</code>"
             rather than "<code>row</code>"/"<code>byte</code>"
             for TAP capability unit values.</li>
