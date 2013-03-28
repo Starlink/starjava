@@ -321,8 +321,8 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         }
         getToolBar().add( removeAction );
         getToolBar().addSeparator();
-        getToolBar().add( fromVisibleAction );
         getToolBar().add( blobAction );
+        getToolBar().add( fromVisibleAction );
         getToolBar().add( replotAction );
         getToolBar().add( resizeAction );
         getToolBar().add( zoomInAction );
@@ -346,8 +346,8 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         getJMenuBar().add( layerMenu );
         JMenu subsetMenu = new JMenu( "Subsets" );
         subsetMenu.setMnemonic( KeyEvent.VK_S );
-        subsetMenu.add( fromVisibleAction );
         subsetMenu.add( blobAction );
+        subsetMenu.add( fromVisibleAction );
         getJMenuBar().add( subsetMenu );
         JMenu plotMenu = new JMenu( "Plot" );
         plotMenu.setMnemonic( KeyEvent.VK_P );
