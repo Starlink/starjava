@@ -105,6 +105,8 @@
   <!ENTITY FIG.BaSTITableLoadDialog '&figs;BaSTITableLoadDialog.gif'>
   <!ENTITY FIG.StackPlotWindow '&figs;StackPlotWindow.gif'>
   <!ENTITY FIG.StackPlotWindow_float '&figs;StackPlotWindow_float.gif'>
+  <!ENTITY FIG.StackPlotWindow_blob '&figs;StackPlotWindow_blob.gif'>
+  <!ENTITY FIG.PlotExporter '&figs;PlotExporter.gif'>
   <!ENTITY FIG.LegendControl_style '&figs;LegendControl_style.gif'>
   <!ENTITY FIG.LegendControl_position '&figs;LegendControl_position.gif'>
   <!ENTITY FIG.ShaderControl_map '&figs;ShaderControl_map.gif'>
@@ -8820,7 +8822,7 @@ The intention is to introduce these in a future release.
 
 </subsubsect>
 
-<subsubsect>
+<subsubsect id="StackPlotWindow">
 <subhead><title>Window Overview</title></subhead>
 
 <figure>
@@ -8888,6 +8890,231 @@ and experiment with the various options to see what happens to the plot.
     </p></dd>
 </dl>
 </p>
+
+<p>The toolbar contains the following actions (repeated in the menus):
+<dl>
+
+<dt>&IMG.FLOAT; Float Controls</dt>
+<dd><p>Display control panel in a floating window rather than at
+    the bottom of the plot window, as described above.
+    </p></dd>
+
+<dt>&IMG.PLOT_DATA; Add Table Layer</dt>
+<dd><p>Add a new <ref id="GangLayerControl">table layer control</ref>
+    to the control stack.
+    </p></dd>
+
+<dt>&IMG.PLOT_FUNCTION; Add Function Layer <em>(plane plot only)</em></dt>
+<dd><p>Add a new <ref id="FunctionControl">function layer control</ref>
+    to the control stack.
+    Note this option is currently only available for the 
+    <ref id="PlanePlotWindow">Plane Plot</ref>.
+    </p></dd>
+
+<dt>&IMG.DELETE; Remove Current Layer</dt>
+<dd><p>Deletes the currently selected layer control from the control stack.
+    </p></dd>
+
+<dt>&IMG.BLOB_SUBSET; Draw Subset Region</dt>
+<dd><p>Allows you to draw a region on the screen defining a new 
+    <ref id="subsets">Row Subset</ref>.  When you have finished 
+    drawing it, click this button again to indicate you're done.
+    See <ref id="plot2-subsets"/> for more details.
+    </p></dd>
+
+<dt>&IMG.VISIBLE_SUBSET; Subset From Visible</dt>
+<dd><p>Defines a new <label>Row Subset</label>
+    consisting of only the points which
+    are currently visible on the plotting surface.
+    See <ref id="plot2-subsets"/> for more explanation.
+    </p></dd>
+
+<dt>&IMG.REDO; Replot</dt>
+<dd><p>Redraws the current plot.  It is usually not necessary to
+    use this button, since if you change any of the plot characteristics
+    with the controls in this window the plot will be redrawn
+    automatically.  However if you have changed the data, e.g. by
+    editing cells in the <ref id="TableViewerWindow">Data Window</ref>,
+    or by redefining a subset, the plot is not automatically redrawn.
+    Clicking this button redraws the plot taking account of any changes
+    to the table data.
+    </p></dd>
+
+<dt>&IMG.RESIZE; Rescale</dt>
+<dd><p>Rescales the axes of the current plot so that it contains all
+    the data points in the currently selected subsets.
+    By default the plot will be scaled like this, but it it may have changed
+    because of changes in the subset selection or from zooming in or out.
+    </p></dd>
+
+<dt>&IMG.ZOOM_IN; Zoom In</dt>
+<dd><p>Zooms the plot in around its centre.
+    In most cases using the mouse wheel if available is a better option,
+    but this button is available as an alternative.
+    </p></dd>
+
+<dt>&IMG.ZOOM_OUT; Zoom Out</dt>
+<dd><p>Zooms the plot out around its centre.
+    In most cases using the mouse wheel if available is a better option,
+    but this button is available as an alternative.
+    </p></dd>
+
+<dt>&IMG.AXIS_LOCK; Lock Axes</dt>
+<dd><p>Usually, when the data plotted has changed significantly,
+    the axes are automatically rescaled so that all the points are visible.
+    The application makes a guess about when it's a good idea to do this
+    automatic rescaling.  If you don't want it to auto-rescale, set this
+    toggle button, and it won't rescale unless it really has to.
+    This is not available for the <label>Sky Plot</label>.
+    </p></dd>
+
+<dt>&IMG.IMAGE; Export Plot</dt>
+<dd><p>Allows you to save the plot in a variety of graphics formats
+    using the <ref id="plot2-export">Plot Export</ref> window.
+    </p></dd>
+</dl>
+</p>
+
+<subsubsubsect id="plot2-subsets">
+<subhead><title>Defining Subsets by Region</title></subhead>
+<!-- see section plotSubsets -->
+
+<p>When quantities are plotted in one of the graphics windows it becomes
+easy to see groupings of the data which might not otherwise be apparent;
+a cluster of (X,Y) points representing a group of rows may correspond
+to a physically meaningful grouping of objects which you would like
+to treat separately elsewhere in the program, for instance
+by calculating statistics on just these rows, writing them out to
+a new table, or plotting them in a different colour on graphs
+with different coordinates.
+This is easily accomplished by creating a new
+<ref id="subsets">Row Subset</ref> containing the grouped points,
+and the graphics windows provide ways of doing this.
+</p>
+
+<p>If you have panned, zoomed, set the axes manually or 
+otherwise navigated the plot so that only the points currently
+visible in the plot are the ones you are interested in,
+you can click the
+<label>New Subset From Visible</label> (&IMG.VISIBLE_SUBSET;) toolbar button.
+This defines a subset consisting of all the
+points that are visible on the current plot.
+This is only useful if the group you are interested in
+corresponds to a rectangular region in the plotting space.
+</p>
+
+<p>A more flexible way is to draw a region or regions
+on the plot which identify the points you are interested in.
+To do this, hit the
+<label>Draw Subset Region</label> (&IMG.BLOB_SUBSET;)
+toolbar button.  Having done this, you can drag the mouse around
+on the plot (keep the left mouse button down while you move)
+to encircle the points that you're interested in.
+As you do so, a translucent grey blob will be left behind -
+anything inside the
+blob will end up in the subset.  You can draw one or many blobs,
+which may be overlapping or not.  If you make a mistake while
+drawing a sequence of blobs, you can click the right mouse button,
+and the most recently added blob will disappear.
+When you're in this region-drawing mode,
+you can't zoom or resize the window or change the characteristics
+of the plot, and the <label>Draw Subset Region</label> button
+appears with a tick over it (&IMG.BLOB_SUBSET_END;) to remind you
+you're in it.  Here's what the plot looks like while you're drawing:
+</p>
+
+<figure>
+<caption><px>Region-Drawing Mode</px></caption>
+<figureimage src="&FIG.StackPlotWindow_blob;"/>
+</figure>
+
+<p>When you're happy with the region you've defined, click the
+&IMG.BLOB_SUBSET_END; toolbar button again.
+</p>
+
+<p>In either case, when you have indicated that you want to define a
+new row subset, a dialogue box will pop up to ask you its name.
+As described in <ref id="subsetDef"/>, it's a good idea to use a
+name which is just composed of letters, numbers and underscores.
+You can optionally select a subset name which has been used before
+from the list, which will overwrite the former contents of that subset.
+When you enter a name and hit the <label>OK</label> button,
+the new subset will be created and the points in it will be
+shown straight away on the plot using a new symbol.
+As usual, you can toggle whether the points in this subset are displayed
+using the <label>Subsets</label> tab in the
+<ref id="GangLayerControl">table layer control</ref>.
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="plot2-export">
+<subhead><title>Plot Export Window</title></subhead>
+
+<p>The <label>Plot Export Window</label> can be reached with the
+<label>Export plot to file</label> (&IMG.IMAGE;)
+toolbar button in any of the layer plot windows.
+</p>
+
+<p>You can select a file in the usual way, and save the plot
+in one of the following graphics formats:
+<dl>
+<dt>png</dt>
+<dd><p>
+    PNG bitmap.
+    </p></dd>
+<dt>gif</dt>
+<dd><p>GIF bitmap; note the number of colours is restricted to 256.
+    </p></dd>
+<dt>jpeg</dt>
+<dd><p>JPEG bitmap; note that this is a lossy format, and colours will
+    be blurred.
+    </p></dd>
+<dt>pdf</dt>
+<dd><p>Portable Document Format; in most cases this vector format
+    gives pretty good output, in particular text will be rendered properly.
+    </p></dd>
+<dt>eps</dt>
+<dd><p>Encapsulated PostScript; PostScript cannot handle transparency,
+    which means that in some cases the output will come out wrong.
+    PostScript files can also be very large if there are many data points.
+    </p></dd>
+<dt>eps-gzip</dt>
+<dd><p>Just like <label>eps</label>, but the output is gzipped before output.
+    </p></dd>
+</dl>
+</p>
+
+<p>There are two additional controls on the right hand side of this window:
+<dl>
+<dt>File Format</dt>
+<dd><p>Selects the output file format as above.
+    The default setting is <label>(auto)</label>, which guesses what
+    format you want to use from the filename, and which usually does the
+    right thing.
+    </p></dd>
+<dt>Force Bitmap</dt>
+<dd><p>This option only has an effect for vector graphics formats
+    (PDF and PostScript).  If selected, it draws the data contents of the
+    plot as a pixel map and embeds that into the output file rather than
+    plotting each point in the output.  This may make the output less
+    beautiful (round markers will no longer be perfectly round),
+    but it may result in a much smaller file if there are very many
+    data points.  Plot annotations such as axis labels will not be
+    affected - they are still drawn as vector text.
+    Note that in some cases (e.g. use of the 
+    <ref id="mode-auto">auto</ref> or <ref id="mode-density">density</ref>
+    shading modes) this kind of pixellisation will happen in any case.
+    </p></dd>
+</dl>
+</p>
+
+<figure>
+<caption><px>Plot export window</px></caption>
+<figureimage src="&FIG.PlotExporter;"/>
+</figure>
+
+</subsubsubsect>
 
 </subsubsect>
 
@@ -9814,7 +10041,7 @@ there may be anomalies.
 Transparent points are rendered in PDF output, though the 
 transparency levels may not be exactly the same as on the screen.
 This can be fixed by using the <label>Force Bitmap</label> option
-in the plot export dialogue.
+in the <ref id="plot2-export" plaintextref="yes">Plot Export</ref> dialogue.
 For PostScript, transparent points are rendered as opaque.
 You can use <label>Force Bitmap</label> with PostScript which
 will get transparency right for this layer, but then any earlier
@@ -9966,7 +10193,7 @@ range, ramp display etc.
 Transparent points are rendered in PDF output, though the 
 transparency levels may not be exactly the same as on the screen.
 This can be fixed by using the <label>Force Bitmap</label> option
-in the plot export dialogue.
+in the <ref id="plot2-export" plaintextref="yes">Plot Export</ref> dialogue.
 For PostScript, transparent points are rendered as opaque.
 You can use <label>Force Bitmap</label> with PostScript which
 will get transparency right for this layer, but then any earlier
@@ -9982,6 +10209,8 @@ layers will be completely obscured.
 
 <p>The <label>Plane Plot</label> (&IMG.PLOT2_PLANE;)
 plots 2-dimensional Cartesian positions on a plane.
+See the <ref id="StackPlotWindow" plaintextref="yes">Window Overview</ref>
+for features common to all layer plots.
 </p>
 
 <p>The positional coordinates are <label>X</label> and <label>Y</label>.
@@ -10162,6 +10391,8 @@ It also affects some other things like the legend.
 plots longitude/latitude positions onto the celestial sphere.
 It can plot to a number of projections
 (currently Sin, Aitoff and Plate Carr&#x00e9;e).
+See the <ref id="StackPlotWindow" plaintextref="yes">Window Overview</ref>
+for features common to all layer plots.
 </p>
 
 <p>The positional coordinates are
@@ -10365,6 +10596,8 @@ It also affects some other things like the legend.
 
 <p>The <label>Cube Plot</label> (&IMG.PLOT2_CUBE;)
 plots 3-dimensional Cartesian positions in a 3-d space.
+See the <ref id="StackPlotWindow" plaintextref="yes">Window Overview</ref>
+for features common to all layer plots.
 </p>
 
 <p>The positional coordinates are
@@ -10589,6 +10822,8 @@ the visible space is not necessarily centred on the coordinate origin,
 and the visible axes are Cartesian.
 In many respects this works like the
 <ref id="CubePlotWindow">Cube Plot Window</ref>
+See the <ref id="StackPlotWindow" plaintextref="yes">Window Overview</ref>
+for features common to all layer plots.
 </p>
 
 <p>The positional coordinates are
