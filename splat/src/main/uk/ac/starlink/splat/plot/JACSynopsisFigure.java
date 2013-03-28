@@ -29,6 +29,7 @@ import javax.swing.event.ChangeListener;
 
 import nom.tam.fits.FitsDate;
 
+import uk.ac.starlink.ast.AstException;
 import uk.ac.starlink.ast.DSBSpecFrame;
 import uk.ac.starlink.ast.Frame;
 import uk.ac.starlink.ast.FrameSet;
@@ -48,7 +49,7 @@ import uk.ac.starlink.splat.util.SplatException;
 /**
  * A Figure that describes some of the meta-data properties of a
  * spectrum. These are modelled on those liked by the JCMT observers
- * at the JAC (basically those displayed by Specx) and makes a lot of use of 
+ * at the JAC (basically those displayed by Specx) and makes a lot of use of
  * FITS values either written with JAC data or created by GAIA, but retains
  * some use for other data sources.
  *
@@ -99,8 +100,15 @@ public class JACSynopsisFigure
     public void setSpecData( SpecData specData )
     {
         this.specData = specData;
-        updateProperties();
-        fireChanged();
+        try {
+            updateProperties();
+            fireChanged();
+        }
+        catch (AstException e) {
+            //  Lots of possible issues in updateProperties. This isn't
+            //  an important feature so just handle it.
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -204,7 +212,7 @@ public class JACSynopsisFigure
 //                 double ep = pp.Epj2d( specAxis.getEpoch() );
 //                 tf.set( "TimeOrigin= MJD" + ep );
 //                 tf.set( "TimeScale=UTC" );
-                
+
 //                 String testprop = null;
 //                 try {
 //                     Pal pal = new Pal();
@@ -219,18 +227,18 @@ public class JACSynopsisFigure
 //                     testprop = e.getMessage();
 //                 }
 //                 b.append( "Date-obs: " + testprop + "\n" );
-                
+
                 //  Without AST method.
                 //  Get epoch in TDB.
                 double epoch = specAxis.getEpoch();
-                
+
                 //  To an MJD.
                 Pal pal = new Pal();
                 double mjd = pal.Epj2d( epoch );
 
                 //  To TAI (-32.184 seconds).
                 mjd -= ( 32.184 / ( 60.0 * 60.0 * 24.0 ) );
-                
+
                 //  To UTC (subtract leap seconds );
                 mjd -= ( pal.Dat( mjd ) / ( 60.0 * 60.0 * 24.0 ) );
 
@@ -307,7 +315,7 @@ public class JACSynopsisFigure
                         prop = specData.getProperty( "DATE-END" );
                         if ( ! "".equals( prop ) ) {
                             Date dend = new FitsDate( prop ).toDate();
-                            
+
                             //  Get milliseconds in UNIX time.
                             long istart = dstart.getTime();
                             long iend = dend.getTime();
@@ -417,6 +425,7 @@ public class JACSynopsisFigure
                 b.append( "RestFreq: "+specAxis.getC( "RestFreq" )+" (GHz)\n");
             }
         }
+
         if ( specAxis instanceof DSBSpecFrame ) {
             b.append( "ImagFreq: " + specAxis.getC( "ImagFreq" ) + " (GHz)\n");
         }
@@ -519,8 +528,8 @@ public class JACSynopsisFigure
         translate( x, y, true );
     }
 
-    
-    public void paint (Graphics2D g) 
+
+    public void paint (Graphics2D g)
     {
         // XXX strange exception from Ducus library in Java 1.6. Just handle
         // this for now.
