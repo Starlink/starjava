@@ -57,6 +57,7 @@ public class SSAServerList
      */
     public void addServer( SSAPRegResource server )
     {
+        
         addServer( server, true );
     }
 
@@ -68,6 +69,7 @@ public class SSAServerList
      */
     protected void addServer( SSAPRegResource server, boolean save )
     {
+
         serverList.put( server.getShortName(), server );
         if ( save ) {
             try {
@@ -273,11 +275,10 @@ public class SSAServerList
         while ( true ) {
             try {
                 server = (SSAPRegResource) decoder.readObject();
-                String name = server.getShortName();
-                if (name == null || name.length()==0)
-                    name = "<>";
-                serverList.put( name, server );
-                selectionList.put(name, true );
+                addServer(server, false);
+                
+               // serverList.put( name, server );
+                //selectionList.put(name, true );
             }
             catch( ArrayIndexOutOfBoundsException e ) {
                 break; // End of list.
