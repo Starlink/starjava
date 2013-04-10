@@ -13,13 +13,18 @@ public class SEDSplatException
 {
     /** The number of rows in the table (should be number of spectra) */
     private int rows = 0;
+    private int type = 0;
+    private String spec=null;
 
     public SEDSplatException( int rows )
     {
         super();
         this.rows = rows;
     }
-
+    
+    
+  
+    
     public SEDSplatException( int rows, String message, Throwable cause )
     {
         super( message, cause );
@@ -45,4 +50,22 @@ public class SEDSplatException
     {
         return rows;
     }
+    
+    public int getType() 
+    {
+        return type;
+    }
+    
+    public void setType(int t) {
+        this.type=t;
+    }
+    
+    public void setSpec(String spec) {
+        this.spec=spec;
+    }
+    
+    public String getSpec() {
+        return this.spec;
+    }
+    
 }

@@ -1959,9 +1959,9 @@ public class SplatBrowser
                     else 
                         throw e;
                 }
-            }
-        }
-    }
+            }//catch
+        } // else 
+    } // tryaddspectrum
 
     /**
      * Add a new spectrum, with a possibly pre-defined set of characteristics
@@ -1996,22 +1996,31 @@ public class SplatBrowser
                 addSpectrum( spectrum );
                 props.apply( spectrum );
             }
-            catch (SEDSplatException e) {
+           // catch (Exception e ) {
+            catch (SEDSplatException se) {
+                
+                // Is the spectrum in a file or url?
+                String specpath;
+                if (se.getSpec() != null)
+                    specpath=se.getSpec();
+                else 
+                    specpath=props.getSpectrum();
+                    
                 //  Could be a FITS table with an SED representation.
-                if ( props.getType() == SpecDataFactory.FITS ) {
-                    SpecData spectra[] = specDataFactory.expandFITSSED( props.getSpectrum(), e.getRows() );
-                    for ( int i = 0; i < spectra.length; i++ ) {
-                        addSpectrum( spectra[i] );
-                        props.apply( spectra[i] );
-                    }
+                  if ( props.getType() == SpecDataFactory.FITS || se.getType() == SpecDataFactory.FITS) {
+                        SpecData spectra[] = specDataFactory.expandFITSSED( specpath, se.getRows() );
+                        for ( int i = 0; i < spectra.length; i++ ) {
+                            addSpectrum( spectra[i] );
+                            props.apply( spectra[i] );
+                        }
+                    } 
+             //   }
+                if (authenticator.getStatus() != null ) // in this case there as an error concerning authentication
+                            throw new SplatException(authenticator.getStatus());
+        //        else 
+        //                    throw new SplatException( se );
+                
                 }
-                else {
-                    if (authenticator.getStatus() != null ) // in this case there as an error concerning authentication
-                        throw new SplatException(authenticator.getStatus());
-                    else 
-                        throw e;
-                }
-            }
         }
     }
 
