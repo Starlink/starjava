@@ -1883,6 +1883,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             
             VOElement voe = DalResourceXMLFilter.parseDalResult(vofact, inSrc);
 <<<<<<< HEAD
+<<<<<<< HEAD
            
         
             getDataTable = DalResourceXMLFilter.getDalGetDataTable( voe );
@@ -1903,6 +1904,9 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
 
 =======
            // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\
+=======
+           
+>>>>>>> getData corrections
             starTable = DalResourceXMLFilter.getDalResultTable( voe );
             getDataTable = DalResourceXMLFilter.getDalGetDataTable( voe );
 <<<<<<< HEAD
@@ -2431,11 +2435,16 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             int fluxerrorcol = -1;
             int pubdidcol=-1;
 <<<<<<< HEAD
+<<<<<<< HEAD
             int idsrccol=-1;
             int specstartcol=-1;
             int specstopcol=-1;
 =======
 >>>>>>> 
+=======
+            int specstartcol=-1;
+            int specstopcol=-1;
+>>>>>>> getData corrections
             ColumnInfo colInfo;
             String ucd;
             String utype;
@@ -2504,12 +2513,16 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                         pubdidcol = k;
                     }
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> getData corrections
                     else if ( utype.endsWith( "char.spectralAxis.coverage.bounds.start" ) ) {
                         specstartcol = k;
                     }
                     else if ( utype.endsWith( "char.spectralAxis.coverage.bounds.stop" ) ) {
                         specstopcol = k;
                     }
+<<<<<<< HEAD
                 }
                 if (colInfo.getName().equals("ssa_pubDID"))
                     pubdidcol = k;
@@ -2558,6 +2571,8 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                                     }                                     
                                 }
 =======
+=======
+>>>>>>> getData corrections
                 }
                 if (colInfo.getName().equals("ssa_pubDID"))
                     pubdidcol = k;
@@ -2582,8 +2597,19 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
 =======
 =======
                                 if (value == null || value.length() > 0) {
+<<<<<<< HEAD
 >>>>>>> Bug fix on server selection after querying registry for updates
                                     try {
+=======
+                                    try {//
+                                        ///
+                                        // float specstart = Float.parseFloat(rseq.getCell( linkcol ).);
+                                       //  float specstop = Float.parseFloat();
+                                      //  double specend = Double.parseDouble(params[i].getAttribute("ssa_specend"));
+                                      //  double  maxval =   double specstart = Double.parseDouble(values.getMaximum());
+                                     //   double  minval =   double specstart = Double.parseDouble(values.getMinimum());
+                                        ///
+>>>>>>> getData corrections
                                         getDataRequest+="&"+key+"="+URLEncoder.encode(value, "UTF-8");
                                     } catch (UnsupportedEncodingException e) {
                                         // TODO Auto-generated catch block
