@@ -388,7 +388,7 @@ public class SpecDataFactory
         boolean isRemote = false;
         String guessedType = null;
         URL specurl = null;
-      
+        int ftype = GUESS;
         
         //  See what kind of specification we have.
         try {
@@ -401,11 +401,12 @@ public class SpecDataFactory
             //  library. A local copy loses the basename context.
             if ( isRemote && format.equals( "XML" ) ) {
                 impl = makeXMLSpecDataImpl( specspec, true, specurl );
+                ftype=HDX;
             }
             else {
                 //  Remote plainer formats (FITS, NDF) need a local copy.
                 if ( isRemote ) {
-                    int ftype;
+                   
                     if (format.equals("FITS"))
                         ftype = FITS;
                     else if (format.equals("TEXT"))
@@ -420,6 +421,7 @@ public class SpecDataFactory
             }
         }
         catch (SEDSplatException se) {
+            se.setType(ftype);
             throw se;
         }
         catch (Exception e ) {
@@ -512,6 +514,8 @@ public class SpecDataFactory
                 impl = new TableSpecDataImpl( starTable, specspec, datsrc.getURL().toString() );
             }
             catch (SEDSplatException se) {
+                se.setType(FITS);
+                se.setSpec(specspec);
                 throw se;
             }
             catch (Exception e) {
@@ -1466,6 +1470,9 @@ public class SpecDataFactory
             if ( specData != null ) {
                 specData.setShortName( url.toString() );
             }
+        }
+        catch (SEDSplatException se ) {
+            throw se;
         }
         catch (Exception e) {
             throw new SplatException( e );
