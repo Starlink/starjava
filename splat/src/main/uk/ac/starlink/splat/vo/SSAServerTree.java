@@ -1,5 +1,7 @@
 package uk.ac.starlink.splat.vo;
 
+
+
 import java.awt.BorderLayout;
 import java.awt.Checkbox;
 import java.awt.CheckboxGroup;
@@ -110,6 +112,8 @@ import uk.ac.starlink.votable.ParamElement;
 import uk.ac.starlink.votable.VOElement;
 import uk.ac.starlink.votable.VOElementFactory;
 import javax.swing.SwingConstants;
+
+
 
 
 
@@ -240,9 +244,9 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
        bandPanel.setBorder ( BorderFactory.createTitledBorder( "Wave Band" ) );
        band_rad = new JCheckBox( "Radio", true);
        bandPanel.add(band_rad);
-       band_mm = new JCheckBox( "Milimeter",  true);
+       band_mm = new JCheckBox( "Millimeter",  true);
        bandPanel.add(band_mm);
-       band_ir = new JCheckBox( "IR",  true);
+       band_ir = new JCheckBox( "Infrared",  true);
        bandPanel.add(band_ir);
        band_opt = new JCheckBox( "Optical", true);
        bandPanel.add(band_opt);
@@ -250,22 +254,31 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
        bandPanel.add(band_uv);
        band_euv = new JCheckBox( "EUV",  true);
        bandPanel.add(band_euv);
-       band_xr = new JCheckBox( "X Ray",  true);
+       band_xr = new JCheckBox( "X-ray",  true);
        bandPanel.add(band_xr);
-       band_gr = new JCheckBox( "Gamma Ray", true);
+       band_gr = new JCheckBox( "Gamma-ray", true);
        bandPanel.add(band_gr);      
        band_all = new JCheckBox( "ALL", true);
        bandPanel.add(band_all);
        
        band_rad.addItemListener(checkBoxlistener);
+       band_rad.setToolTipText("<html>any wavelength > 10 mm (or frequency < 30 GHz)</html>");
        band_mm.addItemListener(checkBoxlistener);
+       band_mm.setToolTipText("<html>0.1 mm <= wavelength <= 10 mm; <BR>3000 GHz >= frequency >= 30 GHz.</html>");
        band_ir.addItemListener(checkBoxlistener);
+       band_ir.setToolTipText("<html>1 micron <= wavelength <= 100 microns</html>");
        band_opt.addItemListener(checkBoxlistener);
+       band_opt.setToolTipText("<html>0.3 microns <= wavelength <= 1 micron; <BR>300 nm <= wavelength <= 1000 nm; <BR>3000 Angstroms <= wavelength <= 10000 Angstroms</html>");
        band_uv.addItemListener(checkBoxlistener);
-       band_euv.addItemListener(checkBoxlistener);       
+       band_uv.setToolTipText("<html>0.1 micron <= wavelength <= 0.3 microns; <BR> 100 nm <= wavelength <= 300 nm;  <BR>1000 Angstroms <= wavelength <= 3000 Angstroms</html>");
+       band_euv.addItemListener(checkBoxlistener);    
+       band_euv.setToolTipText("<html>100 Angstroms <= wavelength <= 1000 Angstroms; <BR>12 eV <= energy <= 120 eV</html>");
        band_xr.addItemListener(checkBoxlistener);
+       band_xr.setToolTipText("<html>0.1 Angstroms <= wavelength <= 100 Angstroms; <BR>0.12 keV <= energy <= 120 keV</html>");
        band_gr.addItemListener(checkBoxlistener);
+       band_gr.setToolTipText("<html>energy >= 120 keV</html>");
        band_all.addItemListener(checkBoxlistener);
+      
        treeRenderer.addBand(band_rad.getText());
        treeRenderer.addBand(band_mm.getText());
        treeRenderer.addBand(band_ir.getText());
@@ -455,14 +468,24 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
             String name = server.getShortName();
     //        if (name == null || name.length() == 0)
     //            name = "<>" ;
-            ServerTreeNode stn = new ServerTreeNode( name  ); 
-            addInfoNodes(server, stn);
-            if (stn.isSelected())
-                serverList.selectServer(server.getShortName());
-            root.addsort( stn );
-            
-        }
-
+    //        ServerTreeNode stn = new ServerTreeNode( name  ); 
+            SSAPRegCapability caps[] = server.getCapabilities();
+ /* 
+            int nrssacaps=0;
+            for (int c=0; c< server.getCapabilities().length; c++){
+              //  SSAPRegCapability cap = server.getCapabilities()[c];
+                String xsi= caps[c].getXsiType();
+                if (xsi != null && xsi.startsWith("ssa")) {*/
+                    ServerTreeNode stn = new ServerTreeNode( name  ); 
+                  //  addInfoNodes(server, caps[c], nrssacaps, stn);
+                    addInfoNodes(server, caps[0], stn);
+                    if (stn.isSelected())
+                        serverList.selectServer(server.getShortName());
+                    root.addsort( stn );
+                 //   nrssacaps++;
+              /*  }
+            }*/
+         }
     }
     
     /**
@@ -470,11 +493,12 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
      *
      * @param serverList the SSAServerList reference.
      */
-    private void addInfoNodes ( SSAPRegResource server, ServerTreeNode servernode )
+//    private void addInfoNodes ( SSAPRegResource server, SSAPRegCapability cap, int capnr, ServerTreeNode servernode )
+    private void addInfoNodes ( SSAPRegResource server, SSAPRegCapability cap, ServerTreeNode servernode )
     {      
     
       //  private RegCapabilityInterface[] capabilities;
-     //   private String[] subjects = null;
+      //   private String[] subjects = null;
 
             servernode.add( new ServerTreeNode( "Title: " + server.getTitle() ));
             servernode.add( new ServerTreeNode( "Identifier: " + server.getIdentifier() ));
@@ -486,9 +510,15 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
             servernode.add( new ServerTreeNode( "Waveband: " + Arrays.toString(server.getWaveband())));
             
       //      servernode.add( new ServerTreeNode( "Version: " + server.getVersion()));
-            SSAPRegCapability cap = server.getCapabilities()[0];
             
-            ServerTreeNode capnode = new ServerTreeNode( "Capabilities" );
+            // get the right capability      
+        //    SSAPRegCapability caps[] = server.getCapabilities();
+        //    SSAPRegCapability cap=null;
+       //     for (int i=0; i< caps.length; i++){
+    //            SSAPRegCapability c = server.getCapabilities()[i];
+   //             if (c.getXsiType().equals("ssa:SimpleSpectralAccess"))
+  //          }
+            ServerTreeNode capnode = new ServerTreeNode( "Capability" );
             capnode.add( new ServerTreeNode( "Access URL: " + cap.getAccessUrl() ));
             capnode.add( new ServerTreeNode( "Description: " + cap.getDescription() )); 
             capnode.add( new ServerTreeNode( "Data Source: " + cap.getDataSource() )); 
@@ -499,12 +529,16 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
             capnode.add( new ServerTreeNode( "Version: " + cap.getVersion() )); 
             capnode.add( new ServerTreeNode( "XSI Type: " + cap.getXsiType() ));   
            
-          
-           servernode.setUserObject((String) servernode.getUserObject() + "       [" + server.getTitle() + "]");
+         
+      //      if (capnr > 0)
+       //         servernode.setUserObject((String) servernode.getUserObject() + "("+ capnr + ")"+"       [" + server.getTitle() + "]");
+       //     else 
+                servernode.setUserObject((String) servernode.getUserObject() + "       [" + server.getTitle() + "]");
+
          //   servernode.setUserObject((String) servernode.getUserObject() + "       [" + cap.getDataSource() + "]" +"["+ cap.getDataType() + "]") ;
             
        
-          
+           logger.info( server.getShortName()+":" + Arrays.toString(server.getWaveband())+":"+cap.getDataSource()+":"+cap.getDataType()+":"+cap.getCreationType()+":"+cap.getAccessUrl()+":"+server.getContact() );
            
             ArrayList<String> params = serverParam.getParams(server.getShortName());
             if ( params != null ) {
@@ -1001,8 +1035,33 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
             if ( table instanceof BeanStarTable ) {
                 Object[] resources = ((BeanStarTable)table).getData();
                 for ( int i = 0; i < resources.length; i++ ) {
-                    serverList.addServer( (SSAPRegResource)resources[i] );
-                    serverList.unselectServer(((SSAPRegResource)resources[i]).getShortName());
+                    
+                    SSAPRegResource server = (SSAPRegResource)resources[i];
+                    String shortname = server.getShortName();
+                    if (shortname == null || shortname.length()==0)
+                        shortname = "<>"; // avoid problems if server has no name (should not happen!!!)
+                    SSAPRegCapability caps[] = server.getCapabilities();
+                    int nrcaps = server.getCapabilities().length;
+                    int nrssacaps=0;
+                    // create one serverlist entry for each ssap capability
+                    for (int c=0; c< nrcaps; c++) {
+                         String xsi= caps[c].getXsiType();
+                         if (xsi != null && xsi.startsWith("ssa")) {
+                            SSAPRegResource ssapserver = new SSAPRegResource(server);
+                            SSAPRegCapability onecap[] = new SSAPRegCapability[1];
+                            onecap[0] = caps[c];  
+                            String name = shortname;
+                            ssapserver.setCapabilities(onecap);
+                            if (nrssacaps > 0) 
+                                name =  name + "(" + nrssacaps + ")";
+                            ssapserver.setShortName(name);
+                            serverList.addServer( ssapserver );
+                            serverList.unselectServer(ssapserver.getShortName());
+                            nrssacaps++;
+                        }
+                    }
+                  //  serverList.addServer( (SSAPRegResource)resources[i] );
+                //    serverList.unselectServer(((SSAPRegResource)resources[i]).getShortName());
                 }
             }
            
@@ -1286,7 +1345,7 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
         };
         
         
-        public String[]  getWaveband () {
+        public String[]  getWavebands () {
             if (this.getLevel() != 1)
                 return null;
             Enumeration<DefaultMutableTreeNode> e = this.children();
@@ -1294,7 +1353,7 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
                 String nodeLabel = e.nextElement().getUserObject().toString();
                 if (nodeLabel.startsWith("Waveband: ")) {
                     String bands = nodeLabel.replace("Waveband: ", "");
-                   // bands = bands.replaceAll("[(*)]", "$1");
+                    bands = bands.replaceAll(",", "");
                     nodeLabel = bands.replace("[", "");
                     nodeLabel = nodeLabel.replace("]", "");
                     return nodeLabel.split(" "); 
@@ -1395,8 +1454,9 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
   
             if (allBands)
                 return true;
-            String []  bands = node.getWaveband();
+            String []  bands = node.getWavebands();
             for (int i=0;i< bands.length; i++) {
+                logger.info("band[i]="+bands[i]+" "+bandList.toString());
                 if (bandList.contains(bands[i]))
                     return true;
             }
