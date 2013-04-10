@@ -31,10 +31,14 @@ public class GetDataQueryFrame extends JFrame implements ActionListener {
     HashMap< String, GetDataTable > services;
     /** The list of all getData parameters read from the servers as a hash map */
     private  HashMap< String, String > getDataParam=null; 
+    /** List of all possible parameters **/
+    private ArrayList<String> paramList;
+    
     Boolean isActive;
     // Panel for components and options from GetData parameters
     private JPanel getDataPanel;
-    private JScrollPane  getDataScroller; 
+    private JPanel paramPanel;
+   // private JScrollPane  getDataScroller; 
     private JButton submitButton;
     private JButton clearButton;
     ArrayList<Component> queryComponents;
@@ -45,6 +49,7 @@ public class GetDataQueryFrame extends JFrame implements ActionListener {
         services = new HashMap< String, GetDataTable >();
         getDataParam = new HashMap<String, String>();
         queryComponents = new ArrayList<Component>();
+        paramList = new ArrayList<String>();
         initUI();        
     }
    
@@ -66,7 +71,8 @@ public class GetDataQueryFrame extends JFrame implements ActionListener {
  // RESET getData panels
         
         getDataPanel = null;
-        getDataScroller  = null; 
+        paramPanel = null;
+      //  getDataScroller  = null; 
         
         getDataParam.clear();
         queryComponents.clear();
@@ -78,9 +84,41 @@ public class GetDataQueryFrame extends JFrame implements ActionListener {
         this.setSize(400, 200);
             getDataPanel = (JPanel) this.getContentPane();
             getDataPanel.setLayout((new BoxLayout(getDataPanel, BoxLayout.Y_AXIS)));
+           // getDataPanel.setAlignmentY(CENTER_ALIGNMENT);
             getDataPanel.setBorder(BorderFactory.createTitledBorder("Parameters for Server-Generated data processing"));
-  ///          getDataScroller  = new JScrollPane(getDataPanel); 
+            Border empty = BorderFactory.createEmptyBorder(); 
+     //       getDataScroller  = new JScrollPane(getDataPanel); 
   ///          getDataScroller.add(getDataPanel);
+            paramPanel = new JPanel();
+            paramPanel.setLayout(new BoxLayout(paramPanel, BoxLayout.Y_AXIS));
+            paramPanel.setBorder(empty);
+            paramPanel.setAlignmentY(CENTER_ALIGNMENT);
+               
+            JPanel buttonsPanel = new JPanel();
+            buttonsPanel.setBorder(empty);
+            buttonsPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+           // buttonsPanel.setAlignmentY(Component.BOTTOM_ALIGNMENT);
+         
+            buttonsPanel.setLayout(new BoxLayout(buttonsPanel, BoxLayout.X_AXIS));
+            
+           
+            clearButton = new JButton("clear Parameters");
+            clearButton.addActionListener(this);
+            clearButton.setName("clearButton");
+           // clearButton.setMargin(new Insets(2,10,2,10));  
+            buttonsPanel.add(clearButton);
+            
+            buttonsPanel.add(Box.createRigidArea(new Dimension(5,0)));
+            submitButton = new JButton("set Parameters");
+            submitButton.addActionListener(this);
+            submitButton.setName("setParams");
+          //  submitButton.setMargin(new Insets(10,10,10,10)); 
+            buttonsPanel.add(submitButton);
+            
+            JScrollPane scroller  = new JScrollPane(paramPanel); 
+            ///          getDataScroller.add(getDataPanel);
+            getDataPanel.add(scroller); //(paramPanel);
+            getDataPanel.add(buttonsPanel);
       
     }
 
@@ -89,14 +127,17 @@ public class GetDataQueryFrame extends JFrame implements ActionListener {
            int i=0;
               
                 ParamElement[] params = gdt.getParams();
-                JPanel paramPanel = new JPanel();
-                paramPanel.setLayout(new BoxLayout(paramPanel, BoxLayout.Y_AXIS));
-                Border empty = BorderFactory.createEmptyBorder(); 
-                paramPanel.setBorder(empty);
-                paramPanel.setAlignmentY(CENTER_ALIGNMENT);
+            //    JPanel paramPanel = new JPanel();
+           //     paramPanel.setLayout(new BoxLayout(paramPanel, BoxLayout.Y_AXIS));
+                  Border empty = BorderFactory.createEmptyBorder(); 
+           //     paramPanel.setBorder(empty);
+          //      paramPanel.setAlignmentY(CENTER_ALIGNMENT);
               
                 
               while ( i < params.length ) {
+                  if (! paramList.contains(params[i].getName())) {
+                      paramList.add(params[i].getName());
+                 
                   JPanel inputPanel = new JPanel();
                   inputPanel.setLayout(new BoxLayout(inputPanel, BoxLayout.X_AXIS));
                   inputPanel.setBorder(empty);
@@ -124,8 +165,8 @@ public class GetDataQueryFrame extends JFrame implements ActionListener {
                         queryComponents.add(optbox);
                         
                     } else {
-                        String max = values.getMaximum();
-                        String min = values.getMinimum();
+                    
+                    
                         JTextField minField = new JTextField(8);
                         JTextField maxField = new JTextField(8);
                         maxField.setMaximumSize( maxField.getPreferredSize() );
@@ -150,35 +191,11 @@ public class GetDataQueryFrame extends JFrame implements ActionListener {
                        
                     }
                     paramPanel.add(inputPanel);
-                   
+                  }
                     i++;
                 }
         
-              JPanel buttonsPanel = new JPanel();
-              buttonsPanel.setBorder(empty);
-              buttonsPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
-             // buttonsPanel.setAlignmentY(Component.BOTTOM_ALIGNMENT);
-           
-              buttonsPanel.setLayout(new BoxLayout(buttonsPanel, BoxLayout.X_AXIS));
-              
-             
-              clearButton = new JButton("clear Parameters");
-              clearButton.addActionListener(this);
-              clearButton.setName("clearButton");
-             // clearButton.setMargin(new Insets(2,10,2,10));  
-              buttonsPanel.add(clearButton);
-              
-              buttonsPanel.add(Box.createRigidArea(new Dimension(5,0)));
-              submitButton = new JButton("set Parameters");
-              submitButton.addActionListener(this);
-              submitButton.setName("setParams");
-            //  submitButton.setMargin(new Insets(10,10,10,10)); 
-              buttonsPanel.add(submitButton);
-              
-              JScrollPane scroller  = new JScrollPane(paramPanel); 
-              ///          getDataScroller.add(getDataPanel);
-              getDataPanel.add(scroller); //(paramPanel);
-              getDataPanel.add(buttonsPanel);
+         
         }
     
     public HashMap<String, String>  getParams() {
@@ -213,12 +230,14 @@ public class GetDataQueryFrame extends JFrame implements ActionListener {
                        tf.setText("");
                    } else if (source.equals(submitButton)) {
                    
+                     
                    String keyname = name.substring(0, name.length()-4);
                    String limit = name.substring(name.length()-3); // Max oder Min
                    // has this parameter already been edited?
                    String oldvalue = getDataParam.get(keyname);
                    String newvalue = null;
                    String max="", min="";
+                   
                        if (oldvalue != null && oldvalue.length() > 0) {
                            int dashindex = oldvalue.indexOf('/');
                            if (oldvalue.endsWith("/"))
@@ -228,7 +247,8 @@ public class GetDataQueryFrame extends JFrame implements ActionListener {
                            else if (dashindex > 0){
                                min=oldvalue.substring(0,dashindex);
                                max=oldvalue.substring(dashindex+1);
-                           }          
+                           }  
+                           
                        } 
                        if (limit.equals("Max")) {
                            newvalue = min+"/"+tf.getText();
