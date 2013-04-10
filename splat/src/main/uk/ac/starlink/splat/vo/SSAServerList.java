@@ -57,6 +57,7 @@ public class SSAServerList
      */
     public void addServer( SSAPRegResource server )
     {
+        
         addServer( server, true );
     }
 
