@@ -115,7 +115,7 @@ public class SSAPRegCapability
     public String getCreationType() {
         return creationType;
     }
-    public void setCreationType( String dataSource )
+    public void setCreationType( String creationType )
     {
         this.creationType = creationType;
     }
