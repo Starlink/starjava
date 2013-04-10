@@ -1397,7 +1397,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             VOElementFactory vofact = new VOElementFactory();
             
             VOElement voe = DalResourceXMLFilter.parseDalResult(vofact, inSrc);
-           // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\
+           
             starTable = DalResourceXMLFilter.getDalResultTable( voe );
             getDataTable = DalResourceXMLFilter.getDalGetDataTable( voe );
             if (getDataTable != null) {
@@ -1721,6 +1721,8 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             int fluxunitscol = -1;
             int fluxerrorcol = -1;
             int pubdidcol=-1;
+            int specstartcol=-1;
+            int specstopcol=-1;
             ColumnInfo colInfo;
             String ucd;
             String utype;
@@ -1784,6 +1786,12 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                     else if ( utype.endsWith( "Curation.PublisherDID" ) ) {
                         pubdidcol = k;
                     }
+                    else if ( utype.endsWith( "char.spectralAxis.coverage.bounds.start" ) ) {
+                        specstartcol = k;
+                    }
+                    else if ( utype.endsWith( "char.spectralAxis.coverage.bounds.stop" ) ) {
+                        specstopcol = k;
+                    }
                 }
                 if (colInfo.getName().equals("ssa_pubDID"))
                     pubdidcol = k;
@@ -1796,7 +1804,14 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                     for (String key : getDataParam.keySet()) {
                         String value = getDataParam.get(key);
                                 if (value == null || value.length() > 0) {
-                                    try {
+                                    try {//
+                                        ///
+                                        // float specstart = Float.parseFloat(rseq.getCell( linkcol ).);
+                                       //  float specstop = Float.parseFloat();
+                                      //  double specend = Double.parseDouble(params[i].getAttribute("ssa_specend"));
+                                      //  double  maxval =   double specstart = Double.parseDouble(values.getMaximum());
+                                     //   double  minval =   double specstart = Double.parseDouble(values.getMinimum());
+                                        ///
                                         getDataRequest+="&"+key+"="+URLEncoder.encode(value, "UTF-8");
                                     } catch (UnsupportedEncodingException e) {
                                         // TODO Auto-generated catch block
