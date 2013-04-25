@@ -17985,6 +17985,14 @@ introduced since the last version:
     </p>
     </dd>
 
+<dt>Next Version</dt>
+<dd><p>
+    <ul>
+    <li>Fix CSV regression bug introduced at v4.0b
+        - CSV files now work again with MSDOS-style line breaks.</li>
+    </ul>
+    </p></dd>
+
 </dl>
 </p>
 

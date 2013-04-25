@@ -8360,6 +8360,14 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </dl>
     </p></dd>
 
+<dt>Next Version</dt>
+<dd><p>
+    <ul>
+    <li>Fix CSV regression bug introduced at v2.5
+        - CSV files now work again with MSDOS-style line breaks.</li>
+    </ul>
+    </p></dd>
+
 </dl>
 </p>
 </subsect>

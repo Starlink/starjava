@@ -157,6 +157,13 @@ public class CsvStarTable extends StreamStarTable {
                         endFile = true;
                     case '\r':
                     case '\n':
+                        for ( boolean endLineChar = true; endLineChar; ) {
+                            int b = in.read();
+                            endLineChar = b == '\r' || b == '\n';
+                            if ( ! endLineChar ) {
+                                in.unread( b );
+                            }
+                        }
                         if ( discard ) {
                             discard = false;
                         }
