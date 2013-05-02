@@ -45,6 +45,7 @@ import java.net.URLConnection;
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 import java.net.HttpURLConnection;
 >>>>>>> further development of GET DATA functionality 
@@ -52,20 +53,16 @@ import java.net.HttpURLConnection;
 >>>>>>> Bug fix on server selection after querying registry for updates
 =======
 >>>>>>> New server selection options: all observ x all theory. User-created Tags can now be saved
-import java.net.URLEncoder;
 =======
-import java.net.HttpURLConnection;
->>>>>>> c8866990c9406f5205c11cc1833546796acc04c0
+>>>>>>> resolving conflicts
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
-<<<<<<< HEAD
 import java.util.List;
-=======
->>>>>>> c8866990c9406f5205c11cc1833546796acc04c0
 import java.util.Properties;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
@@ -128,12 +125,13 @@ import uk.ac.starlink.splat.util.Transmitter;
 import uk.ac.starlink.splat.util.Utilities;
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> New server selection options: all observ x all theory. User-created Tags can now be saved
-import uk.ac.starlink.splat.vo.SSAServerTree.ServerTreeNode;
 =======
->>>>>>> c8866990c9406f5205c11cc1833546796acc04c0
+>>>>>>> resolving conflicts
+import uk.ac.starlink.splat.vo.SSAServerTree.ServerTreeNode;
 //import uk.ac.starlink.splat.vo.SSAMetadataFrame.MetadataInputParameter;
 >>>>>>> Bug fix on server selection after querying registry for updates
 import uk.ac.starlink.table.ColumnInfo;
@@ -158,7 +156,6 @@ import uk.ac.starlink.votable.VOElementFactory;
 import uk.ac.starlink.votable.VOSerializer;
 import uk.ac.starlink.votable.VOStarTable;
 import uk.ac.starlink.votable.VOTableWriter;
-<<<<<<< HEAD
 import uk.ac.starlink.votable.ValuesElement;
 
 import javax.swing.BoxLayout;
@@ -166,9 +163,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
 import javax.xml.transform.Source;
 import javax.xml.transform.sax.SAXSource;
-=======
-import javax.swing.BoxLayout;
->>>>>>> c8866990c9406f5205c11cc1833546796acc04c0
 
 
 /**
@@ -179,8 +173,8 @@ import javax.swing.BoxLayout;
  * @author Peter W. Draper
  * @author Mark Taylor
  * @author Margarida Castro Neves 
-<<<<<<< HEAD
  * @version $Id: SSAQueryBrowser.java 10547 2013-04-10 15:10:07Z mcneves $
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
  * @version $Id: SSAQueryBrowser.java 10547 2013-04-10 15:10:07Z mcneves $
@@ -188,6 +182,8 @@ import javax.swing.BoxLayout;
  * @version $Id$
 >>>>>>> c8866990c9406f5205c11cc1833546796acc04c0
 >>>>>>> New server selection options: all observ x all theory. User-created Tags can now be saved
+=======
+>>>>>>> resolving conflicts
  *
  */
 public class SSAQueryBrowser
@@ -205,6 +201,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
     private static final Rectangle defaultWindowLocation =
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
             new Rectangle( 0, 0, 800, 600 );
 =======
             new Rectangle( 0, 0, 800, 720 );
@@ -215,6 +212,9 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             new Rectangle( 0, 0, 800, 700 );
 >>>>>>> c8866990c9406f5205c11cc1833546796acc04c0
 >>>>>>> New server selection options: all observ x all theory. User-created Tags can now be saved
+=======
+            new Rectangle( 0, 0, 800, 720 );
+>>>>>>> resolving conflicts
 
     /**
      * The object holding the list of servers that we should use for SSA queries.
@@ -362,7 +362,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
      */
     protected JRadioButton  customSearchButton;
 
-<<<<<<< HEAD
     /** Display GET DATA  parameters and activation status */
 <<<<<<< HEAD
 //    protected JButton  getDataButton;
@@ -390,8 +389,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
     protected JButton  getDataButton;
     
     protected boolean getDataEnabled = false;
-=======
->>>>>>> c8866990c9406f5205c11cc1833546796acc04c0
 
     /** Make the query to all known servers */
 >>>>>>> further development of GET DATA functionality 
@@ -578,10 +575,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         ProxySetup.getInstance().restore();
     }
 
-<<<<<<< HEAD
     
-=======
->>>>>>> c8866990c9406f5205c11cc1833546796acc04c0
     /* The Query text that will be displayed */
     /**
      * @uml.property  name="queryLine"
@@ -595,10 +589,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
     /** The list of all input parameters read from the servers as a hash map */
     private static HashMap< JTextField, String > queryMetaParam=null; 
     
-<<<<<<< HEAD
     
-=======
->>>>>>> c8866990c9406f5205c11cc1833546796acc04c0
     /** the authenticator for access control **/
     private static SSAPAuthenticator authenticator;
     
@@ -618,6 +609,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
     private boolean isLookup = false;
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     /**
      * @uml.property  name="getDataSelection"
      */
@@ -625,6 +617,8 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
 >>>>>>> 
 =======
 >>>>>>> New server selection options: all observ x all theory. User-created Tags can now be saved
+=======
+>>>>>>> resolving conflicts
     private boolean getDataSelection = false;
    
     static ProgressPanelFrame progressFrame = null;
@@ -643,6 +637,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
 =======
     private GetDataQueryFrame getDataFrame = null;
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> further development of GET DATA functionality 
 =======
 =======
@@ -651,6 +646,8 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
 
 >>>>>>> c8866990c9406f5205c11cc1833546796acc04c0
 >>>>>>> New server selection options: all observ x all theory. User-created Tags can now be saved
+=======
+>>>>>>> resolving conflicts
 
     /**
      * Create an instance.
@@ -690,13 +687,13 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         JPanel contentPane = (JPanel) getContentPane();
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> New server selection options: all observ x all theory. User-created Tags can now be saved
-        contentPane.setPreferredSize(new Dimension(900,720));
 =======
-        contentPane.setPreferredSize(new Dimension(900,700));
->>>>>>> c8866990c9406f5205c11cc1833546796acc04c0
+>>>>>>> resolving conflicts
+        contentPane.setPreferredSize(new Dimension(900,720));
         //contentPane.setLayout( new BorderLayout() );
        // contentPane.setLayout( new GridLayout(1,2,3,3) );
         contentPane.setLayout( new BoxLayout(contentPane, BoxLayout.X_AXIS) );
@@ -736,11 +733,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
      //   gblayout.setConstraints(centrePanel, c);
    //     contentPane.add( centrePanel);//, BorderLayout.LINE_END );
         
-<<<<<<< HEAD
        // this.setPreferredSize(ç);
-=======
-       // this.setPreferredSize(�);
->>>>>>> c8866990c9406f5205c11cc1833546796acc04c0
       //  contentPane.setSize(800, 600);
        // this.setSize(new Dimension(800,600));
 >>>>>>> 
@@ -961,14 +954,16 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         c.weighty=1.;
 =======
         c.fill=GridBagConstraints.HORIZONTAL;
-<<<<<<< HEAD
         
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> further development of GET DATA functionality 
 =======
 =======
 >>>>>>> c8866990c9406f5205c11cc1833546796acc04c0
 >>>>>>> New server selection options: all observ x all theory. User-created Tags can now be saved
+=======
+>>>>>>> resolving conflicts
         c.gridx = 0;
         c.gridy = 0;
         
@@ -1279,6 +1274,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         resultsPane = new JTabbedPane();
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 //        resultsPane.setPreferredSize(new (600,310));
         resultsPanel.add( resultsPane , gbc);
         resultsPane.addChangeListener(new ChangeListener() {
@@ -1305,10 +1301,9 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
 =======
 =======
 >>>>>>> New server selection options: all observ x all theory. User-created Tags can now be saved
-        resultsPane.setPreferredSize(new Dimension(600,310));
 =======
-        resultsPane.setPreferredSize(new Dimension(600,300));
->>>>>>> c8866990c9406f5205c11cc1833546796acc04c0
+>>>>>>> resolving conflicts
+        resultsPane.setPreferredSize(new Dimension(600,310));
         resultsPanel.add( resultsPane, BorderLayout.NORTH );
 >>>>>>> further development of GET DATA functionality 
         
@@ -1324,11 +1319,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         //  Download and display.
         displaySelectedButton = new JButton( "<html>Display<BR> selected</html>" );
         displaySelectedButton.addActionListener( this );
-<<<<<<< HEAD
         displaySelectedButton.setMargin(new Insets(1, 10, 1, 10));  
-=======
-        displaySelectedButton.setMargin(new Insets(2,2,2,2));  
->>>>>>> c8866990c9406f5205c11cc1833546796acc04c0
         displaySelectedButton.setToolTipText
         ( "Download and display all spectra selected in all tables" );
         controlPanel.add( displaySelectedButton,gbcontrol );
@@ -1336,11 +1327,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
 
         displayAllButton = new JButton( "<html>Display<BR>all</html>" );
         displayAllButton.addActionListener( this );
-<<<<<<< HEAD
         displayAllButton.setMargin(new Insets(1,10,1,10));  
-=======
-        displayAllButton.setMargin(new Insets(2,2,2,2));  
->>>>>>> c8866990c9406f5205c11cc1833546796acc04c0
         displayAllButton.setToolTipText
         ( "Download and display all spectra in all tables" );
         gbcontrol.gridx=1;
@@ -1349,11 +1336,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         //  Just download.
         downloadSelectedButton = new JButton( "<html>Download<BR>selected</html>" );
         downloadSelectedButton.addActionListener( this );
-<<<<<<< HEAD
         downloadSelectedButton.setMargin(new Insets(1,10,1,10));  
-=======
-        downloadSelectedButton.setMargin(new Insets(2,2,2,2));  
->>>>>>> c8866990c9406f5205c11cc1833546796acc04c0
         downloadSelectedButton.setToolTipText
         ( "Download all spectra selected in all tables");
 <<<<<<< HEAD
@@ -1366,11 +1349,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
 
         downloadAllButton = new JButton( "<html>Download<BR> all</html>" );
         downloadAllButton.addActionListener( this );
-<<<<<<< HEAD
         downloadAllButton.setMargin(new Insets(1,10,1,10));  
-=======
-        downloadAllButton.setMargin(new Insets(2,2,2,2));  
->>>>>>> c8866990c9406f5205c11cc1833546796acc04c0
         downloadAllButton.setToolTipText
         ( "Download all spectra in all tables");
         gbcontrol.gridx=3;
@@ -1380,11 +1359,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         //  Deselect
         deselectVisibleButton = new JButton( "<html>Deselect<br>table</html>" );
         deselectVisibleButton.addActionListener( this );
-<<<<<<< HEAD
         deselectVisibleButton.setMargin(new Insets(1,10,1,10));  
-=======
-        deselectVisibleButton.setMargin(new Insets(2,2,2,2));  
->>>>>>> c8866990c9406f5205c11cc1833546796acc04c0
         deselectVisibleButton.setToolTipText
         ( "Deselect all spectra in displayed table" );
       //  controlPanel2.add( deselectVisibleButton );
@@ -1394,11 +1369,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
 
         deselectAllButton = new JButton( "<html>Deselect <BR>all</html>" );
         deselectAllButton.addActionListener( this );
-<<<<<<< HEAD
         deselectAllButton.setMargin(new Insets(1,10,1,10));  
-=======
-        deselectAllButton.setMargin(new Insets(2,2,2,2));  
->>>>>>> c8866990c9406f5205c11cc1833546796acc04c0
         deselectAllButton.setToolTipText
         ( "Deselect all spectra in all tables" );
      //   controlPanel2.add( deselectAllButton );
@@ -1436,7 +1407,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
 =======
         controlPanel1.add( deselectAllButton );
 
-<<<<<<< HEAD
         getDataButton = new JButton( "<html>GET<BR> DATA</html>" );
         getDataButton.addActionListener( this );
         getDataButton.setMargin(new Insets(1,10,1,10));  
@@ -1448,8 +1418,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         
       
         controlPanel1.add( getDataButton );
-=======
->>>>>>> c8866990c9406f5205c11cc1833546796acc04c0
         controlPanel.add( controlPanel1, BorderLayout.NORTH );
      //   controlPanel.add( controlPanel2, BorderLayout.SOUTH );
         resultsPanel.add( controlPanel, BorderLayout.SOUTH );
@@ -1703,6 +1671,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         ArrayList<SSAQuery> queryList = new ArrayList<SSAQuery>();
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         
         //serverList = tree.getServerList();
         Iterator i = slist.getIterator();
@@ -1710,10 +1679,13 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
 =======
 =======
 >>>>>>> New server selection options: all observ x all theory. User-created Tags can now be saved
+=======
+>>>>>>> resolving conflicts
         // update serverlist from servertree class
         serverList = tree.getServerList();
         Iterator i = serverList.getIterator();
        
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> Bug fix on server selection after querying registry for updates
 =======
@@ -1721,6 +1693,8 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         Iterator i = serverList.getIterator();
 >>>>>>> c8866990c9406f5205c11cc1833546796acc04c0
 >>>>>>> New server selection options: all observ x all theory. User-created Tags can now be saved
+=======
+>>>>>>> resolving conflicts
         SSAPRegResource server = null;
         while( i.hasNext() ) {
             server = (SSAPRegResource) i.next();
@@ -1761,10 +1735,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             
             SSAQuery ssaQuery =  new SSAQuery(queryLine);//new SSAQuery( server );
             ssaQuery.setServer( server) ; //Parameters(queryLine); // copy the query parameters to the new query
-<<<<<<< HEAD
           
-=======
->>>>>>> c8866990c9406f5205c11cc1833546796acc04c0
  /*           ssaQuery.setTargetName( objectName );
             ssaQuery.setPosition( ra, dec );
             ssaQuery.setRadius( radius );
@@ -1798,6 +1769,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
     {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         // final serverlist
    
 =======
@@ -1820,6 +1792,9 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
 =======
 >>>>>>> c8866990c9406f5205c11cc1833546796acc04c0
 >>>>>>> New server selection options: all observ x all theory. User-created Tags can now be saved
+=======
+        
+>>>>>>> resolving conflicts
         //  final ArrayList localQueryList = queryList;
         makeResultsDisplay( null );
         
@@ -1834,11 +1809,8 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         Iterator<SSAQuery> i = queryList.iterator();
         while ( i.hasNext() ) {
             final SSAQuery ssaQuery = i.next();
-<<<<<<< HEAD
          
 
-=======
->>>>>>> c8866990c9406f5205c11cc1833546796acc04c0
             final ProgressPanel progressPanel = new ProgressPanel( "Querying: " + ssaQuery.getDescription());
             progressFrame.addProgressPanel( progressPanel );
 
@@ -1886,15 +1858,15 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
      */
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     private void runProcessQuery( SSAQuery ssaQuery, ProgressPanel progressPanel ) throws InterruptedException
     {
 =======
 =======
 >>>>>>> New server selection options: all observ x all theory. User-created Tags can now be saved
-    private void runProcessQuery( SSAQuery ssaQuery, 
 =======
-    private void runProcessQuery( SSAQuery ssaQuery,
->>>>>>> c8866990c9406f5205c11cc1833546796acc04c0
+>>>>>>> resolving conflicts
+    private void runProcessQuery( SSAQuery ssaQuery, 
             ProgressPanel progressPanel )
                     throws InterruptedException
                     {
@@ -1905,7 +1877,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         //  We just download VOTables, so avoid attempting to build the other
         //  formats.
         StarTable starTable = null;
-<<<<<<< HEAD
         GetDataTable getDataTable = null;
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1924,11 +1895,14 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
 =======
 =======
       
+<<<<<<< HEAD
 >>>>>>> further development of GET DATA functionality 
 =======
 =======
 >>>>>>> c8866990c9406f5205c11cc1833546796acc04c0
 >>>>>>> New server selection options: all observ x all theory. User-created Tags can now be saved
+=======
+>>>>>>> resolving conflicts
         URL queryURL = null;
 
         // int j = 0;
@@ -1994,7 +1968,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         //  Do the query and get the result as a StarTable. Uses this
         //  method for efficiency as non-result tables are ignored.
         try {
-<<<<<<< HEAD
             
             
             URLConnection con =  queryURL.openConnection();
@@ -2054,6 +2027,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> further development of GET DATA functionality 
 =======
 =======
@@ -2107,6 +2081,8 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             starTable = DalResultXMLFilter.getDalResultTable( vofact, inSrc );
 >>>>>>> c8866990c9406f5205c11cc1833546796acc04c0
 >>>>>>> New server selection options: all observ x all theory. User-created Tags can now be saved
+=======
+>>>>>>> resolving conflicts
           
             //  Check parameter QUERY_STATUS, this should be set to OK
             //  when the query
@@ -2290,6 +2266,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
               //  scrollPane.setPreferredSize(new Dimension(600,400));
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                 
                 
                 
@@ -2335,6 +2312,8 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
 =======
 =======
 >>>>>>> New server selection options: all observ x all theory. User-created Tags can now be saved
+=======
+>>>>>>> resolving conflicts
                 if (getDataTable != null) {
                     shortName = "✂ " + shortName;
                     if ( getDataFrame == null )
@@ -2344,8 +2323,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                     getDataButton.setVisible(true);
                     getDataButton.setForeground(Color.GRAY);
                 }
-=======
->>>>>>> c8866990c9406f5205c11cc1833546796acc04c0
                 resultsPane.addTab( shortName, scrollPane );
 >>>>>>> 
                 starJTables.add( table );
@@ -2489,7 +2466,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         //  List of all spectra to be loaded and their data formats and short
         //  names etc.
         ArrayList<Props> specList = new ArrayList<Props>();
-<<<<<<< HEAD
      
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2499,6 +2475,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             
             if (starJTables == null)  // avoids NPE if no results are present
                 return;
+<<<<<<< HEAD
 =======
 
         if ( table == null ) {
@@ -2518,6 +2495,8 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         if ( table == null ) {
 >>>>>>> c8866990c9406f5205c11cc1833546796acc04c0
 >>>>>>> New server selection options: all observ x all theory. User-created Tags can now be saved
+=======
+>>>>>>> resolving conflicts
             //  Visit all the tabbed StarJTables.
             Iterator<StarJTable> i = starJTables.iterator();
             while ( i.hasNext() ) {
@@ -2552,10 +2531,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             URL url=null;
             try {
                  url = new URL(propList[p].getSpectrum());
-<<<<<<< HEAD
                  logger.info("Spectrum URL"+url);
-=======
->>>>>>> c8866990c9406f5205c11cc1833546796acc04c0
             } catch (MalformedURLException mue) {
                 logger.info(mue.getMessage());
             }
@@ -3533,13 +3509,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                 
                 return;     
             }
-<<<<<<< HEAD
-=======
-
-        if ( (source.getClass() == JTextField.class) && queryMetaParam.get(source) != null) {
-        //    queryLine.setParam()
-        }
->>>>>>> c8866990c9406f5205c11cc1833546796acc04c0
                                  
         if ( source.equals( selectAllParamsButton ) ) 
         {
@@ -3663,7 +3632,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                 
             return;
         }
-<<<<<<< HEAD
         if ( source.equals( getDataButton ) ) {
             if (getDataFrame == null || getDataFrame.getParams() == null)
                 return;
@@ -3836,6 +3804,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         else if (pvt.getPropertyName().equals("changeServerlist"))
             serverList = tree.getServerList();
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> Bug fix on server selection after querying registry for updates
 =======
 =======
@@ -3851,6 +3820,8 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
        updateQueryText();        
 >>>>>>> c8866990c9406f5205c11cc1833546796acc04c0
 >>>>>>> New server selection options: all observ x all theory. User-created Tags can now be saved
+=======
+>>>>>>> resolving conflicts
     }
     
     private void updateQueryText() {
@@ -3877,11 +3848,8 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
     private void showParameters() 
     {
         // check serverlist (selected servers!!)
-<<<<<<< HEAD
         // update serverlist
         serverList = tree.getServerList();
-=======
->>>>>>> c8866990c9406f5205c11cc1833546796acc04c0
         ArrayList<String> parameters = new ArrayList();
         Iterator srv=serverList.getIterator();
         while ( srv.hasNext() ) {
@@ -3924,270 +3892,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
       //  customQueryPanel.add(label); queryPanel.add(txtf);
        // customQueryPanel.repaint();
       
-<<<<<<< HEAD
-    }
-    /**
-     * Customize metadata parameters
-     * Query metadata from known servers to retrieve all possible parameters. Every
-     * query is performed in a different thread, which will perform the query and
-     * update the parameter table
-     */
-    private void customParameters() 
-    {
-        int nrServers = serverList.getSize();
-        final WorkQueue workQueue = new WorkQueue(nrServers);
-
-        metaParam = new HashMap<String, MetadataInputParameter>();
-     
-/*
-        if ( metaFrame == null ) {
-            metaFrame = new SSAMetadataFrame( metaParam );
-            metaFrame.addPropertyChangeListener(this);
-        } else
-            metaFrame.updateMetadata( metaParam );
-*/
-        final ProgressPanelFrame metadataProgressFrame = new ProgressPanelFrame( "Querying Metadata" );
-
-        Iterator i = serverList.getIterator();
-
-        while( i.hasNext() ) {
-
-            final SSAPRegResource server = (SSAPRegResource) i.next();
-            final ProgressPanel metadataProgressPanel = new ProgressPanel( "Querying: " + server.getShortName());
-            metadataProgressFrame.addProgressPanel( metadataProgressPanel );
-            //final MetadataQueryWorker queryWorker  = new MetadataQueryWorker(server, workQueue);
-            final MetadataQueryWorker queryWorker  = new MetadataQueryWorker(workQueue, server, metadataProgressPanel);
-            queryWorker.start();
-            final MetadataProcessWorker processWorker  = new MetadataProcessWorker(workQueue);           
-            processWorker.start();
-
-        }// while
-
-
-        /*
-         *  XXX to do eventually: create the parameter frame only after the first parameter has been found. After all threads are
-         *  done, show a dialog message in case no parameters have been found.
-         */
-       // tree.setParamMap(serverParam);
-    } // customParameters
-
-    /**
-     *  Metadata Query worker class
-     *  makes the query, adds resulting metadata to the queue, notify the metadata process worker 
-     *  
-     * @author mm
-     *
-     */
-
-    class MetadataQueryWorker extends SwingWorker 
-    {
-        URL queryURL=null;
-        SSAPRegResource server=null;
-        ParamElement [] metadata = null;
-        WorkQueue workQueue=null;
-        ProgressPanel progressPanel = null;
-
-        /**
-         * Constructor
-         * @param queue  the work queue
-         * @param server the server which to query for metadata
-         */
-        public MetadataQueryWorker(WorkQueue queue, SSAPRegResource server) {
-            this.server=server;
-            this.workQueue=queue;
-        }
-        /**
-         * Constructor
-         * @param queue  the work queue
-         * @param server the server which to query for metadata
-         * @param panel  the progress panel
-         */
-        public MetadataQueryWorker(WorkQueue queue, SSAPRegResource server,ProgressPanel panel) {
-            this.server=server;
-            this.workQueue=queue;
-            this.progressPanel=panel;
-        }
-
-        public Object construct()
-        {   
-            final SSAMetadataParser ssaMetaParser = new SSAMetadataParser( server );    
-               if (progressPanel != null)
-                progressPanel.start();            
-
-            try {
-                queryURL = ssaMetaParser.getQueryURL();
-                logger.info( "Querying metadata from " + queryURL + " contact:" + server.getContact() );
-            } catch (MalformedURLException e) {
-                if (progressPanel != null)
-                    progressPanel.logMessage("Malformed URL");
-                queryURL=null;
-            }
-            if ( queryURL != null ) 
-            {
-                try {                 
-                    if (progressPanel != null)
-                        metadata = ssaMetaParser.queryMetadata( queryURL, progressPanel );
-                    else
-                        metadata = ssaMetaParser.queryMetadata( queryURL );
-
-                } catch (InterruptedException e) {
-                    if (progressPanel != null)
-                        progressPanel.logMessage("Interrupted");
-                    metadata = null;
-                }
-                catch (Exception e) {
-                    if (progressPanel != null)
-                        progressPanel.logMessage("Other Exception"); // this should not happen
-                    e.printStackTrace();
-                    metadata = null;
-                }
-            } else
-                metadata = null;
-
-            if (progressPanel != null)
-                progressPanel.stop();  
-            // add results to the queue
-            workQueue.setServer(server);
-            workQueue.addWork(metadata);
-            return null;
-        } //doinbackground
-
-        public void finished()
-        {
-            //  display the final status of the query
-            if ( metadata != null ) {
-                // adds parameter information into the metaParam hash
-                logger.info("RESPONSE "+queryURL+"returned "+ metadata.length +"parameters ");
-                progressPanel.logMessage( metadata.length +"  input parameters found");
-            } else {
-                logger.info( "RESPONSE No input parameters loaded from " + queryURL );                
-            }
-            if (progressPanel != null)
-                progressPanel.stop();  
-
-        } // done
-
-    };
-
-    /**
-     *  Metadata Process worker class
-     *  makes the query, adds resulting metadata to the queue, notify the metadata process worker 
-     *  
-     * @author Margarida Castro Neves
-     *
-     */
-
-    class MetadataProcessWorker extends SwingWorker 
-    {
-        WorkQueue workQueue=null;
-
-        public MetadataProcessWorker( WorkQueue queue) {          
-            this.workQueue=queue;
-        }
-        public Object construct()
-        {
-            // progressPanel.start();
-            try {
-                ParamElement [] data = workQueue.getWork();
-                if ( data != null)
-                    processMetadata(data, workQueue.getServer());
-            } 
-            catch (InterruptedException e) {
-            }
-            catch (Exception e) {
-            }
-
-            return null;
-        } //construct
-
-
-        public void finished()
-        {
-        } // done
-
-    };
-
-
-
-    /**
-     * queue that receives information from the QueryWorker threads
-     * and process them
-     */
-    class WorkQueue {
-        LinkedList<Object> queue = new LinkedList<Object>();
-        int workedItems = 0;
-        int maxItems=0;
-        SSAPRegResource server;
-
-        public WorkQueue( int total ) {
-            maxItems = total;
-        }
-
-        // add work to the queue
-        public synchronized void addWork(Object o) {
-            //  logger.info( "ADDWORK " + workedItems);
-            queue.addLast(o);
-            this.notify();
-        }
-
-        // takes the work from the queue as soon as it's not empty
-        public synchronized ParamElement[] getWork() throws InterruptedException {
-            //  logger.info( "GETWORK " + workedItems + " " + maxItems);
-            if (workedItems >= maxItems) return null;
-            while (queue.isEmpty()) {
-                this.wait();
-            }
-            ParamElement [] data = (ParamElement[]) queue.removeFirst();     
-            workedItems++;
-            return (data);
-        }
-        
-        public void setServer( SSAPRegResource server ) {
-            this.server=server;
-        }
-        public SSAPRegResource getServer(  ) {
-            return this.server;
-        }
-    } // WorkerQueue
-
-
-    /**
-     * adds the parameters to a hashmap. Every parameter should be unique, 
-     * and a counter shows how many servers support each parameter  
-     * Exclude the parameters that are already included in the main menues of splat query browser
-     * @param - metadata the parameters read from all servers 
-     * 
-     */
-    private void processMetadata( ParamElement[] metadata, SSAPRegResource server) {
-
-        int i=0;
-        //boolean changed = false;
-
-        while ( i < metadata.length ) {
-            String paramName = metadata[i].getName();
-            if (! paramName.equalsIgnoreCase("INPUT:POS") &&        // these parameters should be entered in the main browser
-                    ! paramName.equalsIgnoreCase("INPUT:SIZE") &&
-                    ! paramName.equalsIgnoreCase("INPUT:BAND") &&
-                    ! paramName.equalsIgnoreCase("INPUT:TIME") && 
-                    ! paramName.equalsIgnoreCase("INPUT:FORMAT") && 
-                    ! paramName.equalsIgnoreCase("INPUT:WAVECALIB") && 
-                    ! paramName.equalsIgnoreCase("INPUT:FLUXCALIB") && 
-                    ! paramName.equalsIgnoreCase("INPUT:TARGETNAME") ) 
-            {
-                addRelation( server.getShortName(), paramName);
-                MetadataInputParameter mip = new MetadataInputParameter(metadata[i]);
-                addMetaParam(mip);    // call static synchronized method to change the data with mutual exclusion             
-            } // if
-            i++;
-        } // while
-
-    }//processMetadata
-    private synchronized static void addRelation( String server, String param ) {
-        
-        serverParam.addRelation(server, param);
-
-=======
->>>>>>> c8866990c9406f5205c11cc1833546796acc04c0
     }
     
     /**
@@ -4249,8 +3953,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
      * @author  mm
      */
 
-<<<<<<< HEAD
-=======
     class MetadataQueryWorker extends SwingWorker 
     {
         URL queryURL=null;
@@ -4484,7 +4186,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
 
     }
 
->>>>>>> c8866990c9406f5205c11cc1833546796acc04c0
     /*
      * Adds parameters to the hash and to the parameter table
      * 
