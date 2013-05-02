@@ -17994,6 +17994,9 @@ introduced since the last version:
         The format of the "Starjava revision" string reported by the
         <code>-version</code> flag and the Help|About menu item
         has changed accordingly.</li>
+    <li>The Columns window now makes a better attempt at displaying
+        non-standard per-column metadata of unusual types, in particular
+        array values.</li>
     </ul>
     </p></dd>
 
