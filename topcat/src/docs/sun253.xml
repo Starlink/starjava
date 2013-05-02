@@ -9958,7 +9958,7 @@ so they don't look very beautiful in exported vector output formats
 <p>The configuration options are:
 <dl>
 <dt>Level Count</dt>
-<dd><p>The number of countours drawn.
+<dd><p>The number of contours drawn.
     In fact this is an upper limit; if there is not enough variation
     in the plot's density, then fewer contour lines will be drawn.
     </p></dd>
