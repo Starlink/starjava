@@ -8365,6 +8365,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <ul>
     <li>Fix CSV regression bug introduced at v2.5
         - CSV files now work again with MSDOS-style line breaks.</li>
+    <li>Source code is now managed by git and not subversion.
+        The format of the "Starjava revision" string reported by the
+        <code>-version</code> flag has changed accordingly.</li>
     </ul>
     </p></dd>
 

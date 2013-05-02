@@ -17990,6 +17990,10 @@ introduced since the last version:
     <ul>
     <li>Fix CSV regression bug introduced at v4.0b
         - CSV files now work again with MSDOS-style line breaks.</li>
+    <li>Source code is now managed by git and not subversion.
+        The format of the "Starjava revision" string reported by the
+        <code>-version</code> flag and the Help|About menu item
+        has changed accordingly.</li>
     </ul>
     </p></dd>
 

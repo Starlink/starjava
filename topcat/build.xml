@@ -508,16 +508,13 @@
 
     <!-- Build temporary zip file containing things not in the input jars
      !   which ought to be included in the standalone jars. -->
-    <exec outputproperty="svnversion"
+    <exec outputproperty="gitversion"
           logerror="true"
-          executable="svnversion"
-          dir="${basedir}/..">
-      <arg value="."/>
-    </exec>
-    <echo message="${svnversion}"
+          executable="${star.dir}/bin/gitversion"/>
+    <echo message="${gitversion}"
           file="${build.classes}/uk/ac/starlink/topcat/revision-string"/>
     <mkdir dir="${build.classes}/uk/ac/starlink/ttools"/>
-    <echo message="${svnversion}"
+    <echo message="${gitversion}"
           file="${build.classes}/uk/ac/starlink/ttools/revision-string"/>
 
     <zip destfile="${dist.lib.pkg}/extras.zip">
