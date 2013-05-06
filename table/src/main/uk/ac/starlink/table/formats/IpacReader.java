@@ -42,9 +42,6 @@ class IpacReader implements RowSequence {
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.table.formats" );
-    private static final ValueInfo COMMENT_INFO =
-        new DefaultValueInfo( "Comments", String.class,
-                              "Miscellaneous comments" );
     private static final boolean WORKAROUND_TRUNCATION = true;
 
     /**
@@ -320,7 +317,8 @@ class IpacReader implements RowSequence {
                     comBuf.append( '\n' );
                 }
             }
-            params.add( new DescribedValue( COMMENT_INFO, comBuf.toString() ) );
+            params.add( new DescribedValue( IpacTableBuilder.COMMENT_INFO,
+                                            comBuf.toString() ) );
         }
         return (DescribedValue[]) params.toArray( new DescribedValue[ 0 ] );
     }

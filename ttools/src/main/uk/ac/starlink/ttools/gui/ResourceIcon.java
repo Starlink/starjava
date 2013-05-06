@@ -16,17 +16,40 @@ import javax.swing.ImageIcon;
  */
 public class ResourceIcon {
 
-    /** Node representing a directory. */
-    public static final Icon FOLDER_NODE = readIcon( "folder_node.gif" );
+    public static final Icon
 
-    /** Node representing a library. */
-    public static final Icon LIBRARY_NODE = readIcon( "book_leaf.gif" );
+        /* MethodBrowser icons. */
+        FOLDER_NODE = readIcon( "folder_node.gif" ),
+        LIBRARY_NODE = readIcon( "book_leaf.gif" ),
+        FUNCTION_NODE = readIcon( "fx_leaf.gif" ),
+        CONSTANT_NODE = readIcon( "c_leaf.gif" ),
 
-    /** Node representing a function. */
-    public static final Icon FUNCTION_NODE = readIcon( "fx_leaf.gif" );
+        /* Plot2 icons. */
+        PLOT_FUNCTION = readIcon( "sinx.gif" ),
+        PLOT_CONTOUR = readIcon( "plot-contour.gif" ),
+        PLOT_LINE = readIcon( "plot-line.gif" ),
+        PLOT_LABEL = readIcon( "plot-label.gif" ),
+        FORM_MARK = readIcon( "form-mark.gif" ),
+        FORM_SIZE = readIcon( "form-size.gif" ),
+        FORM_ELLIPSE = readIcon( "form-ellipse2.gif" ),
+        FORM_ERROR = readIcon( "form-error.gif" ),
+        FORM_VECTOR = readIcon( "form-vector.gif" ),
+        FORM_LINK2 = readIcon( "form-link2.gif" ),
+        FORM_LINK3 = readIcon( "form-link3.gif" ),
+        MODE_FLAT = readIcon( "mode-flat.gif" ),
+        MODE_AUTO = readIcon( "mode-auto.gif" ),
+        MODE_DENSITY = readIcon( "mode-density.gif" ),
+        MODE_TRANSPARENT = readIcon( "mode-transparent.gif" ),
+        MODE_AUX = readIcon( "mode-aux.gif" ),
 
-    /** Node representing a constant. */
-    public static final Icon CONSTANT_NODE = readIcon( "c_leaf.gif" );
+        /* Placeholder and terminator. */
+        DO_WHAT = readIcon( "burst.gif" );
+
+    /**
+     * Private constructor prevents instantiation.
+     */
+    ResourceIcon() {
+    }
 
     /**
      * Reads an icon from a filename representing a resource in this 

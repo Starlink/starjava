@@ -1,5 +1,7 @@
 package uk.ac.starlink.topcat;
 
+import uk.ac.starlink.util.gui.CustomComboBoxRenderer;
+
 /**
  * Custom combo box renderer for rendering Class objects.
  *

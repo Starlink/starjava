@@ -14,6 +14,8 @@ import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.TableConsumer;
+import uk.ac.starlink.ttools.plottask.PaintModeParameter;
+import uk.ac.starlink.ttools.plottask.Painter;
 
 /**
  * Environment which allows use of ttools tasks from an in-memory context.
@@ -231,6 +233,10 @@ public class MapEnvironment implements TableEnvironment {
             param.setValueFromString( this, resourceBase_
                                            .getResource( sval )
                                            .toString() + frag );
+        }
+        else if ( param instanceof PaintModeParameter &&
+                  value instanceof Painter ) {
+            ((PaintModeParameter) param).setValueFromPainter( (Painter) value );
         }
         else if ( value instanceof String ) {
             param.setValueFromString( this, (String) value );

@@ -144,6 +144,7 @@ if any additionas are made to the list.
 		<transition frequency="236727.0204" name="7 1 7  - 6 1 6"/>
 		<transition frequency="342946.4239" name="10 0 10  - 9 2 9"/>
 		<transition frequency="343319.6445" name="10 2 9  - 9 2 8"/>
+		<transition frequency="338083.1953" name="10 1 10  - 9 1 9"/>
 	</species>
 	<species name="H2CCO">
 		<transition frequency="244712.269" name="12 1 11  - 11 1 10"/>
@@ -1579,6 +1580,7 @@ if any additionas are made to the list.
 		<transition frequency="357892.442" name="7 4 4  - 7 3 5"/>
 		<transition frequency="357925.96" name="6 4 2  - 6 3 3"/>
 		<transition frequency="363159.2617" name="21 4 18  - 21 3 19"/>
+		<transition frequency="241615.7967" name="5 2 4  - 4 1 3"/>
 	</species>
 	<species name="OI">
 		<transition frequency="4744774.907" name="3P1  - 3P2"/>
@@ -1602,6 +1604,10 @@ if any additionas are made to the list.
 		<transition frequency="345030.561" name="16 0 16  - 15 0 15"/>
 		<transition frequency="346718.858" name="15 2 13  - 14 2 12"/>
 		<transition frequency="356137.2654" name="16 2 15  - 15 2 14"/>
+	</species>
+	<species name="HDO">
+		<transition frequency="225896.72" name="3 1 2  - 2 2 1"/>
+		<transition frequency="241561.55" name="2 1 1  - 2 1 2"/>
 	</species>
 </LineCatalog>
 

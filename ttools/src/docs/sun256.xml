@@ -107,7 +107,7 @@
 <docnumber>256</docnumber>
 
 <history><version><px>$Id$</px></version></history>
-<docdate>27 October 2011</docdate>
+<docdate>28 March 2013</docdate>
 
 <contactlist>
 <contact>STILTS web page:
@@ -961,7 +961,7 @@ on the command line is equivalent to having the following in your
     will conform to by default.
     May take the values "<code>1.0</code>", "<code>1.1</code>",
     "<code>1.2</code>" or "<code>1.3</code>".
-    By default, version 1.1 VOTables are written.
+    By default, version 1.2 VOTables are written.
     </p></dd>
 
 </dl>
@@ -1155,9 +1155,10 @@ and here is what it might look like in JyStilts:
    >>> import stilts
    >>> t1 = stilts.tread('survey.fits')
    >>> t1 = t1.cmd_addskycoords(t1, 'fk4', 'fk5', 'RA1950', 'DEC1950', 'RA2000', 'DEC2000')
-   >>> t2 = tread('mycat.csv', 'csv')
+   >>> t2 = stilts.tread('mycat.csv', 'csv')
    >>> t2 = t2.cmd_select('VMAG>18')
-   >>> tm = tskymatch2(in1=t1, in2=t2, ra1='ALPHA', dec1='DELTA', error=10, join='2not1')
+   >>> tm = stilts.tskymatch2(in1=t1, in2=t2, ra1='ALPHA', dec1='DELTA',
+   ...                        error=10, join='2not1')
    >>> tm.write('matched.fits')
 ]]></verbatim>
 </p>
@@ -1186,10 +1187,21 @@ is given in the following subsections.
 <subsect id="jyrun">
 <subhead><title>Running JyStilts</title></subhead>
 
-<p>Setting up a Jython installation that runs JyStilts is quite easy.
+<p>The easiest way to run JyStilts is to download the standalone
+<code>jystilts.jar</code> file from the STILTS web page,
+and simply run
+<verbatim>
+    java -jar jystilts.jar   
+</verbatim>
+This file includes jython itself and all the STILTS and JyStilts classes.
+To use the JyStilts commands, you will need to import the stilts
+module using a line like "<code>import stilts</code>"
+from Jython in the usual Python way.
 </p>
 
-<p>First, make sure that Jython is installed;
+<p>Alternatively, you can run JyStilts from an existing Jython installation
+using just the <code>stilts.jar</code> file.
+First, make sure that Jython is installed;
 it is available from <webref url="http://www.jython.org/"/>,
 and comes as a self-installing jar file.
 JyStilts has been tested, and appears to work, on versions
@@ -1200,7 +1212,7 @@ but that no longer seems to be the case; it might be possible
 to reinstate this if there is some pressing need.
 </p>
 
-<p>To use JyStilts, all you need to do is to
+<p>To use JyStilts, you then just need to
 start jython with the <code>stilts.jar</code> file on your classpath,
 for instance like this:
 <verbatim>
@@ -1211,10 +1223,6 @@ or (C-shell):
     setenv CLASSPATH /some/where/stilts.jar
     jython
 </verbatim>
-</p>
-
-<p>Finally, you will need to import the stilts module using a line
-like "<code>import stilts</code>" from Jython in the usual Python way.
 </p>
 
 <p>Optionally, you can extract the <code>stilts.py</code> module 
@@ -4323,7 +4331,7 @@ There are no parameters.
 table and generates a pixel map describing a sky region which includes
 them all.
 Currently the output is to a format known as a 
-<webref url="http://www.ivoa.net/Documents/Notes/MOC/"
+<webref url="http://www.ivoa.net/Documents/MOC/"
         >Multi-Order Coverage map</webref> (MOC),
 which is a HEALPix-based format composed of a list of HEALPix pixels
 of different sizes, which can efficiently describe complex regions.
@@ -4331,7 +4339,7 @@ Other output formats may be introduced in the future.
 </p>
 
 <p>See also the
-<ref id="uk.ac.starlink.ttools.func.Footprints">Footprints</ref> class
+<ref id="uk.ac.starlink.ttools.func.Coverage">Coverage</ref> class
 for MOC-related functions.
 </p>
 
@@ -6966,13 +6974,12 @@ When fed this version, <code>votlint</code> gives no warnings.
 <subhead><title>Release Notes</title></subhead>
 
 <p>This is STILTS, Starlink Tables Infrastructure Library Tool Set.
-It is a collection of non-graphical utilites for general 
-purpose table and VOTable manipulation developed by 
-<webref url="http://www.starlink.ac.uk/">Starlink</webref>.
+It is a collection of non-GUI utilites for general 
+purpose table manipulation.
 
 <dl>
 <dt>Author</dt>
-<dd><p>Mark Taylor (Starlink, Bristol University)</p></dd>
+<dd><p>Mark Taylor (Bristol University)</p></dd>
 
 <dt>Email</dt>
 <dd><p><webref url="mailto:m.b.taylor@bristol.ac.uk"
@@ -6996,7 +7003,8 @@ are welcomed.
 Since then it has been supported by
 grant PP/D002486/1 from the
 UK's Particle Physics and Astronomy Research Council,
-the <webref url="http://eurovotech.org/">VOTech</webref> project (from EU FP6),
+the <webref url="http://www.eurovotc.org/">VOTech</webref>
+project (from EU FP6),
 the <webref url="http://www.astrogrid.org/">AstroGrid</webref> project
     (from PPARC/STFC),
 the <webref url="http://cds.u-strasbg.fr/twikiAIDA/bin/view/EuroVOAIDA/WebHome"
@@ -7005,7 +7013,7 @@ grant ST/H008470/1 from the UK's Science and Technology Facilities Council
 (STFC),
 and the <webref url="http://www.g-vo.org/">GAVO</webref> project
 (BMBF Bewilligungsnummer 05A08VHA),
-and grant ST/I00176X/1 from STFC.
+and grants ST/H008470/1, ST/I00176X/1 and ST/J001414/1 from STFC.
 All of this support is gratefully acknowledged.
 </p>
 
@@ -7022,9 +7030,17 @@ functionality:
     (1T3XT BVBA) for PDF output</li>
 <li><webref url="http://www.jibble.org/epsgraphics/">EPSGraphics2D</webref>
     (Jibble) for encapsulated postscript output</li>
+<li><webref url="http://cds.u-strasbg.fr/resources/doku.php?id=moc">MOC</webref>
+    (CDS) for Multi-Order Coverage map manipulation</li>
+<li><webref url="http://cdsportal.u-strasbg.fr/adqltuto/">ADQL</webref>
+    (CDS) for ADQL parsing in TAP query preparation</li>
+<li><webref url="http://heasarc.gsfc.nasa.gov/docs/heasarc/fits/java/"
+            >nom.tam.fits</webref> (NASA) for parts of FITS I/O</li>
 <li><webref url="http://trac.us-vo.org/project/nvo/wiki/IVOARegistry"
-            >IVOARegistry</webref> (NVO) for IVOA registry access</li>
-<li><webref url="http://www.acme.com/java/software/Acme.JPM.Encoders.GifEncoder.html">GifEncoder</webref>
+            >IVOARegistry</webref> (NVO) for parts of IVOA registry access</li>
+<li><webref
+     url="http://www.acme.com/java/software/Acme.JPM.Encoders.GifEncoder.html"
+            >GifEncoder</webref>
     (Acme) for GIF output</li>
 <li><webref url="http://www.sdss.jhu.edu/htm/">HTM</webref>
     (Sloan Digital Sky Survey) for HTM-based celestial sphere row matching
@@ -7044,6 +7060,17 @@ but my thanks are especially due to the following:
 <li>David Giaretta (Starlink, RAL)</li>
 <li>Clive Page (AstroGrid, Leicester)</li>
 </ul>
+</p>
+
+<p>If you use this software in published work, the following citation
+would be appreciated:
+<blockquote>
+<webref url="http://adsabs.harvard.edu/abs/2006ASPC..351..666T"
+                                          >2006ASPC..351..666T</webref>:
+M. B. Taylor, "STILTS - A Package for Command-Line Processing of Tabular Data",
+in Astronomical Data Analysis Software and Systems XV,
+eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
+</blockquote>
 </p>
 
 </subsect>
@@ -8189,106 +8216,160 @@ but my thanks are especially due to the following:
     </dl>
     </p></dd>
 
-<dt>Next version</dt>
+<dt>Version 2.5 (28 March 2013)</dt>
+<dd><p>
+    <dl>
+    <dt>New coverage-related functionality:</dt>
+    <dd><p>
+        <ul>
+        <li>Add new command <ref id="pixsample"><code>pixsample</code></ref>
+            which can sample pixel data from HEALPix table files
+            (useful for things like Schlegel dust extinction).
+            Also <ref id="addpixsample"><code>addpixsample</code></ref> filter,
+            which does the same job.</li>
+        <li>Add new command <code><ref id="pixfoot">pixfoot</ref></code>
+            which can generate MOC (Multi-Order Coverage) maps.</li>
+        <li>Add MOC-based coverage filter to <code>coneskymatch</code>
+            when using some Cone Search services (mostly VizieR).
+            This uses the Multi-Order Coverage map service operated by CDS.
+            It can make VizieR multi-cone queries much faster by not doing
+            cone searches that are outside the coverage region of the
+            catalogue in question.</li>
+        <li>Add new class 
+            <ref id="uk.ac.starlink.ttools.func.Coverage">Coverage</ref>
+            to the expression language containing MOC-related functions
+            (currently, just <code>inMoc</code>).</li>
+        </ul>
+        </p></dd>
+    <dt>Other new capabilities:</dt>
+    <dd><p>
+        <ul>
+        <li>Add IPAC table output format.</li>
+        <li>Add new class
+            <ref id="uk.ac.starlink.ttools.func.KCorrections">KCorrections</ref>
+            to the expression language,
+            containing a method for calculating K-corrections
+            following the method of Chilingarian and Zolotukhin.</li>
+        <li>You can now reference tables in multi-extension FITS files by name
+            (EXTNAME or EXTNAME-EXTVER) as an alternative to by HDU index.</li>
+        </ul>
+        </p></dd>
+    <dt>VOTable enhancements:</dt>
+    <dd><p>
+        <ul>
+        <li>VOTable input, output and validation are now supported
+            for version 1.3 of the VOTable standard.</li>
+        <li>The version of the VOTable format used for VOTable output
+            can now be selected,
+            by using the <ref id="sysProperties">system property</ref>
+            <code>votable.version</code>.
+            Output version is VOTable 1.2 by default.</li>
+        <li><code>votlint</code> has been changed so that it handles
+            different VOTable versions more capably.
+            Versions 1.1+ are now validated against a schema
+            (which is how those versions are defined) rather than against
+            a DTD hacked to do the same job as the schema.
+            VOTable 1.3 validation is now provided.</li>
+        <li>The <code>votcopy</code> command has a new <code>version</code>
+            parameter to control output version,
+            and a new <code>nomagic</code> parameter to control whether
+            <code>VALUES</code>/<code>null</code> attributes are removed
+            where appropriate.</li>
+        <li>Infinite floating point values are now correctly encoded
+            in VOTable output ("<code>+Inf</code>"/"<code>-Inf</code>",
+            not "<code>Infinity</code>"/"<code>-Infinity</code>" as in
+            previous versions).</li>
+        <li><code>votlint</code> is now stricter about floating point
+            <code>TD</code> element contents.</li>
+        <li>VOTable output no longer writes the <code>schemaLocation</code>
+            attribute by default.</li>
+        </ul>
+        </p></dd>
+    <dt>Other enhancements:</dt>
+    <dd><p>
+        <ul>
+        <li>Add new function <code>hypot</code> (=sqrt(x*x+y*y))
+            to the <code>Maths</code> class in expression language.</li>
+        <li>Add new <code>split</code> functions for string splitting
+            to the <code>Strings</code> class in expression language.</li>
+        <li>Add <code>-utype</code> flags for <code>addcol</code>,
+            <code>replacecol</code>, <code>colmeta</code> and
+            <code>setparam</code> filters,
+            and <code>utype</code> option for <code>meta</code> filter.</li>
+        <li>Some changes to the <code>toString</code> function:
+            it now works on non-numeric values,
+            gives the right answer for <code>Long</code> integers
+            and character values,
+            and returns a blank value rather than the string "null" or "NaN"
+            for blank inputs.</li>
+        <li>Sexagesimal to numeric angle conversion functions now permit the
+            seconds part of the sexagesimal string to be missing.</li>
+        <li>Changes to the IPAC format definition are accommodated:
+            the "long"/"l" type, which is apparently now official,
+            no longer generates a warning, and headers may now use
+            minus signs instead of whitespace.</li>
+        <li>Add <code>OBS</code> stage (ObsTAP validation)
+            to <code>taplint</code>.</li>
+        <li>Add more checks to <code>CAP</code> stage of <code>taplint</code>.
+            Declared languages (including features) and output formats are
+            now checked.</li>
+        <li>Tidy up error reporting a bit (fewer duplicate nested messages
+            reported).</li>
+        <li>PNG graphics output no longer has transparent background.</li>
+        <li>Issue a warning for high values of <code>coneskymatch</code>
+            <code>parallel</code> parameter.</li>
+        <li>Upgrade JSAMP library to version 1.3-3.</li>
+        <li>Upgrade Gr&#x00e9;gory Mantelet's ADQL library to version 1.1.</li>
+        </ul>
+        </p></dd>
+    <dt>Bug fixes:</dt>
+    <dd><p>
+        <ul>
+        <li>Fix serious and long-standing bug
+            (bad TZERO header, causes subsequent reads to fail)
+            for FITS output of boolean array columns.</li>
+        <li>Fix small but genuine sky matching bug.
+            The effect was that near the poles matches near the specified
+            threshold could be missed.  The bug was in the PixTools library,
+            fixed at the 2012-07-28 release.</li>
+        <li>Fix bug in <code>tmatchn</code> group mode which could result in
+            output rows with columns from only a single table,
+            i.e. not representing an inter-table match, 
+            even when <code>join*=default</code>.</li>
+        <li>Fix bug which failed when attempting to read FITS files with
+            complex array columns (<code>TFORMn=rC/rM</code>).</li>
+        <li>Fix failure when caching very large sequential tables.</li>
+        <li>Fix bug in <code>replacecol</code> and <code>replaceval</code>
+            filters which could cause truncation of strings in FITS
+            and possibly VOTable output when the new value was longer
+            than the previously declared maximum length.</li>
+        <li>Fix <code>tcat</code>, <code>tcatn</code> so that in most cases
+            output column metadata is compatible with all input tables, not
+            just the first one in terms of nullability, array shape etc.</li>
+        <li>Adjust SQL writer to avoid a type error for MySQL.</li>
+        <li>Fix bug in HMS sexagesimal formatting: minus sign was omitted from
+            negative angles.  Now the output is forced positive.</li>
+        <li>Cope with 1-column CSV files.</li>
+        <li>Use the correct form "<code>rows</code>"/"<code>bytes</code>"
+            rather than "<code>row</code>"/"<code>byte</code>"
+            for TAP capability unit values.</li>
+        <li>Fix error bar rendering bug which could result in diagonal lines
+            being offset near the edge of plots.</li>  
+        </ul>
+        </p></dd>
+    </dl>
+    </p></dd>
+
+<dt>Next Version</dt>
 <dd><p>
     <ul>
-    <li>Fixed <code>tcat</code>, <code>tcatn</code> so that in most cases
-        output column metadata is compatible with all input tables, not
-        just the first one in terms of nullability, array shape etc.</li>
-    <li>Add <code>OBS</code> stage (ObsTAP validation)
-        to <code>taplint</code>.</li>
-    <li>Add more checks to <code>CAP</code> stage of <code>taplint</code>.
-        Declared languages (including features) and output formats are
-        now checked.</li>
-    <li>Adjust SQL writer to avoid type error for MySQL.
-        Hope it hasn't introduced new problems elsewhere.</li>
-    <li>Add <ref id="pixsample"><code>pixsample</code></ref> command,
-        which can sample pixel data from HEALPix table files
-        (useful for things like Schlegel dust extinction).
-        Also <ref id="addpixsample"><code>addpixsample</code></ref> filter,
-        which does the same job.</li>
-    <li>You can now reference tables in multi-extension FITS files by name
-        (EXTNAME or EXTNAME-EXTVER) as an alternative to by HDU index.</li>
-    <li>Tidied up error reporting a bit (fewer duplicate nested messages
-        reported).</li>
-    <li>Fix bug which failed when attempting to read FITS files with
-        complex array columns (<code>TFORMn=rC/rM</code>).</li>
-    <li>Add MOC-based coverage filter to <code>coneskymatch</code>
-        when using some Cone Search services (mostly VizieR).
-        This uses the Multi-Order Coverage map service operated by CDS.
-        It can make VizieR multi-cone queries much faster by not doing
-        cone searches that are outside the coverage region of the
-        catalogue in question.</li>
-    <li>Fix failure when caching very large sequential tables.</li>
-    <li>Slight changes to <code>toString</code> function: now works on
-        non-numeric values, gives the right answer for <code>Long</code>
-        integers, and character values,
-        and returns a blank value rather than "null" or "NaN"
-        for blank inputs.</li>
-    <li>PNG graphics output no longer has transparent background.</li>
-    <li>Sexagesimal to numeric angle conversion functions now permit the
-        seconds part of the sexagesimal string to be missing.</li>
-    <li>Fix serious and long-standing bug (bad TZERO header, causes subsequent
-        reads to fail) for FITS output of boolean array columns.</li>
-    <li>Issue warning for high values of <code>coneskymatch</code>
-        <code>parallel</code> parameter.</li>
-    <li>Fix bug in <code>replacecol</code> and <code>replaceval</code> filters
-        which could cause truncation of strings in FITS and possibly
-        VOTable output when the new value was longer than the previously
-        declared maximum length.</li>
-    <li>Fixed bug in <code>tmatchn</code> group mode which could result in
-        output rows with columns from only a single table,
-        i.e. not representing an inter-table match, 
-        even when <code>join*=default</code>.</li>
-    <li>Fix bug in HMS sexagesimal formatting: minus sign was omitted from
-        negative angles.  Now the output is forced positive.</li>
-    <li>Upgrade to official v1.0 of Gr&#x00e9;gory Mantelet's
-        ADQL library for TAP query parsing.</li>
-    <li>Add new task <code><ref id="pixfoot">pixfoot</ref></code> for
-        generating MOC (Multi-Order Coverage) maps.</li>
-    <li>Add new class 
-        <ref id="uk.ac.starlink.ttools.func.Footprints">Footprints</ref>
-        to the expression language containing MOC-related functions
-        (currently, just <code>inMoc</code>).</li>
-    <li>Add new function <code>hypot</code> (=sqrt(x*x+y*y)).</li>
-    <li>Fix small but genuine sky matching bug.
-        The effect was that near the poles matches near the specified
-        threshold could be missed.  The bug was in the PixTools library,
-        fixed at the 2012-07-28 release.</li>
-    <li>IPAC format "long"/"l" column type, apparently now official,
-        now accepted without warning.  IPAC headers may now use minus
-        signs instead of whitespace.</li>
-    <li>Add IPAC table output format.</li>
-    <li>Cope with 1-column CSV files.</li>
-    <li>Use "<code>rows</code>"/"<code>bytes</code>"
-        rather than "<code>row</code>"/"<code>byte</code>"
-        for TAP capability unit values.</li>
-    <li>Upgrade to JSAMP v1.3-3.</li>
-    <li>Add K-Corrections functions of I&amp;I.</li>
-    <li>Add <code>-utype</code> flags for <code>addcol</code>,
-        <code>replacecol</code>, <code>colmeta</code> and
-        <code>setparam</code> filters,
-        and <code>utype</code> option for <code>meta</code> filter.</li>
-    <li>The version of VOTable which is written can now be selected,
-        by using the system property <code>votable.version</code>.
-        Output version is VOTable 1.1 by default.</li>
-    <li>The <code>votcopy</code> command has a new <code>version</code>
-        parameter to control output version,
-        and a new <code>nomagic</code> parameter to control whether
-        <code>VALUES</code>/<code>null</code> attributes are removed
-        where appropriate.</li>
-    <li>VOTable 1.3 input and output is supported.</li>
-    <li>Encode infinite values correctly in VOTable output
-        ("<code>+Inf</code>"/"<code>-Inf</code>",
-        not "<code>Infinity</code>"/"<code>-Infinity</code>").</li>
-    <li><code>votlint</code> now stricter about floating point TD contents.</li>
-    <li>VOTable output no longer writes schemaLocation
-        attribute by default.</li>
-    <li>Changes to <code>votlint</code> so that it handles different VOTable
-        versions more capably.  Versions 1.1+ are now validated against a
-        schema (which is how those versions are defined) rather than against
-        a DTD hacked to do the same job as the schema.
-        VOTable 1.3 validation is now provided.</li>
+    <li>Fix CSV regression bug introduced at v2.5
+        - CSV files now work again with MSDOS-style line breaks.</li>
+    <li>Source code is now managed by git and not subversion.
+        The format of the "Starjava revision" string reported by the
+        <code>-version</code> flag has changed accordingly.</li>
+    <li>Output mode <code>meta</code> now copes better with array-valued
+        table parameters.</li>
     </ul>
     </p></dd>
 

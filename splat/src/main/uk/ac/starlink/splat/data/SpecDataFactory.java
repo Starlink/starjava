@@ -330,8 +330,7 @@ public class SpecDataFactory
             isRemote = namer.isRemote();
      
             specurl = namer.getURL();
-            //  Remote HDX/VOTable-like files should be downloaded by thile
-            
+            //  Remote HDX/VOTable-like files should be downloaded by the
             //  library. A local copy loses the basename context.
             if ( isRemote && namer.getFormat().equals( "XML" ) ) {
                 impl = makeXMLSpecDataImpl( specspec, true, specurl );

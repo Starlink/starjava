@@ -103,10 +103,82 @@
   <!ENTITY FIG.PairMatchSpec '&figs;PairMatchSpec.gif'>
   <!ENTITY FIG.InterMatchSpec '&figs;InterMatchSpec.gif'>
   <!ENTITY FIG.BaSTITableLoadDialog '&figs;BaSTITableLoadDialog.gif'>
+  <!ENTITY FIG.StackPlotWindow '&figs;StackPlotWindow.gif'>
+  <!ENTITY FIG.StackPlotWindow_float '&figs;StackPlotWindow_float.gif'>
+  <!ENTITY FIG.StackPlotWindow_blob '&figs;StackPlotWindow_blob.gif'>
+  <!ENTITY FIG.PlotExporter '&figs;PlotExporter.gif'>
+  <!ENTITY FIG.LegendControl_style '&figs;LegendControl_style.gif'>
+  <!ENTITY FIG.LegendControl_position '&figs;LegendControl_position.gif'>
+  <!ENTITY FIG.ShaderControl_map '&figs;ShaderControl_map.gif'>
+  <!ENTITY FIG.ShaderControl_ramp '&figs;ShaderControl_ramp.gif'>
+  <!ENTITY FIG.ShaderControl_range '&figs;ShaderControl_range.gif'>
+  <!ENTITY FIG.FunctionLayerControl '&figs;FunctionLayerControl.gif'>
+  <!ENTITY FIG.FunctionLayerControl_function
+           '&figs;FunctionLayerControl_function.gif'>
+  <!ENTITY FIG.FunctionLayerControl_style
+           '&figs;FunctionLayerControl_style.gif'>
+  <!ENTITY FIG.FunctionLayerControl_label
+           '&figs;FunctionLayerControl_label.gif'>
+  <!ENTITY FIG.GangLayerControl_position '&figs;GangLayerControl_position.gif'>
+  <!ENTITY FIG.GangLayerControl_subsets '&figs;GangLayerControl_subsets.gif'>
+  <!ENTITY FIG.GangLayerControl_form '&figs;GangLayerControl_form.gif'>
+  <!ENTITY FIG.mode_flat '&figs;mode_flat.gif'>
+  <!ENTITY FIG.mode_transparent '&figs;mode_transparent.gif'>
+  <!ENTITY FIG.mode_auto '&figs;mode_auto.gif'>
+  <!ENTITY FIG.mode_density '&figs;mode_density.gif'>
+  <!ENTITY FIG.mode_aux '&figs;mode_aux.gif'>
+  <!ENTITY FIG.form_mark '&figs;form_mark.gif'>
+  <!ENTITY FIG.form_size '&figs;form_size.gif'>
+  <!ENTITY FIG.form_vector '&figs;form_vector.gif'>
+  <!ENTITY FIG.form_error '&figs;form_error.gif'>
+  <!ENTITY FIG.form_ellipse '&figs;form_ellipse.gif'>
+  <!ENTITY FIG.form_link2 '&figs;form_link2.gif'>
+  <!ENTITY FIG.form_link3 '&figs;form_link3.gif'>
+  <!ENTITY FIG.form_line '&figs;form_line.gif'>
+  <!ENTITY FIG.form_label '&figs;form_label.gif'>
+  <!ENTITY FIG.form_contour '&figs;form_contour.gif'>
+  <!ENTITY FIG.font_tab '&figs;font_tab.gif'>
+  <!ENTITY FIG.PlaneAxisControl_coords '&figs;PlaneAxisControl_coords.gif'>
+  <!ENTITY FIG.PlaneAxisControl_range '&figs;PlaneAxisControl_range.gif'>
+  <!ENTITY FIG.PlaneAxisControl_grid '&figs;PlaneAxisControl_grid.gif'>
+  <!ENTITY FIG.PlaneAxisControl_labels '&figs;PlaneAxisControl_labels.gif'>
+  <!ENTITY FIG.SkyAxisControl_projection '&figs;SkyAxisControl_projection.gif'>
+  <!ENTITY FIG.SkyAxisControl_fov '&figs;SkyAxisControl_fov.gif'>
+  <!ENTITY FIG.SkyAxisControl_grid '&figs;SkyAxisControl_grid.gif'>
+  <!ENTITY FIG.CubeAxisControl_coords '&figs;CubeAxisControl_coords.gif'>
+  <!ENTITY FIG.CubeAxisControl_range '&figs;CubeAxisControl_range.gif'>
+  <!ENTITY FIG.CubeAxisControl_view '&figs;CubeAxisControl_view.gif'>
+  <!ENTITY FIG.CubeAxisControl_grid '&figs;CubeAxisControl_grid.gif'>
+  <!ENTITY FIG.CubeAxisControl_labels '&figs;CubeAxisControl_labels.gif'>
+  <!ENTITY FIG.PlanePlotWindow '&figs;PlanePlotWindow.gif'>
+  <!ENTITY FIG.SkyPlotWindow '&figs;SkyPlotWindow.gif'>
+  <!ENTITY FIG.CubePlotWindow '&figs;CubePlotWindow.gif'>
+  <!ENTITY FIG.SpherePlotWindow '&figs;SpherePlotWindow.gif'>
+  <!ENTITY FIG.SphereAxisControl_range '&figs;SphereAxisControl_range.gif'>
 
   <!-- Define external URLs. -->
   <!ENTITY URL.VOTABLE "http://www.ivoa.net/Documents/latest/VOT.html">
   <!ENTITY URL.J2SE_DOCS "http://java.sun.com/j2se/1.5.0/docs/">
+
+  <!-- Plot2 control references. -->
+  <!ENTITY CONTROL.data
+           '&IMG.PLOT_DATA;
+            <ref id="GangLayerControl">Table Layer Control</ref>'>
+  <!ENTITY CONTROL.function
+           '&IMG.PLOT_FUNCTION;
+            <ref id="FunctionControl">Function Layer Control</ref>'>
+  <!ENTITY FORM.mark '&IMG.FORM_MARK; <ref id="form-mark">Mark</ref>'>
+  <!ENTITY FORM.size '&IMG.FORM_SIZE; <ref id="form-size">Size</ref>'>
+  <!ENTITY FORM.vector '&IMG.FORM_VECTOR; <ref id="form-vector">Vector</ref>'>
+  <!ENTITY FORM.error '&IMG.FORM_ERROR; <ref id="form-error">Error Bars</ref>'>
+  <!ENTITY FORM.ellipse '&IMG.FORM_ELLIPSE;
+                        <ref id="form-ellipse">Ellipse</ref>'>
+  <!ENTITY FORM.link2 '&IMG.FORM_LINK2; <ref id="form-link2">Pair Link</ref>'>
+  <!ENTITY FORM.link3 '&IMG.FORM_LINK3; <ref id="form-link3">Triple Link</ref>'>
+  <!ENTITY FORM.line '&IMG.PLOT_LINE; <ref id="form-line">Line</ref>'>
+  <!ENTITY FORM.label '&IMG.PLOT_LABEL; <ref id="form-label">Text Label</ref>'>
+  <!ENTITY FORM.contour '&IMG.PLOT_CONTOUR;
+                        <ref id="form-contour">Contour</ref>'>
 ]>
 
 <sun>
@@ -126,7 +198,7 @@
 <docnumber>253</docnumber>
 
 <history><version><px>$Id$</px></version></history>
-<docdate>27 October 2011</docdate>
+<docdate>28 March 2013</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -268,14 +340,14 @@ read in its HTML form than on paper.
 It was initially developed within the now-terminated
 <webref url="http://www.starlink.ac.uk/">Starlink</webref> project,
 and has subsequently been supported by PPARC grant PP/D002486/1,
-<webref url="http://eurovotech.org/">VOTech</webref>,
+<webref url="http://www.eurovotc.org/">VOTech</webref>,
 <webref url="http://www.astrogrid.org/">AstroGrid</webref>,
 <webref url="http://cds.u-strasbg.fr/twikiAIDA/bin/view/EuroVOAIDA/WebHome"
         >AIDA</webref>,
 STFC grant ST/H008470/1,
 GAVO (BMBF Bewilligungsnummer 05A08VHA)
 and
-STFC grant ST/I00176X/1.
+STFC grants ST/I00176X/1 and ST/J001414/1.
 The underlying table handling facilities are supplied by
 the Starlink Tables Infrastructure Library
 <webref url="http://www.starlink.ac.uk/stil/" plaintextref="yes">STIL</webref>,
@@ -314,7 +386,7 @@ explaining how to get started.
 
 <p>To start the program, you will probably type <code>topcat</code> or 
 something like
-<code>java -jar topcat-lite.jar</code> (see <ref id="invoke"/> for
+<code>java -jar topcat-full.jar</code> (see <ref id="invoke"/> for
 more detail).  To view a table that you have on disk, you can either
 give its name on the command line or load it using the <label>Load</label>
 button from the GUI.  FITS and VOTable files are recognised automatically;
@@ -499,7 +571,8 @@ or as a result of some other actions.
 of rows from which to calculate in the
 <ref id="StatsWindow">Statistics Window</ref>
 and marking groups of rows to plot using different markers in the
-various <ref id="GraphicsWindow">plotting windows</ref>.
+various <ref id="GraphicsWindow">classic plot</ref>
+and <ref id="plot2">layer plot</ref> windows.
 </p>
 
 <subsubsect id="subsetDef">
@@ -538,8 +611,8 @@ various <ref id="GraphicsWindow">plotting windows</ref>.
     </p></dd>
 
 <dt>Visible plotted points</dt>
-<dd><p>In some of the <ref id="GraphicsWindow">graphics windows</ref>
-    you can plot columns
+<dd><p>In some of the <ref id="GraphicsWindow">classic plot</ref>
+    and <ref id="plot2">layer plot</ref> windows you can plot columns
     against each other, and subsequently zoom in and out using the
     mouse.  If you zoom to display only some of the plotted points and
     then use the <label>New Subset From Visible</label> 
@@ -922,7 +995,8 @@ VOTable 1.0, 1.1, 1.2 or 1.3
 This includes tables in which the cell data are
 included in-line as XML elements (VOTable/TABLEDATA format),
 or included/referenced as a FITS table (VOTable/FITS)
-or included/referenced as a raw binary stream (VOTable/BINARY).
+or included/referenced as a raw binary stream (VOTable/BINARY or
+VOTable/BINARY2).
 TOPCAT does not attempt to be fussy about input VOTable documents,
 and it will have a good go at reading VOTables which 
 violate the standards in various ways.
@@ -4085,7 +4159,7 @@ The following ones have special significance within TOPCAT:
     will conform to by default.
     May take the values "<code>1.0</code>", "<code>1.1</code>", 
     "<code>1.2</code>" or "<code>1.3</code>".
-    By default, version 1.1 VOTables are written.
+    By default, version 1.2 VOTables are written.
     </p></dd>
 
 </dl>
@@ -6221,7 +6295,7 @@ the superceded calculation will be stopped.
 </subsect>
 
 <subsect id="GraphicsWindow">
-<subhead><title>Graphics Windows</title></subhead>
+<subhead><title>Classic Plot Windows</title></subhead>
 
 <p>TOPCAT has a number of windows for performing data visualisation of
 various kinds.  These share various characteristics which are described
@@ -6230,7 +6304,7 @@ are described in the later subsections.
 </p>
 
 <p>These visualisation windows are fairly sophisticated, and the plots 
-can exported to vector (EPS) or image (GIF, JPEG, PNG) files for 
+can exported to vector (PDF, EPS) or image (GIF, JPEG, PNG) files for 
 later presentation (see <ref id="exportGraphics"/>).
 However, at least at present, TOPCAT does
 not claim to be a full end-to-end system for generating publication
@@ -6241,6 +6315,15 @@ quality graphics, but if you need features which are not currently
 provided you may find it best to use TOPCAT to investigate your 
 data and decide exactly what data you want to present, and then export
 the data in a form which can be used by a more output-oriented package.
+</p>
+
+<p><strong>Note</strong> that at version 4, TOPCAT introduces
+a rewrite of the plotting capabilities with significant new capabilities.
+These new windows are available in parallel with the classic plot
+windows, and documented in <ref id="plot2"/>.
+Initially, these Layer Plot windows are regarded as experimental
+and exist alongside the Classic Plot windows, but in future they
+may become the default visualisation tools in TOPCAT.
 </p>
 
 <subsubsect>
@@ -8629,6 +8712,2324 @@ be identified in the legend which appears alongside the plot
 the Red, Green or Blue channel for this dataset to contribute to.
 Note that this is only enabled in RGB mode; in indexed mode
 it has no effect and is disabled.
+</p>
+
+</subsubsubsect>
+
+</subsubsect>
+
+</subsect>
+
+<subsect id="plot2">
+<subhead><title>Layer Plot Windows</title></subhead>
+
+<p>At version 4, TOPCAT introduces a new set of plotting windows.
+These provide most of the same functionality as the 
+<ref id="GraphicsWindow">classic plot windows</ref>,
+but additionally much more flexibility, configurability, extensibility
+and better capabilities for making visual sense of very large data sets.
+</p>
+
+<p>In their initial release v4.0b these windows are considered experimental.
+To access them, use the <label>Graphics</label> menu in the main
+<ref id="ControlWindow">Control Window</ref>.
+In future releases the capabilities will be extended,
+the details of the user interface may change following user feedback,
+and they will be made more prominent in the main window,
+possibly replacing the classic plot windows.
+</p>
+
+<p>Four layer plot windows are currently available:
+<ul>
+<li>&IMG.PLOT2_PLANE; <ref id="PlanePlotWindow">Plane Plot</ref></li>
+<li>&IMG.PLOT2_SKY; <ref id="SkyPlotWindow">Sky Plot</ref></li>
+<li>&IMG.PLOT2_CUBE; <ref id="CubePlotWindow">Cube Plot</ref></li>
+<li>&IMG.PLOT2_SPHERE; <ref id="SpherePlotWindow">Sphere Plot</ref></li>
+</ul>
+More may be introduced in future releases.
+</p>
+
+
+<p>The rest of this section describes the layer plot functions in detail.
+</p>
+
+<subsubsect>
+<subhead><title>Differences From Classic Plot Windows</title></subhead>
+
+<p>A brief summary of improvements these windows offer over the classic
+plot windows is:
+<dl>
+
+<dt>New Sky Coordinate Plot</dt>
+<dd><p>
+    <ul>
+    <li>Choice of projection: Sin (rotatable), Aitoff, Plate Carr&#x00e9;e</li>
+    <li>Data and view sky coordinate systems selected separately:
+        options are equatorial, galactic, supergalactic, ecliptic</li>
+    <li>Sky coordinate grid labelled and visible at all zooms</li>
+    </ul>
+    </p></dd>
+
+<dt>New data plot options</dt>
+<dd><p>
+    <ul>
+    <li>vectors</li>
+    <li>ellipses (with position angle)</li>
+    <li>pair, triple, ... data point lines/polygons</li>
+    <li>contours</li>
+    <li>variable size markers</li>
+    </ul>
+    </p></dd>
+
+<dt>Improved interactive response</dt>
+<dd><p>
+    <ul>
+    <li>In 2d and sky plots mouse wheel zooms around cursor position</li>
+    <li>In 2d and sky plots you can drag the plot around</li>
+    <li>In 3d plots right mouse button recentres cube on selected point</li>
+    <li>In 3d plots zooming zooms data in the cube rather than enlarging the
+        cube wireframe itself</li>
+    <li>Many controls are sliders which update the plot as you slide</li>
+    </ul>
+    </p></dd>
+
+<dt>Better support for large datasets</dt>
+<dd><p>Several features have been introduced to provide more meaningful
+    visualisation of large datasets.  Improved density-like plots
+    and contours give you better ways to understand plots containing
+    many more points than there are pixels to plot them on.
+    There is separately some improvement in scalability:
+    up to roughly 10 million points is currently feasible depending
+    on available memory etc, though it depends what you're doing.
+    However, I hope to improve this limit in future.
+    </p></dd>
+
+<dt>New plot shading modes</dt>
+<dd><p>Density colour coding for all plot types,
+    with colour map either absolute or modifying dataset base colour.
+    Flat, transparent and aux colour coding still available as before.
+    </p></dd>
+
+<dt>Improved axis labelling</dt>
+<dd><p>
+    <ul>
+    <li>Choice of font size and style</li>
+    <li>Option of LaTeX input for non-ASCII characters etc</li>
+    <li>Log axes labelled better</li>
+    <li>Minor tick option</li>
+    </ul>
+    </p></dd>
+
+<dt>Legend options</dt>
+<dd><p>External or manually positioned internal placement.
+    </p></dd>
+
+<dt>Analytic function plotting in 2D</dt>
+<dd><p>Plot functions of X or Y coordinate using TOPCAT expression language.
+    </p></dd>
+
+</dl>
+</p>
+
+<p>The new windows allow you to assemble a stack of layers representing
+different plot types of different data sets on the same axes.
+The user interface for controlling this is quite a bit different than
+for the classic plot windows, and is described in the subsequent sections.
+However, making a simple plot is still simple: select a table, select
+the columns, and you're off.
+</p>
+
+<p>Some features <em>not</em> currently available in the layer plots
+include the 1-d histogram, the stacked line plot, and true RGB
+density maps (though density shading modes will often do as good or
+a better job).
+The intention is to introduce these in a future release.
+</p>
+
+</subsubsect>
+
+<subsubsect id="StackPlotWindow">
+<subhead><title>Window Overview</title></subhead>
+
+<figure>
+<caption><px>Layer plot window</px></caption>
+<figureimage src="&FIG.StackPlotWindow;"/>
+</figure>
+
+<p>Layer plot windows consist of two main parts: at the top is the
+plot itself, and at the bottom is the control panel.
+The control panel is where you configure what will be plotted.
+For a simple scatter plot it may just be a case of selecting what
+columns to plot against each other, but it can get quite detailed.
+If you want more screen space to play with, it can be helpful
+to float the control panel into a separate window using the
+<label>Float Controls</label> (&IMG.FLOAT;) toolbar button.
+To unfloat the control panel, either just close the control panel window,
+or click the Float Controls toolbar button again.
+With floating controls, the window looks like the following figure.
+</p>
+
+<figure>
+<caption><px>Layer plot window with floated control panel</px></caption>
+<figureimage src="&FIG.StackPlotWindow_float;"/>
+</figure>
+
+<p>The control panel itself has two parts: a list on the left of
+currently active controls (represented by names and icons),
+and a panel on the right which shows the currently selected control.
+Click on one of the control entries on the left to see its details
+on the right.
+Different controls have different detail panels, but in general each
+one will have multiple tabs for configuring different things.
+You can select these by clicking on the tab names.
+In general the best way to learn about the options is to click on
+the different controls and their tabs to see what's available
+and experiment with the various options to see what happens to the plot.
+</p>
+
+<p>The control list has two types of entry:
+<dl>
+<dt>Fixed controls:</dt>
+<dd><p>These control the overall plot appearance.
+    In the above figure, the fixed controls
+    <label>Axes</label> (&IMG.AXIS_EDIT;) and
+    <label>Legend</label> (&IMG.LEGEND;) are visible.
+    The different fixed controls are described in
+    <ref id="plot2FixedControls"/>.
+    </p></dd>
+<dt>Layer controls:</dt>
+<dd><p>These determine the actual data that will be plotted and what
+    graphical form it takes.
+    Layer controls can be added
+    (using the <label>Layers</label> menu or corresponding toolbar buttons),
+    removed
+    (using the <label>Remove Current Layer</label> (&IMG.DELETE;)
+    toolbar button),
+    and moved up and down
+    (by dragging with the grab handle (&IMG.UP_DOWN;).
+    Each one contributes a layer or layers to the plot.
+    Layers lower down the list are plotted later
+    (perhaps obscuring earlier ones), 
+    so you can drag them up and down until you have the layers you want on top.
+    The different layer controls are described in
+    <ref id="plot2LayerControls"/>.
+    </p></dd>
+</dl>
+</p>
+
+<p>The toolbar contains the following actions (repeated in the menus):
+<dl>
+
+<dt>&IMG.FLOAT; Float Controls</dt>
+<dd><p>Display control panel in a floating window rather than at
+    the bottom of the plot window, as described above.
+    </p></dd>
+
+<dt>&IMG.PLOT_DATA; Add Table Layer</dt>
+<dd><p>Add a new <ref id="GangLayerControl">table layer control</ref>
+    to the control stack.
+    </p></dd>
+
+<dt>&IMG.PLOT_FUNCTION; Add Function Layer <em>(plane plot only)</em></dt>
+<dd><p>Add a new <ref id="FunctionControl">function layer control</ref>
+    to the control stack.
+    Note this option is currently only available for the 
+    <ref id="PlanePlotWindow">Plane Plot</ref>.
+    </p></dd>
+
+<dt>&IMG.DELETE; Remove Current Layer</dt>
+<dd><p>Deletes the currently selected layer control from the control stack.
+    </p></dd>
+
+<dt>&IMG.BLOB_SUBSET; Draw Subset Region</dt>
+<dd><p>Allows you to draw a region on the screen defining a new 
+    <ref id="subsets">Row Subset</ref>.  When you have finished 
+    drawing it, click this button again to indicate you're done.
+    See <ref id="plot2-subsets"/> for more details.
+    </p></dd>
+
+<dt>&IMG.VISIBLE_SUBSET; Subset From Visible</dt>
+<dd><p>Defines a new <label>Row Subset</label>
+    consisting of only the points which
+    are currently visible on the plotting surface.
+    See <ref id="plot2-subsets"/> for more explanation.
+    </p></dd>
+
+<dt>&IMG.REDO; Replot</dt>
+<dd><p>Redraws the current plot.  It is usually not necessary to
+    use this button, since if you change any of the plot characteristics
+    with the controls in this window the plot will be redrawn
+    automatically.  However if you have changed the data, e.g. by
+    editing cells in the <ref id="TableViewerWindow">Data Window</ref>,
+    or by redefining a subset, the plot is not automatically redrawn.
+    Clicking this button redraws the plot taking account of any changes
+    to the table data.
+    </p></dd>
+
+<dt>&IMG.RESIZE; Rescale</dt>
+<dd><p>Rescales the axes of the current plot so that it contains all
+    the data points in the currently selected subsets.
+    By default the plot will be scaled like this, but it it may have changed
+    because of changes in the subset selection or from zooming in or out.
+    </p></dd>
+
+<dt>&IMG.ZOOM_IN; Zoom In</dt>
+<dd><p>Zooms the plot in around its centre.
+    In most cases using the mouse wheel if available is a better option,
+    but this button is available as an alternative.
+    </p></dd>
+
+<dt>&IMG.ZOOM_OUT; Zoom Out</dt>
+<dd><p>Zooms the plot out around its centre.
+    In most cases using the mouse wheel if available is a better option,
+    but this button is available as an alternative.
+    </p></dd>
+
+<dt>&IMG.AXIS_LOCK; Lock Axes</dt>
+<dd><p>Usually, when the data plotted has changed significantly,
+    the axes are automatically rescaled so that all the points are visible.
+    The application makes a guess about when it's a good idea to do this
+    automatic rescaling.  If you don't want it to auto-rescale, set this
+    toggle button, and it won't rescale unless it really has to.
+    This is not available for the <label>Sky Plot</label>.
+    </p></dd>
+
+<dt>&IMG.IMAGE; Export Plot</dt>
+<dd><p>Allows you to save the plot in a variety of graphics formats
+    using the <ref id="plot2-export">Plot Export</ref> window.
+    </p></dd>
+</dl>
+</p>
+
+<subsubsubsect id="plot2-subsets">
+<subhead><title>Defining Subsets by Region</title></subhead>
+<!-- see section plotSubsets -->
+
+<p>The layer plot windows can be used to make new Row Subset selections
+in just the same way as for the classic plots (<ref id="plotSubsets"/>).
+</p>
+
+<p>If you have panned, zoomed, set the axes manually or 
+otherwise navigated the plot so that only the points currently
+visible in the plot are the ones you are interested in,
+you can click the
+<label>New Subset From Visible</label> (&IMG.VISIBLE_SUBSET;) toolbar button.
+This defines a subset consisting of all the
+points that are visible on the current plot.
+This is only useful if the group you are interested in
+corresponds to a rectangular region in the plotting space.
+</p>
+
+<p>A more flexible way is to draw a region or regions
+on the plot which identify the points you are interested in.
+To do this, hit the
+<label>Draw Subset Region</label> (&IMG.BLOB_SUBSET;)
+toolbar button.  Having done this, you can drag the mouse around
+on the plot (keep the left mouse button down while you move)
+to encircle the points that you're interested in.
+As you do so, a translucent grey blob will be left behind -
+anything inside the
+blob will end up in the subset.  You can draw one or many blobs,
+which may be overlapping or not.  If you make a mistake while
+drawing a sequence of blobs, you can click the right mouse button,
+and the most recently added blob will disappear.
+When you're in this region-drawing mode,
+you can't zoom or resize the window or change the characteristics
+of the plot, and the <label>Draw Subset Region</label> button
+appears with a tick over it (&IMG.BLOB_SUBSET_END;) to remind you
+you're in it.  Here's what the plot looks like while you're drawing:
+</p>
+
+<figure>
+<caption><px>Region-Drawing Mode</px></caption>
+<figureimage src="&FIG.StackPlotWindow_blob;"/>
+</figure>
+
+<p>When you're happy with the region you've defined, click the
+&IMG.BLOB_SUBSET_END; toolbar button again.
+</p>
+
+<p>In either case, when you have indicated that you want to define a
+new row subset, a dialogue box will pop up to ask you its name.
+As described in <ref id="subsetDef"/>, it's a good idea to use a
+name which is just composed of letters, numbers and underscores.
+You can optionally select a subset name which has been used before
+from the list, which will overwrite the former contents of that subset.
+When you enter a name and hit the <label>OK</label> button,
+the new subset will be created and the points in it will be
+shown straight away on the plot using a new symbol.
+As usual, you can toggle whether the points in this subset are displayed
+using the <label>Subsets</label> tab in the
+<ref id="GangLayerControl">table layer control</ref>.
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="plot2-export">
+<subhead><title>Plot Export Window</title></subhead>
+
+<figure>
+<caption><px>Plot export window</px></caption>
+<figureimage src="&FIG.PlotExporter;"/>
+</figure>
+
+<p>The <label>Plot Export Window</label> can be reached with the
+<label>Export plot to file</label> (&IMG.IMAGE;)
+toolbar button in any of the layer plot windows.
+</p>
+
+<p>You can select a file in the usual way, and save the plot
+in one of the following graphics formats:
+<dl>
+<dt>png</dt>
+<dd><p>
+    PNG bitmap.
+    </p></dd>
+<dt>gif</dt>
+<dd><p>GIF bitmap; note the number of colours is limited to 256.
+    </p></dd>
+<dt>jpeg</dt>
+<dd><p>JPEG bitmap; note that this is a lossy format, better suited to
+    photographs than plots, and colours will be blurred.
+    </p></dd>
+<dt>pdf</dt>
+<dd><p>Portable Document Format; in most cases this vector format
+    gives pretty good output, in particular text will be rendered properly.
+    </p></dd>
+<dt>eps</dt>
+<dd><p>Encapsulated PostScript; PostScript cannot handle transparency,
+    which means that in some cases the output will come out wrong.
+    PostScript files can also be very large if there are many data points.
+    </p></dd>
+<dt>eps-gzip</dt>
+<dd><p>Just like <label>eps</label>, but the output is gzipped before output.
+    </p></dd>
+</dl>
+</p>
+
+<p>There are two additional controls on the right hand side of this window:
+<dl>
+<dt>File Format</dt>
+<dd><p>Selects the output file format as above.
+    The default setting is <label>(auto)</label>, which guesses what
+    format you want to use from the filename, and which usually does the
+    right thing.
+    </p></dd>
+<dt>Force Bitmap</dt>
+<dd><p>This option only has an effect for vector graphics formats
+    (PDF and PostScript).  If selected, it draws the data contents of the
+    plot as a pixel map and embeds that into the output file rather than
+    plotting each point in the output.  This may make the output less
+    beautiful (round markers will no longer be perfectly round),
+    but it may result in a much smaller file if there are very many
+    data points.  Plot annotations such as axis labels will not be
+    affected - they are still drawn as vector text.
+    Note that in some cases (e.g. use of the 
+    <ref id="mode-auto">auto</ref> or <ref id="mode-density">density</ref>
+    shading modes) this kind of pixellisation will happen in any case.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
+</subsubsect>
+
+<subsubsect id="plot2FixedControls">
+<subhead><title>Fixed Controls</title></subhead>
+
+<p>Fixed controls are those controls that appear first in the
+plot Control Panel and configure the overall appearance of the plot,
+independent of any particular plot layer or data set.
+</p>
+
+<p>Each plot type has its own <label>Axes</label> control,
+specific to its own geometry.
+These are described under the relevant plot windows.
+</p>
+
+<p>The other fixed controls are described in the following subsections.
+</p>
+
+<subsubsubsect id="LegendControl">
+<subhead><title>Legend</title></subhead>
+
+<p>The <label>Legend</label> control (&IMG.LEGEND;)
+is always visible in a layer plot Control Panel.
+It allows you to configure whether and how the plot legend appears.
+</p>
+
+<p>This control has two tabs.
+</p>
+
+<figure>
+<caption><px>Legend control Style tab</px></caption>
+<figureimage src="&FIG.LegendControl_style;"/>
+</figure>
+
+<p>The <label>Style</label> tab configures the appearance of the legend
+panel, and has the folowing options:
+<dl>
+<dt>Show Legend</dt>
+<dd><p>Whether the legend appears in the plot.
+    This is set automatically: if only one data set is present
+    no legend is shown, but once multiple datasets are present
+    the legend is visible.
+    But the option can be overridden manually using this control.
+    </p></dd>
+<dt>Opaque</dt>
+<dd><p>If true, the legend has an opaque white background.
+    If false, it is transparent, and any plot data underneath it
+    is visible.
+    </p></dd>
+<dt>Border</dt>
+<dd><p>If true, a black line border is shown around the legend.
+    If false, there is no border.
+    </p></dd>
+</dl>
+</p>
+
+<figure>
+<caption><px>Legend control Position tab</px></caption>
+<figureimage src="&FIG.LegendControl_position;"/>
+</figure>
+
+<p>The <label>Position</label> tab configures where on the plot
+the legend is drawn (if present).
+There are two options, <label>External</label> and <label>Internal</label>.
+If Internal is chosen, then a control is activated showing a small box
+inside a large box.  Drag the small box around with the mouse to
+change the position of the legend inside the plot bounds.
+</p>
+
+<p>Note the font used in the legend is currently controlled by the font from
+the <label>Axes</label> selector.
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="ShaderControl">
+<subhead><title>Aux Axis</title></subhead>
+
+<p>The <label>Aux Axis</label> control (&IMG.COLORS;) is only
+visible when the <ref id="mode-aux" plaintextref="yes">Aux colour mode</ref>
+has been selected for one of the data layers.
+It controls a single colour scale for points which
+are coloured by data value to represent an additional dimension in the data.
+</p>
+
+<p>This control has three following tabs.
+</p>
+
+<figure>
+<caption><px>Aux axis control Map tab</px></caption>
+<figureimage src="&FIG.ShaderControl_map;"/>
+</figure>
+
+<p>The <label>Map</label> tab controls the aux axis colour map.
+It has the following options:
+<dl>
+<dt>Shader</dt>
+<dd><p>Select the colour map from a list of options.</p></dd>
+<dt>Shade Log</dt>
+<dd><p>Whether the aux scale should map linearly or logarithmically
+    into the colour map.
+    </p></dd>
+<dt>Shade Flip</dt>
+<dd><p>Whether the aux scale should map forwards or backwards
+    into the colour map.
+    </p></dd>
+<dt>Null Colour</dt>
+<dd><p>What colour should be used to represent points with a null value
+    for the aux data coordinate. 
+    If the associated <label>Hide</label> option is selected,
+    then those points will not appear in the plot at all.
+    </p></dd>
+</dl>
+</p>
+
+<figure>
+<caption><px>Aux axis control Ramp tab</px></caption>
+<figureimage src="&FIG.ShaderControl_ramp;"/>
+</figure>
+
+<p>The <label>Ramp</label> tab controls the display and annotation of
+the colour ramp that displays the colour map on the plot.
+It has the following options:
+<dl>
+<dt>Show Scale</dt>
+<dd><p>Whether the aux scale ramp is visible;
+    if so an appropriately labelled colour ramp
+    appears at the right of the plot.
+    The associated <label>Auto</label> option makes this decision
+    automatically: if any aux data is plotted, the scale will appear,
+    otherwise it won't.
+    Deselect Auto if you want to determine visibility by hand.
+    </p></dd>
+<dt>Aux Axis Label</dt>
+<dd><p>Selects the axis label to be displayed near the aux colour ramp
+    if it is visible.
+    The associated <label>Auto</label> option, if selected, uses the
+    name of one of the coordinates supplying aux data;
+    deselect Auto if you want to enter a label by hand.
+</p></dd>
+</dl>
+</p>
+
+<figure>
+<caption><px>Aux axis control Range tab</px></caption>
+<figureimage src="&FIG.ShaderControl_range;"/>
+</figure>
+
+<p>The <label>Range</label> tab lets you enter lower and upper values
+for the aux data range by hand,
+and provides a double slider to restrict the range within these limits.
+If either the lower or upper range is left blank,
+it will be determined from the data.
+</p>
+
+<p>Note the font used for labelling the aux axis is currently controlled by 
+the font from the <label>Axes</label> selector.
+</p>
+
+</subsubsubsect>
+
+
+</subsubsect>
+
+<subsubsect id="plot2LayerControls">
+<subhead><title>Layer Controls</title></subhead>
+
+<p>The layer controls are controls that can be added, removed and
+moved around to determine what layers go to make up the contents of a plot.
+You can have zero, one or several of each.
+Which ones are available is dependent on which plot type you are using
+(for instance the Function control is only available for the Plane plot).
+Add instances of each control to the control stack by using the
+entries in the plot window <label>Layers</label> menu,
+or the corresponding toolbar button.
+</p>
+
+<p>The available layer controls are described in the following subsections.
+At present there are only two of them, and one of those is
+only available for the Plane plot.
+More may become available in future releases.  
+</p>
+
+<subsubsubsect id="GangLayerControl">
+<subhead><title>Table Layer Control</title></subhead>
+
+<p>The <label>Table</label> layer control (&IMG.PLOT_DATA;)
+is available for all the plot types.
+Use the <label>Layers</label> menu item or corresponding toolbar button to
+add an instance to the control stack.
+</p>
+
+<p>This is the control which is used for most of the data plotting in
+the layer plot windows.
+Each instance of this control in the stack does plotting for a
+particular set of positions from a single table.
+The set of positions is defined in the <label>Positions</label> tab
+as a column name or expression for each
+plot coordinate (e.g. for X and Y in a plane plot).
+However, the control can generate multiple layers from these positions;
+the <label>Subsets</label> tab controls which subsets are plotted
+and how each one is identified,
+and the <label>Form</label> tab provides many options for what graphics
+will be plotted based on the positions.
+</p>
+
+<p>The three tabs,
+<label>Position</label>, <label>Subsets</label> and <label>Form</label>,
+are described in more detail below.
+</p>
+
+<figure>
+<caption><px>Position tab of Table layer control</px></caption>
+<figureimage src="&FIG.GangLayerControl_position;"/>
+</figure>
+
+<p>In the <label>Position</label> tab you enter the base positions
+for each plotted point.  This generally means selecting a table and
+providing a value (table column or expression) for each
+positional coordinate.
+When you first open a plot window, TOPCAT gives you a table layer control
+by default, and attempts to fill in the positional coordinates with
+some reasonable values from the table (for instance the first few
+numeric columns).
+</p>
+
+<figure>
+<caption><px>Subsets tab of Table layer control</px></caption>
+<figureimage src="&FIG.GangLayerControl_subsets;"/>
+</figure>
+
+<p>The <label>Subsets</label> tab lists the defined Row Subsets for
+the table you have selected in the Position tab.
+The subset <label>All</label> is always present;
+others may or may not be depending on whether any have been defined.
+Note that actions you take in the plot (for instance selecting
+a new subset <ref id="plotSubsets">by region</ref>)
+can result in new entries being added to this list.
+</p>
+
+<p>The list on the left names the subsets with an activation checkbox
+and a grab handle; the panel on the right gives the detail for the
+currently selected subset.  Select a subset to see/change its detail
+by clicking on it.
+</p>
+
+<p>For each subset you can select:
+<ul>
+<li>Whether it is plotted (using the activation checkbox)</li>
+<li>The plotting sequence (by dragging it up and down using
+    its grab handle)</li>
+<li>The default plotting colour</li>
+<li>The label with which it is annotated in the legend (if visible)</li>
+<li>Whether it appears in the legend at all</li>
+</ul>
+Although you can select plotting colours in the Form tab as well,
+it's generally better to do it here since this changes the colour of
+all the forms plotted for a given subset, rather than one form at a time.
+</p>
+
+<figure>
+<caption><px>Form tab of Table layer control</px></caption>
+<figureimage src="&FIG.GangLayerControl_form;"/>
+</figure>
+
+<p>The <label>Form</label> tab lets you define how each data set is plotted.
+The list on the left gives a list of forms currently being plotted,
+and the panel on the right shows the detailed configuration for the
+currently selected form.
+</p>
+
+<p>When first added, the list contains a single entry, <label>Mark</label>,
+which plots a marker of a given fixed shape and size.
+The colour is by default determined by the setting in the Subsets tab.
+For a simple scatter plot, this is all that you need.
+However, there are a number of other forms that you can plot as well
+or instead of the simple markers - vectors, error bars, ellipses,
+contours, text markers etc.  You add a new form to the stack by
+clicking on one of the buttons in the toolbar in the tab.
+You can remove a form with the <label>Remove</label> (&IMG.DELETE;)
+button in the same toolbar.  You can also activate/deactivate them
+with the checkbox and move them up and down with the drag handle as usual.
+The list of forms that are avaiable depends on the plot type;
+the full list is in <ref id="ShapeForm"/>.
+</p>
+
+<p>The detail panel of each form depends on the form itself.
+It is divided into the following panels, though not all
+forms have all the panels.
+<dl>
+<dt>Shading</dt>
+<dd><p>The shading mode controls how points are shaded based on their
+    chosen colour.  The various options are described in <ref id="ShapeMode"/>.
+    Depending on the mode there may be more settings to fill in here.
+    </p></dd>
+<dt>Coordinates</dt>
+<dd><p>If additional coordinates are required for this form,
+    for instance the size of error bars, you need to enter the
+    column or expression here.  Each coordinate effectively adds
+    another dimension to the plot.
+    Some forms, like Mark, do not require any additional coordinates.
+    </p></dd>
+<dt>Global Style</dt>
+<dd><p>Controls the style details for the chosen form, for instance
+    marker shape and size.  Options here affect all subsets,
+    though by default the colour is taken from the <label>Subsets</label> tab.
+    </p></dd>
+<dt>Subset Styles</dt>
+<dd><p>If you want to have different subsets represented with different
+    styles, for instance different shapes for different subsets,
+    you can select a subset here and alter style details for
+    that subset only, overriding the Global settings above.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="FunctionControl">
+<subhead><title>Function Layer Control</title></subhead>
+
+<p>The <label>Function</label> layer control (&IMG.PLOT_FUNCTION;)
+is only available for the Plane plot.
+Use the <label>Layers</label> menu item or corresponding toolbar button to
+add an instance to the control stack.
+</p>
+
+<figure>
+<caption><px>Plane plot with two function layers plotted,
+             one as a function of Horizontal axis value, and
+             one as a function of Vertical axis value</px></caption>
+<figureimage src="&FIG.FunctionLayerControl;"/>
+</figure>
+
+<p>This control has three tabs.
+</p>
+
+<figure>
+<caption><px>Function control Function tab</px></caption>
+<figureimage src="&FIG.FunctionLayerControl_function;"/>
+</figure>
+
+<p>The <label>Function</label> tab defines the function to be plotted
+and has the following fields:
+<dl>
+<dt>Independent Axis</dt>
+<dd><p>Which axis the independent variable varies along;
+    options are currently
+    <label>Horizontal</label> and <label>Vertical</label>.
+    </p></dd>
+<dt>Independent Variable Name</dt>
+<dd><p>Name of the independent variable.
+    This is typically <code>x</code> for a horizontal independent variable
+    and <code>y</code> for a vertical independent variable,
+    but any string that is a legal expression language identifier
+    (starts with a letter, continues with letters, numbers, underscores)
+    can be used.
+    </p></dd>
+<dt>Function Expression</dt>
+<dd><p>An expression using TOPCAT's <ref id="jel">expression language</ref>
+    in terms of the independent variable that defines the function.
+    This expression must be standalone - it cannot reference any tables.
+    </p></dd>
+</dl>
+</p>
+
+<figure>
+<caption><px>Function control Style tab</px></caption>
+<figureimage src="&FIG.FunctionLayerControl_style;"/>
+</figure>
+
+<p>The <label>Style</label> tab configures the plotting style.
+Options are:
+<dl>
+<dt>Colour</dt>
+<dd><p>Colour of the line.
+    </p></dd>
+<dt>Thickness</dt>
+<dd><p>Thickness of the line in pixels.
+    </p></dd>
+<dt>Dash</dt>
+<dd><p>Dash pattern of the line - solid is the default, but various
+    options are available.
+    </p></dd>
+<dt>Antialiasing</dt>
+<dd><p>If true, lines are antialiased, which makes them look smoother
+    on the screen or bitmapped export images.
+    Has no effect on vector export images (PDF, EPS).
+    </p></dd>
+</dl>
+</p>
+
+<figure>
+<caption><px>Function control Label tab</px></caption>
+<figureimage src="&FIG.FunctionLayerControl_label;"/>
+</figure>
+
+<p>The <label>Label</label> tab allows you to choose the text
+that appears in the legend.  Options are:
+<dl>
+<dt>Label</dt>
+<dd><p>Gives the label that will appear in the legend.
+    By default the function expression is used, but if you want to
+    override this you can deselect the associated <label>Auto</label>
+    checkbox and enter your own value.
+    </p></dd>
+<dt>In Legend</dt>
+<dd><p>If true, an entry for this function appears in the legend,
+    if false it does not.
+    Note the setting of this value does not affect whether the legend
+    itself appears, which is controlled by the
+    <ref id="LegendControl">Legend</ref> control.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
+</subsubsect>
+
+<subsubsect id="ShapeForm">
+<subhead><title>Plot Forms</title></subhead>
+
+<p>Plot "forms" are the instructions for what shapes to actually paint
+on the plotting surface given some positional data from a table.
+The most obvious (<ref id="form-mark">Mark</ref>)
+is simply to plot a marker with a fixed size and shape
+at each data position.
+However, there is a range of other things you might want to do,
+including error bars, vectors, contours, text labels, ...
+</p>
+
+<p>The options provided are described, with the additional configuration
+information required, in the following sections.
+Not all are available for every plot type.
+</p>
+
+<subsubsubsect id="form-mark">
+<subhead><title>Mark Form</title></subhead>
+
+<figure>
+<caption><px>Mark form configuration panel</px></caption>
+<figureimage src="&FIG.form_mark;"/>
+</figure>
+
+<p>The <label>Mark</label> form (&IMG.FORM_MARK;)
+simply plots markers with a fixed shape and size.
+</p>
+
+<p>Configuration options are:
+<dl>
+<dt>Shading Mode</dt>
+<dd><p>See <ref id="ShapeMode"/>.
+    </p></dd>
+<dt>Shape</dt>
+<dd><p>Marker shape from a list of options.
+    </p></dd>
+<dt>Size</dt>
+<dd><p>Marker size in pixels.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="form-size">
+<subhead><title>Size Form</title></subhead>
+
+<figure>
+<caption><px>Size form configuration panel</px></caption>
+<figureimage src="&FIG.form_size;"/>
+</figure>
+
+<p>The <label>Size</label> form (&IMG.FORM_SIZE;)
+plots markers of a fixed shape
+whose size varies according to a supplied data coordinate.
+The marker size thus represents an additional dimension of the plot.
+</p>
+
+<p>The marker size is scaled according to the values of the data.
+The data range in the visible part of the plot is determined,
+the maximum value is assigned to the maximum marker size,
+and the size of each marker is determined as (data value)/(max data value).
+Currently data values of zero always correspond to marker size of zero,
+negative data values are not represented, and the mapping is linear.
+Other options may be introduced in future.
+</p>
+
+<p>Note the scaling to size is in terms of screen dimensions (pixels).
+For sizes that correspond to actual data values,
+the <ref id="form-error">Error</ref> form may be more appropriate.
+</p>
+
+<p>The configuration options are:
+<dl>
+<dt>Shading Mode</dt>
+<dd><p>See <ref id="ShapeMode"/>.
+    </p></dd>
+<dt>Size</dt>
+<dd><p>The size coordinate data values.
+    Fill this in with a column name or expression from the table
+    just like for the positional coordinates.
+    </p></dd>
+<dt>Shape</dt>
+<dd><p>Marker shape from a list of options.
+    </p></dd>
+<dt>Max Marker Size</dt>
+<dd><p>Scales the maximum marker size in pixels.
+    Slide this along to scale the sizes of all the markers up or down.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="form-vector">
+<subhead><title>Vector Form</title></subhead>
+
+<figure>
+<caption><px>Vector form configuration panel</px></caption>
+<figureimage src="&FIG.form_vector;"/>
+</figure>
+
+<p>The <label>Vector</label> form (&IMG.FORM_VECTOR;)
+plots directed lines from the
+data position given delta values for the coordinates.
+The plotted markers are typically little arrows, but there are
+other options.
+</p>
+
+<p>In some cases such delta values may be the actual magnitude required
+for the plot, but more often the vector data represents a value which
+has a different magnitude or is in different units to the positional data.
+As a convenience for this case, the plotter can optionally
+(and does by default) scale the magnitudes of all the vectors to make
+them a sensible size (so the largest ones are a few tens of pixels long).
+This scaling can be adjusted or turned off using the
+<label>Scale</label> and <label>Auto Scale</label> options below.
+</p>
+
+<p>The configuration options are:
+<dl>
+<dt>Shading Mode</dt>
+<dd><p>See <ref id="ShapeMode"/>.
+    </p></dd>
+<dt>DeltaX, DeltaY, ...</dt>
+<dd><p>The coordinates of the changes in each coordinate which gives the
+    vector.  The coordinates here match the coordinates of the plot.
+    For sky coordinates, the supplied longitude delta values are
+    in degrees and <em>are</em>
+    considered to have been already multiplied by cos(latitude).
+    </p></dd>
+<dt>Arrow</dt>
+<dd><p>Arrow shape selected from a range of options.
+    </p></dd>
+<dt>Scale</dt>
+<dd><p>Changes the factor by which all vector sizes are scaled.
+    If the arrows are too small, slide it right, if they are too big,
+    slide it left.  The scale is logarithmic.
+    </p></dd>
+<dt>Auto Scale</dt>
+<dd><p>If selected, this option will determine the default arrow scale size
+    from the data - it will fix it so that the largest arrows are a
+    few tens of pixels long by default.
+    That scaling can then be adjusted using the <label>Scale</label> slider.
+    If unselected, then the default position of the Scale slider corresponds
+    to the actual positions given by the submitted delta coordinates.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="form-error">
+<subhead><title>Error Bars Form</title></subhead>
+
+<figure>
+<caption><px>Error Bars form configuration panel</px></caption>
+<figureimage src="&FIG.form_error;"/>
+</figure>
+
+<p>The <label>Error Bars</label> form (&IMG.FORM_ERROR;)
+draws symmetric or asymmetric
+error bars in some or all of the dimensions of a Cartesian plot.
+The shape of the error "bars" is quite configurable, including
+(for 2- and 3-d errors) ellipses, rectangles etc, aligned with the axes
+(for rotated ellipses and rectangles,
+see the <ref id="form-ellipse">Ellipse</ref> form).
+</p>
+
+<p>The configuration options are:
+<dl>
+<dt>Shading Mode</dt>
+<dd><p>See <ref id="ShapeMode"/>.
+    </p></dd>
+<dt>X Positive Error, X Negative Error, ...</dt>
+<dd><p>For each dimension of the plot, you can enter positive and/or
+    negative error values as columns or expressions from the table.
+    All of these values must be positive; any negative values will
+    be ignored.
+    If both positive and negative values are filled in for an axis,
+    the errors will be asymmetric.
+    If the negative value is blank (either because the coordinate is not
+    filled in, or because its value is blank for that row),
+    the error bars will be symmetric,
+    i.e. the negative error bar will be the same size as the positive one.
+    If you want to ensure only a positive error bar is plotted,
+    enter "<code>0</code>" for the corresponding negative error.
+    </p></dd>
+<dt>Error Bar</dt>
+<dd><p>Error bar shape from a list of options.
+    Exact appearence will also depend on the dimensionality of the supplied
+    errors.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="form-ellipse">
+<subhead><title>Ellipse Form</title></subhead>
+
+<figure>
+<caption><px>Ellipse form configuration panel</px></caption>
+<figureimage src="&FIG.form_ellipse;"/>
+</figure>
+
+<p>The <label>Ellipse</label> form (&IMG.FORM_ELLIPSE;)
+draws an ellipse (or rectangle, or other similar figure) defined by 
+major and minor radii and an optional rotation angle.
+</p>
+
+<p>The configuration options are:
+<dl>
+<dt>Shading Mode</dt>
+<dd><p>See <ref id="ShapeMode"/>.
+    </p></dd>
+<dt>Major Radius, Minor Radius</dt>
+<dd><p>Two radii for the ellipse, in the same units as the
+    position coordinates (which is degrees for the sky plot).
+    It doesn't matter whether the major one is larger than the minor one.
+    </p></dd>
+<dt>Orientation</dt>
+<dd><p>Position angle in degrees.
+    For the plane plot it is the angle anticlockwise from the X axis
+    to the major radius.
+    For the sky plot it is the angle from the North pole to the major axis
+    in the direction of positive RA.
+    If the value is missing (either this field not filled in or blank in
+    the data) it is considered to be zero.
+    </p></dd>
+<dt>Ellipse</dt>
+<dd><p>Ellipse shape, selected from a range of options
+    (includes also rectangles, crosses etc).
+    </p></dd>
+<dt>Scale</dt>
+<dd><p>Changes the factor by which all ellipse sizes are scaled.
+    If the ellipses are too small, slide it right, if they are too big,
+    slide it left.  The scale is logarithmic.
+    </p></dd>
+<dt>Auto Scale</dt>
+<dd><p>If selected, this option will determine the default ellipse scale size
+    from the data - it will fix it so that the largest ellipses are a few
+    tens of pixels long by default.
+    That scaling can then be adjusted using the <label>Scale</label> slider.
+    If unselected, then the default position of the Scale slider corresponds
+    to the actual positions given by the submitted ellipse radii coordinates.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="form-link2">
+<subhead><title>Pair Link Form</title></subhead>
+
+<figure>
+<caption><px>Pair Link form configuration panel</px></caption>
+<figureimage src="&FIG.form_link2;"/>
+</figure>
+
+<p>The <label>Pair Link</label> form (&IMG.FORM_LINK2;)
+draws a line between two absolute positions
+(the basic plot position, and one additional supplied position).
+It can be very useful for visualising the results of a crossmatch.
+</p>
+
+<p>The configuration options are:
+<dl>
+<dt>Shading Mode</dt>
+<dd><p>See <ref id="ShapeMode"/>.
+    </p></dd>
+<dt>X2, Y2, ...</dt>
+<dd><p>The coordinates of the second point of the pair
+    (the first is given in the <label>Position</label> tab).
+    The coordinates here match the coordinates of the plot.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="form-link3">
+<subhead><title>Triple Link Form</title></subhead>
+
+<figure>
+<caption><px>Triple Link form configuration panel</px></caption>
+<figureimage src="&FIG.form_link3;"/>
+</figure>
+
+<p>The <label>Triple Link</label> form (&IMG.FORM_LINK3;)
+draws a triangle of lines between three absolute positions
+(the basic plot position, and two additional supplied positions).
+It can be useful for visualising the results of a three-way crossmatch.
+</p>
+
+<p>The configuration options are:
+<dl>
+<dt>Shading Mode</dt>
+<dd><p>See <ref id="ShapeMode"/>.
+    </p></dd>
+<dt>X2, Y2, ...</dt>
+<dd><p>The coordinates of the second point in the triple.
+    The coordinates here match the coordinates of the plot.
+    </p></dd>
+<dt>X3, Y3, ...</dt>
+<dd><p>The coordinates of the third point in the triple.
+    The coordinates here match the coordinates of the plot.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="form-line">
+<subhead><title>Line Form</title></subhead>
+
+<figure>
+<caption><px>Line form configuration panel</px></caption>
+<figureimage src="&FIG.form_line;"/>
+</figure>
+
+<p>The <label>Line</label> form (&IMG.PLOT_LINE;)
+draws a point-to-point line joining
+up the points making up the data set.
+Note that for a large and unordered data set this can lead to a big
+scribble on the screen.
+</p>
+
+<p>The configuration options are:
+<dl>
+<dt>Dash</dt>
+<dd><p>Dash pattern.  The line is solid by default.
+    </p></dd>
+<dt>Thickness</dt>
+<dd><p>Line thickness in pixels.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="form-label">
+<subhead><title>Text Label Form</title></subhead>
+
+<figure>
+<caption><px>Text Label form configuration panel</px></caption>
+<figureimage src="&FIG.form_label;"/>
+</figure>
+
+<p>The <label>Text Label</label> form (&IMG.PLOT_LABEL;)
+draws a text label by each point position.
+</p>
+
+<p>The configuration options are:
+<dl>
+<dt>Text</dt>
+<dd><p>A column or expression from the table supplying the text to
+    write on the plot.  Any data type (string or numeric) is permitted.
+    </p></dd>
+<dt>Text Syntax</dt>
+<dd><p>Whether to use plain text or LaTeX rules to make sense of the text
+    value.
+    </p></dd>
+<dt>Font Size</dt>
+<dd><p>Size of the font in points.
+    </p></dd>
+<dt>Font Style</dt>
+<dd><p>Style of the font.
+    </p></dd>
+<dt>Font Weight</dt>
+<dd><p>Whether the font is plain, bold or italic.
+    </p></dd>
+<dt>Anchor</dt>
+<dd><p>The position of the text relative to the data position.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="form-contour">
+<subhead><title>Contour Form</title></subhead>
+
+<figure>
+<caption><px>Contour form configuration panel</px></caption>
+<figureimage src="&FIG.form_contour;"/>
+</figure>
+
+<p>The <label>Contour</label> form (&IMG.PLOT_CONTOUR;) form
+plots position density contours.
+These provide another way
+(alongside the <ref id="mode-auto">Auto</ref> and
+<ref id="mode-density">Density</ref> shading modes)
+to visualise the characteristics of overdense regions in a crowded plot.
+</p>
+
+<p>The contours are currently drawn as pixels rather than lines,
+so they don't look very beautiful in exported vector output formats
+(PDF, PostScript).
+</p>
+
+<p>The configuration options are:
+<dl>
+<dt>Level Count</dt>
+<dd><p>The number of contours drawn.
+    In fact this is an upper limit; if there is not enough variation
+    in the plot's density, then fewer contour lines will be drawn.
+    </p></dd>
+<dt>Smoothing</dt>
+<dd><p>The size of the smoothing kernel applied to the density before
+    performing the contour determination.  If set too low the contours
+    will be too crinkly, and if too high they will lose definition.
+    </p></dd>
+<dt>Scaling</dt>
+<dd><p>How the smoothed density is treated before the contours levels
+    are determined.  Options are linear, logarithmic and equal area.
+    </p></dd>
+<dt>Zero Point</dt>
+<dd><p>Determines the level at which the first contour (and hence all the
+    others, which are separated from it by a fixed amount) are drawn.
+    By sliding this from side to side you can sweep the contours over
+    the density range and get a good idea of where interesting features lie.
+    </p></dd>
+</dl>
+</p>
+
+
+</subsubsubsect>
+
+</subsubsect>
+
+<subsubsect id="ShapeMode">
+<subhead><title>Shading Modes</title></subhead>
+
+<p>Most of the <ref id="ShapeForm" plaintextref="yes">Plot Forms</ref>
+have a style colour associated with them for each data set.
+This defines the basic colour used to plot the shape at each data point.
+However, many of the forms also ask you to select a
+<label>Shading Mode</label>,
+which determines the actual colour displayed in the plot for the
+plotted points.
+The shaded colour is based on the selected style colour, but may also be
+influenced by the number of points plotted there, some extra
+data coordinate, or other configuration information.
+</p>
+
+<p>When exporting plots to an external vector graphics format 
+(EPS or PDF), some of the shading modes may not behave the same
+as in a bitmap (on the screen, or to a bitmapped format such as 
+GIF or PNG).
+Any such anomalies are noted in the in the mode descriptions below.
+</p>
+
+<p>The different mode shading mode options are described in the following
+subsections.
+</p>
+
+<subsubsubsect id="mode-flat">
+<subhead><title>Flat Mode</title></subhead>
+
+<figure>
+<caption><px>Flat shading mode selection</px></caption>
+<figureimage src="&FIG.mode_flat;"/>
+</figure>
+
+<p>The <label>Flat</label> shading mode (&IMG.MODE_FLAT;)
+simply colours points in the colour selected by their style.
+It has no additional parameters or coordinates.
+</p>
+
+<p><strong>Exporting:</strong>
+This mode works without problem for both bitmapped and vector output.
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="mode-transparent">
+<subhead><title>Transparent Mode</title></subhead>
+
+<figure>
+<caption><px>Transparent shading mode selection</px></caption>
+<figureimage src="&FIG.mode_transparent;"/>
+</figure>
+
+<p>The <label>Transparent</label> shading mode (&IMG.MODE_TRANSPARENT;)
+colours shapes in a transparent version of the
+colour selected by their style.
+The degree of transparency is determined by the
+<label>Opaque Limit</label> slider - at the left end,
+points are fully opaque and this is equivalent to
+<ref id="mode-flat">Flat mode</ref>,
+and as you slide further to the right,
+the points get more transparent.
+The higher the opaque limit, the more points have to be plotted
+on top of each other to reach colour that fully obscures the background.
+</p>
+
+<p><strong>Exporting:</strong>
+When the points are opaque, this mode works without problem for
+both bitmapped and vector output, but when the transparency is set
+there may be anomalies.
+Transparent points are rendered in PDF output, though the 
+transparency levels may not be exactly the same as on the screen.
+This can be fixed by using the <label>Force Bitmap</label> option
+in the <ref id="plot2-export" plaintextref="yes">Plot Export</ref> dialogue.
+For PostScript, transparent points are rendered as opaque.
+You can use <label>Force Bitmap</label> with PostScript which
+will get transparency right for this layer, but then any earlier
+layers will be completely obscured.
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="mode-auto">
+<subhead><title>Auto Mode</title></subhead>
+
+<figure>
+<caption><px>Auto shading mode selection</px></caption>
+<figureimage src="&FIG.mode_auto;"/>
+</figure>
+
+<p>The <label>Auto</label> shading mode (&IMG.MODE_AUTO;)
+colours isolated points in their selected colour,
+but where multiple points <em>from the same data set</em>
+overlap it adjusts the colour by darkening it.
+This means for that isolated points
+(most or all points in a non-crowded plot, or outliers in a crowded plot)
+it behaves just like <ref id="mode-flat">Flat</ref> mode,
+but it's easy to see where overdense regions lie.
+</p>
+
+<p>This is like <ref id="mode-density">Density</ref> mode,
+but with no user-configurable options.
+</p>
+
+<p>This is the default mode for 2d plots, since it gives you a good
+first idea of what the data is doing.
+For 3d plots it can be used, and it works well for single dataset plots,
+but in the case of multiple datasets it can be misleading since the
+coloured pixels can't be placed sensibly in the 3d space.
+</p>
+
+<p>The colour darkening is based on the asinh function;
+the intention is that two points overlaid should be just enough
+different in colour for the difference to be visible,
+and the mapping is scaled so that if there are very dense regions
+they will come out nearly black.
+</p>
+
+<p><strong>Exporting:</strong>
+When exported to vector formats, the output is automatically forced to a
+bitmap for Auto-mode layers.
+In the case of PostScript, this completely obscures any previous layers.
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="mode-density">
+<subhead><title>Density Mode</title></subhead>
+
+<figure>
+<caption><px>Density mode selection</px></caption>
+<figureimage src="&FIG.mode_density;"/>
+</figure>
+
+<p>The <label>Density</label> shading mode (&IMG.MODE_DENSITY;)
+uses a configurable colour map
+to indicate how many points are plotted over each other.
+Specifically, it colours each pixel according to how many times that
+pixel has has been covered by one of the shapes plotted by the layer
+in question.
+To put it another way, it generates a false-colour density map
+with pixel granularity using a smoothing kernel of the form of
+the shapes plotted by the layer.
+The upshot is that you can see the plot density of points or other
+shapes plotted.
+</p>
+
+<p>This is like <ref id="mode-auto">Auto</ref> mode, but with more
+user-configurable options.  The options are:
+<dl>
+<dt>Map</dt>
+<dd><p>The colour map for displaying density values.
+    There are two types, relative and absolute.
+    Relative maps have names marked by a star ("*"), and alter the
+    basic dataset colour, for instance by darkening or lightening it,
+    while absolute maps (the rest) ignore the basic dataset colour altogether.
+    For a single-dataset plot, the absolute maps are best, but for
+    multiple subsets it may be less confusing to use a relative one.
+    </p></dd>
+<dt>Sub-range</dt>
+<dd><p>Adjusts the density range over which the colour
+    map is applied.  By default the colour map is scaled using limits
+    found from the data density in the plot (the most dense few pixels are
+    ignored), but you can restrict the range using this slider.
+    </p></dd>
+<dt>Log</dt>
+<dd><p>Selects whether the colour map should be applied linearly or
+    logarithmically to the range of densities.  The default is logarithmic.
+    </p></dd>
+<dt>Flip</dt>
+<dd><p>Selects whether the colour map should be applied forwards or
+    backwards to the range of densities.
+    </p></dd>
+</dl>
+</p>
+
+<p><strong>Exporting:</strong>
+When exported to vector formats, the output is automatically forced to a
+bitmap for Density-mode layers.
+In the case of PostScript, this completely obscures any previous layers.
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="mode-aux">
+<subhead><title>Aux Mode</title></subhead>
+
+<figure>
+<caption><px>Aux mode selection</px></caption>
+<figureimage src="&FIG.mode_aux;"/>
+</figure>
+
+<p>The <label>Aux</label> shading mode (&IMG.MODE_AUX;)
+colours each point according to the value of an additional
+data coordinate.
+The point colours then represent an additional dimension of the plot.
+There is an additional option to draw the points with a fixed transparency.
+</p>
+
+<p>The shading is done according to a single fixed scale for all
+the data in the plot.  When at least one Aux-mode layer is being plotted,
+the <ref id="ShaderControl" plaintextref="yes">Aux Axis</ref>
+control is visible
+in the control panel, which allows you to configure the colour map,
+range, ramp display etc.
+</p>
+
+<p>The options are:
+<dl>
+<dt>Aux</dt>
+<dd><p>The auxiliary coordinate data values.
+    Fill this in with a column name or expression from the table
+    just like for a positional coordinate.
+    </p></dd>
+<dt>Opaque Limit</dt>
+<dd><p>Determines transparency of the points.
+    By default, they are fully opaque, but if you slide the slider to
+    the right, they will become progressively more transparent.
+    </p></dd>
+</dl>
+</p>
+
+<p><strong>Exporting:</strong>
+Transparent points are rendered in PDF output, though the 
+transparency levels may not be exactly the same as on the screen.
+This can be fixed by using the <label>Force Bitmap</label> option
+in the <ref id="plot2-export" plaintextref="yes">Plot Export</ref> dialogue.
+For PostScript, transparent points are rendered as opaque.
+You can use <label>Force Bitmap</label> with PostScript which
+will get transparency right for this layer, but then any earlier
+layers will be completely obscured.
+</p>
+
+</subsubsubsect>
+
+</subsubsect>
+
+<subsubsect id="PlanePlotWindow">
+<subhead><title>Plane Plot Window</title></subhead>
+
+<figure>
+<caption><px>Plane Plot Window</px></caption>
+<figureimage src="&FIG.PlanePlotWindow;"/>
+</figure>
+
+<p>The <label>Plane Plot</label> (&IMG.PLOT2_PLANE;)
+plots 2-dimensional Cartesian positions on a plane.
+See the <ref id="StackPlotWindow" plaintextref="yes">Window Overview</ref>
+for features common to all layer plots.
+</p>
+
+<p>The positional coordinates are <label>X</label> and <label>Y</label>.
+To control the direction and linear/log scaling of the axes,
+see the <label>Coords</label> tab of the
+<ref id="PlaneAxisControl">Axes</ref> control.
+</p>
+
+<p>Navigation controls:
+<dl>
+<dt>Panning</dt>
+<dd><p>Drag the plot around by holding down the left mouse button.
+    </p></dd>
+<dt>Zooming</dt>
+<dd><p>The best way to zoom is using the mouse wheel on the plot
+    (some machines with no wheel can simulate this with a
+    two-fingered slide on the mouse pad),
+    since this zooms around the current mouse position.
+    An alternative is to use the zoom buttons (&IMG.ZOOM_IN;/&IMG.ZOOM_OUT;)
+    on the toolbar, which zoom around the center of the plot.
+    This zooming is isotropic - both axes zoom by the same factor.
+    </p>
+    <p>You can also change the zoom using the <label>Range</label> tab
+    in the <ref id="PlaneAxisControl">Axes</ref> control.
+    This lets you assign different
+    magnifications to the two axes.
+    </p></dd>
+</dl>
+</p>
+
+<p>The Plane Plot offers the following plot controls:
+<ul>
+<li>&CONTROL.data;, with these form options:
+    <ul>
+    <li>&FORM.mark;</li>
+    <li>&FORM.size;</li>
+    <li>&FORM.vector;</li>
+    <li>&FORM.error;</li>
+    <li>&FORM.ellipse;</li>
+    <li>&FORM.link2;</li>
+    <li>&FORM.link3;</li>
+    <li>&FORM.line;</li>
+    <li>&FORM.label;</li>
+    <li>&FORM.contour;</li>
+    </ul>
+    </li>
+<li>&CONTROL.function;</li>
+</ul>
+</p>
+
+<p>The <label>Axes</label> control (&IMG.AXIS_EDIT;) is described in
+<ref id="PlaneAxisControl">the next subsection</ref>.
+</p>
+
+<subsubsubsect id="PlaneAxisControl">
+<subhead><title>Plane Axes Control</title></subhead>
+
+<p>The <label>Axes</label> control (&IMG.AXIS_EDIT;) for the
+plane plot window has five tabs.
+</p>
+
+<figure>
+<caption><px>Coords tab of plane axes control</px></caption>
+<figureimage src="&FIG.PlaneAxisControl_coords;"/>
+</figure>
+
+<p>The <label>Coords</label> tab controls the axis coordinates.
+It has the following options:
+<dl>
+<dt>X/Y Log</dt>
+<dd><p>If selected, horizontal/vertical axis coordinates are logarithmic,
+    otherwise they are linear.
+    </p></dd>
+<dt>X/Y Flip</dt>
+<dd><p>If selected, horizontal/vertical axis coordinate axes run in the
+    opposite direction to normal.
+    </p></dd>
+<dt>Aspect Lock</dt>
+<dd><p>If selected, the number of pixels per unit is always the same
+    on both axes, i.e. the unit square is always a square.
+    Otherwise, there is no constraint on the relative sizes of the 
+    X and Y axis units.
+    </p></dd>
+</dl>
+</p>
+
+<figure>
+<caption><px>Range tab of plane axes control</px></caption>
+<figureimage src="&FIG.PlaneAxisControl_range;"/>
+</figure>
+
+<p>The <label>Range</label> tab provides manual configuration of the
+visible range of the plot.  Making changes to this tab will reset
+the visible plot range, but not vice versa - zooming and panning
+in the usual way will not change the settings of this panel.
+</p>
+
+<p>Filling in the <label>Minimum</label>/<label>Maximum</label>
+fields for either or both axes will
+constrain the corresponding range of the visible data.
+The limits corresponding to any of those fields that are left blank
+will initially be worked out from the data.
+The <label>Subrange</label> double-sliders restrict the ranges
+within the (explicit or automatic) min/max ranges.
+Note you can move both sliders at once by grabbing a position between the two.
+</p>
+
+<p>The <label>Clear</label> button resets all the fields.
+The <label>Submit</label> button updates the plot with the current values
+in this tab, as does making any changes to it.
+</p>
+
+<figure>
+<caption><px>Grid tab of plane axes control</px></caption>
+<figureimage src="&FIG.PlaneAxisControl_grid;"/>
+</figure>
+
+<p>The <label>Grid</label> tab configures appearance of the axis grid.
+<dl>
+<dt>Draw Grid</dt>
+<dd><p>If true, grid lines will be drawn across the plot
+    for every tick mark.
+    </p></dd>
+<dt>Minor Ticks</dt>
+<dd><p>If set, minor (unlabelled) tick marks will be drawn between the
+    major (labelled) ones.
+    </p></dd>
+<dt>X/Y Tick Crowding</dt>
+<dd><p>Use the slider to influence how many tick marks are draw on each axis.
+    </p></dd>
+</dl>
+</p>
+
+<figure>
+<caption><px>Labels tab of plane axes control</px></caption>
+<figureimage src="&FIG.PlaneAxisControl_labels;"/>
+</figure>
+
+<p>The <label>Labels</label> tab controls the text labels on the axes.
+If the <label>Auto</label> checkbox is set, the text will be taken
+from one of the data coordinates being plotted on that axis.
+To override those with your own axis labels, unset Auto and type
+text in to the <label>Label</label> fields.
+</p>
+
+<figure>
+<caption><px>Font tab of plane axes control</px></caption>
+<figureimage src="&FIG.font_tab;"/>
+</figure>
+
+<p>The <label>Font</label> tab configures the font used for axis annotation.
+It also affects some other things like the legend.
+<dl>
+<dt>Text Syntax</dt>
+<dd><p>Whether to use plain text or LaTeX rules to make sense of the text
+    value.
+    </p></dd>
+<dt>Font Size</dt>
+<dd><p>Size of the font in points.
+    </p></dd>
+<dt>Font Style</dt>
+<dd><p>Style of the font.
+    </p></dd>
+<dt>Font Weight</dt>
+<dd><p>Whether the font is plain, bold or italic.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
+</subsubsect>
+
+<subsubsect id="SkyPlotWindow">
+<subhead><title>Sky Plot Window</title></subhead>
+
+<figure>
+<caption><px>Sky Plot Window</px></caption>
+<figureimage src="&FIG.SkyPlotWindow;"/>
+</figure>
+
+<p>The <label>Sky Plot</label> (&IMG.PLOT2_SKY;)
+plots longitude/latitude positions onto the celestial sphere.
+It can plot to a number of projections
+(currently Sin, Aitoff and Plate Carr&#x00e9;e).
+See the <ref id="StackPlotWindow" plaintextref="yes">Window Overview</ref>
+for features common to all layer plots.
+</p>
+
+<p>The positional coordinates are
+<label>Longitude</label> and <label>Latitude</label>, specified in degrees.
+When supplying them, you can specify an associated
+<label>Data Sky System</label>
+(Equatorial, Galactic, Supergalactic or Ecliptic2000).
+Note that this is the sky system of the data coordinates,
+not (necessarily) of the plot you want to see.
+To specify the coordinates you want the data to be plotted on,
+use the <label>View Sky System</label> option in the <label>Projection</label>
+tab of the <ref id="SkyAxisControl">Axes</ref> control.
+However, if you just want to view the data using the same system
+as the coordinates you are supplying, you can ignore leave these
+values as their default (both Equatorial) and no conversion will be done.
+</p>
+
+<p>Navigation controls:
+<dl>
+<dt>Panning</dt>
+<dd><p>The Sin projection is like the surface of a globe that can be
+    rotated by dragging it around, while the Aitoff and
+    Plate Car&#x00e9;e projections are like maps drawn on a
+    piece of paper which can be dragged around.
+    In all cases, drag by holding the left mouse button.
+    </p>
+    <p>Dragging will attempt to keep the same sky position under the
+    cursor.  This is usually possible, but in the Sin projection if the
+    mouse starts off on the sphere and moves off it, that can't happen,
+    so the panning can be jerky in that case.  This only happens at
+    low magnifications.
+    </p></dd>
+<dt>Zooming</dt>
+<dd><p>The best way to zoom is using the mouse wheel on the plot
+    (some machines with no wheel can simulate this with a
+    two-fingered slide on the mouse pad),
+    since this zooms around the current mouse position.
+    An alternative is to use the zoom buttons (&IMG.ZOOM_IN;/&IMG.ZOOM_OUT;)
+    on the toolbar, which zoom around the center of the plot.
+    </p>
+    <p>In the Sin projection, the zoom will rotate the sphere as well as
+    increase its magnification, so that the cursor can stay on the same
+    sky position while north remains pointing upwards.
+    </p></dd>
+</dl>
+</p>
+
+<p>The sky plot offers the following plot controls:
+<ul>
+<li>&CONTROL.data;, with these form options:
+    <ul>
+    <li>&FORM.mark;</li>
+    <li>&FORM.size;</li>
+    <li>&FORM.vector;</li>
+    <li>&FORM.ellipse;</li>
+    <li>&FORM.label;</li>
+    <li>&FORM.contour;</li>
+    </ul>
+    </li>
+</ul>
+</p>
+
+<p>The <label>Axes</label> control (&IMG.AXIS_EDIT;)
+is described in 
+<ref id="SkyAxisControl">the next subsection</ref>.
+</p>
+
+<subsubsubsect id="SkyAxisControl">
+<subhead><title>Sky Axes Control</title></subhead>
+
+<p>The <label>Axes</label> control (&IMG.AXIS_EDIT;) for the
+sky plot window has four tabs.
+</p>
+
+<figure>
+<caption><px>Projection tab of the sky axes control</px></caption>
+<figureimage src="&FIG.SkyAxisControl_projection;"/>
+</figure>
+
+<p>The <label>Projection</label> tab controls how the sky position
+coordinates are projected onto the screen.
+<dl>
+<dt>Projection</dt>
+<dd><p>Selects the sky projection to use.
+    The options are <label>Sin</label>, <label>Ait</label> for Aitoff and
+    <label>Car</label> for Plate Car&#x00e9;e.
+    Sin is rotatable, the other two are essentially flat all-sky projections.
+    </p></dd>
+<dt>Reflect longitude axis</dt>
+<dd><p>Determines whether longitude increases left to right or right to left.
+    </p></dd>
+<dt>View Sky System</dt>
+<dd><p>Determines the sky coordinate system in which the data positions will
+    be viewed.  This interacts with the 
+    <label>Data Sky System</label> selected in the 
+    <label>Positions</label> tab of the 
+    <ref id="GangLayerControl">table layer control</ref>
+    for data coordinates;
+    supplied data points are projected from the data system to the view 
+    system before being plotted.
+    If you have (for instance) data in equatorial coordinates that you
+    want to view in galactic coordinates, then select the
+    Data Sky System as Equatorial and the View Sky System as Galactic.
+    If the data and view systems are the same, it's OK to leave both
+    as their defaults, even if they're not equatorial.
+    </p></dd>
+</dl>
+</p>
+
+<figure>
+<caption><px>Field Of View tab of the sky axes control</px></caption>
+<figureimage src="&FIG.SkyAxisControl_fov;"/>
+</figure>
+
+<p>The <label>FOV</label> (Field Of View) tab allows you to
+enter a sky position or object name and a radius and positions
+the view at that region.
+Filling in the fields and hitting <label>Submit</label>
+will reposition the sky view, but not vice versa;
+normal pan/zoom operations will not affect the content of this panel.
+<dl>
+<dt>Object Name</dt>
+<dd><p>If you fill this in with the name of a celestial object and hit
+    the <label>Resolve</label> button, a Simbad query will execute
+    to fill in the <label>RA</label> and <label>Dec</label> fields
+    with its position.
+    </p></dd>
+<dt>RA/Dec</dt>
+<dd><p>J2000 positions required field centre.
+    These values can either be filled in by the object name resolution
+    as described above, or by hand.
+    </p></dd>
+<dt>Radius</dt>
+<dd><p>Gives the radius of the desired field of view.
+    </p></dd>
+<dt>Clear</dt>
+<dd><p>Clears the fields in this tab.
+    </p></dd>
+</dl>
+</p>
+
+<figure>
+<caption><px>Grid tab of the sky axes control</px></caption>
+<figureimage src="&FIG.SkyAxisControl_grid;"/>
+</figure>
+
+<p>The <label>Grid</label> tab controls how the sky coordinate axes
+appear.
+<dl>
+<dt>Draw Grid</dt>
+<dd><p>If selected, grid lines will be drawn on the plot.
+    </p></dd>
+<dt>Sexagesimal</dt>
+<dd><p>If selected sky coordinate annotations of the grid will be in
+    sexagesimal format, otherwise in decimal degrees.
+    </p></dd>
+<dt>Grid Crowding</dt>
+<dd><p>Use the slider to control how closely packed grid lines are
+    on the axes.
+    </p></dd>
+<dt>Label Positioning</dt>
+<dd><p>Controls whether and where the numeric annotations of the lon/lat
+    axes are put.  The default option <label>Auto</label> usually does
+    the sensible thing, but other options exist to force labelling
+    internally or externally to the plot region, or to remove numeric
+    labels altogether.
+    </p></dd>
+</dl>
+</p>
+
+<figure>
+<caption><px>Font tab of the sky axes control</px></caption>
+<figureimage src="&FIG.font_tab;"/>
+</figure>
+
+<p>The <label>Font</label> tab configures the font used for axis annotation.
+It also affects some other things like the legend.
+<dl>
+<dt>Text Syntax</dt>
+<dd><p>Whether to use plain text or LaTeX rules to make sense of the text
+    value.
+    </p></dd>
+<dt>Font Size</dt>
+<dd><p>Size of the font in points.
+    </p></dd>
+<dt>Font Style</dt>
+<dd><p>Style of the font.
+    </p></dd>
+<dt>Font Weight</dt>
+<dd><p>Whether the font is plain, bold or italic.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
+</subsubsect>
+
+<subsubsect id="CubePlotWindow">
+<subhead><title>Cube Plot Window</title></subhead>
+
+<figure>
+<caption><px>Cube Plot Window</px></caption>
+<figureimage src="&FIG.CubePlotWindow;"/>
+</figure>
+
+<p>The <label>Cube Plot</label> (&IMG.PLOT2_CUBE;)
+plots 3-dimensional Cartesian positions in a 3-d space.
+See the <ref id="StackPlotWindow" plaintextref="yes">Window Overview</ref>
+for features common to all layer plots.
+</p>
+
+<p>The positional coordinates are
+<label>X</label>, <label>Y</label> and <label>Z</label>.
+To control the direction and linear/log scaling of the axes,
+see the <label>Coords</label> tab of the
+<ref id="CubeAxisControl">Axes</ref> control.
+</p>
+
+<p>Navigation controls:
+<dl>
+<dt>Panning</dt>
+<dd><p>Rotate the plot by holding down the left mouse button.
+    It's also possible to rotate by using the rotation sliders in the
+    <label>View</label> tab of the
+    <ref id="CubeAxisControl">Axes</ref> control.
+    </p>
+    <p>To <strong>re-centre</strong> the plot in the visible cube,
+    <strong>right-click</strong>
+    on the position you're interested in.
+    A screen position represents a line not a point, so there is a
+    degeneracy here; the new central position is actually the average
+    of data point positions near the mouse click.  The upshot is that
+    if you click on a point or clump of interest,
+    it should end up in the centre of the cube.
+    </p></dd>
+<dt>Zooming</dt>
+<dd><p>You can zoom using the mouse wheel or the zoom buttons
+    (&IMG.ZOOM_IN;/&IMG.ZOOM_OUT;) on the toolbar.
+    Either of these zooms the <em>data volume</em> in the visible cube
+    about its centre, so the cube wireframe axes stay in the same place
+    on the screen, but the axis annotations move.
+    </p>
+    <p>If you want to zoom in or out on the cube wireframe itself,
+    you can do it using the <label>Zoom Factor</label> slider in the
+    <label>View</label> tab of the <ref id="CubeAxisControl">Axes</ref>
+    control.
+    </p></dd>
+</dl>
+</p>
+
+<p>The cube plot offers the following plot controls:
+<ul>
+<li>&CONTROL.data;, with these form options:
+    <ul>
+    <li>&FORM.mark;</li>
+    <li>&FORM.size;</li>
+    <li>&FORM.vector;</li>
+    <li>&FORM.error;</li>
+    <li>&FORM.ellipse;</li>
+    <li>&FORM.link2;</li>
+    <li>&FORM.link3;</li>
+    <li>&FORM.line;</li>
+    <li>&FORM.label;</li>
+    <li>&FORM.contour;</li>
+    </ul>
+    </li>
+</ul>
+Note that use of the
+<ref id="mode-auto">Auto</ref> and <ref id="mode-density">Density</ref>
+shading modes can be confusing in 3 dimensions with multiple datasets.
+This is because pixels based on density along a line of sight are not
+located at any point on that line, so shaded pixels can't appear
+at the "right" place in the 3-d space.  The same applies to a lesser
+extent with contours.  They work fine with a single dataset though.
+</p>
+
+<p>The <label>Axes</label> control (&IMG.AXIS_EDIT;) is described in
+<ref id="CubeAxisControl">the next subsection</ref>.
+</p>
+
+<subsubsubsect id="CubeAxisControl">
+<subhead><title>Cube Axes Control</title></subhead>
+
+<p>The <label>Axes</label> control (&IMG.AXIS_EDIT;) for the
+cube plot window has six tabs.
+</p>
+
+<figure>
+<caption><px>Coords tab of the cube axes control</px></caption>
+<figureimage src="&FIG.CubeAxisControl_coords;"/>
+</figure>
+
+<p>The <label>Coords</label> tab controls the axis coordinates.
+It has the following options:
+<dl>
+<dt>X/Y/Z Log</dt>
+<dd><p>If selected, X/Y/Z axis coordinates are logarithmic,
+    otherwise they are linear.
+    </p></dd>
+<dt>X/Y/Z Flip</dt>
+<dd><p>If selected, X/Y/Z axis coordinate axes run in the
+    opposite direction to normal.
+    </p></dd>
+</dl>
+</p>
+
+<figure>
+<caption><px>Range tab of the cube axes control</px></caption>
+<figureimage src="&FIG.CubeAxisControl_range;"/>
+</figure>
+
+<p>The <label>Range</label> tab provides manual configuration of the
+visible range of the plot.  Making changes to this tab will reset
+the visible plot range, but not vice versa - zooming and panning
+in the usual way will not change the settings of this panel.
+</p>
+
+<p>Filling in the <label>Minimum</label>/<label>Maximum</label>
+fields for one or more axes will
+constrain the corresponding range of the visible data.
+The limits corresponding to any of those fields that are left blank
+will initially be worked out from the data.
+The <label>Subrange</label> double-sliders restrict the ranges
+within the (explicit or automatic) min/max ranges.
+Note you can move both sliders at once by grabbing a position between the two.
+</p>
+
+<p>The <label>Clear</label> button resets all the fields.
+The <label>Submit</label> button updates the plot with the current values
+in this tab, as does making any changes to it.
+</p>
+
+<figure>
+<caption><px>View tab of the cube axes control</px></caption>
+<figureimage src="&FIG.CubeAxisControl_view;"/>
+</figure>
+
+<p>The <label>View</label> tab can configure how the cube containng
+the data is viewed in the plot window, though it does not control
+the content of the cube.
+<dl>
+<dt>Rotation about Z axis</dt>
+<dd><p>Explicitly sets the rotation angle about the Z axis,
+    regardless of its current value, which may have been set by
+    mouse actions.
+    </p></dd>
+<dt>Rotation from vertical</dt>
+<dd><p>Explicitly sets the rotation angle from vertical,
+    regardless of its current value, which may have been set by
+    mouse actions.
+    </p></dd>
+<dt>Zoom factor</dt>
+<dd><p>Sets the magnification of the cube wireframe itself, without
+    affecting the data volume it contains.  This cannot be done with
+    the mouse.
+    </p></dd>
+<dt>X/Y/Z offset of centre</dt>
+<dd><p>Controls where on the screen the cube wireframe is centred.
+    This cannot be done with the mouse.
+    </p></dd>
+</dl>
+</p>
+
+<figure>
+<caption><px>Grid tab of the cube axes control</px></caption>
+<figureimage src="&FIG.CubeAxisControl_grid;"/>
+</figure>
+
+<p>The <label>Grid</label> tab configures the appearance of the
+cube wire frame enclosing the data volume.
+<dl>
+<dt>Draw wire frame</dt>
+<dd><p>Whether the enclosing cube is drawn at all.
+    </p></dd>
+<dt>Minor Ticks</dt>
+<dd><p>If set, minor (unlabelled) tick marks will be drawn between the
+    major (labelled) ones.
+    </p></dd>
+<dt>X/Y/Z Tick Crowding</dt>
+<dd><p>Use the slider to influence how many tick marks are draw on each axis.
+    </p></dd>
+</dl>
+</p>
+
+<figure>
+<caption><px>Labels tab of the cube axes control</px></caption>
+<figureimage src="&FIG.CubeAxisControl_labels;"/>
+</figure>
+
+<p>The <label>Labels</label> tab controls the text labels on the axes.
+If the <label>Auto</label> checkbox is set, the text will be taken
+from one of the data coordinates being plotted on that axis.
+To override those with your own axis labels, unset Auto and type
+text in to the <label>Label</label> fields.
+</p>
+
+<figure>
+<caption><px>Font tab of the cube axes control</px></caption>
+<figureimage src="&FIG.font_tab;"/>
+</figure>
+
+<p>The <label>Font</label> tab configures the font used for axis annotation.
+It also affects some other things like the legend.
+<dl>
+<dt>Text Syntax</dt>
+<dd><p>Whether to use plain text or LaTeX rules to make sense of the text
+    value.
+    </p></dd>
+<dt>Font Size</dt>
+<dd><p>Size of the font in points.
+    </p></dd>
+<dt>Font Style</dt>
+<dd><p>Style of the font.
+    </p></dd>
+<dt>Font Weight</dt>
+<dd><p>Whether the font is plain, bold or italic.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
+</subsubsect>
+
+<subsubsect id="SpherePlotWindow">
+<subhead><title>Sphere Plot Window</title></subhead>
+
+<figure>
+<caption><px>Sphere Plot Window</px></caption>
+<figureimage src="&FIG.SpherePlotWindow;"/>
+</figure>
+
+<p>The <label>Sphere Plot</label> (&IMG.PLOT2_SPHERE;)
+plots spherical polar coordinates in an isotropic 3-dimensional space.
+Although the supplied coordinates are spherical polar,
+the visible space is not necessarily centred on the coordinate origin,
+and the visible axes are Cartesian.
+In many respects this works like the
+<ref id="CubePlotWindow">Cube Plot Window</ref>
+See the <ref id="StackPlotWindow" plaintextref="yes">Window Overview</ref>
+for features common to all layer plots.
+</p>
+
+<p>The positional coordinates are
+<label>Longitude</label> and <label>Latitude</label> (in degrees) and
+<label>Radius</label>.
+</p>
+
+<p>Navigation is like that for the <ref id="CubePlotWindow">Cube Plot</ref>:
+<dl>
+<dt>Panning</dt>
+<dd><p>Rotate the plot by holding the left mouse button.
+    It's also possible to rotate by using the rotation sliders in the
+    <label>View</label> tab of the
+    <ref id="CubeAxisControl">Axes</ref> control.
+    </p>
+    <p>To <strong>re-centre</strong> the plot in the visible cube,
+    <strong>right-click</strong>
+    on the position you're interested in.
+    A screen position represents a line not a point, so there is a
+    degeneracy here; the new central position is actually the average
+    of data point positions near the mouse click.  The upshot is that
+    if you click on a point or clump of interest, it should do what you want.
+    </p></dd>
+<dt>Zooming</dt>
+<dd><p>You can zoom using the mouse wheel or the zoom buttons
+    (&IMG.ZOOM_IN;/&IMG.ZOOM_OUT;) on the toolbar.
+    Either of these zooms the <em>data volume</em> in the visible cube
+    about its centre, so the cube wireframe axes stay in the same place
+    on the screen, but the axis annotations move.
+    </p>
+    <p>If you want to get zoom in or out on the cube wireframe itself,
+    you can do it using the <label>Zoom Factor</label> slider in the
+    <label>View</label> tab of the <ref id="CubeAxisControl">Axes</ref>
+    control.
+    </p></dd>
+</dl>
+</p>
+
+<p>The sphere plot offers the following plot controls:
+<ul>
+<li>&CONTROL.data;, with these form options:
+    <ul>
+    <li>&FORM.mark;</li>
+    <li>&FORM.size;</li>
+    <li>&FORM.label;</li>
+    <li>&FORM.contour;</li>
+    </ul>
+    </li>
+</ul>
+Note that use of the
+<ref id="mode-auto">Auto</ref> and <ref id="mode-density">Density</ref>
+shading modes can be confusing in 3 dimensions with multiple datasets.
+This is because pixels based on density along a line of sight are not
+located at any point on that line, so shaded pixels can't appear
+at the "right" place in the 3-d space.  The same applies to a lesser
+extent with contours.  They work fine with a single dataset though.
+</p>
+
+<p>The <label>Axes</label> control (&IMG.AXIS_EDIT;) is described in
+<ref id="SphereAxisControl">the next subsection</ref>.
+</p>
+
+<subsubsubsect id="SphereAxisControl">
+<subhead><title>Sphere Axes Control</title></subhead>
+
+<p>The <label>Axes</label> control (&IMG.AXIS_EDIT;) for the
+sphere plot window has five tabs.
+</p>
+
+<figure>
+<caption><px>Range tab of the sphere axes control</px></caption>
+<figureimage src="&FIG.SphereAxisControl_range;"/>
+</figure>
+
+<p>The <label>Range</label> tab provides manual configuration of
+the data range of the plot.  Making changes to this tab will reset
+the visible plot range, but not vice versa - zooming and panning
+in the usual way will not change the settings of this panel.
+Any values not filled in will be determined from the data.
+</p>
+
+<figure>
+<caption><px>View tab of the sphere axes control</px></caption>
+<figureimage src="&FIG.CubeAxisControl_view;"/>
+</figure>
+
+<p>The <label>View</label> tab can configure how the cube containng
+the data is viewed in the plot window, though it does not control
+the content of the cube.
+<dl>
+<dt>Rotation about Z axis</dt>
+<dd><p>Explicitly sets the rotation angle about the Z axis,
+    regardless of its current value, which may have been set by
+    mouse actions.
+    </p></dd>
+<dt>Rotation from vertical</dt>
+<dd><p>Explicitly sets the rotation angle from vertical,
+    regardless of its current value, which may have been set by
+    mouse actions.
+    </p></dd>
+<dt>Zoom factor</dt>
+<dd><p>Sets the magnification of the cube wireframe itself, without
+    affecting the data volume it contains.  This cannot be done with
+    the mouse.
+    </p></dd>
+<dt>X/Y offset of centre</dt>
+<dd><p>Controls where on the screen the cube wireframe is centred.
+    This cannot be done with the mouse.
+    </p></dd>
+</dl>
+</p>
+
+<figure>
+<caption><px>Grid tab of the sphere axes control</px></caption>
+<figureimage src="&FIG.CubeAxisControl_grid;"/>
+</figure>
+
+<p>The <label>Grid</label> tab configures the appearance of the
+cube wire frame enclosing the data volume.
+<dl>
+<dt>Draw wire frame</dt>
+<dd><p>Whether the enclosing cube is drawn at all.
+    </p></dd>
+<dt>Minor Ticks</dt>
+<dd><p>If set, minor (unlabelled) tick marks will be drawn between the
+    major (labelled) ones.
+    </p></dd>
+<dt>X/Y/Z Tick Crowding</dt>
+<dd><p>Use the slider to influence how many tick marks are draw on each axis.
+    </p></dd>
+</dl>
+</p>
+
+<figure>
+<caption><px>Labels tab of the sphere axes control</px></caption>
+<figureimage src="&FIG.CubeAxisControl_labels;"/>
+</figure>
+
+<p>The <label>Labels</label> tab controls the text labels on the axes.
+If the <label>Auto</label> checkbox is set, the text will be taken
+from one of the data coordinates being plotted on that axis.
+To override those with your own axis labels, unset Auto and type
+text in to the <label>Label</label> fields.
+</p>
+
+<figure>
+<caption><px>Font tab of the cube axes control</px></caption>
+<figureimage src="&FIG.font_tab;"/>
+</figure>
+
+<p>The <label>Font</label> tab configures the font used for axis annotation.
+It also affects some other things like the legend.
+<dl>
+<dt>Text Syntax</dt>
+<dd><p>Whether to use plain text or LaTeX rules to make sense of the text
+    value.
+    </p></dd>
+<dt>Font Size</dt>
+<dd><p>Size of the font in points.
+    </p></dd>
+<dt>Font Style</dt>
+<dd><p>Style of the font.
+    </p></dd>
+<dt>Font Weight</dt>
+<dd><p>Whether the font is plain, bold or italic.
+    </p></dd>
+</dl>
 </p>
 
 </subsubsubsect>
@@ -11406,6 +13807,40 @@ Some services will take notice of this parameter and return narrower
 or wider tables respectively, and others will ignore it.
 </p>
 
+<p>The following item is available in the toolbar and <label>Search</label>
+menu:
+<dl>
+<dt>&IMG.FOOTPRINT; Use Service Coverage</dt>
+<dd><p>If this option is selected, then the search attempts to query
+    the service for the sky coverage it represents, if that information
+    is available.  Then it only dispatches queries for positions in the
+    input table which fall within that coverage region, since any
+    queries outside that region are bound to return an empty result.
+    Depending on the coverage, this can substantially reduce the number
+    of queries made, and hence the time taken.  If there is no overlap
+    between the input table and service coverage, the query is bound to
+    return no results at all, and the time will be reduced effectively
+    to zero.
+    </p>
+
+    <p>When in operation (i.e. when this option is selected and the
+    service provides coverage information) the coverage of the
+    service, input table and their overlap is summarised with small
+    (Mollweide equatorial) all-sky icons
+    in blue, red and magenta respectively, as in the
+    screenshot above.  This makes it easy to see the sky regions in
+    which results may be obtained, and also the amount by which
+    this option reduces useless queries.
+    </p>
+
+    <p>Currently, this option effectively works only for cone searches
+    provided by CDS's VizieR service (publisher "CDS")
+    which provide coverage information using Multi-Order Coverage maps (MOCs).
+    For non-VizieR services this option has no effect.
+    </p></dd>
+</dl>
+</p>
+
 </subsubsect>
 
 <subsubsect id="SiaMultiWindow">
@@ -13055,9 +15490,9 @@ are welcomed.
 
 <dt><webref url="http://www.starlink.ac.uk/stilts/">STILTS</webref></dt>
 <dd><p>The STIL Tool Set, which provides some command-line table manipulation
-    and analysis tools based on STIL.  This is a non-graphical 
+    and analysis tools based on STIL.  This is a non-GUI
     counterpart to TOPCAT, providing many of the same facilities 
-    (matching, row selection, format conversion etc) but in a form 
+    (matching, row selection, format conversion, plotting etc) but in a form 
     which can be incorporated into scripts, web services, etc.
     </p></dd>
 </dl>
@@ -13082,7 +15517,7 @@ the <webref url="http://www.astrogrid.org/">AstroGrid</webref> project
     (from PPARC/STFC),
 the <webref url="http://cds.u-strasbg.fr/twikiAIDA/bin/view/EuroVOAIDA/WebHome"
             >AIDA</webref> project (from EU FP7),
-grants ST/H008470/1 and ST/I00176X/1 
+grants ST/H008470/1, ST/I00176X/1 and ST/J001414/1
 from the UK's Science and Technology Facilities Council (STFC),
 and the <webref url="http://www.g-vo.org/">GAVO</webref> project
 (BMBF Bewilligungsnummer 05A08VHA).
@@ -13107,7 +15542,7 @@ following pre-existing tools:
 </p>
 
 <p>Apart from the excellent Java 2 Standard Edition itself, 
-the following external libraries provide important parts of TOPCAT's
+the following external libraries provide parts of TOPCAT's
 functionality:
 <ul>
 <li><webref url="http://www.gnu.org/software/jel/">JEL</webref>
@@ -13123,7 +15558,7 @@ functionality:
     (Sloan Digital Sky Survey) for HTM-based celestial sphere row matching
     (now deprecated within TOPCAT)</li>
 <li><webref url="http://ptolemy.eecs.berkeley.edu/java/ptplot5.2/ptolemy/plot/doc/index.htm">Ptplot</webref>
-    (Ptolemy) for 2D axis plotting</li>
+    (Ptolemy) for some 2D axis plotting</li>
 <li><webref url="http://itextpdf.com/">iText</webref>
     for PDF output</li>
 <li><webref url="http://www.jibble.org/epsgraphics/">EPSGraphics2D</webref>
@@ -13139,6 +15574,15 @@ functionality:
 <li><webref url="http://cds.u-strasbg.fr/resources/doku.php?id=moc"
             >MOC</webref> (CDS)
             Multi-Order Coverage HEALPix maps for footprint manipulation</li>
+<li><webref url="http://heasarc.gsfc.nasa.gov/docs/heasarc/fits/java/"
+            >nom.tam.fits</webref> (NASA) for parts of FITS I/O</li>
+<li><webref url="http://skyview.gsfc.nasa.gov/jar/jar.html"
+            >Skyview in a Jar</webref> (NASA) for sky axis drawing</li>
+<li><webref url="http://forge.scilab.org/index.php/p/jlatexmath/"
+            >JLaTeXMath</webref> (Scilab) for LaTeX typesetting in plots</li>
+<li><webref url="http://www.jidesoft.com/products/oss.htm"
+            >JIDE Common Layer</webref> (Jidesoft)
+            for double-ended slider controls</li>
 <li><webref url="http://browserlaunch2.sourceforge.net/"
             >BrowserLauncher2</webref> for launching default web browser</li>
 </ul>
@@ -13150,6 +15594,9 @@ functionality:
 <li>Gerard Lemson (MPE, Garching) for the GAVO load dialogue.</li>
 <li>Marco Molinaro (INAF-OATS) for the BaSTI load dialogue.</li>
 </ul>
+</p>
+
+<p>The TOPCAT logo in use since version 4 was kindly drawn by Phil Hall.
 </p>
 
 <p>TOPCAT has benefitted from, and is largely shaped by, advice,
@@ -13174,6 +15621,7 @@ Some of the notable contributers are these:
 <li>David Giaretta (Starlink, RAL)</li>
 <li>Eduardo Gonzalez-Solares (IoA)</li>
 <li>Norman Gray (Starlink, Glasgow)</li>
+<li>Phil Hall (Son of Ken)</li>
 <li>Haggis Harris (Bath)</li>
 <li>Evanthia Hatziminaoglou (ESO)</li>
 <li>Avon Huxor (Bristol/ARI)</li>
@@ -13201,6 +15649,17 @@ Some of the notable contributers are these:
 <li>Ivan Zolotukhin (SAI MSU)</li>
 <li>Jonathan Zwart (Columbia)</li>
 </ul>
+</p>
+
+<p>If you use this software in published work, the following citation
+would be appreciated:
+<blockquote>
+<webref url="http://adsabs.harvard.edu/abs/2005ASPC..347...29T"
+                                          >2005ASPC..347...29T</webref>:
+M. B. Taylor, "TOPCAT &amp; STIL: Starlink Table/VOTable Processing Software",
+in Astronomical Data Analysis Software and Systems XIV,
+eds. P Shopbell et al., ASP Conf. Ser. 347, p. 29 (2005)
+</blockquote>
 </p>
 
 </subsect>
@@ -15378,91 +17837,168 @@ introduced since the last version:
     </dl>
     </p></dd>
 
+<dt>Version 4.0b (28 March 2013)</dt>
+<dd><p>TOPCAT version 4 includes a complete rewrite of the plotting
+    (see below for details).
+    The new plotting functionality is however experimental
+    and changes may be made to the GUI following user feedback.
+    For this reason, the classic plot windows remain available
+    from their usual toolbar buttons and the new plot windows are
+    currently hidden away in the <label>Graphics</label> menu.
+    The "b" designation of this version acknowledges the experimental
+    nature of the visualisation changes, but other new features are
+    considered stable.
+    </p>
+    <p>
+    <dl>
+    <dt>Logo:</dt>
+    <dd><p>I finally bid an affectionate farewell to the Top Cat
+        Hannah-Barbera cartoon graphic.
+        Never having had any legal right whatsoever to use this logo
+        my conscience has eventually got the better of me and TOPCAT
+        now has an excellent new logo kindly drawn by my friend Phil Hall.
+        It's still a yellow cat.
+        </p></dd>
+    <dt>Plotting:</dt>
+    <dd><p>All change.
+        </p></dd>
+    <dt>Other new capabilities:</dt>
+    <dd><p>
+        <ul>
+        <li>Use MOC footprints to speed up multi-cone searches,
+            including footprint icon display in multicone window.</li>
+        <li>Add IPAC output format.</li>
+        <li>Add new class
+            <ref id="KCorrections">KCorrections</ref>
+            to the expression language,
+            containing a method for calculating K-corrections
+            following the method of Chilingarian and Zolotukhin.</li>
+        <li>VOTable input and output are now supported for version 1.3
+            of the VOTable standard.</li>
+        <li>The version of the VOTable format used for VOTable output
+            can now be selected,
+            by using the <ref id="jvmProperties">system property</ref>
+            <code>votable.version</code>.
+            Output version is VOTable 1.2 by default.
+            VOTable output no longer includes <code>schemaLocation</code>
+            attribute.</li>
+        <li>You can now reference tables in multi-extension FITS files by name
+            (EXTNAME or EXTNAME-EXTVER) as an alternative to by HDU index.</li>
+        </ul>
+        </p></dd>
+    <dt>Other enhancements:</dt>
+    <dd><p>
+        <ul>
+        <li>ADQL parsing in the TAP window can now highlight all unknown symbols
+            not just one of them.  This is possible by upgrading to the
+            official v1.1 of Gr&#x00e9;gory Mantelet's ADQL library,
+            which improves some other aspects of ADQL parsing as well.</li>
+        <li>Add new function <code>hypot</code> (=sqrt(x*x+y*y))
+            to the <code>Maths</code> class in expression language.</li>
+        <li>Add new <code>split</code> functions for string splitting
+            to the <code>Strings</code> class in expression language.</li>
+        <li>Some changes to the <code>toString</code> function:
+            it now works on non-numeric values,
+            gives the right answer for <code>Long</code> integers
+            and character values,
+            and returns a blank value rather than the string "null" or "NaN"
+            for blank inputs.</li>
+        <li>Sexagesimal to numeric angle conversion functions now permit the
+            seconds part of the sexagesimal string to be missing.</li>
+        <li>Changes to the IPAC format definition are accommodated:
+            the "long"/"l" type, which is apparently now official,
+            no longer generates a warning, and headers may now use
+            minus signs instead of whitespace.</li>
+        <li>Fixed SAMP table loads to honour "name" parameter.</li>
+        <li>PNG graphics output no longer has transparent background.</li>
+        <li>Upgrade JSAMP library to version 1.3-3.</li>
+        <li>Work around change in VizieR output so that VizieR catalogue
+            searching works again.  This may be a temporary change.</li>
+        <li>Update URLs for GAVO Millennium database service at request of
+            Gerard Lemson.</li>
+        <li>Add new class
+            <ref id="Coverage">Coverage</ref>
+            to the expression language containing MOC-related functions
+            (currently, just <code>inMoc</code>).</li>
+        <li>Add explanatory section to manual on
+            <ref id="matchGroup">Multi-Object Matches</ref>.</li>
+        <li>Add <code>-debug</code> flag to manage logging messages better.</li>
+        </ul>
+        </p></dd>
+    <dt>Bug fixes:</dt>
+    <dd><p>
+        <ul>
+        <li>Fix serious and long-standing bug
+            (bad TZERO header, causes subsequent reads to fail)
+            for FITS output of boolean array columns.</li>
+        <li>Fix small but genuine sky matching bug.
+            The effect was that near the poles matches near the specified
+            threshold could be missed.  The bug was in the PixTools library,
+            fixed at the 2012-07-28 release.</li>
+        <li>Fix bug which failed when attempting to read FITS files with
+            complex array columns (<code>TFORMn=rC/rM</code>).</li>
+        <li>Fix failure when loading very large sequential tables.</li>
+        <li>Fixed table concatenation so that column datatype array size etc
+            is consistent with both input tables not just the first one.</li>
+        <li>Adjust SQL writer to avoid type error for MySQL.</li>
+        <li>Fix plotting bug that might have caused mysterious failures to
+            update the plot.  Or it might not.</li>
+        <li>Fix ADQL parsing in TAP window so that TAP_UPLOAD tables
+            are treated correctly.</li>
+        <li>Fix bug which could cause truncation of strings in FITS and
+            possibly VOTable output when tables were hand-edited to add
+            strings longer than previously-declared length.</li>
+        <li>Fixed bug in multi-table matches (&gt;2 tables) which could
+            result in output rows with columns from only a single table,
+            i.e. not representing an inter-table match.</li>
+        <li>Fix bug in HMS sexagesimal formatting: minus sign was omitted from
+            negative angles.  Now the output is forced positive.</li>
+        <li>Fix minor bug associated with deleting the current row subset
+            (this now causes All to become current).</li>
+        <li>Cope with 1-column CSV files.</li>
+        <li>Fix (some, though probably not all) possible bug(s)
+            related to running on Java 1.7 on Mac.</li>
+        <li>Use the correct form "<code>rows</code>"/"<code>bytes</code>"
+            rather than "<code>row</code>"/"<code>byte</code>"
+            for TAP capability unit values.</li>
+        <li>Infinite floating point values are now correctly encoded
+            in VOTable output ("<code>+Inf</code>"/"<code>-Inf</code>",
+            not "<code>Infinity</code>"/"<code>-Infinity</code>" as in
+            previous versions).</li>
+        <li>Fixed some layout problems which could lead to zero-width text
+            entry fields for RA/Dec.</li>
+        <li>Fixed bug when attempting to explode a hidden array column.</li>
+        <li>Fix error bar rendering bug which could result in diagonal lines
+            being offset near the edge of plots.</li>
+        <li>Fix problem with GUI locking up when plotting
+            outsize histograms.</li>
+        <li>Fixed bug in stacked line plot which caused scribbly
+            drawing in the presence of null X axis values.</li>
+        <li>Fixed problem with row highlight messages bouncing for ever
+            between applications when the Transmit Row activation
+            action is in use.</li>
+        <li>Improve behaviour when deleting a parameter in the
+            Parameter Window.</li>
+        </ul>
+        </p></dd>
+    </dl>
+    </p>
+    </dd>
+
 <dt>Next Version</dt>
 <dd><p>
     <ul>
-    <li>Fixed SAMP table loads to honour "name" parameter.</li>
-    <li>Fixed table concatenation so that column datatype array size etc
-        is consistent with both input tables not just the first one.</li>
-    <li>Adjust SQL writer to avoid type error for MySQL.
-        Hope it hasn't introduced new problems elsewhere.</li>
-    <li>You can now reference tables in multi-extension FITS files by name
-        (EXTNAME or EXTNAME-EXTVER) as an alternative to by HDU index.</li>
-    <li>Fix bug which failed when attempting to read FITS files with 
-        complex array columns (<code>TFORMn=rC/rM</code>).</li>
-    <li>Use MOC footprints to speed up multi-cone searches,
-        including footprint icon display in multicone window.</li>
-    <li>Fix failure when loading very large sequential tables.</li>
-    <li>Slight changes to <code>toString</code> function: now works on
-        non-numeric values, gives the right answer for <code>Long</code>
-        integers, and returns a blank value rather than "null" or "NaN"
-        for blank inputs.</li>
-    <li>PNG graphics output no longer has transparent background.</li>
-    <li>Fixed problem with row highlight messages bouncing for ever between
-        applications when the Transmit Row activation action is in use.</li>
-    <li>Sexagesimal to numeric angle conversion functions now permit the
-        seconds part of the sexagesimal string to be missing.</li>
-    <li>Fix serious and long-standing bug (bad TZERO header, causes subsequent
-        reads to fail) for FITS output of boolean array columns.</li>
-    <li>Fix plotting bug that might have caused mysterious failures to
-        update the plot.  Or it might not.</li>
-    <li>Fix bug which could cause truncation of strings in FITS and
-        possibly VOTable output when tables were hand-edited to add
-        strings longer than previously-declared length.</li>
-    <li>Fixed bug in multi-table matches (&gt;2 tables) which could result in
-        output rows with columns from only a single table,
-        i.e. not representing an inter-table match.</li>
-    <li>Fix bug in HMS sexagesimal formatting: minus sign was omitted from
-        negative angles.  Now the output is forced positive.</li>
-    <li>ADQL parsing in the TAP window can now highlight all unknown symbols
-        not just one of them.  This is possible by upgrading to the
-        official v1.0 of Gr&#x00e9;gory Mantelet's ADQL library.
-        Fixed parsing so that TAP_UPLOAD tables in ADQL are treated
-        correctly.</li>
-    <li>Fixed minor bug associated with deleting the current row subset
-        (this now causes All to become current).</li>
-    <li>Add new class
-        <ref id="Footprints">Footprints</ref>
-        to the expression language
-        containing MOC-related functions
-        (currently, just <code>inMoc</code>).</li>
-    <li>Add new function <code>hypot</code> (=sqrt(x*x+y*y)).</li>
-    <li>Add explanatory section to manual on
-        <ref id="matchGroup">Multi-Object Matches</ref>.</li>
-    <li>Work around change in VizieR output so that VizieR catalogue
-        searching works again.  This may be a temporary change.</li>
-    <li>Fix small but genuine sky matching bug.
-        The effect was that near the poles matches near the specified
-        threshold could be missed.  The bug was in the PixTools library,
-        fixed at the 2012-07-28 release.</li>
-    <li>IPAC format "long"/"l" column type, apparently now official,
-        now accepted without warning.  IPAC headers may now use minus
-        signs instead of whitespace.</li>
-    <li>Add IPAC output format.</li>
-    <li>Update URLs for GAVO Millennium database service at request of
-        Gerard Lemson.</li>
-    <li>Cope with 1-column CSV files.</li>
-    <li>Add <code>-debug</code> flag to manage logging messages better.</li>
-    <li>Fix possible bug(s) related to running on Java 1.7 on Mac.</li>
-    <li>Use "<code>rows</code>"/"<code>bytes</code>" 
-        rather than "<code>row</code>"/"<code>byte</code>"
-        for TAP capability unit values.</li>
-    <li>Upgrade to JSAMP v1.3-3.</li>
-    <li>Add K-Corrections functions of I&amp;I.</li>
-    <li>The version of VOTable which is written can now be selected,
-        by using the system property <code>votable.version</code>.
-        Output version is VOTable 1.1 by default.</li>
-    <li>VOTable 1.3 input and output is supported.</li>
-    <li>Encode infinite values correctly in VOTable output
-        ("<code>+Inf</code>"/"<code>-Inf</code>",
-        not "<code>Infinity</code>"/"<code>-Infinity</code>").</li>
-    <li>VOTable output no longer writes schemaLocation 
-        attribute by default.</li>
-    <li>Fixed some layout problems which could lead to zero-width text
-        entry fields for RA/Dec.</li>
+    <li>Fix CSV regression bug introduced at v4.0b
+        - CSV files now work again with MSDOS-style line breaks.</li>
+    <li>Source code is now managed by git and not subversion.
+        The format of the "Starjava revision" string reported by the
+        <code>-version</code> flag and the Help|About menu item
+        has changed accordingly.</li>
+    <li>The Columns window now makes a better attempt at displaying
+        non-standard per-column metadata of unusual types, in particular
+        array values.</li>
     </ul>
-    </p>
-    </dd>
+    </p></dd>
 
 </dl>
 </p>

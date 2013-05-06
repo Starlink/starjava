@@ -73,6 +73,9 @@ public class AboutFrame extends JDialog
         "<h5 align=center>Authors:<i> " +
         Utilities.getAuthors() +
         "</i></h5>" +
+        "<h5 align=center>VO Mission Advisor:<i> " +
+        Utilities.getSpecialMentions() +
+        "</i></h5>" +
         "<h5 align=center>Licensing:<i> " +
         Utilities.getLicense() +
         "</i></h5>" +
@@ -95,7 +98,7 @@ public class AboutFrame extends JDialog
         enableEvents( AWTEvent.WINDOW_EVENT_MASK );
         try {
             initUI();
-            setSize( new Dimension( 600, 350 ) );
+            setSize( new Dimension( 600, 400 ) );
         }
         catch( Exception e ) {
             e.printStackTrace();

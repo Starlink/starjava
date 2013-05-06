@@ -330,7 +330,6 @@ abstract class Encoder {
         }
 
         else if ( clazz == Float.class ) {
-            final float badVal = magicNulls ? Float.NaN : 0.0f;
             return new ScalarEncoder( info, "float", null ) {
                 public String encodeAsText( Object val ) {
                     if ( val instanceof Float &&
@@ -344,14 +343,13 @@ abstract class Encoder {
                 public void encodeToStream( Object val, DataOutput out )
                         throws IOException {
                     Number value = (Number) val;
-                    out.writeFloat( value == null ? badVal
+                    out.writeFloat( value == null ? Float.NaN
                                                   : value.floatValue() );
                 }
             };
         }
 
         else if ( clazz == Double.class ) {
-            final double badVal = magicNulls ? Double.NaN : 0.0;
             return new ScalarEncoder( info, "double", null ) {
                 public String encodeAsText( Object val ) {
                     if ( val instanceof Double &&
@@ -365,7 +363,7 @@ abstract class Encoder {
                 public void encodeToStream( Object val, DataOutput out )
                         throws IOException {
                     Number value = (Number) val;
-                    out.writeDouble( value == null ? badVal
+                    out.writeDouble( value == null ? Double.NaN
                                                    : value.doubleValue() );
                 }
             };

@@ -473,7 +473,7 @@ public class AuxWindow extends JFrame {
     }
  
     public Image getIconImage() {
-        return ResourceIcon.TOPCAT.getImage();
+        return ResourceIcon.TOPCAT_LOGO.getImage();
     }
 
     /**

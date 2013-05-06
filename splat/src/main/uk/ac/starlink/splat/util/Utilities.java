@@ -87,7 +87,9 @@ public class Utilities
             "Copyright (C) 2001-2005 Central Laboratory of the Research Councils<br>"+
             "Copyright (C) 2006-2008 Particle Physics and Astronomy Research Council<br>"+
             "Copyright (C) 2008-2009 Science and Technology Facilities Council<br>"+
-            "Supported by the Joint Astronomy Centre Hawaii";
+            "Supported by the Joint Astronomy Centre Hawaii<br>"+
+            "Copyright (C) 2010-2013 Peter W. Draper<br>"+
+            "Copyright (C) 2013 German Astrophysical Virtual Observatory (GAVO)";
     }
 
     /**
@@ -95,7 +97,15 @@ public class Utilities
      */
     public static String getAuthors()
     {
-        return "Peter W. Draper &amp; Mark B. Taylor";
+        return "Peter W. Draper, Mark B. Taylor &amp; Margarida Castro Neves";
+    }
+
+    /**
+     * Others of special mention.
+     */
+    public static String getSpecialMentions()
+    {
+        return "Petr Skoda";
     }
 
     /**

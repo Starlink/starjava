@@ -8,8 +8,10 @@ setenv HTX_EMAIL '<A HREF="mailto:starlink@jiscmail.ac.uk">starlink@jiscmail.ac.
 set copyr1="Copyright (C) 2001-2005 Council for the Central Laboratory of the Research Councils"
 set copyr2="Copyright (C) 2006-2007 Particle Physics and Astronomy Research Council"
 set copyr3="Copyright (C) 2007-2009 Science and Technology Facilities Council"
+set copyr4="Copyright (C) 2010-2013 Peter W. Draper"
+set copyr5="Copyright (C) 2013 German Astrophysical Virtual Observatory (GAVO)"
 
-setenv COPYRIGHT "$copyr1<br>$copyr2<br>$copyr3"
+setenv COPYRIGHT "$copyr1<br>$copyr2<br>$copyr3<br>$copyr4<br>$copyr5"
 
 #  Copy figures into place (directory in CVS).
 \cp gifs/* sun243.htx

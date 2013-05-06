@@ -20,6 +20,42 @@
    Fixed BAND parameter input in the case when the upper limit is null
    Added URL encoding for TARGETNAME, so the targets can have special characters like '+'   
 
+   3.10-0
+   ======
+
+   The major change in this release is much improved support for more complex
+   SSAP queries. For instance you can now create server groups for more targeted
+   queries according to the waveband or data source (theory/archive/survey for
+   instance), as well as using your specific tags to create such groups.
+
+   It is now also possible to add additional metadata parameters to the
+   queries for the currently selected server list.
+
+   New SSAP servers not currently registered can now be added  manually.
+
+   Access control for servers that use HTTP passwords is now implemented.
+
+   Bug fixes in this release include:
+
+     - If the SSAP server maximum record limit is reached (MAXREC), SPLAT will
+       no longer return an error, it just continues downloading spectra to the
+       available limit. 
+
+     - The BAND parameter now handles the case when the upper limit is null.
+
+     - TARGETNAME values are now correctly encoded to allow the use of special
+       characters ($+$ etc.).
+
+   The column name used to select spectral coordinates in tables without any
+   other metadata has changed from "wavelength*" to "wave*".
+  
+   When changing the spectral coordinates column of a table in the main
+   window the change wasn't seen immediately. This issue should now be fixed.
+
+   A bug in the spectral synopsis that misidentified the celestial coordinate
+   axes has been fixed. This means the "Spec position:" item should now be 
+   correct for DSB spectral frames with permuted axes.
+
    3.9-8
    =====
 

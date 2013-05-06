@@ -1,9 +1,6 @@
 package uk.ac.starlink.ttools.plot;
 
 import Acme.JPM.Encoders.GifEncoder;
-import com.lowagie.text.Document;
-import com.lowagie.text.DocumentException;
-import com.lowagie.text.pdf.PdfWriter;
 import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Component;
@@ -17,6 +14,8 @@ import java.awt.image.IndexColorModel;
 import java.awt.image.WritableRaster;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.logging.Logger;
@@ -274,31 +273,34 @@ public abstract class GraphicExporter {
     /** Exports to gzipped Encapsulated PostScript. */
     public static final GraphicExporter EPS_GZIP = new GzipExporter( EPS );
 
-    /** Exports to PDF. */
-    public static final GraphicExporter PDF =
-            new GraphicExporter( "pdf", "application/pdf",
-                                 new String[] { "pdf", } ) {
-        public void exportGraphic( Picture picture, OutputStream out )
-                throws IOException {
-            int width = picture.getPictureWidth();
-            int height = picture.getPictureHeight();
-            Document doc =
-                new Document( new com.lowagie.text.Rectangle( width, height ) );
-            try {
-                PdfWriter pWriter = PdfWriter.getInstance( doc, out );
-                doc.open();
-                Graphics2D g = pWriter.getDirectContent()
-                              .createGraphics( width, height );
-                picture.paintPicture( g );
-                g.dispose();
-                doc.close();
-            }
-            catch ( DocumentException e ) {
-                throw (IOException)
-                      new IOException( e.getMessage() ).initCause( e );
-            }
+    /**
+     * Returns a standard list of available GraphicExporter objects.
+     * However, the one for exporting PDFs must be supplied explicitly,
+     * since which to choose (if any) depends on configuration.
+     *
+     * @param  pdfEx   exporter for PDF graphics, or null if none required
+     * @return   list of available exporters including the supplied PDF one
+     */
+    public static GraphicExporter[]
+           getKnownExporters( PdfGraphicExporter pdfEx ) {
+        List<GraphicExporter> list = new ArrayList<GraphicExporter>();
+        list.add( GraphicExporter.PNG );
+        list.add( GraphicExporter.GIF );
+        list.add( GraphicExporter.JPEG );
+        if ( pdfEx != null ) {
+            list.add( pdfEx );
         }
-    };
+
+        /* Note there is another option for postscript - net.sf.epsgraphics.
+         * On brief tests seems to work, may or may not produce more compact
+         * output than jibble implementation.  At time of testing, it was
+         * using J2SE5 and codebase was at J2SE1.4, so didn't investigate
+         * further. */
+        list.add( GraphicExporter.EPS );
+        list.add( GraphicExporter.EPS_GZIP );
+
+        return list.toArray( new GraphicExporter[ 0 ] );
+    }
 
     /**
      * GraphicExporter implementation which uses the ImageIO framework.

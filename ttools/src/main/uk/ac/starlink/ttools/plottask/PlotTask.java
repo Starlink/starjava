@@ -25,6 +25,7 @@ import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.plot.AuxLegend;
 import uk.ac.starlink.ttools.plot.GraphicExporter;
 import uk.ac.starlink.ttools.plot.Legend;
+import uk.ac.starlink.ttools.plot.PdfGraphicExporter;
 import uk.ac.starlink.ttools.plot.PlotData;
 import uk.ac.starlink.ttools.plot.PlotState;
 import uk.ac.starlink.ttools.plot.Style;
@@ -108,7 +109,9 @@ public abstract class PlotTask implements Task {
         } );
         paramList_.add( titleParam_ );
 
-        painterParam_ = new PaintModeParameter( "omode" );
+        GraphicExporter[] exporters =
+            GraphicExporter.getKnownExporters( PdfGraphicExporter.BASIC );
+        painterParam_ = new PaintModeParameter( "omode", exporters );
         paramList_.add( painterParam_ );
         paramList_.add( painterParam_.getOutputParameter() );
         paramList_.add( painterParam_.getFormatParameter() );

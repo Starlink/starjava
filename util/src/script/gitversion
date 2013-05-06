@@ -1,0 +1,40 @@
+
+#+
+#  Name:
+#     gitversion
+
+#  Purpose:
+#     Summarises version of current git status.
+
+#  Type of Module:
+#     Shell script.
+
+#  Description:
+#     Writes a short string to standard output summarising the latest
+#     git commit, its date, and whether the current status is modified
+#     from that commit.  It uses git show so reports the status of the
+#     git working copy of which the current directory forms part.
+#     
+#     This is a git-friendly replacement for svnversion.
+#     The output is suitable for quoting at runtime to specify exactly
+#     which version of the source code was used to generate an executable.
+
+#-
+
+# Get abbreviated SHA of latest commit.
+sha=`git show -s --format=%h`
+
+# Get approximate date (no time, no timezone) of latest commit.
+# This is the author, not the committer date - I think that makes sense?
+date=`git show -s --format=%ai | sed 's/ .*//'`
+
+# Work out if the current status is modified from the latest commit.
+if git status --porcelain | grep -q '^[MADRU ][MADRU ]'
+then
+   modflag=' -- with modifications'
+else
+   modflag=''
+fi
+
+# Summarise to stdout.
+echo "$sha ($date)$modflag"

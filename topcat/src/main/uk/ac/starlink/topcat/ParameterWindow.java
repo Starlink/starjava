@@ -429,6 +429,9 @@ public class ParameterWindow extends AuxWindow
                         }
                     }
                 }
+                if ( ! removals.isEmpty() ) {
+                    rowSelectionModel.clearSelection();
+                }
                 for ( Iterator it = removals.iterator(); it.hasNext(); ) {
                     tcm.removeParameter( (DescribedValue) it.next() );
                 }

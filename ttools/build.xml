@@ -80,7 +80,7 @@
   <!-- Define the package name and current versions -->
   <property name="Name" value="TTOOLS"/>
   <property name="name" value="ttools"/>
-  <property name="version" value="2.4+"/>
+  <property name="version" value="2.5+"/>
 
   <!-- The Java package name -->
   <property name="package.name" value="uk.ac.starlink.ttools"/>
@@ -489,14 +489,28 @@
              source="${source.version}"/>
 
     <!-- Write and compile JyStilts module source code. -->
-    <mkdir dir="${build.etc}"/>
     <echo message="Generating stilts.py"/>
+    <mkdir dir="${build.etc}"/>
     <java classname="uk.ac.starlink.ttools.build.JyStilts"
           output="${build.etc}/stilts.py"
           failonerror="yes"
           fork="true"
           logerror="yes">
       <classpath refid="classpath"/>
+      <sysproperty key="java.awt.headless" value="true"/>
+    </java>
+
+    <!-- Write LaTeX fonts resource list. -->
+    <echo message="Assembling list of LaTeX fonts"/>
+    <mkdir dir="${build.classes}/uk/ac/starlink/ttools/plot2"/>
+    <java classname="uk.ac.starlink.ttools.plot.ExternalFontMapper"
+          output="${build.classes}/uk/ac/starlink/ttools/plot2/latex_fonts.txt"
+          failonerror="yes"
+          fork="true"
+          logerror="yes">
+      <classpath refid="classpath"/>
+      <sysproperty key="java.awt.headless" value="true"/>
+      <arg value="${src.jars.dir}/jlatexmath.jar"/>
     </java>
   </target>
 
@@ -504,13 +518,10 @@
 
     <!-- Build temporary zip file containing things not in the input jars
      !   which ought to be included in the standalone jars. -->
-    <exec outputproperty="svnversion"
+    <exec outputproperty="gitversion"
           logerror="true"
-          executable="svnversion"
-          dir="${basedir}/..">
-      <arg value="."/>
-    </exec>
-    <echo message="${svnversion}"
+          executable="${star.dir}/bin/gitversion"/>
+    <echo message="${gitversion}"
           file="${build.classes}/uk/ac/starlink/ttools/revision-string"/>
     <zip destfile="${dist.lib.pkg}/stilts-version.zip">
       <fileset dir="${build.classes}"

@@ -1,6 +1,9 @@
 package uk.ac.starlink.ttools.mode;
 
 import java.io.PrintStream;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import uk.ac.starlink.table.ColumnInfo;
@@ -105,13 +108,27 @@ public class MetadataMode implements ProcessingMode {
      */
     private void outMeta( PrintStream out, String key, Object val ) {
         String pad = "    ";
-        if ( val != null ) {
-            String value = val.toString().trim();
-            if ( value.length() > 0 ) {
-                out.println( key + ":" );
-                value = pad + value.replaceAll( "\n", "\n" + pad );
-                out.println( value );
+        final String[] lines;
+        if ( val == null ) {
+            lines = new String[ 0 ];
+        }
+        else if ( val.getClass().isArray() ) {
+            List<String> lineList = new ArrayList<String>();
+            int nel = Array.getLength( val );
+            for ( int i = 0; i < nel; i++ ) {
+                Object el = Array.get( val, i );
+                String str = el == null ? "" : el.toString();
+                lineList.addAll( Arrays.asList( str.split( "\\n" ) ) );
             }
+            lines = lineList.toArray( new String[ 0 ] );
+        }
+        else {
+            lines = val.toString().split( "\\n" );
+        }
+        out.println( key + ":" );
+        for ( int i = 0; i < lines.length; i++ ) {
+            out.print( pad );
+            out.println( lines[ i ] );
         }
     }
 }

@@ -141,7 +141,6 @@ class SSAMetadataParser
             con.setReadTimeout(30*1000);
             con.connect();
             inSrc = new InputSource( con.getInputStream() );
-           // inSrc = new InputSource( url.openStream() );            
         } catch (IOException ioe) {
             if ( progressPanel != null )
                 progressPanel.logMessage( ioe.getMessage() );

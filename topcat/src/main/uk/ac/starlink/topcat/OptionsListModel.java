@@ -17,6 +17,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
+import uk.ac.starlink.util.gui.CustomComboBoxRenderer;
 
 /**
  * Provides storage for a list of options with listeners.

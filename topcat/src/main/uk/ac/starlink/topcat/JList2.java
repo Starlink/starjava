@@ -32,7 +32,7 @@ public class JList2 extends JPanel implements Scrollable {
      * @param  list1  first list
      * @param  list2  second list
      */
-    JList2( JList list1, JList list2 ) {
+    public JList2( JList list1, JList list2 ) {
         super( new GridBagLayout() );
         list1_ = list1;
         list2_ = list2;

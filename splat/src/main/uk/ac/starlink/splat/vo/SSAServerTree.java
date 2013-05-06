@@ -1263,7 +1263,6 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
 
     }
   
- 
     /**
      *  Add new tag to the server list
      */
@@ -1841,6 +1840,5 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
                 
             } // valueChanged
     } // TagsListSelectionListener
-         
 
 }

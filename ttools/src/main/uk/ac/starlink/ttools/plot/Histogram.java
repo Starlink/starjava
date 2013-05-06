@@ -79,8 +79,11 @@ public class Histogram extends SurfacePlot {
         g = g.create();
 
         /* Clip it to the bounds of the drawable part of the surface. */
-        g.setClip( g.getClip().getBounds()
-                  .createIntersection( getSurface().getClip().getBounds() ) );
+        Rectangle clip =
+            g.getClipBounds()
+             .createIntersection( getSurface().getClip().getBounds() )
+             .getBounds();
+        g.setClip( clip );
 
         /* Get the plotting styles to use. */
         boolean xflip = state.getFlipFlags()[ 0 ];
@@ -124,6 +127,17 @@ public class Histogram extends SurfacePlot {
                 int ixhi = surface.dataToGraphics( xflip ? dxlo : dxhi,
                                                    dylo, false ).x;
                 int iyhi = surface.dataToGraphics( dxmid, tsum, false ).y;
+
+                /* Clip these explicitly.  This shouldn't be necessary since
+                 * the clip has been applied to the graphics context already,
+                 * but it seems it can sometimes cause problems (AWT lockup)
+                 * if drawing is attempted with very large coordinate values.
+                 * Perhaps some graphics context implementations are not
+                 * observing the clip. */
+                ixlo = Math.max( ixlo, clip.x - 64 );
+                ixhi = Math.min( ixhi, clip.x + clip.width + 64 );
+                iylo = Math.max( iylo, clip.y - 64 );
+                iyhi = Math.min( iyhi, clip.y + clip.height + 64 );
 
                 /* Draw the trailing edge of the last bar if necessary. */
                 if ( lastIxLead != ( xflip ? ixhi : ixlo ) ) {

@@ -181,18 +181,18 @@ public abstract class MemberDoclet {
      */
     protected void processClass( ClassDoc clazz ) throws IOException {
         startClass( clazz );
-        FieldDoc[] fields = clazz.fields();
-        for ( int i = 0; i < fields.length; i++ ) {
-            FieldDoc field = fields[ i ];
-            if ( field.isPublic() && field.isStatic() && field.isFinal() ) {
-                processField( field );
-            }
-        }
         MethodDoc[] methods = clazz.methods();
         for ( int i = 0; i < methods.length; i++ ) {
             MethodDoc method = methods[ i ];
             if ( method.isPublic() && method.isStatic() ) {
                 processMethod( method );
+            }
+        }
+        FieldDoc[] fields = clazz.fields();
+        for ( int i = 0; i < fields.length; i++ ) {
+            FieldDoc field = fields[ i ];
+            if ( field.isPublic() && field.isStatic() && field.isFinal() ) {
+                processField( field );
             }
         }
         endClass();

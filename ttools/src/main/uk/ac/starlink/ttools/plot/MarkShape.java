@@ -6,6 +6,7 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.Shape;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -28,6 +29,24 @@ public abstract class MarkShape {
         calculateOpenCirclePixels();
     private static final Pixellator[] FILLED_CIRCLE_PIXELS =
         calculateFilledCirclePixels();
+
+    /**
+     * Rendering hint concerning whether to draw outlines on filled circles.
+     * In bitmap contexts, such circles typically look ugly if outlines are
+     * not drawn.  However, in some contexts (vector graphics,
+     * especially of transparent markers) it is a bad idea.
+     * If this hint is set to Boolean.TRUE outlines will be drawn,
+     * and if it is set to Boolean.FALSE, they will not.
+     * If it is not set, the default policy will be followed,
+     * which currently means they *will* be drawn
+     * (this represents the historical behaviour). 
+     */
+    public static RenderingHints.Key OUTLINE_CIRCLE_HINT =
+            new RenderingHints.Key( 1 ) {
+        public boolean isCompatibleValue( Object obj ) {
+            return obj instanceof Boolean;
+        }
+    };
 
     /**
      * Constructor.
@@ -99,7 +118,11 @@ public abstract class MarkShape {
 
                     /* In pixel-type graphics contexts, the filled circle is
                      * ugly (asymmetric) if the outline is not painted too. */
-                    g.drawOval( off, off, diam, diam );
+                    if ( ((Graphics2D) g)
+                        .getRenderingHint( OUTLINE_CIRCLE_HINT )
+                             != Boolean.FALSE ) {
+                        g.drawOval( off, off, diam, diam );
+                    }
                 }
                 public Pixellator getPixelOffsets() {
                     return size < FILLED_CIRCLE_PIXELS.length

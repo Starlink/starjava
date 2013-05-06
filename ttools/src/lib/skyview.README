@@ -1,0 +1,21 @@
+The skyview-geom.jar file is derived from the distributed file skyview_1.5.jar,
+but with most of the classes removed since they are not required by ttools.
+
+The only part used is the sky coordinate system projections, mainly
+the grid drawing.  The required classes were retained as follows:
+
+        rm -rf tmp
+        mkdir tmp
+        cd tmp; jar xf skyview_1.5.jar skyview/geometry \
+                                       skyview/data \
+                                       skyview/Component.class
+        cd tmp; jar cf ../skyview-geom.jar skyview/*.class \
+                                           skyview/data/*.class \
+                                           skyview/geometry/*.class \
+                                           skyview/geometry/projecter/*.class
+        rm -rf tmp
+
+The resulting jar file is 0.1Mb compared to the full skyview jar of 14Mb.
+
+I'm not certain what licence skyview-in-a-jar is offered under, but
+Tom McGlynn said he was happy for me to use/abuse these classes.

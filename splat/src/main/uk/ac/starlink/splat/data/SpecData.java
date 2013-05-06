@@ -2052,10 +2052,37 @@ public class SpecData
                 try {
                     double out[] = astref.tranN( 1, dims.length, basepos,
                                                  true, nout );
-                    int lonaxis = astref.getI( "lonaxis" );
-                    int lataxis = astref.getI( "lataxis" );
+
+                    //  Cannot use "lonaxis" and "lataxis" within a compound
+                    //  frame (they only apply to the embedded skyframe), so
+                    //  search the hard way.
+                    int lonaxis = 0;
+                    int lataxis = 0;
+                    for ( int i = 1; i <= nout; i++ ) {
+                        try {
+                            if ( lonaxis == 0 ) {
+                                if ( astref.getI( "IsLonAxis(" + i + ")" ) > 0 ) {
+                                    lonaxis = i;
+                                }
+                            }
+                        }
+                        catch (AstException e) {
+                            //  Do nothing.
+                            e.printStackTrace();
+                        }
+                        try {
+                            if ( lataxis == 0 ) {
+                                if ( astref.getI( "IsLatAxis(" + i + ")" ) > 0 ) {
+                                    lataxis = i;
+                                }
+                            }
+                        }
+                        catch (AstException e) {
+                            //  Do nothing.
+                            e.printStackTrace();
+                        }
+                    }
                     Header header = getHeaders();
-                    astref.norm( out );
                     String ra = astref.format( lonaxis, out[lonaxis-1] );
                     String dec = astref.format( lataxis, out[lataxis-1] );
                     header.addValue( "EXRAX", ra, "Spectral position" );

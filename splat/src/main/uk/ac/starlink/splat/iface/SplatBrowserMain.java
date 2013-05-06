@@ -329,7 +329,15 @@ public class SplatBrowserMain
 
         //  Load the proxy server configuration, if set.
         ProxySetup.getInstance().restore();
-    }
+
+        //  Set the default Icon for whole application...
+        try {
+            props.setProperty( "mainFrame.iconImage", "splat.gif" );
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+   }
 
     /**
      * Guess the type of a spectrum. Does this by seeing if the default rules

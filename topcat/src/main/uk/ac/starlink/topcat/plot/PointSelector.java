@@ -44,10 +44,10 @@ import uk.ac.starlink.topcat.TopcatEvent;
 import uk.ac.starlink.topcat.TopcatListener;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.WeakTopcatListener;
-import uk.ac.starlink.ttools.plot.EmptyIcon;
 import uk.ac.starlink.ttools.plot.MarkStyle;
 import uk.ac.starlink.ttools.plot.Style;
 import uk.ac.starlink.ttools.plot.StyleSet;
+import uk.ac.starlink.util.IconUtils;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 /**
@@ -837,8 +837,8 @@ public class PointSelector extends JPanel {
             actions_ = new HashMap();
             selModel_.addListSelectionListener( this );
             Icon sampleIcon = getStyle( 0 ).getLegendIcon();
-            blankIcon_ = new EmptyIcon( sampleIcon.getIconWidth(),
-                                        sampleIcon.getIconHeight() );
+            blankIcon_ = IconUtils.emptyIcon( sampleIcon.getIconWidth(),
+                                              sampleIcon.getIconHeight() );
         }
 
         public Component createAnnotation( Object item ) {

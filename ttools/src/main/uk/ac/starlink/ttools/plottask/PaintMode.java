@@ -13,6 +13,7 @@ import uk.ac.starlink.task.OutputStreamParameter;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.plot.GraphicExporter;
+import uk.ac.starlink.ttools.plot.PdfGraphicExporter;
 import uk.ac.starlink.ttools.plot.Picture;
 import uk.ac.starlink.util.Destination;
 
@@ -26,29 +27,9 @@ public abstract class PaintMode {
 
     private final String name_;
 
-    /** Mode used by default. */
-    public static final PaintMode DEFAULT_MODE;
-
-    private static final PaintMode SWING_MODE;
-    private static final PaintMode OUTPUT_MODE;
-    private static final PaintMode[] MODES = new PaintMode[] {
-        SWING_MODE = new SwingPaintMode(),
-        OUTPUT_MODE = new OutputPaintMode(),
-        new CgiPaintMode(),
-        new DiscardPaintMode(),
-        DEFAULT_MODE = new AutoPaintMode(),
-    };
-    private static final GraphicExporter[] EXPORTERS = new GraphicExporter[] {
-        GraphicExporter.PNG,
-        GraphicExporter.GIF,
-        GraphicExporter.JPEG,
-        GraphicExporter.PDF,
-        GraphicExporter.EPS,
-        GraphicExporter.EPS_GZIP,
-        // Note there is another option for postscript - net.sf.epsgraphics.
-        // On brief tests seems to work, may or may not produce more compact
-        // output than jibble implementation.  Requires J2SE5 though.
-    };
+    private static final PaintMode SWING_MODE = new SwingPaintMode();
+    private static final PaintMode CGI_MODE = new CgiPaintMode();
+    private static final PaintMode DISCARD_MODE = new DiscardPaintMode();
 
     /**
      * Constructor.
@@ -102,21 +83,21 @@ public abstract class PaintMode {
     }
 
     /**
-     * Returns a list of all available paint modes.
+     * Returns a list of all available paint modes, given a list of
+     * available GraphicExporter objects.
      *
+     * @param  exporters  known graphic exporters
      * @return  known paint modes
      */
-    public static PaintMode[] getKnownModes() {
-        return (PaintMode[]) MODES.clone();
-    }
-
-    /**
-     * Returns a list of all available graphics exporters.
-     *
-     * @return   known graphic exporters
-     */
-    public static GraphicExporter[] getKnownExporters() {
-        return (GraphicExporter[]) EXPORTERS.clone();
+    public static PaintMode[] getKnownModes( GraphicExporter[] exporters ) {
+        OutputPaintMode outMode = new OutputPaintMode( exporters );
+        return new PaintMode[] {
+            SWING_MODE,
+            outMode,
+            CGI_MODE,
+            DISCARD_MODE,
+            new AutoPaintMode( outMode ),
+        };
     }
 
     /**
@@ -146,8 +127,16 @@ public abstract class PaintMode {
      * in some graphics format.
      */
     private static class OutputPaintMode extends PaintMode {
-        OutputPaintMode() {
+        private final GraphicExporter[] exporters_;
+
+        /**
+         * Constructor.
+         *
+         * @param  exporters   list of available graphic exporters
+         */
+        OutputPaintMode( GraphicExporter[] exporters ) {
             super( "out" );
+            exporters_ = exporters;
         }
 
         public String getDescription( PaintModeParameter modeParam ) {
@@ -175,12 +164,12 @@ public abstract class PaintMode {
             String out = outParam.stringValue( env );
             GraphicExporter dfltExp = null;
             if ( out != null ) {
-                for ( int ie = 0; ie < EXPORTERS.length; ie++ ) {
-                    String[] fss = EXPORTERS[ ie ].getFileSuffixes();
+                for ( int ie = 0; ie < exporters_.length; ie++ ) {
+                    String[] fss = exporters_[ ie ].getFileSuffixes();
                     for ( int is = 0; is < fss.length; is++ ) {
                         if ( out.toLowerCase()
                                 .endsWith( fss[ is ].toLowerCase() ) ) {
-                            dfltExp = EXPORTERS[ ie ];
+                            dfltExp = exporters_[ ie ];
                         }
                     }
                 }
@@ -299,18 +288,26 @@ public abstract class PaintMode {
     }
 
     /**
-     * Automatic paint mode.  Works like OutputPaintMode if output file is
-     * given, else works like SwingPaintMode.
+     * Automatic paint mode.  Works like a supplied OutputPaintMode
+     * if output file is given, else works like SwingPaintMode.
      */
     private static class AutoPaintMode extends PaintMode {
-        protected AutoPaintMode() {
+        private final OutputPaintMode outMode_;
+
+        /**
+         * Constructor.
+         *
+         * @param  outMode  output mode for use if output file is given
+         */
+        protected AutoPaintMode( OutputPaintMode outMode ) {
             super( "auto" );
+            outMode_ = outMode;
         }
 
         public String getDescription( PaintModeParameter modeParam ) {
             return "Behaves as "
                  + "<code>" + SWING_MODE + "</code> or "
-                 + "<code>" + OUTPUT_MODE + "</code> mode"
+                 + "<code>" + outMode_ + "</code> mode"
                  + " depending on presence of "
                  + "<code>" + modeParam.getOutputParameter().getName()
                             + "</code> parameter";
@@ -333,7 +330,7 @@ public abstract class PaintMode {
                 return SWING_MODE.createPainter( env, param );
             }
             else {
-                return OUTPUT_MODE.createPainter( env, param );
+                return outMode_.createPainter( env, param );
             }
         }
     }

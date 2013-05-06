@@ -1,6 +1,8 @@
 package uk.ac.starlink.ttools.build;
 
 import java.io.PrintStream;
+import uk.ac.starlink.ttools.plot.GraphicExporter;
+import uk.ac.starlink.ttools.plot.PdfGraphicExporter;
 import uk.ac.starlink.ttools.plottask.PaintMode;
 import uk.ac.starlink.ttools.plottask.PaintModeParameter;
 
@@ -27,8 +29,11 @@ public class PaintModeDoc {
      * Writes description to this object's output stream.
      */
     private void write() {
-        PaintModeParameter modeParam = new PaintModeParameter( "omode" );
-        PaintMode[] modes = PaintMode.getKnownModes();
+        GraphicExporter[] exporters =
+            GraphicExporter.getKnownExporters( PdfGraphicExporter.BASIC );
+        PaintModeParameter modeParam =
+            new PaintModeParameter( "omode", exporters );
+        PaintMode[] modes = PaintMode.getKnownModes( exporters );
         for ( int i = 0; i < modes.length; i++ ) {
             writeMode( modes[ i ], modeParam );
         }

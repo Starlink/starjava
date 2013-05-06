@@ -16,7 +16,7 @@ public class SequentialResultRowSequence implements ConeResultRowSequence {
 
     private final ConeQueryRowSequence querySeq_;
     private final ConeSearcher coneSearcher_;
-    private final Footprint footprint_;
+    private final Coverage coverage_;
     private final boolean bestOnly_;
     private final boolean distFilter_;
     private final String distanceCol_;
@@ -30,7 +30,7 @@ public class SequentialResultRowSequence implements ConeResultRowSequence {
      *
      * @param  querySeq  sequence providing cone search query parameters
      * @param  coneSearcher  cone search implementation
-     * @param  footprint   coverage footprint for results, or null
+     * @param  coverage   coverage for results, or null
      * @param  bestOnly  whether all results or just best are required
      * @param  distFilter  true to perform post-query filtering on results
      *                     based on the distance between the query position
@@ -40,12 +40,12 @@ public class SequentialResultRowSequence implements ConeResultRowSequence {
      */
     public SequentialResultRowSequence( ConeQueryRowSequence querySeq,
                                         ConeSearcher coneSearcher,
-                                        Footprint footprint, boolean bestOnly,
+                                        Coverage coverage, boolean bestOnly,
                                         boolean distFilter,
                                         String distanceCol ) {
         querySeq_ = querySeq;
         coneSearcher_ = coneSearcher;
-        footprint_ = footprint;
+        coverage_ = coverage;
         bestOnly_ = bestOnly;
         distFilter_ = distFilter;
         distanceCol_ = distanceCol;
@@ -57,16 +57,16 @@ public class SequentialResultRowSequence implements ConeResultRowSequence {
         double radius = querySeq_.getRadius();
 
         /* Ensure that at least one query is performed even if all points
-         * are outside the footprint.  This way the metadata for an empty
+         * are outside the coverage.  This way the metadata for an empty
          * table is returned, so at least you have the columns. */
         boolean excluded = nQuery_ + nSkip_ > 0
-                        && footprint_ != null
-                        && ! footprint_.discOverlaps( ra, dec, radius );
+                        && coverage_ != null
+                        && ! coverage_.discOverlaps( ra, dec, radius );
         if ( excluded ) {
             Level level = Level.CONFIG;
             if ( logger_.isLoggable( level ) ) {
                 logger_.log( level,
-                             "Skipping cone query for point outside footprint "
+                             "Skipping cone query for point outside coverage "
                            + "(" + (float) ra + "," + (float) dec + ")+"
                            + (float) radius );
             }
@@ -95,7 +95,7 @@ public class SequentialResultRowSequence implements ConeResultRowSequence {
 
     public void close() throws IOException {
         querySeq_.close();
-        if ( footprint_ != null ) {
+        if ( coverage_ != null ) {
             logger_.info( "Submitted " + nQuery_ + ", " + "skipped " + nSkip_
                         + " queries to service" );
         }

@@ -569,9 +569,11 @@
     <mkdir dir="${dist.etc.pkg}"/>
 
     <!-- Copy any configuration/helper scripts etc. -->
+ <!--
     <copy todir="${dist.bin}">
       <fileset dir="${script.dir}/" />
     </copy>
+ -->
 
     <!-- Copy extra documentation, note doesn't include javadocs these
      !   are generated from the source-->

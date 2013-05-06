@@ -195,6 +195,54 @@ public class Strings {
     }
 
     /**
+     * Splits a string into an array of space-separated words.
+     * One or more spaces separates each word from the next.
+     * Leading and trailing spaces are ignored.
+     *
+     * <p>The result is an array of strings, and if you want to use the
+     * individual elements you need to use square-bracket indexing,
+     * with <code>[0]</code> representing the first object
+     *
+     * @example  <code>split("211:54:01 +29:33:41")</code>
+     *           gives a 2-element array,
+     *           first element is <code>"211:54:01"</code> and
+     *           second element is <code>"+29:33:41"</code>.
+     * @example  <code>split("  cat  dog  cow ")[1] = "dog"</code>
+     *
+     * @param   words   string with embedded spaces delimiting the words
+     * @return  array of the separate words;
+     *          you can extract the individual words from the result using
+     *          square bracket indexing
+     */
+    public static String[] split( String words ) {
+        return trim( words ).split( " +" );
+    }
+
+    /**
+     * Splits a string into an array of words separated by a given
+     * regular expression.
+     *
+     * <p>The result is an array of strings, and if you want to use the
+     * individual elements you need to use square-bracket indexing,
+     * with <code>[0]</code> representing the first object
+     *
+     * @example  <code>split("cat, dog, cow", ", *")</code>
+     *           gives a 3-element string array.
+     * @example  <code>split("23.0, 45.92", ", ")[0] = "23.0"</code>
+     * @example  <code>parseDouble(split("23.0, 45.92", ", ")[0]) = 23</code>
+     *
+     * @param  words  string with multiple parts
+     * @param  regex  regular expression delimiting the different words in
+     *                the <code>words</code> parameter
+     * @return  array of the separate words;
+     *          you can extract the individual words from the result using
+     *          square bracket indexing
+     */
+    public static String[] split( String words, String regex ) {
+        return words.split( regex );
+    }
+
+    /**
      * Tests whether a string matches a given regular expression.
      *
      * @example  <code>matches("Hubble", "ub") = true</code>

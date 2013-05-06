@@ -49,6 +49,7 @@ import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatUtils;
 import uk.ac.starlink.topcat.interop.TopcatCommunicator;
 import uk.ac.starlink.topcat.interop.Transmitter;
+import uk.ac.starlink.ttools.gui.ShaderListCellRenderer;
 import uk.ac.starlink.ttools.plot.BinGrid;
 import uk.ac.starlink.ttools.plot.DensityPlot;
 import uk.ac.starlink.ttools.plot.DensityPlotEvent;
@@ -67,6 +68,7 @@ import uk.ac.starlink.ttools.func.Maths;
 import uk.ac.starlink.ttools.func.Times;
 import uk.ac.starlink.util.URLUtils;
 import uk.ac.starlink.util.gui.ChangingComboBoxModel;
+import uk.ac.starlink.util.gui.ComboBoxBumper;
 import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 

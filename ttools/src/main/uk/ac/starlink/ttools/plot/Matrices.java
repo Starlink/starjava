@@ -82,6 +82,20 @@ public class Matrices {
     }
 
     /**
+     * Returns the transpose of a 3x3 matrix.
+     *
+     * @param   a  input matrix
+     * @return  transpose of a
+     */
+    public static double[] transpose( double[] a ) {
+        return new double[] {
+            a[0], a[3], a[6],
+            a[1], a[4], a[7],
+            a[2], a[5], a[8],
+        };
+    }
+
+    /**
      * Returns a unit vector along an indicated axis.
      *
      * @param   iaxis  index of axis (0, 1 or 2)
@@ -192,7 +206,7 @@ public class Matrices {
      * @param   m   flat matrix
      * @return  pal-friendly matrix
      */
-    static double[] fromPal( double[][] m ) {
+    public static double[] fromPal( double[][] m ) {
         return new double[] {
             m[0][0], m[0][1], m[0][2],
             m[1][0], m[1][1], m[1][2],
@@ -207,7 +221,7 @@ public class Matrices {
      * @param   m  flat matrix
      * @return  pal-friendly matrix
      */
-    static double[][] toPal( double[] m ) {
+    public static double[][] toPal( double[] m ) {
         return new double[][] {
             { m[0], m[1], m[2], },
             { m[3], m[4], m[5], },

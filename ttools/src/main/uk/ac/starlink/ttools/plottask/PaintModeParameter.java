@@ -23,16 +23,16 @@ public class PaintModeParameter extends ChoiceParameter {
      * Constructor.
      *
      * @param  name   parameter name
+     * @param  exporters   list of graphic exporters for file output options
      */
-    public PaintModeParameter( String name ) {
-        super( name, PaintMode.getKnownModes() );
+    public PaintModeParameter( String name, GraphicExporter[] exporters ) {
+        super( name, PaintMode.getKnownModes( exporters ) );
 
         outParam_ = new OutputStreamParameter( "out" );
         outParam_.setPrompt( "Output file for graphics" );
         outParam_.setDefault( null );
         outParam_.setNullPermitted( false );
 
-        GraphicExporter[] exporters = PaintMode.getKnownExporters();
         formatParam_ = new ChoiceParameter( "ofmt", exporters );
         formatParam_.setPrompt( "Graphics format for plot output" );
         StringBuffer fmtbuf = new StringBuffer()
@@ -64,7 +64,7 @@ public class PaintModeParameter extends ChoiceParameter {
               .append( "</p>" );
         formatParam_.setDescription( fmtbuf.toString() );
 
-        PaintMode[] modes = PaintMode.getKnownModes();
+        PaintMode[] modes = PaintMode.getKnownModes( exporters );
         StringBuffer modebuf = new StringBuffer()
             .append( "<p>Determines how the drawn plot will be output.\n" )
             .append( "<ul>\n" );
@@ -81,7 +81,11 @@ public class PaintModeParameter extends ChoiceParameter {
                .append( "</p>" );
         setDescription( modebuf.toString() );
         setPrompt( "Mode for graphical output" );
-        setDefault( PaintMode.DEFAULT_MODE.getName() );
+
+        /* Set the default as the final value.  This happens to be "auto"
+         * at present.  If it wasn't, choosing the last one wouldn't
+         * necessarily be a good choice. */
+        setDefault( modes[ modes.length - 1 ].getName() );
     }
 
     /**

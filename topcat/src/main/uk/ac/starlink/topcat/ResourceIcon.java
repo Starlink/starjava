@@ -1,15 +1,10 @@
 package uk.ac.starlink.topcat;
 
 import Acme.JPM.Encoders.GifEncoder;
-import java.awt.AlphaComposite;
-import java.awt.Color;
 import java.awt.Component;
-import java.awt.Composite;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.MediaTracker;
-import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
@@ -35,7 +30,6 @@ import java.util.Map;
 import javax.help.JHelp;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
-import javax.swing.JPanel;
 import javax.swing.plaf.metal.MetalCheckBoxIcon;
 import uk.ac.starlink.table.gui.FileChooserTableLoadDialog;
 import uk.ac.starlink.table.gui.FilestoreTableLoadDialog;
@@ -44,6 +38,7 @@ import uk.ac.starlink.topcat.interop.TopcatServer;
 import uk.ac.starlink.topcat.plot.ErrorModeSelectionModel;
 import uk.ac.starlink.topcat.plot.SphereWindow;
 import uk.ac.starlink.ttools.plot.ErrorMode;
+import uk.ac.starlink.util.IconUtils;
 import uk.ac.starlink.vo.ConeSearchDialog;
 import uk.ac.starlink.vo.RegistryTableLoadDialog;
 import uk.ac.starlink.vo.SiapTableLoadDialog;
@@ -65,8 +60,6 @@ import uk.ac.starlink.vo.TapTableLoadDialog;
  */
 public class ResourceIcon implements Icon {
 
-    private static Component dummyComponent_;
-
     /** Location of image resource files relative to this class. */
     public static final String PREFIX = "images/";
 
@@ -77,13 +70,12 @@ public class ResourceIcon implements Icon {
         DO_WHAT = makeIcon( "burst.gif" ),
 
         /* Adverts. */
-        TOPCAT = makeIcon( "TopCat2.gif" ),
         STARLINK = makeIcon( "starlinklogo3.gif" ),
         TABLE = makeIcon( "browser1.gif" ),
-        TOPCAT_LOGO = makeIcon( "tc3.gif" ),
-        TOPCAT_LOGO_SMALL = makeIcon( "tc3_24.gif" ),
-        TOPCAT_LOGO_XM = makeIcon( "tc_santa.gif" ),
-        TOPCAT_LOGO_XM_SMALL = makeIcon( "tc_santa_24.gif" ),
+        TOPCAT_LOGO = makeIcon( "tc_sok.gif" ),
+        TOPCAT_LOGO_SMALL = makeIcon( "tc_sok_24.gif" ),
+        TOPCAT_LOGO_XM = makeIcon( "tc_sok_santa.gif" ),
+        TOPCAT_LOGO_XM_SMALL = makeIcon( "tc_sok_santa_24.gif" ),
         STAR_LOGO = makeIcon( "starlink48.gif" ),
         ASTROGRID_LOGO = makeIcon( "ag48.gif" ),
         BRISTOL_LOGO = makeIcon( "bris48.gif" ),
@@ -195,10 +187,12 @@ public class ResourceIcon implements Icon {
         FINE = makeIcon( "smallpix.gif" ),
         ROUGH = makeIcon( "bigpix2.gif" ),
         AXIS_EDIT = makeIcon( "axed3.gif" ),
+        AXIS_LOCK = makeIcon( "axlock.gif" ),
         BROADCAST = makeIcon( "tx3.gif" ),
         SEND = makeIcon( "phone2.gif" ),
         ADD_TAB = makeIcon( "atab3.gif" ),
         REMOVE_TAB = makeIcon( "rtab3.gif" ),
+        COLORS = makeIcon( "colours2.gif" ),
         ADD_COLORS = makeIcon( "acolour1.gif" ),
         REMOVE_COLORS = makeIcon( "rcolour1.gif" ),
         NORTH = makeIcon( "north2.gif" ),
@@ -222,14 +216,21 @@ public class ResourceIcon implements Icon {
         PROFILE = makeIcon( "vu-meter.gif" ),
         SYSTEM = makeIcon( "sysbrowser.gif" ),
         KEEP_OPEN = makeIcon( "tack2.gif" ),
-        LISTEN = makeIcon( "tcear3.gif" ),
+        LISTEN = makeIcon( "tcear_sok.gif" ),
         TO_BROWSER = makeIcon( "toBrowser.gif" ),
         SYNTAX = makeIcon( "syntax.gif" ),
         FOOTPRINT = makeIcon( "footprint.gif" ),
+        ZOOM_IN = makeIcon( "mag-plus.gif" ),
+        ZOOM_OUT = makeIcon( "mag-minus.gif" ),
 
-        /* Non-standard sizes. */
-        SMALL_DEC = makeIcon( "dec.gif" ),
-        SMALL_INC = makeIcon( "inc.gif" ),
+        /* Plot2 icons. */
+        UP_DOWN = makeIcon( "updown8.gif" ),
+        FLOAT = makeIcon( "float1.gif" ),
+        PLOT_DATA = makeIcon( "dataplot.gif" ),
+        PLOT2_PLANE = makeIcon( "plot2plane.gif" ),
+        PLOT2_SKY = makeIcon( "plot2sky.gif" ),
+        PLOT2_CUBE = makeIcon( "plot2cube.gif" ),
+        PLOT2_SPHERE = makeIcon( "plot2sphere.gif" ),
 
         /* Datanode (hierarchy browser) icons. */
         COLLAPSED = makeIcon( "handle1.gif" ),
@@ -405,18 +406,6 @@ public class ResourceIcon implements Icon {
     }
 
     /**
-     * Provides an empty component.
-     *
-     * @return   lazily constructed component
-     */
-    private static Component getDummyComponent() {
-        if ( dummyComponent_ == null ) {
-            dummyComponent_ = new JPanel();
-        }
-        return dummyComponent_;
-    }
-
-    /**
      * Checks that all the required resource files are present for 
      * this class.  If any of the image files are not present, it will
      * return throw an informative FileNotFoundException.
@@ -587,6 +576,29 @@ public class ResourceIcon implements Icon {
         nameMap.put( "HELP_SEARCH",
                      new ImageIcon( JHelp.class
                              .getResource( "plaf/basic/images/search.gif" ) ) );
+
+        /* Pull in icons from TTOOLS package. */
+        Field[] fields = uk.ac.starlink.ttools.gui.ResourceIcon.class
+                        .getDeclaredFields();
+        for ( int i = 0; i < fields.length; i++ ) {
+            Field field = fields[ i ];
+            int mods = field.getModifiers();
+            String name = field.getName();
+            if ( Icon.class.isAssignableFrom( field.getType() ) &&
+                 Modifier.isPublic( mods ) &&
+                 Modifier.isStatic( mods ) &&
+                 Modifier.isFinal( mods ) &&
+                 name.equals( name.toUpperCase() ) ) {
+                 Icon icon;
+                 try {
+                     icon = (Icon) field.get( null );
+                 }
+                 catch ( IllegalAccessException e ) {
+                     throw new AssertionError( e );
+                 }
+                 nameMap.put( name, icon );
+            }
+        }
         return nameMap;
     }
 
@@ -636,58 +648,6 @@ public class ResourceIcon implements Icon {
     }
 
     /**
-     * Returns an ImageIcon based on a given Icon object.  If the supplied
-     * <code>icon</code> is already an ImageIcon, it is returned.  Otherwise,
-     * it is painted to an Image and an ImageIcon is constructed from that.
-     * The reason this is useful is that some Swing components will only
-     * grey out disabled icons if they are ImageIcon subclasses (which is
-     * naughty).
-     *
-     * @param  icon  input icon
-     * @return   image icon
-     */
-    public static ImageIcon toImageIcon( Icon icon ) {
-        if ( icon instanceof ImageIcon ) {
-            return (ImageIcon) icon;
-        }
-        else {
-            return new ImageIcon( createImage( icon ) );
-        }
-    }
-
-    /**
-     * Returns an image got by drawing an Icon.
-     *
-     * @param  icon 
-     * @return  image
-     */
-    private static BufferedImage createImage( Icon icon ) {
-        int w = icon.getIconWidth();
-        int h = icon.getIconHeight();
-
-        /* Create an image to draw on. */
-        BufferedImage image =
-            new BufferedImage( w, h, BufferedImage.TYPE_INT_ARGB );
-        Graphics2D g2 = image.createGraphics();
-
-        /* Clear it to transparent white. */
-        Color color = g2.getColor();
-        Composite compos = g2.getComposite();
-        g2.setComposite( AlphaComposite.getInstance( AlphaComposite.SRC ) );
-        g2.setColor( new Color( 1f, 1f, 1f, 0f ) );
-        g2.fillRect( 0, 0, w, h );
-        g2.setColor( color );
-        g2.setComposite( compos );
-
-        /* Paint the icon. */
-        icon.paintIcon( getDummyComponent(), g2, 0, 0 );
-
-        /* Tidy up and return the image. */
-        g2.dispose();
-        return image;
-    }
-
-    /**
      * Writes an icon as a GIF to a given filename.
      *
      * @param   icon  icon to draw
@@ -697,7 +657,7 @@ public class ResourceIcon implements Icon {
         OutputStream out = new FileOutputStream( file );
         try {
             out = new BufferedOutputStream( out );
-            new GifEncoder( createImage( icon ), out ).encode();
+            new GifEncoder( IconUtils.createImage( icon ), out ).encode();
         }
         finally {
             out.close();

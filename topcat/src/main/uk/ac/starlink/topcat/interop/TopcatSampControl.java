@@ -104,10 +104,10 @@ public class TopcatSampControl {
         meta.setDocumentationUrl( tcServer.isFound( docUrl )
                                   ? docUrl.toString()
                                   : homepage );
-        URL logoUrl = new URL( tcPkgUrl, "images/tc3.gif" );
+        URL logoUrl = new URL( tcPkgUrl, "images/tc_sok.gif" );
         meta.setIconUrl( tcServer.isFound( logoUrl )
                              ? logoUrl.toString()
-                             : homepage + "images/tc3.gif" );
+                             : homepage + "images/tc_sok.gif" );
         meta.put( "home.page", homepage );
         meta.put( "author.name", "Mark Taylor" );
         meta.put( "author.affiliation",

@@ -561,14 +561,17 @@ public class ColumnInfoWindow extends AuxWindow {
     private class ValueInfoMetaColumn extends MetaColumn {
 
         private ValueInfo vinfo;
-        private Class vclass;
         private boolean isEditable;
+        private Class vclass;
+        private boolean isFormattable;
 
         ValueInfoMetaColumn( ValueInfo vinfo, boolean isEditable ) {
-            super( vinfo.getName(), vinfo.getContentClass() );
+            super( vinfo.getName(), canFormat( vinfo ) ? vinfo.getContentClass()
+                                                       : Object.class );
             this.vinfo = vinfo;
-            this.vclass = vinfo.getContentClass();
             this.isEditable = isEditable;
+            this.vclass = vinfo.getContentClass();
+            this.isFormattable = canFormat( vinfo );
         }
 
         ValueInfoMetaColumn( ValueInfo vinfo ) {
@@ -585,14 +588,15 @@ public class ColumnInfoWindow extends AuxWindow {
                 Object value = auxDatum.getValue();
                 if ( value != null && 
                      vclass.isAssignableFrom( value.getClass() ) ) {
-                    return value;
+                    return isFormattable ? value
+                                         : vinfo.formatValue( value, 64 );
                 }
             }
             return null;
         }
 
         public boolean isEditable( int irow ) {
-            return isEditable;
+            return isEditable && isFormattable;
         }
 
         public void setValue( int irow, Object value ) {
@@ -611,6 +615,20 @@ public class ColumnInfoWindow extends AuxWindow {
                 // ??
             }
         }
+    }
+
+    /**
+     * Indicates whether sensible formatting and unformatting
+     * is possible for a given ValueInfo.
+     *
+     * @param  info  metadata item to test
+     * @return   true if String format/unformat is implemented
+     */
+    private static boolean canFormat( ValueInfo info ) {
+        Class clazz = info.getContentClass();
+        return Number.class.isAssignableFrom( clazz )
+            || String.class.isAssignableFrom( clazz )
+            || Boolean.class.isAssignableFrom( clazz );
     }
 
     /**

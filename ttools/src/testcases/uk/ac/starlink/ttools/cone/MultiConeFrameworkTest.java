@@ -10,7 +10,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.ttools.TableTestCase;
-import uk.ac.starlink.ttools.cone.Footprint;
+import uk.ac.starlink.ttools.cone.Coverage;
 import uk.ac.starlink.ttools.task.TableProducer;
 import uk.ac.starlink.votable.VOTableBuilder;
 import uk.ac.starlink.util.TestCase;
@@ -92,8 +92,8 @@ public class MultiConeFrameworkTest extends TableTestCase {
         assertEquals( 2 + 3 + ( addScore ? 1 : 0 ),
                       allResult.getColumnCount() );
 
-        Footprint footNorth = new HemisphereFootprint( true );
-        Footprint footSouth = new HemisphereFootprint( false );
+        Coverage footNorth = new HemisphereCoverage( true );
+        Coverage footSouth = new HemisphereCoverage( false );
         ConeMatcher footMatcherN = new ConeMatcher(
                 searcher, inProd,
                 new JELQuerySequenceFactory( "RA + 0", "DEC", "0.5" ), true,
@@ -212,17 +212,17 @@ public class MultiConeFrameworkTest extends TableTestCase {
     }
 
     /**
-     * Test footprint that covers a hemisphere at a time.
+     * Test coverage that covers a hemisphere at a time.
      */
-    private static class HemisphereFootprint implements Footprint {
+    private static class HemisphereCoverage implements Coverage {
         private final boolean isNorth_;
-        HemisphereFootprint( boolean isNorth ) {
+        HemisphereCoverage( boolean isNorth ) {
             isNorth_ = isNorth;
         }
-        public void initFootprint() {
+        public void initCoverage() {
         }
-        public Coverage getCoverage() {
-            return Coverage.SOME_SKY;
+        public Amount getAmount() {
+            return Amount.SOME_SKY;
         }
         public boolean discOverlaps( double alphaDeg, double deltaDeg,
                                      double radiusDeg ) {

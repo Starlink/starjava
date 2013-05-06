@@ -16,6 +16,7 @@ import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.gui.LabelledComponentStack;
 import uk.ac.starlink.table.gui.StarTableColumn;
 import uk.ac.starlink.table.gui.UCDSelector;
+import uk.ac.starlink.util.gui.CustomComboBoxRenderer;
 
 /**
  * A dialogue window which queries the user for the characteristics of a

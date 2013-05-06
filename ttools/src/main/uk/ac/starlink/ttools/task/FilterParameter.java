@@ -41,7 +41,7 @@ public class FilterParameter extends Parameter
             "</p>",
             "<p>Commands may alteratively be supplied in an external file,",
             "by using the indirection character '" + indir + "'.",
-            "Thus \"<code>" + getName() + "=" + indir + "filename</code>\"",
+            "Thus a value of \"<code>" + indir + "filename</code>\"",
             "causes the file <code>filename</code> to be read for a list",
             "of filter commands to execute.  The commands in the file",
             "may be separated by newline characters and/or semicolons.",
