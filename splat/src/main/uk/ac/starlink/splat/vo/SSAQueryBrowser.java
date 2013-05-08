@@ -1514,6 +1514,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
      
         boolean hasParams = false;
        
+        ImageIcon cutImage = new ImageIcon( ImageHolder.class.getResource("smallcutter.gif") );
    
         if ( next instanceof SSAQuery && next != null ) {
             ssaQuery = (SSAQuery) next;
@@ -1554,15 +1555,16 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                 scrollPane = new JScrollPane( table );
               //  scrollPane.setPreferredSize(new Dimension(600,400));
                 if (getDataTable != null) {
-                    shortName = "✂ " + shortName;
+		  
                     if ( getDataFrame == null )
                         getDataFrame = new GetDataQueryFrame();
                     getDataFrame.addService(shortName, getDataTable);
                     getDataButton.setEnabled(true);
                     getDataButton.setVisible(true);
                     getDataButton.setForeground(Color.GRAY);
+                    resultsPane.addTab( shortName, cutImage, scrollPane );
                 }
-                resultsPane.addTab( shortName, scrollPane );
+                else resultsPane.addTab( shortName, scrollPane );
                 starJTables.add( table );
 
                 //  Set widths of columns.
@@ -2572,7 +2574,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         int nrTabs = resultsPane.getTabCount();
         for(int i = 0; i < nrTabs; i++)
         {
-           if ( ! resultsPane.getTitleAt(i).startsWith("✂") ) 
+           if (resultsPane.getIconAt(i) == null) 
                resultsPane.setEnabledAt(i, false);
            else 
                resultsPane.setSelectedIndex(i);
