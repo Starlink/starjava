@@ -82,6 +82,7 @@ public class ResourceIcon implements Icon {
         VOTECH_LOGO = makeIcon( "votech48.gif" ),
         STFC_LOGO = makeIcon( "stfc48.gif" ),
         GAVO_LOGO = makeIcon( "gavo48.gif" ),
+        ESA_LOGO = makeIcon( "esa48.gif" ),
         VIZIER_LOGO = makeIcon( "vizier_logo.gif" ),
 
         /* Generic actions. */
