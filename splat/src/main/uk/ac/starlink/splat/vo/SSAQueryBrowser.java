@@ -2211,9 +2211,13 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         boolean hasParams = false;
        
 <<<<<<< HEAD
+<<<<<<< HEAD
         ImageIcon cutImage = new ImageIcon( ImageHolder.class.getResource("smallcutter.gif") );
 =======
 >>>>>>> 
+=======
+        ImageIcon cutImage = new ImageIcon( ImageHolder.class.getResource("smallcutter.gif") );
+>>>>>>> Changed look of getData cutout icon
    
         if ( next instanceof SSAQuery && next != null ) {
             ssaQuery = (SSAQuery) next;
@@ -2315,16 +2319,21 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
 =======
 >>>>>>> resolving conflicts
                 if (getDataTable != null) {
-                    shortName = "✂ " + shortName;
+		  
                     if ( getDataFrame == null )
                         getDataFrame = new GetDataQueryFrame();
                     getDataFrame.addService(shortName, getDataTable);
                     getDataButton.setEnabled(true);
                     getDataButton.setVisible(true);
                     getDataButton.setForeground(Color.GRAY);
+                    resultsPane.addTab( shortName, cutImage, scrollPane );
                 }
+<<<<<<< HEAD
                 resultsPane.addTab( shortName, scrollPane );
 >>>>>>> 
+=======
+                else resultsPane.addTab( shortName, scrollPane );
+>>>>>>> Changed look of getData cutout icon
                 starJTables.add( table );
 
                 //  Set widths of columns.
@@ -3674,6 +3683,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         for(int i = 0; i < nrTabs; i++)
         {
 <<<<<<< HEAD
+<<<<<<< HEAD
            if (resultsPane.getIconAt(i) == null) {
                resultsPane.setEnabledAt(i, false);
            }
@@ -3734,6 +3744,9 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             
 =======
            if ( ! resultsPane.getTitleAt(i).startsWith("✂") ) 
+=======
+           if (resultsPane.getIconAt(i) == null) 
+>>>>>>> Changed look of getData cutout icon
                resultsPane.setEnabledAt(i, false);
            else 
                resultsPane.setSelectedIndex(i);
