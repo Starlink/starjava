@@ -9,8 +9,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -78,9 +80,8 @@ public class StatsWindow extends AuxWindow {
         new DefaultValueInfo( "subset", String.class,
                               "Name of row subset over which statistics " +
                               "were gathered" );
-    private static final Map QUANTILE_NAMES = quantileNames();
-    private static final double[] QUANTILES =
-        { 0.001, 0.01, 0.1, 0.25, 0.5, 0.75, 0.9, 0.99, 0.999, };
+    private static final Map<Double,String> NAMED_QUANTILES =
+        createNamedQuantiles();
 
     /**
      * Constructs a StatsWindow to report on the statistics of data in a
@@ -620,9 +621,9 @@ public class StatsWindow extends AuxWindow {
         } );
 
         /* Quantiles. */
-        for ( int iq = 0; iq < QUANTILES.length; iq++ ) {
+        for ( Map.Entry<Double,String> entry : NAMED_QUANTILES.entrySet() ) {
             hideColumns_.set( metas.size() );
-            metas.add( new QuantileColumn( QUANTILES[ iq ] ) );
+            metas.add( new QuantileColumn( entry.getKey(), entry.getValue() ) );
         }
 
         /* Construct a new TableModel based on these meta columns. */
@@ -725,24 +726,23 @@ public class StatsWindow extends AuxWindow {
     }
 
     /**
-     * Map providing human-readable names for quantiles.
-     * There ought to be an entry for every entry in the {@link #QUANTILES}
-     * array.
+     * Map providing quantile options provided along with human-readable names.
      *
-     * @return   Double -&gt; String map
+     * @return   value -&gt; name map;
+     *           value is between 0 (0th percentile) and 1 (100th percentile)
      */
-    private static Map quantileNames() {
-        Map map = new HashMap();
-        map.put( new Double( 0.5 ), "Median" );
-        map.put( new Double( 0.25 ), "Quartile1" );
-        map.put( new Double( 0.75 ), "Quartile3" );
+    private static Map<Double,String> createNamedQuantiles() {
+        Map map = new LinkedHashMap();
         map.put( new Double( 0.001 ), "Q001" );
         map.put( new Double( 0.01 ), "Q01" );
         map.put( new Double( 0.1 ), "Q10" );
+        map.put( new Double( 0.25 ), "Quartile1" );
+        map.put( new Double( 0.5 ), "Median" );
+        map.put( new Double( 0.75 ), "Quartile3" );
         map.put( new Double( 0.9 ), "Q90" );
         map.put( new Double( 0.99 ), "Q99" );
         map.put( new Double( 0.999 ), "Q999" );
-        return map;
+        return Collections.unmodifiableMap( map );
     }
 
     /**
@@ -751,15 +751,6 @@ public class StatsWindow extends AuxWindow {
     private class QuantileColumn extends MetaColumn {
         private final Double key_;
         private final double quant_;
-
-        /**
-         * Constructor.
-         *
-         * @param   quant   value at which quantile is calculated (0-1)
-         */
-        QuantileColumn( double quant ) {
-            this( quant, (String) QUANTILE_NAMES.get( new Double( quant ) ) );
-        }
 
         /**
          * Constructor with name.
@@ -1204,10 +1195,9 @@ public class StatsWindow extends AuxWindow {
                     if ( quantCalc != null ) {
                         quantCalc.ready();
                         quantiles[ icol ] = new HashMap();
-                        for ( int iq = 0; iq < QUANTILES.length; iq++ ) {
-                            double q = QUANTILES[ iq ];
-                            quantiles[ icol ].put( new Double( q ),
-                                                   quantCalc.getQuantile( q ) );
+                        for ( Double qval : NAMED_QUANTILES.keySet() ) {
+                            quantiles[ icol ]
+                           .put( qval, quantCalc.getQuantile( qval ) );
                         }
                         quantCalcs[ icol ] = null;
                     }
