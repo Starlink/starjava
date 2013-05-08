@@ -62,6 +62,7 @@ import uk.ac.starlink.vo.ConeSearchDialog;
 import uk.ac.starlink.vo.DalTableLoadDialog;
 import uk.ac.starlink.vo.SiapTableLoadDialog;
 import uk.ac.starlink.vo.SsapTableLoadDialog;
+import uk.ac.starlink.vo.TapTableLoadDialog;
 
 /**
  * Provides TOPCAT's SAMP functionality.
@@ -414,6 +415,8 @@ public class TopcatSampControl {
             new ResourceListHandler( "voresource.loadlist.ssap",
                                      SsapTableLoadDialog.class,
                                      SsaMultiWindow.class ),
+            new ResourceListHandler( "voresource.loadlist.tap",
+                                     TapTableLoadDialog.class, null ),
         };
     }
 
@@ -783,14 +786,6 @@ public class TopcatSampControl {
                 Class<? extends DalTableLoadDialog> dalLoadDialogClass,
                 Class<? extends DalMultiWindow> dalMultiWindowClass ) {
             super( mtype );
-            if ( ! DalTableLoadDialog.class
-                  .isAssignableFrom( dalLoadDialogClass ) ) {
-                throw new IllegalArgumentException();
-            }
-            if ( ! DalMultiWindow.class
-                  .isAssignableFrom( dalMultiWindowClass ) ) {
-                throw new IllegalArgumentException();
-            }
             dalLoadDialogClass_ = dalLoadDialogClass;
             dalMultiWindowClass_ = dalMultiWindowClass;
         }

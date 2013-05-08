@@ -17997,6 +17997,8 @@ introduced since the last version:
     <li>The Columns window now makes a better attempt at displaying
         non-standard per-column metadata of unusual types, in particular
         array values.</li>
+    <li>Now subscribes to SAMP <code>voresource.loadlist.tap</code> MType,
+        accepting resource list in TAP load dialogue "Select Service" tab.</li>
     </ul>
     </p></dd>
 

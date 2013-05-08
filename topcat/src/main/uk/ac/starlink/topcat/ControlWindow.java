@@ -1100,16 +1100,6 @@ public class ControlWindow extends AuxWindow
                        Class<? extends DalMultiWindow> dalMultiWindowClass ) {
         boolean accepted = false;
 
-        /* Validate. */
-        if ( ! DalTableLoadDialog.class
-              .isAssignableFrom( dalLoadDialogClass ) ) {
-            throw new IllegalArgumentException();
-        }
-        if ( ! DalMultiWindow.class
-              .isAssignableFrom( dalMultiWindowClass ) ) {
-            throw new IllegalArgumentException();
-        }
-
         /* Handle single table load dialogues. */
         if ( loadWindow_ != null ) {
             TableLoadDialog[] tlds = loadWindow_.getKnownDialogs();
@@ -1149,7 +1139,7 @@ public class ControlWindow extends AuxWindow
      * @param  tldClass  load dialogue type
      */
     public boolean loadDialogMatches( TableLoadDialog tld, Class tldClass ) {
-        return tldClass.isAssignableFrom( tld.getClass() );
+        return tldClass != null && tldClass.isAssignableFrom( tld.getClass() );
     }
 
     /**
@@ -1157,7 +1147,7 @@ public class ControlWindow extends AuxWindow
      * by the given class.
      */
     public boolean multiWindowMatches( DalMultiWindow mw, Class mwClass ) {
-        return mwClass.isAssignableFrom( mw.getClass() );
+        return mwClass != null && mwClass.isAssignableFrom( mw.getClass() );
     }
 
     /**
