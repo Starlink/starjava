@@ -4,6 +4,7 @@
 /*/etc/
 /*/lib/
 /*/.*.install
+*.orig
 !/ant/bin/
 !/ant/docs/
 !/ant/etc/
