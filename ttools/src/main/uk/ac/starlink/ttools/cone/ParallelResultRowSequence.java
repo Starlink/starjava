@@ -20,6 +20,7 @@ public class ParallelResultRowSequence implements ConeResultRowSequence {
 
     private final ConeQueryRowSequence querySeq_;
     private final ConeSearcher coneSearcher_;
+    private final ConeErrorPolicy errAct_;
     private final Coverage coverage_;
     private final boolean bestOnly_;
     private final boolean distFilter_;
@@ -39,6 +40,7 @@ public class ParallelResultRowSequence implements ConeResultRowSequence {
      *
      * @param  querySeq  sequence providing cone search query parameters
      * @param  coneSearcher  cone search implementation
+     * @param  errAct   defines action on cone search invocation error
      * @param  coverage   coverage for results, or null
      * @param  bestOnly  whether all results or just best are required
      * @param  distFilter  true to perform post-query filtering on results
@@ -50,11 +52,13 @@ public class ParallelResultRowSequence implements ConeResultRowSequence {
      */
     public ParallelResultRowSequence( ConeQueryRowSequence querySeq,
                                       ConeSearcher coneSearcher,
+                                      ConeErrorPolicy errAct,
                                       Coverage coverage, boolean bestOnly,
                                       boolean distFilter, String distanceCol,
                                       int parallelism ) {
         querySeq_ = querySeq;
         coneSearcher_ = coneSearcher;
+        errAct_ = errAct;
         coverage_ = coverage;
         bestOnly_ = bestOnly;
         distFilter_ = distFilter;
@@ -382,8 +386,9 @@ public class ParallelResultRowSequence implements ConeResultRowSequence {
                 nSkip_++;
             }
             else {
-                table = ConeMatcher.getConeResult( coneSearcher_, bestOnly_,
-                                                   distFilter_, distanceCol_,
+                table = ConeMatcher.getConeResult( coneSearcher_, errAct_,
+                                                   bestOnly_, distFilter_,
+                                                   distanceCol_,
                                                    ra, dec, radius );
                 nQuery_++;
             }

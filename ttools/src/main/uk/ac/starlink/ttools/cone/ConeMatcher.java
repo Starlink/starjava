@@ -42,6 +42,7 @@ import uk.ac.starlink.ttools.task.TableProducer;
 public class ConeMatcher implements TableProducer {
 
     private final ConeSearcher coneSearcher_;
+    private final ConeErrorPolicy errAct_;
     private final TableProducer inProd_;
     private final QuerySequenceFactory qsFact_;
     private final int parallelism_;
@@ -72,15 +73,17 @@ public class ConeMatcher implements TableProducer {
      * Convenience constructor which selects default values for most options.
      *
      * @param   coneSearcher   cone search implementation
+     * @param   errAct   defines action on cone search invocation error
      * @param   inProd   source of input table (containing each crossmatch
      *                   specification)
      * @param   qsFact    object which can produce a ConeQueryRowSequence
      * @param   bestOnly  true iff only the best match for each input table
      *                    row is required, false for all matches within radius
      */
-    public ConeMatcher( ConeSearcher coneSearcher, TableProducer inProd,
-                        QuerySequenceFactory qsFact, boolean bestOnly ) {
-        this( coneSearcher, inProd, qsFact, bestOnly, null, true, false,
+    public ConeMatcher( ConeSearcher coneSearcher, ConeErrorPolicy errAct,
+                        TableProducer inProd, QuerySequenceFactory qsFact,
+                        boolean bestOnly ) {
+        this( coneSearcher, errAct, inProd, qsFact, bestOnly, null, true, false,
               1, "*", DISTANCE_INFO.getName(), JoinFixAction.NO_ACTION,
               JoinFixAction.makeRenameDuplicatesAction( "_1", false, false ) );
     }
@@ -89,6 +92,7 @@ public class ConeMatcher implements TableProducer {
      * Full-functioned constructor.
      *
      * @param   coneSearcher   cone search implementation
+     * @param   errAct   defines action on cone search invocation error
      * @param   inProd   source of input table (containing each crossmatch
      *                   specification)
      * @param   qsFact    object which can produce a ConeQueryRowSequence
@@ -111,13 +115,15 @@ public class ConeMatcher implements TableProducer {
      * @param   coneFixAct column name deduplication action for result
      *                     of cone searches
      */
-    public ConeMatcher( ConeSearcher coneSearcher, TableProducer inProd,
+    public ConeMatcher( ConeSearcher coneSearcher, ConeErrorPolicy errAct,
+                        TableProducer inProd,
                         QuerySequenceFactory qsFact, boolean bestOnly,
                         Coverage coverage, boolean includeBlanks,
                         boolean distFilter, int parallelism,
                         String copyColIdList, String distanceCol,
                         JoinFixAction inFixAct, JoinFixAction coneFixAct ) {
         coneSearcher_ = coneSearcher;
+        errAct_ = errAct;
         inProd_ = inProd;
         qsFact_ = qsFact;
         bestOnly_ = bestOnly;
@@ -169,6 +175,7 @@ public class ConeMatcher implements TableProducer {
         if ( parallelism_ == 1 ) {
             resultSeq = new SequentialResultRowSequence( querySeq,
                                                          coneSearcher_,
+                                                         errAct_,
                                                          coverage_,
                                                          bestOnly_, distFilter_,
                                                          distanceCol_ ) {
@@ -181,6 +188,7 @@ public class ConeMatcher implements TableProducer {
         else {
             resultSeq = new ParallelResultRowSequence( querySeq,
                                                        coneSearcher_,
+                                                       errAct_,
                                                        coverage_,
                                                        bestOnly_, distFilter_,
                                                        distanceCol_,
@@ -227,6 +235,7 @@ public class ConeMatcher implements TableProducer {
      * be null or (preferably) an empty table with the correct columns.
      *
      * @param   coneSearcher   cone search implementation
+     * @param   errAct   defines action on cone search invocation error
      * @param   bestOnly  true iff only the best match for each input table
      *                    row is required, false for all matches within radius
      * @param   distFilter true to perform post-query filtering on results
@@ -240,6 +249,7 @@ public class ConeMatcher implements TableProducer {
      * @return   filtered result table, or null
      */
     public static StarTable getConeResult( ConeSearcher coneSearcher,
+                                           ConeErrorPolicy errAct,
                                            boolean bestOnly, boolean distFilter,
                                            String distanceCol,
                                            final double ra0, final double dec0,
@@ -255,7 +265,13 @@ public class ConeMatcher implements TableProducer {
 
         /* Perform the cone search itself. */
         logger_.info( "Cone: ra=" + ra0 + "; dec=" + dec0 + "; sr=" + sr );
-        StarTable result = coneSearcher.performSearch( ra0, dec0, sr );
+        StarTable result;
+        try {
+            result = errAct.performConeSearch( coneSearcher, ra0, dec0, sr );
+        }
+        catch ( InterruptedException e ) {
+            throw new IOException( "Thread interrupted" );
+        }
         if ( result == null ) {
             return null;
         }

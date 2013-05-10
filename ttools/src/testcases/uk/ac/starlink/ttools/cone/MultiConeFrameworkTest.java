@@ -18,6 +18,8 @@ import uk.ac.starlink.util.URLDataSource;
 
 public class MultiConeFrameworkTest extends TableTestCase {
 
+    private static final ConeErrorPolicy errAct = ConeErrorPolicy.ABORT;
+
     public MultiConeFrameworkTest( String name ) {
         super( name );
         Logger.getLogger( "uk.ac.starlink.ttools.cone" )
@@ -59,7 +61,7 @@ public class MultiConeFrameworkTest extends TableTestCase {
         };
 
         ConeMatcher bestMatcher = new ConeMatcher(
-                searcher, inProd,
+                searcher, errAct, inProd,
                 new JELQuerySequenceFactory( "RA + 0", "DEC", "0.5" ), true,
                 null, false, true, parallelism, "*", scoreCol,
                 JoinFixAction.NO_ACTION, JoinFixAction.NO_ACTION );
@@ -70,7 +72,7 @@ public class MultiConeFrameworkTest extends TableTestCase {
                       bestResult.getColumnCount() );
 
         ConeMatcher eachMatcher = new ConeMatcher(
-                searcher, inProd,
+                searcher, errAct, inProd,
                 new JELQuerySequenceFactory( "RA + 0", "DEC", "0.5" ), true,
                 null, true, true, parallelism, "*", scoreCol,
                 JoinFixAction.NO_ACTION, JoinFixAction.NO_ACTION );
@@ -80,7 +82,7 @@ public class MultiConeFrameworkTest extends TableTestCase {
         assertEquals( messier.getRowCount(), eachResult.getRowCount() );
 
         ConeMatcher allMatcher = new ConeMatcher(
-                searcher, inProd,
+                searcher, errAct, inProd,
                 new JELQuerySequenceFactory( "ucd$POS_EQ_RA_", "ucd$POS_EQ_DEC",
                                              "0.1 + 0.2" ),
                 false, null, false, true, parallelism, "RA DEC", scoreCol,
@@ -95,12 +97,12 @@ public class MultiConeFrameworkTest extends TableTestCase {
         Coverage footNorth = new HemisphereCoverage( true );
         Coverage footSouth = new HemisphereCoverage( false );
         ConeMatcher footMatcherN = new ConeMatcher(
-                searcher, inProd,
+                searcher, errAct, inProd,
                 new JELQuerySequenceFactory( "RA + 0", "DEC", "0.5" ), true,
                 footNorth, false, true, parallelism, "*", scoreCol,
                 JoinFixAction.NO_ACTION, JoinFixAction.NO_ACTION );
         ConeMatcher footMatcherS = new ConeMatcher(
-                searcher, inProd,
+                searcher, errAct, inProd,
                 new JELQuerySequenceFactory( "RA + 0", "DEC", "0.5" ), true,
                 footSouth, false, true, parallelism, "*", scoreCol,
                 JoinFixAction.NO_ACTION, JoinFixAction.NO_ACTION );
@@ -122,7 +124,7 @@ public class MultiConeFrameworkTest extends TableTestCase {
             };
 
             ConeMatcher bestMatcher2 = new ConeMatcher(
-                    searcher2, inProd,
+                    searcher2, errAct, inProd,
                     new JELQuerySequenceFactory( "RA + 0", "DEC", "0.5" ), true,
                     null, false, true, parallelism, "*", scoreCol,
                     JoinFixAction.NO_ACTION, JoinFixAction.NO_ACTION );
@@ -132,7 +134,7 @@ public class MultiConeFrameworkTest extends TableTestCase {
                           bestResult2.getRowCount() );
 
             ConeMatcher eachMatcher2 = new ConeMatcher(
-                    searcher2, inProd,
+                    searcher2, errAct, inProd,
                     new JELQuerySequenceFactory( "RA + 0", "DEC", "0.5" ), true,
                     null, true, true, parallelism, "*", scoreCol,
                     JoinFixAction.NO_ACTION, JoinFixAction.NO_ACTION );
@@ -141,7 +143,7 @@ public class MultiConeFrameworkTest extends TableTestCase {
             assertEquals( messier.getRowCount(), eachResult2.getRowCount() );
 
             ConeMatcher allMatcher2 = new ConeMatcher(
-                    searcher2, inProd,
+                    searcher2, errAct, inProd,
                     new JELQuerySequenceFactory( "ucd$POS_EQ_RA_",
                                                  "ucd$POS_EQ_DEC",
                                                  "0.1 + 0.2" ),
@@ -187,7 +189,7 @@ public class MultiConeFrameworkTest extends TableTestCase {
             }
         };
         ConeMatcher matcher3 = new ConeMatcher(
-                searcher, inProd, qsFact3, true, null, false, true,
+                searcher, errAct, inProd, qsFact3, true, null, false, true,
                 parallelism, "", scoreCol,
                 JoinFixAction.NO_ACTION, JoinFixAction.NO_ACTION );
         StarTable result3 = Tables.randomTable( matcher3.getTable() );

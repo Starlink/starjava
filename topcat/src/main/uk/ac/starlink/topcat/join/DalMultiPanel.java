@@ -625,14 +625,13 @@ public class DalMultiPanel extends JPanel {
 
         /* Assemble objects based on this information. */
         ConeSearcher searcher = service_.createSearcher( serviceUrl, tfact );
-        searcher = erract.adjustConeSearcher( searcher );
         Coverage coverage = coverageModel_.isSelected()
                           ? service_.getCoverage( serviceUrl )
                           : null;
         DatasQuerySequenceFactory qsf =
             new DatasQuerySequenceFactory( raData, decData, srData, rowMap );
         ConeMatcher matcher =
-            mcMode.createConeMatcher( searcher, inTable, qsf, coverage,
+            mcMode.createConeMatcher( searcher, erract, inTable, qsf, coverage,
                                       parallelism );
         ResultHandler resultHandler =
             mcMode.createResultHandler( this, tfact.getStoragePolicy(),
@@ -685,9 +684,9 @@ public class DalMultiPanel extends JPanel {
             service.getName()
           + " failed - try non-\"" + ConeErrorPolicy.ABORT + "\" value for "
           + ERRACT_LABEL + "?";
-        List plist = new ArrayList();
+        List<ConeErrorPolicy> plist = new ArrayList<ConeErrorPolicy>();
         plist.add( ConeErrorPolicy
-                  .addAdvice( ConeErrorPolicy.ABORT, abortAdvice ) );
+                  .createAdviceAbortPolicy( "abort", abortAdvice ) );
         plist.add( ConeErrorPolicy.IGNORE );
         int[] retries = new int[] { 1, 2, 3, 5, 10, };
         for ( int i = 0; i < retries.length; i++ ) {
@@ -697,7 +696,7 @@ public class DalMultiPanel extends JPanel {
         }
         plist.add( ConeErrorPolicy
                   .createRetryPolicy( "Retry indefinitely", 0 ) );
-        return (ConeErrorPolicy[]) plist.toArray( new ConeErrorPolicy[ 0 ] );
+        return plist.toArray( new ConeErrorPolicy[ 0 ] );
     }
 
     /**
@@ -1061,6 +1060,7 @@ public class DalMultiPanel extends JPanel {
          * Constructs a ConeMatcher suitable for use with this mode.
          *
          * @param  coneSearcher  cone search implementation
+         * @param  errAct   defines action on cone search invocation error
          * @param  inTable  input table
          * @param  qsFact   object which can produce a ConeQueryRowSequence
          *                  from the <code>inTable</code>
@@ -1070,7 +1070,7 @@ public class DalMultiPanel extends JPanel {
          */
         public abstract ConeMatcher
                 createConeMatcher( ConeSearcher coneSearcher,
-                                   StarTable inTable,
+                                   ConeErrorPolicy errAct, StarTable inTable,
                                    QuerySequenceFactory qsFact,
                                    Coverage coverage, int parallelism );
 
@@ -1245,13 +1245,14 @@ public class DalMultiPanel extends JPanel {
         }
 
         public ConeMatcher createConeMatcher( ConeSearcher coneSearcher,
+                                              ConeErrorPolicy errAct,
                                               StarTable inTable,
                                               QuerySequenceFactory qsFact,
                                               Coverage coverage,
                                               int parallelism ) {
             return
-                new ConeMatcher( coneSearcher, toProducer( inTable ), qsFact,
-                                 best_, coverage, includeBlanks_, true,
+                new ConeMatcher( coneSearcher, errAct, toProducer( inTable ),
+                                 qsFact, best_, coverage, includeBlanks_, true,
                                  parallelism, "*", DIST_NAME,
                                  JoinFixAction.NO_ACTION,
                                  JoinFixAction
@@ -1292,11 +1293,12 @@ public class DalMultiPanel extends JPanel {
         }
 
         public ConeMatcher createConeMatcher( ConeSearcher coneSearcher,
+                                              ConeErrorPolicy errAct,
                                               StarTable inTable,
                                               QuerySequenceFactory qsFact,
                                               Coverage coverage,
                                               int parallelism ) {
-            return new ConeMatcher( coneSearcher,
+            return new ConeMatcher( coneSearcher, errAct,
                                     toProducer( prependIndex( inTable ) ),
                                     qsFact, true, coverage, false, true,
                                     parallelism, INDEX_INFO.getName(), null,

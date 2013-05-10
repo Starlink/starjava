@@ -342,7 +342,8 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
         if ( erract == ConeErrorPolicy.ABORT ) {
             String advice = "Cone search failed - try other values of "
                           + erractParam_.getName() + " parameter?";
-            erract = ConeErrorPolicy.addAdvice( erract, advice );
+            erract = ConeErrorPolicy
+                    .createAdviceAbortPolicy( erract.toString(), advice );
         }
         String distanceCol = distcolParam_.stringValue( env );
         boolean bestOnly;
@@ -365,8 +366,7 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
                                       modeParam_.getName() + "??" );
         }
         TableProducer inProd = createInputProducer( env );
-        ConeSearcher coneSearcher =
-            erract.adjustConeSearcher( coner_.createSearcher( env, bestOnly ) );
+        ConeSearcher coneSearcher = coner_.createSearcher( env, bestOnly );
         final Coverage footprint;
         if ( usefootParam_.booleanValue( env ) ) {
             footprint = coner_.getCoverage( env );
@@ -393,8 +393,8 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
 
         /* Return a table producer using these values. */
         ConeMatcher coneMatcher =
-            new ConeMatcher( coneSearcher, inProd, qsFact, bestOnly, footprint,
-                             includeBlanks, distFilter, parallelism,
+            new ConeMatcher( coneSearcher, erract, inProd, qsFact, bestOnly,
+                             footprint, includeBlanks, distFilter, parallelism,
                              copyColIdList, distanceCol, inFixAct, coneFixAct );
         coneMatcher.setStreamOutput( ostream );
         return coneMatcher;
