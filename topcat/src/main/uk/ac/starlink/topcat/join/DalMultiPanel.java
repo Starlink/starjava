@@ -64,6 +64,7 @@ import uk.ac.starlink.ttools.cone.ConeQueryRowSequence;
 import uk.ac.starlink.ttools.cone.ConeSearcher;
 import uk.ac.starlink.ttools.cone.Coverage;
 import uk.ac.starlink.ttools.cone.MocCoverage;
+import uk.ac.starlink.ttools.cone.ParallelResultRowSequence;
 import uk.ac.starlink.ttools.cone.QuerySequenceFactory;
 import uk.ac.starlink.ttools.task.TableProducer;
 import uk.ac.starlink.util.gui.ErrorDialog;
@@ -297,7 +298,9 @@ public class DalMultiPanel extends JPanel {
         } );
 
         /* Service access parameters. */
-        parallelModel_ = new SpinnerNumberModel( 5, 1, 1000, 1 );
+        int maxpar = ParallelResultRowSequence.getMaxParallelism();
+        parallelModel_ =
+            new SpinnerNumberModel( Math.min( 5, maxpar ), 1, maxpar, 1 );
         JLabel parallelLabel = new JLabel( "Parallelism: " );
         JSpinner parallelSpinner = new JSpinner( parallelModel_ );
         cList.add( parallelLabel );

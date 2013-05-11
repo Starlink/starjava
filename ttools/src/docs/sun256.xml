@@ -899,6 +899,17 @@ on the command line is equivalent to having the following in your
     "<code>Resetting to invalid mark</code>".
     Currently defaults to "false".</p></dd>
 
+<dt><code>service.maxparallel</code></dt>
+<dd><p>Raises the maximum number of concurrent queries that may be made
+    during a multi-cone operation.
+    You should only increase this value <strong>with great care</strong>
+    since you risk overloading servers and becoming unpopular with
+    data centres.
+    As a rule, you should only increase this value if you have
+    obtained permission from the data centres whose services
+    on which you will be using the increased parallelism.
+    </p></dd>
+
 <dt><code>star.basicauth.user</code></dt>
 <dt><code>star.basicauth.password</code></dt>
 <dd><p>If set, these will provide username and password for HTTP Basic
@@ -8370,6 +8381,14 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <code>-version</code> flag has changed accordingly.</li>
     <li>Output mode <code>meta</code> now copes better with array-valued
         table parameters.</li>
+    <li>Implemented fixes to reduce the chance of users inadvertently
+        overloading external Cone/SIA/SSA services with multicone-like queries.
+        First, fix it so that abandoned queries are properly terminated,
+        rather than continuing to hit the server until completion or JVM
+        shutdown.
+        Second, implement a sensible default maximum value for the
+        <code>parallel</code> parameter of <code>skyconematch</code>
+        (though this may be adjusted with a system property).</li>
     </ul>
     </p></dd>
 

@@ -41,7 +41,6 @@ import uk.ac.starlink.ttools.task.TableProducer;
 public abstract class SkyConeMatch2 extends SingleMapperTask {
 
     private final Coner coner_;
-    private final int parallelWarnThreshold_;
     private final Parameter raParam_;
     private final Parameter decParam_;
     private final Parameter srParam_;
@@ -64,18 +63,14 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
      *
      * @param  purpose  one-line description of the purpose of the task
      * @param  coner   object which provides the sky cone search service
-     * @param  allowParallel  if true, provide parameters for selecting
-     *         multi-threaded operation
-     * @param  parallelWarnThreshold  values of the parallelism over this
-     *         value result in a warning through the logging system;
-     *         &lt;=0 means no warnings;
-     *         ignored if <code>allowParallel</code> is false
+     * @param  maxParallel  the largest number of parallel threads which
+     *         will be permitted for multi-threaded operation;
+     *         1 means single-threaded only, and &lt;=0 means no limit -
+     *         use with care!
      */
-    public SkyConeMatch2( String purpose, Coner coner, boolean allowParallel,
-                          int parallelWarnThreshold ) {
+    public SkyConeMatch2( String purpose, Coner coner, int maxParallel ) {
         super( purpose, new ChoiceMode(), true, true );
         coner_ = coner;
-        parallelWarnThreshold_ = parallelWarnThreshold;
         List paramList = new ArrayList();
         String system = coner.getSkySystem();
         String sysParen;
@@ -260,11 +255,9 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
         parallelParam_.setPrompt( "Number of queries to make in parallel" );
         parallelParam_.setUsage( "<n>" );
         parallelParam_.setMinimum( 1 );
-        String warnText = parallelWarnThreshold_ > 1
-            ? "This command does not impose any maximum value, " +
-              "but if a value &gt;" + parallelWarnThreshold_ +
-              " is submitted a warning will be issued."
-            : "";
+        if ( maxParallel > 0 ) {
+            parallelParam_.setMaximum( maxParallel );
+        }
         parallelParam_.setDescription( new String[] {
             "<p>Allows multiple cone searches to be performed concurrently.",
             "If set to the default value, 1, the cone query corresponding",
@@ -281,10 +274,19 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
             "In particular, setting it to too large a number may overload",
             "the service resulting in some combination of failed queries,",
             "ultimately slower runtimes, and unpopularity with server admins.",
-            warnText,
+            "</p>",
+            "<p>The maximum value permitted for this parameter by default is",
+            ParallelResultRowSequence.DEFAULT_MAXPAR + ".",
+            "This limit may be raised by use of the",
+            ParallelResultRowSequence.MAXPAR_PROP + " system property",
+            "but use that option with great care since you may overload",
+            "services and make yourself unpopular with data centre admins.",
+            "As a rule, you should only increase this value if you have",
+            "obtained permission from the data centres whose services",
+            "on which you will be using the increased parallelism.",
             "</p>",
         } );
-        if ( allowParallel ) {
+        if ( maxParallel > 1 ) {
             paramList.add( parallelParam_ );
         }
 
@@ -334,16 +336,6 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
         String srString = srParam_.stringValue( env );
         final boolean ostream = ostreamParam_.booleanValue( env );
         int parallelism = parallelParam_.intValue( env );
-        if ( parallelWarnThreshold_ > 1 &&
-             parallelism > parallelWarnThreshold_ ) {
-            String msg = new StringBuffer()
-                .append( parallelParam_.getName() )
-                .append( "=" )
-                .append( parallelism )
-                .append( " - high value might overload server" )
-                .toString();
-            logger_.warning( msg );
-        }
         ConeErrorPolicy erract = erractParam_.policyValue( env );
         if ( erract == ConeErrorPolicy.ABORT ) {
             String advice = "Cone search failed - try other values of "
