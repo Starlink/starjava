@@ -7,7 +7,11 @@ import java.util.List;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.JoinFixAction;
+import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.table.WrapperRowSequence;
+import uk.ac.starlink.table.WrapperStarTable;
 import uk.ac.starlink.table.join.PairMode;
 import uk.ac.starlink.task.BooleanParameter;
 import uk.ac.starlink.task.ChoiceParameter;
@@ -328,7 +332,7 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
         String raString = raParam_.stringValue( env );
         String decString = decParam_.stringValue( env );
         String srString = srParam_.stringValue( env );
-        boolean ostream = ostreamParam_.booleanValue( env );
+        final boolean ostream = ostreamParam_.booleanValue( env );
         int parallelism = parallelParam_.intValue( env );
         if ( parallelWarnThreshold_ > 1 &&
              parallelism > parallelWarnThreshold_ ) {
@@ -398,14 +402,25 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
             new ConeMatcher( coneSearcher, erract, inProd, qsFact, bestOnly,
                              footprint, includeBlanks, distFilter, parallelism,
                              copyColIdList, distanceCol, inFixAct, coneFixAct );
-        coneMatcher.setStreamOutput( ostream );
+        coneMatcher.setStreamOutput( true );
         return new TableProducer() {
             public StarTable getTable() throws IOException, TaskException {
                 ConeMatcher.ConeWorker worker = coneMatcher.createConeWorker();
-                Thread thread = new Thread( worker, "Cone Matcher" );
+                final Thread thread = new Thread( worker, "Cone Matcher" );
                 thread.setDaemon( true );
                 thread.start();
-                return worker.getTable();
+                StarTable result = new WrapperStarTable( worker.getTable() ) {
+                    public RowSequence getRowSequence() throws IOException {
+                        return new WrapperRowSequence( baseTable
+                                                      .getRowSequence() ) {
+                            public void close() throws IOException {
+                                super.close();
+                                thread.interrupt();
+                            }
+                        };
+                    }
+                };
+                return ostream ? result : Tables.randomTable( result );
             }
         };
     }
