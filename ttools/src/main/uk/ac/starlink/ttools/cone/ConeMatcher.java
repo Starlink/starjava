@@ -39,7 +39,7 @@ import uk.ac.starlink.ttools.task.TableProducer;
  * @author   Mark Taylor
  * @since    31 Aug 2007
  */
-public class ConeMatcher implements TableProducer {
+public class ConeMatcher {
 
     private final ConeSearcher coneSearcher_;
     private final ConeErrorPolicy errAct_;
@@ -138,7 +138,7 @@ public class ConeMatcher implements TableProducer {
     }
 
     /**
-     * Determines whether this object's {@link #getTable} method will 
+     * Determines whether this object's {@link #createConeWorker} method will 
      * produce a one-read-only table or not.  If set true, then the output
      * table is good for only a single read (<code>getRowSequence</code>
      * may be called only once).
@@ -151,16 +151,19 @@ public class ConeMatcher implements TableProducer {
     }
 
     /**
-     * Returns the result, which is a join between the input table and
+     * Returns an object which can compute the multi-cone result.
+     * The result is a join between the input table and
      * the table on which the cone searches are defined.
+     * See the <code>ConeWorker</code> documentation for how to use
+     * the returned object.
      *
-     * <p><strong>Note</strong></p>: if the streamOut attribute of this
-     * class has been set the result will be a one-read-only table,
-     * designed for streaming.
+     * <p><strong>Note</strong></p>: if the <code>streamOut</code>
+     * attribute of this ConeMatcher has been set the table produced by
+     * the returned worker will be one-read-only, designed for streaming.
      *
-     * @return   joined table
+     * @return   cone worker which can produce the result table
      */
-    public StarTable getTable() throws IOException, TaskException {
+    public ConeWorker createConeWorker() throws IOException, TaskException {
         StarTable inTable = inProd_.getTable();
         ConeQueryRowSequence querySeq = qsFact_.createQuerySequence( inTable );
         if ( coverage_ != null ) {
@@ -204,18 +207,11 @@ public class ConeMatcher implements TableProducer {
                         ? new int[ 0 ]
                         : new ColumnIdentifier( inTable )
                          .getColumnIndices( copyColIdList_ );
-        RowPipe rowPipe = new OnceRowPipe();
-        Thread coneWorker =
-            new ConeWorker( rowPipe, inTable, resultSeq, iCopyCols,
-                            includeBlanks_,
-                            ( distanceCol_ != null &&
-                              distanceCol_.trim().length() > 0 ) ? 1 : 0,
-                            inFixAct_, coneFixAct_, JoinFixAction.NO_ACTION );
-        coneWorker.setDaemon( true );
-        coneWorker.start();
-        StarTable streamTable = rowPipe.waitForStarTable();
-        return streamOutput_ ? streamTable
-                             : Tables.randomTable( streamTable );
+        return new ConeWorker( inTable, resultSeq, iCopyCols, includeBlanks_,
+                               ( distanceCol_ != null &&
+                                 distanceCol_.trim().length() > 0 ) ? 1 : 0,
+                               inFixAct_, coneFixAct_, JoinFixAction.NO_ACTION,
+                               streamOutput_ );
     }
 
     /**
@@ -451,11 +447,24 @@ public class ConeMatcher implements TableProducer {
     }
 
     /**
-     * Thread which performs the individual cone search and writes the 
-     * results down a pipe from which it will be read for output.
+     * Object which produces the result table.
+     * It performs the individual cone searches and writes the results
+     * down a pipe from which it will be read asynchronously for output.
+     *
+     * <p>To use an instance of this class, it is necessary to
+     * call its <code>run</code> method in a separate thread.
+     * The <code>getTable</code> method may be called before
+     * the <code>run</code> method has completed (or even started),
+     * and will return a table whose rows may be streamed.
+     *
+     * <p>The run method checks for interruptions, so interrupting the
+     * thread in which it runs will cause it to stop consuming resources.
+     *
+     * <p>This code was originally written for J2SE1.4.
+     * There may be less baroque ways of achieving the same effect using
+     * the J2SE5 java.util.concurrent classes (<code>BlockingQueue</code>).
      */
-    private static class ConeWorker extends Thread {
-        private final RowPipe rowPipe_;
+    public static class ConeWorker implements Runnable, TableProducer {
         private final StarTable inTable_;
         private final ConeResultRowSequence resultSeq_;
         private final int[] iCopyCols_;
@@ -464,11 +473,12 @@ public class ConeMatcher implements TableProducer {
         private final JoinFixAction inFixAct_;
         private final JoinFixAction coneFixAct_;
         private final JoinFixAction extrasFixAct_;
+        private final boolean strmOut_;
+        private final RowPipe rowPipe_;
 
         /**
          * Constructor.
          *
-         * @param   rowPipe  row data pipe
          * @param   inTable  input table
          * @param   resultSeq  cone search result row sequence, positioned at
          *                     the start of the data
@@ -484,14 +494,15 @@ public class ConeMatcher implements TableProducer {
          *                     of cone searches
          * @param   extrasFixAct  column name deduplication action for 
          *                        extra columns
+         * @param   strmOut  whether output is streamed
          */
-        ConeWorker( RowPipe rowPipe, StarTable inTable,
-                    ConeResultRowSequence resultSeq, int[] iCopyCols,
-                    boolean includeBlanks,
-                    int extraCols, JoinFixAction inFixAct,
-                    JoinFixAction coneFixAct, JoinFixAction extrasFixAct ) {
-            super( "Cone searcher" );
-            rowPipe_ = rowPipe;
+        private ConeWorker( StarTable inTable,
+                            ConeResultRowSequence resultSeq, int[] iCopyCols,
+                            boolean includeBlanks,
+                            int extraCols, JoinFixAction inFixAct,
+                            JoinFixAction coneFixAct,
+                            JoinFixAction extrasFixAct,
+                            boolean strmOut ) {
             inTable_ = inTable;
             resultSeq_ = resultSeq;
             iCopyCols_ = iCopyCols;
@@ -500,8 +511,28 @@ public class ConeMatcher implements TableProducer {
             inFixAct_ = inFixAct;
             coneFixAct_ = coneFixAct;
             extrasFixAct_ = extrasFixAct;
+            strmOut_ = strmOut;
+            rowPipe_ = new OnceRowPipe();
         }
 
+        /**
+         * Returns the result table.  It will block until <code>run</code>
+         * has at least started, but not necessarily until it has completed.
+         *
+         * @return   result table
+         */
+        public StarTable getTable() throws IOException {
+            StarTable streamTable = rowPipe_.waitForStarTable();
+            return strmOut_ ? streamTable
+                            : Tables.randomTable( streamTable );
+        }
+
+        /**
+         * Does the work of feeding the rows to the result table.
+         * This method checks regularly for interruptions and will
+         * stop running if the thread is interrupted, causing a
+         * read error at the other end of the pipe.
+         */
         public void run() {
             try {
                 multiCone();

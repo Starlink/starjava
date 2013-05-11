@@ -188,7 +188,7 @@ public class OnceRowPipe implements RowPipe, RowSequence {
     /**
      * Throws an IOException if there is one pending.
      */
-    private void checkError() throws IOException {
+    private synchronized void checkError() throws IOException {
         if ( error_ != null ) {
             String msg = error_.getMessage();
             if ( msg == null || msg.length() == 0 ) {

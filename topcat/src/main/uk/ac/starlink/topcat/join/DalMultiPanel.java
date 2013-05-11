@@ -11,7 +11,6 @@ import java.awt.event.FocusListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.IOException;
-import java.io.InterruptedIOException;
 import java.net.URL;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
@@ -549,7 +548,7 @@ public class DalMultiPanel extends JPanel {
      */
     private void setActive( MatchWorker worker ) {
         if ( matchWorker_ != null && ! matchWorker_.done_ ) {
-            matchWorker_.interrupt();
+            matchWorker_.cancel();
         }
         matchWorker_ = worker;
         updateState();
@@ -820,14 +819,12 @@ public class DalMultiPanel extends JPanel {
                 long irow_ = -1;
 
                 public boolean next() throws IOException {
-                    if ( matchWorker_ != null &&
-                         matchWorker_.isInterrupted() ) {
-                        throw new InterruptedIOException();
+                    if ( matchWorker_ != null && matchWorker_.cancelled_ ) {
+                        throw new IOException( "Cancelled" );
                     }
                     boolean retval = rseq.next();
-                    if ( matchWorker_ != null &&
-                         matchWorker_.isInterrupted() ) {
-                        throw new InterruptedIOException();
+                    if ( matchWorker_ != null && matchWorker_.cancelled_ ) {
+                        throw new IOException( "Cancelled" );
                     }
                     if ( retval ) {
                         irow_++;
@@ -891,7 +888,9 @@ public class DalMultiPanel extends JPanel {
         private final StarTable inTable_;
         private int inRow_;
         private int outRow_;
-        private boolean done_;
+        private volatile Thread coneThread_;
+        private volatile boolean done_;
+        private volatile boolean cancelled_;
 
         /**
          * Constructor.
@@ -911,6 +910,17 @@ public class DalMultiPanel extends JPanel {
             inTable_ = inTable;
         }
 
+        /**
+         * Terminates any activity (computations and queries)
+         * associated with this worker.
+         */
+        public void cancel() {
+            cancelled_ = true;
+            if ( coneThread_ != null ) {
+                coneThread_.interrupt();
+            }
+        }
+
         public void run() {
 
             /* Initialise progress GUI. */
@@ -927,19 +937,23 @@ public class DalMultiPanel extends JPanel {
              * when each row arrives the progress GUI is updated. */
             matcher_.setStreamOutput( true );
             try {
-                StarTable streamTable = matcher_.getTable();
+                ConeMatcher.ConeWorker coneWorker = matcher_.createConeWorker();
+                coneThread_ = new Thread( coneWorker, "Cone worker" );
+                coneThread_.setDaemon( true );
+                coneThread_.start();
+                StarTable streamTable = coneWorker.getTable();
                 StarTable progressTable = new WrapperStarTable( streamTable ) {
                     public RowSequence getRowSequence() throws IOException {
                         return new WrapperRowSequence( super
                                                       .getRowSequence() ) {
                             long irow_ = -1;
                             public boolean next() throws IOException {
-                                if ( isInterrupted() ) {
-                                    throw new InterruptedIOException();
+                                if ( cancelled_ ) {
+                                    throw new IOException( "Cancelled" );
                                 }
                                 boolean retval = super.next();
-                                if ( isInterrupted() ) {
-                                    throw new InterruptedIOException();
+                                if ( cancelled_ ) {
+                                    throw new IOException( "Cancelled" );
                                 }
                                 if ( retval ) {
                                     irow_++;

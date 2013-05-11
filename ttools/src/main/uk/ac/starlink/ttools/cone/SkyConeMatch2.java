@@ -1,11 +1,13 @@
 package uk.ac.starlink.ttools.cone;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.JoinFixAction;
+import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.join.PairMode;
 import uk.ac.starlink.task.BooleanParameter;
 import uk.ac.starlink.task.ChoiceParameter;
@@ -392,11 +394,19 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
             new JELQuerySequenceFactory( raString, decString, srString );
 
         /* Return a table producer using these values. */
-        ConeMatcher coneMatcher =
+        final ConeMatcher coneMatcher =
             new ConeMatcher( coneSearcher, erract, inProd, qsFact, bestOnly,
                              footprint, includeBlanks, distFilter, parallelism,
                              copyColIdList, distanceCol, inFixAct, coneFixAct );
         coneMatcher.setStreamOutput( ostream );
-        return coneMatcher;
+        return new TableProducer() {
+            public StarTable getTable() throws IOException, TaskException {
+                ConeMatcher.ConeWorker worker = coneMatcher.createConeWorker();
+                Thread thread = new Thread( worker, "Cone Matcher" );
+                thread.setDaemon( true );
+                thread.start();
+                return worker.getTable();
+            }
+        };
     }
 }
