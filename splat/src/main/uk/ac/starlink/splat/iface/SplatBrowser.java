@@ -1984,7 +1984,7 @@ public class SplatBrowser
             try {      
                 String specstr = props.getSpectrum();
                 SpecData spectrum;
-                if ( specstr.contains("REQUEST=getData"))
+                if ( specstr.contains("REQUEST=getData") && props.getGetDataFormat() != null )
                     spectrum = specDataFactory.get( props.getSpectrum(), props.getGetDataFormat() );
                 else
                     spectrum = specDataFactory.get( props.getSpectrum(), props.getType() );
