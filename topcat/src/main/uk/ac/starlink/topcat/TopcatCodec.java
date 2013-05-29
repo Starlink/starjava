@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
@@ -214,7 +215,8 @@ public class TopcatCodec {
             return doDecode( table, location, controlWindow );
         }
         catch ( RuntimeException e ) {
-            logger_.warning( "Error parsing TOPCAT session file: " + e );
+            logger_.log( Level.WARNING,
+                         "Error parsing TOPCAT session file: " + e, e );
             return null;
         }
     }
@@ -573,7 +575,39 @@ public class TopcatCodec {
         public Object getCodecValue( ValueInfo info ) {
             String utype = info.getUtype();
             DescribedValue dval = codecParamMap_.get( utype );
-            return dval == null ? null : dval.getValue();
+            Object value = dval == null ? null : dval.getValue();
+
+            /* This is mostly a case of getting the DescribedValue
+             * keyed by utype and returning its value.
+             * However, there is a complication: because of the way
+             * VOTable values are written, a single-element array is not
+             * distinguished when written or read from a scalar,
+             * but we need to return the value in the form requested
+             * by the supplied info argument, since it will get cast
+             * to that class. */
+            Class infoClazz = info.getContentClass();
+            if ( value == null || infoClazz.isInstance( value ) ) {
+                return value;
+            }
+            else if ( boolean[].class.equals( infoClazz )
+                      && value instanceof Boolean ) {
+                return new boolean[] { ((Boolean) value).booleanValue() };
+            }
+            else if ( int[].class.equals( infoClazz )
+                      && value instanceof Integer ) {
+                return new int[] { ((Integer) value).intValue() };
+            }
+            else if ( String[].class.equals( infoClazz )
+                      && value instanceof String ) {
+                return new String[] { (String) value };
+            }
+            else {
+                logger_.warning( "Session metadata value "
+                               + info.getName() + " has type "
+                               + value.getClass().getName() + " not "
+                               + infoClazz );
+                return value;
+            }
         }
 
         /**

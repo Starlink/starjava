@@ -18028,6 +18028,7 @@ introduced since the last version:
         Second, implement a sensible default maximum value for the
         <label>Parallelism</label> field in the multi-cone (etc) panel
         (though this may be adjusted with a system property).</li>
+    <li>Fix bug with reading session files containing 1-column tables.</li>
     </ul>
     </p></dd>
 
