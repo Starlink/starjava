@@ -114,8 +114,7 @@ public class VOTableBuilder implements TableBuilder, MultiTableBuilder {
             TableStreamer.streamStarTable( saxSrc, rowStore, itab, strict_ );
         }
         catch ( SAXException e ) {
-            throw (IOException) new IOException( e.getMessage() )
-                               .initCause( e );
+            throw new TableFormatException( e.getMessage(), e );
         }
 
         /* Return the resulting table. */
