@@ -100,11 +100,11 @@ public class HeaderCard
             // Comment out the following:
             //
          // if (value.charAt(0) == '\'') {
-	 //     if (value.charAt(value.length()-1) != '\'') {
-	 //         throw new HeaderCardException("Missing end quote in string value");
-	 //     }
+         //     if (value.charAt(value.length()-1) != '\'') {
+         //         throw new HeaderCardException("Missing end quote in string value");
+         //     }
          //
-	 //     value = value.substring(1,value.length()-1).trim();
+         //     value = value.substring(1,value.length()-1).trim();
          //
          // }
 
@@ -118,7 +118,17 @@ public class HeaderCard
                 value = value.substring(1,value.length()-1).trim();
             }
 
-            if (value.length() > MAX_VALUE_LENGTH) {
+            // MBT: Work out the length this will turn into when written as
+            // a string: first account for a loading and trailing quote,
+            // then account for the fact that any included quote characters
+            // are escaped by doubling them.
+            int vleng = value.length() + 2;
+            for (int i = 0; i < value.length(); i++) {
+                if ( value.charAt(i) == '\'' ) {
+                    vleng++;
+                }
+            }
+            if (vleng > MAX_VALUE_LENGTH) {
 	        throw new HeaderCardException("Value too long");
             }
         }

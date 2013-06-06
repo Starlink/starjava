@@ -8388,6 +8388,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         Second, implement a sensible default maximum value for the
         <code>parallel</code> parameter of <code>skyconematch</code>
         (though this may be adjusted with a system property).</li>
+    <li>Fixed FITS output bug which could result in badly-formed string-valued
+        header cards (no closing quote).</li>
     </ul>
     </p></dd>
 

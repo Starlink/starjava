@@ -18032,6 +18032,8 @@ introduced since the last version:
         This fixes a bug that was particularly evident with the VizieR TAP
         service for which nearly all table names are
         not legal ADQL identifiers.</li>
+    <li>Fixed FITS output bug which could result in badly-formed string-valued
+        header cards (no closing quote).</li>
     </ul>
     </p></dd>
 
