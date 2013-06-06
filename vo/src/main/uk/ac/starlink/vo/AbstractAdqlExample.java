@@ -81,6 +81,37 @@ public abstract class AbstractAdqlExample implements AdqlExample {
     }
 
     /**
+     * Fixes a table name so it's suitable for insertion into ADQL.
+     * It is quoted if necessary, but not otherwise.
+     *
+     * @param  tname  raw table name, may include delimiters (schema.table etc)
+     * @return  name suitable for use in ADQL
+     */
+    public static String citeTableName( String tname ) {
+        String[] words = tname.split( "\\." );
+        StringBuffer sbuf = new StringBuffer();
+        for ( int iw = 0; iw < words.length; iw++ ) {
+            if ( iw > 0 ) {
+                sbuf.append( '.' );
+            }
+            sbuf.append( AdqlSyntax.getInstance()
+                                   .quoteIfNecessary( words[ iw ] ) );
+        }
+        return sbuf.toString();
+    }
+
+    /**
+     * Fixes a colum name so it's suitable for insersion into ADQL.
+     * It is quoted if necessary, but not otherwise.
+     *
+     * @param  colName  raw column name, may not include delimiters
+     * @return  name suitable for use in ADQL
+     */
+    public static String citeColumnName( String colName ) {
+        return AdqlSyntax.getInstance().quoteIfNecessary( colName );
+    }
+
+    /**
      * Returns a table ref for a given table and a given language variant.
      *
      * @param  table  table metadata object
@@ -91,16 +122,35 @@ public abstract class AbstractAdqlExample implements AdqlExample {
         if ( ! isAdql1( lang ) ) {
             return new TableRef() {
                 public String getColumnName( String rawName ) {
-                    return rawName;
+                    return citeColumnName( rawName );
                 }
                 public String getIntroName() {
-                    return table.getName();
+                    return citeTableName( table.getName() );
                 }
             };
         }
         else {
             return createAliasedTableRef( table, getAlias( table ) );
         }
+    }
+
+    /**
+     * Returns a table ref with a given alias.
+     *
+     * @param  table  table
+     * @param  alias  table alias
+     * @return  table ref
+     */
+    private static TableRef createAliasedTableRef( final TableMeta table,
+                                                   final String alias ) {
+        return new TableRef() {
+            public String getColumnName( String rawName ) {
+                return alias + "." + citeColumnName( rawName );
+            }
+            public String getIntroName() {
+                return citeTableName( table.getName() ) + " AS " + alias;
+            }
+        };
     }
 
     /**
@@ -126,25 +176,6 @@ public abstract class AbstractAdqlExample implements AdqlExample {
             trefs[ i ] = createAliasedTableRef( tables[ i ], aliases[ i ] );
         }
         return trefs;
-    }
-
-    /**
-     * Returns a table ref with a given alias.
-     *
-     * @param  table  table
-     * @param  alias  table alias
-     * @return  table ref
-     */
-    private static TableRef createAliasedTableRef( final TableMeta table,
-                                                   final String alias ) {
-        return new TableRef() {
-            public String getColumnName( String rawName ) {
-                return alias + "." + rawName;
-            }
-            public String getIntroName() {
-                return table.getName() + " AS " + alias;
-            }
-        };
     }
 
     /**
@@ -372,7 +403,7 @@ public abstract class AbstractAdqlExample implements AdqlExample {
                         .append( "SELECT TOP " )
                         .append( ROW_COUNT )
                         .append( " * FROM " )
-                        .append( table.getName() )
+                        .append( citeTableName( table.getName() ) )
                         .toString();
                 }
             },

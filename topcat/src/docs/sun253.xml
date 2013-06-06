@@ -18028,6 +18028,10 @@ introduced since the last version:
         <label>Parallelism</label> field in the multi-cone (etc) panel
         (though this may be adjusted with a system property).</li>
     <li>Fix bug with reading session files containing 1-column tables.</li>
+    <li>TAP example queries now quote table and column names where necessary.
+        This fixes a bug that was particularly evident with the VizieR TAP
+        service for which nearly all table names are
+        not legal ADQL identifiers.</li>
     </ul>
     </p></dd>
 
