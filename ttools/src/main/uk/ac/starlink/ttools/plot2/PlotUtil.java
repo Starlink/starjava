@@ -86,7 +86,7 @@ public class PlotUtil {
      *           when it seems reasonable
      */
     public static boolean storeFullPrecision() {
-        return false;
+        return true;
     }
 
     /**

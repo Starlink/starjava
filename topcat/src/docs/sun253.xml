@@ -18034,6 +18034,8 @@ introduced since the last version:
         not legal ADQL identifiers.</li>
     <li>Fixed FITS output bug which could result in badly-formed string-valued
         header cards (no closing quote).</li>
+    <li>Turn off layer plot optimisation that could result in lost
+        precision for double values.</li>
     </ul>
     </p></dd>
 
