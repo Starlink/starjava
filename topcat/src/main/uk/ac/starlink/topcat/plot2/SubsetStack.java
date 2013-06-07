@@ -267,7 +267,7 @@ public class SubsetStack {
             assert entries_.size() == baseModel_.getSize();
 
             /* Reinstate selection. */
-            if ( reselect ) {
+            if ( reselect && entries_.size() > 0 ) {
                 subList_.setSelectedValue( entries_.get( 0 ), false );
             }
 

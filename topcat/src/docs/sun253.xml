@@ -18040,6 +18040,8 @@ introduced since the last version:
         slider were dragged to the same position.</li>
     <li>Fixed it so that layer plot axis range settings are reset when
         the Rescale button is used.</li>
+    <li>Fixed a bug that caused an exception when a table in a layer plot
+        was deleted from the application.</li>
     </ul>
     </p></dd>
 
