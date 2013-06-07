@@ -116,13 +116,39 @@ public class SubrangeConfigKey extends ConfigKey<Subrange> {
         }
 
         public Subrange getSpecifiedValue() {
-            return new Subrange( scale( slider_.getLowValue() ),
-                                 scale( slider_.getHighValue() ) );
+            int ilo = slider_.getLowValue();
+            int ihi = slider_.getHighValue();
+
+            /* Don't return a zero range. */
+            if ( ilo == ihi ) {
+                int quantum = getQuantum();
+                if ( ihi == MAX ) {
+                    ilo = Math.max( MIN, ilo - quantum );
+                }
+                else {
+                    ihi = Math.min( MAX, ihi + quantum );
+                }
+            }
+            return new Subrange( scale( ilo ), scale( ihi ) );
         }
 
         public void setSpecifiedValue( Subrange subrange ) {
             slider_.setLowValue( unscale( subrange.getLow() ) );
             slider_.setHighValue( unscale( subrange.getHigh() ) );
+        }
+
+        /**
+         * Returns a small subrange value that can be used instead of zero
+         * if the two slider handles are on top of each other.
+         *
+         * @return   slider range interval roughly equivalent to one pixel
+         */
+        private int getQuantum() {
+            int npix = slider_.getOrientation() == RangeSlider.VERTICAL
+                     ? slider_.getHeight()
+                     : slider_.getWidth();
+            npix = Math.max( 10, Math.min( 10000, npix ) );
+            return Math.max( 1, ( MAX - MIN ) / npix );
         }
 
         private static double scale( int ival ) {
