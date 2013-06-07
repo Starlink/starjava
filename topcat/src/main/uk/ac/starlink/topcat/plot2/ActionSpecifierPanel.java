@@ -91,6 +91,13 @@ public class ActionSpecifierPanel extends SpecifierPanel<ConfigMap> {
     }
 
     /**
+     * Invokes the clear action on this panel.
+     */
+    public void clear() {
+        clearAction_.actionPerformed( null );
+    }
+
+    /**
      * Enters the default value for a given key into a config map.
      *
      * @param  map  config map

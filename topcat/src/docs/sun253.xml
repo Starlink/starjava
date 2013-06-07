@@ -18038,6 +18038,8 @@ introduced since the last version:
         precision for double values.</li>
     <li>Fix layer plot bug that broke the plot if both handles of a range
         slider were dragged to the same position.</li>
+    <li>Fixed it so that layer plot axis range settings are reset when
+        the Rescale button is used.</li>
     </ul>
     </p></dd>
 

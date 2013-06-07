@@ -1,6 +1,8 @@
 package uk.ac.starlink.topcat.plot2;
 
 import java.awt.event.ActionEvent;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.Icon;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.ToggleButtonModel;
@@ -27,6 +29,7 @@ public abstract class AxisControl<P,A> extends ConfigControl {
     private A aspect_;
     private P lastProfile_;
     private PlotLayer[] lastLayers_;
+    private List<ActionSpecifierPanel> aspectPanels_;
 
     /**
      * Constructor.
@@ -44,6 +47,7 @@ public abstract class AxisControl<P,A> extends ConfigControl {
                                    "Do not auto-rescale axes" );
         lastLayers_ = new PlotLayer[ 0 ];
         lastProfile_ = surfFact.createProfile( new ConfigMap() );
+        aspectPanels_ = new ArrayList<ActionSpecifierPanel>();
     }
 
     /**
@@ -119,11 +123,24 @@ public abstract class AxisControl<P,A> extends ConfigControl {
      */
     protected void addAspectConfigTab( String label,
                                        Specifier<ConfigMap> aspectSpecifier ) {
-        addSpecifierTab( label, new ActionSpecifierPanel( aspectSpecifier ) {
+        ActionSpecifierPanel aspectPanel =
+                new ActionSpecifierPanel( aspectSpecifier ) {
             protected void doSubmit( ActionEvent evt ) {
                 setAspect( null );
             }
-        } );
+        };
+        aspectPanels_.add( aspectPanel );
+        addSpecifierTab( label, aspectPanel );
+    }
+
+    /**
+     * Clears any settings in tabs added by the
+     * {@link #addAspectConfigTab addAspectConfigTab} method.
+     */
+    public void clearAspect() {
+        for ( ActionSpecifierPanel aspectPanel : aspectPanels_ ) {
+            aspectPanel.clear();
+        }
     }
 
     /**

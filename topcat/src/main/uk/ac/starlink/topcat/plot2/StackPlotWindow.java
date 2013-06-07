@@ -233,6 +233,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             public void actionPerformed( ActionEvent evt ) {
                 axisControl_.setAspect( null );
                 axisControl_.setRanges( null );
+                axisControl_.clearAspect();
                 plotPanel_.replot();
             }
         };
