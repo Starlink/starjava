@@ -1,11 +1,13 @@
-package uk.ac.starlink.vo;
+package uk.ac.starlink.table.jdbc;
 
 import junit.framework.TestCase;
 
-public class AdqlSyntaxTest extends TestCase {
+public class SqlSyntaxTest extends TestCase {
 
     public void testSyntax() {
-        AdqlSyntax syntax = AdqlSyntax.getInstance();
+        SqlSyntax syntax = new SqlSyntax( SqlSyntax.SQL92_RESERVED,
+                                          SqlSyntax.SQL92_IDENTIFIER_REGEX,
+                                          '"' );
         for ( String word : syntax.getReservedWords() ) {
             assertTrue( syntax.isReserved( word ) );
             assertTrue( syntax.isReserved( word.toUpperCase() ) );

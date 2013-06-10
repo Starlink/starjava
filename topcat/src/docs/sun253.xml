@@ -18035,6 +18035,10 @@ introduced since the last version:
         This fixes a bug that was particularly evident with the VizieR TAP
         service for which nearly all table names are
         not legal ADQL identifiers.</li>
+    <li>Quoting behaviour has changed when generating SQL to write to
+        RDBMS tables.  This ought to reduce problems related to mixed-case
+        identifiers.  However, it is possible that it could lead to
+        unforseen new anomalies.</li>
     <li>Fixed FITS output bug which could result in badly-formed string-valued
         header cards (no closing quote).</li>
     <li>Turn off layer plot optimisation that could result in lost
