@@ -226,7 +226,14 @@ public class SkySurface implements Surface {
                 gl.grid();
                 return gl;
             }
-            catch ( TransformationException e ) {
+
+            /* Grid generation can fail in various ways to do with GridLiner
+             * implementation, which I don't want to change significantly.
+             * In most cases, it's because it's not possible to draw a grid
+             * for some more or less good reason.  If there is an error,
+             * just log it and swallow the exception to make sure that
+             * it doesn't cause additional problems. */
+            catch ( Exception e ) {
                 logger_.warning( "Grid error: " + e );
                 return null;
             }

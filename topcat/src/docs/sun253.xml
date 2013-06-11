@@ -18042,6 +18042,7 @@ introduced since the last version:
         the Rescale button is used.</li>
     <li>Fixed a bug that caused an exception when a table in a layer plot
         was deleted from the application.</li>
+    <li>Fixed a bug when zooming way out from a sky plot.</li>
     </ul>
     </p></dd>
 
