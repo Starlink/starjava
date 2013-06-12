@@ -3,10 +3,7 @@ package uk.ac.starlink.ttools.plot2.layer;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.Stroke;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.plot.MarkShape;
 import uk.ac.starlink.ttools.plot.MarkStyle;
@@ -39,8 +36,8 @@ public class LinePlotter extends SimpleDecalPlotter<MarkStyle> {
     public ConfigKey[] getStyleKeys() {
         return new ConfigKey[] {
             StyleKeys.COLOR,
-            StyleKeys.DASH,
             StyleKeys.THICKNESS,
+            StyleKeys.DASH,
         };
     }
 
@@ -63,39 +60,22 @@ public class LinePlotter extends SimpleDecalPlotter<MarkStyle> {
     protected void paintData2D( Surface surface, DataStore dataStore,
                                 DataGeom geom, DataSpec dataSpec,
                                 MarkStyle style, Graphics g ) {
-        Rectangle bounds = surface.getPlotBounds();
-        int huge = Math.max( bounds.width, bounds.height ) * 100;
-        Graphics2D g2 = (Graphics2D) g;
-        Color color0 = g2.getColor();
-        Stroke stroke0 = g2.getStroke();
-        g2.setColor( style.getColor() );
-        g2.setStroke( style.getStroke( BasicStroke.CAP_ROUND,
-                                       BasicStroke.JOIN_ROUND ) );
+        boolean antialias = false;
+        LineTracer tracer =
+            new LineTracer( g, surface.getPlotBounds(),
+                            style.getColor(),
+                            style.getStroke( BasicStroke.CAP_ROUND,
+                                             BasicStroke.JOIN_ROUND ),
+                            antialias, 10240 );
         double[] dpos = new double[ surface.getDataDimCount() ];
         Point gp = new Point();
         TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
-        boolean notFirst = false;
-        int lastxp = 0;
-        int lastyp = 0;
         while ( tseq.next() ) {
             if ( geom.readDataPos( tseq, 0, dpos ) &&
                  surface.dataToGraphics( dpos, false, gp ) ) {
-
-                /* Limit plotted/recorded positions to be not too far off
-                 * the plotted area.  Failing to do this can result in
-                 * attempts to draw lines kilometres long, which can have
-                 * an adverse effect on the graphics system. */
-                int xp = Math.max( -huge, Math.min( huge, gp.x ) );
-                int yp = Math.max( -huge, Math.min( huge, gp.y ) );
-                if ( notFirst ) {
-                    g2.drawLine( lastxp, lastyp, xp, yp );
-                }
-                notFirst = true;
-                lastxp = xp;
-                lastyp = yp;
+                tracer.addVertex( gp.x, gp.y );
             }
         }
-        g2.setColor( color0 );
-        g2.setStroke( stroke0 );
+        tracer.flush();
     }
 }
