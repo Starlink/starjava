@@ -917,8 +917,7 @@ on the command line is equivalent to having the following in your
     supplying these user credentials.  This is a rather blunt instrument,
     since the same identity is supplied regardless of which URL is being
     accessed, but it may be of some use in accessing basic-authentication
-    protected services.  This mechanism is experimental, and may be
-    modified or withdrawn in future versions.
+    protected services.
     </p></dd>
 
 <dt><code>startable.readers</code></dt>
@@ -8390,6 +8389,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         (though this may be adjusted with a system property).</li>
     <li>Fixed FITS output bug which could result in badly-formed string-valued
         header cards (no closing quote).</li>
+    <li>Improved handling of HTTP basic authorization.
+        401s now generate a useful message about the
+        <code>star.basicauth.*</code> system properties if they
+        have not been set up.</li>
     </ul>
     </p></dd>
 

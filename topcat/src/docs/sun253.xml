@@ -4089,8 +4089,11 @@ The following ones have special significance within TOPCAT:
     supplying these user credentials.  This is a rather blunt instrument,
     since the same identity is supplied regardless of which URL is being
     accessed, but it may be of some use in accessing basic-authentication
-    protected services.  This mechanism is experimental, and may be
-    modified or withdrawn in future versions.
+    protected services.
+    </p>
+    <p>If these properties are not set, then on encountering a 401 in
+    the application will pop up a dialogue window asking for username
+    and password.
     </p></dd>
 
 <dt><code>star.connectors</code></dt>
@@ -18043,6 +18046,10 @@ introduced since the last version:
     <li>Fixed a bug that caused an exception when a table in a layer plot
         was deleted from the application.</li>
     <li>Fixed a bug when zooming way out from a sky plot.</li>
+    <li>Improve handling of HTTP basic authorization.
+        HTTP 401s now pop up a user/password dialogue window,
+        unless the <code>star.basicauth.*</code> system properties
+        have been set up.</li>
     </ul>
     </p></dd>
 

@@ -36,7 +36,7 @@ public class Stilts {
         Loader.setHttpAgent( "STILTS" + "/" + getVersion() ); 
         Loader.setDefaultProperty( "java.awt.Window.locationByPlatform",
                                    "true" );
-        PropertyAuthenticator.installInstance();
+        PropertyAuthenticator.installInstance( true );
         URLUtils.installCustomHandlers();
         LineInvoker invoker = new LineInvoker( "stilts", taskFactory_ );
         int status = invoker.invoke( args );
