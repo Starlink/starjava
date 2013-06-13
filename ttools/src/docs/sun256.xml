@@ -8397,6 +8397,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         401s now generate a useful message about the
         <code>star.basicauth.*</code> system properties if they
         have not been set up.</li>
+    <li>Add Median Absolute Deviation calculation
+        (<code>MedAbsDev</code> and <code>ScMedAbsDev</code>)
+        options to <ref id="stats"><code>stats</code></ref> filter.</li>
     </ul>
     </p></dd>
 

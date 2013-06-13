@@ -36,6 +36,9 @@ public class StatsFilter extends BasicFilter {
     /** Maximum value for cardinality counters. */
     private static final int MAX_CARDINALITY = 100;
 
+    /** Value by which Median Absolute Deviation is scaled to estimate SD. */
+    public static final double MAD_SCALE = 1.4826;
+
     /*
      * Metadata for calculated quantities.
      */
@@ -46,6 +49,8 @@ public class StatsFilter extends BasicFilter {
     private static final ValueInfo POPVAR_INFO;
     private static final ValueInfo SAMPSD_INFO;
     private static final ValueInfo SAMPVAR_INFO;
+    private static final ValueInfo MAD_INFO;
+    private static final ValueInfo SMAD_INFO;
     private static final ValueInfo SKEW_INFO;
     private static final ValueInfo KURT_INFO;
     private static final ValueInfo MIN_INFO;
@@ -75,6 +80,11 @@ public class StatsFilter extends BasicFilter {
                                             "Sample Standard Deviation" ),
         SAMPVAR_INFO = new DefaultValueInfo( "SampVariance", Float.class,
                                              "Sample Variance" ),
+        MAD_INFO = new DefaultValueInfo( "MedAbsDev", Float.class,
+                                         "Median Absolute Deviation" ),
+        SMAD_INFO = new DefaultValueInfo( "ScMedAbsDev", Float.class,
+                                          "Median Absolute Deviation * "
+                                        + MAD_SCALE ),
         SKEW_INFO = new DefaultValueInfo( "Skew", Float.class,
                                           "Gamma 1 skewness measure" ),
         KURT_INFO = new DefaultValueInfo( "Kurtosis", Float.class,
@@ -238,6 +248,10 @@ public class StatsFilter extends BasicFilter {
         /* Work out if we need to calculate cardinalities. */
         boolean doCard = Arrays.asList( infos ).contains( CARDINALITY_INFO );
 
+        /* Work out if we need to calculate Mean Absolute Deviations. */
+        boolean doMad = Arrays.asList( infos ).contains( MAD_INFO )
+                     || Arrays.asList( infos ).contains( SMAD_INFO );
+
         /* Work out if we need to calculate quantiles. */
         List quantInfoList = new ArrayList();
         for ( int i = 0; i < infos.length; i++ ) {
@@ -245,7 +259,7 @@ public class StatsFilter extends BasicFilter {
                 quantInfoList.add( infos[ i ] );
             }
         }
-        boolean doQuant = ! quantInfoList.isEmpty();
+        boolean doQuant = ! quantInfoList.isEmpty() || doMad;
         QuantileInfo[] quantInfos = doQuant
             ? (QuantileInfo[]) quantInfoList.toArray( new QuantileInfo[ 0 ] )
             : null;
@@ -374,6 +388,14 @@ public class StatsFilter extends BasicFilter {
                         Number quantile = quantCalcs[ icol ]
                                          .getQuantile( quantInfo.getQuant() );
                         map.put( quantInfo, quantile );
+                    }
+                    if ( doMad ) {
+                        Number mad =
+                            QuantCalc.calculateMedianAbsoluteDeviation(
+                                           quantCalcs[ icol ] );
+                        map.put( MAD_INFO, mad );
+                        map.put( SMAD_INFO,
+                                 new Float( mad.floatValue() * MAD_SCALE ) );
                     }
                 }
             }

@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.TreeMap;
 import uk.ac.starlink.table.Tables;
 
@@ -57,6 +58,24 @@ public abstract class QuantCalc {
     public abstract Number getQuantile( double quant );
 
     /**
+     * Returns the number of non-blank values accumulated by this calculator.
+     *
+     * @return  value count
+     */
+    public abstract long getValueCount();
+
+    /**
+     * Returns an iterator over all the non-blank values
+     * accumulated by this calculator.
+     * If {@link #ready} has been called, they will be in ascending order.
+     * The number of values it iterates over will be equal to
+     * the result of {@link #getValueCount}.
+     *
+     * @return   value iterator
+     */
+    public abstract Iterator<Number> getValueIterator();
+
+    /**
      * Factory method to create a quantile accumulator for a given 
      * row count and value class.
      *
@@ -73,8 +92,11 @@ public abstract class QuantCalc {
         else if ( clazz == Short.class && ( nrow < 0 || nrow > ( 1 << 16 ) ) ) {
             return new ShortSlotQuantCalc();
         }
-        else if ( clazz == Integer.class || clazz == Long.class ) {
-            return new CountMapQuantCalc( clazz );
+        else if ( clazz == Integer.class ) {
+            return new CountMapQuantCalc( Integer.class );
+        }
+        else if ( clazz == Long.class ) {
+            return new CountMapQuantCalc( Long.class );
         }
         else if ( nrow >= 0 && nrow < Integer.MAX_VALUE ) {
             return new FloatArrayQuantCalc( clazz, (int) nrow );
@@ -90,6 +112,26 @@ public abstract class QuantCalc {
     }
 
     /**
+     * Calculates the median absolute deviation of the statistics
+     * accumulated by a QuantCalc.
+     *
+     * @param   qcalc  calculator in ready state
+     * @return   sum(abs(x_i - median))
+     */
+    public static double calculateMedianAbsoluteDeviation( QuantCalc qcalc )
+            throws IOException {
+        double median = qcalc.getQuantile( 0.5 ).doubleValue();
+        QuantCalc madCalc =
+            QuantCalc.createInstance( Double.class, qcalc.getValueCount() );
+        for ( Iterator<Number> it = qcalc.getValueIterator(); it.hasNext(); ) {
+            double val = it.next().doubleValue();
+            madCalc.acceptDatum( Math.abs( val - median ) );
+        }
+        madCalc.ready();
+        return madCalc.getQuantile( 0.5 ).doubleValue();
+    }
+
+    /**
      * QuantCalc implementation which uses an ArrayList of Number objects
      * to keep track of the accumulated data.  Not very efficient on
      * memory.
@@ -97,7 +139,7 @@ public abstract class QuantCalc {
     static class ObjectListQuantCalc extends QuantCalc {
 
         final Class clazz_;
-        final List list_;
+        final List<Number> list_;
 
         /**
          * Constructor.
@@ -107,27 +149,36 @@ public abstract class QuantCalc {
         public ObjectListQuantCalc( Class clazz ) {
             super( clazz );
             clazz_ = clazz;
-            list_ = new ArrayList();
+            list_ = new ArrayList<Number>();
         }
 
         public void acceptDatum( Object obj ) {
             if ( obj != null && obj.getClass().equals( clazz_ ) ) {
-                double dval = ((Number) obj).doubleValue();
+                Number num = ((Number) obj);
+                double dval = num.doubleValue();
                 if ( ! Double.isNaN( dval ) ) {
-                    list_.add( obj );
+                    list_.add( num );
                 }
             }
         }
 
         public void ready() {
-            Collections.sort( list_ );
+            Collections.sort( (List) list_ );
+        }
+
+        public long getValueCount() {
+            return list_.size();
         }
 
         public Number getQuantile( double quant ) {
             return list_.isEmpty() 
                  ? null
-                 : (Number) list_.get( Math.min( (int) ( quant * list_.size() ),
-                                                 list_.size() - 1 ) );
+                 : list_.get( Math.min( (int) ( quant * list_.size() ),
+                                        list_.size() - 1 ) );
+        }
+
+        public Iterator<Number> getValueIterator() {
+            return list_.iterator();
         }
     }
 
@@ -159,6 +210,10 @@ public abstract class QuantCalc {
             Arrays.sort( array_, 0, irow_ );
         }
 
+        public long getValueCount() {
+            return irow_;
+        }
+
         public Number getQuantile( double quant ) {
             if ( irow_ == 0 ) {
                 return null;
@@ -183,6 +238,21 @@ public abstract class QuantCalc {
             else {
                 return null;
             }
+        }
+
+        public Iterator<Number> getValueIterator() {
+            return new Iterator<Number>() {
+                int i;
+                public boolean hasNext() {
+                    return i < irow_;
+                }
+                public Number next() {
+                    return new Float( array_[ i++ ] );
+                }
+                public void remove() {
+                    throw new UnsupportedOperationException();
+                }
+            };
         }
     }
 
@@ -211,6 +281,10 @@ public abstract class QuantCalc {
         public void ready() {
         }
 
+        public long getValueCount() {
+            return count_;
+        }
+
         public Number getQuantile( double quant ) {
             long point = Math.min( (long) ( quant * count_ ), count_ - 1 );
             long nval = 0;
@@ -221,6 +295,33 @@ public abstract class QuantCalc {
                 }
             }
             return null;
+        }
+
+        public Iterator<Number> getValueIterator() {
+            return new Iterator<Number>() {
+                int is;
+                int ic;
+                Byte bval;
+                public boolean hasNext() {
+                    while ( ic == 0 && is < slots_.length ) {
+                        bval = new Byte( (byte) ( is - offset_ ) );
+                        ic = slots_[ is++ ];
+                    }
+                    return ic > 0;
+                }
+                public Number next() {
+                    if ( hasNext() ) {
+                        ic--;
+                        return bval;
+                    }
+                    else {
+                        throw new NoSuchElementException();
+                    }
+                }
+                public void remove() {
+                    throw new UnsupportedOperationException();
+                }
+            };
         }
     }
 
@@ -249,6 +350,10 @@ public abstract class QuantCalc {
         public void ready() {
         }
 
+        public long getValueCount() {
+            return count_;
+        }
+
         public Number getQuantile( double quant ) {
             long point = Math.min( (long) ( quant * count_ ), count_ - 1 );
             long nval = 0;
@@ -260,6 +365,33 @@ public abstract class QuantCalc {
             }
             return null;
         }
+
+        public Iterator<Number> getValueIterator() {
+            return new Iterator<Number>() {
+                int is;
+                int ic;
+                Short sval;
+                public boolean hasNext() {
+                    while ( ic == 0 && is < slots_.length ) {
+                        sval = new Short( (short) ( is - offset_ ) );
+                        ic = slots_[ is++ ];
+                    }
+                    return ic > 0;
+                }
+                public Number next() {
+                    if ( hasNext() ) {
+                        ic--;
+                        return sval;
+                    }
+                    else {
+                        throw new NoSuchElementException();
+                    }
+                }
+                public void remove() {
+                    throw new UnsupportedOperationException();
+                }
+            };
+        }
     }
 
     /**
@@ -268,46 +400,78 @@ public abstract class QuantCalc {
      */
     static class CountMapQuantCalc extends QuantCalc {
         private final Class clazz_;
-        private Map countMap_;
+        private Map<Number,Integer> countMap_;
         private long count_;
         private static final Integer ONE = new Integer( 1 );
 
-        public CountMapQuantCalc( Class clazz ) {
+        public CountMapQuantCalc( Class<? extends Number> clazz ) {
             super( clazz );
             clazz_ = clazz;
-            countMap_ = new HashMap();
+            countMap_ = new HashMap<Number,Integer>();
         }
 
         public void acceptDatum( Object obj ) {
             if ( obj != null && obj.getClass() == clazz_ &&
                  ! Tables.isBlank( obj ) ) {
                 count_++;
-                Integer value = (Integer) countMap_.get( obj );
+                Number num = (Number) obj;
+                Integer value = countMap_.get( obj );
                 if ( value == null ) {
-                    countMap_.put( obj, ONE );
+                    countMap_.put( num, ONE );
                 }
                 else {
-                    countMap_.put( obj, new Integer( value.intValue() + 1 ) );
+                    countMap_.put( num, new Integer( value.intValue() + 1 ) );
                 }
             }
         }
 
         public void ready() {
-            countMap_ = new TreeMap( countMap_ );
+            countMap_ = new TreeMap<Number,Integer>( countMap_ );
+        }
+
+        public long getValueCount() {
+            return count_;
         }
 
         public Number getQuantile( double quant ) {
             long point = Math.min( (long) ( quant * count_ ), count_ - 1 );
             long nval = 0;
-            for ( Iterator it = countMap_.entrySet().iterator();
-                  it.hasNext(); ) {
-                Map.Entry entry = (Map.Entry) it.next();
-                nval += ((Integer) entry.getValue()).intValue();
+            for ( Map.Entry<Number,Integer> entry : countMap_.entrySet() ) {
+                nval += entry.getValue().intValue();
                 if ( nval > point ) {
-                    return (Number) entry.getKey();
+                    return entry.getKey();
                 }
             }
             return null;
+        }
+
+        public Iterator<Number> getValueIterator() {
+            return new Iterator<Number>() {
+                Iterator<Map.Entry<Number,Integer>> countIt =
+                    countMap_.entrySet().iterator();
+                int ic;
+                Number num;
+                public boolean hasNext() {
+                    while ( ic == 0 && countIt.hasNext() ) {
+                        Map.Entry<Number,Integer> entry = countIt.next();
+                        num = entry.getKey();
+                        ic = entry.getValue().intValue();
+                    }
+                    return ic > 0;
+                }
+                public Number next() {
+                    if ( hasNext() ) {
+                        ic--;
+                        return num;
+                    }
+                    else {
+                        throw new NoSuchElementException();
+                    }
+                }
+                public void remove() {
+                    throw new UnsupportedOperationException();
+                }
+            };
         }
     }
 }
