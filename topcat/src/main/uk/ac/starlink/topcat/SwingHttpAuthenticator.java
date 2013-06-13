@@ -5,6 +5,7 @@ import java.net.Authenticator;
 import java.net.PasswordAuthentication;
 import javax.swing.Box;
 import javax.swing.JComponent;
+import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
@@ -22,12 +23,16 @@ import uk.ac.starlink.topcat.plot2.LineBox;
 public class SwingHttpAuthenticator extends Authenticator {
 
     private Component parent_;
+    private final JTextField userField_;
+    private final JPasswordField passField_;
 
     /**
      * Constructor.
      */
     public SwingHttpAuthenticator() {
         super();
+        userField_ = new JTextField();
+        passField_ = new JPasswordField();
     }
 
     /**
@@ -42,6 +47,17 @@ public class SwingHttpAuthenticator extends Authenticator {
     @Override
     public PasswordAuthentication getPasswordAuthentication() {
 
+        /* There is an issue here with multithreading.
+         * It can happen that multiple calls to this method happen at almost
+         * the same time.  Typically they are to the same protected service,
+         * so require the same credentials.  At present the effect is
+         * that the dialogue pops up several times and the user has to
+         * click OK on it each time.  This is a bit annoying but not too bad.
+         * It's probably possible to improve on this behaviour, but it
+         * partly involves second guessing the implementation of whatever's
+         * calling this method.  Leave it unless it looks like a serious
+         * problem or annoyance. */
+
         /* Acquire information about who is asking for credentials. */
         String src = getRequestingHost();
         if ( src == null ) {
@@ -49,14 +65,13 @@ public class SwingHttpAuthenticator extends Authenticator {
         }
         String prompt = getRequestingPrompt();
 
-        /* Construct the GUI.  We use new field components each time.
-         * We could re-use the same JTextField/JPasswordField every time,
-         * in which case they would be populated with the same values
-         * as last time the user saw them.  However, the authentication
-         * framework seems only to ask about new URLs, so it's likely
-         * that the user will want a different user/password each time. */
-        JTextField userField = new JTextField();
-        JPasswordField passField = new JPasswordField();
+        /* Construct the GUI.  Reuse the same text components each time,
+         * which means second time around they will be populated with
+         * the same values they had first time.  The authentication framework
+         * usually seems to ask only about new URLs, so that could be an
+         * annoyance, but in the case of multi-threaded accesses to the
+         * same service, it's useful not to have to type these in more
+         * than once. */
         JComponent box = Box.createVerticalBox();
         box.add( new LineBox( new JLabel( "Authentication required for "
                                         + src ) ) );
@@ -64,8 +79,8 @@ public class SwingHttpAuthenticator extends Authenticator {
             box.add( new LineBox( new JLabel( prompt ) ) );
         }
         LabelledComponentStack stack = new LabelledComponentStack();
-        stack.addLine( "User", userField );
-        stack.addLine( "Password", passField );
+        stack.addLine( "User", userField_ );
+        stack.addLine( "Password", passField_ );
         box.add( new LineBox( stack ) );
 
         /* Post this using a JOptionPane.  This is very easy to implement,
@@ -88,7 +103,7 @@ public class SwingHttpAuthenticator extends Authenticator {
          * forever into submitting bad credentials into a modal dialogue. */
         return result == JOptionPane.CANCEL_OPTION
              ? null
-             : new PasswordAuthentication( userField.getText(),
-                                           passField.getPassword() );
+             : new PasswordAuthentication( userField_.getText(),
+                                           passField_.getPassword() );
     }
 }
