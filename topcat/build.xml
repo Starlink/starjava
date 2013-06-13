@@ -689,7 +689,7 @@
          <title>TOPCAT</title>
          <vendor>Mark Taylor, Bristol University</vendor>
          <homepage href="${home.page}"/>
-         <icon href="${home.page}TopCat2.gif"/>
+         <icon href="${home.page}images/tc_sok.gif"/>
          <description>"TOPCAT - Tool for OPerations on Catalogues And Tables"</description>
          <offline_allowed/>
        </information>
