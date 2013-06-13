@@ -96,6 +96,11 @@ public class LineTracer {
     /**
      * Adds a point to the sequence to be plotted.
      *
+     * <p>At present points are submitted as integer x, y coordinates since
+     * that's how the rest of the plotting system works.  However, if it
+     * gets upgraded to floating point, the implementation here should
+     * change, perhaps using a {@link java.awt.geom.PathIterator}.
+     *
      * @param  px  graphics X coordinate
      * @param  py  graphics Y coordinate
      */
@@ -163,10 +168,8 @@ public class LineTracer {
     public void flush() {
         if ( iLine_ > 1 ) {
             g2_.drawPolyline( xWork_, yWork_, iLine_ );
-            xWork_[ 0 ] = xWork_[ iLine_ - 1 ];
-            yWork_[ 0 ] = yWork_[ iLine_ - 1 ];
-            iLine_ = 1;
         }
+        iLine_ = 0;
     }
 
     /**
@@ -178,9 +181,16 @@ public class LineTracer {
      */
     private void addIncludedVertex( int x, int y ) {
 
-        /* If we've filled up the points buffer, flush it. */
-        if ( iLine_ >= nwork_ ) {
+        /* If we've filled up the points buffer, flush it.
+         * In this case, copy the last point in the full buffer as
+         * the first point in the new one so that the lines join up. */
+        if ( iLine_ == nwork_ ) {
+            int x0 = xWork_[ iLine_ - 1 ];
+            int y0 = yWork_[ iLine_ - 1 ];
             flush();
+            xWork_[ 0 ] = x0;
+            yWork_[ 0 ] = y0;
+            iLine_++;
         }
 
         /* If an attempt is made to draw to a line which is monstrously
