@@ -7,11 +7,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.RenderingHints;
-import java.awt.Stroke;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 import javax.swing.Icon;
@@ -337,88 +333,28 @@ public class FunctionPlotter implements Plotter<FunctionPlotter.FunctionStyle> {
          * @param  g2  graphics context
          */
         private void paintFunction( Graphics2D g2 ) {
-            Rectangle plotBounds = surface_.getPlotBounds();
-            int gxlo = plotBounds.x;
-            int gxhi = plotBounds.x + plotBounds.width;
-            int gylo = plotBounds.y;
-            int gyhi = plotBounds.y + plotBounds.height;
-            Color color0 = g2.getColor();
-            Stroke stroke0 = g2.getStroke();
-            RenderingHints hints0 = g2.getRenderingHints();
             MarkStyle markStyle = style_.markStyle_;
-            g2.setColor( markStyle.getColor() );
-            g2.setStroke( markStyle.getStroke( BasicStroke.CAP_ROUND,
-                                               BasicStroke.JOIN_ROUND ) );
-            if ( style_.antialias_ ) {
-                g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING,
-                                     RenderingHints.VALUE_ANTIALIAS_ON );
-            }
-
             JELFunction function = style_.function_;
             FuncAxis axis = style_.axis_;
             double[] xs = axis.getXValues( surface_ );
             int np = xs.length;
+            LineTracer tracer =
+                new LineTracer( g2, surface_.getPlotBounds(),
+                                markStyle.getColor(),
+                                markStyle.getStroke( BasicStroke.CAP_ROUND,
+                                                     BasicStroke.JOIN_ROUND ),
+                                style_.antialias_, np );
             Point gpos = new Point();
             double[] dpos = new double[ surface_.getDataDimCount() ];
-            List<Point> plist = new ArrayList<Point>();
-            boolean lastInside = false;
-            // I should probably use a PathIterator here to get floating
-            // point coords.
             for ( int ip = 0; ip < np; ip++ ) {
                 double x = xs[ ip ];
                 double f = function.evaluate( x );
                 if ( axis.xfToData( surface_, x, f, dpos ) &&
                      surface_.dataToGraphics( dpos, false, gpos ) ) {
-                    boolean inside = plotBounds.contains( gpos );
-                    if ( inside ) {
-                        plist.add( new Point( gpos ) ); 
-                    }
-                    else {
-                        int px = Math.min( gxhi, Math.max( gxlo, gpos.x ) );
-                        int py = Math.min( gyhi, Math.max( gylo, gpos.y ) );
-                        if ( lastInside ) {
-                            plist.add( new Point( px, py ) );
-                            plotPoints( g2, plist );
-                            plist.clear();
-                        }
-                        else {
-                            plist.clear();
-                            plist.add( new Point( px, py ) );
-                        }
-                    }
-                    lastInside = inside;
-                }
-                else {
-                    plotPoints( g2, plist );
-                    plist.clear();
+                    tracer.addVertex( gpos.x, gpos.y );
                 }
             }
-            if ( lastInside ) {
-                plotPoints( g2, plist );
-            }
-            g2.setColor( color0 );
-            g2.setStroke( stroke0 );
-            g2.setRenderingHints( hints0 );
-        }
-
-        /**
-         * Plots a polyline between a list of graphics points.
-         *
-         * @param   g2  graphics context
-         * @return  pointList  list of points
-         */
-        private void plotPoints( Graphics2D g2, List<Point> pointList ) {
-            int np = pointList.size();
-            if ( np > 0 ) {
-                int[] gxs = new int[ np ];
-                int[] gys = new int[ np ];
-                for ( int ip = 0; ip < np; ip++ ) {
-                    Point point = pointList.get( ip );
-                    gxs[ ip ] = point.x;
-                    gys[ ip ] = point.y;
-                }
-                g2.drawPolyline( gxs, gys, np );
-            }
+            tracer.flush();
         }
     }
 
