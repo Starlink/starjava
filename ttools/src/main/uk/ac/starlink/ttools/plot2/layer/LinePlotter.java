@@ -4,9 +4,11 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Point;
+import java.awt.Stroke;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
-import uk.ac.starlink.ttools.plot.MarkShape;
-import uk.ac.starlink.ttools.plot.MarkStyle;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.LayerOpt;
 import uk.ac.starlink.ttools.plot2.Surface;
@@ -24,7 +26,7 @@ import uk.ac.starlink.ttools.plot2.data.TupleSequence;
  * @author   Mark Taylor
  * @since    15 Feb 2013
  */
-public class LinePlotter extends SimpleDecalPlotter<MarkStyle> {
+public class LinePlotter extends SimpleDecalPlotter<LineStyle> {
 
     /**
      * Constructor.
@@ -34,39 +36,30 @@ public class LinePlotter extends SimpleDecalPlotter<MarkStyle> {
     }
 
     public ConfigKey[] getStyleKeys() {
-        return new ConfigKey[] {
-            StyleKeys.COLOR,
-            StyleKeys.THICKNESS,
-            StyleKeys.DASH,
-        };
+        List<ConfigKey> list = new ArrayList<ConfigKey>();
+        list.add( StyleKeys.COLOR );
+        list.addAll( Arrays.asList( StyleKeys.getStrokeKeys() ) );
+        list.add( StyleKeys.ANTIALIAS );
+        return list.toArray( new ConfigKey[ 0 ] );
     }
 
-    public MarkStyle createStyle( ConfigMap config ) {
+    public LineStyle createStyle( ConfigMap config ) {
         Color color = config.get( StyleKeys.COLOR );
-        int thickness = config.get( StyleKeys.THICKNESS );
-        float[] dash = config.get( StyleKeys.DASH );
-        MarkStyle mstyle = MarkShape.POINT.getStyle( color, 0 );
-        mstyle.setHidePoints( true );
-        mstyle.setLine( MarkStyle.DOT_TO_DOT );
-        mstyle.setLineWidth( thickness );
-        mstyle.setDash( dash );
-        return mstyle;
+        Stroke stroke = StyleKeys.createStroke( config, BasicStroke.CAP_ROUND,
+                                                BasicStroke.JOIN_ROUND );
+        boolean antialias = config.get( StyleKeys.ANTIALIAS );
+        return new LineStyle( color, stroke, antialias );
     }
 
-    protected LayerOpt getLayerOpt( MarkStyle style ) {
+    protected LayerOpt getLayerOpt( LineStyle style ) {
         return new LayerOpt( style.getColor(), true );
     }
 
     protected void paintData2D( Surface surface, DataStore dataStore,
                                 DataGeom geom, DataSpec dataSpec,
-                                MarkStyle style, Graphics g ) {
-        boolean antialias = false;
+                                LineStyle style, Graphics g ) {
         LineTracer tracer =
-            new LineTracer( g, surface.getPlotBounds(),
-                            style.getColor(),
-                            style.getStroke( BasicStroke.CAP_ROUND,
-                                             BasicStroke.JOIN_ROUND ),
-                            antialias, 10240 );
+            style.createLineTracer( g, surface.getPlotBounds(), 10240 );
         double[] dpos = new double[ surface.getDataDimCount() ];
         Point gp = new Point();
         TupleSequence tseq = dataStore.getTupleSequence( dataSpec );

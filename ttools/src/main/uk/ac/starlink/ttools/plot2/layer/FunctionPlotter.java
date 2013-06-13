@@ -7,14 +7,15 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.Stroke;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.jel.JELFunction;
-import uk.ac.starlink.ttools.plot.MarkShape;
-import uk.ac.starlink.ttools.plot.MarkStyle;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot.Style;
 import uk.ac.starlink.ttools.plot2.AuxScale;
@@ -103,15 +104,12 @@ public class FunctionPlotter implements Plotter<FunctionPlotter.FunctionStyle> {
     }
 
     public ConfigKey[] getStyleKeys() {
-        return new ConfigKey[] {
-            axisKey_,
-            XNAME_KEY,
-            FEXPR_KEY,
-            StyleKeys.COLOR,
-            StyleKeys.THICKNESS,
-            StyleKeys.DASH,
-            StyleKeys.ANTIALIAS,
-        };
+        List<ConfigKey> list = new ArrayList<ConfigKey>();
+        list.addAll( Arrays.asList( getFunctionStyleKeys() ) );
+        list.add( StyleKeys.COLOR );
+        list.addAll( Arrays.asList( StyleKeys.getStrokeKeys() ) );
+        list.add( StyleKeys.ANTIALIAS );
+        return list.toArray( new ConfigKey[ 0 ] );
     }
 
     /**
@@ -150,15 +148,10 @@ public class FunctionPlotter implements Plotter<FunctionPlotter.FunctionStyle> {
         }
         FuncAxis axis = config.get( axisKey_ );
         Color color = config.get( StyleKeys.COLOR );
-        int thickness = config.get( StyleKeys.THICKNESS );
-        float[] dash = config.get( StyleKeys.DASH );
-        MarkStyle mstyle = MarkShape.POINT.getStyle( color, 0 );
-        mstyle.setHidePoints( true );
-        mstyle.setLine( MarkStyle.DOT_TO_DOT );
-        mstyle.setLineWidth( thickness );
-        mstyle.setDash( dash );
+        Stroke stroke = StyleKeys.createStroke( config, BasicStroke.CAP_ROUND,
+                                                BasicStroke.JOIN_ROUND );
         boolean antialias = config.get( StyleKeys.ANTIALIAS );
-        return new FunctionStyle( jelfunc, axis, mstyle, antialias );
+        return new FunctionStyle( color, stroke, antialias, jelfunc, axis );
     }
 
     public PlotLayer createLayer( DataGeom geom, DataSpec dataSpec,
@@ -167,7 +160,7 @@ public class FunctionPlotter implements Plotter<FunctionPlotter.FunctionStyle> {
             return null;
         }
         else {
-            LayerOpt opt = new LayerOpt( style.markStyle_.getColor(), true );
+            LayerOpt opt = new LayerOpt( style.getColor(), true );
             return new AbstractPlotLayer( this, null, null, style, opt ) {
                 public Drawing createDrawing( Surface surface,
                                               Map<AuxScale,Range> auxRanges,
@@ -183,35 +176,29 @@ public class FunctionPlotter implements Plotter<FunctionPlotter.FunctionStyle> {
      * The style includes the actual function definitions as well as
      * the usual things like colour, line thickness etc.
      */
-    public static class FunctionStyle implements Style {
+    public static class FunctionStyle extends LineStyle {
         private final JELFunction function_;
-        private final FuncAxis axis_;
-        private final MarkStyle markStyle_;
-        private final boolean antialias_;
         private final Object functionId_;
+        private final FuncAxis axis_;
 
         /**
          * Constructor.
          *
+         * @param  color   line colour
+         * @param  stroke  line stroke
+         * @param   antialias  true to draw line antialiased
          * @param  function  analytic function definition
          * @param   axis  axis geometry
-         * @param  markStyle  line style
-         * @param   antialias  true to draw line antialiased
          */
-        FunctionStyle( JELFunction function, FuncAxis axis,
-                       MarkStyle markStyle, boolean antialias ) {
+        public FunctionStyle( Color color, Stroke stroke, boolean antialias,
+                              JELFunction function, FuncAxis axis ) {
+            super( color, stroke, antialias );
             function_ = function;
-            axis_ = axis;
-            markStyle_ = markStyle;
-            antialias_ = antialias;
             functionId_ = Arrays.asList( new String[] {
                 function_.getXVarName(),
                 function_.getExpression(),
             } );
-        }
-
-        public Icon getLegendIcon() {
-            return markStyle_.getLegendIcon();
+            axis_ = axis;
         }
 
         @Override
@@ -223,10 +210,9 @@ public class FunctionPlotter implements Plotter<FunctionPlotter.FunctionStyle> {
         public boolean equals( Object o ) {
             if ( o instanceof FunctionStyle ) {
                 FunctionStyle other = (FunctionStyle) o;
-                return this.functionId_.equals( other.functionId_ )
-                    && this.axis_.equals( other.axis_ )
-                    && this.markStyle_.equals( other.markStyle_ )
-                    && this.antialias_ == other.antialias_;
+                return super.equals( o )
+                    && this.functionId_.equals( other.functionId_ )
+                    && this.axis_.equals( other.axis_ );
             }
             else {
                 return false;
@@ -235,11 +221,9 @@ public class FunctionPlotter implements Plotter<FunctionPlotter.FunctionStyle> {
 
         @Override
         public int hashCode() {
-            int code = 23991;
+            int code = super.hashCode();
             code = 23 * code + functionId_.hashCode();
             code = 23 * code + axis_.hashCode();
-            code = 23 * code + markStyle_.hashCode();
-            code = 23 * code + ( antialias_ ? 7 : 11 );
             return code;
         }
     }
@@ -321,7 +305,7 @@ public class FunctionPlotter implements Plotter<FunctionPlotter.FunctionStyle> {
                     paintFunction( (Graphics2D) g );
                 }
                 public boolean isOpaque() {
-                    return ! style_.antialias_;
+                    return ! style_.getAntialias();
                 }
             } );
         }
@@ -333,17 +317,12 @@ public class FunctionPlotter implements Plotter<FunctionPlotter.FunctionStyle> {
          * @param  g2  graphics context
          */
         private void paintFunction( Graphics2D g2 ) {
-            MarkStyle markStyle = style_.markStyle_;
             JELFunction function = style_.function_;
             FuncAxis axis = style_.axis_;
             double[] xs = axis.getXValues( surface_ );
             int np = xs.length;
             LineTracer tracer =
-                new LineTracer( g2, surface_.getPlotBounds(),
-                                markStyle.getColor(),
-                                markStyle.getStroke( BasicStroke.CAP_ROUND,
-                                                     BasicStroke.JOIN_ROUND ),
-                                style_.antialias_, np );
+                style_.createLineTracer( g2, surface_.getPlotBounds(), np );
             Point gpos = new Point();
             double[] dpos = new double[ surface_.getDataDimCount() ];
             for ( int ip = 0; ip < np; ip++ ) {

@@ -1,12 +1,13 @@
 package uk.ac.starlink.ttools.plot2.config;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.Stroke;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import javax.swing.JComboBox;
-import javax.swing.JComponent;
 import javax.swing.ListModel;
 import org.scilab.forge.jlatexmath.TeXFormula;
 import uk.ac.starlink.ttools.gui.ColorComboBox;
@@ -80,7 +81,7 @@ public class StyleKeys {
                          1, 1, 1000, true );
 
     /** Config key for line thickness. */
-    public static final ConfigKey<Integer> THICKNESS =
+    private static final ConfigKey<Integer> THICKNESS =
             new IntegerConfigKey( new ConfigMeta( "thick", "Thickness" ),
                                   1, 5, 1 ) {
         public Specifier<Integer> createSpecifier() {
@@ -89,7 +90,7 @@ public class StyleKeys {
     };
 
     /** Config key for line dash style. */
-    public static final ConfigKey<float[]> DASH =
+    private static final ConfigKey<float[]> DASH =
             new NamedObjectKey<float[]>( new ConfigMeta( "dash", "Dash" ),
                                          float[].class, null,
                                          new DashParameter( "dash" ) ) {
@@ -288,6 +289,43 @@ public class StyleKeys {
         FontWeight weight = config.get( FONT_WEIGHT );
         int size = config.get( FONT_SIZE );
         return syntax.createCaptioner( type, weight, size );
+    }
+
+    /**
+     * Returns a list of config keys for configuring a line-drawing stroke.
+     * Pass a map with values for these to the <code>createStroke</code>
+     * method.
+     *
+     * @return  stroke key list
+     * @see  #createStroke
+     */
+    public static ConfigKey[] getStrokeKeys() {
+        return new ConfigKey[] {
+            THICKNESS,
+            DASH,
+        };
+    }
+
+    /**
+     * Obtains a line drawing stroke based on a config map.
+     * The keys used are those returned by <code>getStrokeKeys</code>.
+     * The line join and cap policy must be provided.
+     *
+     * @param  config  config map
+     * @param  cap     one of {@link java.awt.BasicStroke}'s CAP_* constants
+     * @param  join    one of {@link java.awt.BasicStroke}'s JOIN_* constants
+     * @return  stroke
+     */
+    public static Stroke createStroke( ConfigMap config, int cap, int join ) {
+        int thick = config.get( THICKNESS );
+        float[] dash = config.get( DASH );
+        if ( dash != null && thick != 1 ) {
+            dash = (float[]) dash.clone();
+            for ( int i = 0; i < dash.length; i++ ) {
+                dash[ i ] *= thick;
+            }
+        }
+        return new BasicStroke( thick, cap, join, 10f, dash, 0f );
     }
 
     /**

@@ -18054,7 +18054,8 @@ introduced since the last version:
         HTTP 401s now pop up a user/password dialogue window,
         unless the <code>star.basicauth.*</code> system properties
         have been set up.</li>
-    <li>Line plotting improved in layer plots.</li>
+    <li>Line plotting improved in layer plots
+        (including better dashing, new antialias option).</li>
     </ul>
     </p></dd>
 
