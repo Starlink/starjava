@@ -98,6 +98,11 @@ public class StyleKeys {
         }
     };
 
+    /** Config key for line antialiasing. */
+    public static final ConfigKey<Boolean> ANTIALIAS =
+        new BooleanConfigKey( new ConfigMeta( "antialias", "Antialiasing" ),
+                              false );
+
     /** Config key for text anchor positioning. */
     public static final ConfigKey<Anchor> ANCHOR =
         new OptionConfigKey<Anchor>( new ConfigMeta( "anchor", "Anchor" ),

@@ -72,9 +72,6 @@ public class FunctionPlotter implements Plotter<FunctionPlotter.FunctionStyle> {
     private static final ConfigKey<String> FEXPR_KEY =
         new StringConfigKey( new ConfigMeta( "fexpr", "Function Expression" ),
                              null );
-    private static final ConfigKey<Boolean> ANTIALIAS_KEY =
-        new BooleanConfigKey( new ConfigMeta( "antialias", "Antialiasing" ),
-                              false );
     private final ConfigKey<FuncAxis> axisKey_;
 
     /**
@@ -117,7 +114,7 @@ public class FunctionPlotter implements Plotter<FunctionPlotter.FunctionStyle> {
             StyleKeys.COLOR,
             StyleKeys.THICKNESS,
             StyleKeys.DASH,
-            ANTIALIAS_KEY,
+            StyleKeys.ANTIALIAS,
         };
     }
 
@@ -164,7 +161,7 @@ public class FunctionPlotter implements Plotter<FunctionPlotter.FunctionStyle> {
         mstyle.setLine( MarkStyle.DOT_TO_DOT );
         mstyle.setLineWidth( thickness );
         mstyle.setDash( dash );
-        boolean antialias = config.get( ANTIALIAS_KEY );
+        boolean antialias = config.get( StyleKeys.ANTIALIAS );
         return new FunctionStyle( jelfunc, axis, mstyle, antialias );
     }
 
