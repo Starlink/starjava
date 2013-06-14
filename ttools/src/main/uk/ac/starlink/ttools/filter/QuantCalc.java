@@ -20,6 +20,9 @@ import uk.ac.starlink.table.Tables;
  */
 public abstract class QuantCalc {
 
+    /** Value by which Median Absolute Deviation is scaled to estimate SD. */
+    public static final double MAD_SCALE = 1.4826;
+
     private final Class clazz_;
 
     /**

@@ -36,9 +36,6 @@ public class StatsFilter extends BasicFilter {
     /** Maximum value for cardinality counters. */
     private static final int MAX_CARDINALITY = 100;
 
-    /** Value by which Median Absolute Deviation is scaled to estimate SD. */
-    public static final double MAD_SCALE = 1.4826;
-
     /*
      * Metadata for calculated quantities.
      */
@@ -84,7 +81,7 @@ public class StatsFilter extends BasicFilter {
                                          "Median Absolute Deviation" ),
         SMAD_INFO = new DefaultValueInfo( "ScMedAbsDev", Float.class,
                                           "Median Absolute Deviation * "
-                                        + MAD_SCALE ),
+                                        + QuantCalc.MAD_SCALE ),
         SKEW_INFO = new DefaultValueInfo( "Skew", Float.class,
                                           "Gamma 1 skewness measure" ),
         KURT_INFO = new DefaultValueInfo( "Kurtosis", Float.class,
@@ -399,8 +396,8 @@ public class StatsFilter extends BasicFilter {
                             QuantCalc.calculateMedianAbsoluteDeviation(
                                            quantCalcs[ icol ] );
                         map.put( MAD_INFO, mad );
-                        map.put( SMAD_INFO,
-                                 new Float( mad.floatValue() * MAD_SCALE ) );
+                        map.put( SMAD_INFO, new Float( mad.floatValue() *
+                                                       QuantCalc.MAD_SCALE ) );
                     }
                 }
             }
