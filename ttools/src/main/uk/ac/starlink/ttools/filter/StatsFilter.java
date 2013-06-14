@@ -201,17 +201,22 @@ public class StatsFilter extends BasicFilter {
                     infoList.add( new QuantileInfo( quant ) );
                 }
                 else {
+                    List<ValueInfo> docInfoList = new ArrayList<ValueInfo>();
+                    docInfoList.addAll( Arrays.asList( ALL_KNOWN_INFOS ) );
+                    docInfoList
+                       .add( new DefaultValueInfo( "Q.nn", Number.class,
+                                                   "Quantile for 0.nn" ) );
+                    ValueInfo[] docInfos =
+                        docInfoList.toArray( new ValueInfo[ 0 ] );
                     StringBuffer msg = new StringBuffer()
                        .append( "Unknown quantity " )
                        .append( name );
                     try {
                         String opts =
                             new Formatter()
-                           .formatXML( DocUtils.listInfos( ALL_KNOWN_INFOS ),
-                                       6 );
+                           .formatXML( DocUtils.listInfos( docInfos ), 6 );
                         msg.append( " must be one of: " )
-                           .append( opts )
-                           .append( "or Q.nn" );
+                           .append( opts );
                     }
                     catch ( SAXException e ) {
                         assert false;
