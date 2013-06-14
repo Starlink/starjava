@@ -95,7 +95,7 @@ public class LineStyle implements Style {
      *
      * @param   g  graphics context
      * @param   bounds   clip bounds
-     * @param   workspace array size
+     * @param   nwork   workspace array size
      * @return   new line tracer
      */
     public LineTracer createLineTracer( Graphics g, Rectangle bounds,
