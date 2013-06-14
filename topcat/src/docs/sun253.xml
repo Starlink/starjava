@@ -6201,6 +6201,19 @@ You can reveal these by using the <label>Display</label> menu:
 <dd><p>The sample variance of the good cells.
     </p></dd>
 
+<dt>Median Absolute Deviation</dt>
+<dd><p>The median of absolute deviations from the median:
+    <code>median(abs(x-median(x))</code>.
+    This is a robust measure of statistical dispersion.
+    </p></dd>
+
+<dt>Scaled Median Absolute Deviation</dt>
+<dd><p>The <label>Median Absolute Deviation</label> (see above) multiplied
+    by 1.4826.
+    This is supposed to be a consistent estimator for the standard deviation,
+    on the assumption of a normal distribution.
+    </p></dd>
+
 <dt>Skew</dt>
 <dd><p>Gamma 1 measure of skewness of the value distribution.
     </p></dd>
@@ -18056,6 +18069,8 @@ introduced since the last version:
         have been set up.</li>
     <li>Line plotting improved in layer plots
         (including better dashing, new antialias option).</li>
+    <li>Add options to calculate the (scaled or unscaled)
+        Median Absolute Deviation in the Statistics window.</li>
     </ul>
     </p></dd>
 

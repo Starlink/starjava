@@ -131,13 +131,16 @@ public class StatsWindow extends AuxWindow {
          * unless explicitly asked for. */
         statsColumnModel.addColumnModelListener( new TableColumnModelAdapter() {
             public void columnAdded( TableColumnModelEvent evt ) {
-                if ( getMetaColumn( evt.getToIndex() )
-                     instanceof QuantileColumn ) {
+                MetaColumn col = getMetaColumn( evt.getToIndex() );
+                boolean isQuant = col instanceof QuantileColumn;
+                boolean isMad = col instanceof MadColumn;
+                if ( isQuant || isMad ) {
                     StatsCalculator calc = activeCalculator_;
                     if ( calc == null ) {
                         calc = lastCalc_;
                     }
-                    if ( calc != null && ! calc.hasQuant ) {
+                    if ( calc != null && ( ( isQuant && ! calc.hasQuant ) ||
+                                           ( isMad && ! calc.hasMad ) ) ) {
                         recalcAct_.actionPerformed( null );
                     }
                 }
@@ -262,12 +265,15 @@ public class StatsWindow extends AuxWindow {
             return;
         }
 
-        /* Work out if the requested statistics include any quantiles. */
+        /* Work out if the requested statistics include any quantiles
+         * or Median Absolute Deviation. */
         boolean hasQuant = false;
+        boolean hasMad = false;
         for ( int icol = 0; icol < jtab_.getColumnCount() && ! hasQuant; 
               icol++ ) {
-            hasQuant = hasQuant
-                    || getMetaColumn( icol ) instanceof QuantileColumn;
+            MetaColumn metacol = getMetaColumn( icol );
+            hasQuant = hasQuant || metacol instanceof QuantileColumn;
+            hasMad = hasMad || metacol instanceof MadColumn;
         }
 
         /* If we have already done this calculation, display the results
@@ -279,7 +285,7 @@ public class StatsWindow extends AuxWindow {
         /* Otherwise, kick off a new thread which will perform the
          * calculations and display the results in due course. */
         else {
-            activeCalculator_ = new StatsCalculator( rset, hasQuant );
+            activeCalculator_ = new StatsCalculator( rset, hasQuant, hasMad );
             activeCalculator_.start();
         }
     }
@@ -506,6 +512,22 @@ public class StatsWindow extends AuxWindow {
             }
         } );
 
+        /* Median Absolute Deviation. */
+        hideColumns_.set( metas.size() );
+        metas.add( new MadColumn( "Median_Absolute_Deviation",
+                                   "Median absolute deviation"
+                                 + " of values in column", 1f ) );
+
+        /* Scaled Median Absolute Deviation. */
+        hideColumns_.set( metas.size() );
+        double madScale = QuantCalc.MAD_SCALE;
+        metas.add( new MadColumn( "Scaled_Median_Absolute_Deviation",
+                                   "Median absolute deviation multiplied by "
+                                 + madScale
+                                 + " (estimator of normal"
+                                 + " standard deviation)",
+                                   madScale ) );
+ 
         /* Skew. */
         hideColumns_.set( metas.size() );
         metas.add( new MetaColumn( "Skew", Float.class, 
@@ -746,6 +768,34 @@ public class StatsWindow extends AuxWindow {
     }
 
     /**
+     * Metacolumn subclass which displays a scaled version of the
+     * Median Absolute Deviation.
+     */
+    private class MadColumn extends MetaColumn {
+        private final double scale_;
+
+        /**
+         * Constructor.
+         *
+         * @param  name  column name
+         * @param  description  column description
+         * @param  scale  scale factor for result
+         */
+        MadColumn( String name, String description, double scale ) {
+            super( name, Float.class, description );
+            scale_ = scale;
+        }
+
+        public Object getValue( int irow ) {
+            int jcol = getModelIndexFromRow( irow );
+            if ( lastCalc_ == null || jcol >= lastCalc_.ncol ) return null;
+            return lastCalc_.hasMad && lastCalc_.isNumber[ jcol ]
+                 ? new Float( (float) ( lastCalc_.mads[ jcol ] * scale_ ) )
+                 : null;
+        }
+    }
+
+    /**
      * Metacolumn subclass which can display quantile values.
      */
     private class QuantileColumn extends MetaColumn {
@@ -792,6 +842,7 @@ public class StatsWindow extends AuxWindow {
 
         private final RowSubset rset;
         private final boolean hasQuant;
+        private final boolean hasMad;
 
         int ncol;
         long ngoodrow;
@@ -811,6 +862,7 @@ public class StatsWindow extends AuxWindow {
         double[] popvars;
         double[] sampsdevs;
         double[] sampvars;
+        double[] mads;
         double[] skews;
         double[] kurts;
         double[] sums;
@@ -827,11 +879,14 @@ public class StatsWindow extends AuxWindow {
          *
          * @param  rset the RowSubset to do calculations for
          * @param  hasQuant  true if quantiles need calculating
+         * @param  hasMad  true if median absolute deviations need calculating
          */
-        public StatsCalculator( RowSubset rset, boolean hasQuant ) {
+        public StatsCalculator( RowSubset rset, boolean hasQuant,
+                                boolean hasMad ) {
             super( "StatsCalculator" );
             this.rset = rset;
-            this.hasQuant = hasQuant; 
+            this.hasQuant = hasQuant || hasMad; 
+            this.hasMad = hasMad;
         }
 
         /**
@@ -926,6 +981,7 @@ public class StatsWindow extends AuxWindow {
             popvars = new double[ ncol ];
             sampsdevs = new double[ ncol ];
             sampvars = new double[ ncol ];
+            mads = new double[ ncol ];
             skews = new double[ ncol ];
             kurts = new double[ ncol ];
             sums = new double[ ncol ];
@@ -1199,6 +1255,11 @@ public class StatsWindow extends AuxWindow {
                             quantiles[ icol ]
                            .put( qval, quantCalc.getQuantile( qval ) );
                         }
+                        mads[ icol ] =
+                            hasMad
+                                ? QuantCalc
+                                 .calculateMedianAbsoluteDeviation( quantCalc )
+                                : Double.NaN;
                         quantCalcs[ icol ] = null;
                     }
                 }
@@ -1208,6 +1269,7 @@ public class StatsWindow extends AuxWindow {
                     popvars[ icol ] = Double.NaN;
                     sampvars[ icol ] = Double.NaN;
                     sampsdevs[ icol ] = Double.NaN;
+                    mads[ icol ] = Double.NaN;
                     skews[ icol ] = Double.NaN;
                     kurts[ icol ] = Double.NaN;
                 }
