@@ -91,6 +91,14 @@
   <property name="optimize" value="true"/>
   <property name="source.version" value="1.5"/>
 
+  <!-- JVM binary to use for certain forked tasks.  This may be different
+   !   from that used to run ant.  This is a bit of a hack; in some
+   !   cases we want to run the build on a 1.5 JDK to generate Java1.5 classes,
+   !   but 1.6 needs to be used for some documentation tasks to avoid
+   !   1.5-specific xerces bugs.  An alternative approach would be
+   !   cross-compilation of all packages. -->
+  <property name="alt.java" value="java"/>
+
   <!-- Extra task options, if any -->
   <property name="chmod.fail" value="false"/>
 
@@ -1239,7 +1247,8 @@
           dir="${src.docs}"
           classname="uk.ac.starlink.xdoc.MultiXML"
           failonerror="yes"
-          fork="yes">
+          fork="yes"
+          jvm="${alt.java}">
       <sysproperty key="java.awt.headless" value="true"/>
       <arg value="-style"/> <arg value="${xdoc.etc}/toHTML.xslt"/>
       <arg value="-param"/> <arg value="VERSION=${version}"/>
