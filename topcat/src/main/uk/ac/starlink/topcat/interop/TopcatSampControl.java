@@ -347,6 +347,9 @@ public class TopcatSampControl {
             /* Load FITS table by reference. */
             new TableLoadHandler( "table.load.fits", "fits" ),
 
+            /* Load CDF table by reference. */
+            new TableLoadHandler( "table.load.cdf", "cdf" ),
+
             /* Load table with supplied format by reference. */
             new TableLoadHandler( TopcatSender.TOPCAT_LOAD_MTYPE, null ),
 

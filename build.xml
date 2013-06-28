@@ -198,6 +198,9 @@
     <echo message="Executing VOTable target: ${what}"/>
     <ant dir="./votable" target="${what}"/>
 
+    <echo message="Executing CDF target: ${what}"/>
+    <ant dir="./cdf" target="${what}"/>
+
     <echo message="Executing RAYREG target: ${what}"/>
     <ant dir="./rayreg" target="${what}"/>
 

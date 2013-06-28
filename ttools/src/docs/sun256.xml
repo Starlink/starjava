@@ -1264,7 +1264,7 @@ the location, but be aware that this may be less efficient on memory.
 As with command-line STILTS, the <code>fmt</code> argument
 is one of the options in <ref id="inFormats"/>, but may be
 left as the default if the format auto-detectable,
-which currently means if the file is in VOTable or FITS format.
+which currently means if the file is in VOTable, FITS or CDF format.
 The <code>random</code> argument can be used to ensure that the returned file
 has random (i.e. not sequential-only) access;
 for some table formats the default way of reading them in means that
@@ -1888,6 +1888,11 @@ The following list gives the values usually allowed for this
     <code>TABLE</code> element in the document is used, but this can be
     altered by supplying the 0-based index after a '<code>#</code>' sign, 
     so "table.xml#4" means the fifth <code>TABLE</code> element in the document.
+    </p></dd>
+
+<dt><code>cdf</code></dt>
+<dd><p>NASA Common Data Format.
+    CDF is described at <webref url="http://cdf.gsfc.nasa.gov/"/>.
     </p></dd>
 
 <dt><code>ascii</code></dt>
@@ -8400,6 +8405,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Add Median Absolute Deviation calculation
         (<code>MedAbsDev</code> and <code>ScMedAbsDev</code>)
         options to <ref id="stats"><code>stats</code></ref> filter.</li>
+    <li>Add read-only support for
+        <webref url="http://cdf.gsfc.nasa.gov/">CDF</webref>
+        (NASA Common Data Format) files.</li>
     </ul>
     </p></dd>
 

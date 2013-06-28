@@ -388,7 +388,7 @@ something like
 <code>java -jar topcat-full.jar</code> (see <ref id="invoke"/> for
 more detail).  To view a table that you have on disk, you can either
 give its name on the command line or load it using the <label>Load</label>
-button from the GUI.  FITS and VOTable files are recognised automatically;
+button from the GUI.  FITS, VOTable and CDF files are recognised automatically;
 if your data is in another format such as ASCII (see <ref id="inFormats"/>)
 you need to tell the program (e.g. <code>-f ascii</code> on the command line).
 If you just want to try the program out, <code>topcat -demo</code> will
@@ -856,7 +856,7 @@ supported input formats have matching output formats and vice versa.
 <p>Loading tables into TOPCAT is done either from the command line
 when you start the program up or
 using the <ref id="LoadWindow">Load Table</ref> dialogue.
-For FITS and VOTable formats
+For FITS, VOTable and CDF formats
 the file format can be detected automatically
 (note this is done by looking at the file content, it has nothing
 to do with filename extensions).
@@ -1021,6 +1021,20 @@ then loading the document in the usual way from the filestore browser
 or command line will open two new tables in TOPCAT.
 If you just want the Star Catalogue or the Galaxy Catalogue you can 
 use the name "cats.xml#0" or "cats.xml#1" respectively.
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="inCdf">
+<subhead><title>CDF</title></subhead>
+
+<p>NASA's Common Data Format, described at
+<webref url="http://cdf.gsfc.nasa.gov/"/>,
+is a binary format for storing self-describing data.
+It is typically used to store tabular data for subject areas like
+space and solar physics.
+Since v4.0-1 TOPCAT is capable of reading CDF files, though it can't
+write them.
 </p>
 
 </subsubsubsect>
@@ -3315,7 +3329,8 @@ unless you are a tool developer you can probably ignore these.
     </p>
     <p>SAMP MTypes:
           <code>table.load.votable</code>,
-          <code>table.load.fits</code> or
+          <code>table.load.fits</code>
+          <code>table.load.cdf</code> or
           <code>table.load.stil</code>;
        PLASTIC Message IDs:
           <code>ivo://votech.org/votable/load</code> or
@@ -3455,8 +3470,9 @@ unless you are a tool developer you can probably ignore these.
     <ref id="ControlWindow">Control Window</ref>.
     </p>
     <p>SAMP MType:
-       <code>table.load.votable</code> or
-       <code>table.load.fits</code>;
+       <code>table.load.votable</code>,
+       <code>table.load.fits</code> or
+       <code>table.load.cdf</code>;
        PLASTIC Message ID:
        <code>ivo://votech.org/votable/load</code> or
        <code>ivo://votech.org/votable/loadFromURL</code>
@@ -18071,6 +18087,9 @@ introduced since the last version:
         (including better dashing, new antialias option).</li>
     <li>Add options to calculate the (scaled or unscaled)
         Median Absolute Deviation in the Statistics window.</li>
+    <li>Add read-only support for
+        <webref url="http://cdf.gsfc.nasa.gov/">CDF</webref>
+        (NASA Common Data Format) files.</li>
     </ul>
     </p></dd>
 
