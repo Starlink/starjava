@@ -89,6 +89,8 @@ import uk.ac.starlink.util.URLDataSource;
  *      (format name="tst")
  * <li> {@link uk.ac.starlink.table.formats.IpacTableBuilder}
  *      (format name="ipac")
+ * <li> {@link uk.ac.starlink.table.formats.CefTableBuilder}
+ *      (format name="cef")
  * <li> {@link uk.ac.starlink.table.formats.WDCTableBuilder}
  *      (format name="wdc")
  * </ul>
@@ -141,6 +143,7 @@ public class StarTableFactory {
         CsvTableBuilder.class.getName(),
         TstTableBuilder.class.getName(),
         IpacTableBuilder.class.getName(),
+        "uk.ac.starlink.cdf.CefTableBuilder",
         WDCTableBuilder.class.getName(),
     };
 

@@ -350,6 +350,9 @@ public class TopcatSampControl {
             /* Load CDF table by reference. */
             new TableLoadHandler( "table.load.cdf", "cdf" ),
 
+            /* Load CEF table by reference. */
+            new TableLoadHandler( "table.load.cef", "cef" ),
+
             /* Load table with supplied format by reference. */
             new TableLoadHandler( TopcatSender.TOPCAT_LOAD_MTYPE, null ),
 
