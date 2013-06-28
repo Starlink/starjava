@@ -17912,7 +17912,79 @@ introduced since the last version:
         It's still a yellow cat.
         </p></dd>
     <dt>Plotting:</dt>
-    <dd><p>All change.
+    <dd><p>Four new "Layer plot" windows are available from the
+        <label>Graphics</label> menu: Plane, Sky, Cube and Sphere layer plots.
+        These feature a new more powerful (and, yes, more complicated) user
+        interface, and are fully documented in <ref id="plot2"/>.
+        New functionality includes:
+        <dl>
+        <dt>New Sky Coordinate Plot</dt>
+        <dd><p>
+            <ul>
+            <li>Choice of projection:
+                Sin (rotatable), Aitoff, Plate Carr&#xE9;e</li>
+            <li>Data and view sky coordinate systems selected separately:
+                options are equatorial, galactic, supergalactic, ecliptic</li>
+            <li>Sky coordinate grid labelled and visible at all zooms</li>
+            </ul>
+            </p></dd>
+        <dt>New data plot options</dt>
+        <dd><p>
+            <ul>
+            <li>vectors</li>
+            <li>ellipses (with position angle)</li>
+            <li>pair, triple, ... data point lines/polygons</li>
+            <li>contours</li>
+            <li>variable size markers</li>
+            </ul>
+            </p></dd>
+        <dt>Improved interactive response</dt>
+        <dd><p>
+            <ul>
+            <li>In 2d and sky plots mouse wheel zooms
+                around cursor position</li>
+            <li>In 2d and sky plots you can
+                drag the plot around</li>
+            <li>In 3d plots right mouse button recentres cube
+                on selected point</li>
+            <li>In 3d plots zooming zooms data in the cube
+                rather than enlarging the cube wireframe itself</li>
+            <li>Many controls are sliders which update
+                the plot as you slide</li>
+            </ul>
+            </p></dd>
+        <dt>New plot colouring modes</dt>
+        <dd><p>Density colour coding for all plot types,
+            with density colour map based either on dataset colour or
+            chosen from a fixed set.
+            Flat, transparent and aux colour coding still available as before.
+            </p></dd>
+        <dt>Better support for large datasets</dt>
+        <dd><p>Several features have been introduced to provide more meaningful
+            visualisation of large datasets.  Improved density-like plots
+            and contours give you better ways to understand plots containing
+            many more points than there are pixels to plot them on.
+            There is separately some improvement in scalability:
+            up to roughly 10 million points is currently feasible depending
+            on available memory etc, though it depends what you're doing.
+            However, I hope to improve this limit in future.</p></dd>
+        <dt>Improved axis labelling</dt>
+        <dd><p>
+            <ul>
+            <li>Choice of font size and style</li>
+            <li>Option of LaTeX input for non-ASCII characters etc</li>
+            <li>Log axes labelled better</li>
+            <li>Minor tick option</li>
+            </ul>
+            </p></dd>
+        <dt>Legend options</dt>
+        <dd><p>External or manually positioned internal placement.
+            </p></dd>
+        <dt>Analytic function plotting in 2D</dt>
+        <dd><p>Plot functions of X or Y coordinate using
+            TOPCAT expression language.</p></dd>
+        </dl>
+        <em>(Note this text was added after v4.0 release).</em>
         </p></dd>
     <dt>Other new capabilities:</dt>
     <dd><p>
