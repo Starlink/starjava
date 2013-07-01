@@ -106,7 +106,7 @@
 
 <docnumber>256</docnumber>
 
-<docdate>28 March 2013</docdate>
+<docdate>1 July 2013</docdate>
 
 <contactlist>
 <contact>STILTS web page:
@@ -8374,41 +8374,52 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </dl>
     </p></dd>
 
-<dt>Next Version</dt>
+<dt>Version 2.5-1 (1 July 2013)</dt>
 <dd><p>
-    <ul>
-    <li>Fix CSV regression bug introduced at v2.5
-        - CSV files now work again with MSDOS-style line breaks.</li>
-    <li>Source code is now managed by git and not subversion.
-        The format of the "Starjava revision" string reported by the
-        <code>-version</code> flag has changed accordingly.</li>
-    <li>Output mode <code>meta</code> now copes better with array-valued
-        table parameters.</li>
-    <li>Implemented fixes to reduce the chance of users inadvertently
-        overloading external Cone/SIA/SSA services with multicone-like queries.
-        First, fix it so that abandoned queries are properly terminated,
-        rather than continuing to hit the server until completion or JVM
-        shutdown.
-        Second, implement a sensible default maximum value for the
-        <code>parallel</code> parameter of <code>skyconematch</code>
-        (though this may be adjusted with a system property).</li>
-    <li>Quoting behaviour has changed when generating SQL to write to
-        RDBMS tables.  This ought to reduce problems related to mixed-case
-        identifiers.  However, it is possible that it could lead to 
-        unforseen new anomalies.</li>
-    <li>Fixed FITS output bug which could result in badly-formed string-valued
-        header cards (no closing quote).</li>
-    <li>Improved handling of HTTP basic authorization.
-        401s now generate a useful message about the
-        <code>star.basicauth.*</code> system properties if they
-        have not been set up.</li>
-    <li>Add Median Absolute Deviation calculation
-        (<code>MedAbsDev</code> and <code>ScMedAbsDev</code>)
-        options to <ref id="stats"><code>stats</code></ref> filter.</li>
-    <li>Add read-only support for
-        <webref url="http://cdf.gsfc.nasa.gov/">CDF</webref>
-        (NASA Common Data Format) files.</li>
-    </ul>
+    <dl>
+    <dt>New functionality</dt>
+    <dd><p>
+        <ul>
+        <li>Add read-only support for
+            <webref url="http://cdf.gsfc.nasa.gov/">CDF</webref>
+            (NASA Common Data Format) files.</li>
+        <li>Add Median Absolute Deviation calculation
+            (<code>MedAbsDev</code> and <code>ScMedAbsDev</code>)
+            options to <ref id="stats"><code>stats</code></ref> filter.</li>
+        <li>Improved handling of HTTP basic authorization.
+            401s now generate a useful message about the
+            <code>star.basicauth.*</code> system properties if they
+            have not been set up.</li>
+        </ul>
+        </p></dd>
+    <dt>Bug fixes and minor enhancements</dt>
+    <dd><p>
+        <ul>
+        <li>Fix CSV regression bug introduced at v2.5
+            - CSV files now work again with MSDOS-style line breaks.</li>
+        <li>Fixed FITS output bug which could result in badly-formed
+            string-valued header cards (no closing quote).</li>
+        <li>Source code is now managed by git and not subversion.
+            The format of the "Starjava revision" string reported by the
+            <code>-version</code> flag has changed accordingly.</li>
+        <li>Output mode <code>meta</code> now copes better with array-valued
+            table parameters.</li>
+        <li>Implemented fixes to reduce the chance of users inadvertently
+            overloading external Cone/SIA/SSA services with multicone-like
+            queries.
+            First, fix it so that abandoned queries are properly terminated,
+            rather than continuing to hit the server until completion or JVM
+            shutdown.
+            Second, implement a sensible default maximum value for the
+            <code>parallel</code> parameter of <code>skyconematch</code>
+            (though this may be adjusted with a system property).</li>
+        <li>Quoting behaviour has changed when generating SQL to write to
+            RDBMS tables.  This ought to reduce problems related to mixed-case
+            identifiers.  However, it is possible that it could lead to 
+            unforseen new anomalies.</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>
