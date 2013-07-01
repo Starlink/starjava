@@ -22,26 +22,20 @@ import uk.ac.starlink.topcat.plot2.LineBox;
  */
 public class SwingHttpAuthenticator extends Authenticator {
 
-    private Component parent_;
+    private final Component parent_;
     private final JTextField userField_;
     private final JPasswordField passField_;
 
     /**
      * Constructor.
-     */
-    public SwingHttpAuthenticator() {
-        super();
-        userField_ = new JTextField();
-        passField_ = new JPasswordField();
-    }
-
-    /**
-     * Sets the component to use as parent of the dialogue when it is posted.
      *
      * @param  parent  dialogue parent
      */
-    public void setParent( Component parent ) {
+    public SwingHttpAuthenticator( Component parent ) {
+        super();
         parent_ = parent;
+        userField_ = new JTextField();
+        passField_ = new JPasswordField();
     }
 
     @Override

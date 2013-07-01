@@ -209,17 +209,6 @@ public class Driver {
         Loader.setDefaultProperty( "java.awt.Window.locationByPlatform",
                                    "true" );
 
-        /* Set up an authenticator for HTTP 401s.  If properties are
-         * supplied, use those, otherwise use one which will pop up a window. */
-        final SwingHttpAuthenticator guiAuthenticator;
-        if ( ! PropertyAuthenticator.installInstance( false ) ) {
-            guiAuthenticator = new SwingHttpAuthenticator();
-            Authenticator.setDefault( guiAuthenticator );
-        }
-        else {
-            guiAuthenticator = null;
-        }
-
         /* Fine tune the logging - we don't need HDS or AST here, so 
          * stop them complaining when they can't be loaded. */
         try {
@@ -450,8 +439,11 @@ public class Driver {
 
         /* Start up the GUI now. */
         final ControlWindow control = getControlWindow();
-        if ( guiAuthenticator != null ) {
-            guiAuthenticator.setParent( control );
+
+        /* Set up an authenticator for HTTP 401s.  If properties are
+         * supplied, use those, otherwise use one which will pop up a window. */
+        if ( ! PropertyAuthenticator.installInstance( false ) ) {
+            Authenticator.setDefault( new SwingHttpAuthenticator( control ) );
         }
 
         /* Start up with demo data if requested. */
