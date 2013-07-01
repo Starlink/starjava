@@ -197,7 +197,7 @@
 
 <docnumber>253</docnumber>
 
-<docdate>28 March 2013</docdate>
+<docdate>1 July 2013</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -1035,6 +1035,8 @@ It is typically used to store tabular data for subject areas like
 space and solar physics.
 Since v4.0-1 TOPCAT is capable of reading CDF files, though it can't
 write them.
+Currently, no attempt is made to represent values representing
+times in a human-friendly fashion.  This may change in future releases.
 </p>
 
 </subsubsubsect>
@@ -17984,7 +17986,8 @@ introduced since the last version:
         <dd><p>Plot functions of X or Y coordinate using
             TOPCAT expression language.</p></dd>
         </dl>
-        <em>(Note this text was added after v4.0 release).</em>
+        <em>(Note this plot change list was missing from the v4.0 release
+            and retrospectively added at v4.0-1).</em>
         </p></dd>
     <dt>Other new capabilities:</dt>
     <dd><p>
@@ -18109,60 +18112,82 @@ introduced since the last version:
     </p>
     </dd>
 
-<dt>Next Version</dt>
+<dt>Version 4.0-1 (1 July 2013)</dt>
 <dd><p>
-    <ul>
-    <li>Fix CSV regression bug introduced at v4.0b
-        - CSV files now work again with MSDOS-style line breaks.</li>
-    <li>Source code is now managed by git and not subversion.
-        The format of the "Starjava revision" string reported by the
-        <code>-version</code> flag and the Help|About menu item
-        has changed accordingly.</li>
-    <li>The Columns window now makes a better attempt at displaying
-        non-standard per-column metadata of unusual types, in particular
-        array values.</li>
-    <li>Now subscribes to SAMP <code>voresource.loadlist.tap</code> MType,
-        accepting resource list in TAP load dialogue "Select Service" tab.</li>
-    <li>Implemented fixes to reduce the chance of users inadvertently
-        overloading external Cone/SIA/SSA services with multicone-like queries.
-        First, fix it so that abandoned queries are properly terminated,
-        rather than continuing to hit the server until completion or JVM
-        shutdown.
-        Second, implement a sensible default maximum value for the
-        <label>Parallelism</label> field in the multi-cone (etc) panel
-        (though this may be adjusted with a system property).</li>
-    <li>Fix bug with reading session files containing 1-column tables.</li>
-    <li>TAP example queries now quote table and column names where necessary.
-        This fixes a bug that was particularly evident with the VizieR TAP
-        service for which nearly all table names are
-        not legal ADQL identifiers.</li>
-    <li>Quoting behaviour has changed when generating SQL to write to
-        RDBMS tables.  This ought to reduce problems related to mixed-case
-        identifiers.  However, it is possible that it could lead to
-        unforseen new anomalies.</li>
-    <li>Fixed FITS output bug which could result in badly-formed string-valued
-        header cards (no closing quote).</li>
-    <li>Turn off layer plot optimisation that could result in lost
-        precision for double values.</li>
-    <li>Fix layer plot bug that broke the plot if both handles of a range
-        slider were dragged to the same position.</li>
-    <li>Fixed it so that layer plot axis range settings are reset when
-        the Rescale button is used.</li>
-    <li>Fixed a bug that caused an exception when a table in a layer plot
-        was deleted from the application.</li>
-    <li>Fixed a bug when zooming way out from a sky plot.</li>
-    <li>Improve handling of HTTP basic authorization.
-        HTTP 401s now pop up a user/password dialogue window,
-        unless the <code>star.basicauth.*</code> system properties
-        have been set up.</li>
-    <li>Line plotting improved in layer plots
-        (including better dashing, new antialias option).</li>
-    <li>Add options to calculate the (scaled or unscaled)
-        Median Absolute Deviation in the Statistics window.</li>
-    <li>Add read-only support for
-        <webref url="http://cdf.gsfc.nasa.gov/">CDF</webref>
-        (NASA Common Data Format) files.</li>
-    </ul>
+    <dl>
+    <dt>New Functionality</dt>
+    <dd><p>
+        <ul>
+        <li>Add read-only support for
+            <webref url="http://cdf.gsfc.nasa.gov/">CDF</webref>
+            (NASA Common Data Format) files.
+            Currently, no attempt is made to present time-like values in a
+            human-friendly way, but this may improve in a future release.
+            The SAMP <code>table.load.cdf</code> MType is also supported
+            for receiving CDF files.</li>
+        <li>Improve handling of HTTP basic authorization.
+            HTTP 401s now pop up a user/password dialogue window,
+            unless the <code>star.basicauth.*</code> system properties
+            have been set up.</li>
+        <li>Add options to calculate the (scaled or unscaled)
+            Median Absolute Deviation in the Statistics window.</li>
+        </ul>
+        </p></dd>
+    <dt>Minor enhancements</dt>
+    <dd><p>
+        <ul>
+        <li>Now subscribes to SAMP <code>voresource.loadlist.tap</code> MType,
+            accepting resource list in TAP load dialogue "Select Service"
+            tab.</li>
+        <li>The Columns window now makes a better attempt at displaying
+            non-standard per-column metadata of unusual types, in particular
+            array values.</li>
+        <li>Line plotting improved in layer plots
+            (including better dashing, new antialias option).</li>
+        <li>Implemented fixes to reduce the chance of users inadvertently
+            overloading external Cone/SIA/SSA services with multicone-like
+            queries.
+            First, fix it so that abandoned queries are properly terminated,
+            rather than continuing to hit the server until completion or JVM
+            shutdown.
+            Second, implement a sensible default maximum value for the
+            <label>Parallelism</label> field in the multi-cone (etc) panel
+            (though this may be adjusted with a system property).</li>
+        <li>Source code is now managed by git and not subversion.
+            The format of the "Starjava revision" string reported by the
+            <code>-version</code> flag and the Help|About menu item
+            has changed accordingly.</li>
+        </ul>
+        </p></dd>
+    <dt>Bug fixes</dt>
+    <dd><p>
+        <ul>
+        <li>Fix CSV regression bug introduced at v4.0b
+            - CSV files now work again with MSDOS-style line breaks.</li>
+        <li>TAP example queries now quote table and column names
+            where necessary.
+            This fixes a bug that was particularly evident with the VizieR TAP
+            service for which nearly all table names are
+            not legal ADQL identifiers.</li>
+        <li>Quoting behaviour has changed when generating SQL to write to
+            RDBMS tables.  This ought to reduce problems related to mixed-case
+            identifiers.  However, it is possible that it could lead to
+            unforseen new anomalies.</li>
+        <li>Fix bug with reading session files containing 1-column tables.</li>
+        <li>Fixed FITS output bug which could result in badly-formed
+            string-valued header cards (no closing quote).</li>
+        <li>Turn off layer plot optimisation that could result in lost
+            precision for double values.</li>
+        <li>Fix layer plot bug that broke the plot if both handles of a range
+            slider were dragged to the same position.</li>
+        <li>Fixed it so that layer plot axis range settings are reset when
+            the Rescale button is used.</li>
+        <li>Fixed a bug that caused an exception when a table in a layer plot
+            was deleted from the application.</li>
+        <li>Fixed a bug when zooming way out from a sky plot.</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>
