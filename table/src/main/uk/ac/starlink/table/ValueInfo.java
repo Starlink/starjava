@@ -1,7 +1,6 @@
 package uk.ac.starlink.table;
 
 import java.util.Map;
-import javax.swing.table.TableCellRenderer;
 
 /**
  * Describes a value, for instance one obtained from cells in 
@@ -198,19 +197,5 @@ public interface ValueInfo {
      *          this info's content class (or be null)
      */
     Object unformatString( String rep );
-
-    /**
-     * Returns a renderer suitable for rendering values described by 
-     * this object in a <tt>JTable</tt> cell.
-     * The renderer should ideally render objects in such a way that
-     * a long column of them looks tidy.
-     * A <tt>null</tt> value may be returned to indicate that smoe
-     * default renderer will be used, in which case the text of the
-     * rendered cell will be as provided by the {@link #formatValue}
-     * method.
-     *
-     * @return   a custom table cell renderer, or <tt>null</tt>
-     */
-    TableCellRenderer getCellRenderer();
 
 }

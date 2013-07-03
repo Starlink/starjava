@@ -6,11 +6,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.swing.table.TableCellRenderer;
-import javax.swing.table.TableCellEditor;
-import uk.ac.starlink.table.gui.NumericCellRenderer;
-import uk.ac.starlink.table.gui.ValueInfoCellEditor;
-import uk.ac.starlink.table.gui.ValueInfoCellRenderer;
 
 /**
  * Default implementation of the <tt>ValueInfo</tt> interface.
@@ -31,8 +26,6 @@ public class DefaultValueInfo implements ValueInfo {
     private boolean isNullable = true;
     private int[] shape = new int[] { -1 };
     private int elementSize = -1;
-    private TableCellRenderer cellRenderer;
-    private TableCellEditor cellEditor;
 
     private static Pattern trailDigits = Pattern.compile( "\\.([0-9]+)$" );
     private static Pattern trailSpaces = Pattern.compile( "( +)$" );
@@ -186,13 +179,6 @@ public class DefaultValueInfo implements ValueInfo {
         if ( contentClass.isPrimitive() ) {
             throw new IllegalArgumentException( 
                 "Primitive content class " + contentClass + " not permitted" );
-        }
-
-        /* If the content class has changed, reset any cached state which
-         * depends on it. */
-        if ( contentClass != this.contentClass ) {
-            cellRenderer = null;
-            cellEditor = null;
         }
 
         /* Set the class. */
@@ -387,48 +373,6 @@ public class DefaultValueInfo implements ValueInfo {
 
         /* Return the consistent object. */
         return vi;
-    }
-
-    /**
-     * Returns a renderer suitable for rendering the data described by 
-     * this info.  Subclasses should override this method
-     * if they can format their values in a component better than
-     * allowing the <tt>formatValue</tt> text to be put into a cell.
-     *
-     * @return  a custom renderer
-     */
-    public TableCellRenderer getCellRenderer() {
-        if ( cellRenderer == null ) {
-            Class clazz = getContentClass();
-            if ( Number.class.isAssignableFrom( clazz ) ) {
-                cellRenderer = new NumericCellRenderer( clazz );
-            }
-            else if ( clazz.equals( Boolean.class ) ) {
-                cellRenderer = BooleanCellRenderer.getInstance();
-            }
-            else {
-                cellRenderer = new ValueInfoCellRenderer( this );
-            }
-        }
-        return cellRenderer;
-    }
-
-    /**
-     * Returns a cell editor suitable for editing the data described by
-     * this info, or <tt>null</tt> if no user editing is possible.
-     * Subclasses should override this method if they can do better than
-     * calling the <tt>unformatValue</tt> method to turn user text 
-     * into a cell value (or if they don't even want to attempt that,
-     * in which case they should return null).
-     *
-     * @return  a custom editor, or <tt>null</tt>
-     */
-    public TableCellEditor getCellEditor() {
-        if ( cellEditor == null ) {
-            Class clazz = getContentClass();
-            cellEditor = ValueInfoCellEditor.makeEditor( this );
-        }
-        return cellEditor;
     }
 
     public String formatValue( Object value, int maxLength ) {
