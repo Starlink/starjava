@@ -286,7 +286,26 @@ public class DefaultValueInfo implements ValueInfo {
 
         /* Otherwise we will need to create a new one with characteristics
          * build up from the supplied ones. */
-        DefaultValueInfo vi = new DefaultValueInfo( vi1 );
+        DefaultValueInfo vi = new DefaultValueInfo( vi1 ) {
+            public String formatValue( Object obj, int leng ) {
+                try {
+                    return super.formatValue( obj, leng );
+                }
+                catch ( RuntimeException e ) {
+                    String rep = String.valueOf( obj );
+                    return rep.length() > leng ? rep.substring( 0, leng )
+                                               : rep;
+                }
+            }
+            public Object unformatString( String rep ) {
+                try {
+                    return super.unformatString( rep );
+                }
+                catch ( RuntimeException e ) {
+                    return null;
+                }
+            }
+        };
 
         /* Cancel the units if not consistent. */
         if ( vi1.getUnitString() != null &&

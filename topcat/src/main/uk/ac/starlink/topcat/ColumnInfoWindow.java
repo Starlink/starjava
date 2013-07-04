@@ -38,6 +38,7 @@ import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.UCD;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.table.gui.NumericCellRenderer;
 import uk.ac.starlink.table.gui.StarJTable;
 import uk.ac.starlink.table.gui.StarTableColumn;
 import uk.ac.starlink.table.gui.TableRowHeader;
@@ -318,11 +319,7 @@ public class ColumnInfoWindow extends AuxWindow {
         /* Construct and place a JTable to contain it. */
         jtab = new JTable( metaTableModel ) {
             public TableCellRenderer getDefaultRenderer( Class clazz ) {
-                TableCellRenderer rend = super.getDefaultRenderer( clazz );
-                if ( rend == null ) {
-                    rend = super.getDefaultRenderer( Object.class );
-                }
-                return rend;
+                return new NumericCellRenderer( clazz );
             }
         };
         jtab.setAutoResizeMode( JTable.AUTO_RESIZE_OFF );
@@ -588,8 +585,7 @@ public class ColumnInfoWindow extends AuxWindow {
                 Object value = auxDatum.getValue();
                 if ( value != null && 
                      vclass.isAssignableFrom( value.getClass() ) ) {
-                    return isFormattable ? value
-                                         : vinfo.formatValue( value, 64 );
+                    return value;
                 }
             }
             return null;
