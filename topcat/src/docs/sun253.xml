@@ -3330,20 +3330,11 @@ unless you are a tool developer you can probably ignore these.
     The <label>Broadcast</label> action is also available in the toolbar.
     </p>
     <p>SAMP MTypes:
-          <code>table.load.votable</code>,
-          <code>table.load.fits</code>
-          <code>table.load.cdf</code> or
-          <code>table.load.stil</code>;
+          <code>table.load.votable</code> or
+          <code>table.load.fits</code>;
        PLASTIC Message IDs:
           <code>ivo://votech.org/votable/load</code> or
           <code>ivo://votech.org/votable/loadFromURL</code>
-    </p>
-    <p>Note the non-standard MType <code>table.load.stil</code> is
-    supported for loading tables with SAMP.  This is like the other
-    <code>table.load.*</code> MTypes, but any table format supported
-    by the application is permitted.  This MType has an additional
-    parameter "<code>format</code>", which must contain the table format
-    name (not case sensitive).
     </p></dd>
 
 <dt>Transmit Subset</dt>
@@ -3473,11 +3464,19 @@ unless you are a tool developer you can probably ignore these.
     </p>
     <p>SAMP MType:
        <code>table.load.votable</code>,
-       <code>table.load.fits</code> or
-       <code>table.load.cdf</code>;
+       <code>table.load.fits</code>,
+       <code>table.load.cdf</code> or
+       <code>table.load.stil</code>;
        PLASTIC Message ID:
        <code>ivo://votech.org/votable/load</code> or
        <code>ivo://votech.org/votable/loadFromURL</code>
+    </p>
+    <p>Note the non-standard MType <code>table.load.stil</code> is
+    supported for loading tables with SAMP.  This is like the other
+    <code>table.load.*</code> MTypes, but any table format supported
+    by the application is permitted.  This MType has an additional
+    parameter "<code>format</code>", which must contain the table format
+    name (not case sensitive).
     </p></dd>
 
 <dt>New Subset</dt>
@@ -18195,6 +18194,10 @@ introduced since the last version:
         <ul>
         <li>Array-valued per-column extra metadata items is now displayed
             properly.</li>
+        <li>Moved text documenting <code>table.load.cdf</code> and 
+            <code>table.load.stil</code> SAMP MTypes from the transmit
+            section (wrong) to the receive section (right)
+            of this document.</li>
         </ul>
         </p></dd>
 
