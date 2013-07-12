@@ -82,6 +82,9 @@ public class Tick {
 
     /**
      * Generates a tick array suitable for labelling a plot axis.
+     * This convenience method just uses <code>crowding</code> to
+     * produce a not-very-sophisticated guess for <code>approxMajorCount</code>
+     * and invokes the other <code>getTicks</code> method.
      *
      * @param   dlo  minimum axis data value
      * @param   dhi  maximum axis data value
@@ -97,8 +100,24 @@ public class Tick {
                                    boolean log, boolean withMinor,
                                    double crowding ) {
         int nt0 = 1 + (int) Math.round( crowding * npix / 100 );
-        return log ? labelLogAxis( dlo, dhi, nt0, withMinor )
-                   : labelLinearAxis( dlo, dhi, nt0, withMinor );
+        return getTicks( dlo, dhi, log, nt0, withMinor );
+    }
+
+    /**
+     * Generates a tick array suitable for labelling a plot axis.
+     *
+     * @param   dlo  minimum axis data value
+     * @param   dhi  maximum axis data value
+     * @param   log   true for logarithmic scaling, false for linear
+     * @param   approxMajorCount  approximate number of major ticks required
+     * @param   withMinor  if true minor ticks are included,
+     *                     if false only major (labelled) ones are
+     * @return  tick array
+     */
+    public static Tick[] getTicks( double dlo, double dhi, boolean log,
+                                   int approxMajorCount, boolean withMinor ) {
+        return log ? labelLogAxis( dlo, dhi, approxMajorCount, withMinor )
+                   : labelLinearAxis( dlo, dhi, approxMajorCount, withMinor );
     }
 
     /**
