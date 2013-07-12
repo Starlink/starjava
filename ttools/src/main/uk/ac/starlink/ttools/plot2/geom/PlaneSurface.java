@@ -7,7 +7,6 @@ import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -424,7 +423,7 @@ public class PlaneSurface implements Surface {
 
         /* Return a formatted string on this basis. */
         if ( aval >= 1e6 || aval <= 1e-4 ) {
-            return format( dpos, "0.#E0", nsf );
+            return PlotUtil.formatNumber( dpos, "0.#E0", nsf );
         }
         else if ( prec >= 0.9 ) {
             return Long.toString( (long) Math.round( dpos ) );
@@ -436,25 +435,9 @@ public class PlaneSurface implements Surface {
                 return Long.toString( (long) Math.round( dpos ) );
             }
             else {
-                return format( dpos, "0.0", ndp );
+                return PlotUtil.formatNumber( dpos, "0.0", ndp );
             }
         }
-    }
-
-    /**
-     * Numeric formatting utility function.
-     *
-     * @param  value  numeric value to format
-     * @param  baseFmt  format string as for {@link java.text.DecimalFormat}
-     * @param  nFracDigits  fixed number of digits after the decimal point
-     * @return  formatted string
-     */
-    private static String format( double value, String baseFmt,
-                                  int nFracDigits ) {
-        DecimalFormat fmt = new DecimalFormat( baseFmt );
-        fmt.setMaximumFractionDigits( nFracDigits );
-        fmt.setMinimumFractionDigits( nFracDigits );
-        return fmt.format( value );
     }
 
     /**

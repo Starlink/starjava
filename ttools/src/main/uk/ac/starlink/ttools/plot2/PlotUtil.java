@@ -2,6 +2,7 @@ package uk.ac.starlink.ttools.plot2;
 
 import java.awt.Graphics2D;
 import java.lang.reflect.Array;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -228,4 +229,21 @@ public class PlotUtil {
             return r >= .9999 && r <= 1.0001;
         }
     }
+
+    /**
+     * Numeric formatting utility function.
+     *
+     * @param  value  numeric value to format
+     * @param  baseFmt  format string as for {@link java.text.DecimalFormat}
+     * @param  nFracDigits  fixed number of digits after the decimal point
+     * @return  formatted string
+     */
+    public static String formatNumber( double value, String baseFmt,
+                                       int nFracDigits ) {
+        DecimalFormat fmt = new DecimalFormat( baseFmt );
+        fmt.setMaximumFractionDigits( nFracDigits );
+        fmt.setMinimumFractionDigits( nFracDigits );
+        return fmt.format( value );
+    }
+
 }
