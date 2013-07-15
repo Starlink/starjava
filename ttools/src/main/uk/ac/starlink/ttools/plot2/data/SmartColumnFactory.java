@@ -87,6 +87,22 @@ public class SmartColumnFactory implements CachedColumnFactory {
                 return ((float[]) v).clone();
             }
         } );
+        map.put( StorageType.DOUBLE_ARRAY, new ValueComparison() {
+            public boolean equalValues( Object v1, Object v2 ) {
+                return Arrays.equals( (double[]) v1, (double[]) v2 );
+            }
+            public Object copyValue( Object v ) {
+                return ((double[]) v).clone();
+            }
+        } );
+        map.put( StorageType.FLOAT_ARRAY, new ValueComparison() {
+            public boolean equalValues( Object v1, Object v2 ) {
+                return Arrays.equals( (float[]) v1, (float[]) v2 );
+            }
+            public Object copyValue( Object v ) {
+                return ((float[]) v).clone();
+            }
+        } );
         assert map.keySet()
                   .containsAll( Arrays.asList( StorageType.values() ) );
         return Collections.unmodifiableMap( map );
