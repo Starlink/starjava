@@ -480,7 +480,8 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             PlotLayer layer = visibleLayers[ il ];
             DataGeom geom = layer.getDataGeom();
             DataSpec dataSpec = layer.getDataSpec();
-            if ( dataSpec != null && geom != null ) {
+            if ( dataSpec != null &&
+                 geom != null && geom.hasPosition() ) {
                 cloudMap.put( new PointCloud( geom, dataSpec ), layer );
             }
         }
@@ -498,6 +499,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
 
             /* Iterate over each visible point in the layer. */
             DataGeom geom = layer.getDataGeom();
+            assert geom != null && geom.hasPosition();
             DataSpec dataSpec = layer.getDataSpec();
             TopcatModel tcModel = getTopcatModel( dataSpec );
             TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
@@ -604,6 +606,9 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     private static double[] getDataPos( PlotLayer layer, long irow,
                                         DataStore dataStore ) {
         DataGeom geom = layer.getDataGeom();
+        if ( geom == null || ! geom.hasPosition() ) {
+            return null;
+        }
         double[] dpos = new double[ geom.getDataDimCount() ];
         TupleSequence tseq = dataStore.getTupleSequence( layer.getDataSpec() );
 
@@ -654,7 +659,8 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                     DataGeom geom = layer.getDataGeom();
                     DataSpec dataSpec = layer.getDataSpec();
                     TopcatModel tcModel = tcModels[ il ];
-                    if ( tcModel != null && geom != null ) {
+                    if ( tcModel != null &&
+                         geom != null && geom.hasPosition() ) {
                         if ( ! maskMap.containsKey( tcModel ) ) {
                             int nrow =
                                 Tables.checkedLongToInt( tcModel.getDataModel()

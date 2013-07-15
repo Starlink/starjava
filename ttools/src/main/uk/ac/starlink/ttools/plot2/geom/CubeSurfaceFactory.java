@@ -11,7 +11,6 @@ import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.Captioner;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
-import uk.ac.starlink.ttools.plot2.PointCloud;
 import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
@@ -317,8 +316,7 @@ public class CubeSurfaceFactory
     }
 
     public Range[] readRanges( PlotLayer[] layers, DataStore dataStore ) {
-        return PlotUtil.readCoordinateRanges( new PointCloud( layers, true ),
-                                              3, dataStore );
+        return PlotUtil.readCoordinateRanges( layers, 3, dataStore );
     }
 
     public CubeAspect pan( Surface surface, Point pos0, Point pos1 ) {

@@ -5,12 +5,14 @@ import java.util.Map;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot.Style;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
+import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.paper.PaperType;
 
 /**
  * Represents a layered element of the plot.
  * When combined with certain other information it can draw data or
- * other graphical elements onto a Surface.
+ * other graphical elements onto a Surface, and report on the surface
+ * region covered by such graphics.
  *
  * @author   Mark Taylor
  * @since    11 Feb 2013
@@ -35,11 +37,32 @@ public interface PlotLayer {
     /**
      * Returns the data geometry used by this layer.
      * This can be used in conjunction with the DataSpec to determine the
-     * base positions in data space of all the points plotted.
+     * base positions in data space of what has been plotted.
+     * Depending on the nature of the returned object, these positions may
+     * be actual points in the data space, or some higher-dimensional object.
+     * If null is returned, no such information is available.
      *
-     * @return  data geom
+     * @return  data geom, or null
      */
     DataGeom getDataGeom();
+
+    /**
+     * Gives this layer a chance to adjust the coordinate ranges
+     * assembled during data ranging.  Supplied is an array of range
+     * objects, each corresponding to one of the data position dimensions
+     * (it has <code>surface.getDataDimCount</code> elements).
+     * If this layer needs to adjust these ranges beyond what is implied
+     * by the result of <code>getDataGeom</code>, it may be done here.
+     * The implementation may or may not need to acquire
+     * a tuple sequence from the supplied <code>dataStore</code>.
+     *
+     * <p>In many cases (especially for point-plotting type layers)
+     * the implementation of this method will be a no-operation.
+     *
+     * @param   ranges   array of data space dimension ranges, may be adjusted
+     * @param   dataStore   data storage object
+     */
+    void extendCoordinateRanges( Range[] ranges, DataStore dataStore );
 
     /**
      * Returns the data spec that defines the data used by this layer.

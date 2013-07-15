@@ -84,9 +84,9 @@ public interface Plotter<S extends Style> {
      * <code>dataGeom.getPosCoords</code> and
      * {@link #getExtraCoords}.
      *
-     * <p>The <code>dataGeom</code> (and probably <code>dataSpec</code>)
+     * <p>The <code>pointDataGeom</code>
      * parameter is only used if {@link #hasPosition} returns true,
-     * otherwise the plot is dataless and those parameters are ignored.
+     * otherwise the plot does not have point positions.
      *
      * <p>It is legal to supply null for any of the parameters;
      * if insufficient data is supplied to generate a plot, then
@@ -94,11 +94,13 @@ public interface Plotter<S extends Style> {
      *
      * <p>Creating a layer should be cheap; layers may be created and not used.
      *
-     * @param   dataGeom  indicates base position coordinates and their
-     *                    mapping to the data space
+     * @param   pointDataGeom  indicates base position coordinates and their
+     *                    mapping to points in the data space;
+     *                    if non-null, the data geom's
+     *                    {@link DataGeom#hasPosition} method will return true 
      * @param   dataSpec  specifies the data required for the plot
      * @param   style   data style as obtained from <code>createStyle</code>
      * @return   new plot layer, or null if no drawing will take place
      */
-    PlotLayer createLayer( DataGeom dataGeom, DataSpec dataSpec, S style );
+    PlotLayer createLayer( DataGeom pointDataGeom, DataSpec dataSpec, S style );
 }

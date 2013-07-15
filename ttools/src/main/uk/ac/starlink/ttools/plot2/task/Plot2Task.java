@@ -222,7 +222,7 @@ public class Plot2Task implements Task {
             throws TaskException {
 
         /* Determine the data position coordinate geometry. */
-        DataGeom[] geoms = plotType.getDataGeoms();
+        DataGeom[] geoms = plotType.getPointDataGeoms();
         for ( int ig = 0; ig < geoms.length; ig++ ) {
             geomParam_.addOption( geoms[ ig ], geoms[ ig ].getVariantName() );
         }
@@ -363,6 +363,7 @@ public class Plot2Task implements Task {
             exprs[ ic ] = new String[ infos.length ];
             for ( int iuc = 0; iuc < infos.length; iuc++ ) {
                 Parameter param = createDataParameter( infos[ iuc ], suffix );
+                param.setNullPermitted( ! coord.isRequired() );
                 exprs[ ic ][ iuc ] = param.stringValue( env );
             }
         }

@@ -149,28 +149,48 @@ public class PlotUtil {
     }
 
     /**
-     * Determines range information for each of the coordinates of the
-     * data positions in a PointCloud.
+     * Determines range information for a set of layers which have
+     * Cartesian (or similar) coordinates.
      *
-     * @param   cloud  point cloud
-     * @param   nDataDim  dimensionality of data points in the point cloud
+     * @param   layers   plot layers
+     * @param   nDataDim  dimensionality of data points
      * @param   dataStore  data storage
      * @return   nDataDim-element array of ranges, each containing the
      *           range of data position coordinate values for
      *           the corresponding dimension
      */
     @Slow
-    public static Range[] readCoordinateRanges( PointCloud cloud, int nDataDim,
+    public static Range[] readCoordinateRanges( PlotLayer[] layers,
+                                                int nDataDim,
                                                 DataStore dataStore ) {
+
+        /* Set up an array of range objects, one for each data dimension. */
         Range[] ranges = new Range[ nDataDim ];
         for ( int idim = 0; idim < nDataDim; idim++ ) {
             ranges[ idim ] = new Range();
-        }                      
+        }
+
+        /* Create a point cloud containing all the point positions
+         * represented by the supplied layers.  If there are several
+         * layers using the same basic positions, this should combine
+         * them efficiently. */
+        PointCloud cloud = new PointCloud( layers, true );
+
+        /* Iterate over the represented points to mark out the basic
+         * range of data positions covered by the layers. */
         for ( double[] dpos : cloud.createDataPosIterable( dataStore ) ) {
             for ( int idim = 0; idim < nDataDim; idim++ ) {
                 ranges[ idim ].submit( dpos[ idim ] );
-            }       
+            }
         }
+
+        /* If any of the layers wants to supply non-data-position points
+         * to mark out additional space, take account of those too. */
+        for ( int il = 0; il < layers.length; il++ ) {
+            layers[ il ].extendCoordinateRanges( ranges, dataStore );
+        }
+
+        /* Return the ranges. */
         return ranges;
     }
 
