@@ -323,9 +323,20 @@ public class CdfStarTable extends AbstractStarTable {
                                               String units ) {
         String name = var.getName();
         Class clazz = var.getShaper().getShapeClass();
-        int[] shape = clazz.getComponentType() == null
-                    ? null
-                    : var.getShaper().getDimSizes();
+        int grpSize = var.getDataType().getGroupSize();
+        final int[] shape; 
+        if ( grpSize == 1 ) {
+            shape = clazz.getComponentType() == null
+                  ? null
+                  : var.getShaper().getDimSizes();
+        }
+        else {
+            assert clazz.getComponentType() != null;
+            int[] shDims = var.getShaper().getDimSizes();
+            shape = new int[ shDims.length + 1 ];
+            shape[ 0 ] = grpSize;
+            System.arraycopy( shDims, 0, shape, 1, shDims.length );
+        }
         DefaultValueInfo info = new DefaultValueInfo( name, clazz, descrip );
         info.setUnitString( units );
         info.setShape( shape );
