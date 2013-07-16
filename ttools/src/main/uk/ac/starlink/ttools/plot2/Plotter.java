@@ -46,8 +46,9 @@ public interface Plotter<S extends Style> {
     boolean hasPosition();
 
     /**
-     * Returns any coordinates used by this plotter additional
-     * to the base positions (those associated with the <code>DataGeom</code>).
+     * Returns any coordinates used by this plotter additional to the
+     * base positions (those returned by {@link DataGeom#getPosCoords}
+     * if <code>hasPosition</code> is true).
      *
      * @return  coordinates apart from base positions
      */

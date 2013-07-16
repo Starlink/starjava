@@ -29,6 +29,7 @@ public class ResourceIcon {
         PLOT_CONTOUR = readIcon( "plot-contour.gif" ),
         PLOT_LINE = readIcon( "plot-line.gif" ),
         PLOT_LABEL = readIcon( "plot-label.gif" ),
+        PLOT_SPECTRO = readIcon( "plot-spectro.gif" ),
         FORM_MARK = readIcon( "form-mark.gif" ),
         FORM_SIZE = readIcon( "form-size.gif" ),
         FORM_ELLIPSE = readIcon( "form-ellipse2.gif" ),
