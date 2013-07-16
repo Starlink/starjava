@@ -319,7 +319,12 @@ public class ColumnInfoWindow extends AuxWindow {
         /* Construct and place a JTable to contain it. */
         jtab = new JTable( metaTableModel ) {
             public TableCellRenderer getDefaultRenderer( Class clazz ) {
-                return new NumericCellRenderer( clazz );
+                if ( Boolean.class.equals( clazz ) ) {
+                    return super.getDefaultRenderer( clazz );
+                }
+                else {
+                    return new NumericCellRenderer( clazz );
+                }
             }
         };
         jtab.setAutoResizeMode( JTable.AUTO_RESIZE_OFF );
