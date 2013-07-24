@@ -417,16 +417,24 @@ public class ControlWindow extends AuxWindow
                                       DensityWindow.class ),
         };
         plot2Acts_ = new Action[] {
-            new Plot2Action( "Plane Layer Plot", ResourceIcon.PLOT2_PLANE,
-                             "Plane plotting window", PlanePlotWindow.class ),
-            new Plot2Action( "Sky Layer Plot", ResourceIcon.PLOT2_SKY,
-                             "Sky plotting window", SkyPlotWindow.class ),
-            new Plot2Action( "Cube Layer Plot", ResourceIcon.PLOT2_CUBE,
-                             "3D plotting window using Cartesian coordinates",
-                             CubePlotWindow.class ),
-            new Plot2Action( "Sphere Layer Plot", ResourceIcon.PLOT2_SPHERE,
-                             "3D plotting window using spherical polar "
-                           + "coordinates", SpherePlotWindow.class ),
+            new TopcatWindowAction( "Plane Layer Plot",
+                                    ResourceIcon.PLOT2_PLANE,
+                                    "Plane plotting window",
+                                    PlanePlotWindow.class ),
+            new TopcatWindowAction( "Sky Layer Plot",
+                                    ResourceIcon.PLOT2_SKY,
+                                    "Sky plotting window",
+                                    SkyPlotWindow.class ),
+            new TopcatWindowAction( "Cube Layer Plot",
+                                    ResourceIcon.PLOT2_CUBE,
+                                    "3D plotting window"
+                                    + " using Cartesian coordinates",
+                                    CubePlotWindow.class ),
+            new TopcatWindowAction( "Sphere Layer Plot",
+                                    ResourceIcon.PLOT2_SPHERE,
+                                    "3D plotting window"
+                                    + " using spherical polar coordinates",
+                                    SpherePlotWindow.class ),
         };
 
         matchActs_ = new Action[] {
@@ -1730,63 +1738,6 @@ public class ControlWindow extends AuxWindow
                     if ( tcModel != null ) {
                         window.setMainTable( tcModel );
                     }
-                }
-                catch ( InvocationTargetException e ) {
-                    throw e.getCause();
-                }
-            }
-            catch ( RuntimeException e ) {
-                throw e;
-            }
-            catch ( Error e ) {
-                throw e;
-            }
-            catch ( Throwable e ) {
-                throw new RuntimeException( "Window creation failed???", e );
-            }
-        }
-    }
-
-    /**
-     * Action implementation for new-style graphics windows.
-     */
-    private class Plot2Action extends BasicAction {
-        final Constructor constructor_;
-
-        /**
-         * Constructor.
-         *
-         * @param  name  action name
-         * @param  icon  action icon
-         * @param  shortdesc  action short description
-         * @param  winClass  StackPlotWindow subclass - must have a
-         *         constructor that takes (Component)
-         */
-        Plot2Action( String name, Icon icon, String shortdesc,
-                     Class winClass ) {
-            super( name, icon, shortdesc );
-            if ( ! StackPlotWindow.class.isAssignableFrom( winClass ) ) {
-                throw new IllegalArgumentException();
-            }
-            try {
-                constructor_ = winClass.getConstructor( new Class[] {
-                    Component.class,
-                } );
-            }
-            catch ( NoSuchMethodException e ) {
-                throw (IllegalArgumentException)
-                      new IllegalArgumentException( "No suitable constructor" )
-                     .initCause( e );
-            }
-        }
-
-        public void actionPerformed( ActionEvent evt ) {
-            try {
-                Object[] args = new Object[] { ControlWindow.this };
-                try {
-                    StackPlotWindow window =
-                        (StackPlotWindow) constructor_.newInstance( args );
-                    window.setVisible( true );
                 }
                 catch ( InvocationTargetException e ) {
                     throw e.getCause();
