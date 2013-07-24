@@ -161,6 +161,12 @@ public class StyleKeys {
                                  new ErrorMode[] { ErrorMode.SYMMETRIC,
                                                    ErrorMode.SYMMETRIC } );
 
+    /** Config key for 1d (vertical) error marker style. */
+    public static final MultiPointConfigKey ERROR_SHAPE_1D =
+        new MultiPointConfigKey( new ConfigMeta( "errorbar", "Error Bar" ),
+                                 ErrorRenderer.getOptions1d(),
+                                 new ErrorMode[] { ErrorMode.SYMMETRIC } );
+
     /** Config key for 2d error marker style. */
     public static final MultiPointConfigKey ERROR_SHAPE_2D =
         new MultiPointConfigKey( new ConfigMeta( "errorbar", "Error Bar" ),

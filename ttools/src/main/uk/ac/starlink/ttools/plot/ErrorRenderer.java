@@ -51,6 +51,14 @@ public abstract class ErrorRenderer {
     public static final ErrorRenderer TANGENT =
         new OpenEllipse( "Ellipse", true );
 
+    private static final ErrorRenderer[] OPTIONS_1D = new ErrorRenderer[] {
+        NONE,
+        DEFAULT,
+        EXAMPLE,
+        new CappedLine( "Caps", false, new BarCapper( 3 ) ),
+        new CappedLine( "Arrows", true, new ArrowCapper( 3 ) ),
+    };
+
     private static final ErrorRenderer[] OPTIONS_2D = new ErrorRenderer[] {
         NONE,
         DEFAULT,
@@ -361,6 +369,16 @@ public abstract class ErrorRenderer {
 
     public String toString() {
         return name_;
+    }
+
+    /**
+     * Returns an array of ErrorRenderers which can render 1-dimensional
+     * (vertical) errors.
+     *
+     * @return  selection of renderers
+     */
+    public static ErrorRenderer[] getOptions1d() {
+        return OPTIONS_1D.clone();
     }
 
     /**
