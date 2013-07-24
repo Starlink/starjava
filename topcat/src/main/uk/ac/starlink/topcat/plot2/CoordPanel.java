@@ -128,7 +128,7 @@ public class CoordPanel extends JPanel {
      * @param  tcModel   table from which coordinate values will be drawn
      */
     public void setTable( TopcatModel tcModel ) {
-        int is = 0;
+        int is = 1;
         for ( int ic = 0; ic < coords_.length; ic++ ) {
             JComboBox[] colsels = colSelectors_[ ic ];
             ValueInfo[] userInfos = coords_[ ic ].getUserInfos();
@@ -150,7 +150,7 @@ public class CoordPanel extends JPanel {
                      * columns in the table and fill them in for the
                      * required coordinates. */
                     if ( autoPopulate_ && is < model.getSize() ) {
-                        cs.setSelectedIndex( ++is );
+                        cs.setSelectedIndex( is++ );
                     }
                     cs.setEnabled( true );
                 }
