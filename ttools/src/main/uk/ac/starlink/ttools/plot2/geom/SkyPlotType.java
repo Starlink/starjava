@@ -47,7 +47,7 @@ public class SkyPlotType implements PlotType {
         };
     }
 
-    public DataGeom[] getDataGeoms() {
+    public DataGeom[] getPointDataGeoms() {
         return dataGeoms_;
     }
 

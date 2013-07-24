@@ -92,6 +92,11 @@ public abstract class ShapeMode implements ModePlotter.Mode {
     };
 
     /**
+     * Simple flat mode.
+     */
+    public static final ShapeMode FLAT = new FlatMode( false, NO_BINS );
+
+    /**
      * Constructor.
      *
      * @param  name  mode name
@@ -895,8 +900,9 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                                               Map<AuxScale,Range> auxRanges,
                                               PaperType paperType ) {
                     Range shadeRange = auxRanges.get( SCALE );
-                    AuxScaler scaler =
-                        createScaler( shadeRange, shadeLog, shadeFlip );
+                    RangeScaler scaler =
+                        RangeScaler.createScaler( shadeLog, shadeFlip,
+                                                  shadeRange );
                     ColorKit kit = new ColorKit( iShadeCoord, shader, scaler,
                                                  baseColor, nullColor,
                                                  scaleAlpha );
@@ -916,7 +922,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
 
             private final int icShade_;
             private final Shader shader_;
-            private final AuxScaler scaler_;
+            private final RangeScaler scaler_;
             private final Color scaledNullColor_;
             private final float scaleAlpha_;
             private final float[] baseRgba_;
@@ -938,7 +944,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
              * @param  scaleAlpha  alpha scaling for output colours;
              *                     1 means opaque
              */
-            ColorKit( int icShade, Shader shader, AuxScaler scaler,
+            ColorKit( int icShade, Shader shader, RangeScaler scaler,
                       Color baseColor, Color nullColor, float scaleAlpha ) {
                 icShade_ = icShade;
                 shader_ = shader;
@@ -963,7 +969,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
              */
             Color readColor( TupleSequence tseq ) {
                 double auxVal = SHADE_COORD.readDoubleCoord( tseq, icShade_ );
-                float scaleVal = scaler_.scale( auxVal );
+                float scaleVal = (float) scaler_.scale( auxVal );
 
                 /* If null input return special null output value. */
                 if ( Float.isNaN( scaleVal ) ) {
@@ -980,7 +986,6 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                  * scaled input aux coordinate. */
                 else {
                     System.arraycopy( baseRgba_, 0, rgba_, 0, 4 );
-                    scaleVal = Math.max( 0, Math.min( 1, scaleVal ) );
                     shader_.adjustRgba( rgba_, scaleVal );
                     Color color = toOutputColor( rgba_ );
                     lastScale_ = scaleVal;
@@ -1033,53 +1038,6 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                         painter.paintPoint( tseq, color, paper );
                     }
                 }
-            }
-        }
-
-        /**
-         * Defines a shader scaling strategy for AuxShadingMode.
-         */
-        static interface AuxScaler {
-
-            /**
-             * Maps a value into the shader range.
-             *
-             * @param  dataValue  value of aux coordinate
-             * @return   value in range 0-1 for shader input
-             */
-            float scale( double dataValue );
-        }
-
-        /**
-         * Returns an aux scaler instance for given configuration items.
-         *
-         * @param  range  input data range
-         * @param  logFlag  true for logarithmic scale, false for linear
-         * @param  flipFlag  true to invert direction of scale
-         */
-        private static AuxScaler createScaler( Range range, boolean logFlag,
-                                               boolean flipFlag ) {
-            double[] dataBounds = range.getFiniteBounds( logFlag );
-            double lo = dataBounds[ 0 ];
-            double hi = dataBounds[ 1 ];
-            if ( logFlag ) {
-                final double base1 = 1.0 / ( flipFlag ? hi : lo );
-                final double scale1 =
-                    1.0 / ( Math.log( flipFlag ? lo / hi : hi / lo ) );
-                return new AuxScaler() {
-                    public float scale( double value ) {
-                        return (float) ( Math.log( value * base1 ) * scale1 );
-                    }
-                };
-            }
-            else {
-                final double base = flipFlag ? hi : lo;
-                final double scale1 = 1.0 / ( flipFlag ? lo - hi : hi - lo );
-                return new AuxScaler() {
-                    public float scale( double value ) {
-                        return (float) ( ( value - base ) * scale1 );
-                    }
-                };
             }
         }
 

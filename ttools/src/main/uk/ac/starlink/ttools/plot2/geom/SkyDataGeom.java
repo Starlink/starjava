@@ -36,6 +36,10 @@ public abstract class SkyDataGeom implements DataGeom {
         return 3;
     }
 
+    public boolean hasPosition() {
+        return true;
+    }
+
     public String getVariantName() {
         return variantName_;
     }

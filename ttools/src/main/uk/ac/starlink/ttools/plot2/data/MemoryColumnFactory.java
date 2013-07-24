@@ -59,6 +59,20 @@ public class MemoryColumnFactory implements CachedColumnFactory {
                      : new UnknownObjectColumn<String>( String.class );
             }
         } );
+        map.put( StorageType.FLOAT_ARRAY, new ColumnCreator() {
+            public CachedColumn createColumn( long nrow ) {
+                return nrow >= 0
+                    ? new FixedObjectColumn<float[]>( float[].class, nrow )
+                    : new UnknownObjectColumn<float[]>( float[].class );
+            }
+        } );
+        map.put( StorageType.DOUBLE_ARRAY, new ColumnCreator() {
+            public CachedColumn createColumn( long nrow ) {
+                return nrow >= 0
+                    ? new FixedObjectColumn<double[]>( double[].class, nrow )
+                    : new UnknownObjectColumn<double[]>( double[].class );
+            }
+        } );
         map.put( StorageType.INT3, new ColumnCreator() {
             public CachedColumn createColumn( long nrow ) {
                 return nrow >= 0

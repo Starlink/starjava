@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.jel.JELUtils;
 import uk.ac.starlink.ttools.jel.StarTableJELRowReader;
@@ -112,7 +113,8 @@ public class JELDataSpec extends AbstractDataSpec {
      * @throws TaskException if JEL compilation fails
      */
     private JELUserDataReader createJELUserDataReader() throws TaskException {
-        return new JELUserDataReader( table_, maskExpr_, userCoordExprs_ );
+        return new JELUserDataReader( table_, maskExpr_, userCoordExprs_,
+                                      coords_ );
     }
 
     /**
@@ -132,11 +134,12 @@ public class JELDataSpec extends AbstractDataSpec {
          * @param  userCoordExprs   nCoord-element array, each element an array
          *                          of JEL expressions corresponding to
          *                          the user values for the cooresponding Coord
+         * @param  coords    nCoord-element array of coordinate definitions
          * @throws  TaskException   with an informative message
          *                          if compilation fails
          */
         JELUserDataReader( StarTable table, String maskExpr,
-                           String[][] userCoordExprs )
+                           String[][] userCoordExprs, Coord[] coords )
                 throws TaskException {
 
             /* Set up for JEL compilation against our table. */
@@ -160,19 +163,42 @@ public class JELDataSpec extends AbstractDataSpec {
             userCoordRows_ = new Object[ nCoord ][];
             userCoordCompexs_ = new CompiledExpression[ nCoord ][];
             for ( int ic = 0; ic < nCoord; ic++ ) {
+                ValueInfo[] infos = coords[ ic ].getUserInfos();
                 String[] ucexprs = userCoordExprs[ ic ];
                 int nu = ucexprs.length;
                 userCoordRows_[ ic ] = new Object[ nu ];
                 CompiledExpression[] compexs = new CompiledExpression[ nu ];
                 for ( int iu = 0; iu < nu; iu++ ) {
-                    try {
-                        compexs[ iu ] =
-                            JELUtils.compile( lib, table, ucexprs[ iu ] );
+                    String expr = ucexprs[ iu ];
+                    final CompiledExpression compex;
+                    if ( expr == null ) {
+                        compex = null;
                     }
-                    catch ( CompilationException e ) {
-                        throw new TaskException( "Bad Expression \""
-                                               + ucexprs[ iu ] + "\"", e );
+                    else {
+                        try {
+                            compex = JELUtils.compile( lib, table, expr );
+                        }
+                        catch ( CompilationException e ) {
+                            throw new TaskException( "Bad Expression \""
+                                                   + expr + "\"", e );
+                        }
+                        Class reqClazz = infos[ iu ].getContentClass();
+                        Class exprClazz = compex.getTypeC();
+                        if ( ! reqClazz.isAssignableFrom( exprClazz ) ) {
+                            String msg = new StringBuffer()
+                                .append( "Expression wrong type: " )
+                                .append( '"' )
+                                .append( expr )
+                                .append( '"' )
+                                .append( " is " )
+                                .append( exprClazz.getName() )
+                                .append( " not " )
+                                .append( reqClazz.getName() )
+                                .toString();
+                            throw new TaskException( msg );
+                        }
                     }
+                    compexs[ iu ] = compex;
                 }
                 userCoordCompexs_[ ic ] = compexs;
             }
@@ -193,8 +219,10 @@ public class JELDataSpec extends AbstractDataSpec {
             int nu = compexs.length;
             Object[] userRow = userCoordRows_[ icoord ];
             for ( int iu = 0; iu < nu; iu++ ) {
-                userRow[ iu ] =
-                    evaluator_.evaluateObject( compexs[ iu ], rseq, irow );
+                CompiledExpression compex = compexs[ iu ];
+                userRow[ iu ] = compex == null
+                              ? null
+                              : evaluator_.evaluateObject( compex, rseq, irow );
             }
             return userRow;
         }
