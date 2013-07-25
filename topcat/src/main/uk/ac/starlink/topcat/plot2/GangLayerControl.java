@@ -8,7 +8,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -253,9 +252,10 @@ public class GangLayerControl extends TabberControl implements LayerControl {
                 FormControl fc = fcs[ ifc ];
                 GuiCoordContent[] extraContents = fc.getExtraCoordContents();
                 if ( extraContents != null ) {
-                    DataSpec dspec =
-                        createDataSpec( tcModel_, subset,
-                                        posContents, extraContents );
+                    StarTable table = tcModel_.getDataModel();
+                    GuiCoordContent[] contents =
+                        PlotUtil.arrayConcat( posContents, extraContents );
+                    DataSpec dspec = new GuiDataSpec( table, subset, contents );
                     layerList.add( fc.createLayer( geom, dspec, subset ) );
                 }
             }
@@ -472,28 +472,6 @@ public class GangLayerControl extends TabberControl implements LayerControl {
             RowSubset rset = tcModel_.getSelectedSubset();
             subStack_.setSelectedSubsets( new RowSubset[] { rset } );
         }
-    }
-
-    /**
-     * Returns a DataSpec for use with one of the plot layers generated
-     * by this control.
-     *
-     * @param  tcModel  topcat model
-     * @param  subset   row subset
-     * @param  posContents   positional data coordinate specifications
-     * @param  extraContents  non-positional data coordinate specifications
-     * @return   data spec 
-     */
-    private DataSpec createDataSpec( TopcatModel tcModel, RowSubset subset,
-                                     GuiCoordContent[] posContents,
-                                     GuiCoordContent[] extraContents ) {
-        List<GuiCoordContent> contentList = new ArrayList<GuiCoordContent>();
-        contentList.addAll( Arrays.asList( posContents ) );
-        contentList.addAll( Arrays.asList( extraContents ) );
-        GuiCoordContent[] contents =
-            contentList.toArray( new GuiCoordContent[ 0 ] );
-        StarTable table = tcModel.getDataModel();
-        return new GuiDataSpec( table, subset, contents );
     }
 
     /**
