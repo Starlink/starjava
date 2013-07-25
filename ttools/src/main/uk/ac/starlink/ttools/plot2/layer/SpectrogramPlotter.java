@@ -69,6 +69,12 @@ public class SpectrogramPlotter
     public SpectrogramPlotter( FloatingCoord xCoord ) {
         xCoord_ = xCoord;
 
+        /* Spectral coordinate, containing the spectrum at each X position. */
+        spectrumCoord_ =
+            FloatingArrayCoord.createCoord( "Spectrum",
+                                            "Array of spectrum channel values",
+                                            true );
+
         /* X extent is the width of each spectrum.  If not supplied,
          * an attempt is made to determine it automatically by looking at
          * the separations of the X coordinates. */
@@ -76,12 +82,6 @@ public class SpectrogramPlotter
             FloatingCoord.createCoord( xCoord.getUserInfo().getName() + "Width",
                                        "Extent of samples in X direction",
                                        false );
-
-        /* Spectral coordinate, containing the spectrum at each X position. */
-        spectrumCoord_ =
-            FloatingArrayCoord.createCoord( "Spectrum",
-                                            "Array of spectrum channel values",
-                                            true );
 
         /* Maps each row to an X position, but not to a point, since it
          * covers a vertical line. */
@@ -91,8 +91,8 @@ public class SpectrogramPlotter
         /* Record which coordinate is where in the tuples. */
         int icol = 0;
         icX_ = icol++;
-        icExtent_ = icol++;
         icSpectrum_ = icol++;
+        icExtent_ = icol++;
     }
 
     public String getPlotterName() {
@@ -113,8 +113,8 @@ public class SpectrogramPlotter
     public Coord[] getExtraCoords() {
         return new Coord[] {
             xCoord_,
-            xExtentCoord_,
             spectrumCoord_,
+            xExtentCoord_,
         };
     }
 
