@@ -3,6 +3,7 @@ package uk.ac.starlink.topcat.plot2;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 import javax.swing.Action;
 import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.ResourceIcon;
@@ -12,7 +13,6 @@ import uk.ac.starlink.ttools.plot.Styles;
 import uk.ac.starlink.ttools.plot2.PlotType;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
-import uk.ac.starlink.ttools.plot2.layer.FunctionPlotter;
 
 /**
  * Control manager that uses GangLayerControls to provide
@@ -32,7 +32,10 @@ public class GangControlManager implements ControlManager {
     private final TopcatListener tcListener_;
     private final NextSupplier nextSupplier_;
     private final Plotter[] posPlotters_;
-    private final FunctionPlotter[] functionPlotters_;
+    private final Action[] stackActs_;
+
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.topcat.plot2" );
 
     /**
      * Constructor.
@@ -50,45 +53,40 @@ public class GangControlManager implements ControlManager {
 
         /* Split the list of plotters into positional and dataless ones. */
         List<Plotter> posPlotterList = new ArrayList<Plotter>();
-        List<FunctionPlotter> functionPlotterList =
-            new ArrayList<FunctionPlotter>();
+        List<Action> stackActList = new ArrayList<Action>();
         Plotter[] plotters = plotType_.getPlotters();
         for ( int i = 0; i < plotters.length; i++ ) {
             Plotter plotter = plotters[ i ];
             if ( plotter.hasPosition() ) {
                 posPlotterList.add( plotter );
             }
-            else if ( plotter instanceof FunctionPlotter ) {
-                functionPlotterList.add( (FunctionPlotter) plotter );
-            }
             else {
-                assert false;
+                Action stackAct =
+                    PlotterStackAction.createAction( plotter, stack );
+                if ( stackAct != null ) {
+                    stackActList.add( stackAct );
+                }
+                else {
+                    logger_.warning( "No GUI available for plotter "
+                                   + plotter.getPlotterName() );
+                }
             }
         }
-        posPlotters_ = posPlotterList.toArray( new Plotter[ 0 ] );
-        functionPlotters_ =
-            functionPlotterList.toArray( new FunctionPlotter[ 0 ] );
-    }
-
-    public Action[] createStackActions() {
-        List<Action> actList = new ArrayList<Action>();
-
-        /* Add a gang action which offers a unified way to access all the
-         * positional plotters. */
-        actList.add( new BasicAction( "Add Table Layer", ResourceIcon.PLOT_DATA,
-                                      "Add a new table plot layer control"
-                                    + " to the stack" ) {
+        Action gangAct = new BasicAction( "Add Table Layer",
+                                          ResourceIcon.PLOT_DATA,
+                                          "Add a new table plot layer "
+                                          + "control to the stack" ) {
             public void actionPerformed( ActionEvent evt ) {
                 stack_.addControl( createGangControl() );
             }
-        } );
- 
-        /* Add a separate action for each dataless plotter. */
-        for ( int i = 0; i < functionPlotters_.length; i++ ) {
-            actList.add( FunctionLayerControl
-                        .createStackAction( stack_, functionPlotters_[ i ] ) );
-        }
-        return actList.toArray( new Action[ 0 ] );
+        };
+        stackActList.add( 0, gangAct );
+        stackActs_ = stackActList.toArray( new Action[ 0 ] );
+        posPlotters_ = posPlotterList.toArray( new Plotter[ 0 ] );
+    }
+
+    public Action[] getStackActions() {
+        return stackActs_;
     }
 
     public Control createDefaultControl( TopcatModel tcModel ) {

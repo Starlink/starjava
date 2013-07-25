@@ -17,7 +17,7 @@ public interface ControlManager {
      *
      * @return   list of stack actions
      */
-    Action[] createStackActions();
+    Action[] getStackActions();
 
     /**
      * Returns a suitable control to add to the stack for a given table.

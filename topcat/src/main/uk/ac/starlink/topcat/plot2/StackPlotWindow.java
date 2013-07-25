@@ -265,7 +265,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         ControlManager controlManager =
             new GangControlManager( stack_, plotType, plotTypeGui, configger,
                                     tcListener );
-        Action[] stackActions = controlManager.createStackActions();
+        Action[] stackActions = controlManager.getStackActions();
 
         /* Action for deleting a control from the stack. */
         Action removeAction =
