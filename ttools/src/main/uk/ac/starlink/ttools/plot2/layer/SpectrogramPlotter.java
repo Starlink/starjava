@@ -136,6 +136,9 @@ public class SpectrogramPlotter
         return new SpectroStyle( shader, shadeLog, shadeFlip, nullColor, grid );
     }
 
+    /**
+     * The supplied <code>geom</code> is ignored.
+     */
     public PlotLayer createLayer( DataGeom geom, final DataSpec dataSpec,
                                   final SpectroStyle style ) {
         if ( dataSpec == null || style == null ) {
@@ -310,10 +313,28 @@ public class SpectrogramPlotter
                             shader.adjustRgba( rgba, (float) sval );
                             g.setColor( new Color( rgba[ 0 ], rgba[ 1 ],
                                                    rgba[ 2 ] ) );
-                            int px = gp0.x;
-                            int py = gp3.y;
-                            int pwidth = gp3.x - gp0.x;
-                            int pheight = gp0.y - gp3.y;
+                            int x03 = gp3.x - gp0.x;
+                            int y03 = gp3.y - gp0.y;
+                            final int px;
+                            final int pwidth;
+                            final int py;
+                            final int pheight;
+                            if ( x03 > 0 ) {
+                                px = gp0.x;
+                                pwidth = x03;
+                            }
+                            else {
+                                px = gp3.x;
+                                pwidth = -x03;
+                            }
+                            if ( y03 > 0 ) {
+                                py = gp0.y;
+                                pheight = y03;
+                            }
+                            else {
+                                py = gp3.y;
+                                pheight = -y03;
+                            }
                             g.fillRect( px, py, pwidth, pheight );
                         }
                     }
