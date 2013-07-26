@@ -232,7 +232,7 @@ Lehuakona Release
    The line profile fits now include error estimates for the fitting
    parameters.
 
-   An error in the derivates used when fitting the Voigt profile has been
+   An error in the derivatives used when fitting the Voigt profile has been
    corrected. This should give closer fits in some cases.
 
    MIME types from SSAP queries may now include trailing attributes.
@@ -266,11 +266,11 @@ Lehuakona Release
    requesting this sometimes caused the dialog to just close.
 
    When attempting to overwrite an NDF that is already opened a suitable
-   error message is now displayed, rather than an unhelp report about
+   error message is now displayed, rather than an unhelpful report about
    a null exception.
 
    Printing to postscript should make better use of the available space
-   and fix a scaling problem with the encapulated option.
+   and fix a scaling problem with the encapsulated option.
 
    3.8-6
    =====
