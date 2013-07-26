@@ -6,14 +6,10 @@ import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.geom.AffineTransform;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.plot2.Axis;
 import uk.ac.starlink.ttools.plot2.Captioner;
-import uk.ac.starlink.ttools.plot2.Orientation;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.Tick;
@@ -48,9 +44,6 @@ public class PlaneSurface implements Surface {
     private final Axis yAxis_;
 
     private static final double LOG10 = Math.log( 1e1 );
-    private static final Orientation X_ORIENT = Orientation.X;
-    private static final Orientation Y_ORIENT = Orientation.Y;
-    private static final boolean INVERT_Y = true;
 
     /**
      * Constructor.
@@ -101,7 +94,7 @@ public class PlaneSurface implements Surface {
         grid_ = grid;
         xAxis_ = Axis.createAxis( gxlo_, gxhi_, dxlo_, dxhi_, xlog_, xflip_ );
         yAxis_ = Axis.createAxis( gylo_, gyhi_, dylo_, dyhi_, ylog_,
-                                  yflip_ ^ INVERT_Y );
+                                  yflip_ ^ PlaneAxisAnnotation.INVERT_Y );
         assert this.equals( this );
     }
 
@@ -247,7 +240,9 @@ public class PlaneSurface implements Surface {
      * @return   axis annotation
      */
     private AxisAnnotation createAxisAnnotation() {
-        return new PlaneAxisAnnotation();
+        return new PlaneAxisAnnotation( gxlo_, gxhi_, gylo_, gyhi_,
+                                        xAxis_, yAxis_, xticks_, yticks_,
+                                        xlabel_, ylabel_, captioner_ );
     }
 
     @Override
@@ -402,7 +397,7 @@ public class PlaneSurface implements Surface {
      * @param   dpos  data coordinate value
      * @return   formatted data coordinate string
      */
-    private static String formatPosition( Axis axis, double dpos ) {
+    public static String formatPosition( Axis axis, double dpos ) {
 
         /* This could be implemented bettter.
          * It would be better if the precision determination, and hence
@@ -437,175 +432,6 @@ public class PlaneSurface implements Surface {
             else {
                 return PlotUtil.formatNumber( dpos, "0.0", ndp );
             }
-        }
-    }
-
-    /**
-     * AxisAnnotation implementation for PlaneSurface.
-     */
-    private class PlaneAxisAnnotation implements AxisAnnotation {
-        private final int xoff_ = gxlo_;
-        private final int yoff_ = gyhi_;
-
-        public void drawLabels( Graphics g ) {
-            Graphics2D g2 = (Graphics2D) g;
-            AffineTransform trans0 = g2.getTransform();
-            AffineTransform transX = new AffineTransform( trans0 );
-            transX.concatenate( axisTransform( xoff_, yoff_, false ) );
-            AffineTransform transY = new AffineTransform( trans0 );
-            transY.concatenate( axisTransform( xoff_, yoff_, true ) );
-            g2.setTransform( transX );
-            xAxis_.drawLabels( xticks_, xlabel_, captioner_, X_ORIENT,
-                               false, g2 );
-            g2.setTransform( transY );
-            yAxis_.drawLabels( yticks_, ylabel_, captioner_, Y_ORIENT,
-                               INVERT_Y, g2 );
-            g2.setTransform( trans0 );
-        }
-
-        public Insets getPadding( boolean withScroll ) {
-            Insets insets = withScroll ? getScrollTickPadding()
-                                       : getNoScrollTickPadding();
-            insets.left += 2;
-            insets.bottom += 2;
-            if ( xlabel_ != null ) {
-                Rectangle cxbounds = captioner_.getCaptionBounds( xlabel_ );
-                insets.bottom += -cxbounds.y + captioner_.getPad();
-            }
-            if ( ylabel_ != null ) {
-                Rectangle cybounds = captioner_.getCaptionBounds( ylabel_ );
-                insets.left += cybounds.height + captioner_.getPad();
-            }
-            return insets;
-        }
-
-        /**
-         * Returns padding insets for tick mark text
-         * if scrolling adjustments are required.
-         *
-         * @return  insets
-         */
-        private Insets getScrollTickPadding() {
-            Rectangle tickPad = new Rectangle( 0, 0, 0, 0 );
-
-            /* Get bounding boxes for largest ticks on each axis. */
-            tickPad.add( getMaxTickSizeBounds( xticks_, false ) );
-            tickPad.add( getMaxTickSizeBounds( yticks_, true ) );
-
-            /* Extend the insets enough to accommodate the largest tick
-             * positioned at the extreme ends of each axis. */
-            int left = -tickPad.x;
-            int right = tickPad.width + tickPad.x;
-            int top = -tickPad.y;
-            int bottom = tickPad.height + tickPad.y;
-
-            /* Return the resulting box. */
-            return new Insets( top, left, bottom, right );
-        }
-
-        /**
-         * Returns a rectangle large enougn to bound the text associated
-         * with any one of a supplied list of ticks on an axis.
-         * The returned rectangle is in unrotated graphics coordinates,
-         * so that -Y is up, not (necessarily) perpendicular to the axis.
-         *
-         * @param  ticks  ticks to assess bounds of
-         * @param  isY  true for Y axis, false for X axis
-         * @param  largest necessary bounding box for one tick
-         */
-        private Rectangle getMaxTickSizeBounds( Tick[] ticks, boolean isY ) {
-            Orientation orient = isY ? Y_ORIENT : X_ORIENT;
-            AffineTransform axisTrans = axisTransform( 0, 0, isY );
-            int cpad = captioner_.getPad();
-            Rectangle bounds = new Rectangle( 0, 0, 0, 0 );
-            for ( int it = 0; it < ticks.length; it++ ) {
-                Tick tick = ticks[ it ];
-                String label = tick.getLabel();
-                if ( label != null ) {
-                    Rectangle b0 =
-                        captioner_.getCaptionBounds( tick.getLabel() );
-                    AffineTransform trans = new AffineTransform( axisTrans );
-                    trans.concatenate( orient.captionTransform( b0, cpad ) );
-                    bounds.add( trans.createTransformedShape( b0 )
-                                     .getBounds() );
-                }
-            }
-            return bounds;
-        }
-
-        /**
-         * Returns padding insets for tick mark text
-         * if scrolling adjustments are not required.
-         *
-         * @return  insets
-         */
-        private Insets getNoScrollTickPadding() {
-
-            /* Make a rectangle big enough to hold every ticmark painted
-             * in its actual position. */
-            Rectangle bounds = new Rectangle( xoff_, yoff_, 0, 0 );
-            Rectangle[] boxes =
-                PlotUtil.arrayConcat( getTickBoxes( xticks_, false ),
-                                      getTickBoxes( yticks_, true ) );
-            for ( int ib = 0; ib < boxes.length; ib++ ) {
-                bounds.add( boxes[ ib ] );
-            }
-
-            /* Turn that into an insets object relative to the plot bounds,
-             * and return. */
-            int left = Math.max( 0, gxlo_ - bounds.x );
-            int right = Math.max( 0, gxhi_ - bounds.x - bounds.width );
-            int top = Math.max( 0, gylo_ - bounds.y );
-            int bottom = Math.max( 0, gyhi_ - bounds.y - bounds.height );
-            return new Insets( top, left, bottom, right );
-        }
-
-        /**
-         * Returns an array of bounding boxes for the tick labels on an axis.
-         *
-         * @param  ticks  tick array
-         * @param  isY  true for Y axis, false for X axis
-         * @return  bounding box array
-         */
-        private Rectangle[] getTickBoxes( Tick[] ticks, boolean isY ) {
-            Orientation orient = isY ? Y_ORIENT : X_ORIENT;
-            AffineTransform axisTrans = axisTransform( 0, 0, isY );
-            int cpad = captioner_.getPad();
-            List<Rectangle> list = new ArrayList<Rectangle>();
-            for ( int it = 0; it < ticks.length; it++ ) {
-                Tick tick = ticks[ it ];
-                String label = tick.getLabel();
-                if ( label != null ) {
-                    Rectangle b0 = captioner_.getCaptionBounds( label );
-                    AffineTransform trans = new AffineTransform( axisTrans );
-                    double gx = ( isY ? yAxis_ : xAxis_ )
-                               .dataToGraphics( tick.getValue() );
-                    double tx = isY ? ( yoff_ - gx ) : ( gx - xoff_ );
-                    trans.concatenate( AffineTransform
-                                      .getTranslateInstance( tx, 0 ) );
-                    trans.concatenate( orient.captionTransform( b0, cpad ) );
-                    list.add( trans.createTransformedShape( b0 ).getBounds() );
-                }
-            }
-            return list.toArray( new Rectangle[ 0 ] );
-        }
-
-        /**
-         * Returns the AffineTransform which transforms an indicated axis
-         * to run from the origin in the positive X direction.
-         *
-         * @param   x0  origin X coordinate in starting coords
-         * @param   y0  origin Y coordinate in starting coords
-         * @param   isY  true for Y axis, false for X axis
-         * @return   transform that transforms starting coords to axis coords
-         */
-        private AffineTransform axisTransform( int x0, int y0, boolean isY ) {
-            AffineTransform trans = new AffineTransform();
-            trans.translate( x0, y0 );
-            if ( isY ) {
-                trans.rotate( -0.5 * Math.PI );
-            }
-            return trans;
         }
     }
 }
