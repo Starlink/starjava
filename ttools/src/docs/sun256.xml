@@ -8417,6 +8417,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
             RDBMS tables.  This ought to reduce problems related to mixed-case
             identifiers.  However, it is possible that it could lead to 
             unforseen new anomalies.</li>
+        <li>More <code>toString</code> overloads - now works for byte and
+            boolean values too.</li>
         </ul>
         </p></dd>
     </dl>

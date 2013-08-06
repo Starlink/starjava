@@ -18200,6 +18200,8 @@ introduced since the last version:
             section (wrong) to the receive section (right)
             of this document.</li>
         <li>Avoid overlapping tick labels in layer plots.</li>
+        <li>More <code>toString</code> overloads - now works for byte and
+            boolean values too.</li>
         </ul>
         </p></dd>
 

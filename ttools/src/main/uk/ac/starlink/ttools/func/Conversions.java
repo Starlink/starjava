@@ -59,13 +59,38 @@ public class Conversions {
     }
 
     /**
-     * Turns any value into a string.
+     * Turns a byte value into a string.
+     *
+     * @param  byteVal  byte numeric value
+     * @return  a string representation of <code>byteVal</code>
+     */
+    public static String toString( byte byteVal ) {
+        // In the absence of this method evaluating the expression
+        // "toString(byteVal)" gives a CompilationException:
+        //    Ambiguity detected between "toString(double)" and "toString(char)"
+        //    on invocation "toString(byte)".
+        return Byte.toString( byteVal );
+    }
+
+    /**
+     * Turns a boolean value into a string.
+     *
+     * @param  booleanVal  boolean value (true or false)
+     * @return  a string representation of <code>booleanVal</code>
+     *          ("<code>true</code>" or "<code>false</code>")
+     */
+    public static String toString( boolean booleanVal ) {
+        return Boolean.toString( booleanVal );
+    }
+
+    /**
+     * Turns any object value into a string.
      * As applied to existing string values this isn't really useful,
-     * but it means that you can apply <code>toString()</code>
-     * to any value without knowing its type
+     * but it means that you can apply <code>toString</code>
+     * to any object value without knowing its type
      * and get a useful return from it.
      *
-     * @param  objVal  non-numeric value
+     * @param  objVal  non-primitive value
      * @return  a string representation of <code>objVal</code>
      */
     public static String toString( Object objVal ) {
