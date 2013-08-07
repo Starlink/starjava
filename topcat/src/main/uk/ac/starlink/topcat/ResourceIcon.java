@@ -159,6 +159,8 @@ public class ResourceIcon implements Icon {
         Y_CURSOR = makeIcon( "vline0.gif" ),
         Y0_LINE = makeIcon( "y0line1.gif" ),
         TO_COLUMN = makeIcon( "Column.gif" ),
+        HIGHLIGHT = makeIcon( "somerows.gif" ),
+        APPLY_SUBSET = makeIcon( "subset1.gif" ),
         COUNT = makeIcon( "ab3.gif" ),
         RECOUNT = makeIcon( "re-ab3.gif" ),
         INVERT = makeIcon( "invert3.gif" ),

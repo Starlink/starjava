@@ -49,6 +49,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
     private final Action addAct;
     private final Action removeAct;
     private final Action tocolAct;
+    private final Action highlightAct;
     private final Action countAct;
     private final Action invertAct;
     private final Action sampleAct;
@@ -144,6 +145,13 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
                                      "(Re)count the number of rows in each " +
                                      "subset" );
 
+        /* Action for highlighting selectd subset. */
+        highlightAct = new SubsetAction( "Highlight subset",
+                                         ResourceIcon.HIGHLIGHT,
+                                         "Highlight the selected subset by "
+                                       + "marking its rows in the table window "
+                                       + "and ensuring it's visible in plots" );
+
         /* Action for producing inverse subset. */
         invertAct = new SubsetAction( "Invert subset", ResourceIcon.INVERT,
                                       "Create new subset complementary to " +
@@ -197,6 +205,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
                                       jtab.isRowSelected( 0 ) );
                 tocolAct.setEnabled( hasUniqueSelection );
                 invertAct.setEnabled( hasUniqueSelection );
+                highlightAct.setEnabled( hasUniqueSelection );
                 if ( subsetTransmitter != null ) {
                     subsetTransmitter.setEnabled( hasUniqueSelection );
                 }
@@ -250,6 +259,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
         getToolBar().addSeparator();
         getToolBar().add( invertAct );
         getToolBar().add( tocolAct );
+        getToolBar().add( highlightAct );
         getToolBar().add( countAct );
         if ( subsetTransmitter != null ) {
             getToolBar().add( subsetTransmitter.getBroadcastAction() );
@@ -266,6 +276,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
         subsetsMenu.add( removeAct );
         subsetsMenu.add( invertAct );
         subsetsMenu.add( tocolAct );
+        subsetsMenu.add( highlightAct );
         subsetsMenu.add( countAct );
         subsetsMenu.add( autoCountModel.createMenuItem() );
         getJMenuBar().add( subsetsMenu );
@@ -553,6 +564,11 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
                 colwin.setExpression( getSubsetID( irow ) );
                 colwin.setName( getSubsetName( irow ) );
                 colwin.setVisible( true );
+            }
+
+            else if ( this == highlightAct ) {
+                int irow = jtab.getSelectedRow();
+                tcModel.showSubset( getSubset( irow ) );
             }
 
             else if ( this == countAct ) {

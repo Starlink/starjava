@@ -5589,6 +5589,16 @@ here.
 </dl>
 </p>
 
+<p>The <label>Subsets</label> menu additionally contains the following item:
+<dl>
+<dt>&IMG.HIGHLIGHT; Highlight Subset</dt>
+<dd><p>This is a submenu in which all the currently defined row subsets
+    are listed.  Selecting one of them marks the rows corresponding to that
+    subset as if they have been selected.
+    </p></dd>
+</dl>
+</p>
+
 <p>As well as the normal menu, right-clicking over one of the columns
 in the displayed table will present a
 <label>Column Popup Menu</label>, which provides a convenient
@@ -6092,7 +6102,14 @@ can be edited by double-clicking on them in the normal way.
     in the JTable.
     </p></dd>
 
-<dt>&IMG.COUNT; Count Subsets</dt>
+<dt>&IMG.HIGHLIGHT; Highlight Subset</dt>
+<dd><p>Highlights the contents of this subset by marking the rows visibly
+    in the <ref id="TableViewerWindow">data window</ref> and also ensuring
+    that the rows are visible in any plot windows.  This replicates what
+    happens when the subset is first created.
+    </p></dd>
+
+<dt>&IMG.COUNT; Count Rows</dt>
 <dd><p>Counts how many rows are in each subset and displays this in the
     <label>Size</label> column.  
     This forces a count or recount to fill in or update these values.
@@ -18202,6 +18219,10 @@ introduced since the last version:
         <li>Avoid overlapping tick labels in layer plots.</li>
         <li>More <code>toString</code> overloads - now works for byte and
             boolean values too.</li>
+        <li>Replace the (slightly dangerous, also undocumented)
+            Apply Subset option in the table viewer window with a new
+            Highlight Subset option.
+            Also add a new Highlight Subset option in the Subsets window.</li>
         </ul>
         </p></dd>
 
