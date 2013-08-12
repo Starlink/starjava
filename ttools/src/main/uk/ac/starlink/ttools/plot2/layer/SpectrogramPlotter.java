@@ -95,6 +95,24 @@ public class SpectrogramPlotter
         icExtent_ = icol++;
     }
 
+    /**
+     * Returns the coordinate index for the spectral coordinate.
+     *
+     * @return  spectrum coordinate index
+     */
+    public int getSpectrumCoordIndex() {
+        return icSpectrum_;
+    }
+
+    /**
+     * Returns the coordinate index for the time extent coordinate.
+     *
+     * @return  time extent coordinate index
+     */
+    public int getExtentCoordIndex() {
+        return icExtent_;
+    }
+
     public String getPlotterName() {
         return "Spectrogram";
     }
@@ -335,7 +353,10 @@ public class SpectrogramPlotter
                                 py = gp3.y;
                                 pheight = -y03;
                             }
-                            g.fillRect( px, py, pwidth, pheight );
+                            assert pwidth >= 0;
+                            assert pheight >= 0;
+                            g.fillRect( px, py, Math.max( pwidth, 1 ),
+                                                Math.max( pheight, 1 ) );
                         }
                     }
                 }
