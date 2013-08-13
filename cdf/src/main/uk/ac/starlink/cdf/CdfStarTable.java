@@ -413,7 +413,7 @@ public class CdfStarTable extends AbstractStarTable {
     }
 
     /**
-     * Constructs a reader for a give variable.
+     * Constructs a reader for a given variable.
      *
      * @param    var   variable whose values will be read
      * @param   blankValAtt  attribute providing per-variable blank values
@@ -505,10 +505,10 @@ public class CdfStarTable extends AbstractStarTable {
          * make use of the blank value (can't set integer array elements to
          * null/NaN), so ignore the blank value. */
         else {
-            logger_.warning( "Magic value " + blankvalAtt.getName()
-                           + "=" + String.valueOf( blankval )
-                           + " ignored for non-float array CDF variable "
-                           + var.getName() );
+            logger_.info( "Magic value " + blankvalAtt.getName()
+                        + "=" + String.valueOf( blankval )
+                        + " ignored for non-float array CDF variable "
+                        + var.getName() );
             return new VariableReader( var, false );
         }
     }

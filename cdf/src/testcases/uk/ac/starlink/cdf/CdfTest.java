@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import uk.ac.bristol.star.cdf.record.EpochFormatter;
+import uk.ac.bristol.star.cdf.EpochFormatter;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
@@ -67,10 +67,10 @@ public class CdfTest extends TestCase {
         ColumnInfo epInfo = uy.getColumnInfo( iep );
         DescribedValue vmin = epInfo.getAuxDatumByName( "VALIDMIN" );
         assertEquals( Double.class, vmin.getInfo().getContentClass() );
-        assertEquals( "1990-10-06 00:00:00.000",
+        assertEquals( "1990-10-06T00:00:00.000",
                       new EpochFormatter()
                      .formatEpoch( ((Double) vmin.getValue()).doubleValue() ) );
-        assertEquals( "1997-12-23 00:02:30.000",
+        assertEquals( "1997-12-23T00:02:30.000",
                       new EpochFormatter()
                      .formatEpoch( ((Double) uy.getCell( 0, iep ))
                                   .doubleValue() ) );
