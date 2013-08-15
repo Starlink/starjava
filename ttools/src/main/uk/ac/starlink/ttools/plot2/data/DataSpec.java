@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Iterator;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.plot2.Equality;
 
 /**
@@ -69,6 +70,16 @@ public interface DataSpec {
      * @return  column data reader
      */
     Coord getCoord( int icoord );
+
+    /**
+     * Returns the metadata, if known, for the values supplied by the user
+     * to provide data for one of this object's output columns.
+     *
+     * @param  icoord  column index
+     * @return  array of value infos for column data;
+     *          elements may be null if not known
+     */
+    ValueInfo[] getUserCoordInfos( int icoord );
 
     /**
      * Returns an object that can be used to read the mask and coordinate

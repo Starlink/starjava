@@ -5,6 +5,7 @@ import java.util.Arrays;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.ttools.plot2.data.AbstractDataSpec;
 import uk.ac.starlink.ttools.plot2.data.Coord;
@@ -55,6 +56,16 @@ public class GuiDataSpec extends AbstractDataSpec {
 
     public Object getMaskId() {
         return subset_;
+    }
+
+    public ValueInfo[] getUserCoordInfos( int ic ) {
+        ColumnData[] colDatas = contents_[ ic ].getColDatas();
+        int nu = colDatas.length;
+        ValueInfo[] infos = new ValueInfo[ nu ];
+        for ( int iu = 0; iu < nu; iu++ ) {
+            infos[ iu ] = colDatas[ iu ].getColumnInfo();
+        }
+        return infos;
     }
 
     public UserDataReader createUserDataReader() {
