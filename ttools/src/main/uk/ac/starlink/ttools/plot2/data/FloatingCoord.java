@@ -1,5 +1,6 @@
 package uk.ac.starlink.ttools.plot2.data;
 
+import uk.ac.starlink.table.DomainMapper;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 
 /**
@@ -28,15 +29,18 @@ public class FloatingCoord extends SingleCoord {
      * @param   description  user-directed coordinate description
      * @param   isRequired  true if this coordinate is required for plotting
      * @param   isDouble  true for double precision, false for single
+     * @param   infoClass   class of user coordinate quantity
+     * @param   domain  DomainMapper subtype for this coord, or null
      */
     private FloatingCoord( String name, String description, boolean isRequired,
-                           boolean isDouble ) {
-        super( name, description, isRequired, Number.class,
-               isDouble ? StorageType.DOUBLE : StorageType.FLOAT );
+                           boolean isDouble, Class infoClass,
+                           Class<? extends DomainMapper> domain ) {
+        super( name, description, isRequired, infoClass,
+               isDouble ? StorageType.DOUBLE : StorageType.FLOAT, domain );
         nan_ = isDouble ? new Double( Double.NaN ) : new Float( Float.NaN );
     }
 
-    public Object userToStorage( Object[] userCoords ) {
+    public Object userToStorage( Object[] userCoords, DomainMapper[] mappers ) {
         Object c = userCoords[ 0 ];
         return c instanceof Number ? ((Number) c) : nan_;
     }
@@ -66,6 +70,7 @@ public class FloatingCoord extends SingleCoord {
     public static FloatingCoord createCoord( String name, String description,
                                              boolean isRequired ) {
         return new FloatingCoord( name, description, isRequired,
-                                  PlotUtil.storeFullPrecision() );
+                                  PlotUtil.storeFullPrecision(),
+                                  Number.class, null );
     }
 }

@@ -1,6 +1,8 @@
 package uk.ac.starlink.ttools.plot2.data;
 
+import java.util.List;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.table.DomainMapper;
 
 /**
  * Defines a coordinate quantity in terms of both the user's view of it
@@ -36,6 +38,21 @@ public interface Coord {
     ValueInfo[] getUserInfos();
 
     /**
+     * Indicates the target common value domain(s) in which the relevant
+     * value(s) will be used.
+     * The return value is a list (one for each user value) of DomainMapper
+     * abstract sub-types.  Each of these sub-types effectively defines
+     * a target value domain.  Null entries for this list are the norm,
+     * indicating that the user values will just be interpreted as numeric
+     * values, but non-null domains values can be used if a particular
+     * interpretation (for instance time) is going to be imposed.
+     *
+     * @return   list (same length as <code>getUserInfos</code>) of
+     *           domain mapper subtypes; elements may be null
+     */
+    List<Class<? extends DomainMapper>> getUserDomains();
+
+    /**
      * Indicates whether this item must have a non-blank value in order
      * for a plot to be possible.
      *
@@ -55,10 +72,21 @@ public interface Coord {
      * Turns a quantity in the user view to a plotting view object.
      * The return value is never null.
      *
+     * <p>The <code>userMappers</code> contains entries as specified
+     * by the result of the {@link #getUserDomains} method.
+     * The array must be the same length as the user domains array,
+     * and each non-null element must be an instance of the class
+     * in the corresponding element of the user domains array.
+     * In many cases however, coordinates are not sensitive to domains,
+     * and for those cases implementations will ignore
+     * <code>userMappers</code>.
+     *
      * @param   userValues  array of objects corresponding to the result of
      *                      {@link #getUserInfos} 
+     * @param   userMappers  domains mappers associated with submitted values
+     *                       if available and appropriate;
      * @return  object of the type corresponding to the result of
      *          {@link #getStorageType}; not null
      */
-    Object userToStorage( Object[] userValues );
+    Object userToStorage( Object[] userValues, DomainMapper[] userMappers );
 }

@@ -1,6 +1,9 @@
 package uk.ac.starlink.ttools.plot2.data;
 
+import java.util.ArrayList;
+import java.util.List;
 import uk.ac.starlink.table.DefaultValueInfo;
+import uk.ac.starlink.table.DomainMapper;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 
@@ -41,6 +44,14 @@ public abstract class SkyCoord implements Coord {
 
     public ValueInfo[] getUserInfos() {
         return skyVariant_.getUserInfos();
+    }
+
+    public List<Class<? extends DomainMapper>> getUserDomains() {
+        List<Class<? extends DomainMapper>> list =
+            new ArrayList<Class<? extends DomainMapper>>( 2 );
+        list.add( null );
+        list.add( null );
+        return list;
     }
 
     public StorageType getStorageType() {
@@ -128,7 +139,8 @@ public abstract class SkyCoord implements Coord {
             variant_ = variant;
         }
 
-        public Object userToStorage( Object[] userCoords ) {
+        public Object userToStorage( Object[] userCoords,
+                                     DomainMapper[] mappers ) {
             return variant_.userToDouble3( userCoords );
         }
 
@@ -165,7 +177,8 @@ public abstract class SkyCoord implements Coord {
             variant_ = variant;
         }
 
-        public Object userToStorage( Object[] userCoords ) {
+        public Object userToStorage( Object[] userCoords,
+                                     DomainMapper[] mappers ) {
             double[] d3 = variant_.userToDouble3( userCoords );
             return new float[] {
                 (float) d3[ 0 ],
@@ -211,7 +224,8 @@ public abstract class SkyCoord implements Coord {
             variant_ = variant;
         }
 
-        public Object userToStorage( Object[] userCoords ) {
+        public Object userToStorage( Object[] userCoords,
+                                     DomainMapper[] mappers ) {
             double[] v3 = variant_.userToDouble3( userCoords );
             if ( v3 == NO_SKY ) {
                 return ZERO3;

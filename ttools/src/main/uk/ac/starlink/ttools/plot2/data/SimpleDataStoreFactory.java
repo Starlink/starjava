@@ -1,9 +1,13 @@
 package uk.ac.starlink.ttools.plot2.data;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import uk.ac.starlink.table.DomainMapper;
 import uk.ac.starlink.table.RowSequence;
+import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 
 /**
@@ -44,6 +48,41 @@ public class SimpleDataStoreFactory implements DataStoreFactory, DataStore {
     }
 
     /**
+     * Utility method to work out the domain mappers for a given
+     * coordinate of a DataSpec.
+     * For the requested coord, it returns a mapper array with elements
+     * filled, in with any mapper known for the given user coordinates
+     * that has the sub-type appropriate for that coordinate.
+     *
+     * @param   dataSpec  data specification object
+     * @param   icoord   index of coordinate in <code>dataSpec</code>
+     * @return   mapper array for decoding values of one coordinate
+     *           of a data spec
+     */
+    public static DomainMapper[] getUserCoordMappers( DataSpec dataSpec,
+                                                      int icoord ) {
+        List<Class<? extends DomainMapper>> userDomains =
+            dataSpec.getCoord( icoord ).getUserDomains();
+        ValueInfo[] userInfos = dataSpec.getUserCoordInfos( icoord );
+        int nu = userDomains.size();
+        DomainMapper[] mappers = new DomainMapper[ nu ];
+        for ( int iu = 0; iu < nu; iu++ ) {
+            Class reqClazz = userDomains.get( iu );
+            if ( reqClazz != null ) {
+                DomainMapper[] infoMappers = userInfos[ iu ].getDomainMappers();
+                for ( int im = 0;
+                      im < infoMappers.length && mappers[ iu ] == null;
+                      im++ ) {
+                    if ( reqClazz.isInstance( infoMappers[ im ] ) ) {
+                        mappers[ iu ] = infoMappers[ im ];
+                    }
+                }
+            }
+        }
+        return mappers;
+    }
+
+    /**
      * TupleSequence implementation for use with SimpleDataStoreFactory.
      * It simply reads the user data every time and converts it to
      * storage format as the sequence iterates.
@@ -52,6 +91,7 @@ public class SimpleDataStoreFactory implements DataStoreFactory, DataStore {
         private final DataSpec spec_;
         private final UserDataReader reader_;
         private final RowSequence baseSeq_;
+        private final DomainMapper[][] mappers_;
         private long irow_ = -1;
         private boolean failed_;
 
@@ -65,6 +105,11 @@ public class SimpleDataStoreFactory implements DataStoreFactory, DataStore {
             spec_ = spec;
             reader_ = spec.createUserDataReader();
             baseSeq_ = rseq;
+            int nc = spec.getCoordCount();
+            mappers_ = new DomainMapper[ nc ][];
+            for ( int ic = 0; ic < nc; ic++ ) {
+                mappers_[ ic ] = getUserCoordMappers( spec, ic );
+            }
         }
 
         public boolean next() {
@@ -96,7 +141,8 @@ public class SimpleDataStoreFactory implements DataStoreFactory, DataStore {
                 Object[] userCoords =
                     reader_.getUserCoordValues( baseSeq_, irow_, icol );
                 Object value =
-                    spec_.getCoord( icol ).userToStorage( userCoords );
+                    spec_.getCoord( icol )
+                         .userToStorage( userCoords, mappers_[ icol ] );
                 assert value != null;
                 return value;
             }

@@ -6,9 +6,11 @@ import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import javax.swing.Icon;
 import uk.ac.starlink.table.DefaultValueInfo;
+import uk.ac.starlink.table.DomainMapper;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.plot.Pixellator;
@@ -117,8 +119,12 @@ public class EdgeForm implements ShapeForm {
             public StorageType getStorageType() {
                 return baseCoord.getStorageType();
             }
-            public Object userToStorage( Object[] userCoords ) {
-                return baseCoord.userToStorage( userCoords );
+            public List<Class<? extends DomainMapper>> getUserDomains() {
+                return baseCoord.getUserDomains();
+            }
+            public Object userToStorage( Object[] userCoords,
+                                         DomainMapper[] userMappers ) {
+                return baseCoord.userToStorage( userCoords, userMappers );
             }
         };
     }

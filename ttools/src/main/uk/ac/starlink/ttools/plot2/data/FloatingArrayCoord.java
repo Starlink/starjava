@@ -1,5 +1,6 @@
 package uk.ac.starlink.ttools.plot2.data;
 
+import uk.ac.starlink.table.DomainMapper;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 
 /**
@@ -26,7 +27,8 @@ public abstract class FloatingArrayCoord extends SingleCoord {
     private FloatingArrayCoord( String name, String description,
                                 boolean isRequired, boolean isDouble ) {
         super( name, description, isRequired, Object.class,
-               isDouble ? StorageType.DOUBLE_ARRAY : StorageType.FLOAT_ARRAY  );
+               isDouble ? StorageType.DOUBLE_ARRAY : StorageType.FLOAT_ARRAY,
+               null );
     }
 
     /**
@@ -80,7 +82,8 @@ public abstract class FloatingArrayCoord extends SingleCoord {
             /* Double precision implementation. */
             return new FloatingArrayCoord( name, descrip, isRequired, true ) {
 
-                public Object userToStorage( Object[] userCoords ) {
+                public Object userToStorage( Object[] userCoords,
+                                             DomainMapper[] mappers ) {
                     Object a = userCoords[ 0 ];
                     final double[] da;
                     if ( a instanceof double[] ) {
@@ -146,7 +149,8 @@ public abstract class FloatingArrayCoord extends SingleCoord {
 
             /* Single precision implementation. */
             return new FloatingArrayCoord( name, descrip, isRequired, true ) {
-                public Object userToStorage( Object[] userCoords ) {
+                public Object userToStorage( Object[] userCoords,
+                                             DomainMapper[] mappers ) {
                     Object a = userCoords[ 0 ];
                     final float[] fa;
                     if ( a instanceof float[] ) {
