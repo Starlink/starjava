@@ -228,7 +228,6 @@ public abstract class TimeMapper implements DomainMapper {
                         double sec = groups[ 5 ] == null
                                    ? 0.0
                                    : Double.parseDouble( groups[ 5 ] );
-
                         return dateToUnix( year, month, dom, hour, min, sec );
                     }
                     catch ( NumberFormatException e ) {
