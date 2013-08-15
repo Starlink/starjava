@@ -21,6 +21,7 @@ import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
+import uk.ac.starlink.table.DomainMapper;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.ValueInfo;
 
@@ -323,7 +324,8 @@ public class CdfStarTable extends AbstractStarTable {
                                               String units ) {
         String name = var.getName();
         Class clazz = var.getShaper().getShapeClass();
-        int grpSize = var.getDataType().getGroupSize();
+        DataType dtype = var.getDataType();
+        int grpSize = dtype.getGroupSize();
         final int[] shape; 
         if ( grpSize == 1 ) {
             shape = clazz.getComponentType() == null
@@ -340,6 +342,9 @@ public class CdfStarTable extends AbstractStarTable {
         DefaultValueInfo info = new DefaultValueInfo( name, clazz, descrip );
         info.setUnitString( units );
         info.setShape( shape );
+        DomainMapper mapper = CdfDomains.getMapper( dtype );
+        info.setDomainMappers( mapper == null ? new DomainMapper[ 0 ]
+                                              : new DomainMapper[] { mapper } );
         return info;
     }
 
