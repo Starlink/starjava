@@ -208,4 +208,16 @@ public class CoordPanel extends JPanel {
     public ColumnDataComboBoxModel getColumnSelector( int ic, int iu ) {
         return (ColumnDataComboBoxModel) colSelectors_[ ic ][ iu ].getModel();
     }
+
+    /**
+     * Resets the selector component model for a given user coordinate.
+     *
+     * @param  ic   coord index
+     * @param  iu   user info index for the given coord
+     * @param  model  new selector model
+     */
+    public void setColumnSelector( int ic, int iu,
+                                   ColumnDataComboBoxModel model ) {
+        colSelectors_[ ic ][ iu ].setModel( model );
+    }
 }

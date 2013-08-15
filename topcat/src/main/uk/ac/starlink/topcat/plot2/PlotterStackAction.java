@@ -5,6 +5,7 @@ import javax.swing.Action;
 import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.layer.FunctionPlotter;
+import uk.ac.starlink.ttools.plot2.layer.SpectrogramPlotter;
 
 /**
  * Action for adding a single-plotter layer control to the plot stack.
@@ -58,6 +59,14 @@ public abstract class PlotterStackAction extends BasicAction {
             return new PlotterStackAction( plotter, stack ) {
                 protected LayerControl createLayerControl() {
                     return new FunctionLayerControl( fPlotter );
+                }
+            };
+        }
+        else if ( plotter instanceof SpectrogramPlotter ) {
+            final SpectrogramPlotter sPlotter = (SpectrogramPlotter) plotter;
+            return new PlotterStackAction( plotter, stack ) {
+                protected LayerControl createLayerControl() {
+                    return new SpectrogramLayerControl( sPlotter );
                 }
             };
         }
