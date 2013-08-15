@@ -1,6 +1,7 @@
 package uk.ac.starlink.ttools.plot2.data;
 
 import uk.ac.starlink.table.DomainMapper;
+import uk.ac.starlink.table.TimeMapper;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 
 /**
@@ -72,5 +73,38 @@ public class FloatingCoord extends SingleCoord {
         return new FloatingCoord( name, description, isRequired,
                                   PlotUtil.storeFullPrecision(),
                                   Number.class, null );
+    }
+
+    /**
+     * Returns a new time coordinate.  This works in the TimeDomain,
+     * and the numeric value returned should normally be seconds since
+     * the Unix epoch (1 Jan 1970 midnight).
+     *
+     * @param   name   user-directed coordinate name
+     * @param   description  user-directed coordinate description
+     * @param   isRequired  true if this coordinate is required for plotting
+     * @return   instance
+     */
+    public static FloatingCoord createTimeCoord( String name,
+                                                 String description,
+                                                 boolean isRequired ) {
+        final Double nan = new Double( Double.NaN );
+        return new FloatingCoord( name, description, isRequired, true,
+                                  Object.class, TimeMapper.class ) {
+            @Override
+            public Object userToStorage( Object[] userCoords,
+                                         DomainMapper[] mappers ) {
+                DomainMapper mapper = mappers[ 0 ];
+                Object userCoord = userCoords[ 0 ];
+                if ( mapper instanceof TimeMapper ) {
+                    return ((TimeMapper) mapper).toUnixSeconds( userCoord );
+                }
+                else {
+                    return userCoord instanceof Number
+                         ? ((Number) userCoord)
+                         : nan;
+                }
+            }
+        };
     }
 }

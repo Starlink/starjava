@@ -80,6 +80,11 @@ public class Tick {
              + PlotUtil.hashCode( label_ );
     }
 
+    @Override
+    public String toString() {
+        return value_ + "->\"" + label_ + "\"";
+    }
+
     /**
      * Generates a tick array suitable for labelling a plot axis.
      * This convenience method just uses <code>crowding</code> to
@@ -485,7 +490,7 @@ public class Tick {
      * @param   minor  minor ticks
      * @return   combined tick list
      */
-    private static Tick[] combineTicks( Tick[] major, Tick[] minor ) {
+    public static Tick[] combineTicks( Tick[] major, Tick[] minor ) {
         Set<Double> values = new HashSet<Double>();
         List<Tick> ticks = new ArrayList<Tick>();
         for ( int i = 0; i < major.length; i++ ) {
