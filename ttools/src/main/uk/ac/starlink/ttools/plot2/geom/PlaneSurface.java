@@ -43,8 +43,6 @@ public class PlaneSurface implements Surface {
     private final Axis xAxis_;
     private final Axis yAxis_;
 
-    private static final double LOG10 = Math.log( 1e1 );
-
     /**
      * Constructor.
      *
@@ -413,8 +411,8 @@ public class PlaneSurface implements Surface {
 
         /* Work out the number of significant figures. */
         double aval = Math.abs( dpos );
-        int nsf = Math.max( 0, (int) Math.round( -Math.log( prec / aval )
-                                                 / LOG10 ) );
+        int nsf =
+            Math.max( 0, (int) Math.round( -Math.log10( prec / aval ) ) );
 
         /* Return a formatted string on this basis. */
         if ( aval >= 1e6 || aval <= 1e-4 ) {
@@ -425,7 +423,7 @@ public class PlaneSurface implements Surface {
         }
         else {
             int ndp =
-                (int) Math.round( Math.max( 0, -Math.log( prec ) / LOG10 ) );
+                (int) Math.round( Math.max( 0, -Math.log10( prec ) ) );
             if ( ndp == 0 ) {
                 return Long.toString( (long) Math.round( dpos ) );
             }
