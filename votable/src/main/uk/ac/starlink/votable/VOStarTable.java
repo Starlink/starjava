@@ -213,8 +213,9 @@ public class VOStarTable extends AbstractStarTable {
                     auxdata.add( new DescribedValue( TYPE_INFO, type ) );
                 }
 
+                String xtype = null;
                 if ( field.hasAttribute( "xtype" ) ) {
-                    String xtype = field.getAttribute( "xtype" );
+                    xtype = field.getAttribute( "xtype" );
                     auxdata.add( new DescribedValue( XTYPE_INFO, xtype ) );
                 }
 
@@ -228,6 +229,9 @@ public class VOStarTable extends AbstractStarTable {
                     auxdata.add( getDescribedValue( (LinkElement) 
                                                     links[ j ] ) );
                 }
+
+                cinfo.setDomainMappers( VOTableDomainMappers
+                                       .getMappers( cinfo, xtype ) );
 
                 colinfos[ i ] = cinfo;
             }
