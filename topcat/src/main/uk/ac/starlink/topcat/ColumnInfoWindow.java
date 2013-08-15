@@ -36,6 +36,7 @@ import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
+import uk.ac.starlink.table.DomainMapper;
 import uk.ac.starlink.table.UCD;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.gui.NumericCellRenderer;
@@ -188,6 +189,33 @@ public class ColumnInfoWindow extends AuxWindow {
             }
             public void setValue( int irow, Object value ) {
                 getColumnInfo( irow ).setUnitString( (String) value );
+            }
+        } );
+
+        /* Add domain mapper column. */
+        metas.add( new MetaColumn( "Domain", String.class ) {
+            public Object getValue( int irow ) {
+                DomainMapper[] mappers =
+                    getColumnInfo( irow ).getDomainMappers();
+                if ( mappers.length == 0 ) {
+                    return null;
+                }
+                else {
+                    StringBuffer sbuf = new StringBuffer();
+                    for ( int i = 0; i < mappers.length; i++ ) {
+                        if ( i > 0 ) {
+                            sbuf.append( ", " );
+                        }
+                        DomainMapper mapper = mappers[ i ];
+                        sbuf.append( mapper.getSourceName() )
+                            .append( "->" )
+                            .append( mapper.getTargetName() );
+                    }
+                    return sbuf.toString();
+                }
+            }
+            public boolean isEditable( int irow ) {
+                return false;
             }
         } );
 
