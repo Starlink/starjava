@@ -27,6 +27,7 @@ public class DefaultValueInfo implements ValueInfo {
     private String utype = null;
     private String description = "";
     private Class contentClass = Object.class;
+    private DomainMapper[] domainMappers = new DomainMapper[ 0 ];
     private boolean isNullable = true;
     private int[] shape = new int[] { -1 };
     private int elementSize = -1;
@@ -99,6 +100,7 @@ public class DefaultValueInfo implements ValueInfo {
         setShape( base.getShape() );
         setElementSize( base.getElementSize() );
         setNullable( base.isNullable() );
+        setDomainMappers( base.getDomainMappers() );
     }
 
     /**
@@ -263,6 +265,19 @@ public class DefaultValueInfo implements ValueInfo {
      */
     public void setNullable( boolean isNullable ) {
         this.isNullable = isNullable;
+    }
+
+    public DomainMapper[] getDomainMappers() {
+        return domainMappers;
+    }
+
+    /**
+     * Sets the domain mappers known for this object.
+     *
+     * @param  domainMappers  new domain mapper array
+     */
+    public void setDomainMappers( DomainMapper[] domainMappers ) {
+        this.domainMappers = domainMappers;
     }
 
     /**

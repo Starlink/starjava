@@ -162,6 +162,22 @@ public interface ValueInfo {
     boolean isNullable();
 
     /**
+     * Returns an array of objects which may be able to convert from the
+     * values described by this info to a particular target value domain.
+     * This can used for non-obvious representations of certain coordinates
+     * such as time and angular position.  In most cases the returned array
+     * will be empty, since the target domain is obvious (e.g. numeric values).
+     * In the (unusual) case that the returned array contains multiple
+     * entries, it should have no more than one for any given target domain,
+     * and the first entry may be considered "primary" in some sense.
+     * Absence of a mapper for a given target domain does not necessarily
+     * indicate that the described values cannot be used in that domain.
+     *
+     * @return   array of domain mappers for the values described by this info
+     */
+    DomainMapper[] getDomainMappers();
+
+    /**
      * Returns a string representation of a given value described by this
      * <tt>ValueInfo</tt>.  The returned string should be
      * no longer than a given maximum length.

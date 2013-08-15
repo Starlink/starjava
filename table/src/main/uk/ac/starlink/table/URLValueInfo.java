@@ -68,6 +68,10 @@ public class URLValueInfo implements ValueInfo {
         return true;
     }
 
+    public DomainMapper[] getDomainMappers() {
+        return new DomainMapper[ 0 ];
+    }
+
     public String formatValue( Object value, int maxLength ) {
         if ( value == null ) {
             return "";
