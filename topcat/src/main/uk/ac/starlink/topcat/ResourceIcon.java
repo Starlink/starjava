@@ -234,6 +234,7 @@ public class ResourceIcon implements Icon {
         PLOT2_SKY = makeIcon( "plot2sky.gif" ),
         PLOT2_CUBE = makeIcon( "plot2cube.gif" ),
         PLOT2_SPHERE = makeIcon( "plot2sphere.gif" ),
+        PLOT2_TIME = makeIcon( "plot2time.gif" ),
 
         /* Datanode (hierarchy browser) icons. */
         COLLAPSED = makeIcon( "handle1.gif" ),

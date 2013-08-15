@@ -122,6 +122,7 @@ import uk.ac.starlink.topcat.plot2.PlanePlotWindow;
 import uk.ac.starlink.topcat.plot2.SkyPlotWindow;
 import uk.ac.starlink.topcat.plot2.SpherePlotWindow;
 import uk.ac.starlink.topcat.plot2.StackPlotWindow;
+import uk.ac.starlink.topcat.plot2.TimePlotWindow;
 import uk.ac.starlink.topcat.vizier.VizierTableLoadDialog;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.Loader;
@@ -435,6 +436,10 @@ public class ControlWindow extends AuxWindow
                                     "3D plotting window"
                                     + " using spherical polar coordinates",
                                     SpherePlotWindow.class ),
+            new TopcatWindowAction( "Time Layer Plot",
+                                    ResourceIcon.PLOT2_TIME,
+                                    "Time series plotting window",
+                                    TimePlotWindow.class ),
         };
 
         matchActs_ = new Action[] {
