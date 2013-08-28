@@ -160,6 +160,9 @@ public class Shaders {
     /** Shader based on lookup table Standard. */
     public static final Shader LUT_STANDARD;
 
+    /** Shader copied from glNemo2 application. */
+    public static final Shader LUT_GLNEMO2;
+
     /** Selection of lookup table-based shaders. */
     public final static Shader[] LUT_SHADERS = new Shader[] {
         LUT_AIPS0 = new ResourceLutShader( "AIPS0", "aips0.lut" ),
@@ -179,6 +182,7 @@ public class Shaders {
         LUT_SMOOTH = new ResourceLutShader( "Smooth", "smooth.lut" ),
         LUT_STAIRCASE = new ResourceLutShader( "Staircase", "staircase.lut" ),
         LUT_STANDARD = new ResourceLutShader( "Standard", "standard.lut" ),
+        LUT_GLNEMO2 = new ResourceLutShader( "Rainbow2", "glnemo2.lut" ),
     };
 
     /* ColorBrewer.

@@ -388,6 +388,7 @@ public class StyleKeys {
         List<Shader> shaderList = new ArrayList<Shader>();
         shaderList.addAll( Arrays.asList( new Shader[] {
             Shaders.LUT_RAINBOW,
+            Shaders.LUT_GLNEMO2,
             Shaders.LUT_PASTEL,
             Shaders.CYAN_MAGENTA,
             Shaders.RED_BLUE,
@@ -429,6 +430,7 @@ public class StyleKeys {
             Shaders.invert( Shaders.SCALE_V ),
             Shaders.invert( Shaders.LUT_PASTEL ),
             Shaders.invert( Shaders.LUT_RAINBOW ),
+            Shaders.invert( Shaders.LUT_GLNEMO2 ),
             Shaders.CYAN_MAGENTA,
             Shaders.RED_BLUE,
             Shaders.invert( Shaders.LUT_HEAT ),
