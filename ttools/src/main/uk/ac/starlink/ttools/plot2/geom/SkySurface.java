@@ -407,35 +407,39 @@ public class SkySurface implements Surface {
     }
 
     public String formatPosition( double[] dpos ) {
-        return formatPosition( dpos, 2.0 * Math.PI / gZoom_ );
-    }
-
-    /**
-     * Formats a position in data coordinates given the approximate size
-     * of a screen pixel.
-     * The pixel size is used to determine how much precision to give.
-     *
-     * @param  dpos  3-element array giving normalised X,Y,Z coordinates
-     * @param  pixRad  approximate size of a screen pixel in radians
-     */
-    private static String formatPosition( double[] dpos, double pixRad ) {
+        double pixRad = 2.0 * Math.PI / gZoom_;
         double x = dpos[ 0 ];
         double y = dpos[ 1 ];
         double z = dpos[ 2 ];
-        double lat = Math.PI * 0.5 - Math.acos( z );
-        double lon = Math.atan2( y, x );
-        while ( lon < 0 ) {
-            lon += 2 * Math.PI;
+        double latRad = Math.PI * 0.5 - Math.acos( z );
+        double lonRad = Math.atan2( y, x );
+        while ( lonRad < 0 ) {
+            lonRad += 2 * Math.PI;
         }
+        return sexagesimal_ ? formatPositionSex( lonRad, latRad, pixRad )
+                            : formatPositionDec( lonRad, latRad, pixRad );
+    }
+
+    /**
+     * Formats a lon/lat position as sexagesimal given the approximate size
+     * of a screen pixel.
+     * The pixel size is used to determine how much precision to give.
+     *
+     * @param  lonRad  longitude in radians
+     * @param  latRad  latitude in radians
+     * @param  pixRad  approximate size of a screen pixel in radians
+     */
+    private static String formatPositionSex( double lonRad, double latRad,
+                                             double pixRad ) {
         int secondDp = getDecimalPlaces( pixRad / Math.PI * 12 * 60 * 60 );
         int arcsecDp = getDecimalPlaces( pixRad / Math.PI * 180 * 60 * 60 );
         String lonSex =
-            CoordsRadians.radiansToHms( lon, Math.max( 0, secondDp ) );
+            CoordsRadians.radiansToHms( lonRad, Math.max( 0, secondDp ) );
         if ( secondDp < -1 ) {
             lonSex = lonSex.substring( 0, lonSex.lastIndexOf( ':' ) );
         }
         String latSex =
-            CoordsRadians.radiansToDms( lat, Math.max( 0, arcsecDp ) );
+            CoordsRadians.radiansToDms( latRad, Math.max( 0, arcsecDp ) );
         if ( arcsecDp < -1 ) {
             latSex = latSex.substring( 0, latSex.lastIndexOf( ':' ) );
         }
@@ -444,6 +448,43 @@ public class SkySurface implements Surface {
             .append( ", " )
             .append( latSex )
             .toString();
+    }
+
+    /**
+     * Formats a lon/lat position as decimal given the approximate size
+     * of a screen pixel.
+     * The pixel size is used to determine how much precision to give.
+     *
+     * @param  lonRad  longitude in radians
+     * @param  latRad  latitude in radians
+     * @param  pixRad  approximate size of a screen pixel in radians
+     */
+    private static String formatPositionDec( double lonRad, double latRad,
+                                             double pixRad ) {
+        double lonDeg = lonRad * 180 / Math.PI;
+        double latDeg = latRad * 180 / Math.PI;
+        double pixDeg = pixRad * 180 / Math.PI;
+        final String slon;
+        final String slat;
+        if ( pixDeg >= 1 ) {
+            slon = Integer.toString( (int) Math.round( lonDeg ) );
+            slat = Integer.toString( (int) Math.round( latDeg ) );
+        }
+        else {
+            int ndp = getDecimalPlaces( pixDeg );
+            assert ndp >= 0;
+            slon = PlotUtil.formatNumber( lonDeg, "0.0", ndp );
+            slat = PlotUtil.formatNumber( latDeg, "0.0", ndp );
+        }
+        StringBuffer sbuf = new StringBuffer();
+        sbuf.append( slon );
+        sbuf.append( ", " );
+        char s0 = slat.charAt( 0 );
+        if ( s0 != '-' && s0 != '+' ) {
+            sbuf.append( '+' );
+        }
+        sbuf.append( slat );
+        return sbuf.toString();
     }
 
     /**
@@ -456,7 +497,7 @@ public class SkySurface implements Surface {
      * @return  number of decimal places required to represent value
      */
     private static int getDecimalPlaces( double value ) {
-        return - (int) Math.round( Math.log( value ) / Math.log( 10 ) );
+        return - (int) Math.floor( Math.log( value ) / Math.log( 10 ) );
     }
 
     /**
