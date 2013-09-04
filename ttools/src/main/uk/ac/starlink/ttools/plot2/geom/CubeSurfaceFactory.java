@@ -274,15 +274,15 @@ public class CubeSurfaceFactory
         List<ConfigKey> list = new ArrayList<ConfigKey>();
         if ( isIso_ ) {
             list.addAll( Arrays.asList( new ConfigKey[] {
-                XMIN_KEY, XMAX_KEY, XSUBRANGE_KEY,
-                YMIN_KEY, YMAX_KEY, YSUBRANGE_KEY,
-                ZMIN_KEY, ZMAX_KEY, ZSUBRANGE_KEY,
+                XC_KEY, YC_KEY, ZC_KEY,
+                SCALE_KEY,
             } ) );
         }
         else {
             list.addAll( Arrays.asList( new ConfigKey[] {
-                XC_KEY, YC_KEY, ZC_KEY,
-                SCALE_KEY,
+                XMIN_KEY, XMAX_KEY, XSUBRANGE_KEY,
+                YMIN_KEY, YMAX_KEY, YSUBRANGE_KEY,
+                ZMIN_KEY, ZMAX_KEY, ZSUBRANGE_KEY,
             } ) );
         }
         list.addAll( Arrays.asList( new ConfigKey[] {
