@@ -831,8 +831,9 @@ public class Shaders {
                                 int xpad, int ypad ) {
             Color baseColor = baseShader_ instanceof BasicShader
                             ? ((BasicShader) baseShader_).baseColor_
-                            : Color.BLACK;
-            return create1dIcon( this, horizontal, baseColor,
+                            : null;
+            return create1dIcon( this, horizontal,
+                                 baseColor == null ? Color.BLACK : baseColor,
                                  width, height, xpad, ypad );
         }
 

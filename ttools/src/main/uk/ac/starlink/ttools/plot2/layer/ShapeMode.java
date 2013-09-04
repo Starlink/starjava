@@ -706,18 +706,21 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             return new ConfigKey[] {
                 StyleKeys.COLOR,
                 StyleKeys.DENSITY_SHADER,
-                StyleKeys.DENSITY_SUBRANGE,
+                StyleKeys.DENSITY_SHADER_CLIP,
                 StyleKeys.DENSITY_LOG,
                 StyleKeys.DENSITY_FLIP,
+                StyleKeys.DENSITY_SUBRANGE,
             };
         }
 
         public Stamper createStamper( ConfigMap config ) {
             Color baseColor = config.get( StyleKeys.COLOR );
-            Shader baseShader = config.get( StyleKeys.DENSITY_SHADER );
-            Subrange subrange = config.get( StyleKeys.DENSITY_SUBRANGE );
+            Shader baseShader =
+                StyleKeys.createShader( config, StyleKeys.DENSITY_SHADER,
+                                                StyleKeys.DENSITY_SHADER_CLIP );
             boolean logFlag = config.get( StyleKeys.DENSITY_LOG );
             boolean flipFlag = config.get( StyleKeys.DENSITY_FLIP );
+            Subrange subrange = config.get( StyleKeys.DENSITY_SUBRANGE );
             Shader densityShader =
                 Shaders.applyShader( baseShader, baseColor, COLOR_MAP_SIZE );
             if ( flipFlag ) {
@@ -833,6 +836,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
         public ConfigKey[] getConfigKeys() {
             List<ConfigKey> list = new ArrayList<ConfigKey>();
             list.add( StyleKeys.AUX_SHADER );
+            list.add( StyleKeys.AUX_SHADER_CLIP );
             if ( transparent_ ) {
                 list.add( StyleKeys.AUX_OPAQUE );
             }
@@ -843,7 +847,9 @@ public abstract class ShapeMode implements ModePlotter.Mode {
         }
 
         public Stamper createStamper( ConfigMap config ) {
-            Shader shader = config.get( StyleKeys.AUX_SHADER );
+            Shader shader =
+                StyleKeys.createShader( config, StyleKeys.AUX_SHADER,
+                                                StyleKeys.AUX_SHADER_CLIP );
             double opaque = transparent_
                           ? config.get( StyleKeys.AUX_OPAQUE )
                           : 1;

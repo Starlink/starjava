@@ -81,4 +81,15 @@ public class Subrange {
     public String toString() {
         return "(" + lo_ + "," + hi_ + ")";
     }
+
+    /**
+     * Indicates whether a given subrange is the identity operation,
+     * that is has no effect on a range to which it is applied.
+     *
+     * @param  subrange  subrange to test
+     * @return  true  iff subrange has values (0,1)
+     */
+    public static boolean isIdentity( Subrange subrange ) {
+        return subrange.getLow() == 0 && subrange.getHigh() == 1;
+    }
 }

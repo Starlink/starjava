@@ -187,6 +187,10 @@ public class StyleKeys {
         new ShaderConfigKey( new ConfigMeta( "shader", "Shader" ),
                              createAuxShaders(), Shaders.LUT_RAINBOW );
 
+    /** Config key for restricting the range of an aux shader colour map. */
+    public static final ConfigKey<Subrange> AUX_SHADER_CLIP =
+        new SubrangeConfigKey( new ConfigMeta( "shadeclip", "Shade Clip" ) );
+
     /** Config key for aux shader logarithmic flag. */
     public static final ConfigKey<Boolean> SHADE_LOG =
         new BooleanConfigKey( new ConfigMeta( "shadelog", "Shade Log" ) );
@@ -220,6 +224,10 @@ public class StyleKeys {
                              createDensityShaders(),
                              createDensityShaders()[ 0 ] );
 
+    /** Config key for restricting the range of a density shader colour map. */
+    public static final ConfigKey<Subrange> DENSITY_SHADER_CLIP =
+        new SubrangeConfigKey( new ConfigMeta( "denseclip", "Map clip" ) );
+                             
     /** Config key for density shader subrange. */
     public static final ConfigKey<Subrange> DENSITY_SUBRANGE =
         new SubrangeConfigKey( new ConfigMeta( "densescale",
@@ -355,6 +363,28 @@ public class StyleKeys {
                                                     + "label",
                                                     axName + " Label" ),
                                                     axName );
+    }
+
+    /**
+     * Obtains a shader from a config map given appropriate keys.
+     *
+     * @param  config  config map
+     * @param  baseShaderKey   key for extracting a shader
+     * @param  clipKey   key for extracting a clip range of a shader
+     * @return  shader with clip applied if appropriate
+     */
+    public static Shader createShader( ConfigMap config,
+                                       ConfigKey<Shader> baseShaderKey,
+                                       ConfigKey<Subrange> clipKey ) {
+        Shader shader = config.get( baseShaderKey );
+        if ( shader == null ) {
+            return null;
+        }
+        Subrange clip = config.get( clipKey );
+        return Subrange.isIdentity( clip )
+             ? shader
+             : Shaders.stretch( shader,
+                                (float) clip.getLow(), (float) clip.getHigh() );
     }
 
     /**
