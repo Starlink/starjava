@@ -5,9 +5,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -49,7 +49,7 @@ public class TerminalEnvironment implements Environment {
         for ( int i = 0; i < params.length; i++ ) {
             paramSet.add( params[ i ] );
         }
-        valueMap = new HashMap();
+        valueMap = new LinkedHashMap();
         for ( int i = 0; i < args.length; i++ ) {
             boolean found = false;
             String[] pp = args[ i ].split( "=" );

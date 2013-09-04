@@ -4,7 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
@@ -27,7 +27,7 @@ import uk.ac.starlink.ttools.plottask.Painter;
 public class MapEnvironment implements TableEnvironment {
 
     private final Map paramMap_;
-    private final Map outputTables_ = new HashMap();
+    private final Map outputTables_ = new LinkedHashMap();
     private final ByteArrayOutputStream out_ = new ByteArrayOutputStream();
     private final ByteArrayOutputStream err_ = new ByteArrayOutputStream();
     private final PrintStream pout_ = new PrintStream( out_ );
@@ -40,7 +40,7 @@ public class MapEnvironment implements TableEnvironment {
      * Constructs a new environment with no values.
      */
     public MapEnvironment() {
-        this( new HashMap() );
+        this( new LinkedHashMap() );
     }
 
     /**
@@ -59,7 +59,7 @@ public class MapEnvironment implements TableEnvironment {
      * @param  env  environment to copy
      */
     public MapEnvironment( MapEnvironment env ) {
-        this( new HashMap( env.paramMap_ ) );
+        this( new LinkedHashMap( env.paramMap_ ) );
         this.resourceBase_ = env.resourceBase_;
         this.debug_ = env.debug_;
         this.strictVot_ = env.strictVot_;
