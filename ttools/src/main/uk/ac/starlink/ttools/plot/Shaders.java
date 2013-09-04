@@ -160,6 +160,12 @@ public class Shaders {
     /** Shader based on lookup table Standard. */
     public static final Shader LUT_STANDARD;
 
+    /** Shader based on lookup table Accent. */
+    public static final Shader LUT_ACCENT;
+
+    /** Shader based on lookup table Cold. */
+    public static final Shader LUT_COLD;
+
     /** Shader copied from glNemo2 application. */
     public static final Shader LUT_GLNEMO2;
 
@@ -182,6 +188,8 @@ public class Shaders {
         LUT_SMOOTH = new ResourceLutShader( "Smooth", "smooth.lut" ),
         LUT_STAIRCASE = new ResourceLutShader( "Staircase", "staircase.lut" ),
         LUT_STANDARD = new ResourceLutShader( "Standard", "standard.lut" ),
+        LUT_ACCENT = new ResourceLutShader( "Accent", "accent.lut" ),
+        LUT_COLD = new ResourceLutShader( "Cold", "cold.lut" ),
         LUT_GLNEMO2 = new ResourceLutShader( "Rainbow2", "glnemo2.lut" ),
     };
 

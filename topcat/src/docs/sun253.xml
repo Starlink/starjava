@@ -18223,7 +18223,7 @@ introduced since the last version:
             Apply Subset option in the table viewer window with a new
             Highlight Subset option.
             Also add a new Highlight Subset option in the Subsets window.</li>
-        <li>Add Rainbow2 shader.</li>
+        <li>Add some more colour maps.</li>
         <li>Sky plot position formatting now honours sexagesimal setting.</li>
         </ul>
         </p></dd>
