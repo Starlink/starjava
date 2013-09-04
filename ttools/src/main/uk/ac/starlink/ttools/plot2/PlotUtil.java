@@ -195,22 +195,21 @@ public class PlotUtil {
     }
 
     /**
-     * Returns a value determined by a fixed range and a scaling factor
-     * within it.  The scaling factor is assumed in the range 0-1;
-     * if zero the minimum value is returned, and if one the maximum value
-     * is returned.
+     * Returns a value determined by a fixed range and a scale point
+     * within it.  If the point is zero the minimum value is returned,
+     * and if it is one the maximum value is returned.
      *
      * @param  min  minimum of range
      * @param  max  maximum of range
-     * @param  factor01  factor in the range 0 to 1
+     * @param  point  scale point
      * @param  isLog  true iff the range is logarithmic
-     * @return   value between min and max
+     * @return   scaled value
      */
-    public static double scaleValue( double min, double max, double factor01,
+    public static double scaleValue( double min, double max, double point,
                                      boolean isLog ) {
         return isLog
-             ? Math.exp( Math.log( min ) + factor01 * Math.log( max / min ) )
-             : min + factor01 * ( max - min );
+             ? Math.exp( Math.log( min ) + point * Math.log( max / min ) )
+             : min + point * ( max - min );
     }
 
     /**

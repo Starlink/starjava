@@ -3,8 +3,11 @@ package uk.ac.starlink.ttools.plot2.config;
 import com.jidesoft.swing.RangeSlider;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.util.Hashtable;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
+import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Subrange;
 
 /**
@@ -15,14 +18,25 @@ import uk.ac.starlink.ttools.plot2.Subrange;
  */
 public class SubrangeConfigKey extends ConfigKey<Subrange> {
 
+    private final double vmin_;
+    private final double vmax_;
+
     /**
      * Constructs a key with a given default.
+     * The <code>vmin</code> and <code>vmax</code> parameters
+     * do not impose any hard limits on the value associated with this key, 
+     * but they influence the values offered by the Specifier component.
      *
      * @param   meta  metadata
      * @param   dflt  default subrange
+     * @param   vmin  minimum value suggested by GUI
+     * @param   vmax  maximum value suggested by GUI
      */
-    public SubrangeConfigKey( ConfigMeta meta, Subrange dflt ) {
+    public SubrangeConfigKey( ConfigMeta meta, Subrange dflt,
+                              double vmin, double vmax ) {
         super( meta, Subrange.class, dflt );
+        vmin_ = vmin;
+        vmax_ = vmax;
     }
 
     /**
@@ -32,7 +46,7 @@ public class SubrangeConfigKey extends ConfigKey<Subrange> {
      * @param  meta  metadata
      */
     public SubrangeConfigKey( ConfigMeta meta ) {
-        this( meta, new Subrange() );
+        this( meta, new Subrange(), 0, 1 );
     }
 
     public String valueToString( Subrange value ) {
@@ -47,12 +61,11 @@ public class SubrangeConfigKey extends ConfigKey<Subrange> {
             try {
                 double lo = slo.length() > 0 ? Double.parseDouble( slo ) : 0;
                 double hi = shi.length() > 0 ? Double.parseDouble( shi ) : 1;
-                if ( lo >= 0 && lo <= hi && hi <= 1 ) {
+                if ( lo <= hi ) {
                     return new Subrange( lo, hi );
                 }
                 else {
-                    throw new ConfigException( this,
-                                               "0 <= lo <= hi <= 1 violated" );
+                    throw new ConfigException( this, "lo <= hi violated" );
                 }
             }
             catch ( NumberFormatException e ) {
@@ -69,7 +82,7 @@ public class SubrangeConfigKey extends ConfigKey<Subrange> {
     }
 
     public Specifier<Subrange> createSpecifier() {
-        return new SubrangeSpecifier();
+        return new SubrangeSpecifier( vmin_, vmax_ );
     }
 
     /**
@@ -80,17 +93,16 @@ public class SubrangeConfigKey extends ConfigKey<Subrange> {
      * @return  formatted value
      */
     private static String format( double dval, int nf ) {
-        assert dval >= 0 && dval <= 1;
         int m10 = (int) Math.round( Math.pow( 10, nf ) );
         int mf = (int) Math.round( dval * m10 );
-        if ( mf <= 0 ) {
+        if ( mf == 0 ) {
             return "0";
         }
-        else if ( mf >= m10 ) {
+        else if ( mf == m10 ) {
             return "1";
         }
         else {
-            return "0." + String.format( "%0" + nf + "d", mf );
+            return PlotUtil.formatNumber( dval, "0.0", nf );
         }
     }
 
@@ -98,6 +110,8 @@ public class SubrangeConfigKey extends ConfigKey<Subrange> {
      * Specifier that uses a double slider component.
      */
     private static class SubrangeSpecifier extends SpecifierPanel<Subrange> {
+        private final double rmin_;
+        private final double rmax_;
         private final RangeSlider slider_;
         private static final int MIN = 0;
         private static final int MAX = 10000;
@@ -105,10 +119,20 @@ public class SubrangeConfigKey extends ConfigKey<Subrange> {
         /**
          * Constructor.
          */
-        SubrangeSpecifier() {
+        SubrangeSpecifier( double rmin, double rmax ) {
             super( true );
+            rmin_ = rmin;
+            rmax_ = rmax;
             slider_ = new RangeSlider( MIN, MAX );
             slider_.addChangeListener( getChangeForwarder() );
+            if ( ! ( rmin == 0 && rmax == 1 ) ) {
+                Hashtable<Integer,JComponent> labels =
+                    new Hashtable<Integer,JComponent>();
+                labels.put( unscale( 0.0 ), new JLabel( "0" ) );
+                labels.put( unscale( 1.0 ), new JLabel( "1" ) );
+                slider_.setLabelTable( labels );
+                slider_.setPaintLabels( true );
+            }
         }
 
         protected JComponent createComponent() {
@@ -151,12 +175,14 @@ public class SubrangeConfigKey extends ConfigKey<Subrange> {
             return Math.max( 1, ( MAX - MIN ) / npix );
         }
 
-        private static double scale( int ival ) {
-            return ( ival - MIN ) / (double) ( MAX - MIN );
+        private double scale( int ival ) {
+            double p01 = ( ival - MIN ) / (double) ( MAX - MIN );
+            return rmin_ + p01 * ( rmax_ - rmin_ );
         }
 
-        private static int unscale( double dval ) {
-            return (int) Math.round( dval * ( MAX - MIN ) ) + MIN;
+        private int unscale( double dval ) {
+            double p01 = ( dval - rmin_ ) / ( rmax_ - rmin_ );
+            return (int) Math.round( p01 * ( MAX - MIN ) ) + MIN;
         }
     }
 }
