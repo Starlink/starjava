@@ -1,6 +1,7 @@
 package uk.ac.starlink.ttools.plot2.task;
 
 import java.awt.Dimension;
+import java.awt.Insets;
 import java.awt.Rectangle;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -28,13 +29,18 @@ import uk.ac.starlink.ttools.plot.GraphicExporter;
 import uk.ac.starlink.ttools.plot.Picture;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot.Style;
+import uk.ac.starlink.ttools.plot2.AuxScale;
+import uk.ac.starlink.ttools.plot2.DataGeom;
+import uk.ac.starlink.ttools.plot2.Decoration;
+import uk.ac.starlink.ttools.plot2.LayerOpt;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotType;
+import uk.ac.starlink.ttools.plot2.PlotPlacement;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.ShadeAxis;
-import uk.ac.starlink.ttools.plot2.DataGeom;
-import uk.ac.starlink.ttools.plot2.LayerOpt;
+import uk.ac.starlink.ttools.plot2.Surface;
+import uk.ac.starlink.ttools.plot2.SurfaceFactory;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
@@ -44,11 +50,10 @@ import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.DataStoreFactory;
 import uk.ac.starlink.ttools.plot2.geom.CubePlotType;
 import uk.ac.starlink.ttools.plot2.geom.PlanePlotType;
-import uk.ac.starlink.ttools.plot2.paper.PaperType;
-import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
 import uk.ac.starlink.ttools.plot2.geom.SpherePlotType;
 import uk.ac.starlink.ttools.plot2.geom.SkyPlotType;
-import uk.ac.starlink.ttools.plot2.SurfaceFactory;
+import uk.ac.starlink.ttools.plot2.paper.PaperType;
+import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
 import uk.ac.starlink.ttools.plottask.ColorParameter;
 import uk.ac.starlink.ttools.plottask.PaintModeParameter;
 import uk.ac.starlink.ttools.plottask.Painter;
@@ -71,6 +76,7 @@ public class Plot2Task implements Task {
     private final ChoiceParameter<DataGeom> geomParam_;
     private final IntegerParameter xpixParam_;
     private final IntegerParameter ypixParam_;
+    private final InsetsParameter insetsParam_;
     private final PaintModeParameter painterParam_;
     private final DataStoreParameter dstoreParam_;
     private final DefaultMultiParameter orderParam_;
@@ -96,6 +102,7 @@ public class Plot2Task implements Task {
         xpixParam_.setDefault( "500" );
         ypixParam_ = new IntegerParameter( "ypix" );
         ypixParam_.setDefault( "400" );
+        insetsParam_ = new InsetsParameter( "insets" );
         GraphicExporter[] exporters =
             GraphicExporter.getKnownExporters( PlotUtil.LATEX_PDF_EXPORTER );
         painterParam_ = new PaintModeParameter( "omode", exporters );
@@ -114,6 +121,7 @@ public class Plot2Task implements Task {
             geomParam_,
             xpixParam_,
             ypixParam_,
+            insetsParam_,
             painterParam_,
             dstoreParam_,
             orderParam_,
@@ -128,6 +136,7 @@ public class Plot2Task implements Task {
         /* Set up generic configuration. */
         final int xpix = xpixParam_.intValue( env );
         final int ypix = ypixParam_.intValue( env );
+        final Insets insets = insetsParam_.insetsValue( env );
         final Painter painter = painterParam_.painterValue( env );
         final boolean isSwing = painter instanceof SwingPainter;
         dstoreParam_.setDefaultCaching( isSwing );
@@ -191,18 +200,13 @@ public class Plot2Task implements Task {
 
                 /* For a static plot, generate and plot the fixed icon here. */
                 else {
-                    LayerOpt[] opts = PaperTypeSelector.getOpts( layers );
                     PaperTypeSelector ptsel = plotType.getPaperTypeSelector();
-                    PaperType paperType =
-                          forceBitmap
-                        ? ptsel.getPixelPaperType( opts, null )
-                        : ptsel.getVectorPaperType( opts );
-                    Rectangle box = new Rectangle( 0, 0, xpix, ypix );
-                    Icon plot = PlotDisplay
-                               .createIcon( layers, surfFact, surfConfig,
-                                            legend, legpos,
-                                            shadeAxis, shadeFixRange, dataStore,
-                                            box, paperType, false );
+                    Icon plot =
+                        createPlotIcon( layers, surfFact, surfConfig,
+                                        legend, legpos,
+                                        shadeAxis, shadeFixRange, dataStore,
+                                        xpix, ypix, insets,
+                                        ptsel, forceBitmap );
                     long start = System.currentTimeMillis();
                     painter.paintPicture( PlotUtil.toPicture( plot ) );
                     PlotUtil.logTime( logger_, "Plot", start );
@@ -490,5 +494,92 @@ public class Plot2Task implements Task {
      */
     private Parameter createDataParameter( ValueInfo info, String suffix ) {
         return new Parameter( info.getName().toLowerCase() + suffix );
+    }
+
+    /**
+     * Creates an icon which will paint the content of a plot.
+     * This icon is expected to be painted once and then discarded,
+     * so it's not cached.
+     *
+     * @param  layers   layers constituting plot content
+     * @param  surfFact   surface factory
+     * @param  config   map containing surface profile and initial aspect
+     *                  configuration
+     * @param  legend   legend icon, or null if none required
+     * @param  legPos   2-element array giving x,y fractional legend placement
+     *                  position within plot (elements in range 0..1),
+     *                  or null for external legend
+     * @param  shadeAxis  shader axis, or null if not required
+     * @param  shadeFixRange  fixed shader range,
+     *                        or null for auto-range where required
+     * @param  dataStore   data storage object
+     * @param  xpix    horizontal size of icon in pixels
+     * @param  ypix    vertical size of icon in pixels
+     * @param  insets  may supply the inset space to be used for
+     *                 axis decoration etc; if null, this will be worked out
+     *                 automatically
+     * @param  ptsel   paper type selector
+     * @param  forceBitmap   true to force bitmap output of vector graphics,
+     *                       false to use default behaviour
+     * @return  icon  icon for plotting
+     */
+    public static <P,A> Icon createPlotIcon( PlotLayer[] layers,
+                                             SurfaceFactory<P,A> surfFact,
+                                             ConfigMap config,
+                                             Icon legend, float[] legPos,
+                                             ShadeAxis shadeAxis,
+                                             Range shadeFixRange,
+                                             DataStore dataStore,
+                                             int xpix, int ypix, Insets insets,
+                                             PaperTypeSelector ptsel,
+                                             boolean forceBitmap ) {
+        P profile = surfFact.createProfile( config );
+        long t0 = System.currentTimeMillis();
+        Range[] ranges = surfFact.useRanges( profile, config )
+                       ? surfFact.readRanges( layers, dataStore )
+                       : null;
+        PlotUtil.logTime( logger_, "Range", t0 );
+        A aspect = surfFact.createAspect( profile, config, ranges );
+
+        Rectangle extBounds = new Rectangle( 0, 0, xpix, ypix );
+        final Rectangle dataBounds;
+        if ( insets != null ) {
+            dataBounds =
+                new Rectangle( extBounds.x + insets.left,
+                               extBounds.y + insets.top,
+                               extBounds.width - insets.left - insets.right,
+                               extBounds.height - insets.top - insets.bottom );
+        }
+        else {
+            dataBounds = PlotPlacement
+                        .calculateDataBounds( extBounds, surfFact, profile,
+                                              aspect, false, legend, legPos,
+                                              shadeAxis );
+            dataBounds.x += 2;
+            dataBounds.y += 2;
+            dataBounds.width -= 4;
+            dataBounds.height -= 4;
+            int top = dataBounds.y - extBounds.y;
+            int left = dataBounds.x - extBounds.x;
+            int bottom = extBounds.height - dataBounds.height - top;
+            int right = extBounds.width - dataBounds.width - left;
+            logger_.info( "Calculate plot insets: "
+                        + new Insets( top, left, bottom, right ) );
+        }
+        Surface surf = surfFact.createSurface( dataBounds, profile, aspect );
+        Decoration[] decs =
+            PlotPlacement.createPlotDecorations( dataBounds, legend, legPos,
+                                                 shadeAxis );
+        PlotPlacement placer = new PlotPlacement( extBounds, surf, decs );
+        Map<AuxScale,Range> auxRanges =
+            PlotDisplay.getAuxRanges( layers, surf, shadeFixRange, shadeAxis,
+                                      dataStore );
+
+        LayerOpt[] opts = PaperTypeSelector.getOpts( layers );
+        PaperType paperType = forceBitmap
+                            ? ptsel.getPixelPaperType( opts, null )
+                            : ptsel.getVectorPaperType( opts );
+        return PlotDisplay.createIcon( placer, layers, auxRanges, dataStore,
+                                       paperType, false );
     }
 }

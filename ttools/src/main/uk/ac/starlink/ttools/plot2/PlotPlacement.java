@@ -15,9 +15,12 @@ import javax.swing.Icon;
  * Aggregates a Surface and the Rectangle that it is placed within.
  * It may also store decorations to be painted on top of the plot.
  * Class instances themselves may be compared for equality, but don't
- * do much else.  The {@link #createPlacement} factory method however
- * does some work in determining what external space is required for
- * legends etc.
+ * do much else.  Several static methods however are provided to assist
+ * in creating instances, in particular doing the non-trivial work to
+ * determine how much external space is required for legends etc.
+ *
+ * <p>Note instances of this class are not immutable, since the decoration
+ * list may be changed.
  *
  * @author   Mark Taylor
  * @since    12 Feb 2013
@@ -33,15 +36,29 @@ public class PlotPlacement {
     private static final int MIN_DIM = 24;
 
     /**
-     * Constructor.
+     * Constructs a placement with no decorations.
      *
-     * @param   bounds   extenrnal bounds within which plot is to be placed
+     * @param   bounds   external bounds within which plot is to be placed
      * @param   surface  plot surface
      */
     public PlotPlacement( Rectangle bounds, Surface surface ) {
+        this( bounds, surface, new Decoration[ 0 ] );
+    }
+
+    /**
+     * Constructs a placement with an initial list of decorations.
+     *
+     * @param   bounds   external bounds within which plot is to be placed
+     * @param   surface  plot surface
+     * @param   decorations  initial list of decorations;
+     *          note more can be added later
+     */
+    public PlotPlacement( Rectangle bounds, Surface surface,
+                          Decoration[] decorations ) {
         bounds_ = bounds;
         surface_ = surface;
-        decorations_ = new ArrayList<Decoration>();
+        decorations_ =
+            new ArrayList<Decoration>( Arrays.asList( decorations ) );
     }
 
     /**
@@ -134,11 +151,11 @@ public class PlotPlacement {
     }
 
     /**
-     * Determines a plot placement given various inputs.
+     * Convenience method to create a plot placement given various inputs.
      * In particular it works out how much space is required for
      * decorations like axis annotations, legend etc.
      *
-     * @param   box  external bounds of plot placement
+     * @param   extBounds  external bounds of plot placement
      * @param   surfFact  surface factory
      * @param   profile  factory-specific surface profile
      * @param   aspect   factory-specific surface aspect
@@ -151,11 +168,42 @@ public class PlotPlacement {
      * @return   new plot placement
      */
     public static <P,A> PlotPlacement
-                        createPlacement( final Rectangle box,
-                                         SurfaceFactory<P,A> surfFact,
-                                         P profile, A aspect,
-                                         boolean withScroll, Icon legend,
-                                         float[] legPos, ShadeAxis shadeAxis ) {
+            createPlacement( Rectangle extBounds, SurfaceFactory<P,A> surfFact,
+                             P profile, A aspect, boolean withScroll,
+                             Icon legend, float[] legPos,
+                             ShadeAxis shadeAxis ) {
+        Rectangle dataBounds =
+            calculateDataBounds( extBounds, surfFact, profile, aspect,
+                                 withScroll, legend, legPos, shadeAxis );
+        Surface surf = surfFact.createSurface( dataBounds, profile, aspect );
+        Decoration[] decs =
+            createPlotDecorations( dataBounds, legend, legPos, shadeAxis );
+        return new PlotPlacement( extBounds, surf, decs );
+    }
+
+    /**
+     * Determines the bounds for the data part of a plot given its
+     * external dimensions and other information about it.
+     * It does this by assessing how much space will be required for
+     * axis annotations etc.
+     *
+     * @param   extBounds  external bounds of plot placement
+     * @param   surfFact  surface factory
+     * @param   profile  factory-specific surface profile
+     * @param   aspect   factory-specific surface aspect
+     * @param   withScroll  true if the placement should work well
+     *                      with future scrolling
+     * @param   legend   legend icon if required, or null
+     * @param   legPos  legend position if intenal legend is required;
+     *                  2-element (x,y) array, each element in range 0-1
+     * @param   shadeAxis  shader axis if required, or null
+     * @return  data bounds rectangle
+     */
+    public static <P,A> Rectangle
+            calculateDataBounds( Rectangle extBounds,
+                                 SurfaceFactory<P,A> surfFact, P profile,
+                                 A aspect, boolean withScroll, Icon legend,
+                                 float[] legPos, ShadeAxis shadeAxis ) {
 
         /* This implementation currently places the legend in the top
          * right corner of the plot surface's requested insets,
@@ -164,8 +212,7 @@ public class PlotPlacement {
          * is just padding to make room for overflowing X axis labels)
          * but might not be for future implementations (e.g. right-hand
          * axis labels).  Adjust the implementation if that happens. */
-         
-        /* First guess at available space. */
+
         boolean hasExtLegend = legend != null && legPos == null;
         int legExtWidth = hasExtLegend
                         ? legend.getIconWidth() + EXTERNAL_LEGEND_GAP
@@ -176,31 +223,47 @@ public class PlotPlacement {
         }
         else {
             Rectangle rampBox =
-                new Rectangle( 0, 0, SHADE_RAMP_WIDTH, box.height );
+                new Rectangle( 0, 0, SHADE_RAMP_WIDTH, extBounds.height );
             shadeExtWidth = rampBox.width
                           + shadeAxis.getRampInsets( rampBox ).right
                           + EXTERNAL_LEGEND_GAP;
         }
-        Rectangle surfRect0 = new Rectangle( box );
-        surfRect0.width = Math.max( MIN_DIM, surfRect0.width - legExtWidth );
+        Rectangle surfRect = new Rectangle( extBounds );
+        surfRect.width = Math.max( MIN_DIM, surfRect.width - legExtWidth );
 
         /* Get padding for first guess at surface. */
-        Surface surf0 = surfFact.createSurface( surfRect0, profile, aspect );
-        Insets insets0 = surf0.getPlotInsets( withScroll );
-        insets0.right = Math.max( insets0.right, legExtWidth );
-        insets0.right = Math.max( insets0.right, shadeExtWidth );
+        Surface surf = surfFact.createSurface( surfRect, profile, aspect );
+        Insets insets = surf.getPlotInsets( withScroll );
+        insets.right = Math.max( insets.right, legExtWidth );
+        insets.right = Math.max( insets.right, shadeExtWidth );
 
         /* Work out available space given padding required by first guess. */
-        int gxlo = box.x + insets0.left;
-        int gxhi = box.x + box.width - insets0.right;
-        int gylo = box.y + insets0.top;
-        int gyhi = box.y + box.height - insets0.bottom;
-        Rectangle surfRect1 =
-            new Rectangle( gxlo, gylo, gxhi - gxlo, gyhi - gylo );
-        final Surface surf1 =
-            surfFact.createSurface( surfRect1, profile, aspect );
-        PlotPlacement placer = new PlotPlacement( box, surf1 );
-        List<Decoration> decList = placer.getDecorations();
+        return new Rectangle( extBounds.x + insets.left,
+                              extBounds.y + insets.top,
+                              extBounds.width - insets.left - insets.right,
+                              extBounds.height - insets.top - insets.bottom );
+    }
+
+    /**
+     * Returns a list of plot decorations for things like the legend
+     * and shade colour ramp.
+     *
+     * @param  dataBounds  bounds of the data part of the plot
+     * @param   legend   legend icon if required, or null
+     * @param   legPos  legend position if intenal legend is required;
+     *                  2-element (x,y) array, each element in range 0-1
+     * @param   shadeAxis  shader axis if required, or null
+     * @return   list of decorations (may have zero elements)
+     */
+    public static Decoration[] createPlotDecorations( Rectangle dataBounds,
+                                                      Icon legend,
+                                                      float[] legPos,
+                                                      ShadeAxis shadeAxis ) {
+        List<Decoration> decList = new ArrayList<Decoration>();
+        int gxlo = dataBounds.x;
+        int gylo = dataBounds.y;
+        int gxhi = dataBounds.x + dataBounds.width;
+        int gyhi = dataBounds.y + dataBounds.height;
         
         /* Work out legend position. */
         int ylo1 = gylo;
@@ -231,6 +294,6 @@ public class PlotPlacement {
             decList.add( new Decoration( shadeIcon, sx, sy ) );
         }
 
-        return placer;
+        return decList.toArray( new Decoration[ 0 ] );
     }
 }

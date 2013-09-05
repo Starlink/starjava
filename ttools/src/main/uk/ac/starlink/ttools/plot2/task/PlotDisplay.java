@@ -17,12 +17,9 @@ import javax.swing.event.MouseInputAdapter;
 import javax.swing.event.MouseInputListener;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.AuxScale;
-import uk.ac.starlink.ttools.plot2.config.ConfigMap;
-import uk.ac.starlink.ttools.plot2.data.DataStore;
+import uk.ac.starlink.ttools.plot2.Decoration;
 import uk.ac.starlink.ttools.plot2.Drawing;
 import uk.ac.starlink.ttools.plot2.LayerOpt;
-import uk.ac.starlink.ttools.plot2.paper.PaperType;
-import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotPlacement;
 import uk.ac.starlink.ttools.plot2.PlotType;
@@ -34,6 +31,10 @@ import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
 import uk.ac.starlink.ttools.plot2.ZoomListener;
+import uk.ac.starlink.ttools.plot2.config.ConfigMap;
+import uk.ac.starlink.ttools.plot2.data.DataStore;
+import uk.ac.starlink.ttools.plot2.paper.PaperType;
+import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
 
 /**
  * Graphical component which displays a plot.
@@ -252,56 +253,6 @@ public class PlotDisplay<P,A> extends JComponent {
     /**
      * Creates an icon which will paint the content of this plot.
      *
-     * @param  layers   layers constituting plot content
-     * @param  surfFact   surface factory
-     * @param  config   map containing surface profile and initial aspect
-     *                  configuration
-     * @param  legend   legend icon, or null if none required
-     * @param  legPos   2-element array giving x,y fractional legend placement
-     *                  position within plot (elements in range 0..1),
-     *                  or null for external legend
-     * @param  shadeAxis  shader axis, or null if not required
-     * @param  shadeFixRange  fixed shader range,
-     *                        or null for auto-range where required
-     * @param  dataStore   data storage object
-     * @param  box   bounds of entire icon (includes axis decorations etc)
-     * @param  paperType  rendering type
-     * @param  cached  whether to attempt to cache pixels for later use;
-     *                 if true this method will be slow,
-     *                 if false actual drawing will be slow
-     */
-    @Slow
-    public static <P,A> Icon createIcon( PlotLayer[] layers,
-                                         SurfaceFactory<P,A> surfFact,
-                                         ConfigMap config,
-                                         Icon legend, float[] legPos,
-                                         ShadeAxis shadeAxis,
-                                         Range shadeFixRange,
-                                         DataStore dataStore, Rectangle box,
-                                         PaperType paperType, boolean cached ) {
-        P profile = surfFact.createProfile( config );
-        long t0 = System.currentTimeMillis();
-        Range[] ranges = surfFact.useRanges( profile, config )
-                       ? surfFact.readRanges( layers, dataStore )
-                       : null;
-        PlotUtil.logTime( logger_, "Range", t0 );
-        A aspect = surfFact.createAspect( profile, config, ranges );
-        Surface approxSurf = surfFact.createSurface( box, profile, aspect );
-        Map<AuxScale,Range> auxRanges =
-            getAuxRanges( layers, approxSurf, shadeFixRange, shadeAxis,
-                          dataStore );
-        boolean withScroll = true;
-        PlotPlacement placer =
-            PlotPlacement.createPlacement( box, surfFact, profile, aspect,
-                                           withScroll, legend, legPos,
-                                           shadeAxis );
-        return createIcon( placer, layers, auxRanges, dataStore,
-                           paperType, cached );
-    }
-
-    /**
-     * Creates an icon which will paint the content of this plot.
-     *
      * @param  placer  plot placement
      * @param  layers   layers constituting plot content
      * @param  auxRanges  requested range information calculated from data
@@ -310,10 +261,10 @@ public class PlotDisplay<P,A> extends JComponent {
      * @param  cached  whether to cache pixels for future use
      */
     @Slow
-    private static Icon createIcon( PlotPlacement placer, PlotLayer[] layers,
-                                    Map<AuxScale,Range> auxRanges,
-                                    DataStore dataStore, PaperType paperType,
-                                    boolean cached ) {
+    public static Icon createIcon( PlotPlacement placer, PlotLayer[] layers,
+                                   Map<AuxScale,Range> auxRanges,
+                                   DataStore dataStore, PaperType paperType,
+                                   boolean cached ) {
         Surface surface = placer.getSurface();
         int nl = layers.length;
         logger_.info( "Layers: " + nl + ", Paper: " + paperType );
@@ -342,11 +293,11 @@ public class PlotDisplay<P,A> extends JComponent {
      * @param  dataStore  data storage object
      */
     @Slow
-    private static Map<AuxScale,Range> getAuxRanges( PlotLayer[] layers,
-                                                     Surface surface,
-                                                     Range shadeFixRange,
-                                                     ShadeAxis shadeAxis,
-                                                     DataStore dataStore ) {
+    public static Map<AuxScale,Range> getAuxRanges( PlotLayer[] layers,
+                                                    Surface surface,
+                                                    Range shadeFixRange,
+                                                    ShadeAxis shadeAxis,
+                                                    DataStore dataStore ) {
 
         /* Work out what ranges have been requested by plot layers. */
         AuxScale[] scales = AuxScale.getAuxScales( layers );
