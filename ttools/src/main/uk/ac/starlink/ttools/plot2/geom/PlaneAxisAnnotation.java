@@ -166,6 +166,10 @@ public class PlaneAxisAnnotation implements AxisAnnotation {
      */
     private Insets getNoScrollTickPadding() {
 
+        // This method seems to be broken - probably the problem is in
+        // getTickBoxes.  Defer to getScrollTickPadding instead for now.
+        if ( true ) return getScrollTickPadding();
+
         /* Make a rectangle big enough to hold every ticmark painted
          * in its actual position. */
         Rectangle bounds = new Rectangle( xoff_, yoff_, 0, 0 );
