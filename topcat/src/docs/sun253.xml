@@ -10106,7 +10106,7 @@ This mode works without problem for both bitmapped and vector output.
 <figureimage src="&FIG.mode_transparent;"/>
 </figure>
 
-<p>The <label>Transparent</label> shading mode (&IMG.MODE_TRANSPARENT;)
+<p>The <label>Transparent</label> shading mode (&IMG.MODE_ALPHA_FIX;)
 colours shapes in a transparent version of the
 colour selected by their style.
 The degree of transparency is determined by the
@@ -18228,6 +18228,7 @@ introduced since the last version:
             This simple measure gives you a lot more control over what
             colour maps to use.</li>
         <li>Sky plot position formatting now honours sexagesimal setting.</li>
+        <li>Add new auto transparency shading mode to layer plots.</li>
         </ul>
         </p></dd>
 

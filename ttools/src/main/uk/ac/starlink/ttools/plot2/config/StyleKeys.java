@@ -80,6 +80,12 @@ public class StyleKeys {
        .createSliderKey( new ConfigMeta( "opaque", "Opaque limit" ),
                          1, 1, 1000, true );
 
+    /** Config key for transparency level of adaptive transparent plots. */
+    public static final ConfigKey<Double> TRANSPARENT_LEVEL =
+        DoubleConfigKey
+       .createSliderKey( new ConfigMeta( "translevel", "Transparency Level" ),
+                         0.1, 0.001, 2, true );
+
     /** Config key for line thickness. */
     private static final ConfigKey<Integer> THICKNESS =
             new IntegerConfigKey( new ConfigMeta( "thick", "Thickness" ),

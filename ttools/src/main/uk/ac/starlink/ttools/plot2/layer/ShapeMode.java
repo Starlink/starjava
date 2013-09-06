@@ -76,6 +76,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
     public static final ShapeMode[] MODES_2D = new ShapeMode[] {
         new AutoDensityMode(),
         new FlatMode( false, BIN_THRESH_2D ),
+        new AutoTransparentMode(),
         new FlatMode( true, BIN_THRESH_2D ),
         new CustomDensityMode(),
         new AuxShadingMode( true ),
@@ -86,6 +87,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
      */
     public static final ShapeMode[] MODES_3D = new ShapeMode[] {
         new FlatMode( false, NO_BINS ),
+        new AutoTransparentMode(),
         new FlatMode( true, NO_BINS ),
         new CustomDensityMode(),
         new AuxShadingMode( true ),
@@ -182,7 +184,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
          */
         FlatMode( boolean transparent, int binThresh ) {
             super( transparent ? "transparent" : "flat",
-                   transparent ? ResourceIcon.MODE_TRANSPARENT
+                   transparent ? ResourceIcon.MODE_ALPHA_FIX
                                : ResourceIcon.MODE_FLAT,
                    new Coord[ 0 ] );
             transparent_ = transparent;
@@ -416,6 +418,167 @@ public abstract class ShapeMode implements ModePlotter.Mode {
     }
 
     /**
+     * Mode for painting shapes in a transparent colour where the transparency
+     * level is adjusted automatically on the basis of how crowded the
+     * plot is.
+     */
+    private static class AutoTransparentMode extends ShapeMode {
+
+        /**
+         * Constructor.
+         */
+        AutoTransparentMode() {
+            super( "translucent", ResourceIcon.MODE_ALPHA,
+                   new Coord[ 0 ] );
+        }
+
+        public ConfigKey[] getConfigKeys() {
+            return new ConfigKey[] {
+                StyleKeys.COLOR,
+                StyleKeys.TRANSPARENT_LEVEL,
+            };
+        }
+
+        public Stamper createStamper( ConfigMap config ) {
+            Color color = config.get( StyleKeys.COLOR );
+            double level = config.get( StyleKeys.TRANSPARENT_LEVEL );
+            return new AutoTransparentStamper( color, level );
+        }
+
+        public PlotLayer createLayer( ShapePlotter plotter,
+                                      ShapeForm form,
+                                      DataGeom geom,
+                                      DataSpec dataSpec,
+                                      Outliner outliner,
+                                      Stamper stamper ) {
+            final Color color = ((AutoTransparentStamper) stamper).color_;
+            final double level = ((AutoTransparentStamper) stamper).level_;
+            Style style = new ShapeStyle( outliner, stamper );
+            LayerOpt opt = new LayerOpt( color, level == 0 );
+            return new ShapePlotLayer( plotter, geom, dataSpec, style, opt,
+                                       outliner ) {
+                public Drawing createDrawing( DrawSpec drawSpec ) {
+                    return new AutoTransparentDrawing( drawSpec, color, level );
+                }
+            };
+        }
+
+        /**
+         * Auto transparent Drawing implementation.
+         */
+        private static class AutoTransparentDrawing implements Drawing {
+            private final float[] rgb_;
+            private final double level_;
+            private final DrawSpec drawSpec_;
+
+            /**
+             * Constructor.
+             *
+             * @param  drawSpec  common drawing attributes
+             * @param  base  (opaque) colour
+             * @param  level  transparency modifier
+             */
+            AutoTransparentDrawing( DrawSpec drawSpec, Color color,
+                                    double level ) {
+                drawSpec_ = drawSpec;
+                rgb_ = color.getRGBColorComponents( new float[ 3 ] );
+                level_ = level;
+            }
+
+            public Object calculatePlan( Object[] knownPlans,
+                                         DataStore dataStore ) {
+
+                /* The plan could just be a histogram of point counts
+                 * as far as this drawing is concerned.
+                 * However, if we use a BinPlan we can reuse plans from
+                 * other modes.  Not clear which is best. */
+                return drawSpec_.calculateBinPlan( knownPlans, dataStore );
+            }
+
+            public void paintData( Object plan, Paper paper,
+                                   DataStore dataStore ) {
+                int[] counts = drawSpec_.outliner_.getBinCounts( plan );
+                float alpha = (float) getAlpha( counts, level_ );
+                Color color =
+                    new Color( rgb_[ 0 ], rgb_[ 1 ], rgb_[ 2 ], alpha );
+                Outliner.ShapePainter painter = drawSpec_.painter_;
+                TupleSequence tseq =
+                    dataStore.getTupleSequence( drawSpec_.dataSpec_ );
+                while ( tseq.next() ) {
+                    painter.paintPoint( tseq, color, paper );
+                }
+            }
+
+            /**
+             * Returns the alpha level to use given a specified transparency
+             * level and a grid of pixel counts.
+             *
+             * @param  counts  pixel count array
+             * @param  level  transparency level
+             */
+            private static double getAlpha( int[] counts, double level ) {
+                int count = 0;
+                int max = 0;
+                int n = counts.length;
+                for ( int i = 0; i < n; i++ ) {
+                    int c = counts[ i ];
+                    if ( c > 0 ) {
+                        count++;
+                        if ( c > max ) {
+                            max = c;
+                        }
+                    }
+                }
+                double opaque = Math.max( 1, max * level );
+                return 1f / opaque;
+            }
+        }
+
+        /**
+         * Stamper implementation for auto transparency.
+         */
+        private static class AutoTransparentStamper implements Stamper {
+            final Color color_;
+            final double level_;
+
+            /**
+             * Constructor.
+             *
+             * @param   color   base (opaque) colour
+             * @param   level   transparency level
+             */
+            AutoTransparentStamper( Color color, double level ) {
+                color_ = color;
+                level_ = level;
+            }
+
+            public Icon createLegendIcon( Outliner outliner ) {
+                return IconUtils.colorIcon( outliner.getLegendIcon(), color_ );
+            }
+
+            @Override
+            public boolean equals( Object o ) {
+                if ( o instanceof AutoTransparentStamper ) {
+                    AutoTransparentStamper other = (AutoTransparentStamper) o;
+                    return this.color_.equals( other.color_ )
+                        && this.level_ == other.level_;
+                }
+                else {
+                    return false;
+                }
+            }
+
+            @Override
+            public int hashCode() {
+                int code = 5231;
+                code = code * 23 + color_.hashCode();
+                code = code * 23 + Float.floatToIntBits( (float) level_ );
+                return code;
+            }
+        }
+    }
+
+    /**
      * Mode for painting shapes with pixel colours dependent on the
      * number of times a given pixel is hit by a shape.
      * Colour determination is done by a Shader.
@@ -560,7 +723,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
         }
   
         /**
-         * Defines a scaling stragy.
+         * Defines a scaling strategy.
          */
         @Equality
         static interface Scaling {
@@ -1151,6 +1314,20 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                 throw new IllegalArgumentException( "paper type" );
             }
         }
+
+        /**
+         * Generates a bin plan for this draw spec.
+         * 
+         * @param  knownPlans  known plans
+         * @param  dataStore  data storage
+         * @param   new plan
+         */
+        public Object calculateBinPlan( Object[] knownPlans,
+                                        DataStore dataStore ) {
+            return outliner_
+                  .calculateBinPlan( surface_, geom_, auxRanges_, dataStore,
+                                     dataSpec_, knownPlans );
+        }
     }
 
     /**
@@ -1227,10 +1404,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
 
         public Object calculatePlan( Object[] knownPlans,
                                      DataStore dataStore ) {
-            return drawSpec_.outliner_
-                  .calculateBinPlan( drawSpec_.surface_, drawSpec_.geom_,
-                                     drawSpec_.auxRanges_, dataStore,
-                                     drawSpec_.dataSpec_, knownPlans );
+            return drawSpec_.calculateBinPlan( knownPlans, dataStore );
         }
 
         int[] getBinCounts( Object plan ) {

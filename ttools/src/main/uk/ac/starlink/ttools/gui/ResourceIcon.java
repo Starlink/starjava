@@ -41,7 +41,8 @@ public class ResourceIcon {
         MODE_FLAT = readIcon( "mode-flat.gif" ),
         MODE_AUTO = readIcon( "mode-auto.gif" ),
         MODE_DENSITY = readIcon( "mode-density.gif" ),
-        MODE_TRANSPARENT = readIcon( "mode-transparent.gif" ),
+        MODE_ALPHA = readIcon( "mode-transparent.gif" ),
+        MODE_ALPHA_FIX = readIcon( "mode-transparent-lock.gif" ),
         MODE_AUX = readIcon( "mode-aux.gif" ),
 
         /* Placeholder and terminator. */
