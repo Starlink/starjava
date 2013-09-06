@@ -214,29 +214,15 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             return new FlatStamper( color );
         }
 
-        public PlotLayer createLayer( ShapePlotter plotter,
-                                      final ShapeForm form,
-                                      final DataGeom geom,
-                                      final DataSpec dataSpec,
-                                      final Outliner outliner,
-                                      final Stamper stamper ) {
+        public PlotLayer createLayer( ShapePlotter plotter, ShapeForm form,
+                                      DataGeom geom, DataSpec dataSpec,
+                                      Outliner outliner, Stamper stamper ) {
             final Color color = ((FlatStamper) stamper).color_;
             Style style = new ShapeStyle( outliner, stamper );
             LayerOpt opt = new LayerOpt( color, color.getAlpha() == 255 );
-            return new AbstractPlotLayer( plotter, geom, dataSpec,
-                                          style, opt ) {
-                @Override
-                public Map<AuxScale,AuxReader> getAuxRangers() {
-                    Map<AuxScale,AuxReader> map = super.getAuxRangers();
-                    map.putAll( outliner.getAuxRangers( geom ) );
-                    return map;
-                }
-                public Drawing createDrawing( Surface surface,
-                                              Map<AuxScale,Range> auxRanges,
-                                              PaperType paperType ) {
-                    DrawSpec drawSpec =
-                        new DrawSpec( surface, geom, dataSpec, outliner,
-                                      auxRanges, paperType );
+            return new ShapePlotLayer( plotter, geom, dataSpec, style, opt,
+                                       outliner ) {
+                public Drawing createDrawing( DrawSpec drawSpec ) {
 
                     /* For vector output you need to paint it.
                      * For bitmap output in 2D the output will be (roughly) the
@@ -254,7 +240,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                      * (enforced by high binThresh) since it interferes with
                      * the z-coordinate positioning (glyph placement has to
                      * be handled by the 3D paper).  */
-                    return paperType.isBitmap() && ! transparent_
+                    return drawSpec.paperType_.isBitmap() && ! transparent_
                          ? new HybridFlatDrawing( drawSpec, color, binThresh_ )
                          : new PaintFlatDrawing( drawSpec, color );
                 }
@@ -451,30 +437,16 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             super( name, icon, new Coord[ 0 ] );
         }
 
-        public PlotLayer createLayer( ShapePlotter plotter,
-                                      final ShapeForm form,
-                                      final DataGeom geom,
-                                      final DataSpec dataSpec,
-                                      final Outliner outliner,
-                                      final Stamper stamper ) {
+        public PlotLayer createLayer( ShapePlotter plotter, ShapeForm form,
+                                      DataGeom geom, DataSpec dataSpec,
+                                      Outliner outliner, Stamper stamper ) {
             final Shader shader = ((DensityStamper) stamper).shader_;
             final Scaling scaling = ((DensityStamper) stamper).scaling_;
             ShapeStyle style = new ShapeStyle( outliner, stamper );
             LayerOpt opt = LayerOpt.OPAQUE;
-            return new AbstractPlotLayer( plotter, geom, dataSpec,
-                                          style, opt ) {
-                @Override
-                public Map<AuxScale,AuxReader> getAuxRangers() {
-                    Map<AuxScale,AuxReader> map = super.getAuxRangers();
-                    map.putAll( outliner.getAuxRangers( geom ) );
-                    return map;
-                }
-                public Drawing createDrawing( Surface surface,
-                                              Map<AuxScale,Range> auxRanges,
-                                              PaperType paperType ) {
-                    DrawSpec drawSpec =
-                        new DrawSpec( surface, geom, dataSpec, outliner,
-                                      auxRanges, paperType );
+            return new ShapePlotLayer( plotter, geom, dataSpec, style, opt,
+                                       outliner ) {
+                public Drawing createDrawing( DrawSpec drawSpec ) {
                     return new DensityDrawing( drawSpec, shader, scaling );
                 }
             };
@@ -1178,6 +1150,54 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             else {
                 throw new IllegalArgumentException( "paper type" );
             }
+        }
+    }
+
+    /**
+     * Abstract PlotLayer implementation based on a DrawSpec.
+     * Useful for some of the simpler modes in this class.
+     */
+    private static abstract class ShapePlotLayer extends AbstractPlotLayer {
+        private final Outliner outliner_;
+
+        /**
+         * Constructor.
+         *
+         * @param  plotter  plotter 
+         * @param  geom   data coordinate specification
+         * @param  dataSpec  data specification
+         * @param  style   plot style
+         * @param  opt   describes layer options
+         * @param  outliner  shape outliner
+         */
+        ShapePlotLayer( ShapePlotter plotter, DataGeom geom, DataSpec dataSpec,
+                        Style style, LayerOpt opt, Outliner outliner ) {
+            super( plotter, geom, dataSpec, style, opt );
+            outliner_ = outliner;
+        }
+
+        /**
+         * Turns a DrawSpec into a Drawing.
+         *
+         * @param  drawSpec  drawing specification
+         * @return  drawing
+         */
+        abstract Drawing createDrawing( DrawSpec drawSpec );
+
+        @Override
+        public Map<AuxScale,AuxReader> getAuxRangers() {
+            Map<AuxScale,AuxReader> map = super.getAuxRangers();
+            map.putAll( outliner_.getAuxRangers( getDataGeom() ) );
+            return map;
+        }
+
+        public Drawing createDrawing( Surface surface,
+                                      Map<AuxScale,Range> auxRanges,
+                                      PaperType paperType ) {
+            DrawSpec drawSpec =
+                new DrawSpec( surface, getDataGeom(), getDataSpec(), outliner_,
+                              auxRanges, paperType );
+            return createDrawing( drawSpec );
         }
     }
 
