@@ -6,10 +6,10 @@
 % ? End of specify used packages
 
 % Nice fonts -- during development.
-\usepackage{fancyhdr}
-\usepackage[latin1]{inputenc}
-\usepackage{ae}
-\usepackage{cmbright}
+%\usepackage{fancyhdr}
+%\usepackage[latin1]{inputenc}
+%\usepackage{ae}
+%\usepackage{cmbright}
 
 \pagestyle{myheadings}
 \raggedbottom
@@ -189,19 +189,19 @@ spectra that can also interact with the Virtual Observatory.
 % \latexhtml{\includegraphics[width=4.5in]{#1.eps}}{\htmladdimg{#1.gif}}
 \newcommand{\mainfigure}[1]
 {\begin{center}
- \latexhtml{\includegraphics[scale=0.5]{sun243_figures/#1.eps}}{\htmladdimg{#1.gif}}
+ \latexhtml{\includegraphics[scale=0.5]{sun243_figures/#1}}{\htmladdimg{#1.gif}}
  \end{center}
 }
 
 \newcommand{\clippedmainfigure}[1]
 {\begin{center}
- \latexhtml{\includegraphics[scale=0.5,clip=true]{sun243_figures/#1.eps}}{\htmladdimg{#1.gif}}
+ \latexhtml{\includegraphics[scale=0.5,clip=true]{sun243_figures/#1}}{\htmladdimg{#1.gif}}
  \end{center}
 }
 
 % Inline a graphic (like an icon). Needs ".gif" and ".eps" forms.
 \newcommand{\inline}[1]
-        {\latexhtml{\includegraphics[scale=0.5]{sun243_figures/#1.eps}}
+        {\latexhtml{\includegraphics[scale=0.5]{sun243_figures/#1}}
         {\htmladdimg[align=center]{#1.gif}}}
 
 % UI elements.
@@ -254,7 +254,7 @@ spectra that can also interact with the Virtual Observatory.
 
 % ? Add picture here if required for the LaTeX version.
 \begin{center}
-\includegraphics[scale=0.4]{sun243_figures/frontfigure.eps}
+\includegraphics[scale=0.4]{sun243_figures/frontfigure}
 \end{center}
 % ? End of picture
 
