@@ -36,6 +36,12 @@
    axes has been fixed. This means the "Spec position:" item should now be 
    correct for DSB spectral frames with permuted axes.
 
+   A problem filtering with the standard spectral profiles has been fixed.
+   Previously the profiles where sampled with an interval of one X coordinate
+   unit, this is now done using the average channel spacing.
+
+   Post Hikianalia
+
    3.9-8
    =====
 

@@ -177,7 +177,8 @@ public class SpecFilter
                                     boolean include )
     {
         EditableSpecData localSpec = applyRanges( spectrum, ranges, include );
-        double[] kernel = KernelFactory.gaussianKernel( width, fwhm );
+        double incr = spectrum.channelSpacing( "" );
+        double[] kernel = KernelFactory.gaussianKernel( incr, width, fwhm );
         return kernelFilter( localSpec, kernel, "Gaussian" );
     }
 
@@ -200,7 +201,8 @@ public class SpecFilter
                                    boolean include )
     {
         EditableSpecData localSpec = applyRanges( spectrum, ranges, include );
-        double[] kernel = KernelFactory.lorentzKernel( width, lwidth );
+        double incr = spectrum.channelSpacing( "" );
+        double[] kernel = KernelFactory.lorentzKernel( incr, width, lwidth );
         return kernelFilter( localSpec, kernel, "Lorentz" );
     }
 
@@ -224,7 +226,9 @@ public class SpecFilter
                                  double[] ranges, boolean include )
     {
         EditableSpecData localSpec = applyRanges( spectrum, ranges, include );
-        double[] kernel = KernelFactory.voigtKernel( width, gwidth, lwidth );
+        double incr = spectrum.channelSpacing( "" );
+        double[] kernel = KernelFactory.voigtKernel( incr, width, gwidth,
+                                                     lwidth );
         return kernelFilter( localSpec, kernel, "Voigt" );
     }
 
