@@ -477,7 +477,8 @@ public class Plot2Task implements Task {
      */
     private ChoiceParameter<Plotter>
             createPlotterParameter( String pname, PlotType plotType ) {
-        return new ChoiceParameter<Plotter>( pname, plotType.getPlotters() ) {
+        return new ChoiceParameter<Plotter>( pname, Plotter.class,
+                                             plotType.getPlotters() ) {
             @Override
             public String getName( Plotter option ) {
                 return option.getPlotterName();
