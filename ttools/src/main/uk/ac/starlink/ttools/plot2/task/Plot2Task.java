@@ -16,6 +16,7 @@ import javax.swing.JComponent;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.task.BooleanParameter;
 import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Executable;
 import uk.ac.starlink.task.Environment;
@@ -80,6 +81,7 @@ public class Plot2Task implements Task {
     private final PaintModeParameter painterParam_;
     private final DataStoreParameter dstoreParam_;
     private final DefaultMultiParameter orderParam_;
+    private final BooleanParameter bitmapParam_;
 
     private static final String PLOTTER_PREFIX = "layer";
     private static final String TABLE_PREFIX = "in";
@@ -109,6 +111,8 @@ public class Plot2Task implements Task {
         dstoreParam_ = new DataStoreParameter( "storage" );
         orderParam_ = new DefaultMultiParameter( "order", ',' );
         orderParam_.setNullPermitted( true );
+        bitmapParam_ = new BooleanParameter( "forcebitmap" );
+        bitmapParam_.setDefault( Boolean.FALSE.toString() );
     }
 
     public String getPurpose() {
@@ -140,7 +144,7 @@ public class Plot2Task implements Task {
         final Painter painter = painterParam_.painterValue( env );
         final boolean isSwing = painter instanceof SwingPainter;
         dstoreParam_.setDefaultCaching( isSwing );
-        final boolean forceBitmap = false;
+        final boolean forceBitmap = bitmapParam_.booleanValue( env );
         final boolean surfaceAuxRange = false;
         final DataStoreFactory storeFact = dstoreParam_.objectValue( env );
 
