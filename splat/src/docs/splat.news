@@ -40,6 +40,11 @@
    Previously the profiles where sampled with an interval of one X coordinate
    unit, this is now done using the average channel spacing.
 
+   A bug in the utype matching code has been fixed. Previously the data
+   column of a table would not match against fluxaxis utypes as intended
+   (in fact it matched against the coordinate column, which could be
+    confusing).
+
    Post Hikianalia
 
    3.9-8
