@@ -81,7 +81,7 @@ public class TableColumnChooser
         addDataNamePattern( "y.*" );
 
         dataUtypePatterns = new ArrayList();
-        addCoordUtypePattern( ".*fluxaxis.*" );           // SSAP
+        addDataUtypePattern( ".*fluxaxis.*" );           // SSAP
 
         errorNamePatterns = new ArrayList();
         addErrorNamePattern( "error.*" );
