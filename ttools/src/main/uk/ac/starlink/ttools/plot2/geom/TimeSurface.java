@@ -51,7 +51,7 @@ public class TimeSurface implements Surface {
      * @param  gylo   graphics Y coordinate lower bound
      * @param  gyhi   graphics Y coordinate upper bound
      * @param  dtlo   data time coordinate lower bound in unix seconds
-     * @parma  dthi   data time coordinate upper bound in unix seconds
+     * @param  dthi   data time coordinate upper bound in unix seconds
      * @param  dylo   data Y coordinate lower bound
      * @param  dyhi   data Y coordinate upper bound
      * @param  ylog   whether to use logarithmic scaling on Y axis
