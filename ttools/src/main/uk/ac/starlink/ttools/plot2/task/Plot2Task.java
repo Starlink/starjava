@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.Icon;
 import javax.swing.JComponent;
@@ -44,6 +45,7 @@ import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
+import uk.ac.starlink.ttools.plot2.config.LoggingConfigMap;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
@@ -393,7 +395,11 @@ public class Plot2Task implements Task {
     private ConfigMap createConfigMap( Environment env, String suffix,
                                        ConfigKey[] configKeys )
             throws TaskException {
+        Level level = Level.INFO;
         ConfigMap config = new ConfigMap();
+        if ( Logger.getLogger( getClass().getName() ).isLoggable( level ) ) {
+            config = new LoggingConfigMap( config, level );
+        }
         for ( int ic = 0; ic < configKeys.length; ic++ ) {
             ConfigKey<?> key = configKeys[ ic ];
             putConfigValue( env, suffix, key, config );
