@@ -1205,7 +1205,9 @@
           failonerror="yes"
           output="${build.docs}/paintmode-docs.xml"
           logerror="yes"
-          classpathref="classpath"/>
+          classpathref="classpath">
+      <sysproperty key="java.awt.headless" value="true"/>
+    </java>
 
     <!-- Write XML files containing MatchEngine usage information
      !   for inclusion in the user document. -->
