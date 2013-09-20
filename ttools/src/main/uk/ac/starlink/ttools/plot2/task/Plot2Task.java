@@ -135,6 +135,80 @@ public class Plot2Task implements Task {
     }
 
     public Executable createExecutable( Environment env ) throws TaskException {
+        final Painter painter = painterParam_.painterValue( env );
+        final boolean isSwing = painter instanceof SwingPainter;
+        dstoreParam_.setDefaultCaching( isSwing );
+        final PlotExecutor executor = createPlotExecutor( env );
+        return new Executable() {
+            public void execute() throws IOException {
+                DataStore dataStore;
+                try {
+                    dataStore = executor.createDataStore();
+                }
+                catch ( InterruptedException e ) {
+                    Thread.currentThread().isInterrupted();
+                    return;
+                }
+
+                /* For an active display, create and post a component which
+                 * will draw the requested plot on demand, including resizing
+                 * when appropriate. */
+                if ( isSwing ) {
+                    JComponent panel =
+                        executor.createPlotComponent( dataStore );
+                    ((SwingPainter) painter).postComponent( panel );
+                }
+
+                /* For a static plot, generate and plot the fixed icon here. */
+                else {
+                    Icon plot = executor.createPlotIcon( dataStore );
+                    long start = System.currentTimeMillis();
+                    painter.paintPicture( PlotUtil.toPicture( plot ) );
+                    PlotUtil.logTime( logger_, "Plot", start );
+                }
+            }
+        };
+    }
+
+    /**
+     * Returns an Icon that paints the plot described
+     * by a value-bearing execution environment.
+     * This utility method is not used for executing this class.
+     *
+     * @param  env  execution environment
+     * @return  plot icon
+     */
+    public Icon createPlotIcon( Environment env )
+            throws TaskException, IOException, InterruptedException {
+        dstoreParam_.setDefaultCaching( false );
+        PlotExecutor executor = createPlotExecutor( env );
+        return executor.createPlotIcon( executor.createDataStore() );
+    }
+
+    /**
+     * Returns a graphical component that displays an interactive view of
+     * the plot described by a value-bearing execution environment.
+     * This utility method is not used for executing this class.
+     *
+     * @param  env  execution environment
+     * @return  active plot view component
+     */
+    public JComponent createPlotComponent( Environment env )
+            throws TaskException, IOException, InterruptedException {
+        dstoreParam_.setDefaultCaching( true );
+        PlotExecutor executor = createPlotExecutor( env );
+        return executor.createPlotComponent( executor.createDataStore() );
+    }
+
+    /**
+     * Turns an execution environment (containing value-bearing parameters)
+     * into an object capable of performing a static or interactive plot.
+     *
+     * @param  env  execution environment
+     * @return   plot executor
+     */
+    private PlotExecutor createPlotExecutor( Environment env )
+            throws TaskException {
 
         /* What kind of plot? */
         final PlotType plotType = typeParam_.objectValue( env );
@@ -143,9 +217,6 @@ public class Plot2Task implements Task {
         final int xpix = xpixParam_.intValue( env );
         final int ypix = ypixParam_.intValue( env );
         final Insets insets = insetsParam_.insetsValue( env );
-        final Painter painter = painterParam_.painterValue( env );
-        final boolean isSwing = painter instanceof SwingPainter;
-        dstoreParam_.setDefaultCaching( isSwing );
         final boolean forceBitmap = bitmapParam_.booleanValue( env );
         final boolean surfaceAuxRange = false;
         final DataStoreFactory storeFact = dstoreParam_.objectValue( env );
@@ -175,48 +246,35 @@ public class Plot2Task implements Task {
         for ( int il = 0; il < nl; il++ ) {
             dataSpecs[ il ] = layers[ il ].getDataSpec();
         }
-        return new Executable() {
-            public void execute() throws IOException {
+        return new PlotExecutor() {
 
-                /* Read/cache data if so configured. */
+            public DataStore createDataStore()
+                    throws IOException, InterruptedException {
                 long t0 = System.currentTimeMillis();
-                DataStore dataStore;
-                try {
-                    dataStore = storeFact.readDataStore( dataSpecs, null );
-                }
-                catch ( InterruptedException e ) {
-                    Thread.currentThread().isInterrupted();
-                    return;
-                }
+                DataStore store = storeFact.readDataStore( dataSpecs, null );
                 PlotUtil.logTime( logger_, "Data", t0 );
+                return store;
+            }
 
-                /* For an active display, create and post a component which
-                 * will draw the requested plot on demand, including resizing
-                 * when appropriate. */
-                if ( isSwing ) {
-                    JComponent panel =
-                        PlotDisplay
-                       .createPlotDisplay( plotType, layers, surfFact,
-                                           surfConfig, legend, legpos,
-                                           shadeAxis, shadeFixRange,
-                                           dataStore, surfaceAuxRange, true );
-                    panel.setPreferredSize( new Dimension( xpix, ypix ) );
-                    ((SwingPainter) painter).postComponent( panel );
-                }
+            public JComponent createPlotComponent( DataStore dataStore ) {
+                JComponent panel =
+                    PlotDisplay
+                   .createPlotDisplay( plotType, layers, surfFact,
+                                       surfConfig, legend, legpos,
+                                       shadeAxis, shadeFixRange,
+                                       dataStore, surfaceAuxRange, true );
+                panel.setPreferredSize( new Dimension( xpix, ypix ) );
+                return panel;
+            }
 
-                /* For a static plot, generate and plot the fixed icon here. */
-                else {
-                    PaperTypeSelector ptsel = plotType.getPaperTypeSelector();
-                    Icon plot =
-                        createPlotIcon( layers, surfFact, surfConfig,
-                                        legend, legpos,
-                                        shadeAxis, shadeFixRange, dataStore,
-                                        xpix, ypix, insets,
-                                        ptsel, forceBitmap );
-                    long start = System.currentTimeMillis();
-                    painter.paintPicture( PlotUtil.toPicture( plot ) );
-                    PlotUtil.logTime( logger_, "Plot", start );
-                }
+            public Icon createPlotIcon( DataStore dataStore ) {
+                PaperTypeSelector ptsel = plotType.getPaperTypeSelector();
+                return Plot2Task
+                      .createPlotIcon( layers, surfFact, surfConfig,
+                                       legend, legpos,
+                                       shadeAxis, shadeFixRange, dataStore,
+                                       xpix, ypix, insets,
+                                       ptsel, forceBitmap );
             }
         };
     }
@@ -592,5 +650,34 @@ public class Plot2Task implements Task {
                             : ptsel.getVectorPaperType( opts );
         return PlotDisplay.createIcon( placer, layers, auxRanges, dataStore,
                                        paperType, false );
+    }
+
+    /**
+     * Object capable of executing a static or interactive plot.
+     * All configuration options are contained.
+     */
+    private interface PlotExecutor {
+
+        /**
+         * Creates a data store suitable for use with this object.
+         *
+         * @return    object containing plot data
+         */
+        DataStore createDataStore() throws IOException, InterruptedException;
+
+        /**
+         * Generates an interactive plot window.
+         *
+         * @param  dataStore  object containing plot data
+         */
+        JComponent createPlotComponent( DataStore dataStore );
+
+        /**
+         * Generates an icon which will draw the plot.
+         * This may be slow to paint.
+         *
+         * @param  dataStore  object containing plot data
+         */
+        Icon createPlotIcon( DataStore dataStore );
     }
 }
