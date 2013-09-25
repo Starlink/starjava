@@ -155,7 +155,7 @@ public class Plot2Task implements Task {
                  * when appropriate. */
                 if ( isSwing ) {
                     JComponent panel =
-                        executor.createPlotComponent( dataStore );
+                        executor.createPlotComponent( dataStore, true, true );
                     ((SwingPainter) painter).postComponent( panel );
                 }
 
@@ -188,16 +188,20 @@ public class Plot2Task implements Task {
     /**
      * Returns a graphical component that displays an interactive view of
      * the plot described by a value-bearing execution environment.
-     * This utility method is not used for executing this class.
+     * This utility method is not used for executing the task defined by
+     * this class.
      *
      * @param  env  execution environment
+     * @param  caching  whether data and plot should be cached or re-read
+     *                  at every repaint
      * @return  active plot view component
      */
-    public JComponent createPlotComponent( Environment env )
+    public JComponent createPlotComponent( Environment env, boolean caching )
             throws TaskException, IOException, InterruptedException {
-        dstoreParam_.setDefaultCaching( true );
+        dstoreParam_.setDefaultCaching( caching );
         PlotExecutor executor = createPlotExecutor( env );
-        return executor.createPlotComponent( executor.createDataStore() );
+        return executor.createPlotComponent( executor.createDataStore(),
+                                             true, caching );
     }
 
     /**
@@ -256,13 +260,16 @@ public class Plot2Task implements Task {
                 return store;
             }
 
-            public JComponent createPlotComponent( DataStore dataStore ) {
-                JComponent panel =
+            public JComponent createPlotComponent( DataStore dataStore,
+                                                   boolean zoomable,
+                                                   boolean caching ) {
+                PlotDisplay panel =
                     PlotDisplay
                    .createPlotDisplay( plotType, layers, surfFact,
                                        surfConfig, legend, legpos,
                                        shadeAxis, shadeFixRange,
-                                       dataStore, surfaceAuxRange, true );
+                                       dataStore, surfaceAuxRange,
+                                       zoomable, caching );
                 panel.setPreferredSize( new Dimension( xpix, ypix ) );
                 return panel;
             }
@@ -666,11 +673,18 @@ public class Plot2Task implements Task {
         DataStore createDataStore() throws IOException, InterruptedException;
 
         /**
-         * Generates an interactive plot window.
+         * Generates an interactive plot component.
          *
          * @param  dataStore  object containing plot data
+         * @param  zoomable  if true, standard pan/zoom mouse listeners
+         *                   will be installed
+         * @param  caching   if true, plot image will be cached where
+         *                   applicable, if false it will be regenerated
+         *                   from the data on every repaint
          */
-        JComponent createPlotComponent( DataStore dataStore );
+        JComponent createPlotComponent( DataStore dataStore,
+                                        boolean zoomable,
+                                        boolean caching );
 
         /**
          * Generates an icon which will draw the plot.
