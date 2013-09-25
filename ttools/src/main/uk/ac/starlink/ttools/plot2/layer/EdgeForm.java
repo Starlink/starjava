@@ -130,9 +130,9 @@ public class EdgeForm implements ShapeForm {
     }
 
     /**
-     * Outliner implementation for use with this form.
+     * Outliner implementation for use with EdgeForm.
      */
-    private static class EdgeOutliner extends PixOutliner {
+    public static class EdgeOutliner extends PixOutliner {
         private final int nPos_;
         private final Icon icon_;
 
@@ -141,7 +141,7 @@ public class EdgeForm implements ShapeForm {
          *
          * @param  nEdge  edge count
          */
-        EdgeOutliner( int nEdge ) {
+        public EdgeOutliner( int nEdge ) {
             nPos_ = nEdge + 1;
             icon_ = new EdgeIcon( nEdge );
         }

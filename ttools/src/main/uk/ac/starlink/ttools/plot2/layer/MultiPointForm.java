@@ -171,7 +171,7 @@ public class MultiPointForm implements ShapeForm {
     }
 
     /**
-     * Outliner implementation for use with this class.
+     * Outliner implementation for use with MultiPointForms.
      */
     private class MultiPointOutliner extends PixOutliner {
         private final ErrorRenderer renderer_;
@@ -189,8 +189,8 @@ public class MultiPointForm implements ShapeForm {
          * @param  isAutoscale  true if initial size scaling is done
          *                      from the data
          */
-        MultiPointOutliner( ErrorRenderer renderer, ErrorMode[] modes,
-                            double scale, boolean isAutoscale ) {
+        public MultiPointOutliner( ErrorRenderer renderer, ErrorMode[] modes,
+                                   double scale, boolean isAutoscale ) {
             renderer_ = renderer;
             modes_ = modes;
             scale_ = scale;

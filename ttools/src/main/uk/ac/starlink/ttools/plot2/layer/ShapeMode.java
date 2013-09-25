@@ -377,43 +377,43 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             assert model.getTransparentPixel() == 0;
             return model;
         }
+    }
+
+    /**
+     * Stamper implementation for flat colouring.
+     */
+    public static class FlatStamper implements Stamper {
+        final Color color_;
 
         /**
-         * Stamper implementation for flat colouring.
+         * Constructor.
+         *
+         * @param   color   fixed colour
          */
-        private static class FlatStamper implements Stamper {
-            final Color color_;
- 
-            /**
-             * Constructor.
-             *
-             * @param   color   fixed colour
-             */
-            FlatStamper( Color color ) {
-                color_ = color;
-            }
+        public FlatStamper( Color color ) {
+            color_ = color;
+        }
 
-            public Icon createLegendIcon( Outliner outliner ) {
-                return IconUtils
-                      .colorIcon( outliner.getLegendIcon(),
-                                  new Color( color_.getRGB(), false ) );
-            }
+        public Icon createLegendIcon( Outliner outliner ) {
+            return IconUtils
+                  .colorIcon( outliner.getLegendIcon(),
+                              new Color( color_.getRGB(), false ) );
+        }
 
-            @Override
-            public boolean equals( Object o ) {
-                if ( o instanceof FlatStamper ) {
-                    FlatStamper other = (FlatStamper) o;
-                    return this.color_.equals( other.color_ );
-                }
-                else {
-                    return false;
-                }
+        @Override
+        public boolean equals( Object o ) {
+            if ( o instanceof FlatStamper ) {
+                FlatStamper other = (FlatStamper) o;
+                return this.color_.equals( other.color_ );
             }
+            else {
+                return false;
+            }
+        }
 
-            @Override
-            public int hashCode() {
-                return this.color_.hashCode();
-            }
+        @Override
+        public int hashCode() {
+            return this.color_.hashCode();
         }
     }
 
@@ -533,48 +533,48 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                 return 1f / opaque;
             }
         }
+    }
+
+    /**
+     * Stamper implementation for auto transparency.
+     */
+    public static class AutoTransparentStamper implements Stamper {
+        final Color color_;
+        final double level_;
 
         /**
-         * Stamper implementation for auto transparency.
+         * Constructor.
+         *
+         * @param   color   base (opaque) colour
+         * @param   level   transparency level
          */
-        private static class AutoTransparentStamper implements Stamper {
-            final Color color_;
-            final double level_;
+        public AutoTransparentStamper( Color color, double level ) {
+            color_ = color;
+            level_ = level;
+        }
 
-            /**
-             * Constructor.
-             *
-             * @param   color   base (opaque) colour
-             * @param   level   transparency level
-             */
-            AutoTransparentStamper( Color color, double level ) {
-                color_ = color;
-                level_ = level;
-            }
+        public Icon createLegendIcon( Outliner outliner ) {
+            return IconUtils.colorIcon( outliner.getLegendIcon(), color_ );
+        }
 
-            public Icon createLegendIcon( Outliner outliner ) {
-                return IconUtils.colorIcon( outliner.getLegendIcon(), color_ );
+        @Override
+        public boolean equals( Object o ) {
+            if ( o instanceof AutoTransparentStamper ) {
+                AutoTransparentStamper other = (AutoTransparentStamper) o;
+                return this.color_.equals( other.color_ )
+                    && this.level_ == other.level_;
             }
+            else {
+                return false;
+            }
+        }
 
-            @Override
-            public boolean equals( Object o ) {
-                if ( o instanceof AutoTransparentStamper ) {
-                    AutoTransparentStamper other = (AutoTransparentStamper) o;
-                    return this.color_.equals( other.color_ )
-                        && this.level_ == other.level_;
-                }
-                else {
-                    return false;
-                }
-            }
-
-            @Override
-            public int hashCode() {
-                int code = 5231;
-                code = code * 23 + color_.hashCode();
-                code = code * 23 + Float.floatToIntBits( (float) level_ );
-                return code;
-            }
+        @Override
+        public int hashCode() {
+            int code = 5231;
+            code = code * 23 + color_.hashCode();
+            code = code * 23 + Float.floatToIntBits( (float) level_ );
+            return code;
         }
     }
 
@@ -721,67 +721,67 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             assert model.getPixelSize() == 8;
             return model;
         }
-  
-        /**
-         * Defines a scaling strategy.
-         */
-        @Equality
-        static interface Scaling {
+    }
 
-            /**
-             * Returns a count scaler to use for a given maximum input count
-             * value and number of levels.
-             *
-             * @param   max  maximum value in input count data
-             *               (minimum is implicitly zero)
-             * @param  nlevel  number of levels in output array
-             * @return  new scaler
-             */
-            CountScaler createScaler( int max, int nlevel );
+    /**
+     * Defines a scaling strategy.
+     */
+    @Equality
+    public static interface Scaling {
+
+        /**
+         * Returns a count scaler to use for a given maximum input count
+         * value and number of levels.
+         *
+         * @param   max  maximum value in input count data
+         *               (minimum is implicitly zero)
+         * @param  nlevel  number of levels in output array
+         * @return  new scaler
+         */
+        CountScaler createScaler( int max, int nlevel );
+    }
+
+    /**
+     * Stamper implementation for density mode.
+     */
+    public static class DensityStamper implements Stamper {
+        final Shader shader_;
+        final Scaling scaling_;
+
+        /**
+         * Constructor.
+         *
+         * @param   shader  colour shader
+         * @param  scaling  count scaling strategy
+         */
+        public DensityStamper( Shader shader, Scaling scaling ) {
+            shader_ = shader;
+            scaling_ = scaling;
         }
 
-        /**
-         * Stamper implementation for density mode.
-         */
-        static class DensityStamper implements Stamper {
-            final Shader shader_;
-            final Scaling scaling_;
+        public Icon createLegendIcon( Outliner outliner ) {
+            return createColoredIcon( outliner.getLegendIcon(),
+                                      shader_, 0f );
+        }
 
-            /**
-             * Constructor.
-             *
-             * @param   shader  colour shader
-             * @param  scaling  count scaling strategy
-             */
-            DensityStamper( Shader shader, Scaling scaling ) {
-                shader_ = shader;
-                scaling_ = scaling;
+        @Override
+        public boolean equals( Object o ) {
+            if ( o instanceof DensityStamper ) {
+                DensityStamper other = (DensityStamper) o;
+                return this.shader_.equals( other.shader_ )
+                    && this.scaling_.equals( other.scaling_ );
             }
+            else {
+                return false;
+            }
+        }
 
-            public Icon createLegendIcon( Outliner outliner ) {
-                return createColoredIcon( outliner.getLegendIcon(),
-                                          shader_, 0f );
-            }
-
-            @Override
-            public boolean equals( Object o ) {
-                if ( o instanceof DensityStamper ) {
-                    DensityStamper other = (DensityStamper) o;
-                    return this.shader_.equals( other.shader_ )
-                        && this.scaling_.equals( other.scaling_ );
-                }
-                else {
-                    return false;
-                }
-            }
-
-            @Override
-            public int hashCode() {
-                int code = 3311;
-                code = 23 * code + shader_.hashCode();
-                code = 23 * code + scaling_.hashCode();
-                return code;
-            }
+        @Override
+        public int hashCode() {
+            int code = 3311;
+            code = 23 * code + shader_.hashCode();
+            code = 23 * code + scaling_.hashCode();
+            return code;
         }
     }
 
@@ -1181,75 +1181,75 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                 }
             }
         }
+    }
+
+    /**
+     * Stamper implementation for use with AuxShadingMode.
+     */
+    public static class ShadeStamper implements Stamper {
+        final Shader shader_;
+        final boolean shadeLog_;
+        final boolean shadeFlip_;
+        final Color baseColor_;
+        final Color nullColor_;
+        final float scaleAlpha_;
 
         /**
-         * Stamper implementation for use with AuxShadingMode.
+         * Constructor.
+         *
+         * @param  shader  colour shader 
+         * @param  shadeLog  true for logarithmic shading scale,
+         *                   false for linear
+         * @param  shadeFlip  true to invert direction of shading scale
+         * @param  baseColor  colour to use for adjustments in case of
+         *                    non-absolute shader
+         * @param  nullColor  colour to use for null aux coordinate,
+         *                    if null omit such points
+         * @param  scaleAlpha  factor to scale output colour alpha by;
+         *                     1 means opaque
          */
-        private static class ShadeStamper implements Stamper {
-            final Shader shader_;
-            final boolean shadeLog_;
-            final boolean shadeFlip_;
-            final Color baseColor_;
-            final Color nullColor_;
-            final float scaleAlpha_;
+        public ShadeStamper( Shader shader, boolean shadeLog,
+                             boolean shadeFlip, Color baseColor,
+                             Color nullColor, float scaleAlpha ) {
+            shader_ = shader;
+            shadeLog_ = shadeLog;
+            shadeFlip_ = shadeFlip;
+            baseColor_ = baseColor;
+            nullColor_ = nullColor;
+            scaleAlpha_ = scaleAlpha;
+        }
 
-            /**
-             * Constructor.
-             *
-             * @param  shader  colour shader 
-             * @param  shadeLog  true for logarithmic shading scale,
-             *                   false for linear
-             * @param  shadeFlip  true to invert direction of shading scale
-             * @param  baseColor  colour to use for adjustments in case of
-             *                    non-absolute shader
-             * @param  nullColor  colour to use for null aux coordinate,
-             *                    if null omit such points
-             * @param  scaleAlpha  factor to scale output colour alpha by;
-             *                     1 means opaque
-             */
-            public ShadeStamper( Shader shader, boolean shadeLog,
-                                 boolean shadeFlip, Color baseColor,
-                                 Color nullColor, float scaleAlpha ) {
-                shader_ = shader;
-                shadeLog_ = shadeLog;
-                shadeFlip_ = shadeFlip;
-                baseColor_ = baseColor;
-                nullColor_ = nullColor;
-                scaleAlpha_ = scaleAlpha;
-            }
+        public Icon createLegendIcon( Outliner outliner ) {
+            return createColoredIcon( outliner.getLegendIcon(),
+                                      shader_, 0.5f );
+        }
 
-            public Icon createLegendIcon( Outliner outliner ) {
-                return createColoredIcon( outliner.getLegendIcon(),
-                                          shader_, 0.5f );
+        @Override
+        public boolean equals( Object o ) {
+            if ( o instanceof ShadeStamper ) {
+                ShadeStamper other = (ShadeStamper) o;
+                return this.shader_.equals( other.shader_ )
+                    && this.shadeLog_ == other.shadeLog_
+                    && this.shadeFlip_ == other.shadeFlip_
+                    && PlotUtil.equals( this.baseColor_, other.baseColor_ )
+                    && PlotUtil.equals( this.nullColor_, other.nullColor_ )
+                    && this.scaleAlpha_ == other.scaleAlpha_;
             }
+            else {
+                return false;
+            }
+        }
 
-            @Override
-            public boolean equals( Object o ) {
-                if ( o instanceof ShadeStamper ) {
-                    ShadeStamper other = (ShadeStamper) o;
-                    return this.shader_.equals( other.shader_ )
-                        && this.shadeLog_ == other.shadeLog_
-                        && this.shadeFlip_ == other.shadeFlip_
-                        && PlotUtil.equals( this.baseColor_, other.baseColor_ )
-                        && PlotUtil.equals( this.nullColor_, other.nullColor_ )
-                        && this.scaleAlpha_ == other.scaleAlpha_;
-                }
-                else {
-                    return false;
-                }
-            }
-
-            @Override
-            public int hashCode() {
-                int code = 7301;
-                code = 23 * code + shader_.hashCode();
-                code = 23 * code + ( shadeLog_ ? 5 : 7 );
-                code = 23 * code + ( shadeFlip_ ? 11 : 13 );
-                code = 23 * code + PlotUtil.hashCode( baseColor_ );
-                code = 23 * code + PlotUtil.hashCode( nullColor_ );
-                code = 23 * code + Float.floatToIntBits( scaleAlpha_ );
-                return code;
-            }
+        @Override
+        public int hashCode() {
+            int code = 7301;
+            code = 23 * code + shader_.hashCode();
+            code = 23 * code + ( shadeLog_ ? 5 : 7 );
+            code = 23 * code + ( shadeFlip_ ? 11 : 13 );
+            code = 23 * code + PlotUtil.hashCode( baseColor_ );
+            code = 23 * code + PlotUtil.hashCode( nullColor_ );
+            code = 23 * code + Float.floatToIntBits( scaleAlpha_ );
+            return code;
         }
     }
 
