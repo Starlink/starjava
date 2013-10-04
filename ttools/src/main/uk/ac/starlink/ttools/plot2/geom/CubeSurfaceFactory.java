@@ -1,6 +1,5 @@
 package uk.ac.starlink.ttools.plot2.geom;
 
-import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -9,6 +8,7 @@ import uk.ac.starlink.pal.Pal;
 import uk.ac.starlink.ttools.plot.Matrices;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.Captioner;
+import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Subrange;
@@ -319,16 +319,12 @@ public class CubeSurfaceFactory
         return PlotUtil.readCoordinateRanges( layers, 3, dataStore );
     }
 
-    public CubeAspect pan( Surface surface, Point pos0, Point pos1 ) {
-        return ((CubeSurface) surface).pan( pos0, pos1 );
+    public ConfigKey[] getNavigatorKeys() {
+        return CubeNavigator.getConfigKeys();
     }
 
-    public CubeAspect zoom( Surface surface, Point pos, double factor ) {
-        return ((CubeSurface) surface).zoom( factor );
-    }
-
-    public CubeAspect center( Surface surface, double[] dpos ) {
-        return ((CubeSurface) surface).center( dpos );
+    public Navigator<CubeAspect> createNavigator( ConfigMap navConfig ) {
+        return CubeNavigator.createNavigator( navConfig );
     }
 
     /**

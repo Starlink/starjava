@@ -261,7 +261,7 @@ public class Plot2Task implements Task {
             }
 
             public JComponent createPlotComponent( DataStore dataStore,
-                                                   boolean zoomable,
+                                                   boolean navigable,
                                                    boolean caching ) {
                 PlotDisplay panel =
                     PlotDisplay
@@ -269,7 +269,7 @@ public class Plot2Task implements Task {
                                        surfConfig, legend, legpos,
                                        shadeAxis, shadeFixRange,
                                        dataStore, surfaceAuxRange,
-                                       zoomable, caching );
+                                       navigable, caching );
                 panel.setPreferredSize( new Dimension( xpix, ypix ) );
                 return panel;
             }
@@ -676,14 +676,14 @@ public class Plot2Task implements Task {
          * Generates an interactive plot component.
          *
          * @param  dataStore  object containing plot data
-         * @param  zoomable  if true, standard pan/zoom mouse listeners
+         * @param  navigable  if true, standard pan/zoom mouse listeners
          *                   will be installed
          * @param  caching   if true, plot image will be cached where
          *                   applicable, if false it will be regenerated
          *                   from the data on every repaint
          */
         JComponent createPlotComponent( DataStore dataStore,
-                                        boolean zoomable,
+                                        boolean navigable,
                                         boolean caching );
 
         /**

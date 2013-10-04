@@ -11,6 +11,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -50,6 +52,7 @@ import uk.ac.starlink.topcat.plot.BlobPanel;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.DataGeom;
+import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotPlacement;
 import uk.ac.starlink.ttools.plot2.PlotType;
@@ -58,7 +61,7 @@ import uk.ac.starlink.ttools.plot2.PointCloud;
 import uk.ac.starlink.ttools.plot2.Slow;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
-import uk.ac.starlink.ttools.plot2.ZoomListener;
+import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.data.CachedDataStoreFactory;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
@@ -90,6 +93,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     private final ControlStackModel stackModel_;
     private final JLabel posLabel_;
     private final JLabel countLabel_;
+    private Navigator<A> navigator_;
     private static final double CLICK_ZOOM_UNIT = 1.2;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.plot2" );
@@ -158,12 +162,13 @@ public class StackPlotWindow<P,A> extends AuxWindow {
 
         /* Arrange for user gestures (zoom, pan, click) on the plot panel
          * itself to result in appropriate actions. */
+        navigator_ = surfFact_.createNavigator( new ConfigMap() );
         plotPanel_.setFocusable( true );
-        new ZoomListener() {
-            @Override public void zoom( int nZoom, Point point ) {
-                StackPlotWindow.this.zoom( nZoom, point );
-            };
-        }.install( plotPanel_ );
+        plotPanel_.addMouseWheelListener( new MouseWheelListener() {
+            public void mouseWheelMoved( MouseWheelEvent evt ) {
+                StackPlotWindow.this.wheel( evt );
+            }
+        } );
         addMouseInputListener( plotPanel_, new PanListener() );
 
         /* Prepare a panel that reports current cursor position. */
@@ -807,19 +812,19 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     }
 
     /**
-     * Performs a zoom around a given point.
+     * Delivers a mouse wheel gesture to the currently installed navigator,
+     * and updates the plot aspect accordingly.
      *
-     * @param   nZoom  number of zoom increments (negative means zoom out)
-     * @param   point  zoom reference point
+     * @param  evt  mouse wheel event
      */
-    private void zoom( int nZoom, Point point ) {
-        if ( nZoom != 0 ) {
-            double factor = Math.pow( CLICK_ZOOM_UNIT, nZoom );
-            Surface surface = plotPanel_.getLatestSurface();
-            if ( surface != null &&
-                 surface.getPlotBounds().contains( point ) ) {
-                fixAspect( surfFact_.zoom( surface, point, factor ) );
-            }
+    private void wheel( MouseWheelEvent evt ) {
+        Point point = evt.getPoint();
+        Surface surface = plotPanel_.getLatestSurface();
+        Navigator<A> navigator = navigator_;
+        if ( navigator != null &&
+             surface != null &&
+             surface.getPlotBounds().contains( point ) ) {
+            fixAspect( navigator.wheel( surface, evt ) );
         }
     }
 
@@ -869,15 +874,24 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                    in ? ResourceIcon.ZOOM_IN : ResourceIcon.ZOOM_OUT,
                    "Zoom " + ( in ? "in" : "out" )
                            + " around the center of the plot" );
-            nZoom_ = in ? +1 : -1;
+            nZoom_ = in ? -1 : +1;
         }
         public void actionPerformed( ActionEvent evt ) {
             Surface surf = plotPanel_.getSurface();
             if ( surf != null ) {
+
+                /* Fake a mouse wheel event corresponding to a
+                 * central position. */
                 Rectangle bounds = surf.getPlotBounds();
                 Point p = new Point( bounds.x + bounds.width / 2,
                                      bounds.y + bounds.height / 2 );
-                zoom( nZoom_, p );
+                MouseWheelEvent mEvt =
+                    new MouseWheelEvent( plotPanel_, 0,
+                                         System.currentTimeMillis(),
+                                         0, p.x, p.y, 0, false,
+                                         MouseWheelEvent.WHEEL_UNIT_SCROLL, 1,
+                                         nZoom_ );
+                wheel( mEvt );
             }
         }
     }
@@ -904,8 +918,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         @Override
         public void mouseDragged( MouseEvent evt ) {
             if ( dragSurface_ != null ) {
-                fixAspect( surfFact_.pan( dragSurface_, startPoint_,
-                                          evt.getPoint() ) );
+                fixAspect( navigator_.drag( dragSurface_, evt, startPoint_ ) );
             }
         }
 
@@ -918,18 +931,19 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         @Override
         public void mouseClicked( MouseEvent evt ) {
             int iButt = evt.getButton();
-            if ( iButt == MouseEvent.BUTTON1 ) {
+            if ( iButt == MouseEvent.BUTTON1 &&
+                 ! ( evt.isAltDown() ||
+                     evt.isControlDown() ||
+                     evt.isMetaDown() ||
+                     evt.isShiftDown() ) ) {
                 identifyPoint( evt.getPoint() );
             }
-            else if ( iButt == MouseEvent.BUTTON3 ) {
+            else {
                 Surface surface = plotPanel_.getSurface();
                 Iterable<double[]> dpIt =
                     new PointCloud( plotPanel_.getPlotLayers(), true )
                    .createDataPosIterable( plotPanel_.getDataStore() );
-                double[] dpos = surface.graphicsToData( evt.getPoint(), dpIt );
-                if ( dpos != null ) {
-                    fixAspect( surfFact_.center( surface, dpos ) );
-                }
+                fixAspect( navigator_.click( surface, evt, dpIt ) );
             }
         }
     }

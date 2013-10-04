@@ -7,6 +7,8 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -20,6 +22,7 @@ import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.Decoration;
 import uk.ac.starlink.ttools.plot2.Drawing;
 import uk.ac.starlink.ttools.plot2.LayerOpt;
+import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotPlacement;
 import uk.ac.starlink.ttools.plot2.PlotType;
@@ -30,7 +33,6 @@ import uk.ac.starlink.ttools.plot2.Slow;
 import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
-import uk.ac.starlink.ttools.plot2.ZoomListener;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.paper.PaperType;
@@ -60,12 +62,12 @@ public class PlotDisplay<P,A> extends JComponent {
     private final Range shadeFixRange_;
     private final boolean surfaceAuxRange_;
     private final boolean caching_;
+    private final Navigator<A> navigator_;
     private Map<AuxScale,Range> auxRanges_;
     private Surface approxSurf_;
     private Surface surface_;
     private A aspect_;
     private Icon icon_;
-    private static final double CLICK_ZOOM_UNIT = 1.2;
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.plot2" );
@@ -88,8 +90,8 @@ public class PlotDisplay<P,A> extends JComponent {
      * @param  dataStore   data storage object
      * @param surfaceAuxRange  determines whether aux ranges are recalculated
      *                         when the surface changes
-     * @param  zoomable  if true, standard pan/zoom mouse listeners
-     *                   will be installed
+     * @param  navigator  user gesture navigation controller,
+     *                    or null for a non-interactive plot
      * @param  caching   if true, plot image will be cached where applicable,
      *                   if false it will be regenerated from the data
      *                   on every repaint
@@ -98,7 +100,7 @@ public class PlotDisplay<P,A> extends JComponent {
                         SurfaceFactory<P,A> surfFact, P profile, A aspect,
                         Icon legend, float[] legPos, ShadeAxis shadeAxis,
                         Range shadeFixRange, DataStore dataStore,
-                        boolean surfaceAuxRange, boolean zoomable,
+                        boolean surfaceAuxRange, Navigator<A> navigator,
                         boolean caching ) {
         plotType_ = plotType;
         layers_ = layers;
@@ -111,16 +113,16 @@ public class PlotDisplay<P,A> extends JComponent {
         shadeFixRange_ = shadeFixRange;
         dataStore_ = dataStore;
         surfaceAuxRange_ = surfaceAuxRange;
+        navigator_ = navigator;
         caching_ = caching;
 
         /* Add mouse listeners if required. */
-        if ( zoomable ) {
-            new ZoomListener() {
-                @Override
-                public void zoom( int nZoom, Point point ) {
-                    PlotDisplay.this.zoom( nZoom, point );
+        if ( navigator_ != null ) {
+            addMouseWheelListener( new MouseWheelListener() {
+                public void mouseWheelMoved( MouseWheelEvent evt ) {
+                    PlotDisplay.this.wheel( evt );
                 }
-            }.install( this );
+            } );
             MouseInputListener panListener = new PanListener();
             addMouseListener( panListener );
             addMouseMotionListener( panListener );
@@ -235,8 +237,8 @@ public class PlotDisplay<P,A> extends JComponent {
      * @param  plotType  type of plot
      * @param  layers   layers constituting plot content
      * @param  surfFact   surface factory
-     * @param  config   map containing surface profile and initial aspect
-     *                  configuration
+     * @param  config   map containing surface profile, initial aspect
+     *                  and navigator configuration
      * @param  legend   legend icon, or null if none required
      * @param  legPos   2-element array giving x,y fractional legend placement
      *                  position within plot (elements in range 0..1),
@@ -247,8 +249,7 @@ public class PlotDisplay<P,A> extends JComponent {
      * @param  dataStore   data storage object
      * @param surfaceAuxRange  determines whether aux ranges are recalculated
      *                         when the surface changes
-     * @param  zoomable  if true, standard pan/zoom mouse listeners
-     *                   will be installed
+     * @param  navigable true for an interactive plot
      * @param  caching   if true, plot image will be cached where applicable,
      *                   if false it will be regenerated from the data
      *                   on every repaint
@@ -261,7 +262,7 @@ public class PlotDisplay<P,A> extends JComponent {
                                Icon legend, float[] legPos,
                                ShadeAxis shadeAxis, Range shadeFixRange,
                                DataStore dataStore, boolean surfaceAuxRange,
-                               boolean zoomable, boolean caching ) {
+                               boolean navigable, boolean caching ) {
         P profile = surfFact.createProfile( config );
 
         /* Read ranges from data if necessary. */
@@ -273,12 +274,16 @@ public class PlotDisplay<P,A> extends JComponent {
 
         /* Work out the initial aspect. */
         A aspect = surfFact.createAspect( profile, config, ranges );
+
+        /* Get a navigator. */
+        Navigator<A> navigator = navigable ? surfFact.createNavigator( config )
+                                           : null;
      
         /* Create and return the component. */
         return new PlotDisplay<P,A>( plotType, layers, surfFact, profile,
                                      aspect, legend, legPos, shadeAxis,
                                      shadeFixRange, dataStore,
-                                     surfaceAuxRange, zoomable, caching );
+                                     surfaceAuxRange, navigator, caching );
     }
 
     /**
@@ -367,18 +372,19 @@ public class PlotDisplay<P,A> extends JComponent {
     }
 
     /**
-     * Invoked by the zoom listener to zoom into a given graphics point.
+     * Invoked when a mouse wheel event is detected on this component.
      *
-     * @param  nZoom  number of zoom steps
-     * @param  reference position for zoom
+     * @param   evt  event
      */
-    private void zoom( int nZoom, Point point ) {
-        if ( nZoom != 0 ) {
-            double factor = Math.pow( CLICK_ZOOM_UNIT, nZoom );
-            Surface surface = surface_;
-            if ( surface != null &&
-                 surface.getPlotBounds().contains( point ) ) {
-                setAspect( surfFact_.zoom( surface, point, factor ) );
+    private void wheel( MouseWheelEvent evt ) {
+        Point point = evt.getPoint();
+        Surface surface = surface_;
+        if ( navigator_ != null &&
+             surface != null &&
+             surface.getPlotBounds().contains( point ) ) {
+            A aspect = navigator_.wheel( surface, evt );
+            if ( aspect != null ) {
+                setAspect( aspect );
             }
         }
     }
@@ -407,8 +413,10 @@ public class PlotDisplay<P,A> extends JComponent {
 
             /* Reposition surface midway through drag gesture. */
             if ( dragSurface_ != null ) {
-                setAspect( surfFact_
-                          .pan( dragSurface_, startPoint_, evt.getPoint() ) );
+                A aspect = navigator_.drag( dragSurface_, evt, startPoint_ );
+                if ( aspect != null ) {
+                    setAspect( aspect );
+                }
             }
         }
 
@@ -429,9 +437,9 @@ public class PlotDisplay<P,A> extends JComponent {
                 Iterable<double[]> dpIt =
                     new PointCloud( layers_, true )
                    .createDataPosIterable( dataStore_ );
-                double[] dpos = surface_.graphicsToData( evt.getPoint(), dpIt );
-                if ( dpos != null ) {
-                    setAspect( surfFact_.center( surface_, dpos ) );
+                A aspect = navigator_.click( surface_, evt, dpIt );
+                if ( aspect != null ) {
+                    setAspect( aspect );
                 }
             }
         }

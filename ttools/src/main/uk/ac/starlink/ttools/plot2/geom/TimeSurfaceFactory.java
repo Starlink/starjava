@@ -1,12 +1,12 @@
 package uk.ac.starlink.ttools.plot2.geom;
 
-import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.Captioner;
+import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Subrange;
@@ -169,16 +169,12 @@ public class TimeSurfaceFactory
         return PlotUtil.readCoordinateRanges( layers, 2, dataStore );
     }
 
-    public TimeAspect pan( Surface surface, Point pos0, Point pos1 ) {
-        return ((TimeSurface) surface).pan( pos0, pos1 );
+    public ConfigKey[] getNavigatorKeys() {
+        return TimeNavigator.getConfigKeys();
     }
 
-    public TimeAspect zoom( Surface surface, Point pos, double factor ) {
-        return ((TimeSurface) surface).zoom( pos, factor, true );
-    }
-
-    public TimeAspect center( Surface surface, double[] dpos ) {
-        return ((TimeSurface) surface).center( dpos );
+    public Navigator<TimeAspect> createNavigator( ConfigMap navConfig ) {
+        return TimeNavigator.createNavigator( navConfig );
     }
 
     /**

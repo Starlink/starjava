@@ -1,7 +1,6 @@
 package uk.ac.starlink.ttools.plot2;
 
 import java.awt.Graphics;
-import java.awt.Point;
 import java.awt.Rectangle;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.config.ConfigException;
@@ -107,42 +106,28 @@ public interface SurfaceFactory<P,A> {
      * @param  aspectConfig  configuration map that may contain keys from
      *                       <code>getAspectKeys</code>
      * @param  ranges  range data filled in from layers, or null
+     * @return   new aspect
      */
     A createAspect( P profile, ConfigMap aspectConfig, Range[] ranges )
         throws ConfigException;
 
     /**
-     * Returns a plot aspect representing a panned view of an existing surface.
-     * Panning semantics should preferably have the outcome that the same
-     * data position remains under the cursor before and after the pan.
+     * Returns the configuration keys that may be used to configure
+     * a navigator for use with this surface factory.
+     * The returned keys are used in the map supplied to the
+     * {@link #createNavigator} method.
      *
-     * @param   surface  plot surface created previously by this factory
-     * @param   pos0  reference screen position
-     * @param   pos1  destination reference screen position (drag to)
-     * @return   new surface aspect
+     * @return   navigator configuration keys
      */
-    A pan( Surface surface, Point pos0, Point pos1 );
+    ConfigKey[] getNavigatorKeys();
 
     /**
-     * Returns a plot aspect representing a zoomed view of an existing surface.
-     * Zooming semantics should preferably have the outcome that the same
-     * data position remains under the cursor before and after the zoom.
+     * Creates a navigator from configuration information.
+     * The returned value will be non-null.
      *
-     * @param   surface  plot surface created previously by this factory
-     * @param   pos  reference screen position
-     * @param   factor  zoom factor
-     * @return   new surface aspect
+     * @param   navigatorConfig  configuration map that may contain keys from
+     *                           <code>getNavigatorKeys</code>
+     * @return   navigator for use with surfaces produced by this factory
      */
-    A zoom( Surface surface, Point pos, double factor );
-
-    /**
-     * Returns a plot aspect representing a recentred view of an existing
-     * surface.
-     *
-     * @param   surface  plot surface created previously by this factory
-     * @param   dpos   dataDimCount-element array giving data coordinates of
-     *                 point to appear at plot bounds center
-     * @return   new surface aspect
-     */
-    A center( Surface surface, double[] dpos );
+    Navigator<A> createNavigator( ConfigMap navigatorConfig );
 }

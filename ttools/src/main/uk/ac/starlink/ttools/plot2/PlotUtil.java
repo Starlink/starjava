@@ -1,6 +1,7 @@
 package uk.ac.starlink.ttools.plot2;
 
 import java.awt.Graphics2D;
+import java.awt.event.MouseWheelEvent;
 import java.lang.reflect.Array;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -192,6 +193,21 @@ public class PlotUtil {
 
         /* Return the ranges. */
         return ranges;
+    }
+
+    /**
+     * Determines a zoom factor from a mouse wheel event and a given
+     * unit zoom factor.
+     * It just multiplies the given unit factor by the number of wheel clicks
+     * (and applies a sense adjustment).
+     *
+     * @param   unitFactor   positive zoom factor corresponding to a
+     *                       single click
+     * @param   evt   mouse wheel event
+     * @return   zoom factor
+     */
+    public static double toZoom( double unitFactor, MouseWheelEvent evt ) {
+        return Math.pow( unitFactor, - evt.getWheelRotation() );
     }
 
     /**

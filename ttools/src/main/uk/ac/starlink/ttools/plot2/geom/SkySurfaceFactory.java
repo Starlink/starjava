@@ -1,12 +1,12 @@
 package uk.ac.starlink.ttools.plot2.geom;
 
-import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.Captioner;
+import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PointCloud;
 import uk.ac.starlink.ttools.plot2.Surface;
@@ -174,16 +174,12 @@ public class SkySurfaceFactory
         return ranges;
     }
 
-    public SkyAspect pan( Surface surface, Point pos0, Point pos1 ) {
-        return ((SkySurface) surface).pan( pos0, pos1 );
+    public ConfigKey[] getNavigatorKeys() {
+        return SkyNavigator.getConfigKeys();
     }
 
-    public SkyAspect zoom( Surface surface, Point pos, double factor ) {
-        return ((SkySurface) surface).zoom( pos, factor );
-    }
-
-    public SkyAspect center( Surface surface, double[] dpos ) {
-        return ((SkySurface) surface).center( dpos );
+    public Navigator<SkyAspect> createNavigator( ConfigMap navConfig ) {
+        return SkyNavigator.createNavigator( navConfig );
     }
 
     /**
