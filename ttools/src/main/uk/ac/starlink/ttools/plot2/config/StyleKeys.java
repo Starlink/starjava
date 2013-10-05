@@ -272,6 +272,12 @@ public class StyleKeys {
     public static final ConfigKey<Boolean> MINOR_TICKS =
         new BooleanConfigKey( new ConfigMeta( "minor", "Minor Ticks" ), true );
 
+    /** Config key for zoom factor. */
+    public static final ConfigKey<Double> ZOOM_FACTOR =
+        DoubleConfigKey
+       .createSliderKey( new ConfigMeta( "zoomfactor", "Zoom Factor" ),
+                         1.2, 1, 2, true );
+
     /**
      * Private constructor prevents instantiation.
      */

@@ -8,6 +8,7 @@ import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
+import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 
 /**
  * Navigator for use with time plot.
@@ -53,7 +54,9 @@ public class TimeNavigator implements Navigator<TimeAspect> {
      * @return  config keys
      */
     public static ConfigKey[] getConfigKeys() {
-        return new ConfigKey[ 0 ];
+        return new ConfigKey[] {
+            StyleKeys.ZOOM_FACTOR,
+        };
     }
 
     /**
@@ -64,6 +67,7 @@ public class TimeNavigator implements Navigator<TimeAspect> {
      * @return   navigator
      */
     public static TimeNavigator createNavigator( ConfigMap config ) {
-        return new TimeNavigator( 1.2, true );
+        double zoom = config.get( StyleKeys.ZOOM_FACTOR );
+        return new TimeNavigator( zoom, true );
     }
 }

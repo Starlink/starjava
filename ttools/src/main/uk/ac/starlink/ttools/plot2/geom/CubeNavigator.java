@@ -8,6 +8,7 @@ import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
+import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 
 /**
  * Navigator for use with cube plot.
@@ -49,7 +50,9 @@ public class CubeNavigator implements Navigator<CubeAspect> {
      * @return  config keys
      */
     public static ConfigKey[] getConfigKeys() {
-        return new ConfigKey[ 0 ];
+        return new ConfigKey[] {
+            StyleKeys.ZOOM_FACTOR,
+        };
     }
 
     /**
@@ -60,6 +63,7 @@ public class CubeNavigator implements Navigator<CubeAspect> {
      * @return   navigator
      */
     public static CubeNavigator createNavigator( ConfigMap config ) {
-        return new CubeNavigator( 1.2 );
+        double zoom = config.get( StyleKeys.ZOOM_FACTOR );
+        return new CubeNavigator( zoom );
     }
 }

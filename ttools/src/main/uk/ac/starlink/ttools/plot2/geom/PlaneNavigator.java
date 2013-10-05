@@ -8,6 +8,7 @@ import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
+import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 
 /**
  * Navigator for use with plane plot.
@@ -48,7 +49,9 @@ public class PlaneNavigator implements Navigator<PlaneAspect> {
      * @return  config keys
      */
     public static ConfigKey[] getConfigKeys() {
-        return new ConfigKey[ 0 ];
+        return new ConfigKey[] {
+            StyleKeys.ZOOM_FACTOR,
+        };
     }
 
     /**
@@ -59,6 +62,7 @@ public class PlaneNavigator implements Navigator<PlaneAspect> {
      * @return   navigator
      */
     public static PlaneNavigator createNavigator( ConfigMap navConfig ) {
-        return new PlaneNavigator( 1.2 );
+        double zoom = navConfig.get( StyleKeys.ZOOM_FACTOR );
+        return new PlaneNavigator( zoom );
     }
 }

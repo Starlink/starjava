@@ -8,6 +8,7 @@ import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
+import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 
 /**
  * Navigator for use with sky plot.
@@ -48,7 +49,9 @@ public class SkyNavigator implements Navigator<SkyAspect> {
      * @return  config keys
      */
     public static ConfigKey[] getConfigKeys() {
-        return new ConfigKey[ 0 ];
+        return new ConfigKey[] {
+            StyleKeys.ZOOM_FACTOR,
+        };
     }
 
     /**
@@ -59,6 +62,7 @@ public class SkyNavigator implements Navigator<SkyAspect> {
      * @return   navigator
      */
     public static SkyNavigator createNavigator( ConfigMap navConfig ) {
-        return new SkyNavigator( 1.2 );
+        double zoom = navConfig.get( StyleKeys.ZOOM_FACTOR );
+        return new SkyNavigator( zoom );
     }
 }
