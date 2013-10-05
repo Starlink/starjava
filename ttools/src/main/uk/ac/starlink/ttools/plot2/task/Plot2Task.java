@@ -55,6 +55,7 @@ import uk.ac.starlink.ttools.plot2.geom.CubePlotType;
 import uk.ac.starlink.ttools.plot2.geom.PlanePlotType;
 import uk.ac.starlink.ttools.plot2.geom.SpherePlotType;
 import uk.ac.starlink.ttools.plot2.geom.SkyPlotType;
+import uk.ac.starlink.ttools.plot2.geom.TimePlotType;
 import uk.ac.starlink.ttools.plot2.paper.PaperType;
 import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
 import uk.ac.starlink.ttools.plottask.ColorParameter;
@@ -100,6 +101,7 @@ public class Plot2Task implements Task {
             SkyPlotType.getInstance(),
             CubePlotType.getInstance(),
             SpherePlotType.getInstance(),
+            TimePlotType.getInstance(),
         } );
         geomParam_ = new ChoiceParameter<DataGeom>( "geom" );
         xpixParam_ = new IntegerParameter( "xpix" );
