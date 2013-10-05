@@ -320,11 +320,11 @@ public class CubeSurfaceFactory
     }
 
     public ConfigKey[] getNavigatorKeys() {
-        return CubeNavigator.getConfigKeys();
+        return CubeNavigator.getConfigKeys( isIso_ );
     }
 
     public Navigator<CubeAspect> createNavigator( ConfigMap navConfig ) {
-        return CubeNavigator.createNavigator( navConfig );
+        return CubeNavigator.createNavigator( isIso_, navConfig );
     }
 
     /**

@@ -237,6 +237,7 @@ public class Plot2Task implements Task {
         List<ConfigKey> keyList = new ArrayList<ConfigKey>();
         keyList.addAll( Arrays.asList( surfFact.getProfileKeys() ) );
         keyList.addAll( Arrays.asList( surfFact.getAspectKeys() ) );
+        keyList.addAll( Arrays.asList( surfFact.getNavigatorKeys() ) );
         keyList.add( StyleKeys.SHADE_LOW );
         keyList.add( StyleKeys.SHADE_HIGH );
         ConfigKey[] surfKeys = keyList.toArray( new ConfigKey[ 0 ] );

@@ -186,20 +186,21 @@ public class TimeSurface implements Surface {
 
     /**
      * Returns a plot aspect representing a view of this surface zoomed
-     * around the given central position.
+     * in some or all dimensions around the given central position.
      *
      * @param  pos  reference graphics position
      * @param  factor  zoom factor
-     * @param  timeOnly   true to zoom just horizontally,
-     *                    false to zoom in both directions
+     * @param  tFlag  true to zoom in horizontal direction
+     * @param  yFlag  true to zoom in vertical direction
      * @return  new aspect
      */
-    TimeAspect zoom( Point pos, double factor, boolean timeOnly ) {
+    TimeAspect zoom( Point pos, double factor, boolean tFlag, boolean yFlag ) {
         return new TimeAspect(
-            tAxis_.dataZoom( tAxis_.graphicsToData( pos.x ), factor ),
-            timeOnly ? new double[] { dylo_, dyhi_ }
-                     : yAxis_.dataZoom( yAxis_.graphicsToData( pos.y ),
-                       factor ) );
+            tFlag ? tAxis_.dataZoom( tAxis_.graphicsToData( pos.x ), factor )
+                  : new double[] { dtlo_, dthi_ },
+            yFlag ? yAxis_.dataZoom( yAxis_.graphicsToData( pos.y ), factor )
+                  : new double[] { dylo_, dyhi_ }
+        );
     }
 
     /**

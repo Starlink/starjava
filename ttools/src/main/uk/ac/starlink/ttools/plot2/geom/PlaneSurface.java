@@ -187,17 +187,21 @@ public class PlaneSurface implements Surface {
 
     /**
      * Returns a plot aspect representing a view of this surface zoomed
-     * around the given central position.
+     * in some or all dimensions around the given central position.
      *
      * @param  pos  reference graphics position
      * @param  factor  zoom factor
+     * @param  xFlag  true iff zoom is to operate in X direction
+     * @param  yFlag  true iff zoom is to operate in Y direction
      * @return  new aspect
      */
-    PlaneAspect zoom( Point pos, double factor ) {
-        return new PlaneAspect( xAxis_.dataZoom( xAxis_.graphicsToData( pos.x ),
-                                                 factor ),
-                                yAxis_.dataZoom( yAxis_.graphicsToData( pos.y ),
-                                                 factor ) );
+    PlaneAspect zoom( Point pos, double factor, boolean xFlag, boolean yFlag ) {
+        return new PlaneAspect(
+            xFlag ? xAxis_.dataZoom( xAxis_.graphicsToData( pos.x ), factor )
+                  : new double[] { dxlo_, dxhi_ },
+            yFlag ? yAxis_.dataZoom( yAxis_.graphicsToData( pos.y ), factor )
+                  : new double[] { dylo_, dyhi_ }
+        );
     }
 
     /**

@@ -410,19 +410,23 @@ public class CubeSurface implements Surface {
 
     /**
      * Returns a cube surface like this one but zoomed about its centre
-     * by a given factor.
+     * in some or all dimensions by a given factor.
      *
      * @param  factor  zoom factor
+     * @param   xFlag  true to zoom in X direction
+     * @param   yFlag  true to zoom in Y direction
+     * @param   zFlag  true to zoom in Z direction
      * @return   new cube
      */
-    CubeAspect zoom( double factor ) {
+    CubeAspect zoom( double factor,
+                     boolean xFlag, boolean yFlag, boolean zFlag ) {
         double[] midPos = new double[ 3 ];
         for ( int i = 0; i < 3; i++ ) {
             midPos[ i ] = logFlags_[ i ]
                         ? Math.sqrt( dlos_[ i ] * dhis_[ i ] )
                         : ( dlos_[ i ] + dhis_[ i ] ) / 2.0;
         }
-        return zoomData( factor, midPos );
+        return zoomData( factor, midPos, xFlag, yFlag, zFlag );
     }
 
     /**
@@ -464,19 +468,31 @@ public class CubeSurface implements Surface {
      *
      * @param  factor  zoom factor
      * @param  dpos0  zoom centre in data coordinates
+     * @param   xFlag  true to zoom in X direction
+     * @param   yFlag  true to zoom in Y direction
+     * @param   zFlag  true to zoom in Z direction
      * @return   new cube
      */
-    CubeAspect zoomData( double factor, double[] dpos0 ) {
+    CubeAspect zoomData( double factor, double[] dpos0,
+                         boolean xFlag, boolean yFlag, boolean zFlag ) {
+        boolean[] flags = new boolean[] { xFlag, yFlag, zFlag };
         double[][] limits = new double[ 3 ][];
         for ( int i = 0; i < 3; i++ ) {
             double d0 = dpos0[ i ];
             double dlo = dlos_[ i ];
             double dhi = dhis_[ i ];
-            limits[ i ] = logFlags_[ i ]
-                ? new double[] { d0 * Math.pow( dlo / d0, 1. / factor ),
-                                 d0 * Math.pow( dhi / d0, 1. / factor ) }
-                : new double[] { d0 + ( dlo - d0 ) / factor,
-                                 d0 + ( dhi - d0 ) / factor };
+            final double[] lims;
+            if ( flags[ i ] ) {
+                lims = logFlags_[ i ]
+                    ? new double[] { d0 * Math.pow( dlo / d0, 1. / factor ),
+                                     d0 * Math.pow( dhi / d0, 1. / factor ) }
+                    : new double[] { d0 + ( dlo - d0 ) / factor,
+                                     d0 + ( dhi - d0 ) / factor };
+            }
+            else {
+                lims = new double[] { dlo, dhi };
+            }
+            limits[ i ] = lims;
         }
         return new CubeAspect( limits[ 0 ], limits[ 1 ], limits[ 2 ],
                                rotmat_, zoom_, xoff_, yoff_ );
