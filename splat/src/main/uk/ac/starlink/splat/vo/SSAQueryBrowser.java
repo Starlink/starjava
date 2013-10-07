@@ -913,6 +913,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         
         JPanel controlPanel = new JPanel( new BorderLayout() );
         JPanel controlPanel1 = new JPanel();
+        controlPanel1.setPreferredSize(new Dimension(600,50));
         JPanel controlPanel2 = new JPanel();
 
         //  Download and display.
@@ -1222,18 +1223,21 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         //  Create a stack of all queries to perform.
         ArrayList<SSAQuery> queryList = new ArrayList<SSAQuery>();
         // update serverlist from servertree class
-        serverList = tree.getServerList();
-        Iterator i = serverList.getIterator();
+        final SSAServerList slist=tree.getServerList();
+        //serverList = tree.getServerList();
+        Iterator i = slist.getIterator();
        
         SSAPRegResource server = null;
         while( i.hasNext() ) {
             server = (SSAPRegResource) i.next();
-            if (serverList.isServerSelected(server.getShortName())) {
-            
-            SSAQuery ssaQuery =  new SSAQuery(queryLine);//new SSAQuery( server );
-            ssaQuery.setServer( server) ; //Parameters(queryLine); // copy the query parameters to the new query
-          
- /*           ssaQuery.setTargetName( objectName );
+            if (server != null )
+                try {
+                    if (slist.isServerSelected(server.getShortName())) {
+
+                        SSAQuery ssaQuery =  new SSAQuery(queryLine);//new SSAQuery( server );
+                        ssaQuery.setServer( server) ; //Parameters(queryLine); // copy the query parameters to the new query
+
+                        /*           ssaQuery.setTargetName( objectName );
             ssaQuery.setPosition( ra, dec );
             ssaQuery.setRadius( radius );
             ssaQuery.setBand( lowerBand, upperBand );
@@ -1241,9 +1245,15 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             ssaQuery.setFormat( format );
             ssaQuery.setWaveCalib( waveCalib );
             ssaQuery.setFluxCalib( fluxCalib );*/
-            queryList.add( ssaQuery );
-            }
-        }
+                        queryList.add( ssaQuery );
+                    }
+                } catch(Exception npe) {
+                    ErrorDialog.showError( this, "Exception", npe );
+                    npe.printStackTrace();
+                }
+
+        }//while
+        
 
         // Now actually do the queries, these are performed in a separate
         // Thread so we avoid locking the interface.
@@ -1263,7 +1273,8 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
      */
     protected void processQueryList( ArrayList<SSAQuery> queryList )
     {
-        
+        // final serverlist
+   
         //  final ArrayList localQueryList = queryList;
         makeResultsDisplay( null );
         
@@ -1325,10 +1336,8 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
     /**
      * Do a query to an SSAP server.
      */
-    private void runProcessQuery( SSAQuery ssaQuery, 
-            ProgressPanel progressPanel )
-                    throws InterruptedException
-                    {
+    private void runProcessQuery( SSAQuery ssaQuery, ProgressPanel progressPanel ) throws InterruptedException
+    {
         boolean failed = false;
         boolean overflow = false;
 
@@ -1339,19 +1348,17 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
       
         URL queryURL = null;
 
-        // int j = 0;
-        
-       
+        logger.info( "Querying: " + queryURL );
+        progressPanel.logMessage( ssaQuery.getBaseURL() );
+      
         try {
             queryURL = ssaQuery.getQueryURL();
-          
-
+ 
             // check if more parameters have been added
             // Not very nice... should think of a better way to do that
-            //
-     
+            //     
             String extendedQuery = extendedQuery=metaPanel.getParamsQueryString();
-            logger.info( "Extended Query string " + extendedQuery );
+           // logger.info( "Extended Query string " + extendedQuery );
             if (extendedQuery != null && extendedQuery.length() > 0) 
             {
                 String newURL = queryURL.toString() + extendedQuery;
@@ -1364,20 +1371,15 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             progressPanel.logMessage( mue.getMessage() );
             logger.info( "Malformed URL "+queryURL );
             failed = true;
+            return;
         }
         catch ( UnsupportedEncodingException uee) {
             progressPanel.logMessage( uee.getMessage() );
             logger.info( "URL Encoding Exception "+queryURL );
             failed = true;
+            return;
         } 
-        //   accessControl = new HashMap<String,String>;
-        //    accessControl.addPropertyChangeListener(this);
-
-        logger.info( "Querying: " + queryURL );
-
-        progressPanel.logMessage( ssaQuery.getBaseURL() );
-    
-       
+        
         //  Do the query and get the result as a StarTable. Uses this
         //  method for efficiency as non-result tables are ignored.
         try {
@@ -1473,6 +1475,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         if ( ! failed && ! overflow ) {
             progressPanel.logMessage( "Completed download" );
         }
+
 } //runProcessQUery
 
  
