@@ -18229,6 +18229,8 @@ introduced since the last version:
             colour maps to use.</li>
         <li>Sky plot position formatting now honours sexagesimal setting.</li>
         <li>Add new auto transparency shading mode to layer plots.</li>
+        <li>Fix bug when concatenating tables whose data cells
+            may have been edited by hand.</li>
         </ul>
         </p></dd>
 

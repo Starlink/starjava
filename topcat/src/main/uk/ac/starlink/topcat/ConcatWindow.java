@@ -229,6 +229,7 @@ public class ConcatWindow extends AuxWindow
         int ncol = colSelectors.length;
         ColumnStarTable t2 = ColumnStarTable
                             .makeTableWithRows( t2base.getRowCount() );
+        TableColumnModel t2baseColModel = getAddedTable().getColumnModel();
         for ( int icol = 0; icol < ncol; icol++ ) {
             ColumnData cdata;
             TableColumn tcol = (TableColumn)
@@ -242,7 +243,17 @@ public class ConcatWindow extends AuxWindow
                 int ic2 = -1;
                 ColumnInfo cinfo = ((StarTableColumn) tcol).getColumnInfo();
                 for ( int jcol = 0; jcol < t2base.getColumnCount(); jcol++ ) {
-                    if ( t2base.getColumnInfo( jcol ) == cinfo ) {
+
+                    /* Get the column from the column model, not just from
+                     * the table (t2base.getColumnInfo()).  The two colinfos
+                     * might not match, in particular in the case that the
+                     * column has been replaced by an EditableColumn.
+                     * That is probably a bug or undesirable feature of how
+                     * EditableColumns are installed, but for now just work
+                     * around it here by making sure we test the same thing
+                     * against itself. */
+                    if ( ((StarTableColumn) t2baseColModel.getColumn( jcol ))
+                                           .getColumnInfo() == cinfo ) {
                         ic2 = jcol;
                     }
                 }
