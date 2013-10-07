@@ -1,24 +1,20 @@
 1 Starlink SPLAT news.
-   3.9-9
+
+   3.10-1
    ======
 
-   Extensive changes and new features in the SSAP Query GUI:
+   This version introduces server-side manipulations using the SSAP getData operation.
 
-   Possibility to select servers according to waveband or data source 
-   (theory/archive/survey), as well as user defined tags. 
+   Besides that some improvements have been made in the server selection interface:
+	- User-defined server tags are now saved and loaded next time SPLAT starts.
+	- Added "all theoretical" / "all observational" server options.
+
+   Several bug fixes, including 
+	- correct display of server resources containing more than one SSAP capability
+	- correction of server information display
+
+	- big fix: Exception when querying registry
    
-   Possibility to add optional metadata parameters to the query according 
-   to selected servers. 
-
-   Possibility to manually add a ssap server into the server list.
-
-   Access control with HTTP password implemented
-
-   Bug fixes:
-   If the MAXREC limit is reached, SPLAT does not return an error anymore, but downloads
-   the MAXREC records.
-   Fixed BAND parameter input in the case when the upper limit is null
-   Added URL encoding for TARGETNAME, so the targets can have special characters like '+'   
 
    3.10-0
    ======
@@ -55,6 +51,28 @@
    A bug in the spectral synopsis that misidentified the celestial coordinate
    axes has been fixed. This means the "Spec position:" item should now be 
    correct for DSB spectral frames with permuted axes.
+
+
+   3.9-9
+   ======
+
+   Extensive changes and new features in the SSAP Query GUI:
+
+   Possibility to select servers according to waveband or data source 
+   (theory/archive/survey), as well as user defined tags. 
+   
+   Possibility to add optional metadata parameters to the query according 
+   to selected servers. 
+
+   Possibility to manually add a ssap server into the server list.
+
+   Access control with HTTP password implemented
+
+   Bug fixes:
+   If the MAXREC limit is reached, SPLAT does not return an error anymore, but downloads
+   the MAXREC records.
+   Fixed BAND parameter input in the case when the upper limit is null
+   Added URL encoding for TARGETNAME, so the targets can have special characters like '+'   
 
    3.9-8
    =====
