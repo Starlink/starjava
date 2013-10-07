@@ -494,14 +494,7 @@ public class SSAMetadataPanel extends JPanel implements ActionListener, TableMod
     } // initMenus
 
 
-    /**
-     *  Register new Property Change Listener
-    
-    public void addPropertyChangeListener(PropertyChangeListener l) 
-    {
-        queryMetadata.addPropertyChangeListener(l);
-    }*/
-
+  
     /**
      *  action performed
      *  process the actions when a button is clicked
