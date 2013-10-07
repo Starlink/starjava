@@ -1,6 +1,5 @@
 1 Starlink SPLAT news.
 
-
    3.11-0
    ======
 
@@ -12,6 +11,20 @@
    SPLAT can run without attempting to communicate with any running
    SAMP hubs.
 
+   3.10-1
+   ======
+
+   This version introduces server-side manipulations using the SSAP getData operation.
+
+   Besides that some improvements have been made in the server selection interface:
+	- User-defined server tags are now saved and loaded next time SPLAT starts.
+	- Added "all theoretical" / "all observational" server options.
+
+   Several bug fixes, including 
+	- correct display of server resources containing more than one SSAP capability
+	- correction of server information display
+
+	- big fix: Exception when querying registry
 
    3.10-0
    ======
@@ -91,7 +104,6 @@
  
    Post Kaulia
 
-   Post Kaulia
    3.9-7
    =====
 
