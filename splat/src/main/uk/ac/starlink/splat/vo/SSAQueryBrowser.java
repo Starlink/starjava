@@ -42,19 +42,6 @@ import java.net.Authenticator;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-import java.net.HttpURLConnection;
->>>>>>> further development of GET DATA functionality 
-=======
->>>>>>> Bug fix on server selection after querying registry for updates
-=======
->>>>>>> New server selection options: all observ x all theory. User-created Tags can now be saved
-=======
->>>>>>> resolving conflicts
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -123,17 +110,6 @@ import uk.ac.starlink.splat.util.SplatCommunicator;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.Transmitter;
 import uk.ac.starlink.splat.util.Utilities;
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-=======
->>>>>>> New server selection options: all observ x all theory. User-created Tags can now be saved
-=======
->>>>>>> resolving conflicts
-import uk.ac.starlink.splat.vo.SSAServerTree.ServerTreeNode;
-//import uk.ac.starlink.splat.vo.SSAMetadataFrame.MetadataInputParameter;
->>>>>>> Bug fix on server selection after querying registry for updates
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RowSequence;
@@ -174,16 +150,6 @@ import javax.xml.transform.sax.SAXSource;
  * @author Mark Taylor
  * @author Margarida Castro Neves 
  * @version $Id: SSAQueryBrowser.java 10547 2013-04-10 15:10:07Z mcneves $
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
- * @version $Id: SSAQueryBrowser.java 10547 2013-04-10 15:10:07Z mcneves $
-=======
- * @version $Id$
->>>>>>> c8866990c9406f5205c11cc1833546796acc04c0
->>>>>>> New server selection options: all observ x all theory. User-created Tags can now be saved
-=======
->>>>>>> resolving conflicts
  *
  */
 public class SSAQueryBrowser
@@ -199,22 +165,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
 
     /** Initial window size and location */
     private static final Rectangle defaultWindowLocation =
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
             new Rectangle( 0, 0, 800, 600 );
-=======
-            new Rectangle( 0, 0, 800, 720 );
->>>>>>> further development of GET DATA functionality 
-=======
-            new Rectangle( 0, 0, 800, 720 );
-=======
-            new Rectangle( 0, 0, 800, 700 );
->>>>>>> c8866990c9406f5205c11cc1833546796acc04c0
->>>>>>> New server selection options: all observ x all theory. User-created Tags can now be saved
-=======
-            new Rectangle( 0, 0, 800, 720 );
->>>>>>> resolving conflicts
 
     /**
      * The object holding the list of servers that we should use for SSA queries.
@@ -363,7 +314,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
     protected JRadioButton  customSearchButton;
 
     /** Display GET DATA  parameters and activation status */
-<<<<<<< HEAD
 //    protected JButton  getDataButton;
     
 //    protected boolean getDataEnabled = false;
@@ -385,13 +335,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
      * @uml.property  name="goButton"
      * @uml.associationEnd  
      */
-=======
-    protected JButton  getDataButton;
-    
-    protected boolean getDataEnabled = false;
-
-    /** Make the query to all known servers */
->>>>>>> further development of GET DATA functionality 
     protected JButton goButton = null;
     
     /**
@@ -607,23 +550,13 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
      * @uml.property  name="isLookup"
      */
     private boolean isLookup = false;
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
     /**
      * @uml.property  name="getDataSelection"
      */
-=======
->>>>>>> 
-=======
->>>>>>> New server selection options: all observ x all theory. User-created Tags can now be saved
-=======
->>>>>>> resolving conflicts
     private boolean getDataSelection = false;
    
     static ProgressPanelFrame progressFrame = null;
 
-<<<<<<< HEAD
     /**
      * @uml.property  name="getDataFrame"
      * @uml.associationEnd  
@@ -634,20 +567,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
      * @uml.associationEnd  
      */
     private DataLinkQueryFrame dataLinkFrame = null;
-=======
-    private GetDataQueryFrame getDataFrame = null;
-<<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> further development of GET DATA functionality 
-=======
-=======
-    
-    static ProgressPanelFrame progressFrame = null;
-
->>>>>>> c8866990c9406f5205c11cc1833546796acc04c0
->>>>>>> New server selection options: all observ x all theory. User-created Tags can now be saved
-=======
->>>>>>> resolving conflicts
 
     /**
      * Create an instance.
@@ -685,27 +604,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
     {
        
         JPanel contentPane = (JPanel) getContentPane();
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-=======
->>>>>>> New server selection options: all observ x all theory. User-created Tags can now be saved
-=======
->>>>>>> resolving conflicts
-        contentPane.setPreferredSize(new Dimension(900,720));
-        //contentPane.setLayout( new BorderLayout() );
-       // contentPane.setLayout( new GridLayout(1,2,3,3) );
-        contentPane.setLayout( new BoxLayout(contentPane, BoxLayout.X_AXIS) );
-      
-      //  GridBagLayout gblayout = new GridBagLayout();
-     //   contentPane.setLayout(gblayout); 
-       
-     //   GridBagConstraints c = new GridBagConstraints();
-      //  c.fill = GridBagConstraints.HORIZONTAL;
-        
->>>>>>> further development of GET DATA functionality 
-        
       
         contentPane.setPreferredSize(new Dimension(800,720));
         contentPane.setMinimumSize(new Dimension(600,400));
@@ -718,25 +616,11 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         splitPanel.setDividerLocation(0.3);
       
        
-<<<<<<< HEAD
         this.add(splitPanel);
         leftPanel = new JPanel( );
    
         initServerComponents();
     //    tabPane.addTab("Server selection", leftPanel);
-=======
-        centrePanel = new JPanel( new BorderLayout() );
-        centrePanel.setPreferredSize(new Dimension(600,700));
-     
-     //   c.gridx=1; c.gridy=0;//c.weightx=3;
-     //   c.gridwidth = GridBagConstraints.REMAINDER; //end row
-     //   gblayout.setConstraints(centrePanel, c);
-   //     contentPane.add( centrePanel);//, BorderLayout.LINE_END );
-        
-       // this.setPreferredSize(ç);
-      //  contentPane.setSize(800, 600);
-       // this.setSize(new Dimension(800,600));
->>>>>>> 
       
         centrePanel = new JPanel( new GridBagLayout() );
         centrePanel.setMinimumSize(new Dimension(400,200));
@@ -947,23 +831,10 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
        // customScrollPanel = new JScrollPane( customQueryPanel );
         queryParamPanel.setLayout(new GridBagLayout());
         GridBagConstraints c = new GridBagConstraints();
-<<<<<<< HEAD
         c.fill=GridBagConstraints.BOTH;
         c.anchor=GridBagConstraints.NORTHWEST;
         c.weightx=.5;
         c.weighty=1.;
-=======
-        c.fill=GridBagConstraints.HORIZONTAL;
-        
-<<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> further development of GET DATA functionality 
-=======
-=======
->>>>>>> c8866990c9406f5205c11cc1833546796acc04c0
->>>>>>> New server selection options: all observ x all theory. User-created Tags can now be saved
-=======
->>>>>>> resolving conflicts
         c.gridx = 0;
         c.gridy = 0;
         
@@ -1272,9 +1143,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         gbc.anchor=GridBagConstraints.NORTHWEST;
         gbc.fill=GridBagConstraints.BOTH;
         resultsPane = new JTabbedPane();
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 //        resultsPane.setPreferredSize(new (600,310));
         resultsPanel.add( resultsPane , gbc);
         resultsPane.addChangeListener(new ChangeListener() {
@@ -1298,14 +1166,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                 }
             }
         });
-=======
-=======
->>>>>>> New server selection options: all observ x all theory. User-created Tags can now be saved
-=======
->>>>>>> resolving conflicts
-        resultsPane.setPreferredSize(new Dimension(600,310));
-        resultsPanel.add( resultsPane, BorderLayout.NORTH );
->>>>>>> further development of GET DATA functionality 
         
      
         JPanel controlPanel = new JPanel(new GridBagLayout());
@@ -1339,12 +1199,8 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         downloadSelectedButton.setMargin(new Insets(1,10,1,10));  
         downloadSelectedButton.setToolTipText
         ( "Download all spectra selected in all tables");
-<<<<<<< HEAD
         gbcontrol.gridx=2;
         controlPanel.add( downloadSelectedButton, gbcontrol );
-=======
-        controlPanel1.add( downloadSelectedButton );
->>>>>>> further development of GET DATA functionality 
       
 
         downloadAllButton = new JButton( "<html>Download<BR> all</html>" );
@@ -1373,7 +1229,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         deselectAllButton.setToolTipText
         ( "Deselect all spectra in all tables" );
      //   controlPanel2.add( deselectAllButton );
-<<<<<<< HEAD
         gbcontrol.gridx=5;
         controlPanel.add( deselectAllButton , gbcontrol);
 /*
@@ -1404,25 +1259,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         resultsPanel.add( controlPanel, gbc );
         centrePanel.add( resultsPanel, gbcentre );
      
-=======
-        controlPanel1.add( deselectAllButton );
-
-        getDataButton = new JButton( "<html>GET<BR> DATA</html>" );
-        getDataButton.addActionListener( this );
-        getDataButton.setMargin(new Insets(1,10,1,10));  
-        getDataButton.setToolTipText
-        ( "Server-side processing parameters" );
-        getDataButton.setEnabled(false);
-        getDataButton.setVisible(false);
-     //   controlPanel2.add( deselectAllButton );
-        
-      
-        controlPanel1.add( getDataButton );
-        controlPanel.add( controlPanel1, BorderLayout.NORTH );
-     //   controlPanel.add( controlPanel2, BorderLayout.SOUTH );
-        resultsPanel.add( controlPanel, BorderLayout.SOUTH );
-        centrePanel.add( resultsPanel, BorderLayout.CENTER );
->>>>>>> further development of GET DATA functionality 
     }
 
     /**
@@ -1669,36 +1505,13 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         
         //  Create a stack of all queries to perform.
         ArrayList<SSAQuery> queryList = new ArrayList<SSAQuery>();
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
         
         //serverList = tree.getServerList();
         Iterator i = slist.getIterator();
 
-=======
-=======
->>>>>>> New server selection options: all observ x all theory. User-created Tags can now be saved
-=======
->>>>>>> resolving conflicts
-        // update serverlist from servertree class
-        serverList = tree.getServerList();
-        Iterator i = serverList.getIterator();
-       
-<<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> Bug fix on server selection after querying registry for updates
-=======
-=======
-        Iterator i = serverList.getIterator();
->>>>>>> c8866990c9406f5205c11cc1833546796acc04c0
->>>>>>> New server selection options: all observ x all theory. User-created Tags can now be saved
-=======
->>>>>>> resolving conflicts
         SSAPRegResource server = null;
         while( i.hasNext() ) {
             server = (SSAPRegResource) i.next();
-<<<<<<< HEAD
             if (server != null )
                 try {
                     if (slist.isServerSelected(server.getShortName())) {
@@ -1730,25 +1543,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
 
         }//while
 
-=======
-            if (serverList.isServerSelected(server.getShortName())) {
-            
-            SSAQuery ssaQuery =  new SSAQuery(queryLine);//new SSAQuery( server );
-            ssaQuery.setServer( server) ; //Parameters(queryLine); // copy the query parameters to the new query
-          
- /*           ssaQuery.setTargetName( objectName );
-            ssaQuery.setPosition( ra, dec );
-            ssaQuery.setRadius( radius );
-            ssaQuery.setBand( lowerBand, upperBand );
-            ssaQuery.setTime( lowerTime, upperTime );
-            ssaQuery.setFormat( format );
-            ssaQuery.setWaveCalib( waveCalib );
-            ssaQuery.setFluxCalib( fluxCalib );*/
-            queryList.add( ssaQuery );
-            }
-        }
->>>>>>> 
-
         // Now actually do the queries, these are performed in a separate
         // Thread so we avoid locking the interface.
         if ( queryList.size() > 0 ) {
@@ -1767,34 +1561,9 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
      */
     protected void processQueryList( ArrayList<SSAQuery> queryList )
     {
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
         // final serverlist
    
-=======
         
-<<<<<<< HEAD
- 
-        // RESET getData panels
-        
-        getDataSelectionPanel = null;
-        getDataScroller  = null; 
-        
-        getDataParam = new HashMap<String, String>();
-
-        
->>>>>>> 
-=======
->>>>>>> further development of GET DATA functionality 
-=======
-        
-=======
->>>>>>> c8866990c9406f5205c11cc1833546796acc04c0
->>>>>>> New server selection options: all observ x all theory. User-created Tags can now be saved
-=======
-        
->>>>>>> resolving conflicts
         //  final ArrayList localQueryList = queryList;
         makeResultsDisplay( null );
         
@@ -1856,21 +1625,8 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
     /**
      * Do a query to an SSAP server.
      */
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
     private void runProcessQuery( SSAQuery ssaQuery, ProgressPanel progressPanel ) throws InterruptedException
     {
-=======
-=======
->>>>>>> New server selection options: all observ x all theory. User-created Tags can now be saved
-=======
->>>>>>> resolving conflicts
-    private void runProcessQuery( SSAQuery ssaQuery, 
-            ProgressPanel progressPanel )
-                    throws InterruptedException
-                    {
->>>>>>> 
         boolean failed = false;
         boolean overflow = false;
 
@@ -1878,8 +1634,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         //  formats.
         StarTable starTable = null;
         GetDataTable getDataTable = null;
-<<<<<<< HEAD
-<<<<<<< HEAD
         DataLinkParams dataLinkParams = null;
       
         URL queryURL = null;
@@ -1887,35 +1641,12 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         logger.info( "Querying: " + queryURL );
         progressPanel.logMessage( ssaQuery.getBaseURL() );
       
-<<<<<<< HEAD
         try { //!!!!!
             
             //queryURL = ssaQuery.getBaseURL();
  
-=======
-=======
-      
-<<<<<<< HEAD
->>>>>>> further development of GET DATA functionality 
-=======
-=======
->>>>>>> c8866990c9406f5205c11cc1833546796acc04c0
->>>>>>> New server selection options: all observ x all theory. User-created Tags can now be saved
-=======
->>>>>>> resolving conflicts
-        URL queryURL = null;
-
-        // int j = 0;
-        
-       
-        try {
-            queryURL = ssaQuery.getQueryURL();
-          
-
->>>>>>> 
             // check if more parameters have been added
             // Not very nice... should think of a better way to do that
-<<<<<<< HEAD
             //     
             //String extendedQuery =metaPanel.getParamsQueryString();
            // logger.info( "Extended Query string " + extendedQuery );
@@ -1926,19 +1657,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                 logger.info( "Query string " + queryURL.toString() );
                 //queryURL = new URL(newURL);
            // }
-=======
-            //
      
-            String extendedQuery = extendedQuery=metaPanel.getParamsQueryString();
-            logger.info( "Extended Query string " + extendedQuery );
-            if (extendedQuery != null && extendedQuery.length() > 0) 
-            {
-                String newURL = queryURL.toString() + extendedQuery;
-                logger.info( "Query string " + newURL );
-                queryURL = new URL(newURL);
-            }
->>>>>>> Bug fix on server selection after querying registry for updates
-            
         }   
         catch ( MalformedURLException mue ) {
             progressPanel.logMessage( mue.getMessage() );
@@ -1950,21 +1669,9 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             progressPanel.logMessage( uee.getMessage() );
             logger.info( "URL Encoding Exception "+queryURL );
             failed = true;
-<<<<<<< HEAD
             return;
         }
         
-=======
-        } 
-        //   accessControl = new HashMap<String,String>;
-        //    accessControl.addPropertyChangeListener(this);
-
-        logger.info( "Querying: " + queryURL );
-
-        progressPanel.logMessage( ssaQuery.getBaseURL() );
-    
-       
->>>>>>> 
         //  Do the query and get the result as a StarTable. Uses this
         //  method for efficiency as non-result tables are ignored.
         try {
@@ -1973,14 +1680,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             URLConnection con =  queryURL.openConnection();
            
             con.setConnectTimeout(10 * 1000); // 10 seconds
-<<<<<<< HEAD
-<<<<<<< HEAD
             con.setReadTimeout(30*1000);
-=======
->>>>>>> 
-=======
-            con.setReadTimeout(30*1000);
->>>>>>> Bug fix on server selection after querying registry for updates
             con.connect();
             
             InputSource inSrc = new InputSource( con.getInputStream() );
@@ -1991,8 +1691,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             VOElementFactory vofact = new VOElementFactory();
             
             VOElement voe = DalResourceXMLFilter.parseDalResult(vofact, inSrc);
-<<<<<<< HEAD
-<<<<<<< HEAD
            
         
             getDataTable = DalResourceXMLFilter.getDalGetDataTable( voe );
@@ -2011,78 +1709,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
 
             }
 
-=======
-           // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\
-=======
-           
->>>>>>> getData corrections
-            starTable = DalResourceXMLFilter.getDalResultTable( voe );
-            getDataTable = DalResourceXMLFilter.getDalGetDataTable( voe );
-<<<<<<< HEAD
->>>>>>> 
-=======
-            if (getDataTable != null) {
-                ssaQuery.setGetDataTable( getDataTable);
-
-            }
-
-<<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> further development of GET DATA functionality 
-=======
-=======
-            queryURL = ssaQuery.getQueryURL();
-          
-
-            // check if more parameters have been added
-            // Not very nice... should think of a better way to do that
-            //
-        //    if (metaFrame != null) {
-            //       String extendedQuery=metaFrame.getParamsQueryString();
-            String extendedQuery = null;
-    //        if (querystring != null)
-                extendedQuery=metaPanel.getParamsQueryString();
-            logger.info( "Extended Query string " + extendedQuery );
-            if (extendedQuery != null && extendedQuery.length() > 0) 
-            {
-                String newURL = queryURL.toString() + extendedQuery;
-                logger.info( "Query string " + newURL );
-                queryURL = new URL(newURL);
-            }
-            //     }
-        }   
-        catch ( MalformedURLException mue ) {
-            progressPanel.logMessage( mue.getMessage() );
-            logger.info( "Malformed URL "+queryURL );
-            failed = true;
-        }
-        catch ( UnsupportedEncodingException uee) {
-            progressPanel.logMessage( uee.getMessage() );
-            logger.info( "URL Encoding Exception "+queryURL );
-            failed = true;
-        } 
-        //   accessControl = new HashMap<String,String>;
-        //    accessControl.addPropertyChangeListener(this);
-
-        logger.info( "Querying: " + queryURL );
-
-        progressPanel.logMessage( ssaQuery.getBaseURL() );
-    
-    
-        //  Do the query and get the result as a StarTable. Uses this
-        //  method for efficiency as non-result tables are ignored.
-        try {
-            InputSource inSrc = new InputSource( queryURL.openStream() );
-            
-            // inSrc.setSystemId( ssaQuery.getBaseURL() );
-            inSrc.setSystemId( queryURL.toString());
-            VOElementFactory vofact = new VOElementFactory();
-           
-            starTable = DalResultXMLFilter.getDalResultTable( vofact, inSrc );
->>>>>>> c8866990c9406f5205c11cc1833546796acc04c0
->>>>>>> New server selection options: all observ x all theory. User-created Tags can now be saved
-=======
->>>>>>> resolving conflicts
           
             //  Check parameter QUERY_STATUS, this should be set to OK
             //  when the query
@@ -2120,18 +1746,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                 }
                 failed = true;
             }
-<<<<<<< HEAD
-<<<<<<< HEAD
-           
-=======
-            if (getDataTable != null) {
-                ssaQuery.setGetDataTable( getDataTable);
-            }
 
->>>>>>> 
-=======
-           
->>>>>>> further development of GET DATA functionality 
             //  Dump query results as VOTables.
             //uk.ac.starlink.table.StarTableOutput sto =
             //    new uk.ac.starlink.table.StarTableOutput();
@@ -2163,11 +1778,8 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             progressPanel.logMessage( "Completed download" );
         }
 
-<<<<<<< HEAD
     } //runProcessQUery
 
-=======
->>>>>>> 
  
     /**
      * Display the results of the queries to the SSA servers. The results can
@@ -2202,31 +1814,18 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         StarJTable table = null;
         StarTable starTable = null;
         GetDataTable getDataTable = null;
-<<<<<<< HEAD
         DataLinkParams  dataLinkParams = null;
-=======
->>>>>>> 
         String shortName = null;
      
         boolean hasParams = false;
        
-<<<<<<< HEAD
-<<<<<<< HEAD
         ImageIcon cutImage = new ImageIcon( ImageHolder.class.getResource("smallcutter.gif") );
-=======
->>>>>>> 
-=======
-        ImageIcon cutImage = new ImageIcon( ImageHolder.class.getResource("smallcutter.gif") );
->>>>>>> Changed look of getData cutout icon
    
         if ( next instanceof SSAQuery && next != null ) {
             ssaQuery = (SSAQuery) next;
             starTable = ssaQuery.getStarTable();
             getDataTable = ssaQuery.getGetDataTable();
-<<<<<<< HEAD
             dataLinkParams = ssaQuery.getDataLinkParams(); // get the data link services information
-=======
->>>>>>> 
             shortName = ssaQuery.getDescription();
             if ( starTable != null ) {
             String baseurl = ssaQuery.getBaseURL();
@@ -2236,14 +1835,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                     logger.info( "Malformed base URL for " + baseurl );
                 } 
             }
-<<<<<<< HEAD
-<<<<<<< HEAD
-           
-=======
->>>>>>> 
-=======
-           
->>>>>>> further development of GET DATA functionality 
             
         }
         else if ( next instanceof StarTable) {
@@ -2268,11 +1859,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                 table = new StarJTable( starTable, true );
                 scrollPane = new JScrollPane( table );
               //  scrollPane.setPreferredSize(new Dimension(600,400));
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-                
-                
                 
                 if (dataLinkParams != null) { // if datalink services are present, create a frame
                     
@@ -2313,27 +1899,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                     resultsPane.addTab( shortName, cutImage, scrollPane );
                 }
                 else resultsPane.addTab( shortName, scrollPane );
-=======
-=======
->>>>>>> New server selection options: all observ x all theory. User-created Tags can now be saved
-=======
->>>>>>> resolving conflicts
-                if (getDataTable != null) {
-		  
-                    if ( getDataFrame == null )
-                        getDataFrame = new GetDataQueryFrame();
-                    getDataFrame.addService(shortName, getDataTable);
-                    getDataButton.setEnabled(true);
-                    getDataButton.setVisible(true);
-                    getDataButton.setForeground(Color.GRAY);
-                    resultsPane.addTab( shortName, cutImage, scrollPane );
-                }
-<<<<<<< HEAD
-                resultsPane.addTab( shortName, scrollPane );
->>>>>>> 
-=======
-                else resultsPane.addTab( shortName, scrollPane );
->>>>>>> Changed look of getData cutout icon
                 starJTables.add( table );
 
                 //  Set widths of columns.
@@ -2348,94 +1913,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         }
     }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-  
        
-=======
-    protected void addToSelectionTab( String shortname, GetDataTable getDataTable)
-    {
-        
-        if (getDataScroller == null ) {
-            
-            getDataSelectionPanel = new JPanel();
-            getDataSelectionPanel.setLayout((new BoxLayout(getDataSelectionPanel, BoxLayout.PAGE_AXIS)));
-            getDataScroller  = new JScrollPane( getDataSelectionPanel); 
-            getDataSelectionPanel.add(new JLabel("Parameters for Server-Generated data processing"));
-        }
-     
-       /// get parameter list and options
-    //    ParamElement[] params = gdparam.getParams();
-       /// add to paramPanel
-   
-        JPanel paramPanel = new JPanel();
-        paramPanel.setBorder(BorderFactory.createTitledBorder( shortname ));
-    //    paramPanel.setLayout((new BoxLayout(paramPanel, BoxLayout.PAGE_AXIS)));
-      
-        if (getDataTable != null) {
-                                 
-                resultsPane.addTab( "GetData Params", getDataScroller );
-                int i=0;
-               /// !!How to access the parameters?
-                ParamElement[] params = getDataTable.getParams();
-             
-              while ( i < params.length ) {
-                    String paramName = params[i].getName();
-                    paramPanel.add(new JLabel(paramName+" : "));
-                    String description = params[i].getAttribute("Description");                  
-                    String datatype = params[i].getAttribute("datatype");
-                    String value = params[i].getValue();
-                    ValuesElement values = (ValuesElement) params[i].getChildByName("VALUES");
-                    String [] options = values.getOptions();
-                    if ( options.length > 0 ) {
-                        JComboBox optbox = new JComboBox(options);
-                     //   optbox.setName("gd:"+shortname+":"+paramName);
-                        optbox.setName("gd:"+paramName);
-                        optbox.addActionListener(this);
-                        if (description.length() > 0)
-                            optbox.setToolTipText(description);
-                        paramPanel.add(optbox);
-                        
-                    } else {
-                        JPanel inputPanel = new JPanel();
-                        String max = values.getMaximum();
-                        String min = values.getMinimum();
-                        JTextField minField = new JTextField(5);
-                        JTextField maxField = new JTextField(5);
-                        inputPanel.add(minField);
-                        inputPanel.add(maxField);                        
-                        //minField.setName("gd:"+shortname+":"+paramName+":Min");
-                        //maxField.setName("gd:"+shortname+":"+paramName+":Max");
-                        minField.setName("gd:"+paramName+":Min");
-                        maxField.setName("gd:"+paramName+":Max");
-                        if (description.length() > 0) {
-                            minField.setToolTipText(description);
-                            maxField.setToolTipText(description);
-                        }
-                        minField.addActionListener(this);
-                        maxField.addActionListener(this);
-                        inputPanel.add(new JLabel("["+min+".."+max+"]"));
-                        paramPanel.add(inputPanel);
-                        
-                        JButton submitButton = new JButton("set Parameters");
-                        submitButton.addActionListener(this);
-                        submitButton.setName("gd:"+shortname+":setParams");
-                        submitButton.setName("gd:setParams");
-                        paramPanel.add(submitButton);
-                    }
-                    getDataSelectionPanel.add(paramPanel);
-                    i++;
-                }
-                
-        }
-       
-    }
-
->>>>>>> 
-=======
-  
-       
->>>>>>> further development of GET DATA functionality 
     /**
      * Deselect all spectra in the visible table, or deselect all tables.
      */
@@ -2476,36 +1954,12 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         //  names etc.
         ArrayList<Props> specList = new ArrayList<Props>();
      
-<<<<<<< HEAD
-<<<<<<< HEAD
-       
         
         if ( table == null ) { 
             
             if (starJTables == null)  // avoids NPE if no results are present
                 return;
-<<<<<<< HEAD
-=======
 
-        if ( table == null ) {
->>>>>>> 
-=======
-       
-        
-        if ( table == null ) { 
-            
-            if (starJTables == null)  // avoids NPE if no results are present
-                return;
-<<<<<<< HEAD
->>>>>>> further development of GET DATA functionality 
-=======
-=======
-
-        if ( table == null ) {
->>>>>>> c8866990c9406f5205c11cc1833546796acc04c0
->>>>>>> New server selection options: all observ x all theory. User-created Tags can now be saved
-=======
->>>>>>> resolving conflicts
             //  Visit all the tabbed StarJTables.
             Iterator<StarJTable> i = starJTables.iterator();
             while ( i.hasNext() ) {
@@ -2567,8 +2021,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             int row )
     {
         int[] selection = null;
-        
-<<<<<<< HEAD
       
         HashMap< String, String > getDataParam = null;
         
@@ -2587,13 +2039,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         
        
         
-=======
-       
-        HashMap< String, String > getDataParam = null;
-        if ( getDataFrame != null && getDataFrame.isVisible() ) 
-            getDataParam = getDataFrame.getParams();
-
->>>>>>> further development of GET DATA functionality 
         //  Check for a selection if required, otherwise we're using the given
         //  row.
         if ( selected && row == -1 ) {
@@ -2624,25 +2069,14 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             int fluxunitscol = -1;
             int fluxerrorcol = -1;
             int pubdidcol=-1;
-<<<<<<< HEAD
-<<<<<<< HEAD
             int idsrccol=-1;
             int specstartcol=-1;
             int specstopcol=-1;
-=======
->>>>>>> 
-=======
-            int specstartcol=-1;
-            int specstopcol=-1;
->>>>>>> getData corrections
             ColumnInfo colInfo;
             String ucd;
             String utype;
             String getDataRequest="";
-<<<<<<< HEAD
             String dataLinkRequest="";
-=======
->>>>>>> 
             
             for( int k = 0; k < ncol; k++ ) {
                 colInfo = starTable.getColumnInfo( k );
@@ -2702,17 +2136,12 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                     else if ( utype.endsWith( "Curation.PublisherDID" ) ) {
                         pubdidcol = k;
                     }
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> getData corrections
                     else if ( utype.endsWith( "char.spectralAxis.coverage.bounds.start" ) ) {
                         specstartcol = k;
                     }
                     else if ( utype.endsWith( "char.spectralAxis.coverage.bounds.stop" ) ) {
                         specstopcol = k;
                     }
-<<<<<<< HEAD
                 }
                 if (colInfo.getName().equals("ssa_pubDID"))
                     pubdidcol = k;
@@ -2760,58 +2189,11 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                                         e.printStackTrace();
                                     }                                     
                                 }
-=======
-=======
->>>>>>> getData corrections
-                }
-                if (colInfo.getName().equals("ssa_pubDID"))
-                    pubdidcol = k;
-                
-            } // for
-            
-            // if we have a pubDID col, check if the getData parameters are set.
-            if (pubdidcol != -1  && getDataParam != null )
-                if ( ! getDataParam.isEmpty() ) {                   
-                    for (String key : getDataParam.keySet()) {
-                        String value = getDataParam.get(key);
-<<<<<<< HEAD
-                                if (value == null || value.length() > 0)
-<<<<<<< HEAD
-                                    getDataRequest+="&"+key+"="+value;              
->>>>>>> 
                     }
                 }
             }
            
         
-=======
-=======
-                                if (value == null || value.length() > 0) {
-<<<<<<< HEAD
->>>>>>> Bug fix on server selection after querying registry for updates
-                                    try {
-=======
-                                    try {//
-                                       
-                                        ///
-                                        // float specstart = Float.parseFloat(rseq.getCell( linkcol ).);
-                                       //  float specstop = Float.parseFloat();
-                                      //  double specend = Double.parseDouble(params[i].getAttribute("ssa_specend"));
-                                      //  double  maxval =   double specstart = Double.parseDouble(values.getMaximum());
-                                     //   double  minval =   double specstart = Double.parseDouble(values.getMinimum());
-                                        ///
->>>>>>> getData corrections
-                                        getDataRequest+="&"+key+"="+URLEncoder.encode(value, "UTF-8");
-                                    } catch (UnsupportedEncodingException e) {
-                                        // TODO Auto-generated catch block
-                                        e.printStackTrace();
-                                    }                                     
-                                }
-                    }
-                }
-            
-
->>>>>>> further development of GET DATA functionality 
             //  If we have a DATA_LINK column, gather the URLs it contains
             //  that are appropriate.
             if ( linkcol != -1 ) {
@@ -2900,7 +2282,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                                     props.setDataUnits( value );
                                 }
                             }
-<<<<<<< HEAD
                          
                             if (idsrccol != -1  && dataLinkQueryParams != null) { //!!!!!
                                 
@@ -2924,19 +2305,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                                    String format = getDataParam.get("FORMAT");
                                    if (format != "")
                                        props.setGetDataFormat(format);
-=======
-                            if (pubdidcol != -1  && getDataParam != null) {
-                                if (! getDataParam.isEmpty()) { 
-                                   props.setPubdidValue(rseq.getCell(pubdidcol).toString());
-                                   props.setGetDataRequest(getDataRequest);
-                                   props.setServerURL(starTable.getURL().toString());
-<<<<<<< HEAD
->>>>>>> 
-=======
-                                   String format = getDataParam.get("FORMAT");
-                                   if (format != "")
-                                       props.setGetDataFormat(format);
->>>>>>> Bug fix on server selection after querying registry for updates
                                 }
                             }
                             specList.add( props );
@@ -3006,24 +2374,17 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                                         props.setDataUnits( units[1] );
                                     }
                                 }
-<<<<<<< HEAD
                                /*
                                 *  if (pubdidcol != -1  && getDataParam != null) {
                                 
-=======
-                                if (pubdidcol != -1  && getDataParam != null) {
->>>>>>> 
                                     if (! getDataParam.isEmpty()) { 
                                        props.setPubdidValue(rseq.getCell(pubdidcol).toString());
                                        props.setGetDataRequest(getDataRequest);
                                        props.setServerURL(starTable.getURL().toString());
-<<<<<<< HEAD
-<<<<<<< HEAD
                                        String format = getDataParam.get("FORMAT");
                                        if (format != "")
                                            props.setGetDataFormat(format);
                                        props.setShortName(props.getShortName() + " [" + getDataParam.get("BAND") + "]" );
-<<<<<<< HEAD
                                     }
                                 }*/
                                 if (idsrccol != -1  && dataLinkQueryParams != null) {  // !!!!!
@@ -3052,17 +2413,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                                    props.setShortName(props.getShortName() + " [" + getDataParam.get("BAND") + "]" );
                                 }
                             }
-=======
-=======
-                                       String format = getDataParam.get("FORMAT");
-                                       if (format != "")
-                                           props.setGetDataFormat(format);
->>>>>>> Bug fix on server selection after querying registry for updates
-=======
->>>>>>> New server selection options: all observ x all theory. User-created Tags can now be saved
-                                    }
-                                }
->>>>>>> 
                                 specList.add( props );
 
                                 //  Move to next selection.
@@ -3665,25 +3015,16 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
      * ActivateGetDataSupport
      * deactivate all sites that do not support getData
      * activate getData queries on supported sites
-<<<<<<< HEAD
      *//*
     private void activateGetDataSupport() {
         
         getDataEnabled=true;
         int selected=-1;
         int anyGDIndex = -1;
-=======
-     */
-    private void activateGetDataSupport() {
-        
-        getDataEnabled=true;
->>>>>>> further development of GET DATA functionality 
         getDataButton.setForeground(Color.BLACK);
         int nrTabs = resultsPane.getTabCount();
         for(int i = 0; i < nrTabs; i++)
         {
-<<<<<<< HEAD
-<<<<<<< HEAD
            if (resultsPane.getIconAt(i) == null) {
                resultsPane.setEnabledAt(i, false);
            }
@@ -3742,28 +3083,15 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         if (dataLinkFrame.setServer(resultsPane.getTitleAt(selected)) == null)
             getDataFrame.setService(resultsPane.getTitleAt(selected));
             
-=======
-           if ( ! resultsPane.getTitleAt(i).startsWith("✂") ) 
-=======
-           if (resultsPane.getIconAt(i) == null) 
->>>>>>> Changed look of getData cutout icon
-               resultsPane.setEnabledAt(i, false);
-           else 
-               resultsPane.setSelectedIndex(i);
-        }
->>>>>>> further development of GET DATA functionality 
     }
     /**
      * DeactivateGetDataSupport
      * activate all sites, without getData support
      */
-<<<<<<< HEAD
   /*
    *   private void deactivateGetDataSupport() {
   
-=======
     private void deactivateGetDataSupport() {
->>>>>>> further development of GET DATA functionality 
         
         getDataEnabled=false;
         getDataButton.setForeground(Color.GRAY);
@@ -3773,7 +3101,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             resultsPane.setEnabledAt(i, true);      
         }
     }
-<<<<<<< HEAD
   */  
     /**
      * DeactivateDataLinkSupport
@@ -3789,8 +3116,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             resultsPane.setEnabledAt(i, true);      
         }
     }
-=======
->>>>>>> further development of GET DATA functionality 
 
     /**
      * Event listener 
@@ -3799,7 +3124,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
     public void propertyChange(PropertyChangeEvent pvt) //!!!!!!!!!!!!!!!!!!
     {
         // trigger a metadata update if metadata has been added
-<<<<<<< HEAD
         if (pvt.getPropertyName().equals("changeQuery")) {
             updateQueryText(); 
             String txt = "";
@@ -3810,31 +3134,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             updateParameters();
             metaPanel.updateUI();
         }
-=======
-        if (pvt.getPropertyName().equals("changeQuery"))
-            updateQueryText(); 
-            // update if the server list has been modifyed at ssaservertree (for example, new registry query)
-        else if (pvt.getPropertyName().equals("changeServerlist"))
-            serverList = tree.getServerList();
-<<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> Bug fix on server selection after querying registry for updates
-=======
-=======
-
-    }
-
-    /**
-     * Event listener to trigger a metadata update. Triggered by SSAMetadataFrame
-     * the table has been updated
-     */
-    public void propertyChange(PropertyChangeEvent pvt)
-    {
-       updateQueryText();        
->>>>>>> c8866990c9406f5205c11cc1833546796acc04c0
->>>>>>> New server selection options: all observ x all theory. User-created Tags can now be saved
-=======
->>>>>>> resolving conflicts
     }
     
     private void updateQueryText() {
