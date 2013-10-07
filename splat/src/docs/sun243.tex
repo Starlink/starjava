@@ -1532,6 +1532,10 @@ item is still switched on in the plot window.
 To view a single spectrum quickly just double click on its row. This will
 download the spectrum and display it in its own plot window.\\
 
+\subheading{Server-side manipulation with getData}
+
+\SPLAT\ supports server-side manipulation through the SSAP \textbf{getData} operation. After a SSAP Query is sent, \SPLAT\ checks the responding servers for getData support, and marks them with a symbol. If  at least one getData supporting server has been found, a \textbf{getData} button will appear below the query results. At first the button is deactivated, and will be activated by clicking on it. When activated, all results tabs will be deactivated except the results from servers that support \textbf{getData}. On activation a getData parameter window will appear, where the parameters for sever-side manipulation can be entered. The parameters will be set by clicking on the \textbf{set parameters} button. While  \textbf{getData} is activated and the parameters are set, the spectra you select and display or download will be manipulated using the chosen parameters. To deactivate \textbf{getData} and have retrieve the original spectra just click on the \textbf{getData} button again.
+
 \subheading{Implementation status}
 
 SSAP is a protocol being developed by the IVOA
