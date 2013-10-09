@@ -23,9 +23,7 @@ Now define STAR_JAVA to point at the "java" command of this:
 
    setenv STAR_JAVA /some/where/jdk1.x.x/bin/java
 
-Alternatively install the SDK into /star/java and create a file "jdkhome" in
-this directory that contains the full name of the host directory (this is the
-method used in JRE releases made by Starlink).
+Alternatively install the SDK into /star/java.
 
 You do not need to have a Starlink classic system installed, before
 you can build the Java tools.  Several of the Java applications use
