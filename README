@@ -61,6 +61,10 @@ is now equivalent to "/star/bin" and would eventually be "/star/starjava/bin"
 if released as part of the current system). You need the new "ant" command to
 get our extensions and to use JUnit.
 
+If ANT is not finding the local extensions, it may be reading the
+ANT_HOME environment variable indicating another installation.  In this
+case the ANT_HOME environment variable should be unset.
+
    Perform the build
    -----------------
 
