@@ -69,7 +69,8 @@ public class CubePlotType implements PlotType {
            .createVectorForm( new CartesianVectorCoordSet( axisNames_ ),
                               true ),
             MultiPointForm
-           .createErrorForm( new CartesianErrorCoordSet( axisNames_ ),
+           .createErrorForm( CartesianErrorCoordSet
+                            .createAllAxesErrorCoordSet( axisNames_ ),
                              StyleKeys.ERROR_SHAPE_3D ),
             new EdgeForm( 1, dataGeoms_[ 0 ] ),
             new EdgeForm( 2, dataGeoms_[ 0 ] ),

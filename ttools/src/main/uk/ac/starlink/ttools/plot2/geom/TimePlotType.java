@@ -44,8 +44,8 @@ public class TimePlotType implements PlotType {
     public Plotter[] getPlotters() {
         MultiPointForm errorForm =
             new MultiPointForm( "Error", ResourceIcon.FORM_ERROR1,
-                                new CartesianErrorCoordSet(
-                                    new String[] { "Y" } ),
+                                CartesianErrorCoordSet
+                               .createSingleAxisErrorCoordSet( 2, 1, "Y" ),
                                 false, StyleKeys.ERROR_SHAPE_1D );
         return new Plotter[] {
             new LinePlotter(),
