@@ -335,7 +335,7 @@ public abstract class TimeFormat {
                     ticks[ i ] =
                         new Tick( unixSec, formatTime( unixSec, secPrec ) );
                 }
-                return ticks;
+                return trimMajorTicks( ticks );
             }
 
             /* Otherwise use DateLevel instances to break down increments
