@@ -62,6 +62,8 @@ public class CubeSurface implements Surface {
     private final double[] dScales_;
     private final double[] dOffs_;
 
+    private static final Orientation ORIENTATION = Orientation.X;
+
     /**
      * Constructor.
      *
@@ -807,8 +809,8 @@ public class CubeSurface implements Surface {
         Axis ax = Axis.createAxis( 0, sx, dlos_[ iaxis ], dhis_[ iaxis ],
                                    logFlags_[ iaxis ],
                                    ( ! forward ) ^ flipFlags_[ iaxis ] );
-        ax.drawLabels( ticks_[ iaxis ], labels_[ iaxis ], captioner_,
-                       Orientation.X, false, g2 );
+        ax.drawLabels( ticks_[ iaxis ], labels_[ iaxis ],
+                       captioner_, ORIENTATION, false, g2 );
         g2.setTransform( atf0 );
     }
 
@@ -876,9 +878,9 @@ public class CubeSurface implements Surface {
         for ( int i = 0; i < 3; i++ ) {
             dlos[ i ] = limits[ i ][ 0 ];
             dhis[ i ] = limits[ i ][ 1 ];
-            ticks[ i ] = Tick.getTicks( dlos[ i ], dhis[ i ], npix,
-                                        logFlags[ i ], minor,
-                                        crowdFactors[ i ] );
+            ticks[ i ] = Tick.getTicks( dlos[ i ], dhis[ i ], logFlags[ i ],
+                                        minor, captioner, ORIENTATION,
+                                        npix, crowdFactors[ i ] );
         }
         double[] rotmat = aspect.getRotation();
         double zoom = aspect.getZoom();

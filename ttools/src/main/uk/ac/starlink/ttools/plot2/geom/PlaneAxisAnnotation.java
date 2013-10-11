@@ -36,8 +36,8 @@ public class PlaneAxisAnnotation implements AxisAnnotation {
     private final int yoff_;
 
     public static final boolean INVERT_Y = true;
-    private static final Orientation X_ORIENT = Orientation.X;
-    private static final Orientation Y_ORIENT = Orientation.Y;
+    public static final Orientation X_ORIENT = Orientation.X;
+    public static final Orientation Y_ORIENT = Orientation.Y;
 
     /**
      * Constructor.

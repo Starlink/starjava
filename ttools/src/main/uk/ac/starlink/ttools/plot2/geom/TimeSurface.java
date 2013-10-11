@@ -331,13 +331,14 @@ public class TimeSurface implements Surface {
         double dthi = aspect.getTMax();
         double dylo = aspect.getYMin();
         double dyhi = aspect.getYMax();
-        int approxMajorTCount =
-            1 + (int) Math.round( tcrowd * plotBounds.width / 175 );
         Tick[] tticks =
             tformat.getAxisTicks( aspect.getTMin(), aspect.getTMax(), minor,
-                                  approxMajorTCount );
+                                  captioner, PlaneAxisAnnotation.X_ORIENT,
+                                  plotBounds.width, tcrowd );
         Tick[] yticks =
-            Tick.getTicks( dylo, dyhi, plotBounds.height, ylog, minor, ycrowd );
+            Tick.getTicks( dylo, dyhi, ylog, minor,
+                           captioner, PlaneAxisAnnotation.Y_ORIENT,
+                           plotBounds.height, ycrowd );
         return new TimeSurface( gxlo, gxhi, gylo, gyhi, dtlo, dthi, dylo, dyhi,
                                 ylog, yflip, tticks, yticks, tlabel, ylabel,
                                 captioner, grid, tformat );

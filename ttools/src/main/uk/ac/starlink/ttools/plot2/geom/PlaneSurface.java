@@ -341,10 +341,12 @@ public class PlaneSurface implements Surface {
         double dxhi = aspect.getXMax();
         double dylo = aspect.getYMin();
         double dyhi = aspect.getYMax();
-        Tick[] xticks =
-            Tick.getTicks( dxlo, dxhi, plotBounds.width, xlog, minor, xcrowd );
-        Tick[] yticks =
-            Tick.getTicks( dylo, dyhi, plotBounds.height, ylog, minor, ycrowd );
+        Tick[] xticks = Tick.getTicks( dxlo, dxhi, xlog, minor,
+                                       captioner, PlaneAxisAnnotation.X_ORIENT,
+                                       plotBounds.width, xcrowd );
+        Tick[] yticks = Tick.getTicks( dylo, dyhi, ylog, minor,
+                                       captioner, PlaneAxisAnnotation.Y_ORIENT,
+                                       plotBounds.height, ycrowd );
 
         /* Fixed ratio of X/Y data scales.  Interpret this by ensuring that
          * all of both requested data ranges is included, and one of them is
@@ -382,10 +384,12 @@ public class PlaneSurface implements Surface {
             dx = log ? Math.log( dxhi / dxlo ) : dxhi - dxlo;
             dy = log ? Math.log( dyhi / dylo ) : dyhi - dylo;
             assert Math.abs( xyfactor * ( gy / dy ) / ( gx / dx ) - 1 ) < 1e-6;
-            xticks =
-                Tick.getTicks( dxlo, dxhi, plotBounds.width, xlog, minor, 1 );
-            yticks =
-                Tick.getTicks( dylo, dyhi, plotBounds.height, ylog, minor, 1 );
+            xticks = Tick.getTicks( dxlo, dxhi, xlog, minor,
+                                    captioner, PlaneAxisAnnotation.X_ORIENT,
+                                    plotBounds.width, 1 );
+            yticks = Tick.getTicks( dylo, dyhi, ylog, minor,
+                                    captioner, PlaneAxisAnnotation.Y_ORIENT,
+                                    plotBounds.height, 1 );
         }
         return new PlaneSurface( gxlo, gxhi, gylo, gyhi, dxlo, dxhi, dylo, dyhi,
                                  xlog, ylog, xflip, yflip, xticks, yticks,

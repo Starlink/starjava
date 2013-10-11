@@ -15,7 +15,9 @@ import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import uk.ac.starlink.ttools.func.Times;
+import uk.ac.starlink.ttools.plot2.Captioner;
 import uk.ac.starlink.ttools.plot2.Equality;
+import uk.ac.starlink.ttools.plot2.Orientation;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Tick;
 
@@ -99,12 +101,18 @@ public abstract class TimeFormat {
      * @param   unixSecMin  time lower bound in unix seconds
      * @param   unixSecMax  time upper bound in unix seconds
      * @param   withMinor   true if include minor ticks are required
-     * @param   approxMajorCount   approximate number of major ticks required
+     * @param   captioner   caption painter
+     * @param   orient      tick label orientation
+     * @param   npix        number of pixels along the axis
+     * @param   crowding    1 for normal tick density on the axis,
+     *                      lower for fewer labels, higher for more
      * @return  array of ticks
      */
     public abstract Tick[] getAxisTicks( double unixSecMin, double unixSecMax,
                                          boolean withMinor,
-                                         int approxMajorCount );
+                                         Captioner captioner,
+                                         Orientation orient,
+                                         int npix, double crowding );
 
     @Override
     public String toString() {
@@ -225,13 +233,16 @@ public abstract class TimeFormat {
         }
 
         public Tick[] getAxisTicks( double unixSecMin, double unixSecMax,
-                                    boolean withMinor, int approxMajorCount ) {
+                                    boolean withMinor, Captioner captioner,
+                                    Orientation orient, int npix,
+                                    double crowding ) {
 
             /* Get the Tick class to do the hard work of calcuating the
              * labels over a given range for this time scale. */
             Tick[] ticks = Tick.getTicks( fromUnixSeconds( unixSecMin ),
-                                          fromUnixSeconds( unixSecMax ),
-                                          false, approxMajorCount, withMinor );
+                                          fromUnixSeconds( unixSecMax ), false,
+                                          withMinor, captioner, orient,
+                                          npix, crowding );
 
             /* Then convert the data values to be suitable for this format. */
             for ( int i = 0; i < ticks.length; i++ ) {
@@ -298,20 +309,24 @@ public abstract class TimeFormat {
         }
 
         public Tick[] getAxisTicks( double unixSecMin, double unixSecMax,
-                                    boolean withMinor, int approxMajorCount ) {
+                                    boolean withMinor, Captioner captioner,
+                                    Orientation orient, int npix,
+                                    double crowding ) {
 
             /* Work out the approximate interval in seconds between major
              * ticks. */
-            double secPrec = 2 * ( unixSecMax - unixSecMin ) / approxMajorCount;
+            double secPrec = 2 * ( unixSecMax - unixSecMin )
+                               / ( npix / 175. )
+                               / crowding;
 
             /* If we're dealing with years, treat the values like decimals. */
             if ( secPrec > DateLevel.YEAR_SECS ) {
                 Tick[] ticks =
-                    Tick.getTicks( unixSecondsToDecimalYear( unixSecMin ),
-                                   unixSecondsToDecimalYear( unixSecMax ),
-                                   false, approxMajorCount,
-                                   withMinor
-                                   && secPrec > DateLevel.YEAR_SECS * 10 );
+                    Tick
+                   .getTicks( unixSecondsToDecimalYear( unixSecMin ),
+                              unixSecondsToDecimalYear( unixSecMax ), false,
+                              withMinor && secPrec > DateLevel.YEAR_SECS * 10,
+                              captioner, orient, npix, crowding );
                 for ( int i = 0; i < ticks.length; i++ ) {
                     Tick t0 = ticks[ i ];
                     ticks[ i ] =
@@ -326,9 +341,9 @@ public abstract class TimeFormat {
             else if ( secPrec < 1 ) {
                 long floor = secLevel_.floorUnixSeconds( unixSecMin );
                 Tick[] ticks = Tick.getTicks( unixSecMin - floor,
-                                              unixSecMax - floor,
-                                              false, approxMajorCount,
-                                              withMinor );
+                                              unixSecMax - floor, false,
+                                              withMinor, captioner, orient,
+                                              npix, crowding );
                 for ( int i = 0; i < ticks.length; i++ ) {
                     Tick t0 = ticks[ i ];
                     double unixSec = t0.getValue() + floor;

@@ -27,6 +27,7 @@ public class ShadeAxis {
     private final double dhi_;
     private final String label_;
     private final Captioner captioner_;
+    private static final Orientation ORIENTATION = Orientation.ANTI_Y;
 
     /**
      * Constructor.
@@ -105,7 +106,8 @@ public class ShadeAxis {
      */
     private ShaderIcon createShaderAxisIcon( Rectangle rampBounds ) {
         Tick[] ticks =
-            Tick.getTicks( dlo_, dhi_, rampBounds.height, log_, false, 2 );
+            Tick.getTicks( dlo_, dhi_, log_, false, captioner_, ORIENTATION,
+                           rampBounds.height, 2 );
         return new ShaderIcon( shader_, log_, flip_, dlo_, dhi_, label_,
                                captioner_, rampBounds, ticks );
     }
@@ -176,7 +178,7 @@ public class ShadeAxis {
             g2.drawRect( box_.x, box_.y, box_.width, box_.height );
             g2.translate( box_.x + box_.width, box_.y + box_.height );
             g2.rotate( - Math.PI / 2 );
-            axis_.drawLabels( ticks_, label_, captioner_, Orientation.ANTI_Y,
+            axis_.drawLabels( ticks_, label_, captioner_, ORIENTATION,
                               false, g2 );
             g2.setColor( color0 );
             g2.setTransform( trans0 );
@@ -190,7 +192,7 @@ public class ShadeAxis {
         public Insets getInsets() {
             Rectangle bounds =
                 axis_.getLabelBounds( ticks_, label_, captioner_,
-                                      Orientation.ANTI_Y, false );
+                                      ORIENTATION, false );
             bounds = AffineTransform.getRotateInstance( - Math.PI / 2 )
                                     .createTransformedShape( bounds )
                                     .getBounds();
