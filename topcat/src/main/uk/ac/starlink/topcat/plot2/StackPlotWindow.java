@@ -93,7 +93,6 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     private final ControlStackModel stackModel_;
     private final JLabel posLabel_;
     private final JLabel countLabel_;
-    private Navigator<A> navigator_;
     private static final double CLICK_ZOOM_UNIT = 1.2;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.plot2" );
@@ -162,7 +161,6 @@ public class StackPlotWindow<P,A> extends AuxWindow {
 
         /* Arrange for user gestures (zoom, pan, click) on the plot panel
          * itself to result in appropriate actions. */
-        navigator_ = surfFact_.createNavigator( new ConfigMap() );
         plotPanel_.setFocusable( true );
         plotPanel_.addMouseWheelListener( new MouseWheelListener() {
             public void mouseWheelMoved( MouseWheelEvent evt ) {
@@ -463,6 +461,15 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             }
         }
         return null;
+    }
+
+    /**
+     * Returns the navigator currently in use for this window.
+     *
+     * @return  navigator
+     */
+    private Navigator<A> getNavigator() {
+        return axisControl_.getNavigator();
     }
 
     /**
@@ -820,11 +827,9 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     private void wheel( MouseWheelEvent evt ) {
         Point point = evt.getPoint();
         Surface surface = plotPanel_.getLatestSurface();
-        Navigator<A> navigator = navigator_;
-        if ( navigator != null &&
-             surface != null &&
+        if ( surface != null &&
              surface.getPlotBounds().contains( point ) ) {
-            fixAspect( navigator.wheel( surface, evt ) );
+            fixAspect( getNavigator().wheel( surface, evt ) );
         }
     }
 
@@ -918,7 +923,8 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         @Override
         public void mouseDragged( MouseEvent evt ) {
             if ( dragSurface_ != null ) {
-                fixAspect( navigator_.drag( dragSurface_, evt, startPoint_ ) );
+                fixAspect( getNavigator()
+                          .drag( dragSurface_, evt, startPoint_ ) );
             }
         }
 
@@ -943,7 +949,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                 Iterable<double[]> dpIt =
                     new PointCloud( plotPanel_.getPlotLayers(), true )
                    .createDataPosIterable( plotPanel_.getDataStore() );
-                fixAspect( navigator_.click( surface, evt, dpIt ) );
+                fixAspect( getNavigator().click( surface, evt, dpIt ) );
             }
         }
     }

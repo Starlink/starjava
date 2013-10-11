@@ -18231,6 +18231,10 @@ introduced since the last version:
         <li>Add new auto transparency shading mode to layer plots.</li>
         <li>Fix bug when concatenating tables whose data cells
             may have been edited by hand.</li>
+        <li>Add <label>Navigation</label> tab to Axis controls in layer plot
+            windows.  This allows you to configure zoom/pan actions, for
+            instance selecting zoom factor and X/Y/XY zoom options
+            for when mouse wheel is used.</li>
         </ul>
         </p></dd>
 

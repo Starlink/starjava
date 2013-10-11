@@ -56,6 +56,9 @@ public class SkyAxisControl
         } );
         addSpecifierTab( "Projection", projSpecifier );
 
+        /* Navigator specifier. */
+        addNavigatorTab();
+
         /* Field of view specifier. */
         addAspectConfigTab( "FOV", new FieldOfViewSpecifier( surfFact
                                                             .getAspectKeys() ) {

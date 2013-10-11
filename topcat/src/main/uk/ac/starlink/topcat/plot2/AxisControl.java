@@ -7,6 +7,7 @@ import javax.swing.Icon;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.ttools.plot.Range;
+import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
@@ -30,6 +31,7 @@ public abstract class AxisControl<P,A> extends ConfigControl {
     private P lastProfile_;
     private PlotLayer[] lastLayers_;
     private List<ActionSpecifierPanel> aspectPanels_;
+    private ConfigSpecifier navSpecifier_;
 
     /**
      * Constructor.
@@ -111,6 +113,29 @@ public abstract class AxisControl<P,A> extends ConfigControl {
      */
     public A getAspect() {
         return aspect_;
+    }
+
+    /**
+     * Adds a tab for selecting navigator options.
+     * These are determined by the surface factory.
+     */
+    protected void addNavigatorTab() {
+        ConfigSpecifier navSpecifier =
+            new ConfigSpecifier( surfFact_.getNavigatorKeys() );
+        addSpecifierTab( "Navigation", navSpecifier );
+        navSpecifier_ = navSpecifier;
+    }
+
+    /**
+     * Returns the navigator specified by this control.
+     *
+     * @return  current navigator
+     */
+    public Navigator<A> getNavigator() {
+        ConfigMap config = navSpecifier_ == null
+                         ? new ConfigMap()
+                         : navSpecifier_.getSpecifiedValue();
+        return surfFact_.createNavigator( config );
     }
 
     /**

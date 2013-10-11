@@ -143,6 +143,7 @@ public class CombinationConfigKey extends ConfigKey<boolean[]> {
                 JCheckBox checkBox =
                     new JCheckBox( optNames_[ io ], getDefaultValue()[ io ] );
                 checkBox.addActionListener( getActionForwarder() );
+                checkBoxes_[ io ] = checkBox;
             }
         }
 

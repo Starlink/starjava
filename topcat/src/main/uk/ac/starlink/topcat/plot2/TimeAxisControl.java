@@ -32,6 +32,9 @@ public class TimeAxisControl
             TimeSurfaceFactory.YFLIP_KEY,
         } ) );
 
+        /* Navigator tab. */
+        addNavigatorTab();
+
         /* Range tab. */
         addAspectConfigTab( "Range",
                             new ConfigSpecifier( surfFact.getAspectKeys() ) );

@@ -37,6 +37,9 @@ public class PlaneAxisControl
             PlaneSurfaceFactory.XYFACTOR_KEY,
         } ) );
 
+        /* Navigator tab. */
+        addNavigatorTab();
+
         /* Range tab. */
         addAspectConfigTab( "Range",
                             new ConfigSpecifier( surfFact.getAspectKeys() ) );
