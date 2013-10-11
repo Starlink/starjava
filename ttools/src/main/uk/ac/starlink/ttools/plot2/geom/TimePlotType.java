@@ -12,7 +12,6 @@ import uk.ac.starlink.ttools.plot2.layer.LabelPlotter;
 import uk.ac.starlink.ttools.plot2.layer.LinePlotter;
 import uk.ac.starlink.ttools.plot2.layer.MarkForm;
 import uk.ac.starlink.ttools.plot2.layer.MultiPointForm;
-import uk.ac.starlink.ttools.plot2.layer.ShapeMode;
 import uk.ac.starlink.ttools.plot2.layer.ShapePlotter;
 import uk.ac.starlink.ttools.plot2.layer.SpectrogramPlotter;
 import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
@@ -49,8 +48,8 @@ public class TimePlotType implements PlotType {
                                 false, StyleKeys.ERROR_SHAPE_1D );
         return new Plotter[] {
             new LinePlotter(),
-            new ShapePlotter( new MarkForm(), ShapeMode.FLAT ),
-            new ShapePlotter( errorForm, ShapeMode.FLAT ),
+            ShapePlotter.createFlatPlotter( new MarkForm() ),
+            ShapePlotter.createFlatPlotter( errorForm ),
             new SpectrogramPlotter( TimeDataGeom.T_COORD ),
             new LabelPlotter(),
             FunctionPlotter.PLANE,
