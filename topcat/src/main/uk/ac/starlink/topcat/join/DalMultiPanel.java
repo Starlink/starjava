@@ -82,6 +82,7 @@ public class DalMultiPanel extends JPanel {
     private final DalMultiService service_;
     private final JProgressBar progBar_;
     private final JTextField urlField_;
+    private final boolean hasCoverage_;
     private final CoverageView serviceCoverageView_;
     private final CoverageView queryCoverageView_;
     private final CoverageView overlapCoverageView_;
@@ -218,7 +219,8 @@ public class DalMultiPanel extends JPanel {
         main.add( Box.createVerticalStrut( 5 ) );
 
         /* Set up coverage icons. */
-        if ( service_.hasCoverages() ) {
+        hasCoverage_ = service_.hasCoverages();
+        if ( hasCoverage_ ) {
 
             /* Service coverage icon. */
             serviceCoverageView_ =
@@ -282,8 +284,8 @@ public class DalMultiPanel extends JPanel {
                                    "Use service coverage information (MOCs) "
                                  + "where available to avoid unnecessary "
                                  + "queries" );
-        coverageModel_.setSelected( service_.hasCoverages() );
-        coverageModel_.setEnabled( service_.hasCoverages() );
+        coverageModel_.setSelected( hasCoverage_ );
+        coverageModel_.setEnabled( hasCoverage_ );
         coverageModel_.addChangeListener( new ChangeListener() {
             private boolean wasSelected_ = coverageModel_.isSelected();
             public void stateChanged( ChangeEvent evt ) {
@@ -356,20 +358,22 @@ public class DalMultiPanel extends JPanel {
      * service URL has changed.
      */
     private void updateServiceCoverage() {
-        if ( coverageModel_.isSelected() ) {
-            URL url = toUrl( urlField_.getText() );
-            if ( ( url == null && lastCoverageUrl_ != null ) ||
-                 ( url != null && ! url.equals( lastCoverageUrl_ ) ) ) {
-                Coverage cov = url == null ? null
-                                           : service_.getCoverage( url );
-                serviceCoverageView_.setCoverage( cov );
-                lastCoverageUrl_ = url;
-                updateOverlapCoverage();
+        if ( hasCoverage_ ) {
+            if ( coverageModel_.isSelected() ) {
+                URL url = toUrl( urlField_.getText() );
+                if ( ( url == null && lastCoverageUrl_ != null ) ||
+                     ( url != null && ! url.equals( lastCoverageUrl_ ) ) ) {
+                    Coverage cov = url == null ? null
+                                               : service_.getCoverage( url );
+                    serviceCoverageView_.setCoverage( cov );
+                    lastCoverageUrl_ = url;
+                    updateOverlapCoverage();
+                }
             }
-        }
-        else {
-            serviceCoverageView_.setCoverage( null );
-            lastCoverageUrl_ = null;
+            else {
+                serviceCoverageView_.setCoverage( null );
+                lastCoverageUrl_ = null;
+            }
         }
     }
 

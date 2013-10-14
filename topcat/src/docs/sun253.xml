@@ -18235,6 +18235,8 @@ introduced since the last version:
             windows.  This allows you to configure zoom/pan actions, for
             instance selecting zoom factor and X/Y/XY zoom options
             for when mouse wheel is used.</li>
+        <li>Fix service selection bug (NullPointerException)
+            in multi-SIA/SSA windows.</li>
         </ul>
         </p></dd>
 
