@@ -16,6 +16,7 @@ import uk.ac.starlink.ttools.plot.Corner;
 import uk.ac.starlink.ttools.plot.Matrices;
 import uk.ac.starlink.ttools.plot.Plot3D;
 import uk.ac.starlink.ttools.plot2.Axis;
+import uk.ac.starlink.ttools.plot2.BasicTicker;
 import uk.ac.starlink.ttools.plot2.Captioner;
 import uk.ac.starlink.ttools.plot2.Orientation;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
@@ -878,9 +879,10 @@ public class CubeSurface implements Surface {
         for ( int i = 0; i < 3; i++ ) {
             dlos[ i ] = limits[ i ][ 0 ];
             dhis[ i ] = limits[ i ][ 1 ];
-            ticks[ i ] = Tick.getTicks( dlos[ i ], dhis[ i ], logFlags[ i ],
-                                        minor, captioner, ORIENTATION,
-                                        npix, crowdFactors[ i ] );
+            ticks[ i ] = ( logFlags[ i ] ? BasicTicker.LOG
+                                         : BasicTicker.LINEAR )
+                        .getTicks( dlos[ i ], dhis[ i ], minor, captioner,
+                                   ORIENTATION, npix, crowdFactors[ i ] );
         }
         double[] rotmat = aspect.getRotation();
         double zoom = aspect.getZoom();

@@ -361,7 +361,7 @@ public class StyleKeys {
      * @return   new key
      */
     public static ConfigKey<Double> createCrowdKey( ConfigMeta meta ) {
-        return DoubleConfigKey.createSliderKey( meta, 1, 0.0625, 8, true );
+        return DoubleConfigKey.createSliderKey( meta, 1, 0.125, 10, true );
     }
 
     /**

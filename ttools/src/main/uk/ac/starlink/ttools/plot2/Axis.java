@@ -134,7 +134,6 @@ public abstract class Axis {
 
         /* Place ticks. */
         int tickUnit = orient.isDown() ? -2 : +2;
-        Rectangle lastBox = null;
         for ( int it = 0; it < ticks.length; it++ ) {
             Tick tick = ticks[ it ];
             String label = tick.getLabel();
@@ -149,26 +148,11 @@ public abstract class Axis {
                 label == null ? null
                               : orient.captionTransform( cbounds, cpad );
 
-            /* Work out the extent of the label and add them to the
-             * bounding box.  If this label is so close to the last one
-             * that the text overlaps, just don't draw it.
-             * This isn't perfect, since you may end up with an irregular
-             * grid of labelled ticks, but it's fairly comprehensible.
-             * To do it better you'd have to check for overlaps when
-             * calculating ticks in the first place and re-do it
-             * if any occurred. */
-            final boolean overlap;
+            /* Update bounding box for tick labels. */
             if ( label != null ) {
                 Rectangle box = combineTrans( tTrans, oTrans )
                                .createTransformedShape( cbounds ).getBounds();
-                overlap = lastBox != null && box.intersects( lastBox );
-                if ( ! overlap ) {
-                    tickBounds.add( box );
-                    lastBox = box;
-                }
-            }
-            else {
-                overlap = false;
+                tickBounds.add( box );
             }
 
             /* If we are drawing, draw now. */
@@ -176,11 +160,8 @@ public abstract class Axis {
                 g2.setTransform( combineTrans( trans0, tTrans ) );
                 if ( label != null ) {
                     g2.drawLine( 0, -tickUnit, 0, tickUnit );
-                    if ( ! overlap ) {
-                        g2.setTransform( combineTrans( trans0,
-                                                       tTrans, oTrans ) );
-                        captioner.drawCaption( label, g2 );
-                    }
+                    g2.setTransform( combineTrans( trans0, tTrans, oTrans ) );
+                    captioner.drawCaption( label, g2 );
                 }
                 else {
                     g2.drawLine( 0, 0, 0, tickUnit );

@@ -9,10 +9,12 @@ import java.awt.Rectangle;
 import java.util.Arrays;
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.plot2.Axis;
+import uk.ac.starlink.ttools.plot2.BasicTicker;
 import uk.ac.starlink.ttools.plot2.Captioner;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.Tick;
+import uk.ac.starlink.ttools.plot2.Ticker;
 
 /**
  * Surface implementation for flat 2-d plotting.
@@ -341,12 +343,14 @@ public class PlaneSurface implements Surface {
         double dxhi = aspect.getXMax();
         double dylo = aspect.getYMin();
         double dyhi = aspect.getYMax();
-        Tick[] xticks = Tick.getTicks( dxlo, dxhi, xlog, minor,
-                                       captioner, PlaneAxisAnnotation.X_ORIENT,
-                                       plotBounds.width, xcrowd );
-        Tick[] yticks = Tick.getTicks( dylo, dyhi, ylog, minor,
-                                       captioner, PlaneAxisAnnotation.Y_ORIENT,
-                                       plotBounds.height, ycrowd );
+        Ticker xTicker = xlog ? BasicTicker.LOG : BasicTicker.LINEAR;
+        Ticker yTicker = ylog ? BasicTicker.LOG : BasicTicker.LINEAR;
+        Tick[] xticks = xTicker.getTicks( dxlo, dxhi, minor, captioner,
+                                          PlaneAxisAnnotation.X_ORIENT,
+                                          plotBounds.width, xcrowd );
+        Tick[] yticks = yTicker.getTicks( dylo, dyhi, minor, captioner,
+                                          PlaneAxisAnnotation.Y_ORIENT,
+                                          plotBounds.height, ycrowd );
 
         /* Fixed ratio of X/Y data scales.  Interpret this by ensuring that
          * all of both requested data ranges is included, and one of them is
@@ -384,12 +388,12 @@ public class PlaneSurface implements Surface {
             dx = log ? Math.log( dxhi / dxlo ) : dxhi - dxlo;
             dy = log ? Math.log( dyhi / dylo ) : dyhi - dylo;
             assert Math.abs( xyfactor * ( gy / dy ) / ( gx / dx ) - 1 ) < 1e-6;
-            xticks = Tick.getTicks( dxlo, dxhi, xlog, minor,
-                                    captioner, PlaneAxisAnnotation.X_ORIENT,
-                                    plotBounds.width, 1 );
-            yticks = Tick.getTicks( dylo, dyhi, ylog, minor,
-                                    captioner, PlaneAxisAnnotation.Y_ORIENT,
-                                    plotBounds.height, 1 );
+            xticks = xTicker.getTicks( dxlo, dxhi, minor, captioner,
+                                       PlaneAxisAnnotation.X_ORIENT,
+                                       plotBounds.width, 1 );
+            yticks = yTicker.getTicks( dylo, dyhi, minor, captioner,
+                                       PlaneAxisAnnotation.Y_ORIENT,
+                                       plotBounds.height, 1 );
         }
         return new PlaneSurface( gxlo, gxhi, gylo, gyhi, dxlo, dxhi, dylo, dyhi,
                                  xlog, ylog, xflip, yflip, xticks, yticks,

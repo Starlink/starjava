@@ -105,9 +105,9 @@ public class ShadeAxis {
      * @return  icon
      */
     private ShaderIcon createShaderAxisIcon( Rectangle rampBounds ) {
-        Tick[] ticks =
-            Tick.getTicks( dlo_, dhi_, log_, false, captioner_, ORIENTATION,
-                           rampBounds.height, 2 );
+        Tick[] ticks = ( log_ ? BasicTicker.LOG : BasicTicker.LINEAR )
+                      .getTicks( dlo_, dhi_, false, captioner_, ORIENTATION,
+                                 rampBounds.height, 2 );
         return new ShaderIcon( shader_, log_, flip_, dlo_, dhi_, label_,
                                captioner_, rampBounds, ticks );
     }

@@ -15,11 +15,14 @@ import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import uk.ac.starlink.ttools.func.Times;
+import uk.ac.starlink.ttools.plot2.BasicTicker;
 import uk.ac.starlink.ttools.plot2.Captioner;
 import uk.ac.starlink.ttools.plot2.Equality;
 import uk.ac.starlink.ttools.plot2.Orientation;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.PrefixTicker;
 import uk.ac.starlink.ttools.plot2.Tick;
+import uk.ac.starlink.ttools.plot2.Ticker;
 
 /**
  * Formats numeric values to strings to provide axis ticks and
@@ -38,6 +41,7 @@ public abstract class TimeFormat {
 
     /** Time format for year decimal year. */
     public static final TimeFormat DECIMAL_YEAR;
+    private static final NumericTimeFormat decimalYear_;  // same thing cast
 
     /** Time format for Modified Julian Date. */
     public static final TimeFormat MJD;
@@ -49,7 +53,7 @@ public abstract class TimeFormat {
     private static final TimeFormat[] KNOWN_FORMATS = new TimeFormat[] {
         ISO8601 = new Iso8601TimeFormat( 'T', TimeZone.getTimeZone( "UTC" ),
                                          Locale.UK ),
-        DECIMAL_YEAR = new NumericTimeFormat( "Year" ) {
+        DECIMAL_YEAR = decimalYear_ = new NumericTimeFormat( "Year" ) {
             public double fromUnixSeconds( double unixSec ) {
                 return unixSecondsToDecimalYear( unixSec );
             }
@@ -81,7 +85,7 @@ public abstract class TimeFormat {
      *
      * @param  name  format name
      */
-    private TimeFormat( String name ) {
+    protected TimeFormat( String name ) {
         name_ = name;
     }
 
@@ -95,24 +99,11 @@ public abstract class TimeFormat {
     public abstract String formatTime( double unixSec, double secPrecision );
 
     /**
-     * Returns an array of ticks suitable for labelling a time axis
-     * over a given range.
+     * Returns an object for generating ticks to label the time axis.
      *
-     * @param   unixSecMin  time lower bound in unix seconds
-     * @param   unixSecMax  time upper bound in unix seconds
-     * @param   withMinor   true if include minor ticks are required
-     * @param   captioner   caption painter
-     * @param   orient      tick label orientation
-     * @param   npix        number of pixels along the axis
-     * @param   crowding    1 for normal tick density on the axis,
-     *                      lower for fewer labels, higher for more
-     * @return  array of ticks
+     * @return  tick calculator
      */
-    public abstract Tick[] getAxisTicks( double unixSecMin, double unixSecMax,
-                                         boolean withMinor,
-                                         Captioner captioner,
-                                         Orientation orient,
-                                         int npix, double crowding );
+    public abstract Ticker getTicker();
 
     @Override
     public String toString() {
@@ -135,21 +126,30 @@ public abstract class TimeFormat {
      * @return   years since 0 AD
      */
     public static double unixSecondsToDecimalYear( double unixSec ) {
-        Calendar cal = new GregorianCalendar();
-        cal.setTimeInMillis( (long) ( unixSec * 1000 ) );
-        int year = cal.get( Calendar.YEAR );
-        cal.clear();
-        cal.set( year, 0, 1 );
-        long millis0 = cal.getTimeInMillis();
-        cal.add( Calendar.YEAR, 1 );
-        long millis1 = cal.getTimeInMillis();
-        double milliOfYear = unixSec * 1000 - millis0;
-        long millisInYear = millis1 - millis0;
-        assert millisInYear > 364.9 * 24 * 60 * 60 * 1000
-            && millisInYear < 366.1 * 24 * 60 * 60 * 1000;
-        double yearFraction = milliOfYear / millisInYear;
-        assert yearFraction >= 0 && yearFraction < 1;
-        return year + yearFraction;
+
+        /* For sensible dates, get the leap seconds right. */
+        if ( Math.abs( unixSec ) < 1e10 ) {
+            Calendar cal = new GregorianCalendar();
+            cal.setTimeInMillis( (long) ( unixSec * 1000 ) );
+            int year = cal.get( Calendar.YEAR );
+            cal.clear();
+            cal.set( year, 0, 1 );
+            long millis0 = cal.getTimeInMillis();
+            cal.add( Calendar.YEAR, 1 );
+            long millis1 = cal.getTimeInMillis();
+            long millisInYear = millis1 - millis0;
+            assert millisInYear > 364.9 * 24 * 60 * 60 * 1000
+                && millisInYear < 366.1 * 24 * 60 * 60 * 1000;
+            double milliOfYear = unixSec * 1000 - millis0;
+            double yearFraction = milliOfYear / millisInYear;
+            assert yearFraction >= 0 && yearFraction <= 1 : yearFraction;
+            return year + yearFraction;
+        }
+
+        /* For science-fiction dates, approximate to avoid overflow. */
+        else {
+            return 1970. + unixSec / ( 365.25 * 24 * 60 * 60 );
+        }
     }
 
     /**
@@ -177,6 +177,8 @@ public abstract class TimeFormat {
      */
     private static abstract class NumericTimeFormat extends TimeFormat {
 
+        private final BasicTicker ticker_;
+
         /**
          * Constructor.
          *
@@ -184,6 +186,34 @@ public abstract class TimeFormat {
          */
         protected NumericTimeFormat( String name ) {
             super( name );
+            ticker_ = new BasicTicker( false ) {
+                public Rule createRule( double dlo, double dhi,
+                                        double approxMajorCount, int adjust ) {
+                    final Rule rule =
+                        LINEAR.createRule( fromUnixSeconds( dlo ),
+                                            fromUnixSeconds( dhi ),
+                                            approxMajorCount, adjust );
+                    return new Rule() {
+                        public long floorIndex( double value ) {
+                            return rule
+                                  .floorIndex( fromUnixSeconds( value ) );
+                        }
+                        public double[] getMinors( long index ) {
+                            double[] minors = rule.getMinors( index );
+                            for ( int i = 0; i < minors.length; i++ ) {
+                                minors[ i ] = toUnixSeconds( minors[ i ] );
+                            }
+                            return minors;
+                        }
+                        public double indexToValue( long index ) {
+                            return toUnixSeconds( rule.indexToValue( index ) );
+                        }
+                        public String indexToLabel( long index ) {
+                            return rule.indexToLabel( index );
+                        }
+                    };
+                }
+            };
         }
 
         /**
@@ -232,25 +262,8 @@ public abstract class TimeFormat {
             }
         }
 
-        public Tick[] getAxisTicks( double unixSecMin, double unixSecMax,
-                                    boolean withMinor, Captioner captioner,
-                                    Orientation orient, int npix,
-                                    double crowding ) {
-
-            /* Get the Tick class to do the hard work of calcuating the
-             * labels over a given range for this time scale. */
-            Tick[] ticks = Tick.getTicks( fromUnixSeconds( unixSecMin ),
-                                          fromUnixSeconds( unixSecMax ), false,
-                                          withMinor, captioner, orient,
-                                          npix, crowding );
-
-            /* Then convert the data values to be suitable for this format. */
-            for ( int i = 0; i < ticks.length; i++ ) {
-                Tick t0 = ticks[ i ];
-                ticks[ i ] = new Tick( toUnixSeconds( t0.getValue() ),
-                                       t0.getLabel() );
-            }
-            return ticks;
+        public Ticker getTicker() {
+            return ticker_;
         }
     }
 
@@ -259,9 +272,8 @@ public abstract class TimeFormat {
      */
     private static class Iso8601TimeFormat extends TimeFormat {
 
-        private final DateLevel[] levels_;
-        private final DateLevel secLevel_;
-        private final Pattern datePattern_;
+        private final DateLevelSet levelSet_;
+        private final Ticker ticker_;
 
         /**
          * Constructor.
@@ -273,20 +285,16 @@ public abstract class TimeFormat {
          */
         Iso8601TimeFormat( char dateSep, TimeZone tz, Locale locale ) {
             super( "ISO-8601" );
-            levels_ = DateLevel.createLevels( dateSep, tz, locale );
-            secLevel_ = levels_[ levels_.length - 1 ];
-            assert secLevel_.getMajorSeconds() == 1;
-            datePattern_ =
-                Pattern.compile( "([0-9]+-[0-9][0-9]-[0-9][0-9]"
-                                + "[" + dateSep + "])(.+)" );
+            levelSet_ = new DateLevelSet( dateSep, tz, locale );
+            ticker_ = new Iso8601Ticker( levelSet_ );
         }
   
         public String formatTime( double unixSec, double secPrec ) {
 
             /* Get a level appropriate for this precision and perform basic
              * formatting down to seconds level. */
-            DateLevel level = getLevel( secPrec );
-            String txt = level.formatUnixSeconds( unixSec );
+            DateLevel level = levelSet_.getLevel( secPrec );
+            String txt = level.formatUnixSeconds( unixSec, true, true );
 
             /* Any formatting for sub-seconds we have to do by hand. */
             if ( secPrec <= 0.1 ) {
@@ -295,7 +303,7 @@ public abstract class TimeFormat {
                 long scale = (long) Math.round( Math.pow( 10, nSecDp ) );
                 double fracSec = unixSec - Math.floor( unixSec );
                 assert fracSec >= 0 && fracSec < 1;
-                long digits1 = (long) ( scale * 1. + fracSec );
+                long digits1 = (long) Math.round( scale * ( 1.  + fracSec ) );
                 String digits = Long.toString( digits1 ).substring( 1 );
                 return new StringBuffer()
                       .append( txt )
@@ -308,155 +316,185 @@ public abstract class TimeFormat {
             }
         }
 
-        public Tick[] getAxisTicks( double unixSecMin, double unixSecMax,
-                                    boolean withMinor, Captioner captioner,
-                                    Orientation orient, int npix,
-                                    double crowding ) {
-
-            /* Work out the approximate interval in seconds between major
-             * ticks. */
-            double secPrec = 2 * ( unixSecMax - unixSecMin )
-                               / ( npix / 175. )
-                               / crowding;
-
-            /* If we're dealing with years, treat the values like decimals. */
-            if ( secPrec > DateLevel.YEAR_SECS ) {
-                Tick[] ticks =
-                    Tick
-                   .getTicks( unixSecondsToDecimalYear( unixSecMin ),
-                              unixSecondsToDecimalYear( unixSecMax ), false,
-                              withMinor && secPrec > DateLevel.YEAR_SECS * 10,
-                              captioner, orient, npix, crowding );
-                for ( int i = 0; i < ticks.length; i++ ) {
-                    Tick t0 = ticks[ i ];
-                    ticks[ i ] =
-                        new Tick( decimalYearToUnixSeconds( t0.getValue() ),
-                                  t0.getLabel() );
-                }
-                return ticks;
-            }
-
-            /* If we're dealing with sub-second quantities, format them down
-             * to seconds and treat the sub-second parts like decimals. */
-            else if ( secPrec < 1 ) {
-                long floor = secLevel_.floorUnixSeconds( unixSecMin );
-                Tick[] ticks = Tick.getTicks( unixSecMin - floor,
-                                              unixSecMax - floor, false,
-                                              withMinor, captioner, orient,
-                                              npix, crowding );
-                for ( int i = 0; i < ticks.length; i++ ) {
-                    Tick t0 = ticks[ i ];
-                    double unixSec = t0.getValue() + floor;
-                    ticks[ i ] =
-                        new Tick( unixSec, formatTime( unixSec, secPrec ) );
-                }
-                return trimMajorTicks( ticks );
-            }
-
-            /* Otherwise use DateLevel instances to break down increments
-             * into date-appropriate amounts. */
-            DateLevel level = getLevel( secPrec );
-
-            /* Start at a round number, and go up in round-number amounts. */
-            long floor = level.floorUnixSeconds( unixSecMin );
-            long majorSec = level.getMajorSeconds();
-            List<Tick> majorTickList = new ArrayList<Tick>();
-            for ( long epoch = floor; epoch <= unixSecMax; epoch += majorSec ) {
-                if ( epoch >= unixSecMin ) {
-                    majorTickList
-                   .add( new Tick( epoch, level.formatUnixSeconds( epoch ) ) );
-                }
-            }
-
-            /* Perform fine adjustment on major tick labels. */
-            Tick[] majorTicks =
-                trimMajorTicks( majorTickList.toArray( new Tick[ 0 ] ) );
-
-            /* Minor ticks: do the same thing. */
-            if ( withMinor && level.getMinorSeconds() > 0 ) {
-                long minorSec = level.getMinorSeconds();
-                List<Tick> minorTickList = new ArrayList<Tick>();
-                for ( long epoch = floor; epoch <= unixSecMax;
-                      epoch += minorSec ) {
-                    if ( epoch >= unixSecMin ) {
-                        minorTickList.add( new Tick( epoch ) );
-                    }
-                }
-                Tick[] minorTicks = minorTickList.toArray( new Tick[ 0 ] );
-                return Tick.combineTicks( majorTicks, minorTicks );
-            }
-            else {
-                return majorTicks;
-            }
+        public Ticker getTicker() {
+            return ticker_;
         }
+    }
+
+    /**
+     * Ticker implementation for ISO-8601 dates.
+     */
+    private static class Iso8601Ticker extends PrefixTicker {
+        private final DateLevelSet levelSet_;
 
         /**
-         * Returns an object which knows about formatting etc for a given
-         * level of time precision.
+         * Constructor.
          *
-         * @param  secPrecision   precision level in seconds
-         * @return  precision-specific formatter
+         * @param  levelSet  list of date levels which define how ticks
+         *                   are done
          */
-        private DateLevel getLevel( double secPrecision ) {
-            for ( int i = 0; i < levels_.length; i++ ) {
-                DateLevel level = levels_[ i ];
-                if ( secPrecision >= level.getMajorSeconds() ) {
-                    return level;
-                }
-            }
-            return secLevel_;
+        Iso8601Ticker( DateLevelSet levelSet ) {
+            super( false );
+            levelSet_ = levelSet;
         }
 
-        /** 
-         * Performs fine adjustments on major tick labels.
-         *
-         * @param  ticks  raw major tick array
-         * @return   adjusted major tick array (may be the same)
-         */
-        private Tick[] trimMajorTicks( Tick[] ticks ) {
+        public Rule createRule( double dlo, double dhi,
+                                double approxMajorCount, int adjust ) {
+            double secGap = ( dhi - dlo ) / approxMajorCount;
+            int ilevel = levelSet_.getLevelIndex( secGap );
 
-            /* ISO-8601 strings can be rather long, and it's unwieldy to
-             * use the full strings if the action is at the right hand side,
-             * i.e. if most of the leading characters are invariant or
-             * nearly invariant over the whole range of ticks.
-             * So try to identify if that's the case, and strip the date
-             * part if it doesn't change, or if it changes only once. */
-            int nDateTick = 0;
-            Set<String> uniqueDates = new HashSet<String>();
-            Tick[] timeTicks = ticks.clone();
-            int iLeadTick = 0;
-            for ( int i = 0; i < ticks.length; i++ ) {
-                Tick tick = ticks[ i ];
-                String label = tick.getLabel();
-                if ( label != null ) {
-                    Matcher matcher = datePattern_.matcher( label );
-                    if ( matcher.matches() ) {
-                        String date = matcher.group( 1 );
-                        String time = matcher.group( 2 );
-                        int oldSize = uniqueDates.size();
-                        uniqueDates.add( date );
-                        if ( oldSize == 1 && uniqueDates.size() == 2 ) {
-                            iLeadTick = i;
-                        }
-                        timeTicks[ i ] = new Tick( tick.getValue(), time );
-                        nDateTick++;
+            /* If we're dealing with intervals greater than a year,
+             * treat the values like decimal years. */
+            if ( ilevel < 0 ) {
+                BasicTicker.Rule yearRule =
+                    decimalYear_.ticker_
+                   .createRule( dlo, dhi, approxMajorCount, adjust );
+                return new PrefixRuleAdapter( yearRule ) {
+                    public String indexToPrefix( long index ) {
+                        return null;
                     }
+                };
+            }
+
+            /* If precision is between seconds and years, use the
+             * appropriate date level object. */
+            else if ( ilevel < levelSet_.levels_.length ) {
+                ilevel = Math.max( 0, Math.min( levelSet_.levels_.length - 1,
+                                                ilevel + adjust ) );
+                return new DateRule( levelSet_.levels_[ ilevel ] );
+            }
+
+            /* If precision is sub-second use a custom rule that formats
+             * the prefixes as ISO-8601 dates down to minute level,
+             * then adds formats the seconds by hand for the suffixes. 
+             * You need to be careful with precision here. */
+            else {
+                final BasicTicker.Rule secondRule =
+                    BasicTicker.LINEAR
+                   .createRule( dlo, dhi, approxMajorCount, adjust );
+
+                /* This relies on the fact that the BasicTicker
+                 * secondRule is known to be linear, and to divide
+                 * seconds into an integral number of intervals. */
+                final double secPerIndex =
+                    secondRule.indexToValue( 1 ) - secondRule.indexToValue( 0 );
+                final long indexPerSec = Math.round( 1.0 / secPerIndex );
+                return new PrefixRuleAdapter( secondRule ) {
+                    @Override
+                    public String indexToLabel( long index ) {
+                        long minFloorIndex = getMinuteFloorIndex( index );
+                        int addSecIndex = (int) ( index - minFloorIndex );
+                        String label = secondRule.indexToLabel( addSecIndex );
+                        double labelValue = Double.parseDouble( label );
+                        assert labelValue >= 0 && labelValue < 60 : label;
+                        return label;
+                    }
+                    public String indexToPrefix( long index ) {
+                        double minFloorSec =
+                            getMinuteFloorIndex( index ) * secPerIndex;
+                        return levelSet_.secLevel_
+                              .formatUnixSeconds( minFloorSec, true, false );
+                    }
+                    private long getMinuteFloorIndex( long index ) {
+                        long indexPerMin = 60 * indexPerSec;
+                        long whole = index / indexPerMin;
+                        long part = index % indexPerMin;
+                        if ( part < 0 ) {
+                            part += indexPerMin;
+                            whole -= 1;
+                        }
+                        return whole * indexPerMin;
+                    }
+                };
+            }
+        }
+    }
+
+    /**
+     * Prefix rule implementation based on a DateLevel object.
+     */
+    private static class DateRule implements PrefixTicker.Rule {
+        private final DateLevel level_;
+        private final long majorSec_;
+        private final long[] minors_;
+
+        /**
+         * Constructor.
+         *
+         * @param  level  date level
+         */
+        DateRule( DateLevel level ) {
+            level_ = level;
+            majorSec_ = level.getMajorSeconds();
+            long minorSec = level.getMinorSeconds();
+            if ( minorSec > 0 ) {
+                int nminor = (int) ( majorSec_ / minorSec );
+                minors_ = new long[ nminor - 1 ];
+                for ( int i = 0; i < minors_.length; i++ ) {
+                    minors_[ i ] = ( i + 1 ) * minorSec;
                 }
             }
-
-            /* If the dates don't change much, replace most of the tick
-             * labels by time parts only.  Make sure at least one includes
-             * the date for context though. */
-            int nUniqueDates = uniqueDates.size();
-            if ( nUniqueDates <= 2 && nDateTick > nUniqueDates ) {
-                timeTicks[ iLeadTick ] = ticks[ iLeadTick ];
-                return timeTicks;
-            }
-
-            /* Otherwise (several different dates) leave them as input. */
             else {
-                return ticks;
+                minors_ = new long[ 0 ];
             }
+        }
+
+        public long floorIndex( double value ) {
+            return level_.floorUnixSeconds( value ) / majorSec_;
+        }
+
+        public double[] getMinors( long index ) {
+            double base = indexToValue( index );
+            double[] minors = new double[ minors_.length ];
+            for ( int i = 0; i < minors.length; i++ ) {
+                minors[ i ] = base + minors_[ i ];
+            }
+            return minors;
+        }
+
+        public double indexToValue( long index ) {
+            return majorSec_ * index;
+        }
+
+        public String indexToLabel( long index ) {
+            return level_.formatUnixSeconds( indexToValue( index ),
+                                             false, true );
+        }
+
+        public String indexToPrefix( long index ) {
+            return level_.formatUnixSeconds( indexToValue( index ),
+                                             true, false );
+        }
+    }
+
+    /**
+     * Partial adapter for BasicTicker.Rules to turn them into
+     * PrefixTicker.Rules.  You need to supply the
+     * <code>indexToPrefix</code> method.
+     */
+    private static abstract class PrefixRuleAdapter
+                                  implements PrefixTicker.Rule {
+        private final BasicTicker.Rule basicRule_;
+
+        /**
+         * Constructor.
+         *
+         * @parma   basicRule  basic rule on which the prefix rule is based
+         */
+        public PrefixRuleAdapter( BasicTicker.Rule basicRule ) {
+            basicRule_ = basicRule;
+        }
+        public long floorIndex( double value ) {
+            return basicRule_.floorIndex( value );
+        }
+        public double[] getMinors( long index ) {
+            return basicRule_.getMinors( index );
+        }
+        public double indexToValue( long index ) {
+            return basicRule_.indexToValue( index );
+        }
+        public String indexToLabel( long index ) {
+            return basicRule_.indexToLabel( index );
         }
     }
 
@@ -468,31 +506,30 @@ public abstract class TimeFormat {
         private final long majorSec_;
         private final long minorSec_;
         private final GregorianCalendar calendar_;
-        private final DateFormat format_;
-
-        private static final long MINUTE_SECS = 60;
-        private static final long HOUR_SECS = 60 * MINUTE_SECS;
-        private static final long DAY_SECS = 24 * HOUR_SECS;
-        private static final long YEAR_SECS = ( ( 356*4 + 1 ) * DAY_SECS ) / 4;
-        private static final long MONTH_SECS = YEAR_SECS / 12;
+        private final DateFormat prefixFormat_;
+        private final DateFormat suffixFormat_;
 
         /**
          * Constructor.
          *
          * @param   majorSec  major tick interval in seconds
          * @param   minorSec  minor tick interval in seconds
-         * @param   pattern   date format pattern
+         * @param   prefixPattern  date first part format pattern
+         * @param   suffixPattern  date second part format pattern
          * @param   tz      time zone
          * @param   locale  locale
          */
-        DateLevel( long majorSec, long minorSec, String pattern,
-                   TimeZone tz, Locale locale ) {
+        DateLevel( long majorSec, long minorSec, String prefixPattern,
+                   String suffixPattern, TimeZone tz, Locale locale ) {
             majorSec_ = majorSec;
             minorSec_ = minorSec;
             calendar_ = new GregorianCalendar( tz, locale );
-            format_ = new SimpleDateFormat( pattern );
-            format_.setTimeZone( tz );
-            format_.setCalendar( calendar_ );
+            prefixFormat_ = new SimpleDateFormat( prefixPattern );
+            prefixFormat_.setTimeZone( tz );
+            prefixFormat_.setCalendar( calendar_ );
+            suffixFormat_ = new SimpleDateFormat( suffixPattern );
+            suffixFormat_.setTimeZone( tz );
+            suffixFormat_.setCalendar( calendar_ );
         }
 
         /**
@@ -524,15 +561,28 @@ public abstract class TimeFormat {
 
         /**
          * Formats a time in a way appropriate for this precision.
+         * Prefix and/or suffix parts may be included in the result.
          *
          * @param  unixSec  seconds since the unix epoch
+         * @param  prefix   true to include prefix
+         * @param  suffix   true to include suffix
          * @return   formatted value
          */
-        public synchronized String formatUnixSeconds( double unixSec ) {
+        public synchronized String formatUnixSeconds( double unixSec,
+                                                      boolean prefix,
+                                                      boolean suffix ) {
 
             /* Method is synchronized since DateFormat is not thread-safe. */
             long lunixSec = (long) Math.floor( unixSec );
-            return format_.format( new Date( lunixSec * 1000 ) );
+            Date date = new Date( lunixSec * 1000 );
+            StringBuffer sbuf = new StringBuffer();
+            if ( prefix ) {
+                sbuf.append( prefixFormat_.format( date ) );
+            }
+            if ( suffix ) {
+                sbuf.append( suffixFormat_.format( date ) );
+            }
+            return sbuf.toString();
         }
 
         /**
@@ -552,21 +602,36 @@ public abstract class TimeFormat {
         public long getMinorSeconds() {
             return minorSec_;
         }
+    }
+
+    /**
+     * Aggregates a list of DateLevel objects which form an ordered sequence,
+     * from a precision of years to seconds, but not outside that range.
+     */
+    private static class DateLevelSet {
+
+        final DateLevel[] levels_;
+        final DateLevel secLevel_;
+
+        private static final long MINUTE_SECS = 60;
+        private static final long HOUR_SECS = 60 * MINUTE_SECS;
+        private static final long DAY_SECS = 24 * HOUR_SECS;
+        private static final long WEEK_SECS = 7 * DAY_SECS;
+        private static final long YEAR_SECS = ( ( 356*4 + 1 ) * DAY_SECS ) / 4;
 
         /**
-         * Generates an ordered list of levels spanning the whole range
-         * from years to seconds (but not outside that range).
+         * Constructor.
+         *
+         * @param  dateSep  character separating ISO-8601 date from time
+         *                  (normally 'T' or ' ')
+         * @param  tz   calendar time zone
+         * @param  locale  calendar locale
          */
-        public static DateLevel[] createLevels( char dateSep, TimeZone tz,
-                                                Locale locale ) {
-            String yearFormat = "yyyy";
-            String monthFormat = yearFormat + "-MM";
-            String dayFormat = monthFormat + "-dd";
-            String hourFormat = dayFormat + "'" + dateSep + "'" + "HH";
-            String minuteFormat = hourFormat + ":mm";
-            String secondFormat = minuteFormat + ":ss";
-            return new DateLevel[] {
-                new DateLevel( YEAR_SECS, MONTH_SECS, yearFormat,
+        public DateLevelSet( char dateSep, TimeZone tz, Locale locale ) {
+            String datePrefix = "yyyy-MM-dd'" + dateSep + "'";
+            levels_ = new DateLevel[] {
+                new DateLevel( YEAR_SECS, YEAR_SECS / 4,
+                               "", "yyyy",
                                tz, locale ) {
                     void roundDown( Calendar cal ) {
                         int year = cal.get( Calendar.YEAR );
@@ -574,7 +639,22 @@ public abstract class TimeFormat {
                         cal.set( year, 0, 0 );
                     }
                 },
-                new DateLevel( MONTH_SECS, DAY_SECS, monthFormat,
+
+                /* The next two are a bit dodgy - the major tick marks look
+                 * like the start of the month, but they are actually a
+                 * fixed number of seconds from a floor month start. */
+                new DateLevel( YEAR_SECS / 4, YEAR_SECS / 12,
+                               "yyyy-", "MM",
+                               tz, locale ) {
+                    void roundDown( Calendar cal ) {
+                        int year = cal.get( Calendar.YEAR );
+                        int month = cal.get( Calendar.MONTH );
+                        cal.clear();
+                        cal.set( year, ( month / 4 ) * 4, 0 );
+                    }
+                },
+                new DateLevel( YEAR_SECS / 12, YEAR_SECS / 48,
+                               "yyyy-", "MM",
                                tz, locale ) {
                     void roundDown( Calendar cal ) {
                         int year = cal.get( Calendar.YEAR );
@@ -583,7 +663,20 @@ public abstract class TimeFormat {
                         cal.set( year, month, 0 );
                     }
                 },
-                new DateLevel( DAY_SECS, HOUR_SECS * 6, dayFormat,
+                new DateLevel( WEEK_SECS, DAY_SECS,
+                               "yyyy-", "MM-dd",
+                               tz, locale ) {
+                    void roundDown( Calendar cal ) {
+                        int year = cal.get( Calendar.YEAR );
+                        int week = cal.get( Calendar.WEEK_OF_YEAR );
+                        cal.clear();
+                        cal.set( Calendar.YEAR, year );
+                        cal.set( Calendar.WEEK_OF_YEAR, week );
+                        cal.set( Calendar.DAY_OF_WEEK, 1 );
+                    }
+                },
+                new DateLevel( DAY_SECS, HOUR_SECS * 6,
+                               "yyyy-MM-", "dd",
                                tz, locale ) {
                     void roundDown( Calendar cal ) {
                         int year = cal.get( Calendar.YEAR );
@@ -593,7 +686,8 @@ public abstract class TimeFormat {
                         cal.set( year, month, day );
                     }
                 },
-                new DateLevel( HOUR_SECS * 6, HOUR_SECS, hourFormat,
+                new DateLevel( HOUR_SECS * 6, HOUR_SECS,
+                               datePrefix, "HH",
                                tz, locale ) {
                     void roundDown( Calendar cal ) {
                         int year = cal.get( Calendar.YEAR );
@@ -604,7 +698,8 @@ public abstract class TimeFormat {
                         cal.set( year, month, day, ( hour / 6 ) * 6, 0, 0 );
                     }
                 },
-                new DateLevel( HOUR_SECS, MINUTE_SECS * 10, hourFormat,
+                new DateLevel( HOUR_SECS, MINUTE_SECS * 15,
+                               datePrefix, "HH",
                                tz, locale ) {
                     void roundDown( Calendar cal ) {
                         int year = cal.get( Calendar.YEAR );
@@ -615,7 +710,8 @@ public abstract class TimeFormat {
                         cal.set( year, month, day, hour, 0, 0 );
                     }
                 },
-                new DateLevel( MINUTE_SECS * 10, MINUTE_SECS, minuteFormat,
+                new DateLevel( MINUTE_SECS * 15, MINUTE_SECS * 5,
+                               datePrefix, "HH:mm",
                                tz, locale ) {
                     void roundDown( Calendar cal ) {
                         int year = cal.get( Calendar.YEAR );
@@ -625,10 +721,25 @@ public abstract class TimeFormat {
                         int minute = cal.get( Calendar.MINUTE );
                         cal.clear();
                         cal.set( year, month, day,
-                                 hour, ( minute / 10 ) * 10, 0 );
+                                 hour, ( minute / 15 ) * 15, 0 );
                     }
                 },
-                new DateLevel( MINUTE_SECS, 10, minuteFormat,
+                new DateLevel( MINUTE_SECS * 5, MINUTE_SECS,
+                               datePrefix, "HH:mm",
+                               tz, locale ) {
+                    void roundDown( Calendar cal ) {
+                        int year = cal.get( Calendar.YEAR );
+                        int month = cal.get( Calendar.MONTH );
+                        int day = cal.get( Calendar.DAY_OF_MONTH );
+                        int hour = cal.get( Calendar.HOUR_OF_DAY );
+                        int minute = cal.get( Calendar.MINUTE );
+                        cal.clear();
+                        cal.set( year, month, day,
+                                 hour, ( minute / 5 ) * 5, 0 );
+                    }
+                },
+                new DateLevel( MINUTE_SECS, 15,
+                               datePrefix, "HH:mm",
                                tz, locale ) {
                     void roundDown( Calendar cal ) {
                         int year = cal.get( Calendar.YEAR );
@@ -640,7 +751,8 @@ public abstract class TimeFormat {
                         cal.set( year, month, day, hour, minute, 0 );
                     }
                 },
-                new DateLevel( 10, 1, secondFormat,
+                new DateLevel( 15, 5,
+                               datePrefix + "HH:", "mm:ss",
                                tz, locale ) {
                     void roundDown( Calendar cal ) {
                         int year = cal.get( Calendar.YEAR );
@@ -651,10 +763,27 @@ public abstract class TimeFormat {
                         int second = cal.get( Calendar.SECOND );
                         cal.clear();
                         cal.set( year, month, day,
-                                 hour, minute, ( second / 10 ) * 10 );
+                                 hour, minute, ( second / 15 ) * 15 );
                     }
                 },
-                new DateLevel( 1, 0, secondFormat,
+                new DateLevel( 5, 1,
+                               datePrefix + "HH:", "mm:ss",
+                               tz, locale ) {
+                    void roundDown( Calendar cal ) {
+                        int year = cal.get( Calendar.YEAR );
+                        int month = cal.get( Calendar.MONTH );
+                        int day = cal.get( Calendar.DAY_OF_MONTH );
+                        int hour = cal.get( Calendar.HOUR_OF_DAY );
+                        int minute = cal.get( Calendar.MINUTE );
+                        int second = cal.get( Calendar.SECOND );
+                        cal.clear();
+                        cal.set( year, month, day,
+                                 hour, minute, ( second / 5 ) * 5 );
+                    }
+                },
+                secLevel_ =
+                new DateLevel( 1, 0,
+                               datePrefix + "HH:mm:", "ss",
                                tz, locale ) {
                     void roundDown( Calendar cal ) {
                         int year = cal.get( Calendar.YEAR );
@@ -668,6 +797,45 @@ public abstract class TimeFormat {
                     }
                 },
             };
+            assert secLevel_.getMajorSeconds() == 1;
+        }
+
+        /**
+         * Returns an index into the levels array giving an appropriate
+         * date level for a given precision in seconds.
+         * The returned value will be negative if the precision is
+         * coarser than the lowest entry (1 year) and the length of the
+         * levels array if the precision is finer than the highest entry
+         * (1 second).
+         *
+         * @param  secPrecision  precision in seconds
+         * @return  index of appropriate date level
+         */
+        public int getLevelIndex( double secPrecision ) {
+            if ( secPrecision > YEAR_SECS ) {
+                return -1;
+            }
+            else {
+                for ( int i = 0; i < levels_.length; i++ ) {
+                    DateLevel level = levels_[ i ];
+                    if ( secPrecision >= level.getMajorSeconds() ) {
+                        return i;
+                    }
+                }
+                return levels_.length;
+            }
+        }
+
+        /**
+         * Returns a DateLevel for a given precision.
+         *
+         * @param  secPrecision  precision in seconds
+         * @return  most appropriate date level, not null
+         */
+        public DateLevel getLevel( double secPrecision ) {
+            int ilevel = Math.min( Math.max( getLevelIndex( secPrecision ),
+                                             0 ), levels_.length - 1 );
+            return levels_[ ilevel ];
         }
     }
 }

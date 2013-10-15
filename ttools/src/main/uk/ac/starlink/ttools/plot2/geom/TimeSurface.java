@@ -8,6 +8,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.Arrays;
 import uk.ac.starlink.ttools.plot2.Axis;
+import uk.ac.starlink.ttools.plot2.BasicTicker;
 import uk.ac.starlink.ttools.plot2.Captioner;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Surface;
@@ -331,14 +332,14 @@ public class TimeSurface implements Surface {
         double dthi = aspect.getTMax();
         double dylo = aspect.getYMin();
         double dyhi = aspect.getYMax();
-        Tick[] tticks =
-            tformat.getAxisTicks( aspect.getTMin(), aspect.getTMax(), minor,
+        Tick[] tticks = tformat.getTicker()
+                       .getTicks( aspect.getTMin(), aspect.getTMax(), minor,
                                   captioner, PlaneAxisAnnotation.X_ORIENT,
                                   plotBounds.width, tcrowd );
-        Tick[] yticks =
-            Tick.getTicks( dylo, dyhi, ylog, minor,
-                           captioner, PlaneAxisAnnotation.Y_ORIENT,
-                           plotBounds.height, ycrowd );
+        Tick[] yticks = ( ylog ? BasicTicker.LOG : BasicTicker.LINEAR )
+                       .getTicks( dylo, dyhi, minor, captioner,
+                                  PlaneAxisAnnotation.Y_ORIENT,
+                                  plotBounds.height, ycrowd );
         return new TimeSurface( gxlo, gxhi, gylo, gyhi, dtlo, dthi, dylo, dyhi,
                                 ylog, yflip, tticks, yticks, tlabel, ylabel,
                                 captioner, grid, tformat );
