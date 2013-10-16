@@ -18216,7 +18216,8 @@ introduced since the last version:
             <code>table.load.stil</code> SAMP MTypes from the transmit
             section (wrong) to the receive section (right)
             of this document.</li>
-        <li>Avoid overlapping tick labels in layer plots.</li>
+        <li>Axis tick labelling improved, including avoiding overlapping
+            tick labels in layer plots.</li>
         <li>More <code>toString</code> overloads - now works for byte and
             boolean values too.</li>
         <li>Replace the (slightly dangerous, also undocumented)
@@ -18237,6 +18238,8 @@ introduced since the last version:
             for when mouse wheel is used.</li>
         <li>Fix service selection bug (NullPointerException)
             in multi-SIA/SSA windows.</li>
+        <li>URL selector fields in Activation Action window are now
+            editable.</li>
         </ul>
         </p></dd>
 
