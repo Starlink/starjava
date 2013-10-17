@@ -77,6 +77,11 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
+<<<<<<< HEAD
+=======
+import javax.swing.ScrollPaneConstants;
+import javax.swing.border.Border;
+>>>>>>> Changes in the query browser GUI, solved disappearing buttons problem
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
@@ -604,10 +609,15 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
     {
        
         JPanel contentPane = (JPanel) getContentPane();
+<<<<<<< HEAD
+=======
+        
+>>>>>>> Changes in the query browser GUI, solved disappearing buttons problem
       
         contentPane.setPreferredSize(new Dimension(800,720));
         contentPane.setMinimumSize(new Dimension(600,400));
    //     contentPane.setLayout( new BoxLayout(contentPane, BoxLayout.X_AXIS) );
+<<<<<<< HEAD
      //   JTabbedPane tabPane = new JTabbedPane();
                 
         JSplitPane splitPanel = new JSplitPane();
@@ -630,6 +640,18 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         gbcentre.gridy=0;
         gbcentre.weightx=1;
         gbcentre.fill=GridBagConstraints.HORIZONTAL;
+=======
+        JTabbedPane tabPane = new JTabbedPane();
+  
+        
+        leftPanel_1 = new JPanel( );
+   
+        initServerComponents();
+        tabPane.addTab("Server selection", leftPanel_1);
+       
+        centrePanel = new JPanel( new BorderLayout() );
+        
+>>>>>>> Changes in the query browser GUI, solved disappearing buttons problem
          initQueryComponents();
          gbcentre.gridy=1;
          gbcentre.weightx=1;
@@ -638,6 +660,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
          initResultsComponent();
          
          setDefaultNameServers();
+<<<<<<< HEAD
       //   tabPane.addTab("Query", centrePanel);
          
      //    tabPane.setSelectedComponent(centrePanel);
@@ -646,6 +669,13 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         
          
          contentPane.add(splitPanel);
+=======
+         tabPane.addTab("Query", centrePanel);
+         
+         tabPane.setSelectedComponent(centrePanel);
+         
+         contentPane.add(tabPane);
+>>>>>>> Changes in the query browser GUI, solved disappearing buttons problem
      
     }
 
@@ -656,7 +686,11 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         leftPanel.setAlignmentY((float) 1.);
 
         tree=new SSAServerTree( serverList, serverParam );   
+<<<<<<< HEAD
         leftPanel.add(tree);
+=======
+        leftPanel_1.add(tree);
+>>>>>>> Changes in the query browser GUI, solved disappearing buttons problem
     }
     
     
@@ -812,8 +846,8 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
     {
         setTitle( Utilities.getTitle( "Query VO for Spectra" ) );
         setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
-  //      Utilities.setFrameLocation( this, defaultWindowLocation, prefs,
- //               "SSAQueryBrowser" );
+        Utilities.setFrameLocation( this, defaultWindowLocation, prefs,
+                "SSAQueryBrowser" );
         setVisible( true );
     }
 
@@ -1017,7 +1051,12 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                 "(e.g 2008-10-15T20:48Z)" );
         
         //
+<<<<<<< HEAD
                 // format and calibration options:
+=======
+        
+        // format and calibration options:
+>>>>>>> Changes in the query browser GUI, solved disappearing buttons problem
         JPanel calibOptions = new JPanel(new GridLayout(3,2));
    //     calibOptions.setPreferredSize(new Dimension(100,200));
         // Formats
@@ -1099,8 +1138,12 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         JScrollPane queryScroller = new JScrollPane();
         queryScroller.add(queryText);
      //   queryScroller.setV
+<<<<<<< HEAD
         queryText.setEditable(true);
         
+=======
+        queryText.setEditable(false);
+>>>>>>> Changes in the query browser GUI, solved disappearing buttons problem
         sendQueryPanel.add(queryText);
         queryText.setLineWrap(true);     
         sendQueryPanel.add(goButton, BorderLayout.LINE_END);
@@ -1114,8 +1157,11 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         queryPanel.add(queryParamPanel, c);
         c.gridy=1;
         queryPanel.add( sendQueryPanel, c);
+<<<<<<< HEAD
        
         centrePanel.add( queryPanel, gbcentre );
+=======
+>>>>>>> Changes in the query browser GUI, solved disappearing buttons problem
        
         
         // add query text to query text area
@@ -1145,6 +1191,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         resultsPane = new JTabbedPane();
 //        resultsPane.setPreferredSize(new (600,310));
         resultsPanel.add( resultsPane , gbc);
+<<<<<<< HEAD
         resultsPane.addChangeListener(new ChangeListener() {
             public void stateChanged(ChangeEvent e) {//XXXXX
                 if ( dataLinkEnabled ) {
@@ -1175,6 +1222,11 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         gbcontrol.weightx=1;
         gbcontrol.weighty=0;
         gbcontrol.fill = GridBagConstraints.HORIZONTAL;
+=======
+        
+     
+        JPanel controlPanel = new JPanel();
+>>>>>>> Changes in the query browser GUI, solved disappearing buttons problem
 
         //  Download and display.
         displaySelectedButton = new JButton( "<html>Display<BR> selected</html>" );
@@ -1182,7 +1234,11 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         displaySelectedButton.setMargin(new Insets(1, 10, 1, 10));  
         displaySelectedButton.setToolTipText
         ( "Download and display all spectra selected in all tables" );
+<<<<<<< HEAD
         controlPanel.add( displaySelectedButton,gbcontrol );
+=======
+        controlPanel.add( displaySelectedButton );
+>>>>>>> Changes in the query browser GUI, solved disappearing buttons problem
 
 
         displayAllButton = new JButton( "<html>Display<BR>all</html>" );
@@ -1190,8 +1246,12 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         displayAllButton.setMargin(new Insets(1,10,1,10));  
         displayAllButton.setToolTipText
         ( "Download and display all spectra in all tables" );
+<<<<<<< HEAD
         gbcontrol.gridx=1;
         controlPanel.add( displayAllButton, gbcontrol );
+=======
+        controlPanel.add( displayAllButton );
+>>>>>>> Changes in the query browser GUI, solved disappearing buttons problem
 
         //  Just download.
         downloadSelectedButton = new JButton( "<html>Download<BR>selected</html>" );
@@ -1199,8 +1259,12 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         downloadSelectedButton.setMargin(new Insets(1,10,1,10));  
         downloadSelectedButton.setToolTipText
         ( "Download all spectra selected in all tables");
+<<<<<<< HEAD
         gbcontrol.gridx=2;
         controlPanel.add( downloadSelectedButton, gbcontrol );
+=======
+        controlPanel.add( downloadSelectedButton );
+>>>>>>> Changes in the query browser GUI, solved disappearing buttons problem
       
 
         downloadAllButton = new JButton( "<html>Download<BR> all</html>" );
@@ -1208,8 +1272,12 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         downloadAllButton.setMargin(new Insets(1,10,1,10));  
         downloadAllButton.setToolTipText
         ( "Download all spectra in all tables");
+<<<<<<< HEAD
         gbcontrol.gridx=3;
         controlPanel.add( downloadAllButton , gbcontrol);
+=======
+        controlPanel.add( downloadAllButton );
+>>>>>>> Changes in the query browser GUI, solved disappearing buttons problem
 
 
         //  Deselect
@@ -1219,8 +1287,12 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         deselectVisibleButton.setToolTipText
         ( "Deselect all spectra in displayed table" );
       //  controlPanel2.add( deselectVisibleButton );
+<<<<<<< HEAD
         gbcontrol.gridx=4;
         controlPanel.add( deselectVisibleButton, gbcontrol );
+=======
+        controlPanel.add( deselectVisibleButton );
+>>>>>>> Changes in the query browser GUI, solved disappearing buttons problem
 
 
         deselectAllButton = new JButton( "<html>Deselect <BR>all</html>" );
@@ -1229,9 +1301,14 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         deselectAllButton.setToolTipText
         ( "Deselect all spectra in all tables" );
      //   controlPanel2.add( deselectAllButton );
+<<<<<<< HEAD
         gbcontrol.gridx=5;
         controlPanel.add( deselectAllButton , gbcontrol);
 /*
+=======
+        controlPanel.add( deselectAllButton );
+
+>>>>>>> Changes in the query browser GUI, solved disappearing buttons problem
         getDataButton = new JButton( "<html>GET<BR> DATA</html>" );
         getDataButton.addActionListener( this );
         getDataButton.setMargin(new Insets(1,10,1,10));  
@@ -1239,6 +1316,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         getDataButton.setEnabled(false);
         getDataButton.setVisible(false);
      //   controlPanel2.add( deselectAllButton );
+<<<<<<< HEAD
         gbcontrol.gridx=6;
         controlPanel.add( getDataButton, gbcontrol );
  */     
@@ -1251,14 +1329,23 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
      //   controlPanel2.add( deselectAllButton );
         gbcontrol.gridx=6;
         controlPanel.add( dataLinkButton, gbcontrol );
+=======
+        
+>>>>>>> Changes in the query browser GUI, solved disappearing buttons problem
         gbc.gridx=0;
         gbc.gridy=1;
         gbc.weighty=0;
         gbc.anchor = GridBagConstraints.PAGE_END;
         gbc.fill=GridBagConstraints.HORIZONTAL;
+<<<<<<< HEAD
         resultsPanel.add( controlPanel, gbc );
         centrePanel.add( resultsPanel, gbcentre );
      
+=======
+        controlPanel.add( getDataButton );
+        resultsPanel.add( controlPanel, gbc );
+        centrePanel.add( resultsPanel, BorderLayout.CENTER );
+>>>>>>> Changes in the query browser GUI, solved disappearing buttons problem
     }
 
     /**
@@ -2282,6 +2369,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                                     props.setDataUnits( value );
                                 }
                             }
+<<<<<<< HEAD
                          
                             if (idsrccol != -1  && dataLinkQueryParams != null) { //!!!!!
                                 
@@ -2297,6 +2385,9 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                                    }
                                 }
                             } else if (pubdidcol != -1  && getDataParam != null) {
+=======
+                            if (pubdidcol != -1  && getDataParam != null) {
+>>>>>>> Changes in the query browser GUI, solved disappearing buttons problem
                                
                                 if (! getDataParam.isEmpty()) { 
                                    props.setIdValue(rseq.getCell(pubdidcol).toString());
@@ -2665,7 +2756,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
      */
     protected void closeWindowEvent()
     {
-   //     Utilities.saveFrameLocation( this, prefs, "SSAQueryBrowser" );
+        Utilities.saveFrameLocation( this, prefs, "SSAQueryBrowser" );
         this.dispose();
     }
 

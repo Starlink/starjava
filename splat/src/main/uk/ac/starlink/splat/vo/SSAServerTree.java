@@ -46,6 +46,7 @@ import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTree;
 import javax.swing.ListSelectionModel;
@@ -284,7 +285,7 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
        // Data Source
        JPanel srcAllPanel = new JPanel(new GridBagLayout());
   
-       JPanel srcPanel = new JPanel (new GridLayout(2, 3));
+       JPanel srcPanel = new JPanel (new GridLayout(3, 2));
        
        srcPanel.setBorder ( BorderFactory.createTitledBorder( "Source" ) );
        GridBagConstraints c = new GridBagConstraints();
