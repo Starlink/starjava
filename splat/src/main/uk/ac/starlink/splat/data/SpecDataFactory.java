@@ -388,6 +388,7 @@ public class SpecDataFactory
         String guessedType = null;
         URL specurl = null;
         int ftype = GUESS;
+        boolean notable=false;
         
         //  See what kind of specification we have.
         try {
@@ -425,10 +426,16 @@ public class SpecDataFactory
         }
         catch (Exception e ) {
             impl = null;
+            if (e.getMessage().contains("No TABLE element found")) {
+                // if a VOTABLE with no TABLE is returned (for example, getData with wrong parameters)
+                // a report should not be given.
+                notable=true;
+                throw (new SplatException(e));
+            }          
         }
 
         //  Try construct an intelligent report.
-        if ( impl == null ) {
+        if ( impl == null && ! notable ) {
             throwReport( specspec, false, format);
         }
         return makeSpecDataFromImpl( impl, isRemote, specurl );
@@ -564,6 +571,11 @@ public class SpecDataFactory
         }
         catch (Exception e) {
             tableException = e;
+            if (e.getMessage().contains("No TABLE element found")) {
+                impl=null;
+                logger.info( "VOTABLE returned no table" );
+                throw new SplatException (tableException);
+            }
         }
         try {
             if ( isRemote ) {
