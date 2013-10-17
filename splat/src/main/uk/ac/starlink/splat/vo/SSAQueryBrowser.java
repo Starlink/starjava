@@ -77,7 +77,10 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.border.Border;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 //import javax.swing.SwingWorker;
@@ -165,12 +168,12 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
     private static Logger logger =  Logger.getLogger( "uk.ac.starlink.splat.vo.SSAQueryBrowser" );
 
     /** UI preferences. */
-  //  protected static Preferences prefs = 
- //           Preferences.userNodeForPackage( SSAQueryBrowser.class );
+    protected static Preferences prefs = 
+            Preferences.userNodeForPackage( SSAQueryBrowser.class );
 
     /** Initial window size and location */
     private static final Rectangle defaultWindowLocation =
-            new Rectangle( 0, 0, 800, 720 );
+            new Rectangle( 0, 0, 800, 600 );
 
     /** The object holding the list of servers that we should use for SSA
      *  queries. */
@@ -388,50 +391,30 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
     {
        
         JPanel contentPane = (JPanel) getContentPane();
-        contentPane.setPreferredSize(new Dimension(900,720));
-        //contentPane.setLayout( new BorderLayout() );
-       // contentPane.setLayout( new GridLayout(1,2,3,3) );
-        contentPane.setLayout( new BoxLayout(contentPane, BoxLayout.X_AXIS) );
-      
-      //  GridBagLayout gblayout = new GridBagLayout();
-     //   contentPane.setLayout(gblayout); 
-       
-     //   GridBagConstraints c = new GridBagConstraints();
-      //  c.fill = GridBagConstraints.HORIZONTAL;
         
+      
+        contentPane.setPreferredSize(new Dimension(800,720));
+        contentPane.setMinimumSize(new Dimension(600,400));
+   //     contentPane.setLayout( new BoxLayout(contentPane, BoxLayout.X_AXIS) );
+        JTabbedPane tabPane = new JTabbedPane();
+  
         
         leftPanel_1 = new JPanel( );
-        leftPanel_1.setPreferredSize( new Dimension(300,700));
-      //  c.gridx=0; c.gridy=0;c.weightx=0;
-        
-     //   c.gridwidth = GridBagConstraints.RELATIVE; 
-     //   gblayout.setConstraints(leftPanel_1, c);
+   
         initServerComponents();
-        //contentPane. 
-      
+        tabPane.addTab("Server selection", leftPanel_1);
        
         centrePanel = new JPanel( new BorderLayout() );
-        centrePanel.setPreferredSize(new Dimension(600,700));
-     
-     //   c.gridx=1; c.gridy=0;//c.weightx=3;
-     //   c.gridwidth = GridBagConstraints.REMAINDER; //end row
-     //   gblayout.setConstraints(centrePanel, c);
-   //     contentPane.add( centrePanel);//, BorderLayout.LINE_END );
-        
-       // this.setPreferredSize(ç);
-      //  contentPane.setSize(800, 600);
-       // this.setSize(new Dimension(800,600));
-      
-        //leftPanel_1.setPreferredSize(new Dimension(300,600));
-        // centrePanel.setPreferredSize(new Dimension(500,600));
-        
         
          initQueryComponents();
          initResultsComponent();
          setDefaultNameServers();
-         contentPane.add( leftPanel_1 ); 
-         contentPane.add(centrePanel);
-      
+         tabPane.addTab("Query", centrePanel);
+         
+         tabPane.setSelectedComponent(centrePanel);
+         
+         contentPane.add(tabPane);
+     
     }
 
 
@@ -441,16 +424,9 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
 
         tree=new SSAServerTree( serverList, serverParam );   
         leftPanel_1.add(tree);
-        //serverPanel.add(tree); 
-       // leftPanel_1.add(serverPanel);
-       // tree.adaptTreeHeight( leftPanel.getHeight());
-     //   JPanel paramPanel = new JPanel();
-       // paramPanel.setBorder ( BorderFactory.createTitledBorder( "SSAP Parameters" ) );
-        //metaPanel = new SSAMetadataPanel();
-      //  paramPanel.add(metaPanel);
-      //  leftPanel.add(paramPanel);
-        //tree.setSize(getMaximumSize());
     }
+    
+    
     /**
      * Initialise the menu bar, action bar and related actions.
      */
@@ -599,8 +575,8 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
     {
         setTitle( Utilities.getTitle( "Query VO for Spectra" ) );
         setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
-  //      Utilities.setFrameLocation( this, defaultWindowLocation, prefs,
- //               "SSAQueryBrowser" );
+        Utilities.setFrameLocation( this, defaultWindowLocation, prefs,
+                "SSAQueryBrowser" );
         setVisible( true );
     }
 
@@ -613,41 +589,40 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         queryLine = new SSAQuery("<SERVER>");
         queryPanel = new JPanel();
         JPanel queryParamPanel = new JPanel();
-        queryParamPanel.setPreferredSize(new Dimension(600, 215));
-       /// customQueryPanel = new JPanel();
         queryPanel.setBorder ( BorderFactory.createTitledBorder( "Search parameters:" ) );
-        queryPanel.setLayout( new BorderLayout());
-      // customScrollPanel = new JScrollPane( customQueryPanel );
+        queryPanel.setLayout( new GridBagLayout());
+       // customScrollPanel = new JScrollPane( customQueryPanel );
         queryParamPanel.setLayout(new GridBagLayout());
         GridBagConstraints c = new GridBagConstraints();
-        c.fill=GridBagConstraints.HORIZONTAL;
-        
+        c.fill=GridBagConstraints.BOTH;
+        c.anchor=GridBagConstraints.NORTHWEST;
+        c.weightx=.5;
+        c.weighty=1.;
         c.gridx = 0;
         c.gridy = 0;
         
         JPanel simpleQueryPanel = new JPanel();
-        simpleQueryPanel.setPreferredSize(new Dimension(300,200));
+        simpleQueryPanel.setLayout(new BorderLayout());
         simpleQueryPanel.setBorder(BorderFactory.createTitledBorder("Simple Query"));
+      
         queryParamPanel.add(simpleQueryPanel, c);
         
-        c.fill = GridBagConstraints.BOTH;
         c.weightx = 0.5;
         c.gridx = 1;
         c.gridy = 0;
        
         JPanel optionalQueryPanel = new JPanel();
         optionalQueryPanel.setBorder(BorderFactory.createTitledBorder("Optional Parameters"));
-        optionalQueryPanel.setPreferredSize(new Dimension(300,200));
+  //      optionalQueryPanel.setPreferredSize(new Dimension(250,210));
         queryParamPanel.add(optionalQueryPanel, c);
         
-       
         
-      
         // The simple query panel
         //------------------------
-        
+           
        // GridBagLayouter layouter =  new GridBagLayouter( queryPanel, GridBagLayouter.SCHEME3 /*SCHEME4*/ );
         GridBagLayouter layouter =  new GridBagLayouter( simpleQueryPanel, GridBagLayouter.SCHEME4 /*SCHEME4*/ );
+       // GridBagLayouter layouter2 =  new GridBagLayouter( simpleQuery2/*Panel*/, GridBagLayouter.SCHEME4 /*SCHEME4*/ );
 
 
         //  Object name. Arrange for a resolver to look up the coordinates of
@@ -712,8 +687,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         layouter.add(posPanel,true);
         decField.setToolTipText( "Enter the Dec of field centre, decimal degrees or dd:mm:ss.ss" );
         raField.setToolTipText( "Enter the RA of field centre, decimal degrees or hh:mm:ss.ss" );
-
-    
 
 
         //  Radius field.
@@ -806,15 +779,18 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                 "in ISO 8601 format " +
                 "(e.g 2008-10-15T20:48Z)" );
         
+        //
+        
         // format and calibration options:
         JPanel calibOptions = new JPanel(new GridLayout(3,2));
-        
+   //     calibOptions.setPreferredSize(new Dimension(100,200));
         // Formats
         String[] formats =  { "None", "ALL", "COMPLIANT", "votable", "fits", "xml", "native" };
         formatList = new JComboBox(formats);
-        formatList.setSelectedIndex(0);
+        formatList.setSelectedIndex(2);
         formatList.addActionListener(this);
-        calibOptions.add(new JLabel("Query Format:"), false);
+        calibOptions.add(new JLabel("Query Format:"));
+        
         calibOptions.add( formatList, true);
         
         //Wavelength Calibration
@@ -823,6 +799,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         wlcalibList.setSelectedIndex(0);
         wlcalibList.addActionListener(this);
         calibOptions.add(new JLabel( "Wavelength calibration:"), false);
+       
         calibOptions.add( wlcalibList, true);
         
         //Flux Calibration
@@ -832,10 +809,14 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         flcalibList.addActionListener(this);
         calibOptions.add(new JLabel( "Flux calibration:"), false);
         calibOptions.add( flcalibList, true);
+        
         layouter.add(calibOptions, true);
-     
+        //simpleQueryPanel.add(calibOptions);
+        
         layouter.eatSpare();
         
+     //   simpleQueryPanel.add(simpleQuery1, BorderLayout.LINE_START);
+     //   simpleQueryPanel.add(calibOptions, BorderLayout.LINE_END);
         
         // The optional query parameter (metadata) Panel
         //----------------------------------------------
@@ -864,8 +845,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         paramButtonsPanel.add( removeParamButton );
         optionalQueryPanel.add(paramButtonsPanel, BorderLayout.SOUTH);
     
-        queryPanel.add(queryParamPanel, BorderLayout.NORTH);
-        
+         
         // the query string display Panel
         //-------------------------------
         goButton = new JButton( "    SEND QUERY    " );
@@ -879,13 +859,23 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         sendQueryPanel.add(new JLabel("Query:"), BorderLayout.LINE_START);
   //      sendQueryPanel.add(showQueryButton, BorderLayout.LINE_START);
         queryText = new JTextArea(2,25);
+        JScrollPane queryScroller = new JScrollPane();
+        queryScroller.add(queryText);
+     //   queryScroller.setV
         queryText.setEditable(false);
         sendQueryPanel.add(queryText);
         queryText.setLineWrap(true);     
         sendQueryPanel.add(goButton, BorderLayout.LINE_END);
        
+        c.fill=GridBagConstraints.BOTH;
+        c.anchor=GridBagConstraints.NORTHWEST;
+        c.weighty=.5;
+        c.gridx = 0;
+        c.gridy = 0;
         
-        queryPanel.add( sendQueryPanel, BorderLayout.SOUTH);
+        queryPanel.add(queryParamPanel, c);
+        c.gridy=1;
+        queryPanel.add( sendQueryPanel, c);
        
         centrePanel.add( queryPanel, BorderLayout.NORTH );
         
@@ -900,21 +890,24 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
      */
     private void initResultsComponent()
     {
-        JPanel resultsPanel = new JPanel( new BorderLayout() );
-        resultsPanel.setBorder
-        ( BorderFactory.createTitledBorder( "Query results:" ) );
-        resultsPanel.setToolTipText( "Results of query to the current list "+
-                "of SSAP servers. One table per server" );
+        JPanel resultsPanel = new JPanel( );
+        resultsPanel.setLayout(new GridBagLayout());
+        resultsPanel.setBorder ( BorderFactory.createTitledBorder( "Query results:" ) );
+        resultsPanel.setToolTipText( "Results of query to the current list of SSAP servers. One table per server" );
      
-     
+        GridBagConstraints gbc=new GridBagConstraints();
+        gbc.gridx=0;
+        gbc.gridy=0;
+        gbc.weighty=1;
+        gbc.weightx=1;
+        gbc.anchor=GridBagConstraints.NORTHWEST;
+        gbc.fill=GridBagConstraints.BOTH;
         resultsPane = new JTabbedPane();
-        resultsPane.setPreferredSize(new Dimension(600,310));
-        resultsPanel.add( resultsPane, BorderLayout.NORTH );
+//        resultsPane.setPreferredSize(new (600,310));
+        resultsPanel.add( resultsPane , gbc);
         
-        JPanel controlPanel = new JPanel( new BorderLayout() );
-        JPanel controlPanel1 = new JPanel();
-        controlPanel1.setPreferredSize(new Dimension(600,50));
-        JPanel controlPanel2 = new JPanel();
+     
+        JPanel controlPanel = new JPanel();
 
         //  Download and display.
         displaySelectedButton = new JButton( "<html>Display<BR> selected</html>" );
@@ -922,7 +915,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         displaySelectedButton.setMargin(new Insets(1, 10, 1, 10));  
         displaySelectedButton.setToolTipText
         ( "Download and display all spectra selected in all tables" );
-        controlPanel1.add( displaySelectedButton );
+        controlPanel.add( displaySelectedButton );
 
 
         displayAllButton = new JButton( "<html>Display<BR>all</html>" );
@@ -930,7 +923,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         displayAllButton.setMargin(new Insets(1,10,1,10));  
         displayAllButton.setToolTipText
         ( "Download and display all spectra in all tables" );
-        controlPanel1.add( displayAllButton );
+        controlPanel.add( displayAllButton );
 
         //  Just download.
         downloadSelectedButton = new JButton( "<html>Download<BR>selected</html>" );
@@ -938,7 +931,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         downloadSelectedButton.setMargin(new Insets(1,10,1,10));  
         downloadSelectedButton.setToolTipText
         ( "Download all spectra selected in all tables");
-        controlPanel1.add( downloadSelectedButton );
+        controlPanel.add( downloadSelectedButton );
       
 
         downloadAllButton = new JButton( "<html>Download<BR> all</html>" );
@@ -946,7 +939,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         downloadAllButton.setMargin(new Insets(1,10,1,10));  
         downloadAllButton.setToolTipText
         ( "Download all spectra in all tables");
-        controlPanel1.add( downloadAllButton );
+        controlPanel.add( downloadAllButton );
 
 
         //  Deselect
@@ -956,7 +949,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         deselectVisibleButton.setToolTipText
         ( "Deselect all spectra in displayed table" );
       //  controlPanel2.add( deselectVisibleButton );
-        controlPanel1.add( deselectVisibleButton );
+        controlPanel.add( deselectVisibleButton );
 
 
         deselectAllButton = new JButton( "<html>Deselect <BR>all</html>" );
@@ -965,22 +958,23 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         deselectAllButton.setToolTipText
         ( "Deselect all spectra in all tables" );
      //   controlPanel2.add( deselectAllButton );
-        controlPanel1.add( deselectAllButton );
+        controlPanel.add( deselectAllButton );
 
         getDataButton = new JButton( "<html>GET<BR> DATA</html>" );
         getDataButton.addActionListener( this );
         getDataButton.setMargin(new Insets(1,10,1,10));  
-        getDataButton.setToolTipText
-        ( "Server-side processing parameters" );
+        getDataButton.setToolTipText ( "Server-side processing parameters" );
         getDataButton.setEnabled(false);
         getDataButton.setVisible(false);
      //   controlPanel2.add( deselectAllButton );
         
-      
-        controlPanel1.add( getDataButton );
-        controlPanel.add( controlPanel1, BorderLayout.NORTH );
-     //   controlPanel.add( controlPanel2, BorderLayout.SOUTH );
-        resultsPanel.add( controlPanel, BorderLayout.SOUTH );
+        gbc.gridx=0;
+        gbc.gridy=1;
+        gbc.weighty=0;
+        gbc.anchor = GridBagConstraints.PAGE_END;
+        gbc.fill=GridBagConstraints.HORIZONTAL;
+        controlPanel.add( getDataButton );
+        resultsPanel.add( controlPanel, gbc );
         centrePanel.add( resultsPanel, BorderLayout.CENTER );
     }
 
@@ -1005,6 +999,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             formatMenu.add( item );
         }
         optionsMenu.add( formatMenu );
+        this.pack();
     }
 
     /**
@@ -1917,6 +1912,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                                 }
                             }
                             if (pubdidcol != -1  && getDataParam != null) {
+                               
                                 if (! getDataParam.isEmpty()) { 
                                    props.setPubdidValue(rseq.getCell(pubdidcol).toString());
                                    props.setGetDataRequest(getDataRequest);
@@ -2256,7 +2252,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
      */
     protected void closeWindowEvent()
     {
-   //     Utilities.saveFrameLocation( this, prefs, "SSAQueryBrowser" );
+        Utilities.saveFrameLocation( this, prefs, "SSAQueryBrowser" );
         this.dispose();
     }
 
