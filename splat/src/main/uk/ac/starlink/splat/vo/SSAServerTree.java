@@ -11,6 +11,9 @@ import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
@@ -44,6 +47,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTree;
 import javax.swing.KeyStroke;
@@ -187,9 +191,6 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
     private JCheckBox src_inv;
 
     
-    
-    
-    
     // user defined tags
     private ArrayList<JCheckBox> userTags;
     private JTabbedPane optionTabs;
@@ -199,8 +200,8 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
     
     // sizes
     
-    private  int WIDTH = 300;
-    private  int HEIGHT = 700;
+    private  int WIDTH = 600;
+    private  int HEIGHT = 500;
     private int  TAB_HEIGHT = 180;
     private int  BUTTONS_HEIGHT = 80;
    
@@ -224,6 +225,7 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
     public SSAServerTree( SSAServerList serverList, ServerParamRelation spr )
     {
       
+        this.addComponentListener(new resizeListener());
         this.serverList = serverList;
         this.serverParam = spr;
         initUI();
@@ -239,36 +241,39 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
     protected void initUI()
     {
     
-       this.setPreferredSize(new Dimension(this.WIDTH,this.HEIGHT));
+      // this.setPreferredSize(new Dimension(this.WIDTH,this.HEIGHT));
+ //      this.setMinimumSize(new Dimension(this.WIDTH-300,this.HEIGHT-300));
        setLayout( new BorderLayout() );
-       optionTabs = new JTabbedPane();
-      
-       JPanel optionsPanel = new JPanel();      
-       optionsPanel.setLayout(new BoxLayout(optionsPanel, BoxLayout.Y_AXIS));
-    //   optionsPanel.setBorder ( BorderFactory.createTitledBorder( "Server Options" ) );
-       optionsPanel.setPreferredSize(new Dimension(this.WIDTH,this.TAB_HEIGHT));
        
+       optionTabs = new JTabbedPane();
+       JScrollPane optionsScroller = new JScrollPane();
+       
+       JPanel invOptionsPanel = new JPanel(); // invisible, just to adjust size of frames
+       JPanel optionsPanel = new JPanel(new GridBagLayout());
+       GridBagConstraints gbcOptions = new GridBagConstraints();
+    
        treeRenderer = new ServerTreeCellRenderer();
        checkBoxlistener = new CheckBoxListener();
        
        // BAND
-       JPanel bandPanel = new JPanel (new GridLayout(3,3));
+    
+       JPanel bandPanel = new JPanel (new GridLayout(5,2));
        bandPanel.setBorder ( BorderFactory.createTitledBorder( "Wave Band" ) );
-       band_rad = new JCheckBox( "Radio", true);
+       band_rad = new JCheckBox( "Radio", false);
        bandPanel.add(band_rad);
-       band_mm = new JCheckBox( "Millimeter",  true);
+       band_mm = new JCheckBox( "Millimeter",  false);
        bandPanel.add(band_mm);
-       band_ir = new JCheckBox( "Infrared",  true);
+       band_ir = new JCheckBox( "Infrared",  false);
        bandPanel.add(band_ir);
-       band_opt = new JCheckBox( "Optical", true);
+       band_opt = new JCheckBox( "Optical",false);
        bandPanel.add(band_opt);
-       band_uv = new JCheckBox( "UV",  true);
+       band_uv = new JCheckBox( "UV",  false);
        bandPanel.add(band_uv);
-       band_euv = new JCheckBox( "EUV",  true);
+       band_euv = new JCheckBox( "EUV",  false);
        bandPanel.add(band_euv);
-       band_xr = new JCheckBox( "X-ray",  true);
+       band_xr = new JCheckBox( "X-ray",  false);
        bandPanel.add(band_xr);
-       band_gr = new JCheckBox( "Gamma-ray", true);
+       band_gr = new JCheckBox( "Gamma-ray", false);
        bandPanel.add(band_gr);      
        band_all = new JCheckBox( "ALL", true);
        bandPanel.add(band_all);
@@ -315,26 +320,25 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
        // Data Source
        JPanel srcAllPanel = new JPanel(new GridBagLayout());
   
-       JPanel srcPanel = new JPanel (new GridLayout(2, 3));
+       JPanel srcPanel = new JPanel (new GridLayout(3, 2));
        
    //    JPanel srcPanel = new JPanel (new GridBagLayout());
    //    srcAllPanel.setBorder ( BorderFactory.createTitledBorder( "Source" ) );
        srcPanel.setBorder ( BorderFactory.createTitledBorder( "Source" ) );
        GridBagConstraints c = new GridBagConstraints();
        c.fill = GridBagConstraints.HORIZONTAL;
-       
             
-       src_sur = new JCheckBox("Survey", true);
+       src_sur = new JCheckBox("Survey", false);
        srcPanel.add(src_sur);
-       src_tmod = new JCheckBox("Theory", true);
+       src_tmod = new JCheckBox("Theory", false);
        srcPanel.add(src_tmod);
-       src_point = new JCheckBox("Pointed", true);
+       src_point = new JCheckBox("Pointed", false);
        srcPanel.add(src_point);
-       src_cust = new JCheckBox("Custom", true);
+       src_cust = new JCheckBox("Custom", false);
        srcPanel.add(src_cust);
-       src_art = new JCheckBox("Artificial", true);
+       src_art = new JCheckBox("Artificial", false);
        srcPanel.add(src_art);
-       src_all = new JCheckBox("ALL", false);     
+       src_all = new JCheckBox("ALL", true);     
        srcPanel.add(src_all);
        
        src_sur.setToolTipText("<html>A survey dataset, which typically covers some region of observational <br>" +
@@ -371,7 +375,7 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
        treeRenderer.addSrc(src_art.getText());
        treeRenderer.addSrc(src_all.getText());
         
-       JPanel srcPanel2 = new JPanel (new GridLayout(1, 2));
+       JPanel srcPanel2 = new JPanel (new GridLayout(2, 1));
        srcPanel2.setBorder ( BorderFactory.createTitledBorder( "" ) );
        src_obs = new JCheckBox("Observed data", false);
        src_obs.setToolTipText("<html>All observation servers.</html>");
@@ -399,53 +403,68 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
        srcAllPanel.add( srcPanel2, c);
        c.gridy = 1;
        srcAllPanel.add( srcPanel, c);
-       
-       optionsPanel.add(srcAllPanel);       
-       optionsPanel.add(bandPanel);
      
-       optionTabs.addTab("Options", optionsPanel);
-     //  src_all = new JCheckBox( "ALL", true);
-     //  srcPanel.add(band_all);
+       gbcOptions.anchor = GridBagConstraints.NORTHWEST;
+       gbcOptions.fill = GridBagConstraints.HORIZONTAL;
+       gbcOptions.weightx=.5;
+       gbcOptions.weighty=0;
+       gbcOptions.gridx=0;
+       gbcOptions.gridy=0;
+     
+       optionsPanel.add(srcAllPanel,gbcOptions);
+      // gbc.anchor = GridBagConstraints.;
+       gbcOptions.weighty=1;
+       gbcOptions.gridy=1;
+       optionsPanel.add(bandPanel,gbcOptions);
+       invOptionsPanel.setLayout(new BorderLayout());
        
+       invOptionsPanel.add(optionsPanel, BorderLayout.LINE_START);
+       optionTabs.addTab("Options", invOptionsPanel);
+
        // User defined tags
        
        tagsPanel = new JPanel ();
-      // tagsPanel.setBorder ( BorderFactory.createTitledBorder( "Tags" ) );
-       tagsPanel.setLayout (new BoxLayout(tagsPanel, BoxLayout.PAGE_AXIS));
-     //  tagsPanel.setPreferredSize(optionTabs.getPreferredSize());
-       JLabel txt = new JLabel("Add tags to selected servers");
-       tagsPanel.add(txt);
+       tagsPanel.setLayout(new GridBagLayout());
+       GridBagConstraints gbcTags = new GridBagConstraints();
+       gbcTags.anchor = GridBagConstraints.NORTHWEST;
+       gbcTags.weightx=.5;
+       gbcTags.weighty=0;
+       gbcTags.gridx=0;  
+       gbcTags.gridy=0;
+       gbcTags.fill = GridBagConstraints.NONE;
+     
        JPanel tagsButtonsPanel=new JPanel();
        AddTagAction addTagAction = new AddTagAction( "Add tag" );
        JButton addTagButton = new JButton(addTagAction);
+
        addTagButton.setToolTipText("Please select servers to be tagged");
+       
        tagsButtonsPanel.add(addTagButton);
        RemoveTagAction removeTagAction = new RemoveTagAction( "Remove tag" );
        JButton removeTagButton = new JButton(removeTagAction);
-       addTagButton.setToolTipText("Please select servers to be tagged");
+     
        tagsButtonsPanel.add(removeTagButton);
-       tagsPanel.add(tagsButtonsPanel);
+     
+   
+       tagsPanel.add(tagsButtonsPanel,gbcTags);
+       tagsPanel.setBorder(BorderFactory.createTitledBorder( "Add tags to selected servers" ) );
        optionTabs.addTab("Tags", tagsPanel);
        
        tagsListModel = new DefaultListModel();
        tagsList = new JList(tagsListModel);
        ListSelectionModel selectionModel = tagsList.getSelectionModel();
        selectionModel.addListSelectionListener(new TagsListSelectionListener());
-       //tagsList.setLayout(new BoxLayout(tagsList, BoxLayout.PAGE_AXIS));
-       
-       //tagsList.setPreferredSize(tagsPanel.getPreferredSize());
-      // tagsList.setBackground(Color.WHITE);
+      
        JScrollPane tagScroller = new JScrollPane( tagsList );
-       tagScroller.setPreferredSize(new Dimension (this.WIDTH-10, this.TAB_HEIGHT-40));
-    //   tagScroller.set
-       tagsPanel.add(tagScroller);
-    //   tagScroller.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-   //    tagScroller.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
-       
-       // 
-       
-        add(optionTabs, BorderLayout.NORTH);
-        
+   
+       gbcTags.gridx=0;  
+       gbcTags.gridy=1;
+       gbcTags.weighty=1;
+       gbcTags.weightx=1;
+     
+       gbcTags.fill=GridBagConstraints.HORIZONTAL;
+       tagsPanel.add(tagScroller,gbcTags);
+ 
         optionTabs.addChangeListener(new ChangeListener() {
             // This method is called whenever the selected tab changes
             public void stateChanged(ChangeEvent evt) {
@@ -464,7 +483,7 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
         mainPanel=new JPanel();
         mainPanel.setLayout(new BorderLayout() );
         mainPanel.setBorder ( BorderFactory.createTitledBorder( "SSAP Servers" ) );
-       
+     //   mainPanel.setPreferredSize(new Dimension(300,600));
        
         ServerTreeNode root = new ServerTreeNode("SSAP Servers");
         populateTree(root);
@@ -480,32 +499,46 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
             e.printStackTrace();
         }
         model.reload();
-        serverTree.expandRow(0);
+      //  serverTree.expandRow(0);
     //    serverTree.updateUI();
-       // serverTree.setVisibleRowCount(30);
-     
+            
         serverTree.setCellRenderer(treeRenderer);
-        mainPanel.add(new JScrollPane(serverTree), BorderLayout.NORTH);
-        initMenus();
-       // adaptTreeHeight(mainPanel.getHeight());
-     
-     //   treeRenderer.setPreferredSize(new Dimension(mainPanel.getWidth(), mainPanel.getHeight()-controlPanel.getHeight() -10));
- //       gc.weighty=0;
+       // treeRenderer.setPreferredSize(preferredSize)
+        JScrollPane jsp = new JScrollPane(serverTree);
+    //    jsp.setViewportView(mainPanel);
+        jsp.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
        
-        add(mainPanel, BorderLayout.CENTER);
-    //    gc.weighty=1.;
-  //     mainPanel.add( controlPanel, gc);
+        mainPanel.add(jsp, BorderLayout.NORTH);
         
+        mainPanel.setMinimumSize(new Dimension(300,400));
+    //    mainPanel.setPreferredSize(new Dimension(400,400));
+        optionTabs.setMinimumSize(new Dimension(200,400));
+        //optionTabs.setPreferredSize(new Dimension(400,400));
+        initMenus();
+      
+        optionsScroller.getViewport().add( optionTabs, null );
+        optionsScroller.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        
+        JSplitPane splitPanel = new JSplitPane();
+        splitPanel.setOneTouchExpandable(true);
+        splitPanel.setOrientation(JSplitPane.HORIZONTAL_SPLIT);
+        splitPanel.setDividerLocation(0.8);
+      
+        splitPanel.setLeftComponent(mainPanel);
+        splitPanel.setRightComponent(optionsScroller);
        
+        this.add(splitPanel);
+        
     }
 
-    public void adaptTreeHeight(int heigth) {
-        int maxHeight = heigth -  controlPanel.getHeight() - 40;
+    public void adaptTreeHeight() {
+        int maxHeight = HEIGHT -  controlPanel.getHeight() - 40;
     
-     //   logger.info( "ROWHEIGHT " + rowheigth);
+        logger.info( "ROWHEIGHT " + serverTree.getRowHeight() + " MAX "+ maxHeight);
         
         if (maxHeight > 0)
             serverTree.setVisibleRowCount((int) (serverTree.getRowHeight()/maxHeight));
+       
         
     }
     
@@ -590,7 +623,7 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
  
        //  Action bars use BoxLayouts.
         
-       controlPanel = new JPanel( new BorderLayout() );
+       controlPanel = new JPanel( );
      //  controlPanel.setPreferredSize(new Dimension(mainPanel.getWidth(),this.BUTTONS_HEIGHT));
        JPanel topActionBar1 = new JPanel();
        JPanel topActionBar2 = new JPanel();
@@ -685,9 +718,9 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
       //  topActionBar.add( Box.createGlue() );
    //     botActionBar.add( Box.createGlue() );
 
-          controlPanel.add(topActionBar1, BorderLayout.NORTH);
+          controlPanel.add(topActionBar1);//, BorderLayout.NORTH);
   //      controlPanel.add(topActionBar3, BorderLayout.CENTER);
-          controlPanel.add(topActionBar2, BorderLayout.SOUTH);
+          controlPanel.add(topActionBar2);//, BorderLayout.SOUTH);
      
           mainPanel.add(controlPanel);
     
@@ -1834,4 +1867,9 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
     } // TagsListSelectionListener
          
 
+    class resizeListener extends ComponentAdapter {
+        public void componentResized(ComponentEvent e) {
+            updateUI();
+        }
+    }
 }
