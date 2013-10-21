@@ -17,8 +17,9 @@ import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
 import uk.ac.starlink.ttools.plot2.config.OptionConfigKey;
-import uk.ac.starlink.ttools.plot2.config.SubrangeConfigKey;
+import uk.ac.starlink.ttools.plot2.config.StringConfigKey;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
+import uk.ac.starlink.ttools.plot2.config.SubrangeConfigKey;
 import uk.ac.starlink.ttools.plot2.config.TimeConfigKey;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 
@@ -65,7 +66,8 @@ public class TimeSurfaceFactory
 
     /** Config key for time axis text label. */
     public static final ConfigKey<String> TLABEL_KEY =
-        StyleKeys.createAxisLabelKey( "Time" );
+        new StringConfigKey( new ConfigMeta( "timelabel", "Time Label" ),
+                             null );
 
     /** Config key for Y axis text label.*/
     public static final ConfigKey<String> YLABEL_KEY =
