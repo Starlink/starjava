@@ -19,6 +19,12 @@ import uk.ac.starlink.util.LoadException;
  * only ProcessingMode for a processing sequence, for instance 
  * as the parameter to the {@link ConsumerTask} constructor.
  *
+ * <p><strong>Note:</strong> that use of this mode is used by the
+ * {@link uk.ac.starlink.ttools.build.JyStilts} script
+ * to identify tasks whose primary output is a table,
+ * so that such tables can by default be returned to the jython environment
+ * rather than serialised to output files.
+ *
  * @author   Mark Taylor
  * @since    3 May 2006
  */

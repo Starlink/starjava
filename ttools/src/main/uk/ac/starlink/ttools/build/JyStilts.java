@@ -36,6 +36,7 @@ import uk.ac.starlink.ttools.jel.JELUtils;
 import uk.ac.starlink.ttools.mode.ProcessingMode;
 import uk.ac.starlink.ttools.task.AbstractInputTableParameter;
 import uk.ac.starlink.ttools.task.Calc;
+import uk.ac.starlink.ttools.task.ChoiceMode;
 import uk.ac.starlink.ttools.task.ConsumerTask;
 import uk.ac.starlink.ttools.task.FilterParameter;
 import uk.ac.starlink.ttools.task.InputFormatParameter;
@@ -1011,7 +1012,13 @@ public class JyStilts {
             throws LoadException, SAXException {
         Task task =
             (Task) stilts_.getTaskFactory().createObject( taskNickName );
-        boolean isConsumer = task instanceof ConsumerTask;
+
+        /* Identify tasks whose primary output is the table presented to
+         * the processing mode. */
+        boolean isProducer =
+               task instanceof ConsumerTask
+            && ((ConsumerTask) task).getOutputMode() instanceof ChoiceMode;
+                 
         boolean returnOutput = task instanceof Calc;
         List lineList = new ArrayList();
 
@@ -1102,7 +1109,7 @@ public class JyStilts {
         /* Write the doc string. */
         lineList.add( "    '''\\" );
         lineList.add( task.getPurpose() + "." );
-        if ( isConsumer ) {
+        if ( isProducer ) {
             lineList.add( "" );
             lineList.add( "The return value is the resulting table." );
         }
@@ -1148,7 +1155,7 @@ public class JyStilts {
         lineList.add( "        env.setValue(key, _map_env_value(value))" );
 
         /* For a consumer task, create a result table and return it. */
-        if ( isConsumer ) {
+        if ( isProducer ) {
             lineList.add( "    table = task.createProducer(env).getTable()" );
             lineList.add( "    _check_unused_args(env)" );
             lineList.add( "    return import_star_table(table)" );

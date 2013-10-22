@@ -8420,6 +8420,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <li>More <code>toString</code> overloads - now works for byte and
             boolean values too.</li>
         <li>Add some more colour maps.</li>
+        <li>Fix some broken and misdocumented non-table-output JyStilts
+            commands (<code>tcube</code>, <code>pixfoot</code>).</li>
         </ul>
         </p></dd>
     </dl>
