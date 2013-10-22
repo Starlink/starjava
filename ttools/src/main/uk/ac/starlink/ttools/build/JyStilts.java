@@ -1114,32 +1114,9 @@ public class JyStilts {
         lineList.add( "'''" );
 
         /* Create the task object. */
-        if ( isConsumer ) {
-
-            /* If the task is a ConsumerTask, use an instance of a subclass
-             * of the relevant Task class (the relevant classes all happen
-             * to have suitable no-arg constructors).  This is a hack to
-             * permit access to the createProducer method, which has 
-             * protected access in the ConsumerTask interface (at least
-             * in some stilts versions). */
-            Class taskClazz = task.getClass();
-            String taskClazzName = taskClazz.getName();
-            String taskSubName = "_" + fname + "_task";
-            lineList.add( "    import " + taskClazzName );
-            lineList.add( "    class " + taskSubName
-                                       + "(" + taskClazzName + "):" );
-            lineList.add( "        def __init__(self):" );
-            lineList.add( "            " + taskClazzName + ".__init__(self)" );
-            lineList.add( "    task = " + taskSubName + "()" );
-        }
-        else {
-
-            /* Do it the simple, and more respectable way, if the hack
-             * is not required. */
-            lineList.add( "    task = _stilts"
-                                    + ".getTaskFactory()"
-                                    + ".createObject('" + taskNickName + "')" );
-        }
+        lineList.add( "    task = _stilts"
+                                + ".getTaskFactory()"
+                                + ".createObject('" + taskNickName + "')" );
 
         /* Rename parameters as required. */
         lineList.add( "    for param in task.getParameters():" );
