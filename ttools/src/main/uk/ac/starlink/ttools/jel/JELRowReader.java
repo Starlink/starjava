@@ -683,6 +683,11 @@ public abstract class JELRowReader extends DVMap {
              ? (int[]) getObjectColumnValue( id )
              : (int[]) getConstantValue( -1 - id );
     }
+    public long[] getLongArrayProperty( int id ) {
+        return id >= 0
+             ? (long[]) getObjectColumnValue( id )
+             : (long[]) getConstantValue( -1 -id );
+    }
     public float[] getFloatArrayProperty( int id ) {
         return id >= 0
              ? (float[]) getObjectColumnValue( id )

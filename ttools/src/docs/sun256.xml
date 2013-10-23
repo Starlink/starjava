@@ -8422,6 +8422,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <li>Add some more colour maps.</li>
         <li>Fix some broken and misdocumented non-table-output JyStilts
             commands (<code>tcube</code>, <code>pixfoot</code>).</li>
+        <li>Fix bug which prevented access to long integer array elements
+            from expression language.</li>
         </ul>
         </p></dd>
     </dl>

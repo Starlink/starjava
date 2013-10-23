@@ -18240,6 +18240,8 @@ introduced since the last version:
             in multi-SIA/SSA windows.</li>
         <li>URL selector fields in Activation Action window are now
             editable.</li>
+        <li>Fix bug which prevented access to long integer array elements
+            from expression language.</li>
         </ul>
         </p></dd>
 
