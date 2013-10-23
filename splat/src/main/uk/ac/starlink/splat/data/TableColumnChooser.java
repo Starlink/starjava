@@ -218,8 +218,11 @@ public class TableColumnChooser
                                 if ( ucd.indexOf( "meta.main" ) > 0 ) {
                                     result = k;
                                 }
+                            else {
+                                if ( ucd.indexOf( "meta.main" ) > 0 ) {
+                                    result = k;
+                                }
                             }
-        }
                         }
                     }
                 }
