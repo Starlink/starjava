@@ -18,6 +18,9 @@ import uk.ac.starlink.table.ValueInfo;
  * arrays are compared (recursively) on their contents, and blank objects
  * are compared in the sense used in the rest of STIL.  A blank value is
  * not considered equal to anything, including another blank value.
+ * Scalar numeric values are, as far as possible, compared on numeric
+ * value rather than object equality, though this numeric value comparison
+ * does not currently apply to arrays.
  *
  * @author   Mark Taylor (Starlink)
  * @since    25 Mar 2004
@@ -84,8 +87,14 @@ public class EqualsMatchEngine implements MatchEngine {
         if ( Tables.isBlank( o1 ) || Tables.isBlank( o2 ) ) {
             return false;
         }
-        else if ( o1.getClass().isArray() && o2.getClass().isArray() ) {
-            Class clazz = o1.getClass().getComponentType();
+        else if ( o1.equals( o2 ) ) {
+            return true;
+        }
+        Class c1 = o1.getClass();
+        Class c2 = o2.getClass();
+        if ( c1.isArray() && c2.equals( c1 ) ) {
+            Class clazz = c1.getComponentType();
+            assert clazz == c2.getComponentType();
             if ( clazz == byte.class ) {
                 return Arrays.equals( (byte[]) o1, (byte[]) o2 );
             }
@@ -129,8 +138,15 @@ public class EqualsMatchEngine implements MatchEngine {
                 }
             }
         }
+        else if ( isNumber( o1 ) && isNumber( o2 ) && ! c1.equals( c2 ) ) {
+            Number n1 = (Number) o1;
+            Number n2 = (Number) o2;
+            return isInteger( n1 ) && isInteger( n2 )
+                 ? n1.longValue() == n2.longValue()
+                 : n1.doubleValue() == n2.doubleValue();
+        }
         else {
-            return o1.equals( o2 );
+            return false;
         }
     }
 
@@ -153,8 +169,41 @@ public class EqualsMatchEngine implements MatchEngine {
             }
             return hash;
         }
+        else if ( isNumber( obj ) ) {
+            long bits = Double.doubleToLongBits( ((Number) obj).doubleValue() );
+
+            /* Implementation copied from Double.hashCode. */
+            return (int) ( bits ^ ( bits >>> 32 ) );
+        }
         else {
             return obj.hashCode();
         }
+    }
+
+    /**
+     * Indicates whether a value is one of the normal numeric types.
+     * Weird Number subclasses like BigInteger are excluded.
+     * 
+     * @param  obj  test object
+     * @return   true iff obj is a normal number object
+     */
+    private static boolean isNumber( Object obj ) {
+        return obj instanceof Number
+            && ( isInteger( (Number) obj )
+              || obj instanceof Float
+              || obj instanceof Double );
+    }
+
+    /**
+     * Indicates whether a numeric value has an integer type.
+     *
+     * @param  num  number object
+     * @return  true iff object is considered integer
+     */
+    private static boolean isInteger( Number num ) {
+        return num instanceof Byte
+            || num instanceof Short
+            || num instanceof Integer
+            || num instanceof Long;
     }
 }

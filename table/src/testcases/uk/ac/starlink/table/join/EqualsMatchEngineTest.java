@@ -15,6 +15,9 @@ public class EqualsMatchEngineTest extends TestCase {
         assertMatch( true, "abc", "abc" );
         assertMatch( false, new Integer( 350 ), new Integer( 351 ) );
         assertMatch( false, new Integer( 350 ), new Long( 351L ) );
+        assertMatch( true, new Integer( 4 ), new Long( 4 ) );
+        assertMatch( true, new Short( (short) 4 ), new Float( 4 ) );
+        assertMatch( false, new Double( Math.PI ), new Long( 3 ) );
         assertMatch( true, new int[] { 1, 1, 2, 3, 5, 8, 11, 19, },
                            new int[] { 1, 1, 2, 3, 5, 8, 11, 19, } );
         assertMatch( false, new float[] { 1, 1, 2, 3, 5, 8, 11, 19, }, 

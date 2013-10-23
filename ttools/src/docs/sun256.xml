@@ -8424,6 +8424,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
             commands (<code>tcube</code>, <code>pixfoot</code>).</li>
         <li>Fix bug which prevented access to long integer array elements
             from expression language.</li>
+        <li>The Exact matcher now considers scalar numeric values equal if
+            they have the same numeric value; they are no longer required
+            to have the same type.</li>
         </ul>
         </p></dd>
     </dl>
