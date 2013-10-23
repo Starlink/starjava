@@ -120,7 +120,7 @@ public class TableColumnChooser
     public int getCoordMatch( ColumnInfo[] infos, String[] names )
     {
         //  Check for utypes then column names.
-        int column = matchInfo( infos, coordUtypePatterns );
+        int column = matchInfo( infos, coordUtypePatterns, null );
         if ( column == -1 ) {
             column = matchName( coordNamePatterns, names );
         }
@@ -136,7 +136,7 @@ public class TableColumnChooser
     public int getDataMatch( ColumnInfo[] infos, String[] names )
     {
         //  Check for utypes then column names.
-        int column = matchInfo( infos, dataUtypePatterns );
+        int column = matchInfo( infos, dataUtypePatterns, errorUtypePatterns );
         if ( column == -1 ) {
             column = matchName( dataNamePatterns, names );
         }
@@ -152,7 +152,7 @@ public class TableColumnChooser
     public int getErrorMatch( ColumnInfo[] infos, String[] names )
     {
         //  Check for utypes then column names.
-        int column = matchInfo( infos, errorUtypePatterns );
+        int column = matchInfo( infos, errorUtypePatterns, null );
         if ( column == -1 ) {
             column = matchName( errorNamePatterns, names );
         }
@@ -168,7 +168,7 @@ public class TableColumnChooser
     public int getLabelMatch( ColumnInfo[] infos, String[] names )
     {
         //  Check for utypes then column names.
-        int column = matchInfo( infos, labelUtypePatterns );
+        int column = matchInfo( infos, labelUtypePatterns, null );
         if ( column == -1 ) {
             column = matchName( labelNamePatterns, names );
         }
@@ -176,14 +176,25 @@ public class TableColumnChooser
     }
 
     /**
-     * Match the column info utypes against the recognised utype patterns.
+     * Match the column info utypes against the recognised utype patterns
+     * optionally excluding another set of patterns, and retaining the
+     * column with UCD meta.main when there are more than one match.
      * Returns the index of the matched column or -1.
      */
-    protected int matchInfo( ColumnInfo[] infos, ArrayList utypes )
+    protected int matchInfo( ColumnInfo[] infos, ArrayList utypes,
+                             ArrayList notutypes )
     {
+        int result = -1;
+        if ( utypes == null ) {
+            //  Nothing to match, so nothing to do.
+            return result;
+        }
+
         String utype = null;
+        String ucd = null;
         Pattern p = null;
         int size = utypes.size();
+        ColumnInfo ns[] = new ColumnInfo[1];
         for ( int i = 0; i < size; i++ ) {
             p = (Pattern) utypes.get( i );
             for( int k = 0; k < infos.length; k++ ) {
@@ -191,12 +202,29 @@ public class TableColumnChooser
                 if ( utype != null ) {
                     utype = utype.toLowerCase();
                     if ( p.matcher( utype ).matches() ) {
-                        return k;
+
+                        //  Exclude notutypes if given.
+                        ns[0] = infos[k];
+                        if ( matchInfo( ns, notutypes, null ) == -1 ) {
+
+                            // Possible match. Keep this one if this has a UCD
+                            // that includes "meta.main", that supercedes
+                            // previous matches.
+                            ucd = infos[k].getUCD();
+                            if ( result == -1 ) {
+                                result = k;
+                            }
+                            else {
+                                if ( ucd.indexOf( "meta.main" ) > 0 ) {
+                                    result = k;
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
-        return -1;
+        return result;
     }
 
     /**
