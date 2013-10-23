@@ -18245,6 +18245,13 @@ introduced since the last version:
         <li>The Exact matcher now considers scalar numeric values equal if
             they have the same numeric value; they are no longer required
             to have the same type.</li>
+        <li>Fix a registry access bug related to namespaces.
+            It is now finally possible to query the STSci/NVO/VAO registry,
+            as well as the AstroGrid and Euro-VO registries, from the
+            Cone/SIA/SSA/TAP VO windows.  Queries to the STSci registry
+            have not been working since mid-2010 as a consequence of bugs
+            in (mostly) the TOPCAT client and (partially) the STSci
+            registry service.</li>
         </ul>
         </p></dd>
 

@@ -8427,6 +8427,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <li>The Exact matcher now considers scalar numeric values equal if
             they have the same numeric value; they are no longer required
             to have the same type.</li>
+        <li>Fixed a registry client bug which means that the
+            <code>regquery</code> command can now successfully talk to
+            the NVO/VAO/STSci registry.
+            That has been broken since mid-2010.</li>
         </ul>
         </p></dd>
     </dl>
