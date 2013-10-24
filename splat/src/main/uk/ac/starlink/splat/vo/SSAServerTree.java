@@ -285,7 +285,7 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
        // Data Source
        JPanel srcAllPanel = new JPanel(new GridBagLayout());
   
-       JPanel srcPanel = new JPanel (new GridLayout(3, 2));
+       JPanel srcPanel = new JPanel (new GridLayout(2, 3));
        
        srcPanel.setBorder ( BorderFactory.createTitledBorder( "Source" ) );
        GridBagConstraints c = new GridBagConstraints();
