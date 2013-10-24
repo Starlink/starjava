@@ -165,9 +165,7 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
      * The object that manages the actual list of servers.
      */
     private JTree serverTree;
-   // private JPanel treePanel;
-    private JPanel mainPanel;
-   // private JPanel buttonsPanel;
+    private JPanel serverPanel;
     private JPanel controlPanel;
     
     
@@ -203,8 +201,6 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
     
     private  int WIDTH = 600;
     private  int HEIGHT = 500;
-    private int  TAB_HEIGHT = 180;
-    private int  BUTTONS_HEIGHT = 80;
    
     private CheckBoxListener checkBoxlistener = null;
    
@@ -243,8 +239,8 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
     {
     
       // this.setPreferredSize(new Dimension(this.WIDTH,this.HEIGHT));
- //      this.setMinimumSize(new Dimension(this.WIDTH-300,this.HEIGHT-300));
-       setLayout( new BorderLayout() );
+       this.setMinimumSize(new Dimension(this.WIDTH-300,this.HEIGHT-300));
+      // setLayout( new BorderLayout() );
        
        optionTabs = new JTabbedPane();
        JScrollPane optionsScroller = new JScrollPane();
@@ -258,7 +254,7 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
        
        // BAND
     
-       JPanel bandPanel = new JPanel (new GridLayout(5,2));
+       JPanel bandPanel = new JPanel (new GridLayout(3,3));
        bandPanel.setBorder ( BorderFactory.createTitledBorder( "Wave Band" ) );
        band_rad = new JCheckBox( "Radio", false);
        bandPanel.add(band_rad);
@@ -321,10 +317,8 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
        // Data Source
        JPanel srcAllPanel = new JPanel(new GridBagLayout());
   
-       JPanel srcPanel = new JPanel (new GridLayout(3, 2));
+       JPanel srcPanel = new JPanel (new GridLayout(2, 3));
        
-   //    JPanel srcPanel = new JPanel (new GridBagLayout());
-   //    srcAllPanel.setBorder ( BorderFactory.createTitledBorder( "Source" ) );
        srcPanel.setBorder ( BorderFactory.createTitledBorder( "Source" ) );
        GridBagConstraints c = new GridBagConstraints();
        c.fill = GridBagConstraints.HORIZONTAL;
@@ -413,7 +407,6 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
        gbcOptions.gridy=0;
      
        optionsPanel.add(srcAllPanel,gbcOptions);
-      // gbc.anchor = GridBagConstraints.;
        gbcOptions.weighty=1;
        gbcOptions.gridy=1;
        optionsPanel.add(bandPanel,gbcOptions);
@@ -481,10 +474,11 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
             }
         });
        
-        mainPanel=new JPanel();
-        mainPanel.setLayout(new BorderLayout() );
-        mainPanel.setBorder ( BorderFactory.createTitledBorder( "SSAP Servers" ) );
-     //   mainPanel.setPreferredSize(new Dimension(300,600));
+        serverPanel=new JPanel();
+        serverPanel.setLayout(new GridBagLayout() );
+        serverPanel.setBorder ( BorderFactory.createTitledBorder( "SSAP Servers" ) );
+//        serverPanel.setMinimumSize(new Dimension(200,400));
+//        optionTabs.setMinimumSize(new Dimension(200,400));
        
         ServerTreeNode root = new ServerTreeNode("SSAP Servers");
         populateTree(root);
@@ -509,39 +503,58 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
     //    jsp.setViewportView(mainPanel);
         jsp.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
        
-        mainPanel.add(jsp, BorderLayout.NORTH);
+        GridBagConstraints gbcServer=new GridBagConstraints();
+        gbcServer.gridx=0;
+        gbcServer.gridy=0;
+        gbcServer.weighty=1;
+        gbcServer.weightx=1;
+        gbcServer.fill=GridBagConstraints.BOTH;
+        serverPanel.add(jsp,gbcServer);
         
-        mainPanel.setMinimumSize(new Dimension(300,400));
-    //    mainPanel.setPreferredSize(new Dimension(400,400));
-        optionTabs.setMinimumSize(new Dimension(200,400));
-        //optionTabs.setPreferredSize(new Dimension(400,400));
+      
         initMenus();
+        gbcServer.anchor = GridBagConstraints.SOUTHWEST;
+        gbcServer.gridx=0;
+        gbcServer.gridy=1;
+        gbcServer.weighty=0;
+        serverPanel.add(controlPanel, gbcServer);
       
         optionsScroller.getViewport().add( optionTabs, null );
         optionsScroller.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        optionsScroller.setMinimumSize(new Dimension(200,280));
+        this.setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridwidth=1;
+        gbc.gridheight=1;
+        gbc.anchor = GridBagConstraints.NORTHWEST;
+        gbc.weightx=1;
+        gbc.weighty=0.;
+        gbc.gridx=0;  
+        gbc.gridy=0;
+        gbc.fill = GridBagConstraints.BOTH;
+        this.add(optionsScroller, gbc);
+        gbc.anchor = GridBagConstraints.SOUTHWEST;
+        gbc.gridheight=GridBagConstraints.REMAINDER;
+        gbc.weighty=0.5;
+        gbc.gridx=0;  
+        gbc.gridy=1;
+        gbc.fill = GridBagConstraints.BOTH;
+        this.add(serverPanel, gbc);
         
+/*        
         JSplitPane splitPanel = new JSplitPane();
         splitPanel.setOneTouchExpandable(true);
         splitPanel.setOrientation(JSplitPane.HORIZONTAL_SPLIT);
         splitPanel.setDividerLocation(0.8);
       
-        splitPanel.setLeftComponent(mainPanel);
+        splitPanel.setLeftComponent(ServerPanServer
         splitPanel.setRightComponent(optionsScroller);
        
         this.add(splitPanel);
-        
+ */       
     }
 
-    public void adaptTreeHeight() {
-        int maxHeight = HEIGHT -  controlPanel.getHeight() - 40;
-    
-        logger.info( "ROWHEIGHT " + serverTree.getRowHeight() + " MAX "+ maxHeight);
-        
-        if (maxHeight > 0)
-            serverTree.setVisibleRowCount((int) (serverTree.getRowHeight()/maxHeight));
-       
-        
-    }
+
     
     /**
      * Add SSAServerList elements to the tree.
@@ -602,7 +615,7 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
             servernode.setUserObject((String) servernode.getUserObject() + "       [" + server.getTitle() + "]");
 
        
-            logger.info( server.getShortName()+":" + Arrays.toString(server.getWaveband())+":"+cap.getDataSource()+":"+cap.getDataType()+":"+cap.getCreationType()+":"+cap.getAccessUrl()+":"+server.getContact() );
+//            logger.info( server.getShortName()+":" + Arrays.toString(server.getWaveband())+":"+cap.getDataSource()+":"+cap.getDataType()+":"+cap.getCreationType()+":"+cap.getAccessUrl()+":"+server.getContact() );
            
             ArrayList<String> params = serverParam.getParams(server.getShortName());
             if ( params != null ) {
@@ -624,11 +637,11 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
  
        //  Action bars use BoxLayouts.
         
-       controlPanel = new JPanel( );
-     //  controlPanel.setPreferredSize(new Dimension(mainPanel.getWidth(),this.BUTTONS_HEIGHT));
-       JPanel topActionBar1 = new JPanel();
-       JPanel topActionBar2 = new JPanel();
-
+       controlPanel = new JPanel(new GridBagLayout() );
+       JPanel topActionBar = new JPanel(new GridBagLayout());
+       JPanel botActionBar = new JPanel(new GridBagLayout());
+       GridBagConstraints gbc = new GridBagConstraints();
+    
         //  Get icons.
         Icon closeImage =
             new ImageIcon( ImageHolder.class.getResource( "close.gif" ) );
@@ -657,14 +670,6 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
         saveButton.setToolTipText( "Save server list to a disk-file" );
 
 
-        //  Add action to manually add a new server to the list
-   //     AddNewAction addNewAction = new AddNewAction( "New Server" );
- //       fileMenu.add( addNewAction );
-     //   JButton addButton = new JButton( addNewAction );
-  //      topActionBar.add( Box.createGlue() );
-   //     topActionBar2.add( addButton );
-   //     addButton.setToolTipText( "Add a new server to the list" );
-
         //  Remove selected servers from table.
         RemoveAction removeAction = new RemoveAction( "Remove selected" );
  //       optionsMenu.add( removeAction );
@@ -672,7 +677,11 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
  
         removeButton.setMargin(new Insets(2,2,2,2));  
   //      topActionBar.add( Box.createGlue() );
-        topActionBar1.add( removeButton );
+        gbc.gridx=0;
+        gbc.gridy=0;
+        gbc.weightx=0.5;
+        gbc.fill=GridBagConstraints.NONE;
+        topActionBar.add( removeButton, gbc );
   //      controlPanel.add( removeButton, BorderLayout.PAGE_START );
         removeButton.setToolTipText
             ( "Remove selected servers from current list" );
@@ -683,7 +692,8 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
         JButton newQueryButton = new JButton( newAction );
         newQueryButton.setMargin(new Insets(2,2,2,2));  
   //      topActionBar.add( Box.createGlue() );
-        topActionBar2.add( newQueryButton );
+        
+        botActionBar.add( newQueryButton, gbc );
        // controlPanel.add( newQueryButton, BorderLayout.PAGE_END );
         newQueryButton.setToolTipText( "Query registry for new SSAP services" );
         
@@ -692,13 +702,13 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
         SelectAllAction selectAllAction = new SelectAllAction( "Select all" );
   //      optionsMenu.add( selectAllAction );
         JButton selectAllButton = new JButton( selectAllAction );
-  //      topActionBar.add( Box.createGlue() );
-   //     topActionBar1.add( selectAllButton );
+   //     topActionBar.add( selectAllButton );
         selectAllButton.setToolTipText( "Select all servers" );
 
         //  Add action to just delete all servers.
         DeleteAction deleteAction = new DeleteAction( "Delete all" );
         
+        //  Add action to manually add a new server to the list
         AddNewAction addNewAction = new AddNewAction( "Add New Server" );
       //  JPanel addPanel = new JPanel();
       //  addPanel.setLayout(new BorderLayout());
@@ -706,24 +716,24 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
         addButton1.setToolTipText("Add new service to the list");
         addButton1.setMargin(new Insets(2,2,2,2));  
   //      addPanel.add(addButton1);
-        topActionBar2.add(addButton1);
+        gbc.gridx=1;
+        botActionBar.add(addButton1, gbc);
    //     mainPanel.add(addPanel, BorderLayout.EAST);
         
  //       optionsMenu.add( deleteAction );
         JButton deleteButton = new JButton( deleteAction );
-   //     topActionBar.add( Box.createGlue() );
- //       topActionBar1.add( deleteButton );
+ //       topActionBar.add( deleteButton );
         deleteButton.setToolTipText( "Delete all servers from current list" );
 
         //  Finish action bars.
-      //  topActionBar.add( Box.createGlue() );
-   //     botActionBar.add( Box.createGlue() );
-
-          controlPanel.add(topActionBar1);//, BorderLayout.NORTH);
-  //      controlPanel.add(topActionBar3, BorderLayout.CENTER);
-          controlPanel.add(topActionBar2);//, BorderLayout.SOUTH);
+          gbc.gridx=0;
+          gbc.gridy=0;
+          gbc.fill=GridBagConstraints.HORIZONTAL;
+          controlPanel.add(topActionBar, gbc);//, BorderLayout.NORTH);
+          gbc.gridy=1;
+          controlPanel.add(botActionBar, gbc);//, BorderLayout.SOUTH);
      
-          mainPanel.add(controlPanel);
+    
     
     }
 
@@ -1642,7 +1652,7 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
                 return true;
             String []  bands = node.getWavebands();
             for (int i=0;i< bands.length; i++) {
-                logger.info("band[i]="+bands[i]+" "+bandList.toString());
+             //   logger.info("band[i]="+bands[i]+" "+bandList.toString());
                 if (bandList.contains(bands[i]))
                     return true;
             }

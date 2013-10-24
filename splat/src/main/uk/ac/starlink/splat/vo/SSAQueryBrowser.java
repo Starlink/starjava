@@ -73,6 +73,7 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
@@ -193,10 +194,12 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
 
     /** Centre panel */
     protected JPanel centrePanel = null;
+    protected GridBagConstraints gbcentre;
+
 
     /** Servers panel */
     protected JPanel leftPanel = null;
-    private JPanel leftPanel_1;
+  
     
     
     /** Query panel */
@@ -396,34 +399,54 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         contentPane.setPreferredSize(new Dimension(800,720));
         contentPane.setMinimumSize(new Dimension(600,400));
    //     contentPane.setLayout( new BoxLayout(contentPane, BoxLayout.X_AXIS) );
-        JTabbedPane tabPane = new JTabbedPane();
-  
-        
-        leftPanel_1 = new JPanel( );
+     //   JTabbedPane tabPane = new JTabbedPane();
+                
+        JSplitPane splitPanel = new JSplitPane();
+        splitPanel.setOneTouchExpandable(true);
+        splitPanel.setOrientation(JSplitPane.HORIZONTAL_SPLIT);
+        splitPanel.setDividerLocation(0.3);
+      
+       
+        this.add(splitPanel);
+        leftPanel = new JPanel( );
    
         initServerComponents();
-        tabPane.addTab("Server selection", leftPanel_1);
+    //    tabPane.addTab("Server selection", leftPanel);
        
-        centrePanel = new JPanel( new BorderLayout() );
-        
+        centrePanel = new JPanel( new GridBagLayout() );
+        centrePanel.setMinimumSize(new Dimension(400,200));
+        gbcentre=new GridBagConstraints();
+        gbcentre.anchor=GridBagConstraints.NORTHWEST;
+        gbcentre.gridx=0;
+        gbcentre.gridy=0;
+        gbcentre.weightx=1;
+        gbcentre.fill=GridBagConstraints.HORIZONTAL;
          initQueryComponents();
+         gbcentre.gridy=1;
+         gbcentre.weightx=1;
+         gbcentre.weighty=1;
+         gbcentre.fill=GridBagConstraints.BOTH;
          initResultsComponent();
          setDefaultNameServers();
-         tabPane.addTab("Query", centrePanel);
+      //   tabPane.addTab("Query", centrePanel);
          
-         tabPane.setSelectedComponent(centrePanel);
+     //    tabPane.setSelectedComponent(centrePanel);
+         splitPanel.setLeftComponent(leftPanel); // the server selection area
+         splitPanel.setRightComponent(centrePanel); // the query area
+        
          
-         contentPane.add(tabPane);
+         contentPane.add(splitPanel);
      
     }
 
 
     public void initServerComponents()
     {
-        leftPanel_1.setLayout(new BoxLayout(leftPanel_1, BoxLayout.Y_AXIS));
+        leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
+        leftPanel.setAlignmentY((float) 1.);
 
         tree=new SSAServerTree( serverList, serverParam );   
-        leftPanel_1.add(tree);
+        leftPanel.add(tree);
     }
     
     
@@ -565,7 +588,11 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
 
         //  ActionBar goes at bottom.
         //contentPane.add( actionBarContainer, BorderLayout.SOUTH );
-        centrePanel.add( actionBarContainer, BorderLayout.SOUTH );
+        gbcentre.anchor=GridBagConstraints.SOUTHWEST;
+        gbcentre.gridy=2;
+        gbcentre.weighty=0;
+        gbcentre.fill=GridBagConstraints.HORIZONTAL;
+        centrePanel.add( actionBarContainer, gbcentre );
     }
 
     /**
@@ -877,7 +904,8 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         c.gridy=1;
         queryPanel.add( sendQueryPanel, c);
        
-        centrePanel.add( queryPanel, BorderLayout.NORTH );
+        centrePanel.add( queryPanel, gbcentre );
+        
         
         // add query text to query text area
         updateQueryText();
@@ -907,7 +935,13 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         resultsPanel.add( resultsPane , gbc);
         
      
-        JPanel controlPanel = new JPanel();
+        JPanel controlPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbcontrol = new GridBagConstraints();
+        gbcontrol.gridx=0;
+        gbcontrol.gridy=0;
+        gbcontrol.weightx=1;
+        gbcontrol.weighty=0;
+        gbcontrol.fill = GridBagConstraints.HORIZONTAL;
 
         //  Download and display.
         displaySelectedButton = new JButton( "<html>Display<BR> selected</html>" );
@@ -915,7 +949,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         displaySelectedButton.setMargin(new Insets(1, 10, 1, 10));  
         displaySelectedButton.setToolTipText
         ( "Download and display all spectra selected in all tables" );
-        controlPanel.add( displaySelectedButton );
+        controlPanel.add( displaySelectedButton,gbcontrol );
 
 
         displayAllButton = new JButton( "<html>Display<BR>all</html>" );
@@ -923,7 +957,8 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         displayAllButton.setMargin(new Insets(1,10,1,10));  
         displayAllButton.setToolTipText
         ( "Download and display all spectra in all tables" );
-        controlPanel.add( displayAllButton );
+        gbcontrol.gridx=1;
+        controlPanel.add( displayAllButton, gbcontrol );
 
         //  Just download.
         downloadSelectedButton = new JButton( "<html>Download<BR>selected</html>" );
@@ -931,7 +966,8 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         downloadSelectedButton.setMargin(new Insets(1,10,1,10));  
         downloadSelectedButton.setToolTipText
         ( "Download all spectra selected in all tables");
-        controlPanel.add( downloadSelectedButton );
+        gbcontrol.gridx=2;
+        controlPanel.add( downloadSelectedButton, gbcontrol );
       
 
         downloadAllButton = new JButton( "<html>Download<BR> all</html>" );
@@ -939,7 +975,8 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         downloadAllButton.setMargin(new Insets(1,10,1,10));  
         downloadAllButton.setToolTipText
         ( "Download all spectra in all tables");
-        controlPanel.add( downloadAllButton );
+        gbcontrol.gridx=3;
+        controlPanel.add( downloadAllButton , gbcontrol);
 
 
         //  Deselect
@@ -949,7 +986,8 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         deselectVisibleButton.setToolTipText
         ( "Deselect all spectra in displayed table" );
       //  controlPanel2.add( deselectVisibleButton );
-        controlPanel.add( deselectVisibleButton );
+        gbcontrol.gridx=4;
+        controlPanel.add( deselectVisibleButton, gbcontrol );
 
 
         deselectAllButton = new JButton( "<html>Deselect <BR>all</html>" );
@@ -958,7 +996,8 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         deselectAllButton.setToolTipText
         ( "Deselect all spectra in all tables" );
      //   controlPanel2.add( deselectAllButton );
-        controlPanel.add( deselectAllButton );
+        gbcontrol.gridx=5;
+        controlPanel.add( deselectAllButton , gbcontrol);
 
         getDataButton = new JButton( "<html>GET<BR> DATA</html>" );
         getDataButton.addActionListener( this );
@@ -967,15 +1006,16 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         getDataButton.setEnabled(false);
         getDataButton.setVisible(false);
      //   controlPanel2.add( deselectAllButton );
+        gbcontrol.gridx=6;
+        controlPanel.add( getDataButton, gbcontrol );
         
         gbc.gridx=0;
         gbc.gridy=1;
         gbc.weighty=0;
         gbc.anchor = GridBagConstraints.PAGE_END;
         gbc.fill=GridBagConstraints.HORIZONTAL;
-        controlPanel.add( getDataButton );
         resultsPanel.add( controlPanel, gbc );
-        centrePanel.add( resultsPanel, BorderLayout.CENTER );
+        centrePanel.add( resultsPanel, gbcentre );
     }
 
     /**
@@ -1553,8 +1593,10 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
               //  scrollPane.setPreferredSize(new Dimension(600,400));
                 if (getDataTable != null) {
 		  
-                    if ( getDataFrame == null )
-                        getDataFrame = new GetDataQueryFrame();
+                    if ( getDataFrame == null ) {
+                         getDataFrame = new GetDataQueryFrame();
+                         getDataFrame.setBandParams(lowerBandField.getText(), upperBandField.getText());
+                    }
                     getDataFrame.addService(shortName, getDataTable);
                     getDataButton.setEnabled(true);
                     getDataButton.setVisible(true);
@@ -3176,6 +3218,8 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
            
             if (owner == upperBandField || owner == lowerBandField ) {
                 queryLine.setBand(lowerBandField.getText(), upperBandField.getText());
+                if (getDataFrame != null)
+                    getDataFrame.setBandParams(lowerBandField.getText(), upperBandField.getText());
             }
             
             if (owner == upperTimeField || owner == lowerTimeField) {
