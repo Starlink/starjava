@@ -192,18 +192,22 @@ public class PlaneSurface implements Surface {
      * in some or all dimensions around the given central position.
      *
      * @param  pos  reference graphics position
-     * @param  factor  zoom factor
+     * @param  zfact  zoom factor
      * @param  xFlag  true iff zoom is to operate in X direction
      * @param  yFlag  true iff zoom is to operate in Y direction
      * @return  new aspect
      */
-    PlaneAspect zoom( Point pos, double factor, boolean xFlag, boolean yFlag ) {
-        return new PlaneAspect(
-            xFlag ? xAxis_.dataZoom( xAxis_.graphicsToData( pos.x ), factor )
-                  : new double[] { dxlo_, dxhi_ },
-            yFlag ? yAxis_.dataZoom( yAxis_.graphicsToData( pos.y ), factor )
-                  : new double[] { dylo_, dyhi_ }
-        );
+    PlaneAspect zoom( Point pos, double zfact, boolean xFlag, boolean yFlag ) {
+        if ( xFlag || yFlag ) {
+            return new PlaneAspect(
+                xFlag ? xAxis_.dataZoom( xAxis_.graphicsToData( pos.x ), zfact )
+                      : new double[] { dxlo_, dxhi_ },
+                yFlag ? yAxis_.dataZoom( yAxis_.graphicsToData( pos.y ), zfact )
+                      : new double[] { dylo_, dyhi_ } );
+        }
+        else {
+            return null;
+        }
     }
 
     /**
@@ -213,28 +217,39 @@ public class PlaneSurface implements Surface {
      *
      * @param   pos0  source graphics position
      * @param   pos1  destination graphics position
-     * @return  new aspect
+     * @param   xFlag  true iff panning will operate in X direction
+     * @param   yFlag  true iff panning will operate in Y direction
+     * @return  new aspect, or null
      */
-    PlaneAspect pan( Point pos0, Point pos1 ) {
-        return new PlaneAspect( xAxis_
-                               .dataPan( xAxis_.graphicsToData( pos0.x ),
-                                         xAxis_.graphicsToData( pos1.x ) ),
-                                yAxis_
-                               .dataPan( yAxis_.graphicsToData( pos0.y ),
-                                         yAxis_.graphicsToData( pos1.y ) ) );
+    PlaneAspect pan( Point pos0, Point pos1, boolean xFlag, boolean yFlag ) {
+        if ( xFlag || yFlag ) {
+            return new PlaneAspect(
+                xFlag ? xAxis_.dataPan( xAxis_.graphicsToData( pos0.x ),
+                                        xAxis_.graphicsToData( pos1.x ) )
+                      : new double[] { dxlo_, dxhi_ },
+                yFlag ? yAxis_.dataPan( yAxis_.graphicsToData( pos0.y ),
+                                        yAxis_.graphicsToData( pos1.y ) )
+                      : new double[] { dylo_, dyhi_ } );
+        }
+        else {
+            return null;
+        }
     }
 
     /**
      * Returns a plot aspect in which the given data position is centred.
      *
      * @param  dpos  data position to end up central
+     * @param  xFlag  true to center in X direction
+     * @param  yFlag  true to center in Y direction
      * @return  new aspect
      */
-    PlaneAspect center( double[] dpos ) {
+    PlaneAspect center( double[] dpos, boolean xFlag, boolean yFlag ) {
         Point gp = new Point();
         return dataToGraphics( dpos, false, gp )
              ? pan( gp, new Point( ( gxlo_ + gxhi_ ) / 2,
-                                   ( gylo_ + gyhi_ ) / 2 ) )
+                                   ( gylo_ + gyhi_ ) / 2 ),
+                    xFlag, yFlag )
              : null;
     }
 

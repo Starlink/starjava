@@ -18252,6 +18252,10 @@ introduced since the last version:
             have not been working since mid-2010 as a consequence of bugs
             in (mostly) the TOPCAT client and (partially) the STSci
             registry service.</li>
+        <li>Pan/Zoom gestures now work outside the axes of
+            Time and Plane plots, applicable only to the relevant coordinate.
+            This means you can do zooming in one direction only just by
+            moving the mouse and spinning the wheel.</li>
         </ul>
         </p></dd>
 

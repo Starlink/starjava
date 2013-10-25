@@ -509,7 +509,7 @@ public class SkySurface implements Surface {
      * @return  panned sky aspect
      */
     SkyAspect pan( Point pos0, Point pos1 ) {
-        return projPan( pos0, pos1 );
+        return inBounds( pos0 ) ? projPan( pos0, pos1 ) : null;
     }
 
     /**
@@ -521,7 +521,18 @@ public class SkySurface implements Surface {
      * @return  zoomed sky aspect
      */
     SkyAspect zoom( Point pos, double factor ) {
-        return projZoom( pos, factor );
+        return inBounds( pos ) ? projZoom( pos, factor ) : null;
+    }
+
+    /**
+     * Indicates whether a given position is within the plotting region.
+     *
+     * @param   pos  test position
+     * @return  true iff pos is within the plot bounds
+     */
+    private boolean inBounds( Point pos ) {
+        return pos.x >= gxlo_ && pos.x <= gxhi_
+            && pos.y >= gylo_ && pos.y <= gyhi_;
     }
 
     /**

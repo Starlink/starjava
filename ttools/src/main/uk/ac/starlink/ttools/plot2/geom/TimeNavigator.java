@@ -24,20 +24,14 @@ public class TimeNavigator implements Navigator<TimeAspect> {
     private final double zoomFactor_;
     private final boolean tZoom_;
     private final boolean yZoom_;
+    private final boolean tPan_;
+    private final boolean yPan_;
 
     /** Config key to select which axes zoom will operate on. */
-    public static final ConfigKey<boolean[]> ZOOMAXES_KEY =
-        new CombinationConfigKey( new ConfigMeta( "zoomaxes", "Zoom Axes" ),
-                                  new boolean[] { true, false },
-                                  new String[] { "Time", "Y" } ) {
-            // Allow X as an alias for T
-            @Override
-            public int optCharToIndex( char c ) throws ConfigException {
-                return Character.toLowerCase( c ) == 'x'
-                     ? 0
-                     : super.optCharToIndex( c );
-            }
-        };
+    public static final ConfigKey<boolean[]> NAVAXES_KEY =
+        new AxisCombinationConfigKey( new ConfigMeta( "navaxes",
+                                                      "Pan/Zoom Axes" ),
+                                      true, false );
 
     /**
      * Constructor.
@@ -45,21 +39,32 @@ public class TimeNavigator implements Navigator<TimeAspect> {
      * @param  zoomFactor  amount of zoom for one mouse wheel click
      * @param  tZoom  true iff wheel operation will zoom in horizontal direction
      * @param  yZoom  true iff wheel operation will zoom in vertical direction
+     * @param  tPan   true iff drag operation will pan in horizontal direction
+     * @param  yPan   true iff drag operation will pan in vertical direction
      */
-    public TimeNavigator( double zoomFactor, boolean tZoom, boolean yZoom ) {
+    public TimeNavigator( double zoomFactor, boolean tZoom, boolean yZoom,
+                          boolean tPan, boolean yPan ) {
         zoomFactor_ = zoomFactor;
         tZoom_ = tZoom;
         yZoom_ = yZoom;
+        tPan_ = tPan;
+        yPan_ = yPan;
     }
 
     public TimeAspect drag( Surface surface, MouseEvent evt, Point origin ) {
-        return ((TimeSurface) surface).pan( origin, evt.getPoint() );
+        boolean[] useFlags =
+            PlaneNavigator.getAxisNavFlags( surface, origin, tPan_, yPan_ );
+        return ((TimeSurface) surface)
+              .pan( origin, evt.getPoint(), useFlags[ 0 ], useFlags[ 1 ] );
     }
 
     public TimeAspect wheel( Surface surface, MouseWheelEvent evt ) {
+        Point pos = evt.getPoint();
+        boolean[] useFlags =
+            PlaneNavigator.getAxisNavFlags( surface, pos, tZoom_, yZoom_ );
         return ((TimeSurface) surface)
-              .zoom( evt.getPoint(), PlotUtil.toZoom( zoomFactor_, evt ),
-                     tZoom_, yZoom_ );
+              .zoom( pos, PlotUtil.toZoom( zoomFactor_, evt ),
+                     useFlags[ 0 ], useFlags[ 1 ] );
     }
 
     public TimeAspect click( Surface surface, MouseEvent evt,
@@ -74,7 +79,7 @@ public class TimeNavigator implements Navigator<TimeAspect> {
      */
     public static ConfigKey[] getConfigKeys() {
         return new ConfigKey[] {
-            ZOOMAXES_KEY,
+            NAVAXES_KEY,
             StyleKeys.ZOOM_FACTOR,
         };
     }
@@ -87,8 +92,40 @@ public class TimeNavigator implements Navigator<TimeAspect> {
      * @return   navigator
      */
     public static TimeNavigator createNavigator( ConfigMap config ) {
-        boolean[] zoomFlags = config.get( ZOOMAXES_KEY );
+        boolean[] navFlags = config.get( NAVAXES_KEY );
+        boolean tnav = navFlags[ 0 ];
+        boolean ynav = navFlags[ 1 ];
         double zoom = config.get( StyleKeys.ZOOM_FACTOR );
-        return new TimeNavigator( zoom, zoomFlags[ 0 ], zoomFlags[ 1 ] );
+        return new TimeNavigator( zoom, tnav, ynav, tnav, ynav );
+    }
+
+    /**
+     * ConfigKey for selecting a combination (0, 1 or 2) of the axes
+     * of a time plot.
+     */
+    private static class AxisCombinationConfigKey extends CombinationConfigKey {
+
+        /**
+         * Constructor.
+         *
+         * @param  metadata
+         * @param  tDflt    true to include time axis by default
+         * @param  yDflt    true to include Y axis by default
+         */
+        AxisCombinationConfigKey( ConfigMeta meta,
+                                  boolean tDflt, boolean yDflt) {
+            super( meta, new boolean[] { tDflt, yDflt },
+                   new String[] { "Time", "Y" } );
+        }
+
+        /**
+         * Allow X as an alias for T
+         */
+        @Override
+        public int optCharToIndex( char c ) throws ConfigException {
+            return Character.toLowerCase( c ) == 'x'
+                 ? 0
+                 : super.optCharToIndex( c );
+        }
     }
 }

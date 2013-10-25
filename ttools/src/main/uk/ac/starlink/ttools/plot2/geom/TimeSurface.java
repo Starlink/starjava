@@ -190,49 +190,64 @@ public class TimeSurface implements Surface {
      * in some or all dimensions around the given central position.
      *
      * @param  pos  reference graphics position
-     * @param  factor  zoom factor
+     * @param  zfact  zoom factor
      * @param  tFlag  true to zoom in horizontal direction
      * @param  yFlag  true to zoom in vertical direction
      * @return  new aspect
      */
-    TimeAspect zoom( Point pos, double factor, boolean tFlag, boolean yFlag ) {
-        return new TimeAspect(
-            tFlag ? tAxis_.dataZoom( tAxis_.graphicsToData( pos.x ), factor )
-                  : new double[] { dtlo_, dthi_ },
-            yFlag ? yAxis_.dataZoom( yAxis_.graphicsToData( pos.y ), factor )
-                  : new double[] { dylo_, dyhi_ }
-        );
+    TimeAspect zoom( Point pos, double zfact, boolean tFlag, boolean yFlag ) {
+        if ( tFlag || yFlag ) {
+            return new TimeAspect(
+                tFlag ? tAxis_.dataZoom( tAxis_.graphicsToData( pos.x ), zfact )
+                      : new double[] { dtlo_, dthi_ },
+                yFlag ? yAxis_.dataZoom( yAxis_.graphicsToData( pos.y ), zfact )
+                      : new double[] { dylo_, dyhi_ } );
+        }
+        else {
+            return null;
+        }
     }
 
     /**
      * Returns a plot aspect representing a view of this surface panned
-     * such that the data that used to appear at one graphics coordinate
-     * now appears at another.
+     * in some or all dimensions such that the data that used to appear
+     * at one graphics coordinate now appears at another.
      *
      * @param   pos0  source graphics position
      * @param   pos1  destination graphics position
+     * @param   tFlag  true to pan in horizontal direction
+     * @param   yFlag  true to pan in vertical direction
      * @return  new aspect
      */
-    TimeAspect pan( Point pos0, Point pos1 ) {
-        return new TimeAspect( tAxis_
-                              .dataPan( tAxis_.graphicsToData( pos0.x ),
-                                        tAxis_.graphicsToData( pos1.x ) ),
-                               yAxis_
-                              .dataPan( yAxis_.graphicsToData( pos0.y ),
-                                        yAxis_.graphicsToData( pos1.y ) ) );
+    TimeAspect pan( Point pos0, Point pos1, boolean tFlag, boolean yFlag ) {
+        if ( tFlag || yFlag ) {
+            return new TimeAspect(
+                tFlag ? tAxis_.dataPan( tAxis_.graphicsToData( pos0.x ),
+                                        tAxis_.graphicsToData( pos1.x ) )
+                      : new double[] { dtlo_, dthi_ },
+                yFlag ? yAxis_.dataPan( yAxis_.graphicsToData( pos0.y ),
+                                        yAxis_.graphicsToData( pos1.y ) )
+                      : new double[] { dylo_, dyhi_ } );
+        }
+        else {
+            return null;
+        }
     }
 
     /**
      * Returns a plot aspect in which the given data position is centred.
      *
      * @param  dpos  data position to end up central
+     * @param  tFlag  true to center in horizontal direction
+     * @param  yFlag  true to center in vertical direction
      * @return  new aspect
      */
-    TimeAspect center( double[] dpos ) {
+    TimeAspect center( double[] dpos, boolean tFlag, boolean yFlag ) {
         Point gp = new Point();
         return dataToGraphics( dpos, false, gp )
              ? pan( gp, new Point( ( gxlo_ + gxhi_ ) / 2,
-                                   ( gylo_ + gyhi_ ) / 2 ) )
+                                   ( gylo_ + gyhi_ ) / 2 ),
+                    tFlag, yFlag )
              : null;
     }
 

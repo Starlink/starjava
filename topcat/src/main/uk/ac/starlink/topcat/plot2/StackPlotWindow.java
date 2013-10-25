@@ -827,8 +827,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     private void wheel( MouseWheelEvent evt ) {
         Point point = evt.getPoint();
         Surface surface = plotPanel_.getLatestSurface();
-        if ( surface != null &&
-             surface.getPlotBounds().contains( point ) ) {
+        if ( surface != null ) {
             fixAspect( getNavigator().wheel( surface, evt ) );
         }
     }
@@ -912,11 +911,9 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         @Override
         public void mousePressed( MouseEvent evt ) {
             Surface surface = plotPanel_.getLatestSurface();
-            Point point = evt.getPoint();
-            if ( surface != null &&
-                 surface.getPlotBounds().contains( point ) ) {
+            if ( surface != null ) {
                 dragSurface_ = surface;
-                startPoint_ = point;
+                startPoint_ = evt.getPoint();
             }
         }
 

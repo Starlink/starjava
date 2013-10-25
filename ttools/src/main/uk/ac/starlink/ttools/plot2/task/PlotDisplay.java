@@ -379,9 +379,7 @@ public class PlotDisplay<P,A> extends JComponent {
     private void wheel( MouseWheelEvent evt ) {
         Point point = evt.getPoint();
         Surface surface = surface_;
-        if ( navigator_ != null &&
-             surface != null &&
-             surface.getPlotBounds().contains( point ) ) {
+        if ( navigator_ != null && surface != null ) {
             A aspect = navigator_.wheel( surface, evt );
             if ( aspect != null ) {
                 setAspect( aspect );
@@ -399,13 +397,11 @@ public class PlotDisplay<P,A> extends JComponent {
         @Override
         public void mousePressed( MouseEvent evt ) {
 
-            /* Start a drag gesture if appropriate. */
+            /* Start a drag gesture. */
             Surface surface = surface_;
             Point point = evt.getPoint();
-            if ( surface.getPlotBounds().contains( point ) ) {
-                dragSurface_ = surface;
-                startPoint_ = point;
-            }
+            dragSurface_ = surface;
+            startPoint_ = point;
         }
 
         @Override
