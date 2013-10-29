@@ -18256,6 +18256,9 @@ introduced since the last version:
             Time and Plane plots, applicable only to the relevant coordinate.
             This means you can do zooming in one direction only just by
             moving the mouse and spinning the wheel.</li>
+        <li>Dragging the mouse with either the shift key depressed or using
+            the right-hand button now performs a zoom rather than a pan
+            operation in the plane (and time) plots.</li>
         </ul>
         </p></dd>
 

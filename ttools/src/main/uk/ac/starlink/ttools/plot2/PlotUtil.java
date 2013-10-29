@@ -211,6 +211,20 @@ public class PlotUtil {
     }
 
     /**
+     * Determines a zoom factor from a pixel distance on the screen
+     * and a given unit zoom factor.
+     * It just applies a consistent scaling to the pixel value.
+     *
+     * @param   unitFactor   positive zoom factor corresponding to a
+     *                       single click
+     * @param  npix   screen pixel count
+     * @return   zoom factor
+     */
+    public static double toZoom( double unitFactor, int npix ) {
+        return Math.pow( unitFactor, npix / 24.0 );
+    }
+
+    /**
      * Returns a value determined by a fixed range and a scale point
      * within it.  If the point is zero the minimum value is returned,
      * and if it is one the maximum value is returned.

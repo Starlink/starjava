@@ -52,21 +52,48 @@ public class PlaneNavigator implements Navigator<PlaneAspect> {
 
     public PlaneAspect drag( Surface surface, MouseEvent evt, Point origin ) {
         boolean[] useFlags = getAxisNavFlags( surface, origin, xPan_, yPan_ );
-        return ((PlaneSurface) surface)
-              .pan( origin, evt.getPoint(), useFlags[ 0 ], useFlags[ 1 ] );
+        PlaneSurface psurf = (PlaneSurface) surface;
+        Point point = evt.getPoint();
+        if ( isZoomDrag( evt ) ) {
+            return psurf
+                  .zoom( origin,
+                         useFlags[ 0 ] ? PlotUtil.toZoom( zoomFactor_,
+                                                          point.x - origin.x )
+                                       : 1,
+                         useFlags[ 1 ] ? PlotUtil.toZoom( zoomFactor_,
+                                                          point.y - origin.y )
+                                       : 1 );
+        }
+        else {
+            return psurf.pan( origin, point, useFlags[ 0 ], useFlags[ 1 ] );
+        }
     }
 
     public PlaneAspect wheel( Surface surface, MouseWheelEvent evt ) {
         Point pos = evt.getPoint();
         boolean[] useFlags = getAxisNavFlags( surface, pos, xZoom_, yZoom_ );
+        double zfact = PlotUtil.toZoom( zoomFactor_, evt );
         return ((PlaneSurface) surface)
-              .zoom( pos, PlotUtil.toZoom( zoomFactor_, evt ),
-                     useFlags[ 0 ], useFlags[ 1 ] );
+              .zoom( pos, useFlags[ 0 ] ? zfact : 1,
+                          useFlags[ 1 ] ? zfact : 1 );
     }
 
     public PlaneAspect click( Surface surface, MouseEvent evt,
                               Iterable<double[]> dposIt ) {
         return null;
+    }
+
+    /**
+     * Indicates whether a drag mouse gesture is to be interpreted as a zoom
+     * or pan.
+     *
+     * @param  evt  mouse drag event
+     * @return  true for zoom, false for pan
+     */
+    public static boolean isZoomDrag( MouseEvent evt ) {
+        int mods = evt.getModifiersEx();
+        return ( mods & MouseEvent.BUTTON3_DOWN_MASK ) != 0
+            || ( mods & MouseEvent.SHIFT_DOWN_MASK ) != 0;
     }
  
     /**

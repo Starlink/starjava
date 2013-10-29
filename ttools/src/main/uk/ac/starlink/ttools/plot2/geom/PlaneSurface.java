@@ -192,22 +192,14 @@ public class PlaneSurface implements Surface {
      * in some or all dimensions around the given central position.
      *
      * @param  pos  reference graphics position
-     * @param  zfact  zoom factor
-     * @param  xFlag  true iff zoom is to operate in X direction
-     * @param  yFlag  true iff zoom is to operate in Y direction
+     * @param  xZoom  X axis zoom factor
+     * @param  yZoom  Y axis zoom factor
      * @return  new aspect
      */
-    PlaneAspect zoom( Point pos, double zfact, boolean xFlag, boolean yFlag ) {
-        if ( xFlag || yFlag ) {
-            return new PlaneAspect(
-                xFlag ? xAxis_.dataZoom( xAxis_.graphicsToData( pos.x ), zfact )
-                      : new double[] { dxlo_, dxhi_ },
-                yFlag ? yAxis_.dataZoom( yAxis_.graphicsToData( pos.y ), zfact )
-                      : new double[] { dylo_, dyhi_ } );
-        }
-        else {
-            return null;
-        }
+    PlaneAspect zoom( Point pos, double xZoom, double yZoom ) {
+        return new PlaneAspect(
+            xAxis_.dataZoom( xAxis_.graphicsToData( pos.x ), xZoom ),
+            yAxis_.dataZoom( yAxis_.graphicsToData( pos.y ), yZoom ) );
     }
 
     /**

@@ -190,22 +190,15 @@ public class TimeSurface implements Surface {
      * in some or all dimensions around the given central position.
      *
      * @param  pos  reference graphics position
-     * @param  zfact  zoom factor
-     * @param  tFlag  true to zoom in horizontal direction
-     * @param  yFlag  true to zoom in vertical direction
+     * @param  tZoom  horizontal axis zoom factor
+     * @param  yZoom  vertical axis zoom factor
      * @return  new aspect
      */
-    TimeAspect zoom( Point pos, double zfact, boolean tFlag, boolean yFlag ) {
-        if ( tFlag || yFlag ) {
-            return new TimeAspect(
-                tFlag ? tAxis_.dataZoom( tAxis_.graphicsToData( pos.x ), zfact )
-                      : new double[] { dtlo_, dthi_ },
-                yFlag ? yAxis_.dataZoom( yAxis_.graphicsToData( pos.y ), zfact )
-                      : new double[] { dylo_, dyhi_ } );
-        }
-        else {
-            return null;
-        }
+    TimeAspect zoom( Point pos, double tZoom, double yZoom ) {
+        return new TimeAspect( tAxis_.dataZoom( tAxis_.graphicsToData( pos.x ),
+                                                tZoom ),
+                               yAxis_.dataZoom( yAxis_.graphicsToData( pos.y ),
+                                                yZoom ) );
     }
 
     /**
