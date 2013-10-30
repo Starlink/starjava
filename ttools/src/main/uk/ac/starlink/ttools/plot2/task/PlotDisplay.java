@@ -3,25 +3,20 @@ package uk.ac.starlink.ttools.plot2.task;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Insets;
-import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseWheelEvent;
-import java.awt.event.MouseWheelListener;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.Icon;
 import javax.swing.JComponent;
-import javax.swing.event.MouseInputAdapter;
-import javax.swing.event.MouseInputListener;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.Decoration;
 import uk.ac.starlink.ttools.plot2.Drawing;
 import uk.ac.starlink.ttools.plot2.LayerOpt;
+import uk.ac.starlink.ttools.plot2.NavigationListener;
 import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotPlacement;
@@ -62,7 +57,6 @@ public class PlotDisplay<P,A> extends JComponent {
     private final Range shadeFixRange_;
     private final boolean surfaceAuxRange_;
     private final boolean caching_;
-    private final Navigator<A> navigator_;
     private Map<AuxScale,Range> auxRanges_;
     private Surface approxSurf_;
     private Surface surface_;
@@ -100,7 +94,7 @@ public class PlotDisplay<P,A> extends JComponent {
                         SurfaceFactory<P,A> surfFact, P profile, A aspect,
                         Icon legend, float[] legPos, ShadeAxis shadeAxis,
                         Range shadeFixRange, DataStore dataStore,
-                        boolean surfaceAuxRange, Navigator<A> navigator,
+                        boolean surfaceAuxRange, final Navigator<A> navigator,
                         boolean caching ) {
         plotType_ = plotType;
         layers_ = layers;
@@ -113,19 +107,25 @@ public class PlotDisplay<P,A> extends JComponent {
         shadeFixRange_ = shadeFixRange;
         dataStore_ = dataStore;
         surfaceAuxRange_ = surfaceAuxRange;
-        navigator_ = navigator;
         caching_ = caching;
 
         /* Add mouse listeners if required. */
-        if ( navigator_ != null ) {
-            addMouseWheelListener( new MouseWheelListener() {
-                public void mouseWheelMoved( MouseWheelEvent evt ) {
-                    PlotDisplay.this.wheel( evt );
+        if ( navigator != null ) {
+            new NavigationListener<A>() {
+                public Surface getSurface() {
+                    return surface_;
                 }
-            } );
-            MouseInputListener panListener = new PanListener();
-            addMouseListener( panListener );
-            addMouseMotionListener( panListener );
+                public Navigator<A> getNavigator() {
+                    return navigator;
+                }
+                public Iterable<double[]> createDataPosIterable() {
+                    return new PointCloud( layers_, true )
+                          .createDataPosIterable( dataStore_ );
+                }
+                public void setAspect( A aspect ) {
+                    PlotDisplay.this.setAspect( aspect );
+                }
+            }.addListeners( this );
         }
     }
 
@@ -369,75 +369,5 @@ public class PlotDisplay<P,A> extends JComponent {
          * data ranges for the plot. */
         return AuxScale.getClippedRanges( scales, auxDataRanges, auxFixRanges,
                                           auxSubranges, auxLogFlags );
-    }
-
-    /**
-     * Invoked when a mouse wheel event is detected on this component.
-     *
-     * @param   evt  event
-     */
-    private void wheel( MouseWheelEvent evt ) {
-        Point point = evt.getPoint();
-        Surface surface = surface_;
-        if ( navigator_ != null && surface != null ) {
-            A aspect = navigator_.wheel( surface, evt );
-            if ( aspect != null ) {
-                setAspect( aspect );
-            }
-        }
-    }
-
-    /**
-     * Mouse listener that implements drag-panning.
-     */
-    private class PanListener extends MouseInputAdapter {
-        private Surface dragSurface_;
-        private Point startPoint_;
-
-        @Override
-        public void mousePressed( MouseEvent evt ) {
-
-            /* Start a drag gesture. */
-            Surface surface = surface_;
-            Point point = evt.getPoint();
-            dragSurface_ = surface;
-            startPoint_ = point;
-        }
-
-        @Override
-        public void mouseDragged( MouseEvent evt ) {
-
-            /* Reposition surface midway through drag gesture. */
-            if ( dragSurface_ != null ) {
-                A aspect = navigator_.drag( dragSurface_, evt, startPoint_ );
-                if ( aspect != null ) {
-                    setAspect( aspect );
-                }
-            }
-        }
-
-        @Override
-        public void mouseReleased( MouseEvent evt ) {
-
-            /* Terminate any current drag gesture. */
-            dragSurface_ = null;
-            startPoint_ = null;
-        }
-
-        @Override
-        public void mouseClicked( MouseEvent evt ) {
-
-            /* Recentre plot on right-click. */
-            int iButt = evt.getButton();
-            if ( iButt == MouseEvent.BUTTON3 ) {
-                Iterable<double[]> dpIt =
-                    new PointCloud( layers_, true )
-                   .createDataPosIterable( dataStore_ );
-                A aspect = navigator_.click( surface_, evt, dpIt );
-                if ( aspect != null ) {
-                    setAspect( aspect );
-                }
-            }
-        }
     }
 }

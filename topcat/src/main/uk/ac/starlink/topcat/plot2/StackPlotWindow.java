@@ -9,9 +9,9 @@ import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseWheelEvent;
-import java.awt.event.MouseWheelListener;
+import java.awt.event.MouseMotionAdapter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -33,8 +33,6 @@ import javax.swing.JPanel;
 import javax.swing.OverlayLayout;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import javax.swing.event.MouseInputAdapter;
-import javax.swing.event.MouseInputListener;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.topcat.AuxWindow;
@@ -51,6 +49,7 @@ import uk.ac.starlink.topcat.plot.BlobPanel;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.DataGeom;
+import uk.ac.starlink.ttools.plot2.NavigationListener;
 import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotPlacement;
@@ -157,21 +156,44 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         axisControl_.addActionListener( plotPanel_ );
         shaderControl.addActionListener( plotPanel_ );
 
-        /* Arrange for user gestures (zoom, pan, click) on the plot panel
-         * itself to result in appropriate actions. */
-        plotPanel_.setFocusable( true );
-        plotPanel_.addMouseWheelListener( new MouseWheelListener() {
-            public void mouseWheelMoved( MouseWheelEvent evt ) {
-                StackPlotWindow.this.wheel( evt );
+        /* Arrange for user navigation actions to adjust the view. */
+        new NavigationListener<A>() {
+            public Surface getSurface() {
+                return plotPanel_.getLatestSurface();
             }
-        } );
-        addMouseInputListener( plotPanel_, new PanListener() );
+            public Navigator<A> getNavigator() {
+                return axisControl_.getNavigator();
+            }
+            public Iterable<double[]> createDataPosIterable() {
+                return new PointCloud( plotPanel_.getPlotLayers(), true )
+                      .createDataPosIterable( plotPanel_.getDataStore() );
+            }
+            public void setAspect( A aspect ) {
+                axisControl_.setAspect( aspect );
+                plotPanel_.replot();
+            }
+        }.addListeners( plotPanel_ );
+
+        /* Arrange for user clicks to identify points. */
+        plotPanel_.addMouseListener( new IdentifyListener() );
 
         /* Prepare a panel that reports current cursor position. */
         posLabel_ = new JLabel();
         JComponent posLine = new LineBox( "Position", posLabel_ );
         posLine.setBorder( BorderFactory.createEtchedBorder() );
-        addMouseInputListener( plotPanel_, new PosListener() );
+        plotPanel_.addMouseListener( new MouseAdapter() {
+            public void mouseEntered( MouseEvent evt ) {
+                displayPosition( evt.getPoint() );
+            }
+            public void mouseExited( MouseEvent evt ) {
+                displayPosition( null );
+            }
+        } );
+        plotPanel_.addMouseMotionListener( new MouseMotionAdapter() {
+            public void mouseMoved( MouseEvent evt ) {
+                displayPosition( evt.getPoint() );
+            }
+        } );
 
         /* Prepare a panel that reports visible point count. */
         countLabel_ = new JLabel();
@@ -202,7 +224,6 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                 addMaskSubsets( createBlobMasker( blob ).getItem() );
             }
         };
-        blobPanel.setFocusable( true ); // necessary to transmit focus to plot
         stackModel_.addPlotActionListener( new ActionListener() {
             public void actionPerformed( ActionEvent evt ) {
                 blobPanel.setActive( false );
@@ -404,18 +425,6 @@ public class StackPlotWindow<P,A> extends AuxWindow {
          * But in the mean time, clearing up here takes care of the
          * potentially large arrays etc. */
         plotPanel_.clearData();
-    }
-
-    /**
-     * Sets the plot surface aspect to a given new value.
-     *
-     * @param   aspect  new aspect
-     */
-    private void fixAspect( A aspect ) {
-        if ( aspect != null ) {
-            axisControl_.setAspect( aspect );
-            plotPanel_.replot();
-        }
     }
 
     /**
@@ -809,33 +818,6 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     }
 
     /**
-     * Delivers a mouse wheel gesture to the currently installed navigator,
-     * and updates the plot aspect accordingly.
-     *
-     * @param  evt  mouse wheel event
-     */
-    private void wheel( MouseWheelEvent evt ) {
-        Point point = evt.getPoint();
-        Surface surface = plotPanel_.getLatestSurface();
-        if ( surface != null ) {
-            fixAspect( getNavigator().wheel( surface, evt ) );
-        }
-    }
-
-    /**
-     * Utility method to add a mouse input listener as both a MouseListener
-     * and a MouseMotionListener to a component.
-     *
-     * @param   comp  target component
-     * @param   lnr   listener for mouse button and motion events
-     */
-    private static void addMouseInputListener( JComponent comp,
-                                               MouseInputListener lnr ) {
-        comp.addMouseListener( lnr );
-        comp.addMouseMotionListener( lnr );
-    }
-
-    /**
      * Indicates whether any of the submitted list of plot layers
      * makes use of a colour scale.
      *
@@ -853,36 +835,9 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     }
 
     /**
-     * Mouse listener which implements dragging the plot around,
-     * clicking to identify points, and re-centering (right click).
+     * Mouse listener which listens for click events that identify a point.
      */
-    private class PanListener extends MouseInputAdapter {
-        private Surface dragSurface_;
-        private Point startPoint_;
-
-        @Override
-        public void mousePressed( MouseEvent evt ) {
-            Surface surface = plotPanel_.getLatestSurface();
-            if ( surface != null ) {
-                dragSurface_ = surface;
-                startPoint_ = evt.getPoint();
-            }
-        }
-
-        @Override
-        public void mouseDragged( MouseEvent evt ) {
-            if ( dragSurface_ != null ) {
-                fixAspect( getNavigator()
-                          .drag( dragSurface_, evt, startPoint_ ) );
-            }
-        }
-
-        @Override
-        public void mouseReleased( MouseEvent evt ) {
-            dragSurface_ = null;
-            startPoint_ = null;
-        }
-
+    private class IdentifyListener extends MouseAdapter {
         @Override
         public void mouseClicked( MouseEvent evt ) {
             int iButt = evt.getButton();
@@ -893,34 +848,6 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                      evt.isShiftDown() ) ) {
                 identifyPoint( evt.getPoint() );
             }
-            else {
-                Surface surface = plotPanel_.getSurface();
-                Iterable<double[]> dpIt =
-                    new PointCloud( plotPanel_.getPlotLayers(), true )
-                   .createDataPosIterable( plotPanel_.getDataStore() );
-                fixAspect( getNavigator().click( surface, evt, dpIt ) );
-            }
-        }
-    }
-
-    /**
-     * Mouse listener which causes update of the cursor position status
-     * panel whenever the mouse is moved.
-     */
-    private class PosListener extends MouseInputAdapter {
-        @Override
-        public void mouseEntered( MouseEvent evt ) {
-            displayPosition( evt.getPoint() );
-        }
-
-        @Override
-        public void mouseMoved( MouseEvent evt ) {
-            displayPosition( evt.getPoint() );
-        }
-
-        @Override
-        public void mouseExited( MouseEvent evt ) {
-            displayPosition( null );
         }
     }
 }
