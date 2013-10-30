@@ -9041,18 +9041,6 @@ and experiment with the various options to see what happens to the plot.
     because of changes in the subset selection or from zooming in or out.
     </p></dd>
 
-<dt>&IMG.ZOOM_IN; Zoom In</dt>
-<dd><p>Zooms the plot in around its centre.
-    In most cases using the mouse wheel if available is a better option,
-    but this button is available as an alternative.
-    </p></dd>
-
-<dt>&IMG.ZOOM_OUT; Zoom Out</dt>
-<dd><p>Zooms the plot out around its centre.
-    In most cases using the mouse wheel if available is a better option,
-    but this button is available as an alternative.
-    </p></dd>
-
 <dt>&IMG.AXIS_LOCK; Lock Axes</dt>
 <dd><p>Usually, when the data plotted has changed significantly,
     the axes are automatically rescaled so that all the points are visible.
@@ -10320,8 +10308,6 @@ see the <label>Coords</label> tab of the
     (some machines with no wheel can simulate this with a
     two-fingered slide on the mouse pad),
     since this zooms around the current mouse position.
-    An alternative is to use the zoom buttons (&IMG.ZOOM_IN;/&IMG.ZOOM_OUT;)
-    on the toolbar, which zoom around the center of the plot.
     This zooming is isotropic - both axes zoom by the same factor.
     </p>
     <p>You can also change the zoom using the <label>Range</label> tab
@@ -10526,8 +10512,6 @@ values as their default (both Equatorial) and no conversion will be done.
     (some machines with no wheel can simulate this with a
     two-fingered slide on the mouse pad),
     since this zooms around the current mouse position.
-    An alternative is to use the zoom buttons (&IMG.ZOOM_IN;/&IMG.ZOOM_OUT;)
-    on the toolbar, which zoom around the center of the plot.
     </p>
     <p>In the Sin projection, the zoom will rotate the sphere as well as
     increase its magnification, so that the cursor can stay on the same
@@ -10726,9 +10710,8 @@ see the <label>Coords</label> tab of the
     it should end up in the centre of the cube.
     </p></dd>
 <dt>Zooming</dt>
-<dd><p>You can zoom using the mouse wheel or the zoom buttons
-    (&IMG.ZOOM_IN;/&IMG.ZOOM_OUT;) on the toolbar.
-    Either of these zooms the <em>data volume</em> in the visible cube
+<dd><p>You can zoom using the mouse wheel.
+    This zooms the <em>data volume</em> in the visible cube
     about its centre, so the cube wireframe axes stay in the same place
     on the screen, but the axis annotations move.
     </p>
@@ -10955,9 +10938,8 @@ for features common to all layer plots.
     if you click on a point or clump of interest, it should do what you want.
     </p></dd>
 <dt>Zooming</dt>
-<dd><p>You can zoom using the mouse wheel or the zoom buttons
-    (&IMG.ZOOM_IN;/&IMG.ZOOM_OUT;) on the toolbar.
-    Either of these zooms the <em>data volume</em> in the visible cube
+<dd><p>You can zoom using the mouse wheel.
+    This zooms the <em>data volume</em> in the visible cube
     about its centre, so the cube wireframe axes stay in the same place
     on the screen, but the axis annotations move.
     </p>
@@ -18232,10 +18214,6 @@ introduced since the last version:
         <li>Add new auto transparency shading mode to layer plots.</li>
         <li>Fix bug when concatenating tables whose data cells
             may have been edited by hand.</li>
-        <li>Add <label>Navigation</label> tab to Axis controls in layer plot
-            windows.  This allows you to configure zoom/pan actions, for
-            instance selecting zoom factor and X/Y/XY zoom options
-            for when mouse wheel is used.</li>
         <li>Fix service selection bug (NullPointerException)
             in multi-SIA/SSA windows.</li>
         <li>URL selector fields in Activation Action window are now
@@ -18252,16 +18230,26 @@ introduced since the last version:
             have not been working since mid-2010 as a consequence of bugs
             in (mostly) the TOPCAT client and (partially) the STSci
             registry service.</li>
-        <li>Pan/Zoom gestures now work outside the axes of
-            Time and Plane plots, applicable only to the relevant coordinate.
-            This means you can do zooming in one direction only just by
-            moving the mouse and spinning the wheel.</li>
-        <li>Dragging the mouse with either the shift key depressed or using
-            the right-hand button now performs a (possibly anisotropic)
-            zoom rather than a pan operation.</li>
+        <li>Substantial navigation improvements for new plot windows:
+            <!-- note the body of this document not yet updated accordingly. -->
+            <ul>
+            <li>Add <label>Navigation</label> tab to Axis controls in layer plot
+                windows.  This allows you to configure zoom/pan actions, for
+                instance selecting zoom factor and X/Y/XY zoom options
+                for when mouse wheel is used.</li>
+            <li>Pan/Zoom gestures now work outside the axes of
+                Time and Plane plots, applicable only
+                to the relevant coordinate.
+                This means you can do zooming in one direction only just by
+                moving the mouse and spinning the wheel.</li>
+            <li>Dragging the mouse with either the shift key depressed or using
+                the right-hand button now performs a (possibly anisotropic)
+                zoom rather than a pan operation.</li>
+            <li>Removed zoom in/out buttons in the toolbar of the layer
+                plot windows; there are better ways to zoom.</li>
+            </ul></li>
         </ul>
         </p></dd>
-
 </dl>
 </p>
 

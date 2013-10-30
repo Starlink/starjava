@@ -5,7 +5,6 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.Point;
-import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -93,7 +92,6 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     private final ControlStackModel stackModel_;
     private final JLabel posLabel_;
     private final JLabel countLabel_;
-    private static final double CLICK_ZOOM_UNIT = 1.2;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.plot2" );
 
@@ -251,10 +249,6 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             }
         };
 
-        /* Prepare non-contextual zoom actions. */
-        Action zoomInAction = new ZoomAction( true );
-        Action zoomOutAction = new ZoomAction( false );
- 
         /* Prepare the actions that allow the user to populate the plot
          * with data layers appropriate to this window's plot type. */
         TopcatListener tcListener = new TopcatListener() {
@@ -329,8 +323,6 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         getToolBar().add( fromVisibleAction );
         getToolBar().add( replotAction );
         getToolBar().add( resizeAction );
-        getToolBar().add( zoomInAction );
-        getToolBar().add( zoomOutAction );
         if ( axlockModel != null ) {
             getToolBar().add( axlockModel.createToolbarButton() );
         }
@@ -357,8 +349,6 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         plotMenu.setMnemonic( KeyEvent.VK_P );
         plotMenu.add( replotAction );
         plotMenu.add( resizeAction );
-        plotMenu.add( zoomInAction );
-        plotMenu.add( zoomOutAction );
         if ( axlockModel != null ) {
             plotMenu.add( axlockModel.createMenuItem() );
         }
@@ -860,44 +850,6 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             }
         }
         return false;
-    }
-
-    /**
-     * Action to zoom about the center of the plot.
-     */
-    private class ZoomAction extends BasicAction {
-        private final int nZoom_;
-
-        /**
-         * Constructor.
-         *
-         * @param  in   true to zoom in, false to zoom out
-         */
-        ZoomAction( boolean in ) {
-            super( "Zoom " + ( in ? "In" : "Out" ),
-                   in ? ResourceIcon.ZOOM_IN : ResourceIcon.ZOOM_OUT,
-                   "Zoom " + ( in ? "in" : "out" )
-                           + " around the center of the plot" );
-            nZoom_ = in ? -1 : +1;
-        }
-        public void actionPerformed( ActionEvent evt ) {
-            Surface surf = plotPanel_.getSurface();
-            if ( surf != null ) {
-
-                /* Fake a mouse wheel event corresponding to a
-                 * central position. */
-                Rectangle bounds = surf.getPlotBounds();
-                Point p = new Point( bounds.x + bounds.width / 2,
-                                     bounds.y + bounds.height / 2 );
-                MouseWheelEvent mEvt =
-                    new MouseWheelEvent( plotPanel_, 0,
-                                         System.currentTimeMillis(),
-                                         0, p.x, p.y, 0, false,
-                                         MouseWheelEvent.WHEEL_UNIT_SCROLL, 1,
-                                         nZoom_ );
-                wheel( mEvt );
-            }
-        }
     }
 
     /**
