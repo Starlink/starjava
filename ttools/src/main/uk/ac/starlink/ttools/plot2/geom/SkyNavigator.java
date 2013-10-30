@@ -30,7 +30,11 @@ public class SkyNavigator implements Navigator<SkyAspect> {
     }
 
     public SkyAspect drag( Surface surface, MouseEvent evt, Point origin ) {
-        return ((SkySurface) surface).pan( origin, evt.getPoint() );
+        SkySurface ssurf = (SkySurface) surface;
+        return PlotUtil.isZoomDrag( evt )
+             ? ssurf.zoom( origin, PlotUtil.toZoom( zoomFactor_, origin,
+                                                    evt.getPoint(), null ) )
+             : ssurf.pan( origin, evt.getPoint() );
     }
 
     public SkyAspect wheel( Surface surface, MouseWheelEvent evt ) {

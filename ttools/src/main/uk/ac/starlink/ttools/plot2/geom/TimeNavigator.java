@@ -56,14 +56,14 @@ public class TimeNavigator implements Navigator<TimeAspect> {
             PlaneNavigator.getAxisNavFlags( surface, origin, tPan_, yPan_ );
         TimeSurface tsurf = (TimeSurface) surface;
         Point point = evt.getPoint();
-        if ( PlaneNavigator.isZoomDrag( evt ) ) {
+        if ( PlotUtil.isZoomDrag( evt ) ) {
             return tsurf
                   .zoom( origin,
-                         useFlags[ 0 ] ? PlotUtil.toZoom( zoomFactor_,
-                                                          point.x - origin.x )
+                         useFlags[ 0 ] ? PlotUtil.toZoom( zoomFactor_, origin,
+                                                          point, false )
                                        : 1,
-                         useFlags[ 1 ] ? PlotUtil.toZoom( zoomFactor_,
-                                                          point.y - origin.y )
+                         useFlags[ 1 ] ? PlotUtil.toZoom( zoomFactor_, origin,
+                                                          point, true )
                                        : 1 );
         }
         else {

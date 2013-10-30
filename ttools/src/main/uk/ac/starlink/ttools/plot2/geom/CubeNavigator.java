@@ -49,7 +49,12 @@ public class CubeNavigator implements Navigator<CubeAspect> {
     }
 
     public CubeAspect drag( Surface surface, MouseEvent evt, Point origin ) {
-        return ((CubeSurface) surface).pan( origin, evt.getPoint() );
+        CubeSurface csurf = (CubeSurface) surface;
+        return PlotUtil.isZoomDrag( evt )
+             ? csurf.zoom( PlotUtil.toZoom( zoomFactor_, origin, evt.getPoint(),
+                                            null ),
+                           xZoom_, yZoom_, zZoom_ )
+             : csurf.pan( origin, evt.getPoint() );
     }
 
     public CubeAspect wheel( Surface surface, MouseWheelEvent evt ) {

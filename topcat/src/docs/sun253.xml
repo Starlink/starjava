@@ -18257,8 +18257,8 @@ introduced since the last version:
             This means you can do zooming in one direction only just by
             moving the mouse and spinning the wheel.</li>
         <li>Dragging the mouse with either the shift key depressed or using
-            the right-hand button now performs a zoom rather than a pan
-            operation in the plane (and time) plots.</li>
+            the right-hand button now performs a (possibly anisotropic)
+            zoom rather than a pan operation.</li>
         </ul>
         </p></dd>
 

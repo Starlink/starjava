@@ -54,14 +54,14 @@ public class PlaneNavigator implements Navigator<PlaneAspect> {
         boolean[] useFlags = getAxisNavFlags( surface, origin, xPan_, yPan_ );
         PlaneSurface psurf = (PlaneSurface) surface;
         Point point = evt.getPoint();
-        if ( isZoomDrag( evt ) ) {
+        if ( PlotUtil.isZoomDrag( evt ) ) {
             return psurf
                   .zoom( origin,
-                         useFlags[ 0 ] ? PlotUtil.toZoom( zoomFactor_,
-                                                          point.x - origin.x )
+                         useFlags[ 0 ] ? PlotUtil.toZoom( zoomFactor_, origin,
+                                                          point, false )
                                        : 1,
-                         useFlags[ 1 ] ? PlotUtil.toZoom( zoomFactor_,
-                                                          point.y - origin.y )
+                         useFlags[ 1 ] ? PlotUtil.toZoom( zoomFactor_, origin,
+                                                          point, true )
                                        : 1 );
         }
         else {
@@ -83,19 +83,6 @@ public class PlaneNavigator implements Navigator<PlaneAspect> {
         return null;
     }
 
-    /**
-     * Indicates whether a drag mouse gesture is to be interpreted as a zoom
-     * or pan.
-     *
-     * @param  evt  mouse drag event
-     * @return  true for zoom, false for pan
-     */
-    public static boolean isZoomDrag( MouseEvent evt ) {
-        int mods = evt.getModifiersEx();
-        return ( mods & MouseEvent.BUTTON3_DOWN_MASK ) != 0
-            || ( mods & MouseEvent.SHIFT_DOWN_MASK ) != 0;
-    }
- 
     /**
      * Determines which axes navigation should be performed on.
      * Navigation may be active by default on zero or more axes,

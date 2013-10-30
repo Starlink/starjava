@@ -1,6 +1,8 @@
 package uk.ac.starlink.ttools.plot2;
 
 import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.lang.reflect.Array;
 import java.text.DecimalFormat;
@@ -196,6 +198,26 @@ public class PlotUtil {
     }
 
     /**
+     * Indicates whether a drag mouse gesture is to be interpreted as a zoom
+     * or pan.  Currently, pretty much any variation from a normal button-1
+     * drag counts to turn it into a zoom gesture (use of button 3 or any
+     * modifier key depressed).
+     *
+     * @param  evt  mouse drag event
+     * @return  true for zoom, false for pan
+     */
+    public static boolean isZoomDrag( MouseEvent evt ) {
+        int mods = evt.getModifiersEx();
+        int alteredMask = MouseEvent.BUTTON3_DOWN_MASK
+                        | MouseEvent.SHIFT_DOWN_MASK
+                        | MouseEvent.CTRL_DOWN_MASK
+                        | MouseEvent.META_DOWN_MASK
+                        | MouseEvent.ALT_DOWN_MASK
+                        | MouseEvent.ALT_GRAPH_DOWN_MASK;
+        return ( mods & alteredMask ) != 0;
+    }
+
+    /**
      * Determines a zoom factor from a mouse wheel event and a given
      * unit zoom factor.
      * It just multiplies the given unit factor by the number of wheel clicks
@@ -211,16 +233,35 @@ public class PlotUtil {
     }
 
     /**
-     * Determines a zoom factor from a pixel distance on the screen
-     * and a given unit zoom factor.
-     * It just applies a consistent scaling to the pixel value.
+     * Determines an X, Y or isotropic zoom factor from a pair of
+     * screen positions and a given unit zoom factor.
+     * The absolute positions of the supplied points are not important,
+     * only their separation is used.
      *
      * @param   unitFactor   positive zoom factor corresponding to a
      *                       single click
-     * @param  npix   screen pixel count
+     * @param  p0    origin point
+     * @param  p1    destination point
+     * @param  isY   direction flag; TRUE for Y zoom, FALSE for X zoom and
+     *               null for isotropic zoom
      * @return   zoom factor
      */
-    public static double toZoom( double unitFactor, int npix ) {
+    public static double toZoom( double unitFactor, Point p0, Point p1,
+                                 Boolean isY ) {
+
+        /* Zoom in is right and up, i.e. in the conventional direction of
+         * increasing data (though not graphics) coordinates.
+         * This differs from the sense of the Y direction zoom used by
+         * the old-style plots (inherited from PtPlot). */
+        int dx = p1.x - p0.x;
+        int dy = - p1.y + p0.y;
+        final int npix;
+        if ( isY == null ) {
+            npix = dx + dy;
+        }
+        else {
+            npix = isY.booleanValue() ? dy : dx;
+        }
         return Math.pow( unitFactor, npix / 24.0 );
     }
 
