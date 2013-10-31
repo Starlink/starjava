@@ -21,6 +21,7 @@ public class CombinationConfigKey extends ConfigKey<boolean[]> {
 
     private final int nopt_;
     private final String[] optNames_;
+    private final boolean nullPermitted_;
 
     /**
      * Constructs an instance with a specified default.
@@ -29,40 +30,58 @@ public class CombinationConfigKey extends ConfigKey<boolean[]> {
      * @param   dflt  default array of selection flags
      * @param   optNames  labels for each of the options that may be selected,
      *                    same length as <code>dflt</code>
+     * @param   nullPermitted  true iff null is an acceptable value for
+     *                         this key
      */
     public CombinationConfigKey( ConfigMeta meta, boolean[] dflt,
-                                 String[] optNames ) {
+                                 String[] optNames, boolean nullPermitted ) {
         super( meta, boolean[].class, dflt );
         optNames_ = optNames;
+        nullPermitted_ = nullPermitted;
         nopt_ = optNames.length;
-        if ( dflt.length != nopt_ ) {
-            throw new IllegalArgumentException( "Array length mismatch" );
+        if ( dflt == null ) {
+            if ( ! nullPermitted ) {
+                throw new NullPointerException();
+            }
+        }
+        else {
+            if ( dflt.length != nopt_ ) {
+                throw new IllegalArgumentException( "Array length mismatch" );
+            }
         }
     }
 
     /**
-     * Constructs an instance where all the default inclusion flags are true.
+     * Constructs an instance where all the default inclusion flags are true
+     * and a null value is not permitted.
      *
      * @param   meta  metadata
      * @param   optNames  labels for each of the options that may be selected,
      */
     public CombinationConfigKey( ConfigMeta meta, String[] optNames ) {
-        this( meta, createTrueArray( optNames.length ), optNames );
+        this( meta, createTrueArray( optNames.length ), optNames, false );
     }
 
     public boolean[] stringToValue( String txt ) throws ConfigException {
-        boolean[] value = new boolean[ nopt_ ];
-        for ( int ic = 0; ic < txt.length(); ic++ ) {
-            value[ optCharToIndex( txt.charAt( ic ) ) ] = true;
+        if ( nullPermitted_ && ( txt == null || txt.trim().length() == 0 ) ) {
+            return null;
         }
-        return value;
+        else {
+            boolean[] value = new boolean[ nopt_ ];
+            for ( int ic = 0; ic < txt.length(); ic++ ) {
+                value[ optCharToIndex( txt.charAt( ic ) ) ] = true;
+            }
+            return value;
+        }
     }
 
     public String valueToString( boolean[] opts ) {
         StringBuffer sbuf = new StringBuffer();
-        for ( int io = 0; io < nopt_; io++ ) {
-            if ( opts[ io ] ) {
-                sbuf.append( optIndexToChar( io ) );
+        if ( opts != null ) {
+            for ( int io = 0; io < nopt_; io++ ) {
+                if ( opts[ io ] ) {
+                    sbuf.append( optIndexToChar( io ) );
+                }
             }
         }
         return sbuf.toString();

@@ -30,7 +30,8 @@ public class CubeNavigator implements Navigator<CubeAspect> {
     /** Config key to select which axes zoom will operate on. */
     public static final ConfigKey<boolean[]> ZOOMAXES_KEY =
         new CombinationConfigKey( new ConfigMeta( "zoomaxes", "Zoom Axes" ),
-                                  new String[] { "X", "Y", "Z" } );
+                                  new boolean[] { true, true, true },
+                                  new String[] { "X", "Y", "Z" }, true );
 
     /**
      * Constructor.

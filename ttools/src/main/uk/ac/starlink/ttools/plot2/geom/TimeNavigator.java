@@ -130,7 +130,7 @@ public class TimeNavigator implements Navigator<TimeAspect> {
         AxisCombinationConfigKey( ConfigMeta meta,
                                   boolean tDflt, boolean yDflt) {
             super( meta, new boolean[] { tDflt, yDflt },
-                   new String[] { "Time", "Y" } );
+                   new String[] { "Time", "Y" }, false );
         }
 
         /**
