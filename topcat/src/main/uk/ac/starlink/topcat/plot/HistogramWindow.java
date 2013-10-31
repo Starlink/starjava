@@ -645,7 +645,7 @@ public class HistogramWindow extends GraphicsWindow {
 
         /* Is it a weighted sum or a simple count? */
         HistogramPlotState state = (HistogramPlotState) plot.getState();
-        final boolean weighted = state.getWeighted();
+        final boolean isCumulative = state.getCumulative();
         final boolean isInt = binData.isInteger();
 
         /* Get the list of set IDs which describes which table/subset pairs
@@ -673,21 +673,35 @@ public class HistogramWindow extends GraphicsWindow {
             SetId setId = setIds[ is ];
             ColumnInfo weightInfo = getWeightInfo( setId );
             TopcatModel tcModel = setId.getPointSelector().getTable();
+            List<String> descripWords = new ArrayList<String>();
+            if ( state.getNormalised() ) {
+                descripWords.add( "normalised" );
+            }
+            if ( isCumulative ) {
+                descripWords.add( "cumulative" );
+            }
+            descripWords.add( "count" );
+            String word1 = descripWords.remove( 0 );
             StringBuffer descrip = new StringBuffer();
-            descrip.append( state.getNormalised() ? "Normalised count"
-                                                  : "Count"  );
+            descrip.append( Character.toUpperCase( word1.charAt( 0 ) ) )
+                   .append( word1.substring( 1 ) )
+                   .append( ' ' );
+            for ( String word : descripWords ) {
+                descrip.append( word )
+                       .append( ' ' );
+            }
             if ( weightInfo != null ) {
-                descrip.append( " weighted by " )
-                       .append( weightInfo.getName() );
+                descrip.append( "weighted by " )
+                       .append( weightInfo.getName() )
+                       .append( ' ' );
             }
             RowSubset rset =
                 (RowSubset) tcModel.getSubsets().get( setId.getSetIndex() );
             if ( rset != RowSubset.ALL ) {
-                descrip.append( " for row subset " )
+                descrip.append( "for row subset " )
                        .append( rset.getName() );
             }
-            descrip.append( " in table " )
-                   .append( tcModel.getLabel() );
+            descrip.append( "in table " + tcModel.getLabel() );
             ColumnInfo colInfo =
                 new ColumnInfo( namer.getName( setId ), 
                                 isInt ? Integer.class : Double.class,
@@ -716,14 +730,15 @@ public class HistogramWindow extends GraphicsWindow {
             }
             public RowSequence getRowSequence() {
                 final Iterator binIt = binData.getBinIterator( true );
+                final double[] sums = new double[ nset ];
                 return new RowSequence() {
                     private Object[] currentRow_;
 
                     public boolean next() {
                         while ( binIt.hasNext() ) {
                             BinnedData.Bin bin = (BinnedData.Bin) binIt.next();
-                            if ( bin.getLowBound() >= xlo &&
-                                 bin.getHighBound() <= xhi ) {
+                            if ( bin.getHighBound() > xlo &&
+                                 bin.getLowBound() < xhi ) {
                                 currentRow_ = getRow( bin );
                                 return true;
                             }
@@ -753,6 +768,10 @@ public class HistogramWindow extends GraphicsWindow {
                         row[ icol++ ] = new Double( bin.getHighBound() );
                         for ( int iset = 0; iset < nset; iset++ ) {
                             double sum = bin.getWeightedCount( iset );
+                            if ( isCumulative ) {
+                                sums[ iset ] += sum;
+                                sum = sums[ iset ];
+                            }
                             assert ( ! isInt ) || ( sum == (int) sum ) : sum;
                             row[ icol++ ] =
                                 isInt ? (Number) new Integer( (int) sum )

@@ -18247,6 +18247,8 @@ introduced since the last version:
                 zoom rather than a pan operation.</li>
             <li>Removed zoom in/out buttons in the toolbar of the layer
                 plot windows; there are better ways to zoom.</li>
+            <li>Exported histogram now contains cumulative counts if the
+                visible histogram is currently in cumulative mode.</li>
             </ul></li>
         </ul>
         </p></dd>
