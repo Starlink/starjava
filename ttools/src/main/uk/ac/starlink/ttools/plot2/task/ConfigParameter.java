@@ -28,6 +28,15 @@ public class ConfigParameter<T> extends Parameter {
         super( name );
         key_ = key;
         setDefault( key.valueToString( key.getDefaultValue() ) );
+        boolean nullPermitted;
+        try {
+            key.stringToValue( null );
+            nullPermitted = true;
+        }
+        catch ( Exception e ) {
+            nullPermitted = false;
+        }
+        setNullPermitted( nullPermitted );
     }
 
     @Override

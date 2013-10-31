@@ -492,7 +492,6 @@ public class Plot2Task implements Task {
             throws TaskException {
         String pname = key.getMeta().getShortName() + suffix;
         ConfigParameter<T> param = new ConfigParameter<T>( pname, key );
-        param.setNullPermitted( Tables.isBlank( key.getDefaultValue() ) );
         T value = param.configValue( env );
         map.put( key, value );
     }
