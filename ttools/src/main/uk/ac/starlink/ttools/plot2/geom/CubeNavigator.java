@@ -23,9 +23,7 @@ import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 public class CubeNavigator implements Navigator<CubeAspect> {
 
     private final double zoomFactor_;
-    private final boolean xZoom_;
-    private final boolean yZoom_;
-    private final boolean zZoom_;
+    private final boolean[] axisFlags_;
 
     /** Config key to select which axes zoom will operate on. */
     public static final ConfigKey<boolean[]> ZOOMAXES_KEY =
@@ -37,31 +35,53 @@ public class CubeNavigator implements Navigator<CubeAspect> {
      * Constructor.
      *
      * @param  zoomFactor  amount of zoom for one mouse wheel click
-     * @param  xZoom   true iff wheel operation will zoom in X direction
-     * @param  yZoom   true iff wheel operation will zoom in Y direction
-     * @param  zZoom   true iff wheel operation will zoom in Z direction
+     * @param  axisFlags  3-element array of flags for whether a zoom
+     *                    operation will zoom in X, Y, Z directions;
+     *                    if null, drag zoom will be along 2 facing axes
      */
-    public CubeNavigator( double zoomFactor,
-                          boolean xZoom, boolean yZoom, boolean zZoom ) {
+    public CubeNavigator( double zoomFactor, boolean[] axisFlags ) {
         zoomFactor_ = zoomFactor;
-        xZoom_ = xZoom;
-        yZoom_ = yZoom;
-        zZoom_ = zZoom;
+        axisFlags_ = axisFlags;
     }
 
     public CubeAspect drag( Surface surface, MouseEvent evt, Point origin ) {
         CubeSurface csurf = (CubeSurface) surface;
-        return PlotUtil.isZoomDrag( evt )
-             ? csurf.zoom( PlotUtil.toZoom( zoomFactor_, origin, evt.getPoint(),
-                                            null ),
-                           xZoom_, yZoom_, zZoom_ )
-             : csurf.pan( origin, evt.getPoint() );
+        Point point = evt.getPoint();
+        if ( PlotUtil.isZoomDrag( evt ) ) {
+            return axisFlags_ == null
+                 ? csurf.pointZoom( origin,
+                                    PlotUtil.toZoom( zoomFactor_, origin,
+                                                     point, false ),
+                                    PlotUtil.toZoom( zoomFactor_, origin,
+                                                     point, true ) )
+                 : csurf.centerZoom( PlotUtil.toZoom( zoomFactor_, origin,
+                                                      point, null ),
+                                     axisFlags_[ 0 ],
+                                     axisFlags_[ 1 ],
+                                     axisFlags_[ 2 ] );
+        }
+        else {
+            return csurf.pan( origin, point );
+        }
     }
 
     public CubeAspect wheel( Surface surface, MouseWheelEvent evt ) {
+        final boolean xZoom;
+        final boolean yZoom;
+        final boolean zZoom;
+        if ( axisFlags_ == null ) {
+            xZoom = true;
+            yZoom = true;
+            zZoom = true;
+        }
+        else {
+            xZoom = axisFlags_[ 0 ];
+            yZoom = axisFlags_[ 1 ];
+            zZoom = axisFlags_[ 2 ];
+        }
         return ((CubeSurface) surface)
-              .zoom( PlotUtil.toZoom( zoomFactor_, evt ),
-                     xZoom_, yZoom_, zZoom_ );
+              .centerZoom( PlotUtil.toZoom( zoomFactor_, evt ),
+                           xZoom, yZoom, zZoom );
     }
 
     public CubeAspect click( Surface surface, MouseEvent evt,
@@ -98,7 +118,6 @@ public class CubeNavigator implements Navigator<CubeAspect> {
         double zoom = config.get( StyleKeys.ZOOM_FACTOR );
         boolean[] zoomFlags = isIso ? new boolean[] { true, true, true }
                                     : config.get( ZOOMAXES_KEY );
-        return new CubeNavigator( zoom, zoomFlags[ 0 ], zoomFlags[ 1 ],
-                                  zoomFlags[ 2 ] );
+        return new CubeNavigator( zoom, zoomFlags );
     }
 }

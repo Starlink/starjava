@@ -421,8 +421,8 @@ public class CubeSurface implements Surface {
      * @param   zFlag  true to zoom in Z direction
      * @return   new cube
      */
-    CubeAspect zoom( double factor,
-                     boolean xFlag, boolean yFlag, boolean zFlag ) {
+    CubeAspect centerZoom( double factor,
+                           boolean xFlag, boolean yFlag, boolean zFlag ) {
         double[] midPos = new double[ 3 ];
         for ( int i = 0; i < 3; i++ ) {
             midPos[ i ] = logFlags_[ i ]
@@ -430,6 +430,18 @@ public class CubeSurface implements Surface {
                         : ( dlos_[ i ] + dhis_[ i ] ) / 2.0;
         }
         return zoomData( factor, midPos, xFlag, yFlag, zFlag );
+    }
+
+    /**
+     * Returns a cube surface like this one but zoomed in two dimensions
+     * around a point indicated by a given screen position.
+     *
+     * @param   pos  reference point in graphics coordinates
+     * @param   xZoom  zoom factor requested in X screen direction
+     * @param   yZoom  zoom factor requested in Y screen direction
+     */
+    CubeAspect pointZoom( Point pos, double xZoom, double yZoom ) {
+  return null;
     }
 
     /**
