@@ -135,6 +135,14 @@ public class Loader {
         /* Get the name of the library file. */
         String filename = System.mapLibraryName( libname );
 
+
+        /* Apparently Java 7 on OS X used .dylib, whereas we use jnilib, let's
+         * work around that until all Java's are 7. */
+        if ( libname.endsWith( "dylib" ) ) {
+            libname = libname.replace( ".dylib", ".jnilib" );
+            logger.warning( "Replaced .dylib with .jnilib to fix Java 7" );
+        }
+
         /* Try to load it. */
         File libfile = new File( archdir, filename );
         try {
