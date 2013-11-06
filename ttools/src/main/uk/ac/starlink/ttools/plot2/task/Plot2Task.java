@@ -17,6 +17,7 @@ import java.util.logging.Logger;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
@@ -179,10 +180,14 @@ public class Plot2Task implements Task {
                      * which will draw the requested plot on demand,
                      * including resizing when appropriate. */
                     if ( isSwing ) {
-                        JComponent panel =
+                        final JComponent panel =
                             executor.createPlotComponent( dataStore,
                                                           true, true );
-                        ((SwingPainter) painter).postComponent( panel );
+                        SwingUtilities.invokeLater( new Runnable() {
+                            public void run() {
+                                ((SwingPainter) painter).postComponent( panel );
+                            }
+                        } );
                     }
 
                     /* For a static plot, generate and plot
@@ -323,12 +328,12 @@ public class Plot2Task implements Task {
      */
     private void animateSwing( Environment baseEnv, StarTable animateTable )
             throws TaskException, IOException, InterruptedException {
-        SwingPainter painter =
+        final SwingPainter painter =
             (SwingPainter) createPaintModeParameter().painterValue( baseEnv );
         ColumnInfo[] infos = Tables.getColumnInfos( animateTable );
         long nrow = animateTable.getRowCount();
         RowSequence aseq = animateTable.getRowSequence();
-        JComponent holder = new JPanel( new BorderLayout() );
+        final JComponent holder = new JPanel( new BorderLayout() );
         DataStore dataStore = null;
         for ( long irow = 0; aseq.next(); irow++ ) {
             Environment frameEnv =
@@ -336,15 +341,20 @@ public class Plot2Task implements Task {
                                         irow, nrow );
             PlotExecutor executor = createPlotExecutor( frameEnv );
             dataStore = executor.createDataStore( dataStore );
-            JComponent panel =
+            final JComponent panel =
                 executor.createPlotComponent( dataStore, true, true );
-            holder.removeAll();
-            holder.add( panel, BorderLayout.CENTER );
-            holder.revalidate();
-            holder.repaint();
-            if ( irow == 0 ) {
-                painter.postComponent( holder );
-            }
+            final boolean init = irow == 0;
+            SwingUtilities.invokeLater( new Runnable() {
+                public void run() {
+                    holder.removeAll();
+                    holder.add( panel, BorderLayout.CENTER );
+                    holder.revalidate();
+                    holder.repaint();
+                    if ( init ) {
+                        painter.postComponent( holder );
+                    }
+                }
+            } );
         }
     }
 
