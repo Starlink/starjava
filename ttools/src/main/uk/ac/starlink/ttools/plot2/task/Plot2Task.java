@@ -12,6 +12,11 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.Icon;
@@ -97,6 +102,7 @@ public class Plot2Task implements Task {
     private final BooleanParameter bitmapParam_;
     private final InputTableParameter animateParam_;
     private final FilterParameter animateFilterParam_;
+    private final IntegerParameter parallelParam_;
 
     private static final String PLOTTER_PREFIX = "layer";
     private static final String TABLE_PREFIX = "in";
@@ -132,6 +138,10 @@ public class Plot2Task implements Task {
         animateParam_ = new InputTableParameter( "animate" );
         animateParam_.setNullPermitted( true );
         animateFilterParam_ = new FilterParameter( "acmd" );
+        parallelParam_ = new IntegerParameter( "parallel" );
+        parallelParam_.setMinimum( 1 );
+        parallelParam_.setDefault( Integer.toString( Runtime.getRuntime()
+                                                    .availableProcessors() ) );
     }
 
     public String getPurpose() {
@@ -148,6 +158,10 @@ public class Plot2Task implements Task {
             painterParam_,
             dstoreParam_,
             orderParam_,
+            bitmapParam_,
+            animateParam_,
+            animateFilterParam_,
+            parallelParam_,
         };
     }
 
@@ -264,10 +278,11 @@ public class Plot2Task implements Task {
             /* File output animation. */
             else {
                 final String out0 = getPainterOutputName( env0 );
+                final int parallel = parallelParam_.intValue( env );
                 return new Executable() {
                     public void execute() throws IOException, TaskException {
                         try {
-                            animateOutput( env, animateTable, out0 );
+                            animateOutput( env, animateTable, parallel, out0 );
                         }
                         catch ( InterruptedException e ) {
                             Thread.currentThread().isInterrupted();
@@ -286,36 +301,52 @@ public class Plot2Task implements Task {
      * @param  baseEnv  base execution environment
      * @param  animateTable  table providing per-frame adjustments
      *                       to environment
+     * @param  parallel  thread count for calculations
      * @param  out0  name of first output frame
      */
     private void animateOutput( Environment baseEnv, StarTable animateTable,
-                                String out0 )
+                                int parallel, String out0 )
             throws TaskException, IOException, InterruptedException {
         ColumnInfo[] infos = Tables.getColumnInfos( animateTable );
         long nrow = animateTable.getRowCount();
+        int nthr = parallel;
+        ExecutorService paintService =
+            new ThreadPoolExecutor( nthr, nthr, 60, TimeUnit.SECONDS,
+                                    new ArrayBlockingQueue<Runnable>( nthr ),
+                                    new ThreadPoolExecutor.CallerRunsPolicy() );
         RowSequence aseq = animateTable.getRowSequence();
-        DataStore dataStore = null;
-        String outI = null;
-        long irow = 0;
+        DataStore lastDataStore = null;
+        String lastOutName = null;
         try {
-            for ( ; aseq.next(); irow++ ) {
+            for ( long irow = 0; aseq.next(); irow++ ) {
                 Environment frameEnv =
                     createFrameEnvironment( baseEnv, infos, aseq.getRow(),
                                             irow, nrow );
-                PlotExecutor executor = createPlotExecutor( frameEnv );
-                Painter painter = getPainter( frameEnv );
-                dataStore = executor.createDataStore( dataStore );
-                long start = System.currentTimeMillis();
-                Icon plot = executor.createPlotIcon( dataStore );
-                painter.paintPicture( PlotUtil.toPicture( plot ) );
-                outI = getPainterOutputName( frameEnv );
-                PlotUtil.logTime( logger_, "Plot", start );
+                final PlotExecutor executor = createPlotExecutor( frameEnv );
+                final Painter painter = getPainter( frameEnv );
+                final DataStore dstore =
+                    executor.createDataStore( lastDataStore );
+                final String outName = getPainterOutputName( frameEnv );
+                paintService.submit( new Callable<Void>() {
+                    public Void call() throws IOException {
+                        long start = System.currentTimeMillis();
+                        Icon plot = executor.createPlotIcon( dstore );
+                        painter.paintPicture( PlotUtil.toPicture( plot ) );
+                        PlotUtil.logTime( logger_, "Plot " + outName, start );
+                        return null;
+                    }
+                } );
+                lastOutName = outName;
+                lastDataStore = dstore;
             }
         }
         finally {
-            logger_.warning( "Wrote " + irow + " frames, "
-                           + out0 + " .. " + outI );
+            aseq.close();
         }
+        paintService.shutdown();
+        paintService.awaitTermination( Long.MAX_VALUE, TimeUnit.SECONDS );
+        logger_.warning( "Wrote " + nrow + " frames, "
+                       + out0 + " .. " + lastOutName );
     }
 
     /**
