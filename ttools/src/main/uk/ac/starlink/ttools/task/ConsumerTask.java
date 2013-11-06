@@ -171,13 +171,17 @@ public abstract class ConsumerTask implements Task {
      * @param   env  execution environment
      * @param   filterParam  parameter giving filter steps (or null)
      * @param   inParam  parameter giving input table
-     * @return  table producer
+     * @return  table producer, or null if the table input parameter has a
+     *          (permitted) blank value
      */
     public static TableProducer createProducer( Environment env, 
                                                 FilterParameter filterParam,
                                                 InputTableParameter inParam )
             throws TaskException {
         final StarTable inTable = inParam.tableValue( env );
+        if ( inTable == null ) {
+            return null;
+        }
         final ProcessingStep[] steps = filterParam == null
                                      ? new ProcessingStep[ 0 ]
                                      : filterParam.stepsValue( env );
