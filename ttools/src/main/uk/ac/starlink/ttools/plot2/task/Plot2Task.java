@@ -1,5 +1,6 @@
 package uk.ac.starlink.ttools.plot2.task;
 
+import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Insets;
 import java.awt.Rectangle;
@@ -7,6 +8,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,6 +16,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.Icon;
 import javax.swing.JComponent;
+import javax.swing.JPanel;
+import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
@@ -23,10 +28,12 @@ import uk.ac.starlink.task.Executable;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.ExecutionException;
 import uk.ac.starlink.task.IntegerParameter;
+import uk.ac.starlink.task.OutputStreamParameter;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.task.TaskException;
+import uk.ac.starlink.ttools.func.Strings;
 import uk.ac.starlink.ttools.plot.GraphicExporter;
 import uk.ac.starlink.ttools.plot.Picture;
 import uk.ac.starlink.ttools.plot.Range;
@@ -59,9 +66,11 @@ import uk.ac.starlink.ttools.plot2.geom.TimePlotType;
 import uk.ac.starlink.ttools.plot2.paper.PaperType;
 import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
 import uk.ac.starlink.ttools.plottask.ColorParameter;
+import uk.ac.starlink.ttools.plottask.PaintMode;
 import uk.ac.starlink.ttools.plottask.PaintModeParameter;
 import uk.ac.starlink.ttools.plottask.Painter;
 import uk.ac.starlink.ttools.plottask.SwingPainter;
+import uk.ac.starlink.ttools.task.AddEnvironment;
 import uk.ac.starlink.ttools.task.ConsumerTask;
 import uk.ac.starlink.ttools.task.DefaultMultiParameter;
 import uk.ac.starlink.ttools.task.FilterParameter;
@@ -85,10 +94,14 @@ public class Plot2Task implements Task {
     private final DataStoreParameter dstoreParam_;
     private final DefaultMultiParameter orderParam_;
     private final BooleanParameter bitmapParam_;
+    private final InputTableParameter animateParam_;
+    private final FilterParameter animateFilterParam_;
 
     private static final String PLOTTER_PREFIX = "layer";
     private static final String TABLE_PREFIX = "in";
     private static final String FILTER_PREFIX = "cmd";
+    private static final GraphicExporter[] EXPORTERS =
+        GraphicExporter.getKnownExporters( PlotUtil.LATEX_PDF_EXPORTER );
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.plot2.task" );
 
@@ -109,14 +122,15 @@ public class Plot2Task implements Task {
         ypixParam_ = new IntegerParameter( "ypix" );
         ypixParam_.setDefault( "400" );
         insetsParam_ = new InsetsParameter( "insets" );
-        GraphicExporter[] exporters =
-            GraphicExporter.getKnownExporters( PlotUtil.LATEX_PDF_EXPORTER );
-        painterParam_ = new PaintModeParameter( "omode", exporters );
+        painterParam_ = createPaintModeParameter();
         dstoreParam_ = new DataStoreParameter( "storage" );
         orderParam_ = new DefaultMultiParameter( "order", ',' );
         orderParam_.setNullPermitted( true );
         bitmapParam_ = new BooleanParameter( "forcebitmap" );
         bitmapParam_.setDefault( Boolean.FALSE.toString() );
+        animateParam_ = new InputTableParameter( "animate" );
+        animateParam_.setNullPermitted( true );
+        animateFilterParam_ = new FilterParameter( "acmd" );
     }
 
     public String getPurpose() {
@@ -136,40 +150,256 @@ public class Plot2Task implements Task {
         };
     }
 
-    public Executable createExecutable( Environment env ) throws TaskException {
+    public Executable createExecutable( final Environment env )
+            throws TaskException {
         final Painter painter = painterParam_.painterValue( env );
         final boolean isSwing = painter instanceof SwingPainter;
-        dstoreParam_.setDefaultCaching( isSwing );
-        final PlotExecutor executor = createPlotExecutor( env );
-        return new Executable() {
-            public void execute() throws IOException {
-                DataStore dataStore;
-                try {
-                    dataStore = executor.createDataStore();
-                }
-                catch ( InterruptedException e ) {
-                    Thread.currentThread().isInterrupted();
-                    return;
-                }
+        final TableProducer animateProducer =
+            ConsumerTask
+           .createProducer( env, animateFilterParam_, animateParam_ );
+        boolean isAnimate = animateProducer != null;
+        dstoreParam_.setDefaultCaching( isSwing || isAnimate );
 
-                /* For an active display, create and post a component which
-                 * will draw the requested plot on demand, including resizing
-                 * when appropriate. */
-                if ( isSwing ) {
-                    JComponent panel =
-                        executor.createPlotComponent( dataStore, true, true );
-                    ((SwingPainter) painter).postComponent( panel );
-                }
+        /* Single frame: prepare operation and return an executable that
+         * has no reference to the environment. */
+        if ( ! isAnimate ) {
+            final PlotExecutor executor = createPlotExecutor( env );
+            return new Executable() {
+                public void execute() throws IOException {
+                    DataStore dataStore;
+                    try {
+                        dataStore = executor.createDataStore( null );
+                    }
+                    catch ( InterruptedException e ) {
+                        Thread.currentThread().isInterrupted();
+                        return;
+                    }
 
-                /* For a static plot, generate and plot the fixed icon here. */
-                else {
-                    Icon plot = executor.createPlotIcon( dataStore );
-                    long start = System.currentTimeMillis();
-                    painter.paintPicture( PlotUtil.toPicture( plot ) );
-                    PlotUtil.logTime( logger_, "Plot", start );
+                    /* For an active display, create and post a component
+                     * which will draw the requested plot on demand,
+                     * including resizing when appropriate. */
+                    if ( isSwing ) {
+                        JComponent panel =
+                            executor.createPlotComponent( dataStore,
+                                                          true, true );
+                        ((SwingPainter) painter).postComponent( panel );
+                    }
+
+                    /* For a static plot, generate and plot
+                     * the fixed icon here. */
+                    else {
+                        Icon plot = executor.createPlotIcon( dataStore );
+                        long start = System.currentTimeMillis();
+                        painter.paintPicture( PlotUtil.toPicture( plot ) );
+                        PlotUtil.logTime( logger_, "Plot", start );
+                    }
                 }
+            };
+        }
+
+        /* Animation.  This works by reading a row from a supplied table
+         * for each output frame.  Each column of the table represents
+         * (and is named as) one of the parameters of this task that
+         * can change between frames.  This means the task operates
+         * in a rather non-standard way: most of the execution
+         * environment is kept, modified, and interrogated during the task
+         * execution (Executable.execute() method) rather than being
+         * interrogated and thrown away after the Executable is created. */
+        else {
+
+            /* First, read the animation table for later use. */
+            final StarTable animateTable; 
+            final ColumnInfo[] infos;
+            final long nrow;
+            Object[] row0;
+            Environment env0;
+            try {
+                animateTable = animateProducer.getTable();
+                infos = Tables.getColumnInfos( animateTable );
+                nrow = animateTable.getRowCount();
+
+                /* We also read the first row, for preparing a dummy frame. */
+                RowSequence aseq0 = animateTable.getRowSequence();
+                aseq0.next();
+                row0 = aseq0.getRow();
+                aseq0.close();
+                env0 = createFrameEnvironment( env, infos, row0, 0, nrow );
             }
-        };
+            catch ( IOException e ) {
+                throw new ExecutionException( "Error reading animation table: "
+                                            + e, e );
+            }
+
+            /* This line prepares to paint a dummy frame, but doesn't do it
+             * (the created executor is just discarded).
+             * The purpose of this is to read the variables from the execution
+             * environment whose values are required to specify a frame of
+             * the animation.  In this way, any parameter errors can be
+             * identified now and passed back to the user, rather than
+             * showing up during the actual execution.  For related reasons,
+             * if we didn't do this, the parameter system would complain
+             * that there are unused parameters in the environment. */
+            createPlotExecutor( env0 );
+
+            /* Screen animation. */
+            if ( isSwing ) {
+                return new Executable() {
+                    public void execute() throws IOException, TaskException {
+                        try {
+                            animateSwing( env, animateTable );
+                        }
+                        catch ( InterruptedException e ) {
+                            Thread.currentThread().isInterrupted();
+                            return;
+                        }
+                    }
+                };
+            }
+    
+            /* File output animation. */
+            else {
+                final String out0 = getPainterOutputName( env0 );
+                return new Executable() {
+                    public void execute() throws IOException, TaskException {
+                        try {
+                            animateOutput( env, animateTable, out0 );
+                        }
+                        catch ( InterruptedException e ) {
+                            Thread.currentThread().isInterrupted();
+                            return;
+                        }
+                    }
+                };
+            }
+        }
+    }
+
+    /**
+     * Paints a sequence of animation frames under control of a parameter
+     * table, outputting the result to a sequence of files.
+     *
+     * @param  baseEnv  base execution environment
+     * @param  animateTable  table providing per-frame adjustments
+     *                       to environment
+     * @param  out0  name of first output frame
+     */
+    private void animateOutput( Environment baseEnv, StarTable animateTable,
+                                String out0 )
+            throws TaskException, IOException, InterruptedException {
+        ColumnInfo[] infos = Tables.getColumnInfos( animateTable );
+        long nrow = animateTable.getRowCount();
+        RowSequence aseq = animateTable.getRowSequence();
+        DataStore dataStore = null;
+        String outI = null;
+        long irow = 0;
+        try {
+            for ( ; aseq.next(); irow++ ) {
+                Environment frameEnv =
+                    createFrameEnvironment( baseEnv, infos, aseq.getRow(),
+                                            irow, nrow );
+                PlotExecutor executor = createPlotExecutor( frameEnv );
+                Painter painter = getPainter( frameEnv );
+                dataStore = executor.createDataStore( dataStore );
+                long start = System.currentTimeMillis();
+                Icon plot = executor.createPlotIcon( dataStore );
+                painter.paintPicture( PlotUtil.toPicture( plot ) );
+                outI = getPainterOutputName( frameEnv );
+                PlotUtil.logTime( logger_, "Plot", start );
+            }
+        }
+        finally {
+            logger_.warning( "Wrote " + irow + " frames, "
+                           + out0 + " .. " + outI );
+        }
+    }
+
+    /**
+     * Paints a sequence of animation frames under control of a parameter
+     * table, displaying the results in a screen component.
+     *
+     * @param  baseEnv  base execution environment
+     * @param  animateTable  table providing per-frame adjustments
+     *                       to environment
+     */
+    private void animateSwing( Environment baseEnv, StarTable animateTable )
+            throws TaskException, IOException, InterruptedException {
+        SwingPainter painter =
+            (SwingPainter) createPaintModeParameter().painterValue( baseEnv );
+        ColumnInfo[] infos = Tables.getColumnInfos( animateTable );
+        long nrow = animateTable.getRowCount();
+        RowSequence aseq = animateTable.getRowSequence();
+        JComponent holder = new JPanel( new BorderLayout() );
+        DataStore dataStore = null;
+        for ( long irow = 0; aseq.next(); irow++ ) {
+            Environment frameEnv =
+                createFrameEnvironment( baseEnv, infos, aseq.getRow(),
+                                        irow, nrow );
+            PlotExecutor executor = createPlotExecutor( frameEnv );
+            dataStore = executor.createDataStore( dataStore );
+            JComponent panel =
+                executor.createPlotComponent( dataStore, true, true );
+            holder.removeAll();
+            holder.add( panel, BorderLayout.CENTER );
+            holder.revalidate();
+            holder.repaint();
+            if ( irow == 0 ) {
+                painter.postComponent( holder );
+            }
+        }
+    }
+
+    /**
+     * Returns an execution environment based on a given static environment,
+     * but augmented by values from a row of an animation table.
+     *
+     * @param  baseEnv  base environment
+     * @param  colInfos  columns of animation table named as task parameters
+     * @param  row    single row of animation table to augment environment
+     * @param  irow   row index
+     * @param  nrow   total row count (-1 if not known)
+     * @return  environment for single animation frame
+     */
+    private Environment createFrameEnvironment( Environment baseEnv,
+                                                ColumnInfo[] colInfos,
+                                                Object[] row, long irow,
+                                                long nrow )
+            throws IOException, TaskException {
+        OutputStreamParameter outParam = painterParam_.getOutputParameter();
+        boolean hasPaintout = false;
+
+        /* Prepare a map containing the values in the animation table row,
+         * keyed by column name (=parameter name). */
+        Map<String,String> map = new HashMap<String,String>();
+        int ncol = colInfos.length;
+        for ( int ic = 0; ic < ncol; ic++ ) {
+            String pname = colInfos[ ic ].getName();
+            hasPaintout = hasPaintout || pname.equals( outParam.getName() );
+            Object cell = row[ ic ];
+            if ( cell != null ) {
+                map.put( pname, cell.toString() );
+            }
+        }
+
+        /* Mangle the output filename if present and if explicit values are
+         * not present in the animation table; append a frame number. */
+        if ( ! hasPaintout &&
+             ! ( painterParam_.painterValue( baseEnv )
+                 instanceof SwingPainter ) ) {
+            String baseOut = outParam.stringValue( baseEnv );
+            int numpos = baseOut.lastIndexOf( '.' );
+            if ( numpos < 0 ) {
+                numpos = baseOut.length() - 1;
+            }
+            StringBuffer frameOut = new StringBuffer( baseOut );
+            int ndigit = nrow > 0 ? (int) Math.ceil( Math.log10( nrow ) )
+                                  : 3;
+            String snum = "-" + Strings.padWithZeros( irow + 1, ndigit );
+            frameOut.insert( numpos, snum );
+            map.put( outParam.getName(), frameOut.toString() );
+        }
+
+        /* Return an environment with these additions. */
+        return AddEnvironment.createAddEnvironment( baseEnv, map );
     }
 
     /**
@@ -184,7 +414,7 @@ public class Plot2Task implements Task {
             throws TaskException, IOException, InterruptedException {
         dstoreParam_.setDefaultCaching( false );
         PlotExecutor executor = createPlotExecutor( env );
-        return executor.createPlotIcon( executor.createDataStore() );
+        return executor.createPlotIcon( executor.createDataStore( null ) );
     }
 
     /**
@@ -202,8 +432,47 @@ public class Plot2Task implements Task {
             throws TaskException, IOException, InterruptedException {
         dstoreParam_.setDefaultCaching( caching );
         PlotExecutor executor = createPlotExecutor( env );
-        return executor.createPlotComponent( executor.createDataStore(),
+        return executor.createPlotComponent( executor.createDataStore( null ),
                                              true, caching );
+    }
+
+    /**
+     * Gets a painter value from an environment.
+     *
+     * The implementation should be trivial (paintModeParam.painterValue(env))
+     * but instead it requires a hack.
+     *
+     * @param  env    execution environment
+     * @return   painter object
+     */
+    private Painter getPainter( Environment env ) throws TaskException {
+        PaintModeParameter paintModeParam = createPaintModeParameter();
+        
+        /* The following line is the ghastly hack.  We have to force the
+         * output parameter associated with the paint mode parameter to
+         * acquire its value from the given environment.  Because of the
+         * opaque and nasty way that Environment is specified, it's not
+         * possible to write an Environment implementation that properly
+         * delegates to another one for resolving associated variables. */
+        env.acquireValue( paintModeParam.getOutputParameter() );
+        return paintModeParam.painterValue( env );
+    }
+
+    /**
+     * Returns the filename associated with the graphics output file from
+     * a given environment.
+     *
+     * @param  env    execution environment
+     * @return  output graphics filename
+     */
+    private String getPainterOutputName( Environment env )
+            throws TaskException {
+        OutputStreamParameter outParam =
+            createPaintModeParameter().getOutputParameter();
+
+        /* Hack - see getPainter method. */
+        env.acquireValue( outParam );
+        return outParam.stringValue( env );
     }
 
     /**
@@ -255,10 +524,11 @@ public class Plot2Task implements Task {
         }
         return new PlotExecutor() {
 
-            public DataStore createDataStore()
+            public DataStore createDataStore( DataStore prevStore )
                     throws IOException, InterruptedException {
                 long t0 = System.currentTimeMillis();
-                DataStore store = storeFact.readDataStore( dataSpecs, null );
+                DataStore store =
+                    storeFact.readDataStore( dataSpecs, prevStore );
                 PlotUtil.logTime( logger_, "Data", t0 );
                 return store;
             }
@@ -463,7 +733,7 @@ public class Plot2Task implements Task {
     private ConfigMap createConfigMap( Environment env, String suffix,
                                        ConfigKey[] configKeys )
             throws TaskException {
-        Level level = Level.INFO;
+        Level level = Level.CONFIG;
         ConfigMap config = new ConfigMap();
         if ( Logger.getLogger( getClass().getName() ).isLoggable( level ) ) {
             config = new LoggingConfigMap( config, level );
@@ -575,6 +845,15 @@ public class Plot2Task implements Task {
     }
 
     /**
+     * Returns a parameter for specifying a paint mode.
+     *
+     * @return   paint mode parameter
+     */
+    private static PaintModeParameter createPaintModeParameter() {
+        return new PaintModeParameter( "omode", EXPORTERS );
+    }
+
+    /**
      * Creates an icon which will paint the content of a plot.
      * This icon is expected to be painted once and then discarded,
      * so it's not cached.
@@ -670,9 +949,11 @@ public class Plot2Task implements Task {
         /**
          * Creates a data store suitable for use with this object.
          *
+         * @param     prevStore  previously obtained data store, may be null
          * @return    object containing plot data
          */
-        DataStore createDataStore() throws IOException, InterruptedException;
+        DataStore createDataStore( DataStore prevStore )
+                throws IOException, InterruptedException;
 
         /**
          * Generates an interactive plot component.
