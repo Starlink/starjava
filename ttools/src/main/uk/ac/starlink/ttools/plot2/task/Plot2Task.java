@@ -27,6 +27,8 @@ import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.table.WrapperRowSequence;
+import uk.ac.starlink.table.WrapperStarTable;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.task.BooleanParameter;
 import uk.ac.starlink.task.ChoiceParameter;
@@ -233,15 +235,13 @@ public class Plot2Task implements Task {
             Object[] row0;
             Environment env0;
             try {
-                animateTable = animateProducer.getTable();
+                Row0Table atable = new Row0Table( animateProducer.getTable() );
+                animateTable = atable;
                 infos = Tables.getColumnInfos( animateTable );
                 nrow = animateTable.getRowCount();
 
                 /* We also read the first row, for preparing a dummy frame. */
-                RowSequence aseq0 = animateTable.getRowSequence();
-                aseq0.next();
-                row0 = aseq0.getRow();
-                aseq0.close();
+                row0 = atable.getRow0();
                 env0 = createFrameEnvironment( env, infos, row0, 0, nrow );
             }
             catch ( IOException e ) {
@@ -366,26 +366,31 @@ public class Plot2Task implements Task {
         RowSequence aseq = animateTable.getRowSequence();
         final JComponent holder = new JPanel( new BorderLayout() );
         DataStore dataStore = null;
-        for ( long irow = 0; aseq.next(); irow++ ) {
-            Environment frameEnv =
-                createFrameEnvironment( baseEnv, infos, aseq.getRow(),
-                                        irow, nrow );
-            PlotExecutor executor = createPlotExecutor( frameEnv );
-            dataStore = executor.createDataStore( dataStore );
-            final JComponent panel =
-                executor.createPlotComponent( dataStore, true, true );
-            final boolean init = irow == 0;
-            SwingUtilities.invokeLater( new Runnable() {
-                public void run() {
-                    holder.removeAll();
-                    holder.add( panel, BorderLayout.CENTER );
-                    holder.revalidate();
-                    holder.repaint();
-                    if ( init ) {
-                        painter.postComponent( holder );
+        try {
+            for ( long irow = 0; aseq.next(); irow++ ) {
+                Environment frameEnv =
+                    createFrameEnvironment( baseEnv, infos, aseq.getRow(),
+                                            irow, nrow );
+                PlotExecutor executor = createPlotExecutor( frameEnv );
+                dataStore = executor.createDataStore( dataStore );
+                final JComponent panel =
+                    executor.createPlotComponent( dataStore, true, true );
+                final boolean init = irow == 0;
+                SwingUtilities.invokeLater( new Runnable() {
+                    public void run() {
+                        holder.removeAll();
+                        holder.add( panel, BorderLayout.CENTER );
+                        holder.revalidate();
+                        holder.repaint();
+                        if ( init ) {
+                            painter.postComponent( holder );
+                        }
                     }
-                }
-            } );
+                } );
+            }
+        }
+        finally {
+            aseq.close();
         }
     }
 
@@ -979,6 +984,66 @@ public class Plot2Task implements Task {
                             : ptsel.getVectorPaperType( opts );
         return PlotDisplay.createIcon( placer, layers, auxRanges, dataStore,
                                        paperType, false );
+    }
+
+    /**
+     * StarTable wrapper class which caches the first row of the table.
+     * It uses a row sequence to do this, which it saves for later use.
+     * This means that it doesn't need to use a separate row sequence
+     * for the initial row, but it's only a good idea if you know you're
+     * going to be calling getRowSequence at least once.
+     */
+    private static class Row0Table extends WrapperStarTable {
+        final Object[] row0_;
+        RowSequence rseq_;
+
+        /**
+         * Constructor.
+         *
+         * @param   base   table to which most calls are delegated
+         */
+        Row0Table( StarTable base ) throws IOException {
+            super( base );
+            rseq_ = base.getRowSequence();
+            rseq_.next();
+            row0_ = rseq_.getRow();
+        }
+
+        /**
+         * Returns the first row.
+         *
+         * @return  row
+         */
+        public Object[] getRow0() {
+            return row0_;
+        }
+
+        @Override
+        public synchronized RowSequence getRowSequence() throws IOException {
+            if ( rseq_ == null ) {
+                return super.getRowSequence();
+            }
+            else {
+                RowSequence baseSeq = rseq_;
+                rseq_ = null;
+                return new WrapperRowSequence( baseSeq ) {
+                    long irow = -1;
+                    @Override
+                    public boolean next() throws IOException {
+                        return ++irow == 0 || super.next();
+                    }
+                    @Override
+                    public Object getCell( int icol ) throws IOException {
+                        return irow == 0 ? row0_[ icol ]
+                                         : super.getCell( icol );
+                    }
+                    @Override
+                    public Object[] getRow() throws IOException {
+                        return irow == 0 ? row0_ : super.getRow();
+                    }
+                };
+            }
+        }
     }
 
     /**
