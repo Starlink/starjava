@@ -21,6 +21,7 @@ public class CombinationConfigKey extends ConfigKey<boolean[]> {
 
     private final int nopt_;
     private final String[] optNames_;
+    private final String nullLabel_;
     private final boolean nullPermitted_;
 
     /**
@@ -30,17 +31,19 @@ public class CombinationConfigKey extends ConfigKey<boolean[]> {
      * @param   dflt  default array of selection flags
      * @param   optNames  labels for each of the options that may be selected,
      *                    same length as <code>dflt</code>
-     * @param   nullPermitted  true iff null is an acceptable value for
-     *                         this key
+     * @param   nullLabel  label for a specifer option indicating the null
+     *                     value; null is a permitted value only if this
+     *                     parameter is non-null
      */
     public CombinationConfigKey( ConfigMeta meta, boolean[] dflt,
-                                 String[] optNames, boolean nullPermitted ) {
+                                 String[] optNames, String nullLabel ) {
         super( meta, boolean[].class, dflt );
         optNames_ = optNames;
-        nullPermitted_ = nullPermitted;
+        nullLabel_ = nullLabel;
+        nullPermitted_ = nullLabel != null;
         nopt_ = optNames.length;
         if ( dflt == null ) {
-            if ( ! nullPermitted ) {
+            if ( ! nullPermitted_ ) {
                 throw new NullPointerException();
             }
         }
@@ -59,7 +62,7 @@ public class CombinationConfigKey extends ConfigKey<boolean[]> {
      * @param   optNames  labels for each of the options that may be selected,
      */
     public CombinationConfigKey( ConfigMeta meta, String[] optNames ) {
-        this( meta, createTrueArray( optNames.length ), optNames, false );
+        this( meta, createTrueArray( optNames.length ), optNames, null );
     }
 
     public boolean[] stringToValue( String txt ) throws ConfigException {
@@ -88,7 +91,11 @@ public class CombinationConfigKey extends ConfigKey<boolean[]> {
     }
 
     public Specifier<boolean[]> createSpecifier() {
-        return new CheckBoxesSpecifier();
+        Specifier<boolean[]> basicSpecifier = new CheckBoxesSpecifier();
+        return nullLabel_ == null
+             ? basicSpecifier
+             : new ToggleSpecifier<boolean[]>( basicSpecifier, null,
+                                               nullLabel_ );
     }
 
     /**
@@ -158,9 +165,11 @@ public class CombinationConfigKey extends ConfigKey<boolean[]> {
         CheckBoxesSpecifier() {
             super( false );
             checkBoxes_ = new JCheckBox[ nopt_ ];
+            boolean[] dflt = getDefaultValue();
             for ( int io = 0; io < nopt_; io++ ) {
                 JCheckBox checkBox =
-                    new JCheckBox( optNames_[ io ], getDefaultValue()[ io ] );
+                    new JCheckBox( optNames_[ io ],
+                                   dflt == null ? true : dflt[ io ] );
                 checkBox.addActionListener( getActionForwarder() );
                 checkBoxes_[ io ] = checkBox;
             }
