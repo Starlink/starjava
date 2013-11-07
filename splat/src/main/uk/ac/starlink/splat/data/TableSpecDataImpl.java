@@ -781,7 +781,10 @@ public class TableSpecDataImpl
             desc = columnInfos[column].getUCD();
             if ( desc != null ) {
                 UCD ucd = UCD.getUCD( desc );
-                if ( ucd != null ) {
+                if ( ucd == null ) {
+                    desc = null;
+                }
+                else {
                     desc = ucd.getDescription();
                 }
             }
@@ -789,6 +792,7 @@ public class TableSpecDataImpl
                 desc = columnInfos[column].getName();
             }
         }
+
         if ( desc != null && ! "".equals( desc ) ) {
             astref.setLabel( 1, desc );
         }
