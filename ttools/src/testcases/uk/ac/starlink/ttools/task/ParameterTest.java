@@ -38,6 +38,7 @@ public class ParameterTest extends TestCase {
         "legend",
         "xdataN", "ydataN", "zdataN", "auxdataN",
         "subsetNS", "colourNS", "shapeNS", "transparencyNS",
+        "end",
     } ) );
 
     public ParameterTest( String name ) {

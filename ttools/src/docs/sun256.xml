@@ -57,6 +57,7 @@
   <!ENTITY tcopy-summary SYSTEM 'tcopy-summary.xml'>
   <!ENTITY tcube-summary SYSTEM 'tcube-summary.xml'>
   <!ENTITY tjoin-summary SYSTEM 'tjoin-summary.xml'>
+  <!ENTITY tloop-summary SYSTEM 'tloop-summary.xml'>
   <!ENTITY tmatch1-summary SYSTEM 'tmatch1-summary.xml'>
   <!ENTITY tmatch2-summary SYSTEM 'tmatch2-summary.xml'>
   <!ENTITY tmatchn-summary SYSTEM 'tmatchn-summary.xml'>
@@ -188,6 +189,7 @@ same ground as the STIL and TOPCAT user documents
     <ref id="tmultin"><code>tmultin</code></ref>,
     <ref id="tcat"><code>tcat</code></ref>,
     <ref id="tcatn"><code>tcatn</code></ref>,
+    <ref id="tloop"><code>tloop</code></ref>,
     <ref id="tjoin"><code>tjoin</code></ref> and
     <ref id="tcube"><code>tcube</code></ref>
     (see <ref id="pipes" plaintextref="yes"/>).
@@ -459,6 +461,7 @@ the available tasks are:
 <li><code>tcopy</code></li>
 <li><code>tcube</code></li>
 <li><code>tjoin</code></li>
+<li><code>tloop</code></li>
 <li><code>tmatch1</code></li>
 <li><code>tmatch2</code></li>
 <li><code>tmatchn</code></li>
@@ -1803,8 +1806,9 @@ or Unix <code>compress</code> and the program will uncompress it on the fly.
            <ref id="tmultin"><code>tmultin</code></ref>,
            <ref id="tcat"><code>tcat</code></ref>,
            <ref id="tcatn"><code>tcatn</code></ref>,
-           <ref id="tcube"><code>tcube</code></ref>,
+           <ref id="tloop"><code>tloop</code></ref>,
            <ref id="tjoin"><code>tjoin</code></ref>,
+           <ref id="tcube"><code>tcube</code></ref>,
            <ref id="tmatch1"><code>tmatch1</code></ref>,
            <ref id="tmatch2"><code>tmatch2</code></ref>,
            <ref id="tmatchn"><code>tmatchn</code></ref>,
@@ -3890,6 +3894,9 @@ Detailed descriptions and examples for each command can be found in
     <li><ref id="tcatn" plaintextref="yes"><code>tcatn</code></ref>:
         &tcatn-purpose;
         </li>
+    <li><ref id="tloop" plaintextref="yes"><code>tloop</code></ref>:
+        &tloop-purpose;
+        </li>
     <li><ref id="tjoin" plaintextref="yes"><code>tjoin</code></ref>:
         &tjoin-purpose;
         </li>
@@ -5693,6 +5700,61 @@ stilts tcube in=iras_psc.vot out=iras_psc_map.fits \
 </p>
 
 </subsubsect>
+</subsect>
+
+<subsect id="tloop" tocleaf="yes">
+<subhead><title><code>tloop</code>: &tloop-purpose;</title></subhead>
+
+<p><code>tloop</code> generates a one-column table where the values in
+the column are effectively populated from a for loop
+(start, end, step).
+This may be useful as it is, or it can be postprocessed with
+<code>ocmd</code> parameters to add more columns etc.
+</p>
+
+&tloop-summary;
+
+<subsubsect id="tloopExamples">
+<subhead><title>Examples</title></subhead>
+
+<p>
+<dl>
+
+<dt><verbatim>
+stilts tloop COUNTER 0 1000
+</verbatim></dt>
+<dd><p>Generates a table with a single column, named <code>COUNTER</code>,
+    and a thousand rows.
+    The value in the first row is 0 and in the last row is 999.
+    The table is written to standard output.
+    </p></dd>
+
+<dt><verbatim>
+stilts tloop time 0 10 0.25 out=times.csv
+</verbatim></dt>
+<dd><p>Generates a table with one column <code>time</code> counting from 
+    0 to 9.75 in steps of 0.25.  Output is to a CSV file.
+    The parameters here are specified in order, but could equivalently
+    be given by name:
+    "<code>stilts tloop var=time start=0 end=10 step=0.26</code>".
+    </p></dd>
+
+<dt><verbatim>
+stilts tloop x start=1 end=11 ocmd='addcol x2 x*x' ocmd='addcol x3 x*x*x'
+             ocmd='stats name sum'
+</verbatim></dt>
+<dd><p>Generates a table with a column <code>x</code> running from 1 to 10
+    inclusive.  The <code>addcol</code> filters then append two further
+    columns, giving the squares and cubes of these values respectively,
+    giving a table of 10 rows and 3 columns.
+    Finally this table is piped through a <code>stats</code> filter to
+    calculate the sums of the values, squares and cubes in this range.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsect>
+
 </subsect>
 
 <subsect id="tjoin" tocleaf="yes">
@@ -8431,6 +8493,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
             <code>regquery</code> command can now successfully talk to
             the NVO/VAO/STSci registry.
             That has been broken since mid-2010.</li>
+        <li>Add new command <code>tloop</code> for generating single-column
+            tables from a numeric loop variable.</li>
         </ul>
         </p></dd>
     </dl>
