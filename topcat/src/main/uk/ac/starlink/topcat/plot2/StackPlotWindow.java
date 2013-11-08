@@ -121,8 +121,10 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             new ShaderControl( stackModel_, configger );
         configger.addConfigger( shaderControl );
         DataStoreFactory storeFact =
-            new CachedDataStoreFactory(
-                new SmartColumnFactory( new MemoryColumnFactory() ) );
+            new ProgressDataStoreFactory(
+                new CachedDataStoreFactory(
+                    new SmartColumnFactory( new MemoryColumnFactory() ) ),
+                placeProgressBar().getModel() );
         Factory<PlotLayer[]> layerFact = new Factory<PlotLayer[]>() {
             public PlotLayer[] getItem() {
                 return readPlotLayers();

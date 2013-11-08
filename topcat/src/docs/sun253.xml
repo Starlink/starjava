@@ -18250,6 +18250,7 @@ introduced since the last version:
             <li>Exported histogram now contains cumulative counts if the
                 visible histogram is currently in cumulative mode.</li>
             </ul></li>
+        <li>Layer plot windows now show progress bar as data is loaded.</li>
         </ul>
         </p></dd>
 </dl>
