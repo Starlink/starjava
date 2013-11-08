@@ -45,6 +45,14 @@
    (in fact it matched against the coordinate column, which could be
     confusing).
 
+   A bug when determining the statistics of more than one range when
+   the spectral axis was reversed has been fixed.
+
+   It is now possible to switching columns for spectra stored as a single
+   row in vector cell format.
+
+   The column selection for tables now prefers those with UCD meta.main.
+
    Post Hikianalia
 
    3.9-8

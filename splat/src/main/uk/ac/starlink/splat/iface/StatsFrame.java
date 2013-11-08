@@ -47,6 +47,7 @@ import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.plot.PlotControl;
 import uk.ac.starlink.splat.util.JACUtilities;
 import uk.ac.starlink.splat.util.NumericIntegrator;
+import uk.ac.starlink.splat.util.Sort;
 import uk.ac.starlink.splat.util.Statistics;
 import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.util.gui.GridBagLayouter;
@@ -315,7 +316,7 @@ public class StatsFrame
         backEndFactor = new DecimalField( 1.0, 5, scientificFormat );
         backEndFactor.setToolTipText
             ( "Instrument backend degradation factor (dimensionless)" );
-        
+
         //  When a value is completed update the readouts.
         backEndFactor.addActionListener( new ActionListener() {
                 public void actionPerformed( ActionEvent e )
@@ -381,7 +382,7 @@ public class StatsFrame
     {
         SpecData currentSpectrum = control.getCurrentSpectrum();
         if ( currentSpectrum != null ) {
-            double[] factors = 
+            double[] factors =
                 JACUtilities.gatherTSYSFactors( currentSpectrum );
             if ( factors != null ) {
                 backEndFactor.setText( Double.toString( factors[0] ) );
@@ -631,7 +632,9 @@ public class StatsFrame
 
             int[] ranges =
                 rangesView.extractRanges( type == LocalAction.SELECTEDSTATS,
-                                         true, xData );
+                                          true, xData );
+            Sort.insertionSortI( ranges );
+
             if ( ranges == null || ranges.length == 0 ) {
                 //  No ranges... nothing to do.
                 return;

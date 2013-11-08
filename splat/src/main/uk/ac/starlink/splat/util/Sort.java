@@ -195,6 +195,30 @@ public final class Sort
     }
 
     /**
+     * Sort an integer array, using an insertion sort.
+     * This sort is very fast for small numbers of values and gets a
+     * boost from pre-sorted arrays. Insertion sort is also stable
+     * (which can be important for maintaining the relationship to
+     * to other data).
+     */
+    public static void insertionSortI( int[] a )
+    {
+        int i;
+        int j;
+        int v;
+
+        for ( i = 1; i < a.length; i++ ) {
+            v = a[i];
+            j = i;
+            while ( ( j > 0 ) && ( a[j-1] > v ) ) {
+                a[j] = a[j-1];
+                j--;
+            }
+            a[j] = v;
+        }
+    }
+
+    /**
      * Creates an index that sorts a double precision array. On exit a
      * is sorted. A reordering of associated arrays without the need for
      * additional memory can be performed using the 
