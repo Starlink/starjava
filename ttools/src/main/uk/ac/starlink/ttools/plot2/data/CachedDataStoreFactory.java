@@ -60,8 +60,9 @@ public class CachedDataStoreFactory implements DataStoreFactory {
             return prevStore;
         }
         else {
+            CacheData oldData = gotData.retain( needSpec );
             CacheData makeData = makeSpec.readData( colFact_ );
-            CacheData useData = makeData.add( gotData.retain( needSpec ) );
+            CacheData useData = makeData.add( oldData );
             return useData;
         }
     }
