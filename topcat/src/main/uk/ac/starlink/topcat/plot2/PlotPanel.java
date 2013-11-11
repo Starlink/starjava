@@ -115,7 +115,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
     private final ExecutorService plotExec_;
     private final ExecutorService noteExec_;
     private PlotJob<P,A> plotJob_;
-    private Cancellable plotRef_;
+    private PlotCancellable plotRef_;
     private Cancellable noteRef_;
     private Workings<A> workings_;
     private Surface latestSurface_;
@@ -163,7 +163,6 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         noteExec_ = Runtime.getRuntime().availableProcessors() > 1
                   ? Executors.newSingleThreadExecutor()
                   : plotExec_;
-        plotRef_ = new Cancellable();
         noteRef_ = new Cancellable();
         setPreferredSize( new Dimension( 500, 400 ) );
         addComponentListener( new ComponentAdapter() {
@@ -244,44 +243,22 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
          * be cancelled. */
         noteRef_.cancel( true );
 
-        /* If the new plot is quite like the old plot (e.g. shift or zoom)
+        /* If the new plot is quite like the old plot (e.g. pan or zoom)
          * it's a good idea to let the old one complete
          * (mayInterruptIfRunning false).  But if the new one is different
          * (different layers, different data) then cancel the old one
          * directly and restart the new one.
          * Either way, I can run multiple jobs concurrently. */
-        plotRef_.cancel( false );
+        PlotCancellable plotRef = plotRef_;
+        if ( plotRef != null ) {
+            plotRef.cancel( ! plotRef.isSimilar( plotJob ) );
+        }
 
         /* Store the plot surface now if it can be done fast. */
         latestSurface_ = plotJob.getSurfaceQuickly();
 
         /* Schedule the plot job for execution. */
-        plotRef_ = new Cancellable( plotExec_.submit(
-                                        new GuiFuture<Workings<A>>( plotJob ) {
-            protected void acceptValue( Workings<A> workings,
-                                        boolean success ) {
-
-                /* A null return may mean that the plot was interrupted or
-                 * that the result was the same as for the previously
-                 * calculated plot.  Either way, keep the same output
-                 * graphics as before.  If the return is non-null,
-                 * repaint it. */
-                if ( workings != null ) {
-                    boolean dataChange =
-                        ! workings.getDataIconId()
-                                  .equals( workings_.getDataIconId() );
-                    workings_ = workings;
-                    axisControl_.setAspect( workings.aspect_ );
-                    axisControl_.setRanges( workings.geomRanges_ );
-                    repaint();
-
-                    /* If the plot changed materially, notify listeners. */
-                    if ( dataChange ) {
-                        fireChangeEvent();
-                    }
-                }
-            }
-        } ) );
+        plotRef_ = new PlotCancellable( plotJob );
     }
 
     /**
@@ -1194,6 +1171,75 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             }
         }
     }
+
+    /**
+     * Cancellable for a plot job.  When an instance is constructed it is
+     * submitted for execution to the plot executor.
+     */
+    private class PlotCancellable extends Cancellable {
+        final Object simObj_;
+
+        /**
+         * Constructs and submits a PlotCancellable.
+         *
+         * @param   plotJob  plot job to be plotted
+         */
+        PlotCancellable( PlotJob plotJob ) {
+            super( plotExec_.submit( new GuiFuture<Workings<A>>( plotJob ) {
+                protected void acceptValue( Workings<A> workings,
+                                            boolean success ) {
+
+                    /* A null return may mean that the plot was interrupted or
+                     * that the result was the same as for the previously
+                     * calculated plot.  Either way, keep the same output
+                     * graphics as before.  If the return is non-null,
+                     * repaint it. */
+                    if ( workings != null ) {
+                        boolean plotChange =
+                            ! workings.getDataIconId()
+                             .equals( workings_.getDataIconId() );
+                        workings_ = workings;
+                        axisControl_.setAspect( workings.aspect_ );
+                        axisControl_.setRanges( workings.geomRanges_ );
+                        repaint();
+
+                        /* If the plot changed materially, notify listeners. */
+                        if ( plotChange ) {
+                            fireChangeEvent();
+                        }
+                    }
+                }
+            } ) );
+            simObj_ = getSimilarityObject( plotJob );
+        }
+
+        /**
+         * Indicates whether the plot job which this object will execute
+         * is similar to a given plot job.  Similarity means, for now,
+         * that it's got the same layers, but not necessarily the same
+         * plot surface.  It will be similar therefore if the difference
+         * is just an axis change like a pan or zoom.
+         *
+         * @param  plotJob   other plot job
+         * @return  true iff this object's job is like the other one
+         */
+        public boolean isSimilar( PlotJob otherJob ) {
+            return simObj_.equals( getSimilarityObject( otherJob ) );
+        }
+
+        /**
+         * Returns an identity object representing the parts of a plot job
+         * that must be equal between two instances to confer similarity.
+         *
+         * @param  plotJob  job to identify
+         * @return   list of layerIds
+         */
+        @Equality
+        private Object getSimilarityObject( PlotJob plotJob ) {
+            return LayerId.layerList( plotJob.layers_ );
+        }
+    }
+
 
     /**
      * Wrapper DataStore implementation that checks for thread interruption
