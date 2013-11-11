@@ -4,8 +4,10 @@ import java.io.IOException;
 import javax.swing.BoundedRangeModel;
 import javax.swing.SwingUtilities;
 import uk.ac.starlink.table.RowSequence;
+import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.WrapperRowSequence;
 import uk.ac.starlink.ttools.plot2.data.DataStoreFactory;
+import uk.ac.starlink.ttools.plot2.data.WrapperDataStoreFactory;
 
 /**
  * DataStoreFactory wrapper which messages a progress bar model as row
@@ -33,9 +35,10 @@ public class ProgressDataStoreFactory extends WrapperDataStoreFactory {
         progModel_ = progModel;
     }
 
-    protected RowSequence createWrapperRowSequence( RowSequence baseSeq,
-                                                    long nrow ) {
-        return new ProgressRowSequence( baseSeq, nrow );
+    protected RowSequence createRowSequence( StarTable table )
+            throws IOException {
+        return new ProgressRowSequence( table.getRowSequence(),
+                                        table.getRowCount() );
     }
 
     /**

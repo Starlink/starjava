@@ -1,4 +1,4 @@
-package uk.ac.starlink.topcat.plot2;
+package uk.ac.starlink.ttools.plot2.data;
 
 import java.io.IOException;
 import uk.ac.starlink.table.StarTable;
@@ -6,13 +6,6 @@ import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.WrapperRowSequence;
 import uk.ac.starlink.table.WrapperStarTable;
-import uk.ac.starlink.ttools.plot2.data.AbstractDataSpec;
-import uk.ac.starlink.ttools.plot2.data.Coord;
-import uk.ac.starlink.ttools.plot2.data.DataSpec;
-import uk.ac.starlink.ttools.plot2.data.DataStore;
-import uk.ac.starlink.ttools.plot2.data.DataStoreFactory;
-import uk.ac.starlink.ttools.plot2.data.TupleSequence;
-import uk.ac.starlink.ttools.plot2.data.UserDataReader;
 
 /**
  * DataStoreFactory implementation which allows decoration of the tables
@@ -75,15 +68,16 @@ public abstract class WrapperDataStoreFactory implements DataStoreFactory {
     }
 
     /**
-     * Creates a row sequence based on a row sequence from one of the
-     * tables used to supply data to the base factory.
+     * Creates a row sequence from a given table.
+     * <p>The obvious implementation is <code>table.getRowSequence()</code>,
+     * but implementations may decorate that instance to provide
+     * useful functionality.
      *
-     * @param   baseSeq   base row sequence
-     * @param   nrow row count, or -1 if not known
+     * @param   table  table providing data
      * @return   row sequence which will be used to acquire table data
      */
-    protected abstract RowSequence
-            createWrapperRowSequence( RowSequence baseSeq, long nrow );
+    protected abstract RowSequence createRowSequence( StarTable table )
+            throws IOException;
 
     /**
      * DataStore wrapper implementation.
@@ -136,9 +130,7 @@ public abstract class WrapperDataStoreFactory implements DataStoreFactory {
             table_ = new WrapperStarTable( baseSourceTable ) {
                 @Override
                 public RowSequence getRowSequence() throws IOException {
-                    StarTable t = baseSourceTable;
-                    return createWrapperRowSequence( t.getRowSequence(),
-                                                     t.getRowCount() );
+                    return createRowSequence( baseSourceTable );
                 }
                 @Override
                 public int hashCode() {
