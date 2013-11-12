@@ -8481,6 +8481,14 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
             unforseen new anomalies.</li>
         <li>More <code>toString</code> overloads - now works for byte and
             boolean values too.</li>
+        </ul>
+        </p></dd>
+    </dl>
+    </p></dd>
+
+    <dt>Next Version</dt>
+    <dd><p>
+        <ul>
         <li>Add some more colour maps.</li>
         <li>Fix some broken and misdocumented non-table-output JyStilts
             commands (<code>tcube</code>, <code>pixfoot</code>).</li>
@@ -8497,8 +8505,6 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
             tables from a numeric loop variable.</li>
         </ul>
         </p></dd>
-    </dl>
-    </p></dd>
 
 </dl>
 </p>
