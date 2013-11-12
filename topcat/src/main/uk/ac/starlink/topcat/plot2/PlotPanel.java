@@ -27,7 +27,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -115,8 +114,8 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
     private final ExecutorService plotExec_;
     private final ExecutorService noteExec_;
     private PlotJob<P,A> plotJob_;
-    private PlotCancellable plotRef_;
-    private Cancellable noteRef_;
+    private PlotJobRunner plotRunner_;
+    private Cancellable noteRunner_;
     private Workings<A> workings_;
     private Surface latestSurface_;
     private Map<DataSpec,double[]> highlightMap_;
@@ -163,7 +162,8 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         noteExec_ = Runtime.getRuntime().availableProcessors() > 1
                   ? Executors.newSingleThreadExecutor()
                   : plotExec_;
-        noteRef_ = new Cancellable();
+        plotRunner_ = new PlotJobRunner();
+        noteRunner_ = new Cancellable();
         setPreferredSize( new Dimension( 500, 400 ) );
         addComponentListener( new ComponentAdapter() {
             @Override
@@ -241,40 +241,40 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
 
         /* Any annotations of the existing plot are out of date and should
          * be cancelled. */
-        noteRef_.cancel( true );
+        noteRunner_.cancel( true );
 
         /* If the new plot is quite like the old plot (e.g. pan or zoom)
          * it's a good idea to let the old one complete
          * (mayInterruptIfRunning false).  But if the new one is different
          * (different layers, different data) then cancel the old one
-         * directly and restart the new one.
-         * Either way, I can run multiple jobs concurrently. */
-        PlotCancellable plotRef = plotRef_;
-        if ( plotRef != null ) {
-            plotRef.cancel( ! plotRef.isSimilar( plotJob ) );
-        }
+         * directly and restart the new one. */
+        PlotJobRunner plotRunner = plotRunner_;
+        boolean isSimilar = plotRunner.isSimilar( plotJob );
+        plotRunner.cancel( ! isSimilar );
 
         /* Store the plot surface now if it can be done fast. */
         latestSurface_ = plotJob.getSurfaceQuickly();
 
         /* Schedule the plot job for execution. */
-        plotRef_ = new PlotCancellable( plotJob );
+        plotRunner_ = new PlotJobRunner( plotJob );
+        plotRunner_.submit( plotExec_ );
     }
 
     /**
      * Submits a runnable to run when the plot is not changing.
      * It tries in some sense to run at a lower priority than
      * the actual plots.  If the plot changes while it's in operation,
-     * it may (in fact, it will attempt to) fail.
+     * it may (in fact, it will attempt to) fail.  The supplied annotator
+     * should watch for thread interruptions.
      *
      * @param  annotator  runnable, typically for annotating the plot
      *                    in some sense
      * @return  future which will run the annotator
      */
     public Future submitAnnotator( Runnable annotator ) {
-        noteRef_.cancel( true );
+        noteRunner_.cancel( true );
         Future noteFuture = noteExec_.submit( annotator );
-        noteRef_ = new Cancellable( noteFuture );
+        noteRunner_ = new Cancellable( noteFuture );
         return noteFuture;
     }
 
@@ -574,7 +574,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      * Contains all the inputs required to perform a plot and methods to
      * generate a Workings object. 
      */
-    private static class PlotJob<P,A> implements Callable<Workings<A>> {
+    private static class PlotJob<P,A> {
        
         private final Workings<A> oldWorkings_;
         private final PlotLayer[] layers_;
@@ -663,7 +663,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
          *
          * @return  workings object or null
          */
-        public Workings<A> call() {
+        public Workings<A> calculateWorkings() {
             try {
                 return attemptPlot();
             }
@@ -1140,15 +1140,15 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      * cancelled if it still exists, but does not prevent it from being GCd.
      */
     private static class Cancellable {
-        private final Reference<Future> ref_;
+        private final Reference<Future<?>> ref_;
 
         /**
          * Constructor.
          *
          * @param  future   future object to wrap
          */
-        Cancellable( Future future ) {
-            ref_ = new WeakReference<Future>( future );
+        Cancellable( Future<?> future ) {
+            ref_ = new WeakReference<Future<?>>( future );
         }
 
         /**
@@ -1165,7 +1165,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
          *         place if the thing has already started
          */
         public void cancel( boolean mayInterruptIfRunning ) {
-            Future future = ref_.get();
+            Future<?> future = ref_.get();
             if ( future != null ) {
                 future.cancel( mayInterruptIfRunning );
             }
@@ -1173,44 +1173,91 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
     }
 
     /**
-     * Cancellable for a plot job.  When an instance is constructed it is
-     * submitted for execution to the plot executor.
+     * Handles submission and cancelling of plot jobs.
      */
-    private class PlotCancellable extends Cancellable {
-        final Object simObj_;
+    private class PlotJobRunner {
+        private final Object simObj_;
+        private PlotJob plotJob_;
+        private Cancellable canceler_;
 
         /**
-         * Constructs and submits a PlotCancellable.
+         * Constructor.
          *
          * @param   plotJob  plot job to be plotted
          */
-        PlotCancellable( PlotJob plotJob ) {
-            super( plotExec_.submit( new GuiFuture<Workings<A>>( plotJob ) {
-                protected void acceptValue( Workings<A> workings,
-                                            boolean success ) {
+        PlotJobRunner( PlotJob plotJob ) {
+            plotJob_ = plotJob;
+            simObj_ = getSimilarityObject( plotJob );
+        }
 
-                    /* A null return may mean that the plot was interrupted or
+        /**
+         * Dummy constructor for placeholder instance.
+         */
+        PlotJobRunner() {
+            this( null );
+        }
+
+        /**
+         * Submits this object's job for execution on a given execution queue.
+         *
+         * @param  executor  executor service
+         */
+        public void submit( ExecutorService executor ) {
+            if ( canceler_ != null ) {
+                throw new IllegalStateException( "Don't call it twice" );
+            }
+            canceler_ = new Cancellable( executor.submit( new Runnable() {
+                public void run() {
+                    final Workings<A> workings = plotJob_.calculateWorkings();
+                    plotJob_ = null;
+
+                    /* A null result may mean that the plot was interrupted or
                      * that the result was the same as for the previously
-                     * calculated plot.  Either way, keep the same output
+                     * calculated plot.  Either way, keep the same out put
                      * graphics as before.  If the return is non-null,
                      * repaint it. */
                     if ( workings != null ) {
-                        boolean plotChange =
-                            ! workings.getDataIconId()
-                             .equals( workings_.getDataIconId() );
-                        workings_ = workings;
-                        axisControl_.setAspect( workings.aspect_ );
-                        axisControl_.setRanges( workings.geomRanges_ );
-                        repaint();
-
-                        /* If the plot changed materially, notify listeners. */
-                        if ( plotChange ) {
-                            fireChangeEvent();
-                        }
+                        SwingUtilities.invokeLater( new Runnable() {
+                            public void run() {
+                                useWorkings( workings );
+                            }
+                        } );
                     }
                 }
             } ) );
-            simObj_ = getSimilarityObject( plotJob );
+        }
+
+        /**
+         * Cancel's this object's job if applicable.
+         *
+         * @param  mayInterruptIfRunning  whether interruption should take
+         *         place if the thing has already started
+         */
+        public void cancel( boolean mayInterruptIfRunning ) {
+            if ( canceler_ != null ) {
+                canceler_.cancel( mayInterruptIfRunning );
+            }
+        }
+
+        /**
+         * Accepts a workings object calculated for this job and applies it
+         * to this panel.
+         * Must be called from the event dispatch thread.
+         *
+         * @param  workings  non-null workings object
+         */
+        private void useWorkings( Workings<A> workings ) {
+            boolean plotChange =
+                ! workings.getDataIconId().equals( workings_.getDataIconId() );
+            workings_ = workings;
+            axisControl_.setAspect( workings.aspect_ );
+            axisControl_.setRanges( workings.geomRanges_ );
+            repaint();
+
+            /* If the plot changed materially, notify listeners. */
+            if ( plotChange ) {
+                fireChangeEvent();
+            }
         }
 
         /**
@@ -1236,10 +1283,10 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
          */
         @Equality
         private Object getSimilarityObject( PlotJob plotJob ) {
-            return LayerId.layerList( plotJob.layers_ );
+            return LayerId.layerList( plotJob == null ? new PlotLayer[ 0 ]
+                                                      : plotJob.layers_ );
         }
     }
-
 
     /**
      * Wrapper DataStore implementation that checks for thread interruption
