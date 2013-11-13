@@ -142,12 +142,17 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                 return legendControl.getLegendPosition();
             }
         };
+        ToggleButtonModel sketchModel =
+            new ToggleButtonModel( "Sketch Frames", ResourceIcon.SKETCH,
+                                   "Draw intermediate frames from subsampled "
+                                 + "data when navigating very large plots" );
+        sketchModel.setSelected( true );
 
         /* Set up a plot panel with the objects it needs to gather plot
          * requirements from the GUI.  This does the actual plotting. */
         plotPanel_ =
             new PlotPanel<P,A>( storeFact, axisControl_, layerFact, legendFact,
-                                legendPosFact, shaderControl,
+                                legendPosFact, shaderControl, sketchModel,
                                 plotType.getPaperTypeSelector() );
 
         /* Ensure that the plot panel is messaged when a GUI action occurs
@@ -375,6 +380,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         if ( axlockModel != null ) {
             plotMenu.add( axlockModel.createMenuItem() );
         }
+        plotMenu.add( sketchModel.createMenuItem() );
         getJMenuBar().add( plotMenu );
         JMenu exportMenu = new JMenu( "Export" );
         exportMenu.setMnemonic( KeyEvent.VK_E );

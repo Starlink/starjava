@@ -37,6 +37,7 @@ import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot.Style;
 import uk.ac.starlink.ttools.plot2.AuxScale;
@@ -110,6 +111,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
     private final Factory<Icon> legendFact_;
     private final Factory<float[]> legendPosFact_;
     private final ShaderControl shaderControl_;
+    private final ToggleButtonModel sketchModel_;
     private final List<ChangeListener> changeListenerList_;
     private final PaperTypeSelector ptSel_;
     private final ExecutorService plotExec_;
@@ -145,18 +147,22 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      *                          (2-element x,y fractional location in range 0-1,
      *                          or null for legend external/unused)
      * @param  shaderControl   shader control GUI component
+     * @param  sketchModel   model to decide whether intermediate sketch frames
+     *                       are posted for slow plots
      * @param  ptSel   rendering policy
      */
     public PlotPanel( DataStoreFactory storeFact, AxisControl<P,A> axisControl,
                       Factory<PlotLayer[]> layerFact, Factory<Icon> legendFact,
                       Factory<float[]> legendPosFact,
-                      ShaderControl shaderControl, PaperTypeSelector ptSel ) {
+                      ShaderControl shaderControl,
+                      ToggleButtonModel sketchModel, PaperTypeSelector ptSel ) {
         storeFact_ = storeFact;
         axisControl_ = axisControl;
         layerFact_ = layerFact;
         legendFact_ = legendFact;
         legendPosFact_ = legendPosFact;
         shaderControl_ = shaderControl;
+        sketchModel_ = sketchModel;
         ptSel_ = ptSel;
         changeListenerList_ = new ArrayList<ChangeListener>();
         plotExec_ = Executors.newSingleThreadExecutor();
@@ -1233,7 +1239,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         public PlotJobRunner( PlotJob plotJob, PlotJobRunner refRunner ) {
             plotJob_ = plotJob;
             simObj_ = getSimilarityObject( plotJob );
-            rowStep_ = getRowStep( refRunner );
+            rowStep_ = sketchModel_.isSelected() ? getRowStep( refRunner ) : 1;
         }
 
         /**

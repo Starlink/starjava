@@ -225,6 +225,7 @@ public class ResourceIcon implements Icon {
         FOOTPRINT = makeIcon( "footprint.gif" ),
         ZOOM_IN = makeIcon( "mag-plus.gif" ),
         ZOOM_OUT = makeIcon( "mag-minus.gif" ),
+        SKETCH = makeIcon( "sketch1.gif" ),
 
         /* Plot2 icons. */
         UP_DOWN = makeIcon( "updown8.gif" ),
