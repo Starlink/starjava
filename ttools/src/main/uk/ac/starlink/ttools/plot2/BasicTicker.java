@@ -324,15 +324,12 @@ public abstract class BasicTicker implements Ticker {
             StringBuffer sbuf = new StringBuffer();
             sbuf.append( sign );
             int pexp = exp + ndigit;
-            if ( pexp == 0 ) {
-                sbuf.append( digits );
-            }
-            else if ( pexp > 0 ) {
+            if ( pexp > 0 ) {
                 sbuf.append( digits.substring( 0, pexp ) )
                     .append( "." )
                     .append( digits.substring( pexp ) );
             }
-            else if ( pexp < 0 && pexp >= -sciLimit ) {
+            else if ( pexp <= 0 && pexp >= -sciLimit ) {
                 sbuf.append( "0." )
                     .append( zeros( -pexp ) )
                     .append( digits );
