@@ -18251,6 +18251,8 @@ introduced since the last version:
                 visible histogram is currently in cumulative mode.</li>
             </ul></li>
         <li>Layer plot windows now show progress bar as data is loaded.</li>
+        <li>Layer plot windows more responsive (subsampled intermediate
+            plots displayed during navigation round very large/slow plots).</li>
         </ul>
         </p></dd>
 </dl>
