@@ -6,6 +6,8 @@
  *       Original version.
  *    01-MAR-2005 (Peter W. Draper):
  *       Added methods for establishing contexts to group drawn elements.
+ *    14-NOV-2013 (Mark Taylor):
+ *       Internal state now held by FontRenderContext instance not JComponent.
  */
 package uk.ac.starlink.ast.grf;
 
@@ -34,8 +36,7 @@ import uk.ac.starlink.ast.AstObject;
 /**
  * This class implements the Grf interface required to draw graphics
  * using JNIAST. It provides the graphics functions for drawing lines,
- * curves, arbitrary text and markers onto a Swing JComponent (using
- * Graphics2D).
+ * curves, arbitrary text and markers onto a graphics context.
  * <p>
  * The state of any graphics drawn is persistent and can be re-drawn
  * onto a Graphics2D object using the paint method. This should be
@@ -76,26 +77,41 @@ public class DefaultGrf
     /**
      * Default constructor
      */
-    public DefaultGrf()
+    private DefaultGrf( FontRenderContextHolder frcHolder )
     {
         establishContext( DEFAULT );
+        this.frcHolder = frcHolder;
     }
 
     /**
-     * Constructor Initialise the graphics component being used.
+     * Constructor Initialise the font render context being used.
      *
-     * @param component normally the component that will be drawn
-     *                  onto. This is actually only used for correctly
-     *                  examining how fonts will be drawn, so may not
-     *                  match the Graphics2D object that is eventually
-     *                  drawn into.
+     * @param frc  font render context
      */
-    public DefaultGrf( JComponent component )
+    public DefaultGrf( final FontRenderContext frc )
     {
-        establishContext( DEFAULT );
-        this.component = component;
+        this( new FontRenderContextHolder() {
+            public FontRenderContext getFontRenderContext() {
+                return frc;
+            }
+        } );
     }
 
+    /**
+     * Constructor which initialises the font render context from a
+     * Component.
+     *
+     * @param component  component supplying font render context
+     */
+    public DefaultGrf( final JComponent component )
+    {
+        this( new FontRenderContextHolder() {
+            public FontRenderContext getFontRenderContext() {
+                return ((Graphics2D) component.getGraphics())
+                      .getFontRenderContext();
+            }
+        } );
+    }
 
     //  ================
     //  Public constants
@@ -153,10 +169,9 @@ public class DefaultGrf
     //  ===================
 
     /**
-     * JComponent (or sub-class) that is to be drawn into. This is
-     * needed only for checking out text rendering.
+     * FontRenderContext used for checking out text rendering.
      */
-    private JComponent component = null;
+    private final FontRenderContextHolder frcHolder;
 
     /**
      * Current graphic state
@@ -188,23 +203,13 @@ public class DefaultGrf
     //  =======
 
     /**
-     * Set the JComponent used to check drawing of fonts.
+     * Get the context used to check the drawing of fonts.
      *
-     * @param component The new graphic value
+     * @return The font render context value
      */
-    public void setGraphic( JComponent component )
+    public FontRenderContext getFontRenderContext()
     {
-        this.component = component;
-    }
-
-    /**
-     * Get the JComponent used to check the drawing of fonts.
-     *
-     * @return The graphic value
-     */
-    public JComponent getGraphic()
-    {
-        return component;
+        return frcHolder.getFontRenderContext();
     }
 
     /**
@@ -304,7 +309,7 @@ public class DefaultGrf
      */
     public void polyline( double[] x, double[] y )
     {
-        if ( component != null ) {
+        if ( getFontRenderContext() != null ) {
             DefaultGrfContainer g =
                 new DefaultGrfContainer( DefaultGrfContainer.LINE, x, y,
                                          gstate );
@@ -324,7 +329,7 @@ public class DefaultGrf
      */
     public void marker( double[] x, double[] y, int type )
     {
-        if ( component != null ) {
+        if ( getFontRenderContext() != null ) {
             DefaultGrfContainer g =
                 new DefaultGrfContainer( DefaultGrfContainer.MARK,
                                          x, y, type, gstate );
@@ -366,7 +371,7 @@ public class DefaultGrf
     public void text( String text, double x, double y, String just,
                       double upx, double upy )
     {
-        if ( component != null ) {
+        if ( getFontRenderContext() != null ) {
             DefaultGrfContainer g =
                 textProperties( text, x, y, just, upx, upy );
             currentContext.add( g );
@@ -381,20 +386,16 @@ public class DefaultGrf
                                                   double y, String just,
                                                   double upx, double upy )
     {
-        //  Get the Graphics2D object from the intended target.
-        Graphics2D g2 = (Graphics2D) component.getGraphics();
-
         //  Get the current font.
         Font f2 = grfFontManager.getFont( (int) gstate.getFont() );
 
         //  Get the current scale factor.
         double scale = gstate.getSize();
 
-        //  Get a FontRenderContext and the bounds of the string.
+        //  Get the bounds of the string.
         //  Note bounds run from top-left to bottom-right, so the
-        //  Y origin needs flipping. XXX only actual use of component.
-        FontRenderContext frc = g2.getFontRenderContext();
-        Rectangle2D rect = f2.getStringBounds( text, frc );
+        //  Y origin needs flipping.
+        Rectangle2D rect = f2.getStringBounds( text, getFontRenderContext() );
 
         //  Convert rectangle into required bounds.
         double[] bbox = new double[8];
@@ -439,12 +440,10 @@ public class DefaultGrf
     /**
      * Flush all graphics, thereby redrawing them. Required for AST interface,
      * normally do this by (re)paint methods.
+     * This is a no-op.
      */
     public void flush()
     {
-        if ( component != null ) {
-            component.repaint();
-        }
     }
 
 
@@ -486,7 +485,7 @@ public class DefaultGrf
     public double[] textExtent( String text, double x, double y, String just,
                                 double upx, double upy )
     {
-        if ( component != null ) {
+        if ( getFontRenderContext() != null ) {
             DefaultGrfContainer cont =
                 textProperties( text, x, y, just, upx, upy );
             return cont.getBBox();
@@ -1381,5 +1380,18 @@ public class DefaultGrf
         //  For a JComponent we assume the scales are required to be square
         //  and fixed, so we cannot work out better values than 1, -1.
         return new float[] { 1.0f, -1.0f };
+    }
+
+    /**
+     * Defines an object that can supply a FontRenderContext on demand.
+     */
+    private static interface FontRenderContextHolder {
+
+        /**
+         * Get a FontRenderContext, possibly null.
+         *
+         * @return  font render context
+         */
+        FontRenderContext getFontRenderContext();
     }
 }

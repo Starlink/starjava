@@ -15,10 +15,9 @@ package uk.ac.starlink.ast;
 import java.awt.Graphics;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
+import java.awt.font.FontRenderContext;
 import java.awt.geom.Rectangle2D;
-import javax.swing.JPanel;
-import javax.swing.JComponent;
-import javax.swing.JFrame;
+import java.awt.image.BufferedImage;
 import uk.ac.starlink.ast.grf.DefaultGrf;
 import uk.ac.starlink.ast.grf.DefaultGrfMarker;
 
@@ -128,21 +127,13 @@ print <<__EOT__;
         graphbox[ 3 ] = (float) ( graphrect.getY() + tgap );
         construct( frame, graphbox, basebox );
 
-        /* DefaultGrf needs a JComponent to get off the ground, because the
-         * underlying uk.ac.starlink.ast.grf.DefaultGrf class does.
-         * I believe that this is not fundamentally necessary, but we 
-         * have to pander to its needs for now.  Construct a dummy 
-         * component for this purpose. */
-        JFrame toplevel = new JFrame();
-        JComponent comp = new JPanel();
-        comp.setPreferredSize( new Dimension( graphrect.getBounds().width,
-                                              graphrect.getBounds().height ) );
-        toplevel.getContentPane().add( comp );
-        toplevel.pack();
-        comp.getGraphics().setClip( graphrect );
+        /* FontRenderContext is needed to initalise DefaultGrf. */
+        FontRenderContext frc =
+            new BufferedImage( 1, 1, BufferedImage.TYPE_INT_ARGB )
+           .createGraphics().getFontRenderContext();
 
         /* Create the default Grf object. */
-        grfobj = new DefaultGrf( comp );
+        grfobj = new DefaultGrf( frc );
     }
 
 __EOT__
