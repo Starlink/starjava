@@ -32,6 +32,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.BoundedRangeModel;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
@@ -51,6 +52,7 @@ import uk.ac.starlink.ttools.plot2.PlotPlacement;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.ShadeAxis;
+import uk.ac.starlink.ttools.plot2.Slow;
 import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
@@ -114,6 +116,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
     private final ToggleButtonModel sketchModel_;
     private final List<ChangeListener> changeListenerList_;
     private final PaperTypeSelector ptSel_;
+    private final BoundedRangeModel progModel_;
     private final ExecutorService plotExec_;
     private final ExecutorService noteExec_;
     private PlotJob<P,A> plotJob_;
@@ -150,13 +153,17 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      * @param  sketchModel   model to decide whether intermediate sketch frames
      *                       are posted for slow plots
      * @param  ptSel   rendering policy
+     * @param  progModel  progress bar model for showing plot progress
      */
     public PlotPanel( DataStoreFactory storeFact, AxisControl<P,A> axisControl,
                       Factory<PlotLayer[]> layerFact, Factory<Icon> legendFact,
                       Factory<float[]> legendPosFact,
                       ShaderControl shaderControl,
-                      ToggleButtonModel sketchModel, PaperTypeSelector ptSel ) {
-        storeFact_ = storeFact;
+                      ToggleButtonModel sketchModel, PaperTypeSelector ptSel,
+                      BoundedRangeModel progModel ) {
+        storeFact_ = progModel == null
+                   ? storeFact
+                   : new ProgressDataStoreFactory( storeFact, progModel );
         axisControl_ = axisControl;
         layerFact_ = layerFact;
         legendFact_ = legendFact;
@@ -164,6 +171,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         shaderControl_ = shaderControl;
         sketchModel_ = sketchModel;
         ptSel_ = ptSel;
+        progModel_ = progModel;
         changeListenerList_ = new ArrayList<ChangeListener>();
         plotExec_ = Executors.newSingleThreadExecutor();
         noteExec_ = Runtime.getRuntime().availableProcessors() > 1
@@ -528,7 +536,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
          *
          * @param  layers   plot layers
          * @param  dataStore  data storage object
-         * @param  approxSurf   approxiamation to plot surface (size etc may
+         * @param  approxSurf   approximation to plot surface (size etc may
          *                      be a bit out)
          * @param  geomRanges   ranges for the geometry coordinates
          * @param  aspect    surface aspect
@@ -679,11 +687,14 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
          * null is returned
          *
          * @param  rowStep  stride for selecting row subsample; 1 means all rows
+         * @param  progModel   progress bar model to be updated with progress;
+         *                     if null, progress is not logged
          * @return  workings object or null
          */
-        public Workings<A> calculateWorkings( int rowStep ) {
+        public Workings<A> calculateWorkings( int rowStep,
+                                              BoundedRangeModel progModel ) {
             try {
-                return attemptPlot( rowStep );
+                return attemptCalculateWorkings( rowStep, progModel );
             }
             catch ( InterruptedException e ) {
                 Thread.currentThread().interrupt();
@@ -701,51 +712,148 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
 
         /**
          * Attempts to calculate the workings object for this job.
-         * In case of error, or if the plot would have been just
-         * the same as the previously calculated one (from oldWorkings),
-         * null is returned
+         * If the plot would have been just the same as the one
+         * previously calculated (from oldWorkings), null is returned
          *
          * @param  rowStep  stride for selecting row subsample; 1 means all rows
+         * @param  progModel   progress bar model to be updated with progress;
+         *                     if null, progress is not logged
          * @return   workings object, or null
          * @throws   IOException  in case of IO error
          * @throws   InterruptedException   if interrupted
          */
-        private Workings<A> attemptPlot( int rowStep )
+        private Workings<A>
+                attemptCalculateWorkings( int rowStep,
+                                          BoundedRangeModel progModel )
                 throws IOException, InterruptedException {
-            if ( bounds_.width <= 0 || bounds_.height <= 0 ) {
+            if ( bounds_.width > 0 && bounds_.height > 0 ) {
+                DataStoreFactory storeFact =
+                      progModel == null
+                    ? storeFact_
+                    : new ProgressDataStoreFactory( storeFact_, progModel );
+                DataStore dataStore = getDataStore( storeFact );
+                long ntuple = progModel == null
+                            ? -1
+                            : countTuples( dataStore, rowStep );
+                return createWorkings( layers_, dataStore, rowStep,
+                                       progModel, ntuple );
+            }
+            else {
                 return null;
             }
+        }
+
+        /**
+         * Counts how many tuples will be read in total when performing
+         * this plot.
+         *
+         * @param   dataStore  contains the data for the plot
+         * @param   rowStep  stride for subsampling rows
+         * @return   total tuples expected to be read by a real plot,
+         *           or -1 if not known
+         */
+        @Slow
+        private long countTuples( DataStore dataStore, int rowStep ) {
+
+            /* Set up a dummy data store based on this one, capable of
+             * counting how many tuples are required. */
+            CountDataStore countStore = new CountDataStore( dataStore, 8 );
+            long cStart = System.currentTimeMillis();
+
+            /* Do a dummy plot using that data store. */
+            if ( createWorkings( layers_, countStore, rowStep, null, -1 )
+                 != null ) {
+                PlotUtil.logTime( logger_, "CountProgress", cStart );
+
+                /* If successful, interrogate the data store for the number
+                 * of tuples that [would have] got read. */
+                return countStore.getTupleCount();
+            }
+
+            /* In case of trouble, return an indeterminate result. */
+            else {
+                return -1L;
+            }
+        }
+
+        /**
+         * Return a data store that can be used for performing this plot.
+         * It may be possible to reuse one from last time (the cached
+         * workings object), but if not, read a new one.
+         *
+         * @param   storeFact  data store factory
+         * @return  data store usable for this plot
+         */
+        @Slow
+        private DataStore getDataStore( DataStoreFactory storeFact )
+                throws IOException, InterruptedException {
 
             /* Assess what data specs we will need. */
-            PlotLayer[] layers = layers_;
             DataSpec[] dataSpecs =
-                getDataSpecs( layers ).toArray( new DataSpec[ 0 ] );
+                getDataSpecs( layers_ ).toArray( new DataSpec[ 0 ] );
 
             /* If the oldWorkings data store contains the required data,
              * use that. */
             DataStore oldDataStore = oldWorkings_.dataStore_;
-            final DataStore baseDataStore;
             if ( hasData( oldDataStore, dataSpecs ) ) {
-                baseDataStore = oldDataStore;
+                return oldDataStore;
             }
 
-            /* Otherwise read a new data store. */
+            /* Otherwise need a new data store. */
             else {
                 long startData = System.currentTimeMillis();
-                baseDataStore =
-                    storeFact_.readDataStore( dataSpecs, oldDataStore );
+                DataStore dataStore =
+                    storeFact.readDataStore( dataSpecs, oldDataStore );
                 PlotUtil.logTime( logger_, "Data", startData );
+                return dataStore;
             }
+        }
+
+        /**
+         * Do the actual work for plotting.  This method
+         * creates and returns a Workings object containing
+         * the plot icon along with a load of intermediate information
+         * calculated along the way that may be useful next time.
+         * This method has no side-effects.
+         *
+         * @param  layers   layers to plot
+         * @param  dataStore  data store
+         * @param  rowStep   stride for row subsampling, 1 for all rows
+         * @param  progModel  progress bar model to update as tuples are read,
+         *                    or null for no progress updates
+         * @param  ntuple   total tuple count expected; used only for progress
+         *                  updates, -1 if not known
+         * @return  workings object representing completed plot
+         */
+        @Slow
+        private Workings<A> createWorkings( PlotLayer[] layers,
+                                            DataStore dataStore, int rowStep,
+                                            final BoundedRangeModel progModel,
+                                            long ntuple ) {
+   
+            /* Record the base data store which will be stored in the
+             * output workings object, and prepare a data store decorated
+             * with various wrappers to use for the actual processing. */
+            DataStore dataStore0 = dataStore;
+            DataStore dataStore1 = dataStore;
+            dataStore = null;
 
             /* Wrap the data store so that if this job is interrupted
              * reads will fail quickly and stop the calculations rather
              * than continuing to calculate unused results. */
-            DataStore dataStore1 = new InterruptibleDataStore( baseDataStore );
+            dataStore1 = new InterruptibleDataStore( dataStore1 );
 
             /* Pick subsample of rows if requested. */
             if ( rowStep > 1 ) {
                 dataStore1 = new StepDataStore( dataStore1, rowStep );
             }
+
+            /* Arrange for progress logging if requested. */
+            if ( progModel != null && ntuple > 0 ) {
+                dataStore1 =
+                    new ProgressDataStore( dataStore1, progModel, ntuple );
+            }
+
             try {
                 long startPlot = System.currentTimeMillis();
 
@@ -905,7 +1013,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                 /* Create the final plot icon, and store the inputs and
                  * outputs as a new Workings object for return. */
                 Icon plotIcon = placer.createPlotIcon( dataIcon );
-                return new Workings<A>( layers, baseDataStore, approxSurf,
+                return new Workings<A>( layers, dataStore0, approxSurf,
                                         geomRanges, aspect, auxDataRanges,
                                         auxClipRanges, placer, plans,
                                         dataIcon, plotIcon, plotMillis,
@@ -918,6 +1026,15 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             catch ( SequenceInterruptedException e ) {
                 assert Thread.currentThread().isInterrupted();
                 return null;
+            }
+            finally {
+                if ( progModel != null ) {
+                    SwingUtilities.invokeLater( new Runnable() {
+                        public void run() {
+                            progModel.setValue( 0 );
+                        }
+                    } );
+                }
             }
         }
 
@@ -932,7 +1049,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         public Surface getSurfaceQuickly() {
 
             /* Implementation follows that of the relevant parts of
-             * attemptPlot. */
+             * attemptCalculateWorkings. */
             final A aspect;
             if ( fixAspect_ != null ) {
                 aspect = fixAspect_;
@@ -1311,7 +1428,9 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             /* Set up runnables to execute the full plot or a subsample plot. */
             Runnable fullJob = new Runnable() {
                 public void run() {
-                    Workings<A> workings = plotJob.calculateWorkings( 1 );
+                    Workings<A> workings =
+                        plotJob.calculateWorkings( 1, rowStep_ > 1 ? progModel_
+                                                                   : null );
                     fullPlotMillis_ = workings.plotMillis_;
                     submitWorkings( workings );
                 }
@@ -1319,7 +1438,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             Runnable stepJob = new Runnable() {
                 public void run() {
                     Workings<A> workings =
-                        plotJob.calculateWorkings( rowStep_ );
+                        plotJob.calculateWorkings( rowStep_, null );
                     submitWorkings( workings );
                 }
             };

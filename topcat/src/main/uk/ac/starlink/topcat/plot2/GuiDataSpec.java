@@ -2,11 +2,14 @@ package uk.ac.starlink.topcat.plot2;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Map;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.topcat.RowSubset;
+import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.ttools.plot2.Slow;
 import uk.ac.starlink.ttools.plot2.data.AbstractDataSpec;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
@@ -20,26 +23,26 @@ import uk.ac.starlink.ttools.plot2.data.UserDataReader;
  */
 public class GuiDataSpec extends AbstractDataSpec {
 
-    private final StarTable table_;
+    private final TopcatModel tcModel_;
     private final RowSubset subset_;
     private final GuiCoordContent[] contents_;
 
     /**
      * Constructor.
      *
-     * @param  table  table supplying data
+     * @param  tcModel  topcat model supplying data
      * @param  subset  row inclusion mask
      * @param  contents   coordinate value definitions
      */
-    public GuiDataSpec( StarTable table, RowSubset subset,
+    public GuiDataSpec( TopcatModel tcModel, RowSubset subset,
                         GuiCoordContent[] contents ) {
-        table_ = table;
+        tcModel_ = tcModel;
         subset_ = subset;
         contents_ = contents;
     }
 
     public StarTable getSourceTable() {
-        return table_;
+        return tcModel_.getDataModel();
     }
 
     public int getCoordCount() {
@@ -96,5 +99,43 @@ public class GuiDataSpec extends AbstractDataSpec {
                 return userRow;
             }
         };
+    }
+
+    /**
+     * Returns the number of rows associated with this data spec.
+     * In most cases this will execute quickly, but if necessary a count
+     * will be carried out by scanning the associated RowSubset.
+     * The result may not be 100% reliable.  If the result is not known,
+     * -1 may be returned, though this shouldn't happen.
+     *
+     * @return   number of tuples in this object's tuple sequence,
+     *           or -1 if not known (shouldn't happen)
+     */
+    @Slow
+    public long getRowCount() {
+
+        /* If the row count for the relevant subset is already known,
+         * use that. */
+        Map subsetCounts = tcModel_.getSubsetCounts();
+        Object countObj = subsetCounts.get( subset_ );
+        if ( countObj instanceof Number ) {
+            return ((Number) countObj).longValue();
+        }
+
+        /* If not, count it now. */
+        else {
+            assert countObj == null;
+            long nrow = tcModel_.getDataModel().getRowCount();
+            long count = 0;
+            for ( long ir = 0; ir < nrow; ir++ ) {
+                if ( subset_.isIncluded( ir ) ) {
+                    count++;
+                }
+            }
+
+            /* Having got the result, save it for later. */
+            subsetCounts.put( subset_, new Long( count ) );
+            return count;
+        }
     }
 }

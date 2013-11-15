@@ -121,10 +121,8 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             new ShaderControl( stackModel_, configger );
         configger.addConfigger( shaderControl );
         DataStoreFactory storeFact =
-            new ProgressDataStoreFactory(
-                new CachedDataStoreFactory(
-                    new SmartColumnFactory( new MemoryColumnFactory() ) ),
-                placeProgressBar().getModel() );
+            new CachedDataStoreFactory(
+                new SmartColumnFactory( new MemoryColumnFactory() ) );
         Factory<PlotLayer[]> layerFact = new Factory<PlotLayer[]>() {
             public PlotLayer[] getItem() {
                 return readPlotLayers();
@@ -153,7 +151,8 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         plotPanel_ =
             new PlotPanel<P,A>( storeFact, axisControl_, layerFact, legendFact,
                                 legendPosFact, shaderControl, sketchModel,
-                                plotType.getPaperTypeSelector() );
+                                plotType.getPaperTypeSelector(),
+                                placeProgressBar().getModel() );
 
         /* Ensure that the plot panel is messaged when a GUI action occurs
          * that might change the plot appearance.  Each of these controls
