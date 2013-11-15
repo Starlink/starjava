@@ -187,9 +187,16 @@ public class TableSpecDataImpl
     {
         for ( int i = 0; i < columnNames.length; i++ ) {
             if ( columnNames[i].equals( name ) ) {
+               
                 if ( coordColumn != i ) {
                     coordColumn = i;
-                    readColumn( coords, coordColumn );
+                    long nrrows = starTable.getRowCount();
+                    if (nrrows==1) {
+                        coords = readCell( 0, coordColumn );
+                       
+                    } else {
+                         readColumn( coords, coordColumn );
+                   }
                     createAst();
                 }
                 break;
@@ -209,7 +216,13 @@ public class TableSpecDataImpl
             if ( columnNames[i].equals( name ) ) {
                 if ( dataColumn != i ) {
                     dataColumn = i;
-                    readColumn( data, dataColumn );
+                    long nrrows = starTable.getRowCount();
+                    if (nrrows==1) {
+                        data = readCell( 0, dataColumn );
+                        
+                    } else {
+                        readColumn( data, dataColumn );  
+                   }
                     createAst();
                 }
                 break;
@@ -240,8 +253,14 @@ public class TableSpecDataImpl
                         errorColumn = i;
                         if ( errors == null && ! name.equals( "" ) ) {
                             errors = new double[dims[0]];
+                        } 
+                        long nrrows = starTable.getRowCount();
+                        if (nrrows==1) {                     
+                                errors = readCell( 0, errorColumn );
+                        } else {
+                       
+                            readColumn( errors, errorColumn );
                         }
-                        readColumn( errors, errorColumn );
                     }
                     break;
                 }
