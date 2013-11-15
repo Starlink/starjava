@@ -96,8 +96,7 @@ public class SpectrogramLayerControl extends ConfigControl
         }
         SpectrogramPlotter.SpectroStyle style =
             plotter_.createStyle( getConfig() );
-        DataSpec dataSpec = new GuiDataSpec( tcModel_.getDataModel(),
-                                             subset, coordContents );
+        DataSpec dataSpec = new GuiDataSpec( tcModel_, subset, coordContents );
         PlotLayer layer = plotter_.createLayer( null, dataSpec, style );
         return layer == null ? new PlotLayer[ 0 ] : new PlotLayer[] { layer };
     }

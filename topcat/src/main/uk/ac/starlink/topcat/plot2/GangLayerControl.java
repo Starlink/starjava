@@ -26,7 +26,6 @@ import javax.swing.event.ListDataListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import uk.ac.starlink.table.ColumnData;
-import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.plot.Style;
 import uk.ac.starlink.ttools.plot2.DataGeom;
@@ -252,10 +251,10 @@ public class GangLayerControl extends TabberControl implements LayerControl {
                 FormControl fc = fcs[ ifc ];
                 GuiCoordContent[] extraContents = fc.getExtraCoordContents();
                 if ( extraContents != null ) {
-                    StarTable table = tcModel_.getDataModel();
                     GuiCoordContent[] contents =
                         PlotUtil.arrayConcat( posContents, extraContents );
-                    DataSpec dspec = new GuiDataSpec( table, subset, contents );
+                    DataSpec dspec =
+                        new GuiDataSpec( tcModel_, subset, contents );
                     layerList.add( fc.createLayer( geom, dspec, subset ) );
                 }
             }
