@@ -27,7 +27,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -38,6 +37,7 @@ import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot.Style;
 import uk.ac.starlink.ttools.plot2.AuxScale;
@@ -59,6 +59,7 @@ import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.DataStoreFactory;
+import uk.ac.starlink.ttools.plot2.data.StepDataStore;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 import uk.ac.starlink.ttools.plot2.paper.PaperType;
 import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
@@ -110,13 +111,14 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
     private final Factory<Icon> legendFact_;
     private final Factory<float[]> legendPosFact_;
     private final ShaderControl shaderControl_;
+    private final ToggleButtonModel sketchModel_;
     private final List<ChangeListener> changeListenerList_;
     private final PaperTypeSelector ptSel_;
     private final ExecutorService plotExec_;
     private final ExecutorService noteExec_;
     private PlotJob<P,A> plotJob_;
-    private Cancellable plotRef_;
-    private Cancellable noteRef_;
+    private PlotJobRunner plotRunner_;
+    private Cancellable noteRunner_;
     private Workings<A> workings_;
     private Surface latestSurface_;
     private Map<DataSpec,double[]> highlightMap_;
@@ -145,26 +147,30 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      *                          (2-element x,y fractional location in range 0-1,
      *                          or null for legend external/unused)
      * @param  shaderControl   shader control GUI component
+     * @param  sketchModel   model to decide whether intermediate sketch frames
+     *                       are posted for slow plots
      * @param  ptSel   rendering policy
      */
     public PlotPanel( DataStoreFactory storeFact, AxisControl<P,A> axisControl,
                       Factory<PlotLayer[]> layerFact, Factory<Icon> legendFact,
                       Factory<float[]> legendPosFact,
-                      ShaderControl shaderControl, PaperTypeSelector ptSel ) {
+                      ShaderControl shaderControl,
+                      ToggleButtonModel sketchModel, PaperTypeSelector ptSel ) {
         storeFact_ = storeFact;
         axisControl_ = axisControl;
         layerFact_ = layerFact;
         legendFact_ = legendFact;
         legendPosFact_ = legendPosFact;
         shaderControl_ = shaderControl;
+        sketchModel_ = sketchModel;
         ptSel_ = ptSel;
         changeListenerList_ = new ArrayList<ChangeListener>();
         plotExec_ = Executors.newSingleThreadExecutor();
         noteExec_ = Runtime.getRuntime().availableProcessors() > 1
                   ? Executors.newSingleThreadExecutor()
                   : plotExec_;
-        plotRef_ = new Cancellable();
-        noteRef_ = new Cancellable();
+        plotRunner_ = new PlotJobRunner();
+        noteRunner_ = new Cancellable();
         setPreferredSize( new Dimension( 500, 400 ) );
         addComponentListener( new ComponentAdapter() {
             @Override
@@ -242,62 +248,41 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
 
         /* Any annotations of the existing plot are out of date and should
          * be cancelled. */
-        noteRef_.cancel( true );
+        noteRunner_.cancel( true );
 
-        /* If the new plot is quite like the old plot (e.g. shift or zoom)
+        /* If the new plot is quite like the old plot (e.g. pan or zoom)
          * it's a good idea to let the old one complete
          * (mayInterruptIfRunning false).  But if the new one is different
          * (different layers, different data) then cancel the old one
-         * directly and restart the new one.
-         * Either way, I can run multiple jobs concurrently. */
-        plotRef_.cancel( false );
+         * directly and restart the new one. */
+        PlotJobRunner plotRunner = plotRunner_;
+        boolean isSimilar = plotRunner.isSimilar( plotJob );
+        plotRunner.cancel( isSimilar );
 
         /* Store the plot surface now if it can be done fast. */
         latestSurface_ = plotJob.getSurfaceQuickly();
 
         /* Schedule the plot job for execution. */
-        plotRef_ = new Cancellable( plotExec_.submit(
-                                        new GuiFuture<Workings<A>>( plotJob ) {
-            protected void acceptValue( Workings<A> workings,
-                                        boolean success ) {
-
-                /* A null return may mean that the plot was interrupted or
-                 * that the result was the same as for the previously
-                 * calculated plot.  Either way, keep the same output
-                 * graphics as before.  If the return is non-null,
-                 * repaint it. */
-                if ( workings != null ) {
-                    boolean dataChange =
-                        ! workings.getDataIconId()
-                                  .equals( workings_.getDataIconId() );
-                    workings_ = workings;
-                    axisControl_.setAspect( workings.aspect_ );
-                    axisControl_.setRanges( workings.geomRanges_ );
-                    repaint();
-
-                    /* If the plot changed materially, notify listeners. */
-                    if ( dataChange ) {
-                        fireChangeEvent();
-                    }
-                }
-            }
-        } ) );
+        plotRunner_ =
+            new PlotJobRunner( plotJob, isSimilar ? plotRunner : null );
+        plotRunner_.submit();
     }
 
     /**
      * Submits a runnable to run when the plot is not changing.
      * It tries in some sense to run at a lower priority than
      * the actual plots.  If the plot changes while it's in operation,
-     * it may (in fact, it will attempt to) fail.
+     * it may (in fact, it will attempt to) fail.  The supplied annotator
+     * should watch for thread interruptions.
      *
      * @param  annotator  runnable, typically for annotating the plot
      *                    in some sense
      * @return  future which will run the annotator
      */
     public Future submitAnnotator( Runnable annotator ) {
-        noteRef_.cancel( true );
+        noteRunner_.cancel( true );
         Future noteFuture = noteExec_.submit( annotator );
-        noteRef_ = new Cancellable( noteFuture );
+        noteRunner_ = new Cancellable( noteFuture );
         return noteFuture;
     }
 
@@ -365,6 +350,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      */
     public void clearData() {
         plotJob_ = null;
+        plotRunner_ = new PlotJobRunner();
         workings_ = new Workings<A>();
     }
 
@@ -534,6 +520,8 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         final Object[] plans_;
         final Icon dataIcon_;
         final Icon plotIcon_;
+        final long plotMillis_;
+        final int rowStep_;
 
         /**
          * Constructs a fully populated workings object.
@@ -551,12 +539,16 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
          * @param  plans   per-layer plot plan objects
          * @param  dataIcon   icon which will paint data part of plot
          * @param  plotIcon   icon which will paint the whole plot
+         * @param  plotMillis  wall-clock time in milliseconds taken for the
+         *                     plot (plans+paint), but not data acquisition
+         * @param  rowStep   row stride used for subsample in actual plots
          */
         Workings( PlotLayer[] layers, DataStore dataStore,
                   Surface approxSurf, Range[] geomRanges, A aspect,
                   Map<AuxScale,Range> auxDataRanges,
                   Map<AuxScale,Range> auxClipRanges, PlotPlacement placer,
-                  Object[] plans, Icon dataIcon, Icon plotIcon ) {
+                  Object[] plans, Icon dataIcon, Icon plotIcon,
+                  long plotMillis, int rowStep ) {
             layers_ = layers;
             dataStore_ = dataStore;
             approxSurf_ = approxSurf;
@@ -568,6 +560,8 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             plans_ = plans;
             dataIcon_ = dataIcon;
             plotIcon_ = plotIcon;
+            plotMillis_ = plotMillis;
+            rowStep_ = rowStep;
         }
 
         /**
@@ -578,7 +572,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                   new HashMap<AuxScale,Range>(),
                   new HashMap<AuxScale,Range>(),
                   new PlotPlacement( new Rectangle( 0, 0 ), null ),
-                  new Object[ 0 ], null, null );
+                  new Object[ 0 ], null, null, 0L, 1 );
         }
 
         /**
@@ -597,7 +591,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      * Contains all the inputs required to perform a plot and methods to
      * generate a Workings object. 
      */
-    private static class PlotJob<P,A> implements Callable<Workings<A>> {
+    private static class PlotJob<P,A> {
        
         private final Workings<A> oldWorkings_;
         private final PlotLayer[] layers_;
@@ -684,17 +678,22 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
          * the same as the previously calculated one (from oldWorkings),
          * null is returned
          *
+         * @param  rowStep  stride for selecting row subsample; 1 means all rows
          * @return  workings object or null
          */
-        public Workings<A> call() {
+        public Workings<A> calculateWorkings( int rowStep ) {
             try {
-                return attemptPlot();
+                return attemptPlot( rowStep );
             }
             catch ( InterruptedException e ) {
                 Thread.currentThread().interrupt();
                 return null;
             }
             catch ( IOException e ) {
+                logger_.log( Level.WARNING, "Plot data error: " + e, e );
+                return null;
+            }
+            catch ( Throwable e ) {
                 logger_.log( Level.WARNING, "Plot data error: " + e, e );
                 return null;
             }
@@ -706,11 +705,12 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
          * the same as the previously calculated one (from oldWorkings),
          * null is returned
          *
+         * @param  rowStep  stride for selecting row subsample; 1 means all rows
          * @return   workings object, or null
          * @throws   IOException  in case of IO error
          * @throws   InterruptedException   if interrupted
          */
-        private Workings<A> attemptPlot()
+        private Workings<A> attemptPlot( int rowStep )
                 throws IOException, InterruptedException {
             if ( bounds_.width <= 0 || bounds_.height <= 0 ) {
                 return null;
@@ -731,17 +731,23 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
 
             /* Otherwise read a new data store. */
             else {
-                long start = System.currentTimeMillis();
+                long startData = System.currentTimeMillis();
                 baseDataStore =
                     storeFact_.readDataStore( dataSpecs, oldDataStore );
-                PlotUtil.logTime( logger_, "Data", start );
+                PlotUtil.logTime( logger_, "Data", startData );
             }
 
             /* Wrap the data store so that if this job is interrupted
              * reads will fail quickly and stop the calculations rather
              * than continuing to calculate unused results. */
             DataStore dataStore1 = new InterruptibleDataStore( baseDataStore );
+
+            /* Pick subsample of rows if requested. */
+            if ( rowStep > 1 ) {
+                dataStore1 = new StepDataStore( dataStore1, rowStep );
+            }
             try {
+                long startPlot = System.currentTimeMillis();
 
                 /* Ascertain the surface aspect.  If it has been set
                  * explicitly, use that. */
@@ -763,10 +769,10 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                         geomRanges = null;
                     }
                     else {
-                        long rangeStart = System.currentTimeMillis();
+                        long startRange = System.currentTimeMillis();
                         geomRanges =
                             surfFact_.readRanges( layers_, dataStore1 );
-                        PlotUtil.logTime( logger_, "Range", rangeStart );
+                        PlotUtil.logTime( logger_, "Range", startRange );
                         // could cache the ranges here by point cloud ID
                         // for possible later use.
                     }
@@ -796,12 +802,12 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                     AuxScale.getMissingScales( scales, auxDataRanges,
                                                auxFixRanges_ );
                 if ( calcScales.length > 0 ) {
-                    long start = System.currentTimeMillis();
+                    long startAux = System.currentTimeMillis();
                     Map<AuxScale,Range> calcRanges =
                         AuxScale.calculateAuxRanges( calcScales, layers,
                                                      approxSurf, dataStore1 );
                     auxDataRanges.putAll( calcRanges );
-                    PlotUtil.logTime( logger_, "AuxRange", start );
+                    PlotUtil.logTime( logger_, "AuxRange", startAux );
                 }
 
                 /* Combine available aux scale information to get the
@@ -864,10 +870,12 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                  * redraw the data icon or recalculate the plans - carry
                  * them forward from the oldWorkings for the result. */
                 final Icon dataIcon;
+                final long plotMillis;
                 final Object[] plans;
                 if ( sameDataIcon ) {
                     dataIcon = oldWorkings_.dataIcon_;
                     plans = oldWorkings_.plans_;
+                    plotMillis = 0;
                 }
 
                 /* Otherwise calculate plans and perform drawing to a new
@@ -886,11 +894,12 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                     PlotUtil.logTime( logger_, "Plan", startPlan );
                     logger_.info( "Layers: " + layers_.length + ", "
                                 + "Paper: " + paperType_ );
-                    long startPlot = System.currentTimeMillis();
+                    long startPaint = System.currentTimeMillis();
                     dataIcon =
                         paperType_.createDataIcon( surface, drawings, plans,
                                                    dataStore1, true );
-                    PlotUtil.logTime( logger_, "Paint", startPlot );
+                    PlotUtil.logTime( logger_, "Paint", startPaint );
+                    plotMillis = System.currentTimeMillis() - startPlot;
                 }
 
                 /* Create the final plot icon, and store the inputs and
@@ -899,7 +908,8 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                 return new Workings<A>( layers, baseDataStore, approxSurf,
                                         geomRanges, aspect, auxDataRanges,
                                         auxClipRanges, placer, plans,
-                                        dataIcon, plotIcon );
+                                        dataIcon, plotIcon, plotMillis,
+                                        rowStep );
             }
 
             /* In case any of the data scans were interrupted, preserve
@@ -1163,15 +1173,15 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      * cancelled if it still exists, but does not prevent it from being GCd.
      */
     private static class Cancellable {
-        private final Reference<Future> ref_;
+        private final Reference<Future<?>> ref_;
 
         /**
          * Constructor.
          *
          * @param  future   future object to wrap
          */
-        Cancellable( Future future ) {
-            ref_ = new WeakReference<Future>( future );
+        Cancellable( Future<?> future ) {
+            ref_ = new WeakReference<Future<?>>( future );
         }
 
         /**
@@ -1188,10 +1198,231 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
          *         place if the thing has already started
          */
         public void cancel( boolean mayInterruptIfRunning ) {
-            Future future = ref_.get();
+            Future<?> future = ref_.get();
             if ( future != null ) {
                 future.cancel( mayInterruptIfRunning );
             }
+        }
+    }
+
+    /**
+     * Handles submission and cancelling of plot jobs.
+     */
+    private class PlotJobRunner {
+        private final Object simObj_;
+        private final int rowStep_;
+        private PlotJob plotJob_;
+        private volatile Cancellable fullCanceler_;
+        private volatile Cancellable stepCanceler_;
+        private volatile long fullPlotMillis_;
+        private static final int MAX_FULL_PLOT_MILLIS = 250;
+        private static final int MAX_STEP_PLOT_MILLIS = 100;
+
+        /**
+         * Constructor.
+         *
+         * <p>A parameter supplies a previously submitted job
+         * for reference; it should have been plotting about the same
+         * amount of data and take about the same amount of time.  This is
+         * used to work out what step to take for subsampled intermediate
+         * plots.  The criteria are not actually the same as for the
+         * similarity object, but it's an OK approximation.
+         *
+         * <p>Reference to the supplied <code>plotJob</code> object will
+         * be released as soon as possible, so retaining a reference to
+         * this PlotJobRunner is not harmful.
+         *
+         * @param   plotJob  plot job to be plotted
+         * @param   referenceRunner   an instance for a previously submitted
+         *          job related to this one; null if none is available
+         */
+        public PlotJobRunner( PlotJob plotJob, PlotJobRunner refRunner ) {
+            plotJob_ = plotJob;
+            simObj_ = getSimilarityObject( plotJob );
+            rowStep_ = sketchModel_.isSelected() ? getRowStep( refRunner ) : 1;
+        }
+
+        /**
+         * Dummy constructor for placeholder instance.
+         */
+        public PlotJobRunner() {
+            this( null, null );
+        }
+
+        /**
+         * Determines an appropriate subsample step to use given a
+         * plot runner that has (maybe) already executed.
+         * The subsample step is chosen so that the intermediate plots
+         * ought to take a reasonable amount of time.  
+         * If in doubt, 1 is returned, which means no subsampling
+         * (full plot only).
+         *
+         * @param  other  runner supplied for reference, or null
+         * @return   suitable step for a subsampled plot
+         */
+        private final int getRowStep( PlotJobRunner other ) {
+
+            /* No reference plot, no subsampling. */
+            if ( other == null ) {
+                return 1;
+            }
+
+            /* If the reference plot has completed a full plot, use the
+             * timing for that to work out what to do. */
+            else if ( other.fullPlotMillis_ > 0 ) {
+
+                /* If a full plot takes less than a given threshold, don't
+                 * subsample. */
+                long plotMillis = other.fullPlotMillis_;
+                if ( plotMillis <= MAX_FULL_PLOT_MILLIS ) {
+                    return 1;
+                }
+
+                /* If it takes longer, arrange for a subsample that should
+                 * take around a given limit. */
+                else {
+                    return (int) Math.min( Integer.MAX_VALUE,
+                                           plotMillis / MAX_STEP_PLOT_MILLIS );
+                }
+            }
+
+            /* Otherwise, copy the step of the reference plot. */
+            else if ( other.rowStep_ > 1 ) {
+                return other.rowStep_;
+            }
+            else {
+                return 1;
+            }
+        }
+
+        /**
+         * Submits this object's job for execution.
+         */
+        public void submit() {
+            if ( fullCanceler_ != null ) {
+                throw new IllegalStateException( "Don't call it twice" );
+            }
+            final PlotJob plotJob = plotJob_;
+
+            /* Void the reference to the plot job so it can be GC'd as
+             * early as possible. */
+            plotJob_ = null;
+
+            /* Set up runnables to execute the full plot or a subsample plot. */
+            Runnable fullJob = new Runnable() {
+                public void run() {
+                    Workings<A> workings = plotJob.calculateWorkings( 1 );
+                    fullPlotMillis_ = workings.plotMillis_;
+                    submitWorkings( workings );
+                }
+            };
+            Runnable stepJob = new Runnable() {
+                public void run() {
+                    Workings<A> workings =
+                        plotJob.calculateWorkings( rowStep_ );
+                    submitWorkings( workings );
+                }
+            };
+
+            /* Submit one or both for execution. */
+            if ( rowStep_ > 1 ) {
+                logger_.info( "Intermediate plot with row step " + rowStep_ );
+                stepCanceler_ = new Cancellable( plotExec_.submit( stepJob ) );
+            }
+            fullCanceler_ = new Cancellable( plotExec_.submit( fullJob ) );
+        }
+
+        /**
+         * Cancels this object's job if applicable.
+         * A parameter indicates whether the next job to be submitted
+         * (the one in favour of which this one is being cancelled)
+         * is similar to this one.  This may have implications for how
+         * aggressively the cancellation is applied.
+         *
+         * @param  nextIsSimilar  whether the next job will be similar
+         */
+        public void cancel( boolean nextIsSimilar ) {
+
+            /* If the next job is quite like the old plot (e.g. pan or zoom)
+             * it's a good idea to let the old one complete, so that
+             * intermediate views are displayed rather than the screen
+             * going blank until there are no more plots pending.
+             * Pans and zooms typically come in a cascade of similar jobs.
+             * If a subsample plot is happening, only let that one complete
+             * and not the full plot, so that the screen refresh happens
+             * reasonably quickly. 
+             * If the plot is different (different layers or data) then
+             * cancel the existing plot immediately and start work on
+             * a new one. */
+            boolean mayInterruptIfRunning = ! nextIsSimilar;
+            if ( stepCanceler_ != null ) {
+                fullCanceler_.cancel( true );
+                stepCanceler_.cancel( mayInterruptIfRunning );
+            }
+            else if ( fullCanceler_ != null ) {
+                fullCanceler_.cancel( mayInterruptIfRunning );
+            }
+        }
+
+        /**
+         * Accepts a workings object calculated for this job and applies
+         * it to the parent panel.
+         * May be called from any thread.
+         *
+         * @param  workings  workings object, may be null
+         */
+        private void submitWorkings( final Workings<A> workings ) {
+
+            /* A null result may mean that the plot was interrupted or
+             * that the result was the same as for the previously
+             * calculated plot.  Either way, keep the same output
+             * graphics as before.  If the return is non-null,
+             * repaint it. */
+            if ( workings != null ) {
+                SwingUtilities.invokeLater( new Runnable() {
+                    public void run() {
+                        boolean plotChange =
+                            ! workings.getDataIconId()
+                             .equals( workings_.getDataIconId() );
+                        workings_ = workings;
+                        axisControl_.setAspect( workings.aspect_ );
+                        axisControl_.setRanges( workings.geomRanges_ );
+                        repaint();
+
+                        /* If the plot changed materially, notify listeners. */
+                        if ( plotChange ) {
+                            fireChangeEvent();
+                        }
+                    }
+                } );
+            }
+        }
+
+        /**
+         * Indicates whether the plot job which this object will execute
+         * is similar to a given plot job.  Similarity means, for now,
+         * that it's got the same layers, but not necessarily the same
+         * plot surface.  It will be similar therefore if the difference
+         * is just an axis change like a pan or zoom.
+         *
+         * @param  plotJob   other plot job
+         * @return  true iff this object's job is like the other one
+         */
+        public boolean isSimilar( PlotJob otherJob ) {
+            return simObj_.equals( getSimilarityObject( otherJob ) );
+        }
+
+        /**
+         * Returns an identity object representing the parts of a plot job
+         * that must be equal between two instances to confer similarity.
+         *
+         * @param  plotJob  job to identify
+         * @return   list of layerIds
+         */
+        @Equality
+        private Object getSimilarityObject( PlotJob plotJob ) {
+            return LayerId.layerList( plotJob == null ? new PlotLayer[ 0 ]
+                                                      : plotJob.layers_ );
         }
     }
 

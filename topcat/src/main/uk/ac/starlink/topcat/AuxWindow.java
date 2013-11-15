@@ -651,16 +651,19 @@ public class AuxWindow extends JFrame {
         box.add( brisLogo );
         box.add( Box.createHorizontalStrut( igap ) );
         JLabel votechLogo = new JLabel( ResourceIcon.VOTECH_LOGO );
-        votechLogo = new JLabel( ResourceIcon.VOTECH_LOGO );
         votechLogo.setToolTipText( "VO-Tech project: "
-                                 + "http://www.eurovotech.org/" );
+                                 + "http://www.eurovotc.org/" );
         box.add( votechLogo );
         box.add( Box.createHorizontalStrut( igap ) );
         JLabel gavoLogo = new JLabel( ResourceIcon.GAVO_LOGO );
-        gavoLogo = new JLabel( ResourceIcon.GAVO_LOGO );
         gavoLogo.setToolTipText( "German Astrophysical Virtual Observatory: "
                                + "http://www.g-vo.org/" );
         box.add( gavoLogo );
+        box.add( Box.createHorizontalStrut( igap ) );
+        JLabel esaLogo = new JLabel( ResourceIcon.ESA_LOGO );
+        esaLogo.setToolTipText( "European Space Agency: "
+                              + "http://www.esa.int/" );
+        box.add( esaLogo );
         return box;
     }
 

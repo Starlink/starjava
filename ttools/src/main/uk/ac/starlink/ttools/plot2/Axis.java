@@ -147,6 +147,15 @@ public abstract class Axis {
             AffineTransform oTrans =
                 label == null ? null
                               : orient.captionTransform( cbounds, cpad );
+
+            /* Update bounding box for tick labels. */
+            if ( label != null ) {
+                Rectangle box = combineTrans( tTrans, oTrans )
+                               .createTransformedShape( cbounds ).getBounds();
+                tickBounds.add( box );
+            }
+
+            /* If we are drawing, draw now. */
             if ( hasGraphics ) {
                 g2.setTransform( combineTrans( trans0, tTrans ) );
                 if ( label != null ) {
@@ -158,10 +167,6 @@ public abstract class Axis {
                     g2.drawLine( 0, 0, 0, tickUnit );
                 }
                 g2.setTransform( trans0 );
-            }
-            if ( label != null ) {
-                tickBounds.add( combineTrans( tTrans, oTrans )
-                               .createTransformedShape( cbounds ).getBounds() );
             }
         }
         if ( hasGraphics ) {

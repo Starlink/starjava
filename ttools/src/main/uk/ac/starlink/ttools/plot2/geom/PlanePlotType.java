@@ -55,7 +55,7 @@ public class PlanePlotType implements PlotType {
         };
     }
 
-    public DataGeom[] getDataGeoms() {
+    public DataGeom[] getPointDataGeoms() {
         return dataGeoms_;
     }
 
@@ -67,7 +67,8 @@ public class PlanePlotType implements PlotType {
             MultiPointForm
            .createVectorForm( new CartesianVectorCoordSet( axisNames_ ), true ),
             MultiPointForm
-           .createErrorForm( new CartesianErrorCoordSet( axisNames_ ),
+           .createErrorForm( CartesianErrorCoordSet
+                            .createAllAxesErrorCoordSet( axisNames_ ),
                              StyleKeys.ERROR_SHAPE_2D ),
             MultiPointForm
            .createEllipseForm( new PlaneEllipseCoordSet(), true ),

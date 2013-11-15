@@ -1,7 +1,11 @@
 package uk.ac.starlink.ttools.plot2;
 
 import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
 import java.lang.reflect.Array;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -86,7 +90,7 @@ public class PlotUtil {
      *           when it seems reasonable
      */
     public static boolean storeFullPrecision() {
-        return false;
+        return true;
     }
 
     /**
@@ -148,48 +152,135 @@ public class PlotUtil {
     }
 
     /**
-     * Determines range information for each of the coordinates of the
-     * data positions in a PointCloud.
+     * Determines range information for a set of layers which have
+     * Cartesian (or similar) coordinates.
      *
-     * @param   cloud  point cloud
-     * @param   nDataDim  dimensionality of data points in the point cloud
+     * @param   layers   plot layers
+     * @param   nDataDim  dimensionality of data points
      * @param   dataStore  data storage
      * @return   nDataDim-element array of ranges, each containing the
      *           range of data position coordinate values for
      *           the corresponding dimension
      */
     @Slow
-    public static Range[] readCoordinateRanges( PointCloud cloud, int nDataDim,
+    public static Range[] readCoordinateRanges( PlotLayer[] layers,
+                                                int nDataDim,
                                                 DataStore dataStore ) {
+
+        /* Set up an array of range objects, one for each data dimension. */
         Range[] ranges = new Range[ nDataDim ];
         for ( int idim = 0; idim < nDataDim; idim++ ) {
             ranges[ idim ] = new Range();
-        }                      
+        }
+
+        /* Create a point cloud containing all the point positions
+         * represented by the supplied layers.  If there are several
+         * layers using the same basic positions, this should combine
+         * them efficiently. */
+        PointCloud cloud = new PointCloud( layers, true );
+
+        /* Iterate over the represented points to mark out the basic
+         * range of data positions covered by the layers. */
         for ( double[] dpos : cloud.createDataPosIterable( dataStore ) ) {
             for ( int idim = 0; idim < nDataDim; idim++ ) {
                 ranges[ idim ].submit( dpos[ idim ] );
-            }       
+            }
         }
+
+        /* If any of the layers wants to supply non-data-position points
+         * to mark out additional space, take account of those too. */
+        for ( int il = 0; il < layers.length; il++ ) {
+            layers[ il ].extendCoordinateRanges( ranges, dataStore );
+        }
+
+        /* Return the ranges. */
         return ranges;
     }
 
     /**
-     * Returns a value determined by a fixed range and a scaling factor
-     * within it.  The scaling factor is assumed in the range 0-1;
-     * if zero the minimum value is returned, and if one the maximum value
-     * is returned.
+     * Indicates whether a drag mouse gesture is to be interpreted as a zoom
+     * or pan.  Currently, pretty much any variation from a normal button-1
+     * drag counts to turn it into a zoom gesture (use of button 3 or any
+     * modifier key depressed).
+     *
+     * @param  evt  mouse drag event
+     * @return  true for zoom, false for pan
+     */
+    public static boolean isZoomDrag( MouseEvent evt ) {
+        int mods = evt.getModifiersEx();
+        int alteredMask = MouseEvent.BUTTON3_DOWN_MASK
+                        | MouseEvent.SHIFT_DOWN_MASK
+                        | MouseEvent.CTRL_DOWN_MASK
+                        | MouseEvent.META_DOWN_MASK
+                        | MouseEvent.ALT_DOWN_MASK
+                        | MouseEvent.ALT_GRAPH_DOWN_MASK;
+        return ( mods & alteredMask ) != 0;
+    }
+
+    /**
+     * Determines a zoom factor from a mouse wheel event and a given
+     * unit zoom factor.
+     * It just multiplies the given unit factor by the number of wheel clicks
+     * (and applies a sense adjustment).
+     *
+     * @param   unitFactor   positive zoom factor corresponding to a
+     *                       single click
+     * @param   evt   mouse wheel event
+     * @return   zoom factor
+     */
+    public static double toZoom( double unitFactor, MouseWheelEvent evt ) {
+        return Math.pow( unitFactor, - evt.getWheelRotation() );
+    }
+
+    /**
+     * Determines an X, Y or isotropic zoom factor from a pair of
+     * screen positions and a given unit zoom factor.
+     * The absolute positions of the supplied points are not important,
+     * only their separation is used.
+     *
+     * @param   unitFactor   positive zoom factor corresponding to a
+     *                       single click
+     * @param  p0    origin point
+     * @param  p1    destination point
+     * @param  isY   direction flag; TRUE for Y zoom, FALSE for X zoom and
+     *               null for isotropic zoom
+     * @return   zoom factor
+     */
+    public static double toZoom( double unitFactor, Point p0, Point p1,
+                                 Boolean isY ) {
+
+        /* Zoom in is right and up, i.e. in the conventional direction of
+         * increasing data (though not graphics) coordinates.
+         * This differs from the sense of the Y direction zoom used by
+         * the old-style plots (inherited from PtPlot). */
+        int dx = p1.x - p0.x;
+        int dy = - p1.y + p0.y;
+        final int npix;
+        if ( isY == null ) {
+            npix = dx + dy;
+        }
+        else {
+            npix = isY.booleanValue() ? dy : dx;
+        }
+        return Math.pow( unitFactor, npix / 24.0 );
+    }
+
+    /**
+     * Returns a value determined by a fixed range and a scale point
+     * within it.  If the point is zero the minimum value is returned,
+     * and if it is one the maximum value is returned.
      *
      * @param  min  minimum of range
      * @param  max  maximum of range
-     * @param  factor01  factor in the range 0 to 1
+     * @param  point  scale point
      * @param  isLog  true iff the range is logarithmic
-     * @return   value between min and max
+     * @return   scaled value
      */
-    public static double scaleValue( double min, double max, double factor01,
+    public static double scaleValue( double min, double max, double point,
                                      boolean isLog ) {
         return isLog
-             ? Math.exp( Math.log( min ) + factor01 * Math.log( max / min ) )
-             : min + factor01 * ( max - min );
+             ? Math.exp( Math.log( min ) + point * Math.log( max / min ) )
+             : min + point * ( max - min );
     }
 
     /**
@@ -228,4 +319,21 @@ public class PlotUtil {
             return r >= .9999 && r <= 1.0001;
         }
     }
+
+    /**
+     * Numeric formatting utility function.
+     *
+     * @param  value  numeric value to format
+     * @param  baseFmt  format string as for {@link java.text.DecimalFormat}
+     * @param  nFracDigits  fixed number of digits after the decimal point
+     * @return  formatted string
+     */
+    public static String formatNumber( double value, String baseFmt,
+                                       int nFracDigits ) {
+        DecimalFormat fmt = new DecimalFormat( baseFmt );
+        fmt.setMaximumFractionDigits( nFracDigits );
+        fmt.setMinimumFractionDigits( nFracDigits );
+        return fmt.format( value );
+    }
+
 }

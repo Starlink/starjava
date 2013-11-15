@@ -24,6 +24,10 @@
  !      javadoc-sources  -> make source files for release API documention
  !      test             -> runs JUnit test cases
  !
+ !   Targets specific to TOPCAT:
+ !      build-standalone -> builds topcat-full.jar, topcat-lite.jar
+ !      docs-pdf         -> builds sun253.pdf
+ !
  !   Authors:
  !      Peter W. Draper (17-SEP-2002)
  !
@@ -80,7 +84,7 @@
   <!-- Define the package name and current versions -->
   <property name="Name" value="TOPCAT"/>
   <property name="name" value="topcat"/>
-  <property name="version" value="4.0b+"/>
+  <property name="version" value="4.0-1+"/>
 
   <!-- The Java package name -->
   <property name="package.name" value="uk.ac.starlink.topcat"/>
@@ -90,6 +94,14 @@
   <property name="deprecation" value="false"/>
   <property name="optimize" value="true"/>
   <property name="source.version" value="1.5"/>
+
+  <!-- JVM binary to use for certain forked tasks.  This may be different
+   !   from that used to run ant.  This is a bit of a hack; in some
+   !   cases we want to run the build on a 1.5 JDK to generate Java1.5 classes,
+   !   but 1.6 needs to be used for some documentation tasks to avoid
+   !   1.5-specific xerces bugs.  An alternative approach would be 
+   !   cross-compilation of all packages. -->
+  <property name="alt.java" value="java"/>
 
   <!-- Extra task options, if any -->
   <property name="chmod.fail" value="false"/>
@@ -639,7 +651,7 @@
    !  placed directly in the distribution directories. 
    !-->
   <target name="jars"
-          depends="build, docs"
+          depends="build, docs-html"
           unless="runonly.install"
           description="-> creates the package jar file(s)">
 
@@ -685,7 +697,7 @@
          <title>TOPCAT</title>
          <vendor>Mark Taylor, Bristol University</vendor>
          <homepage href="${home.page}"/>
-         <icon href="${home.page}TopCat2.gif"/>
+         <icon href="${home.page}images/tc_sok.gif"/>
          <description>"TOPCAT - Tool for OPerations on Catalogues And Tables"</description>
          <offline_allowed/>
        </information>
@@ -831,7 +843,7 @@
    !  targets.
    !-->
   <target name="dist"
-          depends="build,docs,jars,javadocs,webstart"
+          depends="build,docs-html,jars,javadocs,webstart"
           unless="runonly.install"
           description="-> configures the local binary distribution">
 
@@ -1229,18 +1241,150 @@
   </target>
 
   <!--
-   !   =================================================
-   !   Creates additional documentation from XML sources
-   !   =================================================
+   !   ======================================================
+   !   Creates additional HTML documentation from XML sources
+   !   ======================================================
    !
    !   The XML user document is downconverted to single- and multiple-
    !   file HTML versions in the docs directory, and a JavaHelp version
    !   on the classpath of the application.
    !-->
-  <target name="docs"
-          depends="build, docs_check"
+  <target name="docs-html"
+          depends="build, html_check, docs_depend"
           unless="docs.notrequired"
           description="-> creates the user documentation">
+
+    <!-- Transform the user document XML to a single HTML document. -->
+    <mkdir dir="${build.docs}/${user.doc}"/>
+    <copy todir="${build.docs}/${user.doc}">
+      <fileset dir="${xdoc.etc}" includes="sun-style.css"/>
+    </copy>
+    <xslt in="${build.docs}/${user.doc}.xml" 
+          out="${build.docs}/${user.doc}/${user.doc}.html"
+          style="${xdoc.etc}/toHTML1.xslt">
+      <param name="VERSION" expression="${version}"/>
+      <param name="BASEDIR" expression="${build.docs}/${user.doc}"/>
+      <param name="COVERIMAGE" expression="../figures/multishot-mini.gif"/>
+      <param name="CSS_HREF" expression="sun-style.css"/>
+    </xslt>
+
+    <!-- Transform the user document from XML to HTML form for browsing. -->
+    <java classpathref="classpath"
+          dir="${src.docs}"
+          classname="uk.ac.starlink.xdoc.MultiXML"
+          failonerror="yes"
+          fork="yes"
+          jvm="${alt.java}">
+      <sysproperty key="java.awt.headless" value="true"/>
+      <arg value="-style"/> <arg value="${xdoc.etc}/toHTML.xslt"/>
+      <arg value="-param"/> <arg value="VERSION=${version}"/>
+      <arg value="-param"/> <arg value="BASEDIR=${build.docs}/${user.doc}"/>
+      <arg value="-param"/> 
+                       <arg value="COVERIMAGE=../figures/multishot-mini.gif"/>
+      <arg value="-param"/> <arg value="CSS_HREF=sun-style.css"/>
+      <arg value="${build.docs}/${user.doc}.xml"/>
+      <arg value="${build.docs}/${user.doc}"/>
+    </java>
+
+    <!-- Copy same into the classes directory so that it ends up in the
+     !   jar file.  -->
+    <copy todir="${build.classes}/uk/ac/starlink/topcat/${user.doc}">
+      <fileset dir="${build.docs}/${user.doc}"/>
+    </copy>
+
+    <!-- Transform the user document from XML to JavaHelp form. -->
+    <java classpathref="classpath"
+          dir="${src.docs}" 
+          classname="uk.ac.starlink.xdoc.MultiXML" 
+          failonerror="yes"
+          fork="yes"
+          jvm="${alt.java}">
+      <sysproperty key="java.awt.headless" value="true"/>
+      <arg value="-style"/> <arg value="${xdoc.etc}/toHelp.xslt"/>
+      <arg value="-param"/> <arg value="VERSION=${version}"/>
+      <arg value="-param"/> <arg value="BASEDIR=${build.docs}/${user.doc}"/>
+      <arg value="-param"/> <arg value="CSS_HREF=sun-style.css"/>
+      <arg value="${build.docs}/${user.doc}.xml"/>
+      <arg value="${build.classes}/uk/ac/starlink/topcat/help"/>
+    </java>
+
+    <!-- Builds the help file index database.  Uses the "search-config" file
+     !   generated by the toHelp stylesheet, and deletes it when done. -->
+    <java classpathref="classpath"
+          dir="${build.classes}/uk/ac/starlink/topcat/help"
+          fork="true"
+          classname="com.sun.java.help.search.Indexer"
+          failonerror="yes">
+      <arg value="-c"/>
+      <arg value="search-config"/>
+    </java>
+    <delete file="${build.classes}/uk/ac/starlink/topcat/help/search-config"/>
+
+    <!-- Copy the image icons themselves into the help directory where they
+     !   will be referenced from the HTML. -->
+    <copy todir="${build.classes}/uk/ac/starlink/topcat/help">
+      <fileset dir="${build.docs}/${user.doc}"
+               includes="${user.doc}.html sun-style.css"/>
+    </copy>
+  </target>
+
+  <!--
+   !   =================================================
+   !   Create user document in PDF form from XML sources
+   !   =================================================
+   !
+   !   The XML document is downconverted to PDF via xsl-fo using Fop.
+   !
+   !   This process is, for reasons I haven't tried very hard to
+   |   understand, rather slow (~3 minutes) and also problematic
+   !   in that it can fail due to a Xerces bug in (Sun's) J2SE1.5.
+   !   Given that, and the fact that the PDF user document is rather
+   !   a special-interest item, this target is no longer invoked as
+   !   part of the normal install target.  If the PDF user document
+   !   is required, this target must be invoked explicitly.
+   !-->
+  <target name="docs-pdf"
+          depends="build, docs_depend"
+          unless="docs.notrequired"
+          description="-> creates the user documentation in PDF form">
+
+    <!-- Transform the user document XML to a PDF document via XSL-FO. -->
+    <xslt in="${build.docs}/${user.doc}.xml"
+          out="${build.docs}/${user.doc}.fo"
+          style="${xdoc.etc}/toFo.xslt">
+      <param name="VERSION" expression="${version}"/>
+      <param name="BASEDIR" expression="${build.docs}/${user.doc}"/>
+      <param name="FIGDIR" expression="${build.docs}/figures"/>
+      <param name="COVERIMAGE" expression="../multishot.gif"/>
+    </xslt>
+    <java classname="org.apache.fop.apps.Fop"
+          failonerror="yes"
+          fork="yes"
+          jvm="${alt.java}"
+          maxmemory="256M">
+      <classpath>
+        <fileset dir="${star.jar.dir}/xdoc" includes="*.jar"/>
+      </classpath>
+      <sysproperty key="java.awt.headless" value="true"/>
+      <arg value="-q"/>
+      <arg value="-fo"/> <arg value="${build.docs}/${user.doc}.fo"/>
+      <arg value="-pdf"/> <arg value="${build.docs}/${user.doc}.pdf"/>
+    </java>
+  </target>
+
+  <!-- Checks whether the HTML docs build is up to date. -->
+  <target name="html_check" unless="docs.notrequired">
+    <uptodate property="docs.notrequired"
+              srcfile="${src.docs}/${user.doc}.xml" 
+              targetfile="${build.docs}/${user.doc}/${user.doc}.html"/>
+  </target>
+
+  <!-- Prepares for document creation.  The XML source document and all
+   !   the external entities it requires are copied into the build.docs
+   !   directory. -->
+  <target name="docs_depend"
+          depends="build"
+          unless="docs.notrequired">
 
     <property name="ttools.java" value="${java.dir}/../../../ttools/src/main"/>
 
@@ -1326,105 +1470,6 @@
     </java>
     <echo message="]]&gt;" file="${topcat.usage}" append="yes"/>
 
-    <!-- Transform the user document XML to a single HTML document. -->
-    <mkdir dir="${build.docs}/${user.doc}"/>
-    <copy todir="${build.docs}/${user.doc}">
-      <fileset dir="${xdoc.etc}" includes="sun-style.css"/>
-    </copy>
-    <xslt in="${build.docs}/${user.doc}.xml" 
-          out="${build.docs}/${user.doc}/${user.doc}.html"
-          style="${xdoc.etc}/toHTML1.xslt">
-      <param name="VERSION" expression="${version}"/>
-      <param name="BASEDIR" expression="${build.docs}/${user.doc}"/>
-      <param name="COVERIMAGE" expression="../figures/multishot-mini.gif"/>
-      <param name="CSS_HREF" expression="sun-style.css"/>
-    </xslt>
-
-    <!-- Transform the user document XML to a PDF document via XSL-FO. -->
-    <xslt in="${build.docs}/${user.doc}.xml"
-          out="${build.docs}/${user.doc}.fo"
-          style="${xdoc.etc}/toFo.xslt">
-      <param name="VERSION" expression="${version}"/>
-      <param name="BASEDIR" expression="${build.docs}/${user.doc}"/>
-      <param name="FIGDIR" expression="${build.docs}/figures"/>
-      <param name="COVERIMAGE" expression="../multishot.gif"/>
-    </xslt>
-    <java classname="org.apache.fop.apps.Fop"
-          failonerror="yes"
-          fork="yes"
-          maxmemory="256M">
-      <classpath>
-        <fileset dir="${star.jar.dir}/xdoc" includes="*.jar"/>
-      </classpath>
-      <sysproperty key="java.awt.headless" value="true"/>
-      <arg value="-q"/>
-      <arg value="-fo"/> <arg value="${build.docs}/${user.doc}.fo"/>
-      <arg value="-pdf"/> <arg value="${build.docs}/${user.doc}.pdf"/>
-    </java>
-
-    <!-- Transform the user document from XML to HTML form for browsing. -->
-    <java classpathref="classpath"
-          dir="${src.docs}"
-          classname="uk.ac.starlink.xdoc.MultiXML"
-          failonerror="yes"
-          fork="yes">
-      <sysproperty key="java.awt.headless" value="true"/>
-      <arg value="-style"/> <arg value="${xdoc.etc}/toHTML.xslt"/>
-      <arg value="-param"/> <arg value="VERSION=${version}"/>
-      <arg value="-param"/> <arg value="BASEDIR=${build.docs}/${user.doc}"/>
-      <arg value="-param"/> 
-                       <arg value="COVERIMAGE=../figures/multishot-mini.gif"/>
-      <arg value="-param"/> <arg value="CSS_HREF=sun-style.css"/>
-      <arg value="${build.docs}/${user.doc}.xml"/>
-      <arg value="${build.docs}/${user.doc}"/>
-    </java>
-
-    <!-- Copy same into the classes directory so that it ends up in the
-     !   jar file.  -->
-    <copy todir="${build.classes}/uk/ac/starlink/topcat/${user.doc}">
-      <fileset dir="${build.docs}/${user.doc}"/>
-    </copy>
-
-    <!-- Transform the user document from XML to JavaHelp form. -->
-    <java classpathref="classpath"
-          dir="${src.docs}" 
-          classname="uk.ac.starlink.xdoc.MultiXML" 
-          failonerror="yes"
-          fork="yes">
-      <sysproperty key="java.awt.headless" value="true"/>
-      <arg value="-style"/> <arg value="${xdoc.etc}/toHelp.xslt"/>
-      <arg value="-param"/> <arg value="VERSION=${version}"/>
-      <arg value="-param"/> <arg value="BASEDIR=${build.docs}/${user.doc}"/>
-      <arg value="-param"/> <arg value="CSS_HREF=sun-style.css"/>
-      <arg value="${build.docs}/${user.doc}.xml"/>
-      <arg value="${build.classes}/uk/ac/starlink/topcat/help"/>
-    </java>
-
-    <!-- Builds the help file index database.  Uses the "search-config" file
-     !   generated by the toHelp stylesheet, and deletes it when done. -->
-    <java classpathref="classpath"
-          dir="${build.classes}/uk/ac/starlink/topcat/help"
-          fork="true"
-          classname="com.sun.java.help.search.Indexer"
-          failonerror="yes">
-      <arg value="-c"/>
-      <arg value="search-config"/>
-    </java>
-    <delete file="${build.classes}/uk/ac/starlink/topcat/help/search-config"/>
-
-    <!-- Copy the image icons themselves into the help directory where they
-     !   will be referenced from the HTML. -->
-    <copy todir="${build.classes}/uk/ac/starlink/topcat/help">
-      <fileset dir="${build.docs}/${user.doc}"
-               includes="${user.doc}.html sun-style.css"/>
-    </copy>
-  </target>
-
-  <!-- Checks whether the docs build is up to date. -->
-  <target name="docs_check" unless="docs.notrequired">
-    <uptodate property="docs.notrequired"
-              srcfile="${src.docs}/${user.doc}.xml" 
-              targetfile="${build.docs}/${user.doc}/${user.doc}.html"/>
   </target>
 
   <!--
@@ -1498,7 +1543,7 @@
           description="-> run JUnit tests"/>
 
   <target name="run-tests"
-          depends="compile-tests,docs"
+          depends="compile-tests,docs-html"
           if="junit.present">
 
     <junit printsummary="${junit.summary}" haltonfailure="yes"
@@ -1532,7 +1577,7 @@
 
   <target name="run-single-test"
           if="testcase"
-          depends="compile-tests,docs"
+          depends="compile-tests,docs-html"
           description="-> runs the single unit test defined in the testcase property">
 
     <junit printsummary="${junit.summary}"

@@ -109,9 +109,9 @@ public class SizeForm implements ShapeForm {
     }
 
     /**
-     * Outliner implementation for use with this class.
+     * Outliner implementation for use with SizeForm.
      */
-    private static class SizeOutliner extends PixOutliner {
+    public static class SizeOutliner extends PixOutliner {
         private final MarkShape shape_;
         private final AuxScale autoscale_;
         private final double scale_;
@@ -127,7 +127,8 @@ public class SizeForm implements ShapeForm {
          *                     may be shared with other layers,
          *                     private to this layer, or null for no autoscale
          */
-        SizeOutliner( MarkShape shape, double scale, AuxScale autoscale ) {
+        public SizeOutliner( MarkShape shape, double scale,
+                             AuxScale autoscale ) {
             shape_ = shape;
             scale_ = scale;
             autoscale_ = autoscale;

@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.lang.reflect.Constructor;
 
 /**
  * Parameter whose legal value must be one of a disjunction of given values.
@@ -18,6 +19,28 @@ public class ChoiceParameter<T> extends Parameter {
     private final Map<T,String> optionMap_;
     private T objectValue_;
     private boolean usageSet_;
+    private final Class clazz_;
+
+    /**
+     * Constructs a ChoiceParameter with a given list of options
+     * and the possibility to use values by dynamically loaded class name.
+     *
+     * @param   name  parameter name
+     * @param   clazz  type for values of this parameter;
+     *          any string which names a class of this type and has a
+     *          no-arg constructor is a legal value
+     * @param   options  legal values of this parameter
+     */
+    public ChoiceParameter( String name, Class<T> clazz, T[] options ) {
+        super( name );
+        clazz_ = clazz;
+        optionMap_ = new LinkedHashMap<T,String>();
+        if ( options != null ) {
+            for ( int iopt = 0; iopt < options.length; iopt++ ) {
+                addOption( options[ iopt ] );
+            }
+        }
+    }
 
     /**
      * Constructs a ChoiceParameter with a given list of options.
@@ -26,13 +49,7 @@ public class ChoiceParameter<T> extends Parameter {
      * @param   options  legal values of this parameter
      */
     public ChoiceParameter( String name, T[] options ) {
-        super( name );
-        optionMap_ = new LinkedHashMap<T,String>();
-        if ( options != null ) {
-            for ( int iopt = 0; iopt < options.length; iopt++ ) {
-                addOption( options[ iopt ] );
-            }
-        }
+        this( name, null, options );
     }
 
     /**
@@ -106,6 +123,46 @@ public class ChoiceParameter<T> extends Parameter {
                 objectValue_ = option;
                 super.setValueFromString( env, value );
                 return;
+            }
+        }
+        if ( clazz_ != null ) {
+            try {
+                Class vclazz = Class.forName( value );
+                if ( clazz_.isAssignableFrom( vclazz ) ) {
+                    Class<T> vtclazz = vclazz.asSubclass( clazz_ );
+                    Constructor<T> constructor;
+                    try {
+                        constructor =
+                            vtclazz.getConstructor( new Class[ 0 ] );
+                    }
+                    catch ( NoSuchMethodException e ) {
+                        throw new ParameterValueException( this,
+                                                           "No no-arg "
+                                                         + "constructor for "
+                                                         + vtclazz );
+                    }
+                    T instance;
+                    try {
+                        instance = constructor.newInstance( new Object[ 0 ] );
+                    }
+                    catch ( Throwable e ) {
+                        throw new ParameterValueException( this,
+                                                           "Error constructing "
+                                                         + vtclazz, e );
+                    }
+                    objectValue_ = instance;
+                    super.setValueFromString( env, value );
+                    return;
+                }
+                else {
+                    throw new ParameterValueException( this,
+                                                       vclazz
+                                                     + " is not of type "
+                                                     + clazz_ );
+                }
+            }
+            catch ( ClassNotFoundException e ) {
+                // No class with that name - fine
             }
         }
         StringBuffer sbuf = new StringBuffer()

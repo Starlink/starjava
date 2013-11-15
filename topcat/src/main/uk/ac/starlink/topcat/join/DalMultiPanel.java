@@ -11,7 +11,6 @@ import java.awt.event.FocusListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.IOException;
-import java.io.InterruptedIOException;
 import java.net.URL;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
@@ -65,6 +64,7 @@ import uk.ac.starlink.ttools.cone.ConeQueryRowSequence;
 import uk.ac.starlink.ttools.cone.ConeSearcher;
 import uk.ac.starlink.ttools.cone.Coverage;
 import uk.ac.starlink.ttools.cone.MocCoverage;
+import uk.ac.starlink.ttools.cone.ParallelResultRowSequence;
 import uk.ac.starlink.ttools.cone.QuerySequenceFactory;
 import uk.ac.starlink.ttools.task.TableProducer;
 import uk.ac.starlink.util.gui.ErrorDialog;
@@ -82,6 +82,7 @@ public class DalMultiPanel extends JPanel {
     private final DalMultiService service_;
     private final JProgressBar progBar_;
     private final JTextField urlField_;
+    private final boolean hasCoverage_;
     private final CoverageView serviceCoverageView_;
     private final CoverageView queryCoverageView_;
     private final CoverageView overlapCoverageView_;
@@ -218,7 +219,8 @@ public class DalMultiPanel extends JPanel {
         main.add( Box.createVerticalStrut( 5 ) );
 
         /* Set up coverage icons. */
-        if ( service_.hasCoverages() ) {
+        hasCoverage_ = service_.hasCoverages();
+        if ( hasCoverage_ ) {
 
             /* Service coverage icon. */
             serviceCoverageView_ =
@@ -282,8 +284,8 @@ public class DalMultiPanel extends JPanel {
                                    "Use service coverage information (MOCs) "
                                  + "where available to avoid unnecessary "
                                  + "queries" );
-        coverageModel_.setSelected( service_.hasCoverages() );
-        coverageModel_.setEnabled( service_.hasCoverages() );
+        coverageModel_.setSelected( hasCoverage_ );
+        coverageModel_.setEnabled( hasCoverage_ );
         coverageModel_.addChangeListener( new ChangeListener() {
             private boolean wasSelected_ = coverageModel_.isSelected();
             public void stateChanged( ChangeEvent evt ) {
@@ -298,7 +300,9 @@ public class DalMultiPanel extends JPanel {
         } );
 
         /* Service access parameters. */
-        parallelModel_ = new SpinnerNumberModel( 5, 1, 1000, 1 );
+        int maxpar = ParallelResultRowSequence.getMaxParallelism();
+        parallelModel_ =
+            new SpinnerNumberModel( Math.min( 5, maxpar ), 1, maxpar, 1 );
         JLabel parallelLabel = new JLabel( "Parallelism: " );
         JSpinner parallelSpinner = new JSpinner( parallelModel_ );
         cList.add( parallelLabel );
@@ -354,20 +358,22 @@ public class DalMultiPanel extends JPanel {
      * service URL has changed.
      */
     private void updateServiceCoverage() {
-        if ( coverageModel_.isSelected() ) {
-            URL url = toUrl( urlField_.getText() );
-            if ( ( url == null && lastCoverageUrl_ != null ) ||
-                 ( url != null && ! url.equals( lastCoverageUrl_ ) ) ) {
-                Coverage cov = url == null ? null
-                                           : service_.getCoverage( url );
-                serviceCoverageView_.setCoverage( cov );
-                lastCoverageUrl_ = url;
-                updateOverlapCoverage();
+        if ( hasCoverage_ ) {
+            if ( coverageModel_.isSelected() ) {
+                URL url = toUrl( urlField_.getText() );
+                if ( ( url == null && lastCoverageUrl_ != null ) ||
+                     ( url != null && ! url.equals( lastCoverageUrl_ ) ) ) {
+                    Coverage cov = url == null ? null
+                                               : service_.getCoverage( url );
+                    serviceCoverageView_.setCoverage( cov );
+                    lastCoverageUrl_ = url;
+                    updateOverlapCoverage();
+                }
             }
-        }
-        else {
-            serviceCoverageView_.setCoverage( null );
-            lastCoverageUrl_ = null;
+            else {
+                serviceCoverageView_.setCoverage( null );
+                lastCoverageUrl_ = null;
+            }
         }
     }
 
@@ -549,7 +555,7 @@ public class DalMultiPanel extends JPanel {
      */
     private void setActive( MatchWorker worker ) {
         if ( matchWorker_ != null && ! matchWorker_.done_ ) {
-            matchWorker_.interrupt();
+            matchWorker_.cancel();
         }
         matchWorker_ = worker;
         updateState();
@@ -625,14 +631,13 @@ public class DalMultiPanel extends JPanel {
 
         /* Assemble objects based on this information. */
         ConeSearcher searcher = service_.createSearcher( serviceUrl, tfact );
-        searcher = erract.adjustConeSearcher( searcher );
         Coverage coverage = coverageModel_.isSelected()
                           ? service_.getCoverage( serviceUrl )
                           : null;
         DatasQuerySequenceFactory qsf =
             new DatasQuerySequenceFactory( raData, decData, srData, rowMap );
         ConeMatcher matcher =
-            mcMode.createConeMatcher( searcher, inTable, qsf, coverage,
+            mcMode.createConeMatcher( searcher, erract, inTable, qsf, coverage,
                                       parallelism );
         ResultHandler resultHandler =
             mcMode.createResultHandler( this, tfact.getStoragePolicy(),
@@ -685,9 +690,9 @@ public class DalMultiPanel extends JPanel {
             service.getName()
           + " failed - try non-\"" + ConeErrorPolicy.ABORT + "\" value for "
           + ERRACT_LABEL + "?";
-        List plist = new ArrayList();
+        List<ConeErrorPolicy> plist = new ArrayList<ConeErrorPolicy>();
         plist.add( ConeErrorPolicy
-                  .addAdvice( ConeErrorPolicy.ABORT, abortAdvice ) );
+                  .createAdviceAbortPolicy( "abort", abortAdvice ) );
         plist.add( ConeErrorPolicy.IGNORE );
         int[] retries = new int[] { 1, 2, 3, 5, 10, };
         for ( int i = 0; i < retries.length; i++ ) {
@@ -697,7 +702,7 @@ public class DalMultiPanel extends JPanel {
         }
         plist.add( ConeErrorPolicy
                   .createRetryPolicy( "Retry indefinitely", 0 ) );
-        return (ConeErrorPolicy[]) plist.toArray( new ConeErrorPolicy[ 0 ] );
+        return plist.toArray( new ConeErrorPolicy[ 0 ] );
     }
 
     /**
@@ -821,14 +826,12 @@ public class DalMultiPanel extends JPanel {
                 long irow_ = -1;
 
                 public boolean next() throws IOException {
-                    if ( matchWorker_ != null &&
-                         matchWorker_.isInterrupted() ) {
-                        throw new InterruptedIOException();
+                    if ( matchWorker_ != null && matchWorker_.cancelled_ ) {
+                        throw new IOException( "Cancelled" );
                     }
                     boolean retval = rseq.next();
-                    if ( matchWorker_ != null &&
-                         matchWorker_.isInterrupted() ) {
-                        throw new InterruptedIOException();
+                    if ( matchWorker_ != null && matchWorker_.cancelled_ ) {
+                        throw new IOException( "Cancelled" );
                     }
                     if ( retval ) {
                         irow_++;
@@ -892,7 +895,9 @@ public class DalMultiPanel extends JPanel {
         private final StarTable inTable_;
         private int inRow_;
         private int outRow_;
-        private boolean done_;
+        private volatile Thread coneThread_;
+        private volatile boolean done_;
+        private volatile boolean cancelled_;
 
         /**
          * Constructor.
@@ -912,6 +917,17 @@ public class DalMultiPanel extends JPanel {
             inTable_ = inTable;
         }
 
+        /**
+         * Terminates any activity (computations and queries)
+         * associated with this worker.
+         */
+        public void cancel() {
+            cancelled_ = true;
+            if ( coneThread_ != null ) {
+                coneThread_.interrupt();
+            }
+        }
+
         public void run() {
 
             /* Initialise progress GUI. */
@@ -928,19 +944,23 @@ public class DalMultiPanel extends JPanel {
              * when each row arrives the progress GUI is updated. */
             matcher_.setStreamOutput( true );
             try {
-                StarTable streamTable = matcher_.getTable();
+                ConeMatcher.ConeWorker coneWorker = matcher_.createConeWorker();
+                coneThread_ = new Thread( coneWorker, "Cone worker" );
+                coneThread_.setDaemon( true );
+                coneThread_.start();
+                StarTable streamTable = coneWorker.getTable();
                 StarTable progressTable = new WrapperStarTable( streamTable ) {
                     public RowSequence getRowSequence() throws IOException {
                         return new WrapperRowSequence( super
                                                       .getRowSequence() ) {
                             long irow_ = -1;
                             public boolean next() throws IOException {
-                                if ( isInterrupted() ) {
-                                    throw new InterruptedIOException();
+                                if ( cancelled_ ) {
+                                    throw new IOException( "Cancelled" );
                                 }
                                 boolean retval = super.next();
-                                if ( isInterrupted() ) {
-                                    throw new InterruptedIOException();
+                                if ( cancelled_ ) {
+                                    throw new IOException( "Cancelled" );
                                 }
                                 if ( retval ) {
                                     irow_++;
@@ -1061,6 +1081,7 @@ public class DalMultiPanel extends JPanel {
          * Constructs a ConeMatcher suitable for use with this mode.
          *
          * @param  coneSearcher  cone search implementation
+         * @param  errAct   defines action on cone search invocation error
          * @param  inTable  input table
          * @param  qsFact   object which can produce a ConeQueryRowSequence
          *                  from the <code>inTable</code>
@@ -1070,7 +1091,7 @@ public class DalMultiPanel extends JPanel {
          */
         public abstract ConeMatcher
                 createConeMatcher( ConeSearcher coneSearcher,
-                                   StarTable inTable,
+                                   ConeErrorPolicy errAct, StarTable inTable,
                                    QuerySequenceFactory qsFact,
                                    Coverage coverage, int parallelism );
 
@@ -1245,13 +1266,14 @@ public class DalMultiPanel extends JPanel {
         }
 
         public ConeMatcher createConeMatcher( ConeSearcher coneSearcher,
+                                              ConeErrorPolicy errAct,
                                               StarTable inTable,
                                               QuerySequenceFactory qsFact,
                                               Coverage coverage,
                                               int parallelism ) {
             return
-                new ConeMatcher( coneSearcher, toProducer( inTable ), qsFact,
-                                 best_, coverage, includeBlanks_, true,
+                new ConeMatcher( coneSearcher, errAct, toProducer( inTable ),
+                                 qsFact, best_, coverage, includeBlanks_, true,
                                  parallelism, "*", DIST_NAME,
                                  JoinFixAction.NO_ACTION,
                                  JoinFixAction
@@ -1292,11 +1314,12 @@ public class DalMultiPanel extends JPanel {
         }
 
         public ConeMatcher createConeMatcher( ConeSearcher coneSearcher,
+                                              ConeErrorPolicy errAct,
                                               StarTable inTable,
                                               QuerySequenceFactory qsFact,
                                               Coverage coverage,
                                               int parallelism ) {
-            return new ConeMatcher( coneSearcher,
+            return new ConeMatcher( coneSearcher, errAct,
                                     toProducer( prependIndex( inTable ) ),
                                     qsFact, true, coverage, false, true,
                                     parallelism, INDEX_INFO.getName(), null,

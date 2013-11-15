@@ -31,23 +31,22 @@ public class KernelFactory
     /**
      * Create gaussian kernel.
      */
-    public static double[] gaussianKernel( int width, double fwhm )
+    public static double[] gaussianKernel( double incr, int width,
+                                           double fwhm )
     {
         width = getSetWidth( width );
         double[] kernel = new double[width];
-
-        // Centre of kernel.
-        int centre = width / 2;
 
         //  Convert fwhm to sigma (/2*sqrt(2*ln(2)).
         double sigma = fwhm / 2.35482;
 
         // Generator for positions.
-        GaussianGenerator generator =
-            new GaussianGenerator( 1.0, centre, sigma );
+        GaussianGenerator generator = new GaussianGenerator( 1.0, 0.0, sigma );
 
+        double x = - ( ( width - 1 ) * incr * 0.5 );
         for ( int j = 0; j < width; j++ ) {
-            kernel[j] = generator.evalYData( (double) j );
+            kernel[j] = generator.evalYData( x );
+            x += incr;
         }
 
         return kernel;
@@ -56,20 +55,19 @@ public class KernelFactory
     /**
      * Create lorentzian kernel.
      */
-    public static double[] lorentzKernel( int width, double lwidth )
+    public static double[] lorentzKernel( double incr, int width,
+                                          double lwidth )
     {
         width = getSetWidth( width );
         double[] kernel = new double[width];
 
-        // Centre of kernel.
-        int centre = width / 2;
-
         // Generator for positions.
-        LorentzGenerator generator =
-            new LorentzGenerator( 1.0, centre, lwidth );
+        LorentzGenerator generator = new LorentzGenerator( 1.0, 0.0, lwidth );
 
+        double x = - ( ( width - 1 ) * incr * 0.5 );
         for ( int j = 0; j < width; j++ ) {
-            kernel[j] = generator.evalYData( (double) j );
+            kernel[j] = generator.evalYData( x );
+            x += incr;
         }
 
         return kernel;
@@ -78,7 +76,7 @@ public class KernelFactory
     /**
      * Create voigt kernel.
      */
-    public static double[] voigtKernel( int width, double gwidth,
+    public static double[] voigtKernel( double incr, int width, double gwidth,
                                         double lwidth )
     {
         width = getSetWidth( width );
@@ -89,10 +87,12 @@ public class KernelFactory
 
         // Generator for positions.
         VoigtGenerator generator =
-            new VoigtGenerator( 1.0, centre, gwidth, lwidth );
+            new VoigtGenerator( 1.0, 0.0, gwidth, lwidth );
 
+        double x = - ( ( width - 1 ) * incr * 0.5 );
         for ( int j = 0; j < width; j++ ) {
-            kernel[j] = generator.evalYData( (double) j );
+            kernel[j] = generator.evalYData( x );
+            x += incr;
         }
 
         return kernel;
@@ -113,7 +113,7 @@ public class KernelFactory
     {
         return hanHamKernel( width, 0.54, 0.46 );
     }
-    
+
     /**
      * Hamming or Hanning-like filter with given coefficients.
      */
@@ -121,7 +121,7 @@ public class KernelFactory
     {
         width = getSetWidth( width );
         double[] kernel = new double[width];
-        
+
         int centre = width / 2;
 
         //  Create the first positions up the centre. Keep sum as we need to
@@ -155,7 +155,7 @@ public class KernelFactory
     {
         width = getSetWidth( width );
         double[] kernel = new double[width];
-        
+
         int centre = width / 2;
 
         //  Create the first positions up the centre. Keep sum as we need to
@@ -190,7 +190,7 @@ public class KernelFactory
     {
         width = getSetWidth( width );
         double[] kernel = new double[width];
-        
+
         int centre = width / 2;
 
         //  Create the first positions up the centre. Keep sum as we need to

@@ -1,4 +1,4 @@
-package uk.ac.starlink.table;
+package uk.ac.starlink.table.gui;
 
 import java.awt.Component;
 import java.awt.Container;

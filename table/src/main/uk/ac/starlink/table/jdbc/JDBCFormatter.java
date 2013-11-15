@@ -9,10 +9,12 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.PreparedStatement;
 import java.sql.Types;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -31,13 +33,14 @@ import uk.ac.starlink.util.Loader;
 public class JDBCFormatter {
 
     private final Connection conn_;
-    private final String quote_;
     private final int maxColLeng_;
     private final int maxTableLeng_;
     private final StarTable table_;
     private final SqlColumn[] sqlCols_;
     private final int[] sqlTypes_;
     private final Map typeNameMap_;
+    private final SqlSyntax sqlSyntax_;
+    private final boolean upperCasePreferred_;
 
     private static Logger logger = 
         Logger.getLogger( "uk.ac.starlink.table.jdbc" );
@@ -54,9 +57,10 @@ public class JDBCFormatter {
         table_ = table;
         typeNameMap_ = makeTypesMap( conn_ );
         DatabaseMetaData meta = conn_.getMetaData();
-        quote_ = meta.getIdentifierQuoteString();
         maxColLeng_ = meta.getMaxColumnNameLength();
         maxTableLeng_ = meta.getMaxTableNameLength();
+        upperCasePreferred_ = meta.storesUpperCaseIdentifiers();
+        sqlSyntax_ = getSqlSyntax( meta );
 
         /* Work out column types and see if we need to work out maximum string
          * lengths. */
@@ -108,7 +112,7 @@ public class JDBCFormatter {
         Set cnames = new HashSet();
         for ( int icol = 0; icol < ncol; icol++ ) {
             ColumnInfo col = table_.getColumnInfo( icol );
-            String colName = fixName( col.getName(), maxColLeng_ );
+            String colName = fixName( col.getName(), maxColLeng_, "column" );
 
             /* Check that we don't have a duplicate column name. */
             while ( cnames.contains( colName ) ) {
@@ -140,9 +144,7 @@ public class JDBCFormatter {
     public String getCreateStatement( String tableName ) {
         StringBuffer sql = new StringBuffer();
         sql.append( "CREATE TABLE " )
-           .append( quote_ )
-           .append( fixName( tableName, maxTableLeng_ ) )
-           .append( quote_ )
+           .append( defensiveQuoteTable( tableName ) )
            .append( " (" );
         int ncol = sqlCols_.length;
         boolean first = true;
@@ -154,9 +156,7 @@ public class JDBCFormatter {
                 }
                 first = false;
                 sql.append( ' ' )
-                   .append( quote_ )
-                   .append( sqlCol.getColumnName() )
-                   .append( quote_ )
+                   .append( defensiveQuoteColumn( sqlCol.getColumnName() ) )
                    .append( ' ' )
                    .append( sqlCol.getTypeSpec() );
             }
@@ -175,9 +175,7 @@ public class JDBCFormatter {
     public String getInsertStatement( String tableName ) {
         StringBuffer sql = new StringBuffer();
         sql.append( "INSERT INTO " )
-           .append( quote_ )
-           .append( fixName( tableName, maxTableLeng_ ) )
-           .append( quote_ )
+           .append( defensiveQuoteTable( tableName ) )
            .append( " VALUES(" );
         boolean first = true;
         int ncol = sqlCols_.length;
@@ -209,11 +207,9 @@ public class JDBCFormatter {
  
         /* Table deletion. */
         if ( mode.getAttemptDrop() ) {
+            tableName = fixName( tableName, maxTableLeng_, "table" );
             try {
-                String cmd = "DROP TABLE "
-                           + quote_
-                           + fixName( tableName, maxTableLeng_ )
-                           + quote_;
+                String cmd = "DROP TABLE " + defensiveQuoteTable( tableName );
                 logger.info( cmd );
                 stmt.executeUpdate( cmd );
                 logger.warning( "Dropped existing table " + tableName + 
@@ -226,6 +222,7 @@ public class JDBCFormatter {
 
         /* Table creation. */
         if ( mode.getCreate() ) {
+            tableName = fixName( tableName, maxTableLeng_, "table" );
             String create = getCreateStatement( tableName );
             logger.info( create );
             stmt.executeUpdate( create );
@@ -394,9 +391,11 @@ public class JDBCFormatter {
      *
      * @param  name  initial column name
      * @param  maxLeng  maximum name length; 0 means no limit
+     * @param  idType   type of identifier being quoted, used in log messages
      * @return   fixed column name (may be the same as <tt>name</tt>)
      */
-    private String fixName( String name, int maxLeng ) {
+    private String fixName( String name, int maxLeng, String idtype ) {
+        final String name0 = name;
 
         /* Escape special characters, replacing them with an underscore. */
         name = name.replaceAll( "\\W+", "_" );
@@ -406,14 +405,126 @@ public class JDBCFormatter {
             name = name.substring( 0, maxColLeng_ - 4 );
         }
 
-        /* Replace reserved words.  This list is not complete. */
-        if ( SqlReserved.isReserved( name ) ) {
-            logger.info( "Renaming column " + name + " to " + name + 
-                         "_ (SQL reserved word)" );
-            name = name + "_";
-            assert ! SqlReserved.isReserved( name );
+        /* Replace reserved words. */
+        if ( sqlSyntax_.isReserved( name ) ) {
+            name += "_";
         }
+
+        /* Report any identifier changes. */
+        if ( ! name0.equals( name ) ) {
+            logger.warning( "Renamed " + idtype + '"' + name0 + '"' + " to "
+                          + '"' + name + '"' + " (SQL syntax)" );
+        }
+        assert sqlSyntax_.isIdentifier( name );
+        assert ! sqlSyntax_.isReserved( name );
         return name;
+    }
+
+    /**
+     * Perform quoting of an identifier which is intended to defend against
+     * the situation in which that identifier is unexpectedly a reserved word.
+     * The intention is that the quoting works as though it's not there for
+     * unreserved names, though this is not easy to achieve.
+     * Because of the quoting semantics (delimited identifier) in SQL92,
+     * and its abuse by RDBMSs in practice, the most harmless way to do
+     * this seems to be to fold the case to that preferred by the DB and
+     * then quote it using the DB's favoured quote characters.
+     * I've taken advice on this from Markus Demleitner, but the whole thing
+     * seems like a bit of a minefield, so there may be cases where this
+     * does not do what's required.
+     * An alternative implementation that might work better for some purposes
+     * would be to return the argument unchanged.
+     *
+     * @param  name   identifier to quote
+     * @return  identifier possibly defensively quoted in some way
+     */
+    private String defensiveQuote( String name ) {
+        return sqlSyntax_.quote( upperCasePreferred_ ? name.toUpperCase()
+                                                     : name.toLowerCase() );
+    }
+
+    /**
+     * Defensively quotes a column name.
+     *
+     * @param  name   identifier to quote
+     * @return  identifier possibly defensively quoted in some way
+     */
+    private String defensiveQuoteColumn( String name ) {
+        return defensiveQuote( name );
+    }
+
+    /**
+     * Defensively quotes a table name.
+     *
+     * <p>The current implementation is a no-op.
+     * On MySQL at least, quoting table names seems more problematic than
+     * quoting column names, for instance
+     * <blockquote>
+     *    CREATE TABLE `animals` (`legs` INTEGER)
+     *    mysql> select LEGS from animals;
+     *    Empty set (0.00 sec)
+     *    mysql> select legs from ANIMALS;
+     *    ERROR 1146 (42S02): Table 'test.ANIMALS' doesn't exist
+     * </blockquote>
+     * And table names are less likely to result in surprising name clashes
+     * than column names (at least, there are fewer of them).
+     * So don't quote them, and cross fingers.
+     *
+     * @param  name   identifier to quote
+     * @return  identifier possibly defensively quoted in some way
+     */
+    private String defensiveQuoteTable( String name ) {
+        return name;
+    }
+
+    /**
+     * Returns an SqlSyntax object for a given database connection.
+     * If something goes wrong, it returns one with default characteristics.
+     *
+     * @param  meta   db metadata
+     * @return   syntax object
+     */
+    private static SqlSyntax getSqlSyntax( DatabaseMetaData meta ) {
+
+        /* Assemble a list of reserved words.  In principle it should only
+         * be necessary to use the SQL92 set and the result of calling
+         * meta.getSQLKeywords() on the JDBC driver metadata object.
+         * But in practice this seems to miss some (e.g. my first try with
+         * mysql-connector-java-5.0.4 did not report the word "INDEX").
+         * So, be paranoid and quote things.  It's not very satisfactory, 
+         * but it seems pretty hard to do this in a way which is robust for
+         * all or most RDBMSs. */
+        Collection<String> words = new HashSet<String>();
+        words.addAll( Arrays.asList( SqlSyntax.getParanoidReservedWords() ) );
+        char quoteChar = '"';
+        try {
+            String quote = meta.getIdentifierQuoteString();
+            quoteChar = quote.length() == 1 ? quote.charAt( 0 ) : ' ';
+            words.addAll( getWords( meta.getSQLKeywords() ) );
+
+            /* There are also a bunch of other get*Functions methods on the
+             * database that we could throw in here.  However, (on advice)
+             * I don't believe these sit in the same namespace as the table
+             * or column names, so it shouln't be necessary to add them. */
+        }
+        catch ( Exception e ) {
+            logger.warning( "Some problem determining SQL syntax: " + e );
+            logger.warning( "Use default SQL syntax" );
+        }
+        return new SqlSyntax( words.toArray( new String[ 0 ] ),
+                              SqlSyntax.SQL92_IDENTIFIER_REGEX, quoteChar );
+    }
+
+    /**
+     * Splits a comma-separated string into individual words.
+     *
+     * @param  commaList  comma-separated string
+     * @return  list of words
+     */
+    private static final List<String> getWords( String commaList ) {
+        return commaList == null || commaList.trim().length() == 0
+             ? new ArrayList<String>()
+             : Arrays.asList( commaList.split( ", *" ) );
     }
 
     /**

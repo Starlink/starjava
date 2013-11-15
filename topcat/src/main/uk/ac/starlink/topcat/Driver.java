@@ -3,6 +3,8 @@ package uk.ac.starlink.topcat;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.Authenticator;
+import java.net.PasswordAuthentication;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -206,7 +208,6 @@ public class Driver {
                            + TopcatUtils.getVersion() );
         Loader.setDefaultProperty( "java.awt.Window.locationByPlatform",
                                    "true" );
-        PropertyAuthenticator.installInstance();
 
         /* Fine tune the logging - we don't need HDS or AST here, so 
          * stop them complaining when they can't be loaded. */
@@ -438,6 +439,12 @@ public class Driver {
 
         /* Start up the GUI now. */
         final ControlWindow control = getControlWindow();
+
+        /* Set up an authenticator for HTTP 401s.  If properties are
+         * supplied, use those, otherwise use one which will pop up a window. */
+        if ( ! PropertyAuthenticator.installInstance( false ) ) {
+            Authenticator.setDefault( new SwingHttpAuthenticator( control ) );
+        }
 
         /* Start up with demo data if requested. */
         if ( demo ) {

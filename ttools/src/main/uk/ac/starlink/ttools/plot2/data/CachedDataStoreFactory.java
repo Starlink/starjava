@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import uk.ac.starlink.table.DomainMapper;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.ttools.plot2.Equality;
@@ -59,8 +60,9 @@ public class CachedDataStoreFactory implements DataStoreFactory {
             return prevStore;
         }
         else {
+            CacheData oldData = gotData.retain( needSpec );
             CacheData makeData = makeSpec.readData( colFact_ );
-            CacheData useData = makeData.add( gotData.retain( needSpec ) );
+            CacheData useData = makeData.add( oldData );
             return useData;
         }
     }
@@ -503,6 +505,7 @@ public class CachedDataStoreFactory implements DataStoreFactory {
         final int icoord_;
         final Coord coord_;
         final Object coordId_;
+        final DomainMapper[] mappers_;
 
         /**
          * Constructor.
@@ -516,6 +519,8 @@ public class CachedDataStoreFactory implements DataStoreFactory {
             table_ = dataSpec.getSourceTable();
             coordId_ = dataSpec.getCoordId( icoord );
             coord_ = dataSpec.getCoord( icoord );
+            mappers_ = SimpleDataStoreFactory
+                      .getUserCoordMappers( dataSpec, icoord );
         }
 
         /**
@@ -537,7 +542,7 @@ public class CachedDataStoreFactory implements DataStoreFactory {
         Object readValue( RowSequence rseq, long irow ) throws IOException {
             Object[] userCoords =
                 dataReader_.getUserCoordValues( rseq, irow, icoord_ );
-            Object value = coord_.userToStorage( userCoords );
+            Object value = coord_.userToStorage( userCoords, mappers_ );
             assert value != null;
             return value;
         }

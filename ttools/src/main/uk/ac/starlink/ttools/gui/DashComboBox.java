@@ -41,11 +41,6 @@ public class DashComboBox extends RenderingComboBox {
      */
     public DashComboBox( float[][] dashes ) {
         dashes = (float[][]) dashes.clone();
-        for ( int i = 0; i < dashes.length; i++ ) {
-            if ( dashes[ i ] == null ) {
-                dashes[ i ] = SOLID;
-            }
-        }
         setModel( new DefaultComboBoxModel( dashes ) );
     }
 
@@ -55,7 +50,7 @@ public class DashComboBox extends RenderingComboBox {
      * @return   selected dash array
      */
     public float[] getSelectedDash() {
-        return (float[]) getSelectedItem();
+        return normaliseDash( (float[]) getSelectedItem() );
     }
 
     /**
@@ -66,12 +61,11 @@ public class DashComboBox extends RenderingComboBox {
      * @param  dash  new selected dash.  Null is ok for solid
      */
     public void setSelectedDash( float[] dash ) {
-        if ( dash == null ) {
-            dash = SOLID;
-        }
+        dash = normaliseDash( dash );
         int nitem = getItemCount();
         for ( int i = 0; i < nitem; i++ ) {
-            if ( Arrays.equals( dash, (float[]) getItemAt( i ) ) ) {
+            if ( Arrays.equals( dash,
+                                normaliseDash( (float[]) getItemAt( i ) ) ) ) {
                 setSelectedIndex( i );
                 return;
             }
@@ -84,7 +78,7 @@ public class DashComboBox extends RenderingComboBox {
     }
 
     protected Icon getRendererIcon( Object d ) {
-        final float[] dash = (float[]) d;
+        final float[] dash = normaliseDash( (float[]) d );
         return new Icon() {
             public int getIconHeight() {
                 return LINE_THICKNESS;
@@ -107,5 +101,17 @@ public class DashComboBox extends RenderingComboBox {
                 g2.setColor( oldColor );
             }
         };
+    }
+
+    /**
+     * Normalises objects representing dashes.
+     * This method turns a null value into a fixed representation meaning
+     * a solid line, and otherwise leaves the input value unchanged.
+     *
+     * @param  dash   input dash sequence, may be null
+     * @return   equivalent dash sequence, not null
+     */
+    private final float[] normaliseDash( float[] dash ) {
+        return dash == null ? SOLID : dash;
     }
 }

@@ -52,6 +52,25 @@
    axes has been fixed. This means the "Spec position:" item should now be 
    correct for DSB spectral frames with permuted axes.
 
+   A problem filtering with the standard spectral profiles has been fixed.
+   Previously the profiles where sampled with an interval of one X coordinate
+   unit, this is now done using the average channel spacing.
+
+   A bug in the utype matching code has been fixed. Previously the data
+   column of a table would not match against fluxaxis utypes as intended
+   (in fact it matched against the coordinate column, which could be
+    confusing).
+
+   A bug when determining the statistics of more than one range when
+   the spectral axis was reversed has been fixed.
+
+   It is now possible to switching columns for spectra stored as a single
+   row in vector cell format.
+
+   The column selection for tables now prefers those with UCD meta.main.
+
+   Post Hikianalia
+
 
    3.9-9
    ======
@@ -270,7 +289,7 @@ Lehuakona Release
    The line profile fits now include error estimates for the fitting
    parameters.
 
-   An error in the derivates used when fitting the Voigt profile has been
+   An error in the derivatives used when fitting the Voigt profile has been
    corrected. This should give closer fits in some cases.
 
    MIME types from SSAP queries may now include trailing attributes.
@@ -304,11 +323,11 @@ Lehuakona Release
    requesting this sometimes caused the dialog to just close.
 
    When attempting to overwrite an NDF that is already opened a suitable
-   error message is now displayed, rather than an unhelp report about
+   error message is now displayed, rather than an unhelpful report about
    a null exception.
 
    Printing to postscript should make better use of the available space
-   and fix a scaling problem with the encapulated option.
+   and fix a scaling problem with the encapsulated option.
 
    3.8-6
    =====

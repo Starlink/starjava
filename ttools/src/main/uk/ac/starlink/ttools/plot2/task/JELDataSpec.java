@@ -5,8 +5,10 @@ import gnu.jel.CompiledExpression;
 import gnu.jel.Library;
 import java.io.IOException;
 import java.util.Arrays;
+import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.jel.JELUtils;
 import uk.ac.starlink.ttools.jel.StarTableJELRowReader;
@@ -32,6 +34,7 @@ public class JELDataSpec extends AbstractDataSpec {
     private final String maskExpr_;
     private final Coord[] coords_;
     private final String[][] userCoordExprs_;
+    private final ValueInfo[][] userCoordInfos_;
     private final JELKey maskId_;
     private final JELKey[] coordIds_;
 
@@ -71,7 +74,19 @@ public class JELDataSpec extends AbstractDataSpec {
 
         /* Dry run of creating a data reader.  This checks that the JEL
          * expressions can be compiled, and throws a TaskException if not. */
-        createJELUserDataReader();
+        JELUserDataReader dataRdr = createJELUserDataReader();
+
+        /* For simple (one-element) coordinates, extract and store their
+         * column metadata from the data reader. */
+        userCoordInfos_ = new ValueInfo[ nCoord ][];
+        for ( int ic = 0; ic < nCoord; ic++ ) {
+            int nu = userCoordExprs[ ic ].length;
+            userCoordInfos_[ ic ] = new ValueInfo[ nu ];
+            for ( int iu = 0; iu < nu; iu++ ) {
+                userCoordInfos_[ ic ][ iu ] =
+                    dataRdr.userCoordReaders_[ ic ][ iu ].getValueInfo();
+            }
+        }
     }
 
     public StarTable getSourceTable() {
@@ -94,6 +109,10 @@ public class JELDataSpec extends AbstractDataSpec {
         return maskId_;
     }
 
+    public ValueInfo[] getUserCoordInfos( int ic ) {
+        return userCoordInfos_[ ic ];
+    }
+
     public UserDataReader createUserDataReader() {
         try {
             return createJELUserDataReader();
@@ -112,17 +131,17 @@ public class JELDataSpec extends AbstractDataSpec {
      * @throws TaskException if JEL compilation fails
      */
     private JELUserDataReader createJELUserDataReader() throws TaskException {
-        return new JELUserDataReader( table_, maskExpr_, userCoordExprs_ );
+        return new JELUserDataReader( table_, maskExpr_, userCoordExprs_,
+                                      coords_ );
     }
 
     /**
      * UserDataReader implementation for use with this class.
      */
     private static class JELUserDataReader implements UserDataReader {
-        private final RowSequenceEvaluator evaluator_;
-        private final CompiledExpression maskCompex_;
+        private final ValueReader maskReader_;
+        private final ValueReader[][] userCoordReaders_;
         private final Object[][] userCoordRows_;
-        private final CompiledExpression[][] userCoordCompexs_;
 
         /**
          * Constructor.
@@ -132,71 +151,218 @@ public class JELDataSpec extends AbstractDataSpec {
          * @param  userCoordExprs   nCoord-element array, each element an array
          *                          of JEL expressions corresponding to
          *                          the user values for the cooresponding Coord
+         * @param  coords    nCoord-element array of coordinate definitions
          * @throws  TaskException   with an informative message
          *                          if compilation fails
          */
         JELUserDataReader( StarTable table, String maskExpr,
-                           String[][] userCoordExprs )
+                           String[][] userCoordExprs, Coord[] coords )
                 throws TaskException {
 
             /* Set up for JEL compilation against our table. */
-            evaluator_ = new RowSequenceEvaluator( table );
-            Library lib = JELUtils.getLibrary( evaluator_ );
+            RowSequenceEvaluator evaluator = new RowSequenceEvaluator( table );
+            Library lib = JELUtils.getLibrary( evaluator );
 
             /* Compile mask expression. */
-            try {
-                maskCompex_ = maskExpr == null
-                            ? null
-                            : JELUtils
-                             .compile( lib, table, maskExpr, boolean.class );
-            }
-            catch ( CompilationException e ) {
-                throw new TaskException( "Bad expression \"" + maskExpr + "\"",
-                                         e );
-            }
+            maskReader_ = createValueReader( maskExpr, table, evaluator, lib,
+                                             Boolean.TRUE, boolean.class );
 
             /* Compile coord expressions. */
             int nCoord = userCoordExprs.length;
             userCoordRows_ = new Object[ nCoord ][];
-            userCoordCompexs_ = new CompiledExpression[ nCoord ][];
+            userCoordReaders_ = new ValueReader[ nCoord ][];
             for ( int ic = 0; ic < nCoord; ic++ ) {
+                ValueInfo[] reqInfos = coords[ ic ].getUserInfos();
                 String[] ucexprs = userCoordExprs[ ic ];
                 int nu = ucexprs.length;
                 userCoordRows_[ ic ] = new Object[ nu ];
-                CompiledExpression[] compexs = new CompiledExpression[ nu ];
+                ValueReader[] vrdrs = new ValueReader[ nu ];
                 for ( int iu = 0; iu < nu; iu++ ) {
-                    try {
-                        compexs[ iu ] =
-                            JELUtils.compile( lib, table, ucexprs[ iu ] );
-                    }
-                    catch ( CompilationException e ) {
-                        throw new TaskException( "Bad Expression \""
-                                               + ucexprs[ iu ] + "\"", e );
-                    }
+                    vrdrs[ iu ] =
+                        createValueReader( ucexprs[ iu ], table, evaluator, 
+                                           lib, null,
+                                           reqInfos[ iu ].getContentClass() );
                 }
-                userCoordCompexs_[ ic ] = compexs;
+                userCoordReaders_[ ic ] = vrdrs;
             }
         }
 
         public boolean getMaskFlag( RowSequence rseq, long irow )
                 throws IOException {
-            return maskCompex_ == null
-                || Boolean.TRUE
-                  .equals( evaluator_
-                          .evaluateObject( maskCompex_, rseq, irow ) );
+            return Boolean.TRUE.equals( maskReader_.readValue( rseq, irow ) );
         }
 
         public Object[] getUserCoordValues( RowSequence rseq, long irow,
                                             int icoord )
                 throws IOException {
-            CompiledExpression[] compexs = userCoordCompexs_[ icoord ];
-            int nu = compexs.length;
+            ValueReader[] vrdrs = userCoordReaders_[ icoord ];
+            int nu = vrdrs.length;
             Object[] userRow = userCoordRows_[ icoord ];
             for ( int iu = 0; iu < nu; iu++ ) {
-                userRow[ iu ] =
-                    evaluator_.evaluateObject( compexs[ iu ], rseq, irow );
+                userRow[ iu ] = vrdrs[ iu ].readValue( rseq, irow );
             }
             return userRow;
+        }
+    }
+
+    /**
+     * Creates an object that can read values defined by a given expression.
+     *
+     * @param  expr  JEL expression, column name, or null
+     * @param  table   table in whose context expr is to be evaluated
+     * @param  evaluator   JEL evaluator for table
+     * @param  lib   JEL library associated with evaluator
+     * @param  fallback  constant object value read if expression is blank
+     * @param  reqClazz  required type for values read by the returned reader
+     * @return   new value reader
+     */
+    private static ValueReader
+                   createValueReader( String expr, StarTable table,
+                                      RowSequenceEvaluator evaluator,
+                                      Library lib, Object fallback,
+                                      Class<?> reqClazz )
+            throws TaskException {
+
+        /* Null in, fixed value out. */
+        if ( expr == null || expr.trim().length() == 0 ) {
+            return new FixedValueReader( fallback );
+        }
+
+        /* Look for a column with a matching name.  As well as a (possible,
+         * small) increase in efficiency over doing it the JEL way, this
+         * enables us to get the metadata from the column. */
+        int ncol = table.getColumnCount();
+        for ( int icol = 0; icol < ncol; icol++ ) {
+            ValueInfo info = table.getColumnInfo( icol );
+            if ( expr.trim().equalsIgnoreCase( info.getName().trim() ) ) {
+                return new ColumnValueReader( table, icol );
+            }
+        }
+
+        /* If that doesn't work, treat it as a JEL expression.
+         * We can't get metadata for this. */
+        final CompiledExpression compex;
+        try {
+            compex = JELUtils.compile( lib, table, expr );
+        }
+        catch ( CompilationException e ) {
+            throw new TaskException( "Bad Expression \"" + expr + "\"", e );
+        }
+        Class exprClazz = compex.getTypeC();
+        if ( ! reqClazz.isAssignableFrom( exprClazz ) ) {
+            String msg = new StringBuffer()
+                .append( "Expression wrong type: " )
+                .append( '"' )
+                .append( expr )
+                .append( '"' )
+                .append( " is " )
+                .append( exprClazz.getName() )
+                .append( " not " )
+                .append( reqClazz.getName() )
+                .toString();
+            throw new TaskException( msg );
+        }
+        return new JelValueReader( evaluator, compex, expr );
+    }
+
+    /**
+     * Acquires a value at a given row of a sequence.
+     */
+    private interface ValueReader {
+
+        /**
+         * Acquires a value from the current row of a given RowSequence.
+         * The redundancy between the two parameters is intentional.
+         *
+         * @param   rseq   row sequence positioned at the row of interest
+         * @param   irow   index of the row of interest
+         * @return  expression value
+         */
+        Object readValue( RowSequence rseq, long irow ) throws IOException;
+
+        /**
+         * Returns metadata associated with the column if known.
+         *
+         * @return   value info or null
+         */
+        ValueInfo getValueInfo();
+    }
+
+    /**
+     * ValueReader implementation whose readValue method always returns null.
+     */
+    private static class FixedValueReader implements ValueReader {
+        private final Object value_;
+        private FixedValueReader( Object value ) {
+            value_ = value;
+        }
+        public Object readValue( RowSequence rseq, long irow ) {
+            return value_;
+        }
+        public ValueInfo getValueInfo() {
+            return null;
+        }
+    }
+
+    /**
+     * ValueReader implementation that reads a given table column.
+     */
+    private static class ColumnValueReader implements ValueReader {
+        private final int icol_;
+        private final ValueInfo info_;
+
+        /**
+         * Constructor.
+         *
+         * @param  icol  table column index to read
+         */
+        ColumnValueReader( StarTable table, int icol ) {
+            icol_ = icol;
+            info_ = table.getColumnInfo( icol );
+        }
+
+        public Object readValue( RowSequence rseq, long irow )
+                throws IOException {
+            return rseq.getCell( icol_ );
+        }
+
+        public ValueInfo getValueInfo() {
+            return info_;
+        }
+    }
+
+    /**
+     * ValueReader implementation that evaluates JEL expressions.
+     * Not thread-safe.
+     */
+    private static class JelValueReader implements ValueReader {
+        private final RowSequenceEvaluator evaluator_;
+        private final CompiledExpression compex_;
+        private final ValueInfo info_;
+        private RowSequence rseq_;
+        private long irow_;
+
+        /**
+         * Constructor.
+         *
+         * @param   evaluator  evaluator object
+         * @param   compex  expression to evaluate
+         * @param   expr  expression text
+         */
+        JelValueReader( RowSequenceEvaluator evaluator,
+                        CompiledExpression compex, String expr ) {
+            evaluator_ = evaluator;
+            compex_ = compex;
+            info_ = new DefaultValueInfo( expr, compex.getTypeC(), null );
+        }
+
+        public Object readValue( RowSequence rseq, long irow )
+                throws IOException {
+            return evaluator_.evaluateObject( compex_, rseq, irow );
+        }
+
+        public ValueInfo getValueInfo() {
+            return info_;
         }
     }
 
@@ -241,7 +407,8 @@ public class JELDataSpec extends AbstractDataSpec {
          * @return  expression value
          */
         public Object evaluateObject( CompiledExpression compex,
-                                      RowSequence rseq, long irow ) {
+                                      RowSequence rseq, long irow )
+                throws IOException {
 
             /* Set the internal state of this JELRowReader object so that
              * the overridden getCurrentRow and getCell methods will retrieve
@@ -252,6 +419,9 @@ public class JELDataSpec extends AbstractDataSpec {
             /* Perform the evaluation. */
             try {
                 return evaluate( compex );
+            }
+            catch ( IOException e ) {
+                throw e;
             }
             catch ( Throwable e ) {
                 return null;

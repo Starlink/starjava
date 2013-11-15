@@ -1,12 +1,13 @@
 package uk.ac.starlink.ttools.plot2.config;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.Stroke;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import javax.swing.JComboBox;
-import javax.swing.JComponent;
 import javax.swing.ListModel;
 import org.scilab.forge.jlatexmath.TeXFormula;
 import uk.ac.starlink.ttools.gui.ColorComboBox;
@@ -79,8 +80,14 @@ public class StyleKeys {
        .createSliderKey( new ConfigMeta( "opaque", "Opaque limit" ),
                          1, 1, 1000, true );
 
+    /** Config key for transparency level of adaptive transparent plots. */
+    public static final ConfigKey<Double> TRANSPARENT_LEVEL =
+        DoubleConfigKey
+       .createSliderKey( new ConfigMeta( "translevel", "Transparency Level" ),
+                         0.1, 0.001, 2, true );
+
     /** Config key for line thickness. */
-    public static final ConfigKey<Integer> THICKNESS =
+    private static final ConfigKey<Integer> THICKNESS =
             new IntegerConfigKey( new ConfigMeta( "thick", "Thickness" ),
                                   1, 5, 1 ) {
         public Specifier<Integer> createSpecifier() {
@@ -89,7 +96,7 @@ public class StyleKeys {
     };
 
     /** Config key for line dash style. */
-    public static final ConfigKey<float[]> DASH =
+    private static final ConfigKey<float[]> DASH =
             new NamedObjectKey<float[]>( new ConfigMeta( "dash", "Dash" ),
                                          float[].class, null,
                                          new DashParameter( "dash" ) ) {
@@ -97,6 +104,11 @@ public class StyleKeys {
             return new ComboBoxSpecifier<float[]>( new DashComboBox() );
         }
     };
+
+    /** Config key for line antialiasing. */
+    public static final ConfigKey<Boolean> ANTIALIAS =
+        new BooleanConfigKey( new ConfigMeta( "antialias", "Antialiasing" ),
+                              false );
 
     /** Config key for text anchor positioning. */
     public static final ConfigKey<Anchor> ANCHOR =
@@ -155,6 +167,12 @@ public class StyleKeys {
                                  new ErrorMode[] { ErrorMode.SYMMETRIC,
                                                    ErrorMode.SYMMETRIC } );
 
+    /** Config key for 1d (vertical) error marker style. */
+    public static final MultiPointConfigKey ERROR_SHAPE_1D =
+        new MultiPointConfigKey( new ConfigMeta( "errorbar", "Error Bar" ),
+                                 ErrorRenderer.getOptions1d(),
+                                 new ErrorMode[] { ErrorMode.SYMMETRIC } );
+
     /** Config key for 2d error marker style. */
     public static final MultiPointConfigKey ERROR_SHAPE_2D =
         new MultiPointConfigKey( new ConfigMeta( "errorbar", "Error Bar" ),
@@ -174,6 +192,10 @@ public class StyleKeys {
     public static final ConfigKey<Shader> AUX_SHADER =
         new ShaderConfigKey( new ConfigMeta( "shader", "Shader" ),
                              createAuxShaders(), Shaders.LUT_RAINBOW );
+
+    /** Config key for restricting the range of an aux shader colour map. */
+    public static final ConfigKey<Subrange> AUX_SHADER_CLIP =
+        new SubrangeConfigKey( new ConfigMeta( "shadeclip", "Shade Clip" ) );
 
     /** Config key for aux shader logarithmic flag. */
     public static final ConfigKey<Boolean> SHADE_LOG =
@@ -208,6 +230,10 @@ public class StyleKeys {
                              createDensityShaders(),
                              createDensityShaders()[ 0 ] );
 
+    /** Config key for restricting the range of a density shader colour map. */
+    public static final ConfigKey<Subrange> DENSITY_SHADER_CLIP =
+        new SubrangeConfigKey( new ConfigMeta( "denseclip", "Map clip" ) );
+                             
     /** Config key for density shader subrange. */
     public static final ConfigKey<Subrange> DENSITY_SUBRANGE =
         new SubrangeConfigKey( new ConfigMeta( "densescale",
@@ -245,6 +271,12 @@ public class StyleKeys {
     /** Config key for minor tick drawing key. */
     public static final ConfigKey<Boolean> MINOR_TICKS =
         new BooleanConfigKey( new ConfigMeta( "minor", "Minor Ticks" ), true );
+
+    /** Config key for zoom factor. */
+    public static final ConfigKey<Double> ZOOM_FACTOR =
+        DoubleConfigKey
+       .createSliderKey( new ConfigMeta( "zoomfactor", "Zoom Factor" ),
+                         1.2, 1, 2, true );
 
     /**
      * Private constructor prevents instantiation.
@@ -286,13 +318,50 @@ public class StyleKeys {
     }
 
     /**
+     * Returns a list of config keys for configuring a line-drawing stroke.
+     * Pass a map with values for these to the <code>createStroke</code>
+     * method.
+     *
+     * @return  stroke key list
+     * @see  #createStroke
+     */
+    public static ConfigKey[] getStrokeKeys() {
+        return new ConfigKey[] {
+            THICKNESS,
+            DASH,
+        };
+    }
+
+    /**
+     * Obtains a line drawing stroke based on a config map.
+     * The keys used are those returned by <code>getStrokeKeys</code>.
+     * The line join and cap policy must be provided.
+     *
+     * @param  config  config map
+     * @param  cap     one of {@link java.awt.BasicStroke}'s CAP_* constants
+     * @param  join    one of {@link java.awt.BasicStroke}'s JOIN_* constants
+     * @return  stroke
+     */
+    public static Stroke createStroke( ConfigMap config, int cap, int join ) {
+        int thick = config.get( THICKNESS );
+        float[] dash = config.get( DASH );
+        if ( dash != null && thick != 1 ) {
+            dash = (float[]) dash.clone();
+            for ( int i = 0; i < dash.length; i++ ) {
+                dash[ i ] *= thick;
+            }
+        }
+        return new BasicStroke( thick, cap, join, 10f, dash, 0f );
+    }
+
+    /**
      * Returns an axis tick mark crowding config key.
      *
      * @param  meta  metadata
      * @return   new key
      */
     public static ConfigKey<Double> createCrowdKey( ConfigMeta meta ) {
-        return DoubleConfigKey.createSliderKey( meta, 1, 0.0625, 8, true );
+        return DoubleConfigKey.createSliderKey( meta, 1, 0.125, 10, true );
     }
 
     /**
@@ -306,6 +375,28 @@ public class StyleKeys {
                                                     + "label",
                                                     axName + " Label" ),
                                                     axName );
+    }
+
+    /**
+     * Obtains a shader from a config map given appropriate keys.
+     *
+     * @param  config  config map
+     * @param  baseShaderKey   key for extracting a shader
+     * @param  clipKey   key for extracting a clip range of a shader
+     * @return  shader with clip applied if appropriate
+     */
+    public static Shader createShader( ConfigMap config,
+                                       ConfigKey<Shader> baseShaderKey,
+                                       ConfigKey<Subrange> clipKey ) {
+        Shader shader = config.get( baseShaderKey );
+        if ( shader == null ) {
+            return null;
+        }
+        Subrange clip = config.get( clipKey );
+        return Subrange.isIdentity( clip )
+             ? shader
+             : Shaders.stretch( shader,
+                                (float) clip.getLow(), (float) clip.getHigh() );
     }
 
     /**
@@ -339,10 +430,13 @@ public class StyleKeys {
         List<Shader> shaderList = new ArrayList<Shader>();
         shaderList.addAll( Arrays.asList( new Shader[] {
             Shaders.LUT_RAINBOW,
+            Shaders.LUT_GLNEMO2,
             Shaders.LUT_PASTEL,
+            Shaders.LUT_ACCENT,
             Shaders.CYAN_MAGENTA,
             Shaders.RED_BLUE,
             Shaders.LUT_HEAT,
+            Shaders.LUT_COLD,
             Shaders.LUT_LIGHT,
             Shaders.LUT_COLOR,
             Shaders.WHITE_BLACK,
@@ -380,9 +474,12 @@ public class StyleKeys {
             Shaders.invert( Shaders.SCALE_V ),
             Shaders.invert( Shaders.LUT_PASTEL ),
             Shaders.invert( Shaders.LUT_RAINBOW ),
+            Shaders.invert( Shaders.LUT_GLNEMO2 ),
+            Shaders.invert( Shaders.LUT_ACCENT ),
             Shaders.CYAN_MAGENTA,
             Shaders.RED_BLUE,
             Shaders.invert( Shaders.LUT_HEAT ),
+            Shaders.invert( Shaders.LUT_COLD ),
             Shaders.invert( Shaders.LUT_LIGHT ),
             Shaders.WHITE_BLACK,
             Shaders.SCALE_V,

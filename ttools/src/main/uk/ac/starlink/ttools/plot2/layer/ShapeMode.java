@@ -76,6 +76,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
     public static final ShapeMode[] MODES_2D = new ShapeMode[] {
         new AutoDensityMode(),
         new FlatMode( false, BIN_THRESH_2D ),
+        new AutoTransparentMode(),
         new FlatMode( true, BIN_THRESH_2D ),
         new CustomDensityMode(),
         new AuxShadingMode( true ),
@@ -86,10 +87,16 @@ public abstract class ShapeMode implements ModePlotter.Mode {
      */
     public static final ShapeMode[] MODES_3D = new ShapeMode[] {
         new FlatMode( false, NO_BINS ),
+        new AutoTransparentMode(),
         new FlatMode( true, NO_BINS ),
         new CustomDensityMode(),
         new AuxShadingMode( true ),
     };
+
+    /**
+     * Simple flat mode.
+     */
+    public static final ShapeMode FLAT = new FlatMode( false, NO_BINS );
 
     /**
      * Constructor.
@@ -177,7 +184,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
          */
         FlatMode( boolean transparent, int binThresh ) {
             super( transparent ? "transparent" : "flat",
-                   transparent ? ResourceIcon.MODE_TRANSPARENT
+                   transparent ? ResourceIcon.MODE_ALPHA_FIX
                                : ResourceIcon.MODE_FLAT,
                    new Coord[ 0 ] );
             transparent_ = transparent;
@@ -209,29 +216,15 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             return new FlatStamper( color );
         }
 
-        public PlotLayer createLayer( ShapePlotter plotter,
-                                      final ShapeForm form,
-                                      final DataGeom geom,
-                                      final DataSpec dataSpec,
-                                      final Outliner outliner,
-                                      final Stamper stamper ) {
+        public PlotLayer createLayer( ShapePlotter plotter, ShapeForm form,
+                                      DataGeom geom, DataSpec dataSpec,
+                                      Outliner outliner, Stamper stamper ) {
             final Color color = ((FlatStamper) stamper).color_;
             Style style = new ShapeStyle( outliner, stamper );
             LayerOpt opt = new LayerOpt( color, color.getAlpha() == 255 );
-            return new AbstractPlotLayer( plotter, geom, dataSpec,
-                                          style, opt ) {
-                @Override
-                public Map<AuxScale,AuxReader> getAuxRangers() {
-                    Map<AuxScale,AuxReader> map = super.getAuxRangers();
-                    map.putAll( outliner.getAuxRangers( geom ) );
-                    return map;
-                }
-                public Drawing createDrawing( Surface surface,
-                                              Map<AuxScale,Range> auxRanges,
-                                              PaperType paperType ) {
-                    DrawSpec drawSpec =
-                        new DrawSpec( surface, geom, dataSpec, outliner,
-                                      auxRanges, paperType );
+            return new ShapePlotLayer( plotter, geom, dataSpec, style, opt,
+                                       outliner ) {
+                public Drawing createDrawing( DrawSpec drawSpec ) {
 
                     /* For vector output you need to paint it.
                      * For bitmap output in 2D the output will be (roughly) the
@@ -249,7 +242,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                      * (enforced by high binThresh) since it interferes with
                      * the z-coordinate positioning (glyph placement has to
                      * be handled by the 3D paper).  */
-                    return paperType.isBitmap() && ! transparent_
+                    return drawSpec.paperType_.isBitmap() && ! transparent_
                          ? new HybridFlatDrawing( drawSpec, color, binThresh_ )
                          : new PaintFlatDrawing( drawSpec, color );
                 }
@@ -384,43 +377,204 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             assert model.getTransparentPixel() == 0;
             return model;
         }
+    }
+
+    /**
+     * Stamper implementation for flat colouring.
+     */
+    public static class FlatStamper implements Stamper {
+        final Color color_;
 
         /**
-         * Stamper implementation for flat colouring.
+         * Constructor.
+         *
+         * @param   color   fixed colour
          */
-        private static class FlatStamper implements Stamper {
-            final Color color_;
- 
+        public FlatStamper( Color color ) {
+            color_ = color;
+        }
+
+        public Icon createLegendIcon( Outliner outliner ) {
+            return IconUtils
+                  .colorIcon( outliner.getLegendIcon(),
+                              new Color( color_.getRGB(), false ) );
+        }
+
+        @Override
+        public boolean equals( Object o ) {
+            if ( o instanceof FlatStamper ) {
+                FlatStamper other = (FlatStamper) o;
+                return this.color_.equals( other.color_ );
+            }
+            else {
+                return false;
+            }
+        }
+
+        @Override
+        public int hashCode() {
+            return this.color_.hashCode();
+        }
+    }
+
+    /**
+     * Mode for painting shapes in a transparent colour where the transparency
+     * level is adjusted automatically on the basis of how crowded the
+     * plot is.
+     */
+    private static class AutoTransparentMode extends ShapeMode {
+
+        /**
+         * Constructor.
+         */
+        AutoTransparentMode() {
+            super( "translucent", ResourceIcon.MODE_ALPHA,
+                   new Coord[ 0 ] );
+        }
+
+        public ConfigKey[] getConfigKeys() {
+            return new ConfigKey[] {
+                StyleKeys.COLOR,
+                StyleKeys.TRANSPARENT_LEVEL,
+            };
+        }
+
+        public Stamper createStamper( ConfigMap config ) {
+            Color color = config.get( StyleKeys.COLOR );
+            double level = config.get( StyleKeys.TRANSPARENT_LEVEL );
+            return new AutoTransparentStamper( color, level );
+        }
+
+        public PlotLayer createLayer( ShapePlotter plotter,
+                                      ShapeForm form,
+                                      DataGeom geom,
+                                      DataSpec dataSpec,
+                                      Outliner outliner,
+                                      Stamper stamper ) {
+            final Color color = ((AutoTransparentStamper) stamper).color_;
+            final double level = ((AutoTransparentStamper) stamper).level_;
+            Style style = new ShapeStyle( outliner, stamper );
+            LayerOpt opt = new LayerOpt( color, level == 0 );
+            return new ShapePlotLayer( plotter, geom, dataSpec, style, opt,
+                                       outliner ) {
+                public Drawing createDrawing( DrawSpec drawSpec ) {
+                    return new AutoTransparentDrawing( drawSpec, color, level );
+                }
+            };
+        }
+
+        /**
+         * Auto transparent Drawing implementation.
+         */
+        private static class AutoTransparentDrawing implements Drawing {
+            private final float[] rgb_;
+            private final double level_;
+            private final DrawSpec drawSpec_;
+
             /**
              * Constructor.
              *
-             * @param   color   fixed colour
+             * @param  drawSpec  common drawing attributes
+             * @param  base  (opaque) colour
+             * @param  level  transparency modifier
              */
-            FlatStamper( Color color ) {
-                color_ = color;
+            AutoTransparentDrawing( DrawSpec drawSpec, Color color,
+                                    double level ) {
+                drawSpec_ = drawSpec;
+                rgb_ = color.getRGBColorComponents( new float[ 3 ] );
+                level_ = level;
             }
 
-            public Icon createLegendIcon( Outliner outliner ) {
-                return IconUtils
-                      .colorIcon( outliner.getLegendIcon(),
-                                  new Color( color_.getRGB(), false ) );
+            public Object calculatePlan( Object[] knownPlans,
+                                         DataStore dataStore ) {
+
+                /* The plan could just be a histogram of point counts
+                 * as far as this drawing is concerned.
+                 * However, if we use a BinPlan we can reuse plans from
+                 * other modes.  Not clear which is best. */
+                return drawSpec_.calculateBinPlan( knownPlans, dataStore );
             }
 
-            @Override
-            public boolean equals( Object o ) {
-                if ( o instanceof FlatStamper ) {
-                    FlatStamper other = (FlatStamper) o;
-                    return this.color_.equals( other.color_ );
+            public void paintData( Object plan, Paper paper,
+                                   DataStore dataStore ) {
+                int[] counts = drawSpec_.outliner_.getBinCounts( plan );
+                float alpha = (float) getAlpha( counts, level_ );
+                Color color =
+                    new Color( rgb_[ 0 ], rgb_[ 1 ], rgb_[ 2 ], alpha );
+                Outliner.ShapePainter painter = drawSpec_.painter_;
+                TupleSequence tseq =
+                    dataStore.getTupleSequence( drawSpec_.dataSpec_ );
+                while ( tseq.next() ) {
+                    painter.paintPoint( tseq, color, paper );
                 }
-                else {
-                    return false;
-                }
             }
 
-            @Override
-            public int hashCode() {
-                return this.color_.hashCode();
+            /**
+             * Returns the alpha level to use given a specified transparency
+             * level and a grid of pixel counts.
+             *
+             * @param  counts  pixel count array
+             * @param  level  transparency level
+             */
+            private static double getAlpha( int[] counts, double level ) {
+                int count = 0;
+                int max = 0;
+                int n = counts.length;
+                for ( int i = 0; i < n; i++ ) {
+                    int c = counts[ i ];
+                    if ( c > 0 ) {
+                        count++;
+                        if ( c > max ) {
+                            max = c;
+                        }
+                    }
+                }
+                double opaque = Math.max( 1, max * level );
+                return 1f / opaque;
             }
+        }
+    }
+
+    /**
+     * Stamper implementation for auto transparency.
+     */
+    public static class AutoTransparentStamper implements Stamper {
+        final Color color_;
+        final double level_;
+
+        /**
+         * Constructor.
+         *
+         * @param   color   base (opaque) colour
+         * @param   level   transparency level
+         */
+        public AutoTransparentStamper( Color color, double level ) {
+            color_ = color;
+            level_ = level;
+        }
+
+        public Icon createLegendIcon( Outliner outliner ) {
+            return IconUtils.colorIcon( outliner.getLegendIcon(), color_ );
+        }
+
+        @Override
+        public boolean equals( Object o ) {
+            if ( o instanceof AutoTransparentStamper ) {
+                AutoTransparentStamper other = (AutoTransparentStamper) o;
+                return this.color_.equals( other.color_ )
+                    && this.level_ == other.level_;
+            }
+            else {
+                return false;
+            }
+        }
+
+        @Override
+        public int hashCode() {
+            int code = 5231;
+            code = code * 23 + color_.hashCode();
+            code = code * 23 + Float.floatToIntBits( (float) level_ );
+            return code;
         }
     }
 
@@ -446,30 +600,16 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             super( name, icon, new Coord[ 0 ] );
         }
 
-        public PlotLayer createLayer( ShapePlotter plotter,
-                                      final ShapeForm form,
-                                      final DataGeom geom,
-                                      final DataSpec dataSpec,
-                                      final Outliner outliner,
-                                      final Stamper stamper ) {
+        public PlotLayer createLayer( ShapePlotter plotter, ShapeForm form,
+                                      DataGeom geom, DataSpec dataSpec,
+                                      Outliner outliner, Stamper stamper ) {
             final Shader shader = ((DensityStamper) stamper).shader_;
             final Scaling scaling = ((DensityStamper) stamper).scaling_;
             ShapeStyle style = new ShapeStyle( outliner, stamper );
             LayerOpt opt = LayerOpt.OPAQUE;
-            return new AbstractPlotLayer( plotter, geom, dataSpec,
-                                          style, opt ) {
-                @Override
-                public Map<AuxScale,AuxReader> getAuxRangers() {
-                    Map<AuxScale,AuxReader> map = super.getAuxRangers();
-                    map.putAll( outliner.getAuxRangers( geom ) );
-                    return map;
-                }
-                public Drawing createDrawing( Surface surface,
-                                              Map<AuxScale,Range> auxRanges,
-                                              PaperType paperType ) {
-                    DrawSpec drawSpec =
-                        new DrawSpec( surface, geom, dataSpec, outliner,
-                                      auxRanges, paperType );
+            return new ShapePlotLayer( plotter, geom, dataSpec, style, opt,
+                                       outliner ) {
+                public Drawing createDrawing( DrawSpec drawSpec ) {
                     return new DensityDrawing( drawSpec, shader, scaling );
                 }
             };
@@ -581,67 +721,67 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             assert model.getPixelSize() == 8;
             return model;
         }
-  
-        /**
-         * Defines a scaling stragy.
-         */
-        @Equality
-        static interface Scaling {
+    }
 
-            /**
-             * Returns a count scaler to use for a given maximum input count
-             * value and number of levels.
-             *
-             * @param   max  maximum value in input count data
-             *               (minimum is implicitly zero)
-             * @param  nlevel  number of levels in output array
-             * @return  new scaler
-             */
-            CountScaler createScaler( int max, int nlevel );
+    /**
+     * Defines a scaling strategy.
+     */
+    @Equality
+    public static interface Scaling {
+
+        /**
+         * Returns a count scaler to use for a given maximum input count
+         * value and number of levels.
+         *
+         * @param   max  maximum value in input count data
+         *               (minimum is implicitly zero)
+         * @param  nlevel  number of levels in output array
+         * @return  new scaler
+         */
+        CountScaler createScaler( int max, int nlevel );
+    }
+
+    /**
+     * Stamper implementation for density mode.
+     */
+    public static class DensityStamper implements Stamper {
+        final Shader shader_;
+        final Scaling scaling_;
+
+        /**
+         * Constructor.
+         *
+         * @param   shader  colour shader
+         * @param  scaling  count scaling strategy
+         */
+        public DensityStamper( Shader shader, Scaling scaling ) {
+            shader_ = shader;
+            scaling_ = scaling;
         }
 
-        /**
-         * Stamper implementation for density mode.
-         */
-        static class DensityStamper implements Stamper {
-            final Shader shader_;
-            final Scaling scaling_;
+        public Icon createLegendIcon( Outliner outliner ) {
+            return createColoredIcon( outliner.getLegendIcon(),
+                                      shader_, 0f );
+        }
 
-            /**
-             * Constructor.
-             *
-             * @param   shader  colour shader
-             * @param  scaling  count scaling strategy
-             */
-            DensityStamper( Shader shader, Scaling scaling ) {
-                shader_ = shader;
-                scaling_ = scaling;
+        @Override
+        public boolean equals( Object o ) {
+            if ( o instanceof DensityStamper ) {
+                DensityStamper other = (DensityStamper) o;
+                return this.shader_.equals( other.shader_ )
+                    && this.scaling_.equals( other.scaling_ );
             }
+            else {
+                return false;
+            }
+        }
 
-            public Icon createLegendIcon( Outliner outliner ) {
-                return createColoredIcon( outliner.getLegendIcon(),
-                                          shader_, 0f );
-            }
-
-            @Override
-            public boolean equals( Object o ) {
-                if ( o instanceof DensityStamper ) {
-                    DensityStamper other = (DensityStamper) o;
-                    return this.shader_.equals( other.shader_ )
-                        && this.scaling_.equals( other.scaling_ );
-                }
-                else {
-                    return false;
-                }
-            }
-
-            @Override
-            public int hashCode() {
-                int code = 3311;
-                code = 23 * code + shader_.hashCode();
-                code = 23 * code + scaling_.hashCode();
-                return code;
-            }
+        @Override
+        public int hashCode() {
+            int code = 3311;
+            code = 23 * code + shader_.hashCode();
+            code = 23 * code + scaling_.hashCode();
+            return code;
         }
     }
 
@@ -701,18 +841,21 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             return new ConfigKey[] {
                 StyleKeys.COLOR,
                 StyleKeys.DENSITY_SHADER,
-                StyleKeys.DENSITY_SUBRANGE,
+                StyleKeys.DENSITY_SHADER_CLIP,
                 StyleKeys.DENSITY_LOG,
                 StyleKeys.DENSITY_FLIP,
+                StyleKeys.DENSITY_SUBRANGE,
             };
         }
 
         public Stamper createStamper( ConfigMap config ) {
             Color baseColor = config.get( StyleKeys.COLOR );
-            Shader baseShader = config.get( StyleKeys.DENSITY_SHADER );
-            Subrange subrange = config.get( StyleKeys.DENSITY_SUBRANGE );
+            Shader baseShader =
+                StyleKeys.createShader( config, StyleKeys.DENSITY_SHADER,
+                                                StyleKeys.DENSITY_SHADER_CLIP );
             boolean logFlag = config.get( StyleKeys.DENSITY_LOG );
             boolean flipFlag = config.get( StyleKeys.DENSITY_FLIP );
+            Subrange subrange = config.get( StyleKeys.DENSITY_SUBRANGE );
             Shader densityShader =
                 Shaders.applyShader( baseShader, baseColor, COLOR_MAP_SIZE );
             if ( flipFlag ) {
@@ -828,6 +971,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
         public ConfigKey[] getConfigKeys() {
             List<ConfigKey> list = new ArrayList<ConfigKey>();
             list.add( StyleKeys.AUX_SHADER );
+            list.add( StyleKeys.AUX_SHADER_CLIP );
             if ( transparent_ ) {
                 list.add( StyleKeys.AUX_OPAQUE );
             }
@@ -838,7 +982,9 @@ public abstract class ShapeMode implements ModePlotter.Mode {
         }
 
         public Stamper createStamper( ConfigMap config ) {
-            Shader shader = config.get( StyleKeys.AUX_SHADER );
+            Shader shader =
+                StyleKeys.createShader( config, StyleKeys.AUX_SHADER,
+                                                StyleKeys.AUX_SHADER_CLIP );
             double opaque = transparent_
                           ? config.get( StyleKeys.AUX_OPAQUE )
                           : 1;
@@ -895,8 +1041,9 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                                               Map<AuxScale,Range> auxRanges,
                                               PaperType paperType ) {
                     Range shadeRange = auxRanges.get( SCALE );
-                    AuxScaler scaler =
-                        createScaler( shadeRange, shadeLog, shadeFlip );
+                    RangeScaler scaler =
+                        RangeScaler.createScaler( shadeLog, shadeFlip,
+                                                  shadeRange );
                     ColorKit kit = new ColorKit( iShadeCoord, shader, scaler,
                                                  baseColor, nullColor,
                                                  scaleAlpha );
@@ -916,7 +1063,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
 
             private final int icShade_;
             private final Shader shader_;
-            private final AuxScaler scaler_;
+            private final RangeScaler scaler_;
             private final Color scaledNullColor_;
             private final float scaleAlpha_;
             private final float[] baseRgba_;
@@ -938,7 +1085,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
              * @param  scaleAlpha  alpha scaling for output colours;
              *                     1 means opaque
              */
-            ColorKit( int icShade, Shader shader, AuxScaler scaler,
+            ColorKit( int icShade, Shader shader, RangeScaler scaler,
                       Color baseColor, Color nullColor, float scaleAlpha ) {
                 icShade_ = icShade;
                 shader_ = shader;
@@ -963,7 +1110,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
              */
             Color readColor( TupleSequence tseq ) {
                 double auxVal = SHADE_COORD.readDoubleCoord( tseq, icShade_ );
-                float scaleVal = scaler_.scale( auxVal );
+                float scaleVal = (float) scaler_.scale( auxVal );
 
                 /* If null input return special null output value. */
                 if ( Float.isNaN( scaleVal ) ) {
@@ -980,7 +1127,6 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                  * scaled input aux coordinate. */
                 else {
                     System.arraycopy( baseRgba_, 0, rgba_, 0, 4 );
-                    scaleVal = Math.max( 0, Math.min( 1, scaleVal ) );
                     shader_.adjustRgba( rgba_, scaleVal );
                     Color color = toOutputColor( rgba_ );
                     lastScale_ = scaleVal;
@@ -1035,122 +1181,75 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                 }
             }
         }
+    }
+
+    /**
+     * Stamper implementation for use with AuxShadingMode.
+     */
+    public static class ShadeStamper implements Stamper {
+        final Shader shader_;
+        final boolean shadeLog_;
+        final boolean shadeFlip_;
+        final Color baseColor_;
+        final Color nullColor_;
+        final float scaleAlpha_;
 
         /**
-         * Defines a shader scaling strategy for AuxShadingMode.
+         * Constructor.
+         *
+         * @param  shader  colour shader 
+         * @param  shadeLog  true for logarithmic shading scale,
+         *                   false for linear
+         * @param  shadeFlip  true to invert direction of shading scale
+         * @param  baseColor  colour to use for adjustments in case of
+         *                    non-absolute shader
+         * @param  nullColor  colour to use for null aux coordinate,
+         *                    if null omit such points
+         * @param  scaleAlpha  factor to scale output colour alpha by;
+         *                     1 means opaque
          */
-        static interface AuxScaler {
-
-            /**
-             * Maps a value into the shader range.
-             *
-             * @param  dataValue  value of aux coordinate
-             * @return   value in range 0-1 for shader input
-             */
-            float scale( double dataValue );
+        public ShadeStamper( Shader shader, boolean shadeLog,
+                             boolean shadeFlip, Color baseColor,
+                             Color nullColor, float scaleAlpha ) {
+            shader_ = shader;
+            shadeLog_ = shadeLog;
+            shadeFlip_ = shadeFlip;
+            baseColor_ = baseColor;
+            nullColor_ = nullColor;
+            scaleAlpha_ = scaleAlpha;
         }
 
-        /**
-         * Returns an aux scaler instance for given configuration items.
-         *
-         * @param  range  input data range
-         * @param  logFlag  true for logarithmic scale, false for linear
-         * @param  flipFlag  true to invert direction of scale
-         */
-        private static AuxScaler createScaler( Range range, boolean logFlag,
-                                               boolean flipFlag ) {
-            double[] dataBounds = range.getFiniteBounds( logFlag );
-            double lo = dataBounds[ 0 ];
-            double hi = dataBounds[ 1 ];
-            if ( logFlag ) {
-                final double base1 = 1.0 / ( flipFlag ? hi : lo );
-                final double scale1 =
-                    1.0 / ( Math.log( flipFlag ? lo / hi : hi / lo ) );
-                return new AuxScaler() {
-                    public float scale( double value ) {
-                        return (float) ( Math.log( value * base1 ) * scale1 );
-                    }
-                };
+        public Icon createLegendIcon( Outliner outliner ) {
+            return createColoredIcon( outliner.getLegendIcon(),
+                                      shader_, 0.5f );
+        }
+
+        @Override
+        public boolean equals( Object o ) {
+            if ( o instanceof ShadeStamper ) {
+                ShadeStamper other = (ShadeStamper) o;
+                return this.shader_.equals( other.shader_ )
+                    && this.shadeLog_ == other.shadeLog_
+                    && this.shadeFlip_ == other.shadeFlip_
+                    && PlotUtil.equals( this.baseColor_, other.baseColor_ )
+                    && PlotUtil.equals( this.nullColor_, other.nullColor_ )
+                    && this.scaleAlpha_ == other.scaleAlpha_;
             }
             else {
-                final double base = flipFlag ? hi : lo;
-                final double scale1 = 1.0 / ( flipFlag ? lo - hi : hi - lo );
-                return new AuxScaler() {
-                    public float scale( double value ) {
-                        return (float) ( ( value - base ) * scale1 );
-                    }
-                };
+                return false;
             }
         }
 
-        /**
-         * Stamper implementation for use with AuxShadingMode.
-         */
-        private static class ShadeStamper implements Stamper {
-            final Shader shader_;
-            final boolean shadeLog_;
-            final boolean shadeFlip_;
-            final Color baseColor_;
-            final Color nullColor_;
-            final float scaleAlpha_;
-
-            /**
-             * Constructor.
-             *
-             * @param  shader  colour shader 
-             * @param  shadeLog  true for logarithmic shading scale,
-             *                   false for linear
-             * @param  shadeFlip  true to invert direction of shading scale
-             * @param  baseColor  colour to use for adjustments in case of
-             *                    non-absolute shader
-             * @param  nullColor  colour to use for null aux coordinate,
-             *                    if null omit such points
-             * @param  scaleAlpha  factor to scale output colour alpha by;
-             *                     1 means opaque
-             */
-            public ShadeStamper( Shader shader, boolean shadeLog,
-                                 boolean shadeFlip, Color baseColor,
-                                 Color nullColor, float scaleAlpha ) {
-                shader_ = shader;
-                shadeLog_ = shadeLog;
-                shadeFlip_ = shadeFlip;
-                baseColor_ = baseColor;
-                nullColor_ = nullColor;
-                scaleAlpha_ = scaleAlpha;
-            }
-
-            public Icon createLegendIcon( Outliner outliner ) {
-                return createColoredIcon( outliner.getLegendIcon(),
-                                          shader_, 0.5f );
-            }
-
-            @Override
-            public boolean equals( Object o ) {
-                if ( o instanceof ShadeStamper ) {
-                    ShadeStamper other = (ShadeStamper) o;
-                    return this.shader_.equals( other.shader_ )
-                        && this.shadeLog_ == other.shadeLog_
-                        && this.shadeFlip_ == other.shadeFlip_
-                        && PlotUtil.equals( this.baseColor_, other.baseColor_ )
-                        && PlotUtil.equals( this.nullColor_, other.nullColor_ )
-                        && this.scaleAlpha_ == other.scaleAlpha_;
-                }
-                else {
-                    return false;
-                }
-            }
-
-            @Override
-            public int hashCode() {
-                int code = 7301;
-                code = 23 * code + shader_.hashCode();
-                code = 23 * code + ( shadeLog_ ? 5 : 7 );
-                code = 23 * code + ( shadeFlip_ ? 11 : 13 );
-                code = 23 * code + PlotUtil.hashCode( baseColor_ );
-                code = 23 * code + PlotUtil.hashCode( nullColor_ );
-                code = 23 * code + Float.floatToIntBits( scaleAlpha_ );
-                return code;
-            }
+        @Override
+        public int hashCode() {
+            int code = 7301;
+            code = 23 * code + shader_.hashCode();
+            code = 23 * code + ( shadeLog_ ? 5 : 7 );
+            code = 23 * code + ( shadeFlip_ ? 11 : 13 );
+            code = 23 * code + PlotUtil.hashCode( baseColor_ );
+            code = 23 * code + PlotUtil.hashCode( nullColor_ );
+            code = 23 * code + Float.floatToIntBits( scaleAlpha_ );
+            return code;
         }
     }
 
@@ -1215,6 +1314,68 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                 throw new IllegalArgumentException( "paper type" );
             }
         }
+
+        /**
+         * Generates a bin plan for this draw spec.
+         * 
+         * @param  knownPlans  known plans
+         * @param  dataStore  data storage
+         * @param   new plan
+         */
+        public Object calculateBinPlan( Object[] knownPlans,
+                                        DataStore dataStore ) {
+            return outliner_
+                  .calculateBinPlan( surface_, geom_, auxRanges_, dataStore,
+                                     dataSpec_, knownPlans );
+        }
+    }
+
+    /**
+     * Abstract PlotLayer implementation based on a DrawSpec.
+     * Useful for some of the simpler modes in this class.
+     */
+    private static abstract class ShapePlotLayer extends AbstractPlotLayer {
+        private final Outliner outliner_;
+
+        /**
+         * Constructor.
+         *
+         * @param  plotter  plotter 
+         * @param  geom   data coordinate specification
+         * @param  dataSpec  data specification
+         * @param  style   plot style
+         * @param  opt   describes layer options
+         * @param  outliner  shape outliner
+         */
+        ShapePlotLayer( ShapePlotter plotter, DataGeom geom, DataSpec dataSpec,
+                        Style style, LayerOpt opt, Outliner outliner ) {
+            super( plotter, geom, dataSpec, style, opt );
+            outliner_ = outliner;
+        }
+
+        /**
+         * Turns a DrawSpec into a Drawing.
+         *
+         * @param  drawSpec  drawing specification
+         * @return  drawing
+         */
+        abstract Drawing createDrawing( DrawSpec drawSpec );
+
+        @Override
+        public Map<AuxScale,AuxReader> getAuxRangers() {
+            Map<AuxScale,AuxReader> map = super.getAuxRangers();
+            map.putAll( outliner_.getAuxRangers( getDataGeom() ) );
+            return map;
+        }
+
+        public Drawing createDrawing( Surface surface,
+                                      Map<AuxScale,Range> auxRanges,
+                                      PaperType paperType ) {
+            DrawSpec drawSpec =
+                new DrawSpec( surface, getDataGeom(), getDataSpec(), outliner_,
+                              auxRanges, paperType );
+            return createDrawing( drawSpec );
+        }
     }
 
     /**
@@ -1243,10 +1404,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
 
         public Object calculatePlan( Object[] knownPlans,
                                      DataStore dataStore ) {
-            return drawSpec_.outliner_
-                  .calculateBinPlan( drawSpec_.surface_, drawSpec_.geom_,
-                                     drawSpec_.auxRanges_, dataStore,
-                                     drawSpec_.dataSpec_, knownPlans );
+            return drawSpec_.calculateBinPlan( knownPlans, dataStore );
         }
 
         int[] getBinCounts( Object plan ) {

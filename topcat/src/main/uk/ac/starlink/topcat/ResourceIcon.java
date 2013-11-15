@@ -82,6 +82,7 @@ public class ResourceIcon implements Icon {
         VOTECH_LOGO = makeIcon( "votech48.gif" ),
         STFC_LOGO = makeIcon( "stfc48.gif" ),
         GAVO_LOGO = makeIcon( "gavo48.gif" ),
+        ESA_LOGO = makeIcon( "esa48.gif" ),
         VIZIER_LOGO = makeIcon( "vizier_logo.gif" ),
 
         /* Generic actions. */
@@ -158,6 +159,8 @@ public class ResourceIcon implements Icon {
         Y_CURSOR = makeIcon( "vline0.gif" ),
         Y0_LINE = makeIcon( "y0line1.gif" ),
         TO_COLUMN = makeIcon( "Column.gif" ),
+        HIGHLIGHT = makeIcon( "somerows.gif" ),
+        APPLY_SUBSET = makeIcon( "subset1.gif" ),
         COUNT = makeIcon( "ab3.gif" ),
         RECOUNT = makeIcon( "re-ab3.gif" ),
         INVERT = makeIcon( "invert3.gif" ),
@@ -222,6 +225,7 @@ public class ResourceIcon implements Icon {
         FOOTPRINT = makeIcon( "footprint.gif" ),
         ZOOM_IN = makeIcon( "mag-plus.gif" ),
         ZOOM_OUT = makeIcon( "mag-minus.gif" ),
+        SKETCH = makeIcon( "sketch1.gif" ),
 
         /* Plot2 icons. */
         UP_DOWN = makeIcon( "updown8.gif" ),
@@ -231,6 +235,7 @@ public class ResourceIcon implements Icon {
         PLOT2_SKY = makeIcon( "plot2sky.gif" ),
         PLOT2_CUBE = makeIcon( "plot2cube.gif" ),
         PLOT2_SPHERE = makeIcon( "plot2sphere.gif" ),
+        PLOT2_TIME = makeIcon( "plot2time.gif" ),
 
         /* Datanode (hierarchy browser) icons. */
         COLLAPSED = makeIcon( "handle1.gif" ),

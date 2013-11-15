@@ -36,7 +36,7 @@ public class Stilts {
         Loader.setHttpAgent( "STILTS" + "/" + getVersion() ); 
         Loader.setDefaultProperty( "java.awt.Window.locationByPlatform",
                                    "true" );
-        PropertyAuthenticator.installInstance();
+        PropertyAuthenticator.installInstance( true );
         URLUtils.installCustomHandlers();
         LineInvoker invoker = new LineInvoker( "stilts", taskFactory_ );
         int status = invoker.invoke( args );
@@ -101,6 +101,7 @@ public class Stilts {
         taskFactory_.register( "tcopy", taskPkg + "TableCopy" );
         taskFactory_.register( "tcube", taskPkg + "TableCube" );
         taskFactory_.register( "tjoin", taskPkg + "TableJoinN" );
+        taskFactory_.register( "tloop", taskPkg + "TableLoop" );
         taskFactory_.register( "tmatch1", taskPkg + "TableMatch1" );
         taskFactory_.register( "tmatch2", taskPkg + "TableMatch2" );
         taskFactory_.register( "tmatchn", taskPkg + "TableMatchN" );

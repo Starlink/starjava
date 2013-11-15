@@ -57,6 +57,7 @@
   <!ENTITY tcopy-summary SYSTEM 'tcopy-summary.xml'>
   <!ENTITY tcube-summary SYSTEM 'tcube-summary.xml'>
   <!ENTITY tjoin-summary SYSTEM 'tjoin-summary.xml'>
+  <!ENTITY tloop-summary SYSTEM 'tloop-summary.xml'>
   <!ENTITY tmatch1-summary SYSTEM 'tmatch1-summary.xml'>
   <!ENTITY tmatch2-summary SYSTEM 'tmatch2-summary.xml'>
   <!ENTITY tmatchn-summary SYSTEM 'tmatchn-summary.xml'>
@@ -106,8 +107,7 @@
 
 <docnumber>256</docnumber>
 
-<history><version><px>$Id$</px></version></history>
-<docdate>28 March 2013</docdate>
+<docdate>1 July 2013</docdate>
 
 <contactlist>
 <contact>STILTS web page:
@@ -189,6 +189,7 @@ same ground as the STIL and TOPCAT user documents
     <ref id="tmultin"><code>tmultin</code></ref>,
     <ref id="tcat"><code>tcat</code></ref>,
     <ref id="tcatn"><code>tcatn</code></ref>,
+    <ref id="tloop"><code>tloop</code></ref>,
     <ref id="tjoin"><code>tjoin</code></ref> and
     <ref id="tcube"><code>tcube</code></ref>
     (see <ref id="pipes" plaintextref="yes"/>).
@@ -460,6 +461,7 @@ the available tasks are:
 <li><code>tcopy</code></li>
 <li><code>tcube</code></li>
 <li><code>tjoin</code></li>
+<li><code>tloop</code></li>
 <li><code>tmatch1</code></li>
 <li><code>tmatch2</code></li>
 <li><code>tmatchn</code></li>
@@ -899,6 +901,17 @@ on the command line is equivalent to having the following in your
     "<code>Resetting to invalid mark</code>".
     Currently defaults to "false".</p></dd>
 
+<dt><code>service.maxparallel</code></dt>
+<dd><p>Raises the maximum number of concurrent queries that may be made
+    during a multi-cone operation.
+    You should only increase this value <strong>with great care</strong>
+    since you risk overloading servers and becoming unpopular with
+    data centres.
+    As a rule, you should only increase this value if you have
+    obtained permission from the data centres whose services
+    on which you will be using the increased parallelism.
+    </p></dd>
+
 <dt><code>star.basicauth.user</code></dt>
 <dt><code>star.basicauth.password</code></dt>
 <dd><p>If set, these will provide username and password for HTTP Basic
@@ -907,8 +920,7 @@ on the command line is equivalent to having the following in your
     supplying these user credentials.  This is a rather blunt instrument,
     since the same identity is supplied regardless of which URL is being
     accessed, but it may be of some use in accessing basic-authentication
-    protected services.  This mechanism is experimental, and may be
-    modified or withdrawn in future versions.
+    protected services.
     </p></dd>
 
 <dt><code>startable.readers</code></dt>
@@ -1255,7 +1267,7 @@ the location, but be aware that this may be less efficient on memory.
 As with command-line STILTS, the <code>fmt</code> argument
 is one of the options in <ref id="inFormats"/>, but may be
 left as the default if the format auto-detectable,
-which currently means if the file is in VOTable or FITS format.
+which currently means if the file is in VOTable, FITS or CDF format.
 The <code>random</code> argument can be used to ensure that the returned file
 has random (i.e. not sequential-only) access;
 for some table formats the default way of reading them in means that
@@ -1794,8 +1806,9 @@ or Unix <code>compress</code> and the program will uncompress it on the fly.
            <ref id="tmultin"><code>tmultin</code></ref>,
            <ref id="tcat"><code>tcat</code></ref>,
            <ref id="tcatn"><code>tcatn</code></ref>,
-           <ref id="tcube"><code>tcube</code></ref>,
+           <ref id="tloop"><code>tloop</code></ref>,
            <ref id="tjoin"><code>tjoin</code></ref>,
+           <ref id="tcube"><code>tcube</code></ref>,
            <ref id="tmatch1"><code>tmatch1</code></ref>,
            <ref id="tmatch2"><code>tmatch2</code></ref>,
            <ref id="tmatchn"><code>tmatchn</code></ref>,
@@ -1879,6 +1892,11 @@ The following list gives the values usually allowed for this
     <code>TABLE</code> element in the document is used, but this can be
     altered by supplying the 0-based index after a '<code>#</code>' sign, 
     so "table.xml#4" means the fifth <code>TABLE</code> element in the document.
+    </p></dd>
+
+<dt><code>cdf</code></dt>
+<dd><p>NASA Common Data Format.
+    CDF is described at <webref url="http://cdf.gsfc.nasa.gov/"/>.
     </p></dd>
 
 <dt><code>ascii</code></dt>
@@ -3876,6 +3894,9 @@ Detailed descriptions and examples for each command can be found in
     <li><ref id="tcatn" plaintextref="yes"><code>tcatn</code></ref>:
         &tcatn-purpose;
         </li>
+    <li><ref id="tloop" plaintextref="yes"><code>tloop</code></ref>:
+        &tloop-purpose;
+        </li>
     <li><ref id="tjoin" plaintextref="yes"><code>tjoin</code></ref>:
         &tjoin-purpose;
         </li>
@@ -5679,6 +5700,61 @@ stilts tcube in=iras_psc.vot out=iras_psc_map.fits \
 </p>
 
 </subsubsect>
+</subsect>
+
+<subsect id="tloop" tocleaf="yes">
+<subhead><title><code>tloop</code>: &tloop-purpose;</title></subhead>
+
+<p><code>tloop</code> generates a one-column table where the values in
+the column are effectively populated from a for loop
+(start, end, step).
+This may be useful as it is, or it can be postprocessed with
+<code>ocmd</code> parameters to add more columns etc.
+</p>
+
+&tloop-summary;
+
+<subsubsect id="tloopExamples">
+<subhead><title>Examples</title></subhead>
+
+<p>
+<dl>
+
+<dt><verbatim>
+stilts tloop COUNTER 0 1000
+</verbatim></dt>
+<dd><p>Generates a table with a single column, named <code>COUNTER</code>,
+    and a thousand rows.
+    The value in the first row is 0 and in the last row is 999.
+    The table is written to standard output.
+    </p></dd>
+
+<dt><verbatim>
+stilts tloop time 0 10 0.25 out=times.csv
+</verbatim></dt>
+<dd><p>Generates a table with one column <code>time</code> counting from 
+    0 to 9.75 in steps of 0.25.  Output is to a CSV file.
+    The parameters here are specified in order, but could equivalently
+    be given by name:
+    "<code>stilts tloop var=time start=0 end=10 step=0.26</code>".
+    </p></dd>
+
+<dt><verbatim>
+stilts tloop x start=1 end=11 ocmd='addcol x2 x*x' ocmd='addcol x3 x*x*x'
+             ocmd='stats name sum'
+</verbatim></dt>
+<dd><p>Generates a table with a column <code>x</code> running from 1 to 10
+    inclusive.  The <code>addcol</code> filters then append two further
+    columns, giving the squares and cubes of these values respectively,
+    giving a table of 10 rows and 3 columns.
+    Finally this table is piped through a <code>stats</code> filter to
+    calculate the sums of the values, squares and cubes in this range.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsect>
+
 </subsect>
 
 <subsect id="tjoin" tocleaf="yes">
@@ -8360,18 +8436,75 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </dl>
     </p></dd>
 
-<dt>Next Version</dt>
+<dt>Version 2.5-1 (1 July 2013)</dt>
 <dd><p>
-    <ul>
-    <li>Fix CSV regression bug introduced at v2.5
-        - CSV files now work again with MSDOS-style line breaks.</li>
-    <li>Source code is now managed by git and not subversion.
-        The format of the "Starjava revision" string reported by the
-        <code>-version</code> flag has changed accordingly.</li>
-    <li>Output mode <code>meta</code> now copes better with array-valued
-        table parameters.</li>
-    </ul>
+    <dl>
+    <dt>New functionality</dt>
+    <dd><p>
+        <ul>
+        <li>Add read-only support for
+            <webref url="http://cdf.gsfc.nasa.gov/">CDF</webref>
+            (NASA Common Data Format) files.</li>
+        <li>Add Median Absolute Deviation calculation
+            (<code>MedAbsDev</code> and <code>ScMedAbsDev</code>)
+            options to <ref id="stats"><code>stats</code></ref> filter.</li>
+        <li>Improved handling of HTTP basic authorization.
+            401s now generate a useful message about the
+            <code>star.basicauth.*</code> system properties if they
+            have not been set up.</li>
+        </ul>
+        </p></dd>
+    <dt>Bug fixes and minor enhancements</dt>
+    <dd><p>
+        <ul>
+        <li>Fix CSV regression bug introduced at v2.5
+            - CSV files now work again with MSDOS-style line breaks.</li>
+        <li>Fixed FITS output bug which could result in badly-formed
+            string-valued header cards (no closing quote).</li>
+        <li>Source code is now managed by git and not subversion.
+            The format of the "Starjava revision" string reported by the
+            <code>-version</code> flag has changed accordingly.</li>
+        <li>Output mode <code>meta</code> now copes better with array-valued
+            table parameters.</li>
+        <li>Implemented fixes to reduce the chance of users inadvertently
+            overloading external Cone/SIA/SSA services with multicone-like
+            queries.
+            First, fix it so that abandoned queries are properly terminated,
+            rather than continuing to hit the server until completion or JVM
+            shutdown.
+            Second, implement a sensible default maximum value for the
+            <code>parallel</code> parameter of <code>skyconematch</code>
+            (though this may be adjusted with a system property).</li>
+        <li>Quoting behaviour has changed when generating SQL to write to
+            RDBMS tables.  This ought to reduce problems related to mixed-case
+            identifiers.  However, it is possible that it could lead to 
+            unforseen new anomalies.</li>
+        <li>More <code>toString</code> overloads - now works for byte and
+            boolean values too.</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
+
+    <dt>Next Version</dt>
+    <dd><p>
+        <ul>
+        <li>Add some more colour maps.</li>
+        <li>Fix some broken and misdocumented non-table-output JyStilts
+            commands (<code>tcube</code>, <code>pixfoot</code>).</li>
+        <li>Fix bug which prevented access to long integer array elements
+            from expression language.</li>
+        <li>The Exact matcher now considers scalar numeric values equal if
+            they have the same numeric value; they are no longer required
+            to have the same type.</li>
+        <li>Fixed a registry client bug which means that the
+            <code>regquery</code> command can now successfully talk to
+            the NVO/VAO/STSci registry.
+            That has been broken since mid-2010.</li>
+        <li>Add new command <code>tloop</code> for generating single-column
+            tables from a numeric loop variable.</li>
+        </ul>
+        </p></dd>
 
 </dl>
 </p>

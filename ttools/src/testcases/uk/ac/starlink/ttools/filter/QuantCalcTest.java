@@ -1,7 +1,9 @@
 package uk.ac.starlink.ttools.filter;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import junit.framework.TestCase;
 
@@ -11,7 +13,7 @@ public class QuantCalcTest extends TestCase {
         super( name );
     }
 
-    public void testQuant() {
+    public void testQuant() throws IOException {
         int max = 100;
         int[] values = shuffle( triangle( max ) );
 
@@ -34,7 +36,6 @@ public class QuantCalcTest extends TestCase {
             }
             c1.acceptDatum( new Double( Double.NaN ) );
         }
-        
 
         for ( int i = 0; i < values.length; i++ ) {
             int ival = values[ i ];
@@ -48,11 +49,33 @@ public class QuantCalcTest extends TestCase {
         for ( int ic = 0; ic < calcs.length; ic++ ) {
             QuantCalc qc = calcs[ ic ];
             qc.ready();
+            assertEquals( values.length, qc.getValueCount() );
             assertEquals( - ( max - 1 ), qc.getQuantile( 0.0 ).intValue() );
             assertEquals( + ( max - 1 ), qc.getQuantile( 1.0 ).intValue() );
             assertEquals( 0, qc.getQuantile( 0.5 ).intValue() );
             assertEquals( -89, qc.getQuantile( 0.1 ).intValue() );
             assertEquals( +89, qc.getQuantile( 0.9 ).intValue() );
+            assertEquals( 70.0,
+                          QuantCalc.calculateMedianAbsoluteDeviation( qc ) );
+        }
+
+        List<Iterator<Number>> itlist = new ArrayList<Iterator<Number>>();
+        for ( int ic = 0; ic < calcs.length; ic++ ) {
+            itlist.add( calcs[ ic ].getValueIterator() );
+        }
+        double[] vs = new double[ calcs.length ];
+        for ( int i = 0; i < values.length; i++ ) {
+            int jc = 0;
+            for ( Iterator<Number> it : itlist ) {
+                assert it.hasNext();
+                vs[ jc++ ] = it.next().doubleValue();
+            }
+            for ( int ic = 0; ic < calcs.length; ic++ ) {
+                assertEquals( vs[ 0 ], vs[ ic ] );
+            }
+        }
+        for ( Iterator<Number> it : itlist ) {
+            assertTrue( ! it.hasNext() );
         }
 
         assertEquals( Double.class, c1.getQuantile( 0.5 ).getClass() );
@@ -60,6 +83,16 @@ public class QuantCalcTest extends TestCase {
         assertEquals( Byte.class, c3.getQuantile( 0.5 ).getClass() );
         assertEquals( Short.class, c4.getQuantile( 0.5 ).getClass() );
         assertEquals( Integer.class, c5.getQuantile( 0.5 ).getClass() );
+    }
+
+    public void testMad() throws IOException {
+        int[] values = new int[] { 40, 5, 10, 20, 1, 40, -19, -10, 1, };
+        QuantCalc qc = QuantCalc.createInstance( Integer.class, values.length );
+        for ( int i = 0; i < values.length; i++ ) {
+            qc.acceptDatum( new Integer( values[ i ] ) );
+        }
+        qc.ready();
+        assertEquals( 15.0, QuantCalc.calculateMedianAbsoluteDeviation( qc ) );
     }
 
     private static int[] triangle( int max ) {

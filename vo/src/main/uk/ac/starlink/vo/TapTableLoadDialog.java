@@ -70,9 +70,10 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
                          Pattern.CASE_INSENSITIVE );
 
     // Pattern for locating table names in ADQL, used for generating terse
-    // query summaries; doesn't need to be very good.
+    // query summaries; doesn't need to be very good.  Could be improved
+    // by using the ADQL parser if required.
     private static final Pattern TNAME_REGEX =
-        Pattern.compile( "(FROM|JOIN)\\s+([a-z][a-z0-9._]*)",
+        Pattern.compile( "(FROM|JOIN)\\s+(\\S*)",
                          Pattern.CASE_INSENSITIVE );
 
     /**
@@ -418,8 +419,16 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
         if ( adql != null ) {
             Matcher matcher = TNAME_REGEX.matcher( adql );
             for ( boolean more = false; matcher.find(); more = true ) {
+                String tname = matcher.group( 2 );
+
+                /* Do some mangling, since at present the label
+                 * can be truncated elsewhere in the application by
+                 * assuming "/" characters represent pathnames for which
+                 * the earlier parts can get discarded. */
+                tname = tname.replaceAll( "/+", "_" )
+                             .replaceAll( "\"", "" );
                 sbuf.append( more ? ',' : '_' )
-                    .append( matcher.group( 2 ) );
+                    .append( tname );
             }
         }
         return sbuf.toString();

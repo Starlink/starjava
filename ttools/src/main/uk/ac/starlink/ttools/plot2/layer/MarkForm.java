@@ -121,9 +121,9 @@ public class MarkForm implements ShapeForm {
     }
 
     /**
-     * Outliner implementation for this class.
+     * Outliner implementation for use with MarkForm.
      */
-    private static class MarkOutliner implements Outliner {
+    public static class MarkOutliner implements Outliner {
         private final MarkStyle style_;
         private final Icon icon_;
 
@@ -133,7 +133,7 @@ public class MarkForm implements ShapeForm {
          * @param  shape  marker shape
          * @param  size   marker size in pixels
          */
-        MarkOutliner( MarkShape shape, int size ) {
+        public MarkOutliner( MarkShape shape, int size ) {
             style_ = createMarkStyle( shape, size );
             icon_ = createLegendIcon( shape, size );
         }

@@ -5,7 +5,9 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.DomainMapper;
 import uk.ac.starlink.table.TableFormatException;
+import uk.ac.starlink.table.TimeMapper;
 
 /**
  * Examines unknown rows (arrays of strings) to work out what they contain.
@@ -165,6 +167,7 @@ public class RowEvaluator {
             ColumnInfo info = super.createColumnInfo( name );
             info.setUnitString( "iso-8601" );
             info.setUCD( "TIME" );
+            info.setDomainMappers( new DomainMapper[] { TimeMapper.ISO_8601 } );
             return info;
         }
         public boolean isValid( String value ) {

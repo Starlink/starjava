@@ -1,6 +1,5 @@
 package uk.ac.starlink.ttools.plot2.geom;
 
-import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -9,9 +8,9 @@ import uk.ac.starlink.pal.Pal;
 import uk.ac.starlink.ttools.plot.Matrices;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.Captioner;
+import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
-import uk.ac.starlink.ttools.plot2.PointCloud;
 import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
@@ -275,15 +274,15 @@ public class CubeSurfaceFactory
         List<ConfigKey> list = new ArrayList<ConfigKey>();
         if ( isIso_ ) {
             list.addAll( Arrays.asList( new ConfigKey[] {
-                XMIN_KEY, XMAX_KEY, XSUBRANGE_KEY,
-                YMIN_KEY, YMAX_KEY, YSUBRANGE_KEY,
-                ZMIN_KEY, ZMAX_KEY, ZSUBRANGE_KEY,
+                XC_KEY, YC_KEY, ZC_KEY,
+                SCALE_KEY,
             } ) );
         }
         else {
             list.addAll( Arrays.asList( new ConfigKey[] {
-                XC_KEY, YC_KEY, ZC_KEY,
-                SCALE_KEY,
+                XMIN_KEY, XMAX_KEY, XSUBRANGE_KEY,
+                YMIN_KEY, YMAX_KEY, YSUBRANGE_KEY,
+                ZMIN_KEY, ZMAX_KEY, ZSUBRANGE_KEY,
             } ) );
         }
         list.addAll( Arrays.asList( new ConfigKey[] {
@@ -317,20 +316,15 @@ public class CubeSurfaceFactory
     }
 
     public Range[] readRanges( PlotLayer[] layers, DataStore dataStore ) {
-        return PlotUtil.readCoordinateRanges( new PointCloud( layers, true ),
-                                              3, dataStore );
+        return PlotUtil.readCoordinateRanges( layers, 3, dataStore );
     }
 
-    public CubeAspect pan( Surface surface, Point pos0, Point pos1 ) {
-        return ((CubeSurface) surface).pan( pos0, pos1 );
+    public ConfigKey[] getNavigatorKeys() {
+        return CubeNavigator.getConfigKeys( isIso_ );
     }
 
-    public CubeAspect zoom( Surface surface, Point pos, double factor ) {
-        return ((CubeSurface) surface).zoom( factor );
-    }
-
-    public CubeAspect center( Surface surface, double[] dpos ) {
-        return ((CubeSurface) surface).center( dpos );
+    public Navigator<CubeAspect> createNavigator( ConfigMap navConfig ) {
+        return CubeNavigator.createNavigator( isIso_, navConfig );
     }
 
     /**

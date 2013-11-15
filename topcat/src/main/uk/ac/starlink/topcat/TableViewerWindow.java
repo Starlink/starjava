@@ -243,10 +243,35 @@ public class TableViewerWindow extends AuxWindow
                 tcModel.applySubset( (RowSubset) subsets.get( index ) );
             }
         };
+        Action highlightsubsetAct = new AbstractAction() {
+            public void actionPerformed( ActionEvent evt ) {
+                int index = evt.getID();
+                setSelection( (RowSubset) subsets.get( index ) );
+            }
+        };
         JMenu applysubsetMenu =
-            subsets.makeJMenu( "Apply Subset", applysubsetAct );
-        subsetMenu.add( applysubsetMenu );
+            subsets.makeJMenu( "Select Current Subset", applysubsetAct );
+        applysubsetMenu.setIcon( ResourceIcon.APPLY_SUBSET );
+        applysubsetMenu.setToolTipText( "Sets the current subset for this "
+                                      + "table; most subsequent views and "
+                                      + "operations are restricted to the "
+                                      + " corresponding rows" );
+        JMenu highlightsubsetMenu =
+            subsets.makeJMenu( "Highlight Subset", highlightsubsetAct );
+        highlightsubsetMenu.setIcon( ResourceIcon.HIGHLIGHT );
+        highlightsubsetMenu.setToolTipText( "Marks the rows of a selected "
+                                          + "subset" );
+        subsetMenu.add( highlightsubsetMenu );
+
+        /* This action, formerly known as "Apply Subset", is a bit dangerous,
+         * since it changes the globally selected subset in a way that might
+         * not be obvious.  Comment it out for now. */
+        if ( false ) {
+            subsetMenu.add( applysubsetMenu );
+        }
+
         getJMenuBar().add( subsetMenu );
+  
 
         /* Add help information. */
         addHelp( "TableViewerWindow" );

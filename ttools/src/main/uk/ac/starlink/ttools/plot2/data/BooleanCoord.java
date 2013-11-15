@@ -1,5 +1,7 @@
 package uk.ac.starlink.ttools.plot2.data;
 
+import uk.ac.starlink.table.DomainMapper;
+
 /**
  * Coord implementation for single boolean values.
  *
@@ -17,10 +19,10 @@ public class BooleanCoord extends SingleCoord {
      */
     public BooleanCoord( String name, String description, boolean isRequired ) {
         super( name, description, isRequired,
-               Boolean.class, StorageType.BOOLEAN );
+               Boolean.class, StorageType.BOOLEAN, null );
     }
 
-    public Object userToStorage( Object[] userCoords ) {
+    public Object userToStorage( Object[] userCoords, DomainMapper[] mappers ) {
         Object c = userCoords[ 0 ];
         return c instanceof Boolean ? (Boolean) c : Boolean.FALSE;
     }

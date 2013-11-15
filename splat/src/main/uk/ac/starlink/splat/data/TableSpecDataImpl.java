@@ -69,7 +69,8 @@ public class TableSpecDataImpl
     /**
      * Create an object by opening a resource and reading its
      * content. Note this throws a SEDSplatException, if the table is
-     * suspected of being an SED (that is it contain vector cells).
+     * suspected of being an SED (that is it contain vector cells)
+     * with more than one row.
      *
      * @param tablespec the name of the resource (file plus optional fragment).
      */
@@ -704,11 +705,14 @@ public class TableSpecDataImpl
         catch (ClassCastException e) {
             //  Isn't a Number, is it a vector?
             if ( isPrimitiveArray( cellData ) ) {
-                throw new SEDSplatException( dims[0], 
-                      "Table contains vector cells, assuming it is an SED" );
+                //  Read vector data from first row. XXX handle SED.
+                double newdata[] = readCell( 0, index );
+                System.arraycopy( newdata, 0, data, 0, newdata.length );
             }
-            throw new SplatException
-                ( "Table column ("+ index +")contains an unknown data type" );
+            else {
+                throw new SplatException
+                    ( "Table column ("+ index +")contains an unknown data type" );
+            }
         }
         catch (Exception e) {
             throw new SplatException( "Failed reading table column" , e );
@@ -802,7 +806,10 @@ public class TableSpecDataImpl
             desc = columnInfos[column].getUCD();
             if ( desc != null ) {
                 UCD ucd = UCD.getUCD( desc );
-                if ( ucd != null ) {
+                if ( ucd == null ) {
+                    desc = null;
+                }
+                else {
                     desc = ucd.getDescription();
                 }
             }
@@ -810,6 +817,7 @@ public class TableSpecDataImpl
                 desc = columnInfos[column].getName();
             }
         }
+
         if ( desc != null && ! "".equals( desc ) ) {
             astref.setLabel( 1, desc );
         }

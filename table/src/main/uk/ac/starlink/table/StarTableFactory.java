@@ -73,6 +73,8 @@ import uk.ac.starlink.util.URLDataSource;
  *      (format name="fits")
  * <li> {@link uk.ac.starlink.votable.VOTableBuilder}
  *      (format name="votable")
+ * <li> {@link uk.ac.starlink.cdf.CdfTableBuilder}
+ *      (format name="cdf")
  * </ul>
  *
  * <p>The following additional handlers are installed in the
@@ -132,6 +134,7 @@ public class StarTableFactory {
         "uk.ac.starlink.fits.ColFitsTableBuilder",
         "uk.ac.starlink.fits.FitsTableBuilder",
         "uk.ac.starlink.votable.VOTableBuilder",
+        "uk.ac.starlink.cdf.CdfTableBuilder",
     };
     private static String[] knownBuilderClasses = {
         AsciiTableBuilder.class.getName(),

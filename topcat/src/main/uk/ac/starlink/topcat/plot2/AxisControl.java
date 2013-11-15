@@ -1,10 +1,13 @@
 package uk.ac.starlink.topcat.plot2;
 
 import java.awt.event.ActionEvent;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.Icon;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.ttools.plot.Range;
+import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
@@ -27,6 +30,8 @@ public abstract class AxisControl<P,A> extends ConfigControl {
     private A aspect_;
     private P lastProfile_;
     private PlotLayer[] lastLayers_;
+    private List<ActionSpecifierPanel> aspectPanels_;
+    private ConfigSpecifier navSpecifier_;
 
     /**
      * Constructor.
@@ -44,6 +49,7 @@ public abstract class AxisControl<P,A> extends ConfigControl {
                                    "Do not auto-rescale axes" );
         lastLayers_ = new PlotLayer[ 0 ];
         lastProfile_ = surfFact.createProfile( new ConfigMap() );
+        aspectPanels_ = new ArrayList<ActionSpecifierPanel>();
     }
 
     /**
@@ -110,6 +116,29 @@ public abstract class AxisControl<P,A> extends ConfigControl {
     }
 
     /**
+     * Adds a tab for selecting navigator options.
+     * These are determined by the surface factory.
+     */
+    protected void addNavigatorTab() {
+        ConfigSpecifier navSpecifier =
+            new ConfigSpecifier( surfFact_.getNavigatorKeys() );
+        addSpecifierTab( "Navigation", navSpecifier );
+        navSpecifier_ = navSpecifier;
+    }
+
+    /**
+     * Returns the navigator specified by this control.
+     *
+     * @return  current navigator
+     */
+    public Navigator<A> getNavigator() {
+        ConfigMap config = navSpecifier_ == null
+                         ? new ConfigMap()
+                         : navSpecifier_.getSpecifiedValue();
+        return surfFact_.createNavigator( config );
+    }
+
+    /**
      * Adds a tab for specifying the aspect.
      * This is like a config tab for the aspect keys, but has additional
      * submit decoration.
@@ -119,11 +148,24 @@ public abstract class AxisControl<P,A> extends ConfigControl {
      */
     protected void addAspectConfigTab( String label,
                                        Specifier<ConfigMap> aspectSpecifier ) {
-        addSpecifierTab( label, new ActionSpecifierPanel( aspectSpecifier ) {
+        ActionSpecifierPanel aspectPanel =
+                new ActionSpecifierPanel( aspectSpecifier ) {
             protected void doSubmit( ActionEvent evt ) {
                 setAspect( null );
             }
-        } );
+        };
+        aspectPanels_.add( aspectPanel );
+        addSpecifierTab( label, aspectPanel );
+    }
+
+    /**
+     * Clears any settings in tabs added by the
+     * {@link #addAspectConfigTab addAspectConfigTab} method.
+     */
+    public void clearAspect() {
+        for ( ActionSpecifierPanel aspectPanel : aspectPanels_ ) {
+            aspectPanel.clear();
+        }
     }
 
     /**

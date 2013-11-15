@@ -215,7 +215,7 @@
 #  from libraries written in Fortran which the AST library (or the C
 #  program) calls.  The value here is worked out by the autoconf macro
 #  AC_FC_LIBRARY_LDFLAGS.
-      flibs=' -L/Users/timj/work/gfortran-4.6/bin/../lib/gcc/x86_64-apple-darwin10/4.6.0 -L/Users/timj/work/gfortran-4.6/bin/../lib/gcc -L/Users/timj/work/gfortran-4.6/bin/../lib/gcc/x86_64-apple-darwin10/4.6.0/../../.. -lpthread -lgfortran -lgcc_s.10.5 -lgcc_ext.10.5 -lSystem'
+      flibs=' -L/usr/lib/gcc/x86_64-redhat-linux/3.4.6 -L/usr/lib/gcc/x86_64-redhat-linux/3.4.6/../../../../lib64 -L/usr/lib/gcc/x86_64-redhat-linux/3.4.6/../../.. -L/lib/../lib64 -L/usr/lib/../lib64 -lfrtbegin -lg2c -lm -lgcc_s'
 
 #  This function searches the directory path specified in PATH, looking for
 #  an executable file which is not a directory. If found, it echos the full
@@ -328,9 +328,8 @@
 
 #  Link with the main AST library.
 #  -------------------------------
-#  Start forming the list of arguments with the main AST library itself, the
-#  "wcslib" module, and the "levmar" module.
-      args='-last -last_wcslib -last_levmar'
+#  Start forming the list of arguments with the main AST library itself.
+      args='-last '
 
 #  Generate arguments for linking PAL.
 #  -----------------------------------

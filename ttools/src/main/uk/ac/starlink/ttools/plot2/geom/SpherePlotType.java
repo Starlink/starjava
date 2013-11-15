@@ -43,7 +43,7 @@ public class SpherePlotType implements PlotType {
         dataGeoms_ = new DataGeom[] { SphereDataGeom.INSTANCE };
     }
 
-    public DataGeom[] getDataGeoms() {
+    public DataGeom[] getPointDataGeoms() {
         return dataGeoms_;
     }
 

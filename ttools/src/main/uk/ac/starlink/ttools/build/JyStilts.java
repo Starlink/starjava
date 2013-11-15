@@ -36,6 +36,7 @@ import uk.ac.starlink.ttools.jel.JELUtils;
 import uk.ac.starlink.ttools.mode.ProcessingMode;
 import uk.ac.starlink.ttools.task.AbstractInputTableParameter;
 import uk.ac.starlink.ttools.task.Calc;
+import uk.ac.starlink.ttools.task.ChoiceMode;
 import uk.ac.starlink.ttools.task.ConsumerTask;
 import uk.ac.starlink.ttools.task.FilterParameter;
 import uk.ac.starlink.ttools.task.InputFormatParameter;
@@ -1011,7 +1012,13 @@ public class JyStilts {
             throws LoadException, SAXException {
         Task task =
             (Task) stilts_.getTaskFactory().createObject( taskNickName );
-        boolean isConsumer = task instanceof ConsumerTask;
+
+        /* Identify tasks whose primary output is the table presented to
+         * the processing mode. */
+        boolean isProducer =
+               task instanceof ConsumerTask
+            && ((ConsumerTask) task).getOutputMode() instanceof ChoiceMode;
+                 
         boolean returnOutput = task instanceof Calc;
         List lineList = new ArrayList();
 
@@ -1102,7 +1109,7 @@ public class JyStilts {
         /* Write the doc string. */
         lineList.add( "    '''\\" );
         lineList.add( task.getPurpose() + "." );
-        if ( isConsumer ) {
+        if ( isProducer ) {
             lineList.add( "" );
             lineList.add( "The return value is the resulting table." );
         }
@@ -1114,32 +1121,9 @@ public class JyStilts {
         lineList.add( "'''" );
 
         /* Create the task object. */
-        if ( isConsumer ) {
-
-            /* If the task is a ConsumerTask, use an instance of a subclass
-             * of the relevant Task class (the relevant classes all happen
-             * to have suitable no-arg constructors).  This is a hack to
-             * permit access to the createProducer method, which has 
-             * protected access in the ConsumerTask interface (at least
-             * in some stilts versions). */
-            Class taskClazz = task.getClass();
-            String taskClazzName = taskClazz.getName();
-            String taskSubName = "_" + fname + "_task";
-            lineList.add( "    import " + taskClazzName );
-            lineList.add( "    class " + taskSubName
-                                       + "(" + taskClazzName + "):" );
-            lineList.add( "        def __init__(self):" );
-            lineList.add( "            " + taskClazzName + ".__init__(self)" );
-            lineList.add( "    task = " + taskSubName + "()" );
-        }
-        else {
-
-            /* Do it the simple, and more respectable way, if the hack
-             * is not required. */
-            lineList.add( "    task = _stilts"
-                                    + ".getTaskFactory()"
-                                    + ".createObject('" + taskNickName + "')" );
-        }
+        lineList.add( "    task = _stilts"
+                                + ".getTaskFactory()"
+                                + ".createObject('" + taskNickName + "')" );
 
         /* Rename parameters as required. */
         lineList.add( "    for param in task.getParameters():" );
@@ -1171,7 +1155,7 @@ public class JyStilts {
         lineList.add( "        env.setValue(key, _map_env_value(value))" );
 
         /* For a consumer task, create a result table and return it. */
-        if ( isConsumer ) {
+        if ( isProducer ) {
             lineList.add( "    table = task.createProducer(env).getTable()" );
             lineList.add( "    _check_unused_args(env)" );
             lineList.add( "    return import_star_table(table)" );

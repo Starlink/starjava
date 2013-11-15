@@ -17,6 +17,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -595,7 +596,8 @@ public class TapQueryPanel extends JPanel {
                 }
             }
             else if ( perr != null ) {
-                logger_.warning( "Unexpected parse exception: " + perr );
+                logger_.log( Level.WARNING,
+                             "Unexpected parse exception: " + perr, perr );
             }
             return rectList.toArray( new Rectangle[ 0 ] );
         }

@@ -1,5 +1,6 @@
 package uk.ac.starlink.votable;
 
+import java.io.CharConversionException;
 import java.io.IOException;
 import java.util.logging.Logger;
 import javax.xml.parsers.ParserConfigurationException;
@@ -163,6 +164,14 @@ class TableStreamer extends TableContentHandler implements TableHandler {
         }
         catch ( SuccessfulCompletionException e ) {
             return;
+        }
+        catch ( CharConversionException e ) {
+            if ( streamer.isVotable_ ) {
+                throw e;
+            }
+            else {
+                throw new TableFormatException( "Bad XML characters", e );
+            }
         }
         catch ( SAXException e ) {
             e = VOElementFactory.fixStackTrace( e );

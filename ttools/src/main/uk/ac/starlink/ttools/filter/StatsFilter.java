@@ -46,6 +46,8 @@ public class StatsFilter extends BasicFilter {
     private static final ValueInfo POPVAR_INFO;
     private static final ValueInfo SAMPSD_INFO;
     private static final ValueInfo SAMPVAR_INFO;
+    private static final ValueInfo MAD_INFO;
+    private static final ValueInfo SMAD_INFO;
     private static final ValueInfo SKEW_INFO;
     private static final ValueInfo KURT_INFO;
     private static final ValueInfo MIN_INFO;
@@ -75,6 +77,11 @@ public class StatsFilter extends BasicFilter {
                                             "Sample Standard Deviation" ),
         SAMPVAR_INFO = new DefaultValueInfo( "SampVariance", Float.class,
                                              "Sample Variance" ),
+        MAD_INFO = new DefaultValueInfo( "MedAbsDev", Float.class,
+                                         "Median Absolute Deviation" ),
+        SMAD_INFO = new DefaultValueInfo( "ScMedAbsDev", Float.class,
+                                          "Median Absolute Deviation * "
+                                        + QuantCalc.MAD_SCALE ),
         SKEW_INFO = new DefaultValueInfo( "Skew", Float.class,
                                           "Gamma 1 skewness measure" ),
         KURT_INFO = new DefaultValueInfo( "Kurtosis", Float.class,
@@ -191,17 +198,22 @@ public class StatsFilter extends BasicFilter {
                     infoList.add( new QuantileInfo( quant ) );
                 }
                 else {
+                    List<ValueInfo> docInfoList = new ArrayList<ValueInfo>();
+                    docInfoList.addAll( Arrays.asList( ALL_KNOWN_INFOS ) );
+                    docInfoList
+                       .add( new DefaultValueInfo( "Q.nn", Number.class,
+                                                   "Quantile for 0.nn" ) );
+                    ValueInfo[] docInfos =
+                        docInfoList.toArray( new ValueInfo[ 0 ] );
                     StringBuffer msg = new StringBuffer()
                        .append( "Unknown quantity " )
                        .append( name );
                     try {
                         String opts =
                             new Formatter()
-                           .formatXML( DocUtils.listInfos( ALL_KNOWN_INFOS ),
-                                       6 );
+                           .formatXML( DocUtils.listInfos( docInfos ), 6 );
                         msg.append( " must be one of: " )
-                           .append( opts )
-                           .append( "or Q.nn" );
+                           .append( opts );
                     }
                     catch ( SAXException e ) {
                         assert false;
@@ -238,6 +250,10 @@ public class StatsFilter extends BasicFilter {
         /* Work out if we need to calculate cardinalities. */
         boolean doCard = Arrays.asList( infos ).contains( CARDINALITY_INFO );
 
+        /* Work out if we need to calculate Mean Absolute Deviations. */
+        boolean doMad = Arrays.asList( infos ).contains( MAD_INFO )
+                     || Arrays.asList( infos ).contains( SMAD_INFO );
+
         /* Work out if we need to calculate quantiles. */
         List quantInfoList = new ArrayList();
         for ( int i = 0; i < infos.length; i++ ) {
@@ -245,7 +261,7 @@ public class StatsFilter extends BasicFilter {
                 quantInfoList.add( infos[ i ] );
             }
         }
-        boolean doQuant = ! quantInfoList.isEmpty();
+        boolean doQuant = ! quantInfoList.isEmpty() || doMad;
         QuantileInfo[] quantInfos = doQuant
             ? (QuantileInfo[]) quantInfoList.toArray( new QuantileInfo[ 0 ] )
             : null;
@@ -374,6 +390,14 @@ public class StatsFilter extends BasicFilter {
                         Number quantile = quantCalcs[ icol ]
                                          .getQuantile( quantInfo.getQuant() );
                         map.put( quantInfo, quantile );
+                    }
+                    if ( doMad ) {
+                        Number mad =
+                            QuantCalc.calculateMedianAbsoluteDeviation(
+                                           quantCalcs[ icol ] );
+                        map.put( MAD_INFO, mad );
+                        map.put( SMAD_INFO, new Float( mad.floatValue() *
+                                                       QuantCalc.MAD_SCALE ) );
                     }
                 }
             }

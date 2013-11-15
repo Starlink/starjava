@@ -38,5 +38,13 @@ public enum StorageType {
     DOUBLE3,
 
     /** Single precision triple type.  Output type is <code>float[3]</code>. */
-    FLOAT3;
+    FLOAT3,
+
+    /** Double precision variable length array type.
+     *  Output type is <code>double[]</code>. */
+    DOUBLE_ARRAY,
+
+    /** Single precision variable length array type.
+     *  Output type is <code>float[]</code>. */
+    FLOAT_ARRAY;
 }

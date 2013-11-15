@@ -61,8 +61,8 @@ public abstract class MarkStyle extends DefaultStyle {
     /** Symbolic constant meaning draw a linear regression line. */
     public static final Line LINEAR = new Line( "LinearRegression" );
 
-    private static final int LEGEND_ICON_WIDTH = 20;
-    private static final int LEGEND_ICON_HEIGHT = 12;
+    public static final int LEGEND_ICON_WIDTH = 20;
+    public static final int LEGEND_ICON_HEIGHT = 12;
     private static final RenderingHints.Key AA_KEY =
         RenderingHints.KEY_ANTIALIASING;
     private static final Object AA_ON = RenderingHints.VALUE_ANTIALIAS_ON;

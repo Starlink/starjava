@@ -28,6 +28,7 @@ public class System {
      * @param   cmd  name of command
      * @param   arg1  the first argument
      * @return  short log message
+     * @example  <code>exec("do_stuff.py", OBJ_NAME)</code>
      */
     public static String exec( String cmd, String arg1 ) {
         return exec( new String[] { cmd, arg1 } );
@@ -40,6 +41,7 @@ public class System {
      * @param   arg1  the first argument
      * @param   arg2  the second argument
      * @return  short log message
+     * @example  <code>exec("do_stuff.py", toString(RA), toString(DEC))</code>
      */
     public static String exec( String cmd, String arg1, String arg2 ) {
         return exec( new String[] { cmd, arg1, arg2 } );
@@ -53,6 +55,8 @@ public class System {
      * @param   arg2  the second argument
      * @param   arg3  the third argument
      * @return  short log message
+     * @example  <code>exec("do_stuff.py",
+                            toString(RA), toString(DEC), OBJ_NAME)</code>
      */
     public static String exec( String cmd, String arg1, String arg2, 
                                String arg3 ) {
@@ -77,6 +81,7 @@ public class System {
      *
      * @param  line  command line to execute
      * @return  short report message
+     * @example  <code>exec("do_stuff.py " + RA + " " + DEC)</code>
      */
     public static String exec( String line ) {
         return execute( Executor.createExecutor( line ) );

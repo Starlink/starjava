@@ -51,6 +51,9 @@ public class CubeAxisControl
             } ) );
         }
 
+        /* Navigator tab. */
+        addNavigatorTab();
+
         /* Provide the aspect configuration in two separate panels.
          * Either can reset the whole aspect, but each takes part of the
          * state from the existing aspect so that adjusting the controls

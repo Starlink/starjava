@@ -4,7 +4,6 @@ import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
 import javax.swing.JSlider;
-import javax.swing.JTextField;
 
 /**
  * Config key for double precision values.
@@ -70,7 +69,7 @@ public abstract class DoubleConfigKey extends ConfigKey<Double> {
                                                  double dflt ) {
         return new DoubleConfigKey( meta, dflt ) {
             public Specifier<Double> createSpecifier() {
-                return new TextSpecifier( this );
+                return new TextFieldSpecifier( this, new Double( Double.NaN ) );
             }
         };
     }
@@ -115,48 +114,6 @@ public abstract class DoubleConfigKey extends ConfigKey<Double> {
                 return new SliderSpecifier( lo, hi, log );
             }
         };
-    }
-
-    /**
-     * Text field specifier for double values.
-     */
-    private static class TextSpecifier extends SpecifierPanel<Double> {
-        private final DoubleConfigKey key_;
-        private final JTextField txtField_;
-
-        /**
-         * Constructor.
-         *
-         * @param  key  key on behalf of which this specifier will work
-         */
-        TextSpecifier( DoubleConfigKey key ) {
-            super( true );
-            key_ = key;
-            txtField_ = new JTextField();
-        }
-
-        protected JComponent createComponent() {
-            txtField_.addActionListener( getActionForwarder() );
-            return txtField_;
-        }
-
-        public Double getSpecifiedValue() {
-            try {
-                return key_.stringToValue( txtField_.getText() );
-            }
-            catch ( ConfigException e ) {
-                JOptionPane.showMessageDialog( txtField_, e.getMessage(),
-                                               "Bad Number",
-                                               JOptionPane.ERROR_MESSAGE );
-                txtField_.setText( "" );
-                return Double.NaN;
-            }
-        }
-
-        public void setSpecifiedValue( Double value ) {
-            txtField_.setText( key_.valueToString( value ) );
-            fireAction();
-        }
     }
 
     /**

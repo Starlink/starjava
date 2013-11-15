@@ -197,8 +197,7 @@
 
 <docnumber>253</docnumber>
 
-<history><version><px>$Id$</px></version></history>
-<docdate>28 March 2013</docdate>
+<docdate>1 July 2013</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -389,7 +388,7 @@ something like
 <code>java -jar topcat-full.jar</code> (see <ref id="invoke"/> for
 more detail).  To view a table that you have on disk, you can either
 give its name on the command line or load it using the <label>Load</label>
-button from the GUI.  FITS and VOTable files are recognised automatically;
+button from the GUI.  FITS, VOTable and CDF files are recognised automatically;
 if your data is in another format such as ASCII (see <ref id="inFormats"/>)
 you need to tell the program (e.g. <code>-f ascii</code> on the command line).
 If you just want to try the program out, <code>topcat -demo</code> will
@@ -857,7 +856,7 @@ supported input formats have matching output formats and vice versa.
 <p>Loading tables into TOPCAT is done either from the command line
 when you start the program up or
 using the <ref id="LoadWindow">Load Table</ref> dialogue.
-For FITS and VOTable formats
+For FITS, VOTable and CDF formats
 the file format can be detected automatically
 (note this is done by looking at the file content, it has nothing
 to do with filename extensions).
@@ -1022,6 +1021,22 @@ then loading the document in the usual way from the filestore browser
 or command line will open two new tables in TOPCAT.
 If you just want the Star Catalogue or the Galaxy Catalogue you can 
 use the name "cats.xml#0" or "cats.xml#1" respectively.
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="inCdf">
+<subhead><title>CDF</title></subhead>
+
+<p>NASA's Common Data Format, described at
+<webref url="http://cdf.gsfc.nasa.gov/"/>,
+is a binary format for storing self-describing data.
+It is typically used to store tabular data for subject areas like
+space and solar physics.
+Since v4.0-1 TOPCAT is capable of reading CDF files, though it can't
+write them.
+Currently, no attempt is made to represent values representing
+times in a human-friendly fashion.  This may change in future releases.
 </p>
 
 </subsubsubsect>
@@ -3448,11 +3463,20 @@ unless you are a tool developer you can probably ignore these.
     <ref id="ControlWindow">Control Window</ref>.
     </p>
     <p>SAMP MType:
-       <code>table.load.votable</code> or
-       <code>table.load.fits</code>;
+       <code>table.load.votable</code>,
+       <code>table.load.fits</code>,
+       <code>table.load.cdf</code> or
+       <code>table.load.stil</code>;
        PLASTIC Message ID:
        <code>ivo://votech.org/votable/load</code> or
        <code>ivo://votech.org/votable/loadFromURL</code>
+    </p>
+    <p>Note the non-standard MType <code>table.load.stil</code> is
+    supported for loading tables with SAMP.  This is like the other
+    <code>table.load.*</code> MTypes, but any table format supported
+    by the application is permitted.  This MType has an additional
+    parameter "<code>format</code>", which must contain the table format
+    name (not case sensitive).
     </p></dd>
 
 <dt>New Subset</dt>
@@ -4063,6 +4087,17 @@ The following ones have special significance within TOPCAT:
     Currently defaults to "false".
     </p></dd>
 
+<dt><code>service.maxparallel</code></dt>
+<dd><p>Raises the maximum number of concurrent queries that may be made
+    during a multi-cone operation.
+    You should only increase this value <strong>with great care</strong>
+    since you risk overloading servers and becoming unpopular with
+    data centres.
+    As a rule, you should only increase this value if you have
+    obtained permission from the data centres whose services
+    on which you will be using the increased parallelism.
+    </p></dd>
+
 <dt><code>star.basicauth.user</code></dt>
 <dt><code>star.basicauth.password</code></dt>
 <dd><p>If set, these will provide username and password for HTTP Basic
@@ -4071,8 +4106,11 @@ The following ones have special significance within TOPCAT:
     supplying these user credentials.  This is a rather blunt instrument,
     since the same identity is supplied regardless of which URL is being
     accessed, but it may be of some use in accessing basic-authentication
-    protected services.  This mechanism is experimental, and may be
-    modified or withdrawn in future versions.
+    protected services.
+    </p>
+    <p>If these properties are not set, then on encountering a 401 in
+    the application will pop up a dialogue window asking for username
+    and password.
     </p></dd>
 
 <dt><code>star.connectors</code></dt>
@@ -5551,6 +5589,16 @@ here.
 </dl>
 </p>
 
+<p>The <label>Subsets</label> menu additionally contains the following item:
+<dl>
+<dt>&IMG.HIGHLIGHT; Highlight Subset</dt>
+<dd><p>This is a submenu in which all the currently defined row subsets
+    are listed.  Selecting one of them marks the rows corresponding to that
+    subset as if they have been selected.
+    </p></dd>
+</dl>
+</p>
+
 <p>As well as the normal menu, right-clicking over one of the columns
 in the displayed table will present a
 <label>Column Popup Menu</label>, which provides a convenient
@@ -6054,7 +6102,14 @@ can be edited by double-clicking on them in the normal way.
     in the JTable.
     </p></dd>
 
-<dt>&IMG.COUNT; Count Subsets</dt>
+<dt>&IMG.HIGHLIGHT; Highlight Subset</dt>
+<dd><p>Highlights the contents of this subset by marking the rows visibly
+    in the <ref id="TableViewerWindow">data window</ref> and also ensuring
+    that the rows are visible in any plot windows.  This replicates what
+    happens when the subset is first created.
+    </p></dd>
+
+<dt>&IMG.COUNT; Count Rows</dt>
 <dd><p>Counts how many rows are in each subset and displays this in the
     <label>Size</label> column.  
     This forces a count or recount to fill in or update these values.
@@ -6178,6 +6233,19 @@ You can reveal these by using the <label>Display</label> menu:
 
 <dt>Sample Variance</dt>
 <dd><p>The sample variance of the good cells.
+    </p></dd>
+
+<dt>Median Absolute Deviation</dt>
+<dd><p>The median of absolute deviations from the median:
+    <code>median(abs(x-median(x))</code>.
+    This is a robust measure of statistical dispersion.
+    </p></dd>
+
+<dt>Scaled Median Absolute Deviation</dt>
+<dd><p>The <label>Median Absolute Deviation</label> (see above) multiplied
+    by 1.4826.
+    This is supposed to be a consistent estimator for the standard deviation,
+    on the assumption of a normal distribution.
     </p></dd>
 
 <dt>Skew</dt>
@@ -8973,18 +9041,6 @@ and experiment with the various options to see what happens to the plot.
     because of changes in the subset selection or from zooming in or out.
     </p></dd>
 
-<dt>&IMG.ZOOM_IN; Zoom In</dt>
-<dd><p>Zooms the plot in around its centre.
-    In most cases using the mouse wheel if available is a better option,
-    but this button is available as an alternative.
-    </p></dd>
-
-<dt>&IMG.ZOOM_OUT; Zoom Out</dt>
-<dd><p>Zooms the plot out around its centre.
-    In most cases using the mouse wheel if available is a better option,
-    but this button is available as an alternative.
-    </p></dd>
-
 <dt>&IMG.AXIS_LOCK; Lock Axes</dt>
 <dd><p>Usually, when the data plotted has changed significantly,
     the axes are automatically rescaled so that all the points are visible.
@@ -10038,7 +10094,7 @@ This mode works without problem for both bitmapped and vector output.
 <figureimage src="&FIG.mode_transparent;"/>
 </figure>
 
-<p>The <label>Transparent</label> shading mode (&IMG.MODE_TRANSPARENT;)
+<p>The <label>Transparent</label> shading mode (&IMG.MODE_ALPHA_FIX;)
 colours shapes in a transparent version of the
 colour selected by their style.
 The degree of transparency is determined by the
@@ -10252,8 +10308,6 @@ see the <label>Coords</label> tab of the
     (some machines with no wheel can simulate this with a
     two-fingered slide on the mouse pad),
     since this zooms around the current mouse position.
-    An alternative is to use the zoom buttons (&IMG.ZOOM_IN;/&IMG.ZOOM_OUT;)
-    on the toolbar, which zoom around the center of the plot.
     This zooming is isotropic - both axes zoom by the same factor.
     </p>
     <p>You can also change the zoom using the <label>Range</label> tab
@@ -10458,8 +10512,6 @@ values as their default (both Equatorial) and no conversion will be done.
     (some machines with no wheel can simulate this with a
     two-fingered slide on the mouse pad),
     since this zooms around the current mouse position.
-    An alternative is to use the zoom buttons (&IMG.ZOOM_IN;/&IMG.ZOOM_OUT;)
-    on the toolbar, which zoom around the center of the plot.
     </p>
     <p>In the Sin projection, the zoom will rotate the sphere as well as
     increase its magnification, so that the cursor can stay on the same
@@ -10658,9 +10710,8 @@ see the <label>Coords</label> tab of the
     it should end up in the centre of the cube.
     </p></dd>
 <dt>Zooming</dt>
-<dd><p>You can zoom using the mouse wheel or the zoom buttons
-    (&IMG.ZOOM_IN;/&IMG.ZOOM_OUT;) on the toolbar.
-    Either of these zooms the <em>data volume</em> in the visible cube
+<dd><p>You can zoom using the mouse wheel.
+    This zooms the <em>data volume</em> in the visible cube
     about its centre, so the cube wireframe axes stay in the same place
     on the screen, but the axis annotations move.
     </p>
@@ -10887,9 +10938,8 @@ for features common to all layer plots.
     if you click on a point or clump of interest, it should do what you want.
     </p></dd>
 <dt>Zooming</dt>
-<dd><p>You can zoom using the mouse wheel or the zoom buttons
-    (&IMG.ZOOM_IN;/&IMG.ZOOM_OUT;) on the toolbar.
-    Either of these zooms the <em>data volume</em> in the visible cube
+<dd><p>You can zoom using the mouse wheel.
+    This zooms the <em>data volume</em> in the visible cube
     about its centre, so the cube wireframe axes stay in the same place
     on the screen, but the axis annotations move.
     </p>
@@ -15512,15 +15562,17 @@ for the latest news and releases.
 Since then it has been supported by 
 grant PP/D002486/1 from the 
 UK's Particle Physics and Astronomy Research Council,
-the <webref url="http://eurovotech.org/">VOTech</webref> project (from EU FP6),
+the <webref url="http://eurovotc.org/">VOTech</webref> project (from EU FP6),
 the <webref url="http://www.astrogrid.org/">AstroGrid</webref> project
     (from PPARC/STFC),
 the <webref url="http://cds.u-strasbg.fr/twikiAIDA/bin/view/EuroVOAIDA/WebHome"
             >AIDA</webref> project (from EU FP7),
 grants ST/H008470/1, ST/I00176X/1 and ST/J001414/1
 from the UK's Science and Technology Facilities Council (STFC),
-and the <webref url="http://www.g-vo.org/">GAVO</webref> project
-(BMBF Bewilligungsnummer 05A08VHA).
+the <webref url="http://www.g-vo.org/">GAVO</webref> project
+(BMBF Bewilligungsnummer 05A08VHA),
+and
+the European Space Agency.
 All of this support is gratefully acknowledged.
 </p>
 
@@ -15645,6 +15697,7 @@ Some of the notable contributers are these:
 <li>Aaron Robotham (Bristol)</li>
 <li>Yannick Roehlly (OAMP)</li>
 <li>Mike Read (ROE)</li>
+<li>Juande Sandander Vela (IAA-CSIC)</li>
 <li>Mike Watson (Leicester)</li>
 <li>Ivan Zolotukhin (SAI MSU)</li>
 <li>Jonathan Zwart (Columbia)</li>
@@ -17860,7 +17913,80 @@ introduced since the last version:
         It's still a yellow cat.
         </p></dd>
     <dt>Plotting:</dt>
-    <dd><p>All change.
+    <dd><p>Four new "Layer plot" windows are available from the
+        <label>Graphics</label> menu: Plane, Sky, Cube and Sphere layer plots.
+        These feature a new more powerful (and, yes, more complicated) user
+        interface, and are fully documented in <ref id="plot2"/>.
+        New functionality includes:
+        <dl>
+        <dt>New Sky Coordinate Plot</dt>
+        <dd><p>
+            <ul>
+            <li>Choice of projection:
+                Sin (rotatable), Aitoff, Plate Carr&#xE9;e</li>
+            <li>Data and view sky coordinate systems selected separately:
+                options are equatorial, galactic, supergalactic, ecliptic</li>
+            <li>Sky coordinate grid labelled and visible at all zooms</li>
+            </ul>
+            </p></dd>
+        <dt>New data plot options</dt>
+        <dd><p>
+            <ul>
+            <li>vectors</li>
+            <li>ellipses (with position angle)</li>
+            <li>pair, triple, ... data point lines/polygons</li>
+            <li>contours</li>
+            <li>variable size markers</li>
+            </ul>
+            </p></dd>
+        <dt>Improved interactive response</dt>
+        <dd><p>
+            <ul>
+            <li>In 2d and sky plots mouse wheel zooms
+                around cursor position</li>
+            <li>In 2d and sky plots you can
+                drag the plot around</li>
+            <li>In 3d plots right mouse button recentres cube
+                on selected point</li>
+            <li>In 3d plots zooming zooms data in the cube
+                rather than enlarging the cube wireframe itself</li>
+            <li>Many controls are sliders which update
+                the plot as you slide</li>
+            </ul>
+            </p></dd>
+        <dt>New plot colouring modes</dt>
+        <dd><p>Density colour coding for all plot types,
+            with density colour map based either on dataset colour or
+            chosen from a fixed set.
+            Flat, transparent and aux colour coding still available as before.
+            </p></dd>
+        <dt>Better support for large datasets</dt>
+        <dd><p>Several features have been introduced to provide more meaningful
+            visualisation of large datasets.  Improved density-like plots
+            and contours give you better ways to understand plots containing
+            many more points than there are pixels to plot them on.
+            There is separately some improvement in scalability:
+            up to roughly 10 million points is currently feasible depending
+            on available memory etc, though it depends what you're doing.
+            However, I hope to improve this limit in future.</p></dd>
+        <dt>Improved axis labelling</dt>
+        <dd><p>
+            <ul>
+            <li>Choice of font size and style</li>
+            <li>Option of LaTeX input for non-ASCII characters etc</li>
+            <li>Log axes labelled better</li>
+            <li>Minor tick option</li>
+            </ul>
+            </p></dd>
+        <dt>Legend options</dt>
+        <dd><p>External or manually positioned internal placement.
+            </p></dd>
+        <dt>Analytic function plotting in 2D</dt>
+        <dd><p>Plot functions of X or Y coordinate using
+            TOPCAT expression language.</p></dd>
+        </dl>
+        <em>(Note this plot change list was missing from the v4.0 release
+            and retrospectively added at v4.0-1).</em>
         </p></dd>
     <dt>Other new capabilities:</dt>
     <dd><p>
@@ -17985,21 +18111,150 @@ introduced since the last version:
     </p>
     </dd>
 
-<dt>Next Version</dt>
+<dt>Version 4.0-1 (1 July 2013)</dt>
 <dd><p>
-    <ul>
-    <li>Fix CSV regression bug introduced at v4.0b
-        - CSV files now work again with MSDOS-style line breaks.</li>
-    <li>Source code is now managed by git and not subversion.
-        The format of the "Starjava revision" string reported by the
-        <code>-version</code> flag and the Help|About menu item
-        has changed accordingly.</li>
-    <li>The Columns window now makes a better attempt at displaying
-        non-standard per-column metadata of unusual types, in particular
-        array values.</li>
-    </ul>
+    <dl>
+    <dt>New Functionality</dt>
+    <dd><p>
+        <ul>
+        <li>Add read-only support for
+            <webref url="http://cdf.gsfc.nasa.gov/">CDF</webref>
+            (NASA Common Data Format) files.
+            Currently, no attempt is made to present time-like values in a
+            human-friendly way, but this may improve in a future release.
+            The SAMP <code>table.load.cdf</code> MType is also supported
+            for receiving CDF files.</li>
+        <li>Improve handling of HTTP basic authorization.
+            HTTP 401s now pop up a user/password dialogue window,
+            unless the <code>star.basicauth.*</code> system properties
+            have been set up.</li>
+        <li>Add options to calculate the (scaled or unscaled)
+            Median Absolute Deviation in the Statistics window.</li>
+        </ul>
+        </p></dd>
+    <dt>Minor enhancements</dt>
+    <dd><p>
+        <ul>
+        <li>Now subscribes to SAMP <code>voresource.loadlist.tap</code> MType,
+            accepting resource list in TAP load dialogue "Select Service"
+            tab.</li>
+        <li>The Columns window now makes a better attempt at displaying
+            non-standard per-column metadata of unusual types, in particular
+            array values.</li>
+        <li>Line plotting improved in layer plots
+            (including better dashing, new antialias option).</li>
+        <li>Implemented fixes to reduce the chance of users inadvertently
+            overloading external Cone/SIA/SSA services with multicone-like
+            queries.
+            First, fix it so that abandoned queries are properly terminated,
+            rather than continuing to hit the server until completion or JVM
+            shutdown.
+            Second, implement a sensible default maximum value for the
+            <label>Parallelism</label> field in the multi-cone (etc) panel
+            (though this may be adjusted with a system property).</li>
+        <li>Source code is now managed by git and not subversion.
+            The format of the "Starjava revision" string reported by the
+            <code>-version</code> flag and the Help|About menu item
+            has changed accordingly.</li>
+        </ul>
+        </p></dd>
+    <dt>Bug fixes</dt>
+    <dd><p>
+        <ul>
+        <li>Fix CSV regression bug introduced at v4.0b
+            - CSV files now work again with MSDOS-style line breaks.</li>
+        <li>TAP example queries now quote table and column names
+            where necessary.
+            This fixes a bug that was particularly evident with the VizieR TAP
+            service for which nearly all table names are
+            not legal ADQL identifiers.</li>
+        <li>Quoting behaviour has changed when generating SQL to write to
+            RDBMS tables.  This ought to reduce problems related to mixed-case
+            identifiers.  However, it is possible that it could lead to
+            unforseen new anomalies.</li>
+        <li>Fix bug with reading session files containing 1-column tables.</li>
+        <li>Fixed FITS output bug which could result in badly-formed
+            string-valued header cards (no closing quote).</li>
+        <li>Turn off layer plot optimisation that could result in lost
+            precision for double values.</li>
+        <li>Fix layer plot bug that broke the plot if both handles of a range
+            slider were dragged to the same position.</li>
+        <li>Fixed it so that layer plot axis range settings are reset when
+            the Rescale button is used.</li>
+        <li>Fixed a bug that caused an exception when a table in a layer plot
+            was deleted from the application.</li>
+        <li>Fixed a bug when zooming way out from a sky plot.</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
+    <dt>Next Version</dt>
+    <dd><p>
+        <ul>
+        <li>Array-valued per-column extra metadata items is now displayed
+            properly.</li>
+        <li>Moved text documenting <code>table.load.cdf</code> and 
+            <code>table.load.stil</code> SAMP MTypes from the transmit
+            section (wrong) to the receive section (right)
+            of this document.</li>
+        <li>Axis tick labelling improved, including avoiding overlapping
+            tick labels in layer plots.</li>
+        <li>More <code>toString</code> overloads - now works for byte and
+            boolean values too.</li>
+        <li>Replace the (slightly dangerous, also undocumented)
+            Apply Subset option in the table viewer window with a new
+            Highlight Subset option.
+            Also add a new Highlight Subset option in the Subsets window.</li>
+        <li>Add some more colour maps.</li>
+        <li>Add clip selector for density and aux colour maps.
+            This simple measure gives you a lot more control over what
+            colour maps to use.</li>
+        <li>Sky plot position formatting now honours sexagesimal setting.</li>
+        <li>Add new auto transparency shading mode to layer plots.</li>
+        <li>Fix bug when concatenating tables whose data cells
+            may have been edited by hand.</li>
+        <li>Fix service selection bug (NullPointerException)
+            in multi-SIA/SSA windows.</li>
+        <li>URL selector fields in Activation Action window are now
+            editable.</li>
+        <li>Fix bug which prevented access to long integer array elements
+            from expression language.</li>
+        <li>The Exact matcher now considers scalar numeric values equal if
+            they have the same numeric value; they are no longer required
+            to have the same type.</li>
+        <li>Fix a registry access bug related to namespaces.
+            It is now finally possible to query the STSci/NVO/VAO registry,
+            as well as the AstroGrid and Euro-VO registries, from the
+            Cone/SIA/SSA/TAP VO windows.  Queries to the STSci registry
+            have not been working since mid-2010 as a consequence of bugs
+            in (mostly) the TOPCAT client and (partially) the STSci
+            registry service.</li>
+        <li>Substantial navigation improvements for new plot windows:
+            <!-- note the body of this document not yet updated accordingly. -->
+            <ul>
+            <li>Add <label>Navigation</label> tab to Axis controls in layer plot
+                windows.  This allows you to configure zoom/pan actions, for
+                instance selecting zoom factor and X/Y/XY zoom options
+                for when mouse wheel is used.</li>
+            <li>Pan/Zoom gestures now work outside the axes of
+                Time and Plane plots, applicable only
+                to the relevant coordinate.
+                This means you can do zooming in one direction only just by
+                moving the mouse and spinning the wheel.</li>
+            <li>Dragging the mouse with either the shift key depressed or using
+                the right-hand button now performs a (possibly anisotropic)
+                zoom rather than a pan operation.</li>
+            <li>Removed zoom in/out buttons in the toolbar of the layer
+                plot windows; there are better ways to zoom.</li>
+            <li>Exported histogram now contains cumulative counts if the
+                visible histogram is currently in cumulative mode.</li>
+            </ul></li>
+        <li>Layer plot windows now show progress bar as data is loaded.</li>
+        <li>Layer plot windows more responsive (subsampled intermediate
+            plots displayed during navigation round very large/slow plots).</li>
+        </ul>
+        </p></dd>
 </dl>
 </p>
 

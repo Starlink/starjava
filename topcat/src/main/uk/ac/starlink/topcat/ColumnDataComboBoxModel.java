@@ -52,10 +52,10 @@ public class ColumnDataComboBoxModel
         implements TableColumnModelListener, ComboBoxModel {
 
     private final TopcatModel tcModel_;
+    private final Filter filter_;
     private final TableColumnModel colModel_;
     private final boolean hasNone_;
     private final boolean hasIndex_;
-    private final Class dataClazz_;
     private List activeColumns_;
     private List modelColumns_;
     private Object selected_;
@@ -66,22 +66,21 @@ public class ColumnDataComboBoxModel
         new DefaultValueInfo( "index", Long.class, "Row index" );
 
     /**
-     * Constructs a model optionally with a blank entry and an entry for
-     * the magic 'index' column.
+     * Constructs a model with a specified column metadata filter.
      *
      * @param   tcModel   table model containing columns
-     * @param   dataClazz content class of permitted columns
+     * @param   filter    determines which columns are permitted
      * @param   hasNone   true iff you want a null entry in the selector model
      * @param   hasIndex  true iff you want an index column entry in the
      *                    selector model
      */
-    public ColumnDataComboBoxModel( TopcatModel tcModel, Class dataClazz, 
+    public ColumnDataComboBoxModel( TopcatModel tcModel, Filter filter,
                                     boolean hasNone, boolean hasIndex ) {
         tcModel_ = tcModel;
+        filter_ = filter;
         colModel_ = tcModel.getColumnModel();
         hasNone_ = hasNone;
         hasIndex_ = hasIndex;
-        dataClazz_ = dataClazz;
 
         /* Listen to the table's column model so that we can update the
          * contents of this model.  Do it using a weak reference so that
@@ -104,14 +103,37 @@ public class ColumnDataComboBoxModel
             StarTableColumn tcol = (StarTableColumn) colModel_.getColumn( i );
             SelectedColumnData cdata = getColumnData( tcModel, tcol );
             modelColumns_.add( cdata );
-            if ( acceptType( cdata.getColumnInfo().getContentClass() ) ) {
+            if ( filter.acceptColumn( cdata.getColumnInfo() ) ) {
                 activeColumns_.add( cdata );
             }
         }
     }
 
     /**
-     * Constructs a model optionally with a blank entry.
+     * Constructs a model for a given content class, optionally with
+     * a blank entry and an entry for the magic 'index' column.
+     *
+     * @param   tcModel   table model containing columns
+     * @param   dataClazz content class of permitted columns
+     * @param   hasNone   true iff you want a null entry in the selector model
+     * @param   hasIndex  true iff you want an index column entry in the
+     *                    selector model
+     */
+    public ColumnDataComboBoxModel( TopcatModel tcModel, final Class dataClazz,
+                                    boolean hasNone, boolean hasIndex ) {
+        this( tcModel,
+              new Filter() {
+                   public boolean acceptColumn( ValueInfo info ) {
+                       return dataClazz
+                      .isAssignableFrom( info.getContentClass() );
+                   }
+               },
+               hasNone, hasIndex );
+    }
+
+    /**
+     * Constructs a model for a given content class,
+     * optionally with a blank entry.
      *
      * @param   tcModel   table model containing columns
      * @param   hasNone   true iff you want a null entry in the selector model
@@ -119,18 +141,6 @@ public class ColumnDataComboBoxModel
     public ColumnDataComboBoxModel( TopcatModel tcModel, Class dataClazz,
                                     boolean hasNone ) {
         this( tcModel, dataClazz, hasNone, false );
-    }
-
-    /**
-     * Determines whether a given class is acceptable for the content of
-     * the expressions contained in this model 
-     * (<code>DataColumn.getColumnInfo().getContentClass()</code>).
-     *
-     * @param   clazz  class for possible inclusion
-     * @return  true iff clazz is OK as a data column type for this model
-     */
-    private boolean acceptType( Class clazz ) {
-        return dataClazz_.isAssignableFrom( clazz );
     }
 
     public Object getElementAt( int index ) {
@@ -180,7 +190,7 @@ public class ColumnDataComboBoxModel
         /* Otherwise, try to interpret the string as a JEL expression. */
         ColumnData cdata = new SyntheticColumnData( tcModel_, txt );
         Class clazz = cdata.getColumnInfo().getContentClass();
-        if ( acceptType( clazz ) ) {
+        if ( filter_.acceptColumn( cdata.getColumnInfo() ) ) {
             return cdata;
         }
         else {
@@ -286,7 +296,7 @@ public class ColumnDataComboBoxModel
         StarTableColumn tcol = (StarTableColumn) colModel_.getColumn( index );
         ColumnData cdata = getColumnData( tcModel_, tcol );
         modelColumns_.add( cdata );
-        if ( acceptType( cdata.getColumnInfo().getContentClass() ) ) {
+        if ( filter_.acceptColumn( cdata.getColumnInfo() ) ) {
             int pos = activeColumns_.size();
             activeColumns_.add( cdata );
             fireIntervalAdded( this, pos, pos );
@@ -393,6 +403,22 @@ public class ColumnDataComboBoxModel
                 return new SelectedColumnData( tcModel, tcol );
             }
         }
+    }
+
+    /**
+     * Determines what columns are acceptable for this model.
+     */
+    public interface Filter {
+
+        /**
+         * Indicates whether a given data type is suitable to be offered
+         * as an option for this model.
+         *
+         * @param   info   column metadata
+         * @return  true iff info describes OK data content
+         *          acceptable for this model
+         */
+        boolean acceptColumn( ValueInfo info );
     }
 
     /**

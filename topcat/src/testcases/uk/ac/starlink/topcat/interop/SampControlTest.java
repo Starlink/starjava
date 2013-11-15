@@ -14,6 +14,7 @@ import org.astrogrid.samp.client.MessageHandler;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.gui.TableLoadDialog;
 import uk.ac.starlink.vo.DalTableLoadDialog;
+import uk.ac.starlink.vo.TapTableLoadDialog;
 import uk.ac.starlink.topcat.ControlWindow;
 import uk.ac.starlink.topcat.LoadWindow;
 import uk.ac.starlink.topcat.join.DalMultiWindow;
@@ -86,6 +87,7 @@ public class SampControlTest extends TestCase {
             Class ldClazz = rh.dalLoadDialogClass_;
             Class mwClazz = rh.dalMultiWindowClass_;
             boolean isGeneral = ldClazz == DalTableLoadDialog.class;
+            boolean isTap = ldClazz == TapTableLoadDialog.class;
             int gotTld = 0;
             for ( int id = 0; id < tlds.length; id++ ) {
                 if ( controlWindow_.loadDialogMatches( tlds[ id ], ldClazz ) ) {
@@ -101,6 +103,10 @@ public class SampControlTest extends TestCase {
             if ( isGeneral ) {
                 assertTrue( gotTld > 0 );
                 assertTrue( gotMw > 0 );
+            }
+            else if ( isTap ) {
+                assertEquals( 1, gotTld );
+                assertEquals( 0, gotMw );
             }
             else {
                 assertEquals( 1, gotTld );

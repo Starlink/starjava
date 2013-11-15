@@ -2,6 +2,7 @@ package uk.ac.starlink.ttools.plot2.layer;
 
 import java.util.HashMap;
 import java.util.Map;
+import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot.Style;
 import uk.ac.starlink.ttools.plot2.AuxReader;
 import uk.ac.starlink.ttools.plot2.AuxScale;
@@ -10,6 +11,7 @@ import uk.ac.starlink.ttools.plot2.LayerOpt;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
+import uk.ac.starlink.ttools.plot2.data.DataStore;
 
 /**
  * Partial PlotLayer implementation.
@@ -52,6 +54,12 @@ public abstract class AbstractPlotLayer implements PlotLayer {
 
     public DataGeom getDataGeom() {
         return geom_;
+    }
+
+    /**
+     * This implementation does nothing.
+     */
+    public void extendCoordinateRanges( Range[] ranges, DataStore dataStore ) {
     }
 
     public DataSpec getDataSpec() {

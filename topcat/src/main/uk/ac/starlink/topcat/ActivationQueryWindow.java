@@ -17,7 +17,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import javax.swing.BorderFactory;
@@ -36,7 +36,6 @@ import javax.swing.border.BevelBorder;
 import javax.swing.border.Border;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import javax.swing.table.TableColumn;
 import uk.ac.starlink.plastic.ApplicationItem;
 import uk.ac.starlink.plastic.MessageId;
 import uk.ac.starlink.table.ColumnData;
@@ -44,7 +43,6 @@ import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.gui.LabelledComponentStack;
-import uk.ac.starlink.table.gui.StarTableColumn;
 import uk.ac.starlink.topcat.func.Browsers;
 import uk.ac.starlink.topcat.func.Image;
 import uk.ac.starlink.topcat.interop.ImageActivity;
@@ -174,14 +172,11 @@ public class ActivationQueryWindow extends QueryWindow {
      * Returns a label which identifies a particular column in this window's
      * table.  Used for labelling display windows.
      *
-     * @param   tcol  column
+     * @param   cdata  column data
      * @return   label
      */
-    private String getWindowLabel( TableColumn tcol ) {
-        String tname = tcol instanceof StarTableColumn 
-                     ? ((StarTableColumn) tcol).getColumnInfo().getName()
-                     : tcol.getHeaderValue().toString();
-        return tname + "(" + tcModel_.getID() + ")";
+    private String getWindowLabel( ColumnData cdata ) {
+        return cdata.getColumnInfo().getName() + "(" + tcModel_.getID() + ")";
     }
 
     /**
@@ -364,10 +359,10 @@ public class ActivationQueryWindow extends QueryWindow {
             queryPanel_.add( browserBox );
         }
 
-        Activator makeActivator( TableColumn tcol ) {
+        Activator makeActivator( ColumnData cdata ) {
             Object browser = browserChooser_.getSelectedItem();
             if ( BASIC_BROWSER.equals( browser ) ) {
-                return new ColumnActivator( "basicBrowser", tcol ) {
+                return new ColumnActivator( "basicBrowser", cdata ) {
                     String activateValue( Object val ) {
                         return val == null 
                              ? null
@@ -376,7 +371,7 @@ public class ActivationQueryWindow extends QueryWindow {
                 };
             }
             else if ( SYSTEM_BROWSER.equals( browser ) ) {
-                return new ColumnActivator( "systemBrowser", tcol ) {
+                return new ColumnActivator( "systemBrowser", cdata ) {
                     String activateValue( Object val ) {
                         return val == null
                              ? null
@@ -385,29 +380,28 @@ public class ActivationQueryWindow extends QueryWindow {
                 };
             }
             else if ( MOZILLA.equals( browser ) ) {
-                return createMozalikeActivator( "mozilla", tcol );
+                return createMozalikeActivator( "mozilla", cdata );
             }
             else if ( NETSCAPE.equals( browser ) ) {
-                return createMozalikeActivator( "netscape", tcol );
+                return createMozalikeActivator( "netscape", cdata );
             }
             else if ( FIREFOX.equals( browser ) ) {
-                return createMozalikeActivator( "firefox", tcol );
+                return createMozalikeActivator( "firefox", cdata );
             }
             return null;
         }
 
         private Activator createMozalikeActivator( final String cmdname, 
-                                                   TableColumn tcol ) {
-            return new ColumnActivator( "document", tcol ) {
+                                                   final ColumnData cdata ) {
+            return new ColumnActivator( "document", cdata ) {
                 String activateValue( Object val ) {
                     return val == null
                          ? null
                          : Browsers.mozalike( cmdname, val.toString() );
                 }
                 public String toString() {
-                    String colName = tcModel_.getDataModel()
-                                             .getColumnInfo( icol_ ).getName();
-                    return cmdname + "( " + colName + " )";
+                    return cmdname
+                         + "(" + cdata_.getColumnInfo().getName() + ")";
                 }
             };
         }
@@ -577,18 +571,10 @@ public class ActivationQueryWindow extends QueryWindow {
 
         ColumnActivatorFactory( String descrip ) {
             super( "View URL as " + descrip );
-            colSelector_ = new RestrictedColumnComboBoxModel( tcModel_
-                                                             .getColumnModel(),
-                                                              true ) {
-                public boolean acceptColumn( ColumnInfo cinfo ) {
-                    Class clazz = cinfo.getContentClass();
-                    return clazz == String.class
-                        || clazz == URL.class
-                        || clazz == URI.class
-                        || clazz == File.class;
-                }
-            }.makeComboBox();
-            colSelector_.setSelectedIndex( 0 );
+            colSelector_ = ColumnDataComboBoxModel.createComboBox();
+            colSelector_.setModel( new ColumnDataComboBoxModel( tcModel_,
+                                                                String.class,
+                                                                true ) );
             JLabel colLabel = new JLabel( descrip + " Location column: " );
             enablables_ = new Component[] { colLabel, colSelector_, };
             Box colBox = Box.createHorizontalBox();
@@ -604,12 +590,11 @@ public class ActivationQueryWindow extends QueryWindow {
         }
 
         Activator makeActivator() {
-            TableColumn tcol = (TableColumn) colSelector_.getSelectedItem();
-            if ( tcol == ColumnComboBoxModel.NO_COLUMN ) {
-                tcol = null;
-            }
-            if ( tcol != null ) {
-                return makeActivator( tcol );
+            Object item = colSelector_.getSelectedItem();
+            ColumnData cdata = item instanceof ColumnData ? (ColumnData) item
+                                                          : null;
+            if ( cdata != null ) {
+                return makeActivator( cdata );
             }
             else {
                 JOptionPane.showMessageDialog( ActivationQueryWindow.this,
@@ -627,9 +612,9 @@ public class ActivationQueryWindow extends QueryWindow {
          */
         protected void selectColumnByUCD( String ucd ) {
             for ( int i = 0; i < colSelector_.getItemCount(); i++ ) {
-                TableColumn tcol = (TableColumn) colSelector_.getItemAt( i );
-                if ( tcol instanceof StarTableColumn ) {
-                    ColumnInfo cinfo = ((StarTableColumn) tcol).getColumnInfo();
+                Object item = colSelector_.getItemAt( i );
+                if ( item instanceof ColumnData ) {
+                    ColumnInfo cinfo = ((ColumnData) item).getColumnInfo();
                     if ( ucd.equals( cinfo.getUCD() ) ) {
                         colSelector_.setSelectedIndex( i );
                         break;
@@ -645,25 +630,22 @@ public class ActivationQueryWindow extends QueryWindow {
          */
         protected void selectColumnByUtype( String utype ) {
             for ( int i = 0; i < colSelector_.getItemCount(); i++ ) {
-                TableColumn tcol = (TableColumn) colSelector_.getItemAt( i );
-                if ( tcol instanceof StarTableColumn ) {
-                    ColumnInfo cinfo = ((StarTableColumn) tcol).getColumnInfo();
+                Object item = colSelector_.getItemAt( i );
+                if ( item instanceof ColumnData ) {
+                    ColumnInfo cinfo = ((ColumnData) item).getColumnInfo();
                     String ut = cinfo.getUtype();
-                    if ( ut != null ) {
-                        if ( ut.endsWith( utype ) ) {
-                            colSelector_.setSelectedIndex( i );
-                            if ( ut.equals( utype ) ||
-                                 ut.endsWith( ":" + utype ) ) {
-                                break;
-                            }
+                    if ( ut != null && ut.endsWith( utype ) ) {
+                        colSelector_.setSelectedIndex( i );
+                        if ( ut.equals( utype ) ||
+                             ut.endsWith( ":" + utype ) ) {
+                            break;
                         }
                     }
                 }
             };
         }
 
-        abstract Activator makeActivator( TableColumn tcol );
-
+        abstract Activator makeActivator( ColumnData cdata );
     }
 
     /**
@@ -708,9 +690,9 @@ public class ActivationQueryWindow extends QueryWindow {
             enablables_ = (Component[]) eList.toArray( new Component[ 0 ] );
         }
 
-        Activator makeActivator( final TableColumn tcol ) {
-            final String label = getWindowLabel( tcol );
-            return new ColumnActivator( "image", tcol ) {
+        Activator makeActivator( final ColumnData cdata ) {
+            final String label = getWindowLabel( cdata );
+            return new ColumnActivator( "image", cdata ) {
                 String activateValue( Object val ) {
                     String loc = val.toString();
                     if ( val == null ) {
@@ -759,45 +741,46 @@ public class ActivationQueryWindow extends QueryWindow {
             enablables_ = (Component[]) eList.toArray( new Component[ 0 ] );
         }
 
-        Activator makeActivator( final TableColumn tcol ) {
-            return new SpectrumActivator( tcol );
+        Activator makeActivator( final ColumnData cdata ) {
+            return new SpectrumActivator( cdata );
         }
 
         /**
          * Activator for sending spectra to remote applications.
          */
         private class SpectrumActivator implements Activator {
-            final int icol_;
+
+            private final ColumnData cdata_;
 
             /**
              * Constructor.
              *
-             * @param  tcol  column giving spectrum location
+             * @param  cdata  column giving spectrum location
              */
-            SpectrumActivator( TableColumn tcol ) {
-                icol_ = tcol.getModelIndex();
+            SpectrumActivator( ColumnData cdata ) {
+                cdata_ = cdata;
             }
 
             public String activateRow( long lrow ) {
 
-                /* Read table data for row. */
-                StarTable table = tcModel_.getDataModel();
+                /* Read spectrum location and the rest of the row. */
                 final Object[] row;
+                final Object locval;
+                StarTable table = tcModel_.getDataModel();
                 try {
+                    locval = cdata_.readValue( lrow );
                     row = table.getRow( lrow );
                 }
                 catch ( IOException e ) {
                     return null;
                 }
-                if ( ! ( row[ icol_ ] instanceof String ) ) {
+                if ( ! ( locval instanceof String ) ) {
                     return null;
                 }
-
-                /* Get spectrum location. */
-                String loc = (String) row[ icol_ ];
+                String loc = locval.toString();
 
                 /* Get spectrum metadata. */
-                Map meta = new HashMap();
+                Map meta = new LinkedHashMap();
                 int ncol = table.getColumnCount();
                 for ( int icol = 0; icol < ncol; icol++ ) {
                     Object value = row[ icol ];
@@ -825,9 +808,7 @@ public class ActivationQueryWindow extends QueryWindow {
             }
 
             public String toString() {
-                return "spectrum("
-                     + tcModel_.getDataModel().getColumnInfo( icol_ ).getName()
-                     + ")";
+                return "spectrum(" + cdata_.getColumnInfo().getName() + ")";
             }
         }
     }
@@ -837,18 +818,19 @@ public class ActivationQueryWindow extends QueryWindow {
      * content of a given column.
      */
     private abstract class ColumnActivator implements Activator {
-        final int icol_;
         final String funcName_;
+        final ColumnData cdata_;
 
         /**
          * Constructs a new ColumnActivator.
          *
          * @param  funcName  name of the function (for reporting to user)
-         * @param  tcol   the table column on which this will operate
+         * @param  cdata   content of the notional column on which this
+         *                 will operate
          */
-        ColumnActivator( String funcName, TableColumn tcol ) {
-            icol_ = tcol.getModelIndex();
+        ColumnActivator( String funcName, ColumnData cdata ) {
             funcName_ = funcName;
+            cdata_ = cdata;
         }
 
         /**
@@ -863,7 +845,7 @@ public class ActivationQueryWindow extends QueryWindow {
         public String activateRow( long lrow ) {
             Object value;
             try {
-                value = tcModel_.getDataModel().getCell( lrow, icol_ );
+                value = cdata_.readValue( lrow );
             }
             catch ( IOException e ) {
                 value = null;
@@ -873,10 +855,7 @@ public class ActivationQueryWindow extends QueryWindow {
         }
 
         public String toString() {
-            String colName = tcModel_.getDataModel().getColumnInfo( icol_ )
-                                     .getName();
-            return funcName_ + "( " + colName + " )";
+            return funcName_ + "(" + cdata_.getColumnInfo().getName() + ")";
         }
     }
-
 }

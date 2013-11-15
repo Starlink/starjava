@@ -20,6 +20,7 @@ public class ParallelResultRowSequence implements ConeResultRowSequence {
 
     private final ConeQueryRowSequence querySeq_;
     private final ConeSearcher coneSearcher_;
+    private final ConeErrorPolicy errAct_;
     private final Coverage coverage_;
     private final boolean bestOnly_;
     private final boolean distFilter_;
@@ -35,10 +36,37 @@ public class ParallelResultRowSequence implements ConeResultRowSequence {
         Logger.getLogger( "uk.ac.starlink.ttools.cone" );
 
     /**
+     * Default maximum value for the number of threads that should be
+     * permitted for a query.
+     *
+     * @see  #MAXPAR_PROP
+     * @see  #getMaxParallelism
+     */
+    public static final int DEFAULT_MAXPAR = 10;
+
+    /**
+     * Name of system property {@value} which may be used to adjust the
+     * maximum parallelism.
+     * <strong>Only increase this value with great care</strong>
+     * since you run the risk of overloading servers and making yourself
+     * unpopular with data centres.
+     * As a rule, you should only increase this value if you have
+     * obtained permission from the data centres whose services
+     * on which you will be using the increased parallelism.
+     *
+     * @see  #DEFAULT_MAXPAR 
+     * @see  #getMaxParallelism
+     */
+    public static final String MAXPAR_PROP = "service.maxparallel";
+
+    private static Integer maxpar_;
+
+    /**
      * Constructor.
      *
      * @param  querySeq  sequence providing cone search query parameters
      * @param  coneSearcher  cone search implementation
+     * @param  errAct   defines action on cone search invocation error
      * @param  coverage   coverage for results, or null
      * @param  bestOnly  whether all results or just best are required
      * @param  distFilter  true to perform post-query filtering on results
@@ -50,11 +78,13 @@ public class ParallelResultRowSequence implements ConeResultRowSequence {
      */
     public ParallelResultRowSequence( ConeQueryRowSequence querySeq,
                                       ConeSearcher coneSearcher,
+                                      ConeErrorPolicy errAct,
                                       Coverage coverage, boolean bestOnly,
                                       boolean distFilter, String distanceCol,
                                       int parallelism ) {
         querySeq_ = querySeq;
         coneSearcher_ = coneSearcher;
+        errAct_ = errAct;
         coverage_ = coverage;
         bestOnly_ = bestOnly;
         distFilter_ = distFilter;
@@ -209,6 +239,47 @@ public class ParallelResultRowSequence implements ConeResultRowSequence {
             }
         }
         return true;
+    }
+
+    /**
+     * Returns the maximum parallelism value which should permitted in this JVM.
+     * The purpose of this is to set a limit to the number of concurrent
+     * queries that an irresponsible/careless user can hit a server with.
+     * The value can be adjusted using the {@link #MAXPAR_PROP} system 
+     * property.
+     * Note that this method is not used by this class, i.e. the maximum
+     * is not imposed here, it should be imposed by calling code.
+     *
+     * @return  parallelism limit
+     */
+    public static synchronized int getMaxParallelism() {
+        if ( maxpar_ == null ) {
+            String maxStr = Integer.toString( DEFAULT_MAXPAR );
+            try {
+                maxStr = System.getProperty( MAXPAR_PROP, maxStr );
+            }
+            catch ( SecurityException e ) {
+                // never mind
+            }
+            int max = DEFAULT_MAXPAR;
+            try {
+                max = Integer.parseInt( maxStr );
+            }
+            catch ( NumberFormatException e ) {
+                logger_.warning( "Bad value \"" + maxStr
+                               + "\" for " + MAXPAR_PROP );
+            }
+            maxpar_ = new Integer( max );
+            if ( max != DEFAULT_MAXPAR ) {
+                String msg = "Resetting " + MAXPAR_PROP + " "
+                           + DEFAULT_MAXPAR + " -> " + max;
+                if ( max > 30 ) {
+                    msg += " - THAT'S AWFULLY HIGH YOU KNOW";
+                }
+                logger_.warning( msg );
+            }
+        }
+        return maxpar_.intValue();
     }
 
     /**
@@ -382,8 +453,9 @@ public class ParallelResultRowSequence implements ConeResultRowSequence {
                 nSkip_++;
             }
             else {
-                table = ConeMatcher.getConeResult( coneSearcher_, bestOnly_,
-                                                   distFilter_, distanceCol_,
+                table = ConeMatcher.getConeResult( coneSearcher_, errAct_,
+                                                   bestOnly_, distFilter_,
+                                                   distanceCol_,
                                                    ra, dec, radius );
                 nQuery_++;
             }

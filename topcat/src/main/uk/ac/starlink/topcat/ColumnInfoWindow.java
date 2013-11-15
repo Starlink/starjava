@@ -36,8 +36,10 @@ import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
+import uk.ac.starlink.table.DomainMapper;
 import uk.ac.starlink.table.UCD;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.table.gui.NumericCellRenderer;
 import uk.ac.starlink.table.gui.StarJTable;
 import uk.ac.starlink.table.gui.StarTableColumn;
 import uk.ac.starlink.table.gui.TableRowHeader;
@@ -190,6 +192,33 @@ public class ColumnInfoWindow extends AuxWindow {
             }
         } );
 
+        /* Add domain mapper column. */
+        metas.add( new MetaColumn( "Domain", String.class ) {
+            public Object getValue( int irow ) {
+                DomainMapper[] mappers =
+                    getColumnInfo( irow ).getDomainMappers();
+                if ( mappers.length == 0 ) {
+                    return null;
+                }
+                else {
+                    StringBuffer sbuf = new StringBuffer();
+                    for ( int i = 0; i < mappers.length; i++ ) {
+                        if ( i > 0 ) {
+                            sbuf.append( ", " );
+                        }
+                        DomainMapper mapper = mappers[ i ];
+                        sbuf.append( mapper.getSourceName() )
+                            .append( "->" )
+                            .append( mapper.getTargetName() );
+                    }
+                    return sbuf.toString();
+                }
+            }
+            public boolean isEditable( int irow ) {
+                return false;
+            }
+        } );
+
         /* Add expression column. */
         metas.add( new ValueInfoMetaColumn( TopcatUtils.EXPR_INFO ) {
             private SyntheticColumn getSyntheticColumn( int irow ) {
@@ -318,11 +347,12 @@ public class ColumnInfoWindow extends AuxWindow {
         /* Construct and place a JTable to contain it. */
         jtab = new JTable( metaTableModel ) {
             public TableCellRenderer getDefaultRenderer( Class clazz ) {
-                TableCellRenderer rend = super.getDefaultRenderer( clazz );
-                if ( rend == null ) {
-                    rend = super.getDefaultRenderer( Object.class );
+                if ( Boolean.class.equals( clazz ) ) {
+                    return super.getDefaultRenderer( clazz );
                 }
-                return rend;
+                else {
+                    return new NumericCellRenderer( clazz );
+                }
             }
         };
         jtab.setAutoResizeMode( JTable.AUTO_RESIZE_OFF );
@@ -588,8 +618,7 @@ public class ColumnInfoWindow extends AuxWindow {
                 Object value = auxDatum.getValue();
                 if ( value != null && 
                      vclass.isAssignableFrom( value.getClass() ) ) {
-                    return isFormattable ? value
-                                         : vinfo.formatValue( value, 64 );
+                    return value;
                 }
             }
             return null;

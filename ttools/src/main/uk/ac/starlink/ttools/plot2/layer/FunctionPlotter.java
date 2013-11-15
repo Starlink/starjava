@@ -7,7 +7,6 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.RenderingHints;
 import java.awt.Stroke;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -17,8 +16,6 @@ import java.util.regex.Pattern;
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.jel.JELFunction;
-import uk.ac.starlink.ttools.plot.MarkShape;
-import uk.ac.starlink.ttools.plot.MarkStyle;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot.Style;
 import uk.ac.starlink.ttools.plot2.AuxScale;
@@ -72,9 +69,6 @@ public class FunctionPlotter implements Plotter<FunctionPlotter.FunctionStyle> {
     private static final ConfigKey<String> FEXPR_KEY =
         new StringConfigKey( new ConfigMeta( "fexpr", "Function Expression" ),
                              null );
-    private static final ConfigKey<Boolean> ANTIALIAS_KEY =
-        new BooleanConfigKey( new ConfigMeta( "antialias", "Antialiasing" ),
-                              false );
     private final ConfigKey<FuncAxis> axisKey_;
 
     /**
@@ -110,15 +104,12 @@ public class FunctionPlotter implements Plotter<FunctionPlotter.FunctionStyle> {
     }
 
     public ConfigKey[] getStyleKeys() {
-        return new ConfigKey[] {
-            axisKey_,
-            XNAME_KEY,
-            FEXPR_KEY,
-            StyleKeys.COLOR,
-            StyleKeys.THICKNESS,
-            StyleKeys.DASH,
-            ANTIALIAS_KEY,
-        };
+        List<ConfigKey> list = new ArrayList<ConfigKey>();
+        list.addAll( Arrays.asList( getFunctionStyleKeys() ) );
+        list.add( StyleKeys.COLOR );
+        list.addAll( Arrays.asList( StyleKeys.getStrokeKeys() ) );
+        list.add( StyleKeys.ANTIALIAS );
+        return list.toArray( new ConfigKey[ 0 ] );
     }
 
     /**
@@ -157,15 +148,10 @@ public class FunctionPlotter implements Plotter<FunctionPlotter.FunctionStyle> {
         }
         FuncAxis axis = config.get( axisKey_ );
         Color color = config.get( StyleKeys.COLOR );
-        int thickness = config.get( StyleKeys.THICKNESS );
-        float[] dash = config.get( StyleKeys.DASH );
-        MarkStyle mstyle = MarkShape.POINT.getStyle( color, 0 );
-        mstyle.setHidePoints( true );
-        mstyle.setLine( MarkStyle.DOT_TO_DOT );
-        mstyle.setLineWidth( thickness );
-        mstyle.setDash( dash );
-        boolean antialias = config.get( ANTIALIAS_KEY );
-        return new FunctionStyle( jelfunc, axis, mstyle, antialias );
+        Stroke stroke = StyleKeys.createStroke( config, BasicStroke.CAP_ROUND,
+                                                BasicStroke.JOIN_ROUND );
+        boolean antialias = config.get( StyleKeys.ANTIALIAS );
+        return new FunctionStyle( color, stroke, antialias, jelfunc, axis );
     }
 
     public PlotLayer createLayer( DataGeom geom, DataSpec dataSpec,
@@ -174,7 +160,7 @@ public class FunctionPlotter implements Plotter<FunctionPlotter.FunctionStyle> {
             return null;
         }
         else {
-            LayerOpt opt = new LayerOpt( style.markStyle_.getColor(), true );
+            LayerOpt opt = new LayerOpt( style.getColor(), true );
             return new AbstractPlotLayer( this, null, null, style, opt ) {
                 public Drawing createDrawing( Surface surface,
                                               Map<AuxScale,Range> auxRanges,
@@ -190,35 +176,29 @@ public class FunctionPlotter implements Plotter<FunctionPlotter.FunctionStyle> {
      * The style includes the actual function definitions as well as
      * the usual things like colour, line thickness etc.
      */
-    public static class FunctionStyle implements Style {
+    public static class FunctionStyle extends LineStyle {
         private final JELFunction function_;
-        private final FuncAxis axis_;
-        private final MarkStyle markStyle_;
-        private final boolean antialias_;
         private final Object functionId_;
+        private final FuncAxis axis_;
 
         /**
          * Constructor.
          *
+         * @param  color   line colour
+         * @param  stroke  line stroke
+         * @param   antialias  true to draw line antialiased
          * @param  function  analytic function definition
          * @param   axis  axis geometry
-         * @param  markStyle  line style
-         * @param   antialias  true to draw line antialiased
          */
-        FunctionStyle( JELFunction function, FuncAxis axis,
-                       MarkStyle markStyle, boolean antialias ) {
+        public FunctionStyle( Color color, Stroke stroke, boolean antialias,
+                              JELFunction function, FuncAxis axis ) {
+            super( color, stroke, antialias );
             function_ = function;
-            axis_ = axis;
-            markStyle_ = markStyle;
-            antialias_ = antialias;
             functionId_ = Arrays.asList( new String[] {
                 function_.getXVarName(),
                 function_.getExpression(),
             } );
-        }
-
-        public Icon getLegendIcon() {
-            return markStyle_.getLegendIcon();
+            axis_ = axis;
         }
 
         @Override
@@ -230,10 +210,9 @@ public class FunctionPlotter implements Plotter<FunctionPlotter.FunctionStyle> {
         public boolean equals( Object o ) {
             if ( o instanceof FunctionStyle ) {
                 FunctionStyle other = (FunctionStyle) o;
-                return this.functionId_.equals( other.functionId_ )
-                    && this.axis_.equals( other.axis_ )
-                    && this.markStyle_.equals( other.markStyle_ )
-                    && this.antialias_ == other.antialias_;
+                return super.equals( o )
+                    && this.functionId_.equals( other.functionId_ )
+                    && this.axis_.equals( other.axis_ );
             }
             else {
                 return false;
@@ -242,11 +221,9 @@ public class FunctionPlotter implements Plotter<FunctionPlotter.FunctionStyle> {
 
         @Override
         public int hashCode() {
-            int code = 23991;
+            int code = super.hashCode();
             code = 23 * code + functionId_.hashCode();
             code = 23 * code + axis_.hashCode();
-            code = 23 * code + markStyle_.hashCode();
-            code = 23 * code + ( antialias_ ? 7 : 11 );
             return code;
         }
     }
@@ -328,7 +305,7 @@ public class FunctionPlotter implements Plotter<FunctionPlotter.FunctionStyle> {
                     paintFunction( (Graphics2D) g );
                 }
                 public boolean isOpaque() {
-                    return ! style_.antialias_;
+                    return ! style_.getAntialias();
                 }
             } );
         }
@@ -340,88 +317,23 @@ public class FunctionPlotter implements Plotter<FunctionPlotter.FunctionStyle> {
          * @param  g2  graphics context
          */
         private void paintFunction( Graphics2D g2 ) {
-            Rectangle plotBounds = surface_.getPlotBounds();
-            int gxlo = plotBounds.x;
-            int gxhi = plotBounds.x + plotBounds.width;
-            int gylo = plotBounds.y;
-            int gyhi = plotBounds.y + plotBounds.height;
-            Color color0 = g2.getColor();
-            Stroke stroke0 = g2.getStroke();
-            RenderingHints hints0 = g2.getRenderingHints();
-            MarkStyle markStyle = style_.markStyle_;
-            g2.setColor( markStyle.getColor() );
-            g2.setStroke( markStyle.getStroke( BasicStroke.CAP_ROUND,
-                                               BasicStroke.JOIN_ROUND ) );
-            if ( style_.antialias_ ) {
-                g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING,
-                                     RenderingHints.VALUE_ANTIALIAS_ON );
-            }
-
             JELFunction function = style_.function_;
             FuncAxis axis = style_.axis_;
             double[] xs = axis.getXValues( surface_ );
             int np = xs.length;
+            LineTracer tracer =
+                style_.createLineTracer( g2, surface_.getPlotBounds(), np );
             Point gpos = new Point();
             double[] dpos = new double[ surface_.getDataDimCount() ];
-            List<Point> plist = new ArrayList<Point>();
-            boolean lastInside = false;
-            // I should probably use a PathIterator here to get floating
-            // point coords.
             for ( int ip = 0; ip < np; ip++ ) {
                 double x = xs[ ip ];
                 double f = function.evaluate( x );
                 if ( axis.xfToData( surface_, x, f, dpos ) &&
                      surface_.dataToGraphics( dpos, false, gpos ) ) {
-                    boolean inside = plotBounds.contains( gpos );
-                    if ( inside ) {
-                        plist.add( new Point( gpos ) ); 
-                    }
-                    else {
-                        int px = Math.min( gxhi, Math.max( gxlo, gpos.x ) );
-                        int py = Math.min( gyhi, Math.max( gylo, gpos.y ) );
-                        if ( lastInside ) {
-                            plist.add( new Point( px, py ) );
-                            plotPoints( g2, plist );
-                            plist.clear();
-                        }
-                        else {
-                            plist.clear();
-                            plist.add( new Point( px, py ) );
-                        }
-                    }
-                    lastInside = inside;
-                }
-                else {
-                    plotPoints( g2, plist );
-                    plist.clear();
+                    tracer.addVertex( gpos.x, gpos.y );
                 }
             }
-            if ( lastInside ) {
-                plotPoints( g2, plist );
-            }
-            g2.setColor( color0 );
-            g2.setStroke( stroke0 );
-            g2.setRenderingHints( hints0 );
-        }
-
-        /**
-         * Plots a polyline between a list of graphics points.
-         *
-         * @param   g2  graphics context
-         * @return  pointList  list of points
-         */
-        private void plotPoints( Graphics2D g2, List<Point> pointList ) {
-            int np = pointList.size();
-            if ( np > 0 ) {
-                int[] gxs = new int[ np ];
-                int[] gys = new int[ np ];
-                for ( int ip = 0; ip < np; ip++ ) {
-                    Point point = pointList.get( ip );
-                    gxs[ ip ] = point.x;
-                    gys[ ip ] = point.y;
-                }
-                g2.drawPolyline( gxs, gys, np );
-            }
+            tracer.flush();
         }
     }
 

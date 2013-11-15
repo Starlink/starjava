@@ -23,9 +23,7 @@ Now define STAR_JAVA to point at the "java" command of this:
 
    setenv STAR_JAVA /some/where/jdk1.x.x/bin/java
 
-Alternatively install the SDK into /star/java and create a file "jdkhome" in
-this directory that contains the full name of the host directory (this is the
-method used in JRE releases made by Starlink).
+Alternatively install the SDK into /star/java.
 
 You do not need to have a Starlink classic system installed, before
 you can build the Java tools.  Several of the Java applications use
@@ -62,6 +60,10 @@ directory that you should have created to your PATH (this the directory that
 is now equivalent to "/star/bin" and would eventually be "/star/starjava/bin"
 if released as part of the current system). You need the new "ant" command to
 get our extensions and to use JUnit.
+
+If ANT is not finding the local extensions, it may be reading the
+ANT_HOME environment variable indicating another installation.  In this
+case the ANT_HOME environment variable should be unset.
 
    Perform the build
    -----------------
@@ -136,10 +138,10 @@ Source Code
 
 The starjava source code repository can be viewed at 
 
-   http://starjava.jach.hawaii.edu/viewvc
+   https://github.com/Starlink/starjava
 
-and checked out of its subversion repository by doing
+and checked out of its Git repository by doing
 
-   svn checkout https://starjava.jach.hawaii.edu/svn/trunk
+   git clone git://github.com/Starlink/starjava.git
 
 Peter W. Draper 03-NOV-2006 (p.w.draper@durham.ac.uk)

@@ -33,7 +33,10 @@ public class InputTableParameter extends AbstractInputTableParameter {
     public StarTable tableValue( Environment env ) throws TaskException {
         checkGotValue( env );
         if ( table_ == null ) {
-            table_ = makeTable( env, stringValue( env ) );
+            String sval = stringValue( env );
+            table_ = sval == null || sval.trim().length() == 0
+                   ? null
+                   : makeTable( env, sval );
         }
         return table_;
     }

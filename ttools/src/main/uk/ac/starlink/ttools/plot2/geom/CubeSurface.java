@@ -16,6 +16,7 @@ import uk.ac.starlink.ttools.plot.Corner;
 import uk.ac.starlink.ttools.plot.Matrices;
 import uk.ac.starlink.ttools.plot.Plot3D;
 import uk.ac.starlink.ttools.plot2.Axis;
+import uk.ac.starlink.ttools.plot2.BasicTicker;
 import uk.ac.starlink.ttools.plot2.Captioner;
 import uk.ac.starlink.ttools.plot2.Orientation;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
@@ -61,6 +62,8 @@ public class CubeSurface implements Surface {
     private final int gYoff_;
     private final double[] dScales_;
     private final double[] dOffs_;
+
+    private static final Orientation ORIENTATION = Orientation.X;
 
     /**
      * Constructor.
@@ -245,6 +248,19 @@ public class CubeSurface implements Surface {
     }
 
     /**
+     * Maps a normalised space coordinate to a data space coordinate.
+     * Normalised coordinates are in the range -1..+1.
+     *
+     * @param  dataPos  3-element normalised space coordinate array
+     * @param  idim    index of dimension to convert (0, 1 or 2)
+     * @return  data space coordinate
+     */
+    private double unNormalise( double[] normPos, int idim ) {
+        double x = normPos[ idim ] / dScales_[ idim ] - dOffs_[ idim ];
+        return logFlags_[ idim ] ? Math.exp( x ) : x;
+    }
+
+    /**
      * Indicates whether a value is in the normalised range.
      * 
      * @param  d  value to check
@@ -410,19 +426,168 @@ public class CubeSurface implements Surface {
 
     /**
      * Returns a cube surface like this one but zoomed about its centre
-     * by a given factor.
+     * in some or all dimensions by a given factor.
      *
      * @param  factor  zoom factor
+     * @param   xFlag  true to zoom in X direction
+     * @param   yFlag  true to zoom in Y direction
+     * @param   zFlag  true to zoom in Z direction
      * @return   new cube
      */
-    CubeAspect zoom( double factor ) {
+    CubeAspect centerZoom( double factor,
+                           boolean xFlag, boolean yFlag, boolean zFlag ) {
         double[] midPos = new double[ 3 ];
         for ( int i = 0; i < 3; i++ ) {
             midPos[ i ] = logFlags_[ i ]
                         ? Math.sqrt( dlos_[ i ] * dhis_[ i ] )
                         : ( dlos_[ i ] + dhis_[ i ] ) / 2.0;
         }
-        return zoomData( factor, midPos );
+        return zoomData( midPos, xFlag ? factor : 1,
+                                 yFlag ? factor : 1,
+                                 zFlag ? factor : 1 );
+    }
+
+    /**
+     * Returns a cube surface like this one but zoomed in two dimensions
+     * around a point indicated by a given screen position.
+     *
+     * @param   pos  reference point in graphics coordinates
+     * @param   xZoom  zoom factor requested in X screen direction
+     * @param   yZoom  zoom factor requested in Y screen direction
+     */
+    CubeAspect pointZoom( Point gpos, double xZoom, double yZoom ) {
+        int[] dirs = getScreenDirections();
+        double[] factors = new double[] { 1, 1, 1 };
+        factors[ dirs[ 0 ] ] = xZoom;
+        factors[ dirs[ 1 ] ] = yZoom;
+        return zoomData( graphicsToData( gpos ),
+                         factors[ 0 ], factors[ 1 ], factors[ 2 ] );
+    }
+
+    /**
+     * Identifies which data space axes are closest to the screen
+     * horizontal, vertical and normal directions in the current state
+     * of rotation.
+     *
+     * @return  3-element array, a permutation of the values 0,1,2;
+     *          elements are indices of screen {horizontal, vertical, normal}
+     *          axes respectively
+     */
+    private int[] getScreenDirections() {
+        double[] screenXs = new double[ 3 ];
+        double[] screenYs = new double[ 3 ];
+        double[] screenNs = new double[ 3 ];
+        for ( int i = 0; i < 3; i++ ) {
+            double[] r = Matrices.mvMult( rotmat_, Matrices.unit( i ) );
+            screenXs[ i ] = r[ 0 ];
+            screenYs[ i ] = r[ 2 ];
+            screenNs[ i ] = r[ 1 ];
+        }
+        final int iaxX;
+        {
+            double maxX = 0;
+            int imaxX = -1;
+            for ( int i = 0; i < 3; i++ ) {
+                if ( Math.abs( screenXs[ i ] ) > Math.abs( maxX ) ) {
+                    maxX = screenXs[ i ];
+                    imaxX = i;
+                }
+            }
+            iaxX = imaxX;
+        }
+        final int iaxY;
+        {
+            double maxY = 0;
+            int imaxY = -1;
+            for ( int i = 0; i < 3; i++ ) {
+                if ( Math.abs( screenYs[ i ] ) > Math.abs( maxY ) &&
+                     i != iaxX ) {
+                    maxY = screenYs[ i ];
+                    imaxY = i;
+                }
+            }
+            iaxY = imaxY;
+        }
+        final int iaxN;
+        {
+            double maxN = 0;
+            int imaxN = -1;
+            for ( int i = 0; i < 3; i++ ) {
+                if ( i != iaxX && i != iaxY ) {
+                    maxN = screenNs[ i ];
+                    imaxN = i;
+                }
+            }
+            iaxN = imaxN;
+        }
+        return new int[] { iaxX, iaxY, iaxN };
+    }
+
+    /**
+     * Attempts to return a data space point corresponding to a graphics
+     * position.  This is underdetermined because the graphics position
+     * is 2d while the data space is 3d, so the graphics position can only
+     * unambigously indicate a line of sight.
+     * Try to pick something sensible.
+     *
+     * @param  gpos   graphics position
+     * @return  corresponding data space position
+     */
+    private double[] graphicsToData( Point gpos ) {
+
+        /* Work out the unit vectors in normalised space for the two
+         * axes defining the cube face that is most nearly facing
+         * towards the viewer.  For the other (most nearly screen normal)
+         * direction, take the point in the middle of normalised space,
+         * i.e. at the origin. */
+        int[] dirs = getScreenDirections();
+        int iscreenX = dirs[ 0 ];
+        int iscreenY = dirs[ 1 ];
+        int iscreenN = dirs[ 2 ];
+        double[] normOrigin = new double[ 3 ];
+        double[] normX1 = normOrigin.clone();
+        double[] normY1 = normOrigin.clone();
+        normX1[ iscreenX ] = 1;
+        normY1[ iscreenY ] = 1;
+
+        /* Get the positions of the origin and unit vector ends in graphics
+         * space. */
+        Point2D.Double g0 = projectNormalisedPos( normOrigin );
+        Point2D.Double gX = projectNormalisedPos( normX1 );
+        Point2D.Double gY = projectNormalisedPos( normY1 );
+
+        /* Compare these with the given position in graphics space,
+         * to give projections along the facing horizontal and vertical
+         * data axes, and convert the results back to normalised space. */
+        double[] normPos = new double[ 3 ];
+        normPos[ iscreenN ] = 0;
+        normPos[ iscreenX ] = projectGraphicsToNormalised( g0, gX, gpos );
+        normPos[ iscreenY ] = projectGraphicsToNormalised( g0, gY, gpos );
+
+        /* Convert from normalised space to data space and return. */
+        return new double[] {
+            unNormalise( normPos, 0 ),
+            unNormalise( normPos, 1 ),
+            unNormalise( normPos, 2 ),
+        };
+    }
+
+    /**
+     * Determines the projection of a given point along a unit vector,
+     * returning the result as a normalised value.
+     *
+     * @param  origin   graphics position of origin
+     * @param  unit     graphics position of end of unit vector
+     * @param  point    graphics position of point
+     * @return  normalised projection of point-origin along unit-origin
+     */
+    private double projectGraphicsToNormalised( Point2D origin, Point2D unit,
+                                                Point2D point ) {
+        double dux = unit.getX() - origin.getX();
+        double duy = unit.getY() - origin.getY();
+        double dpx = point.getX() - origin.getX();
+        double dpy = point.getY() - origin.getY();
+        return ( dpx * dux + dpy * duy ) / ( dux * dux + duy * duy );
     }
 
     /**
@@ -462,16 +627,21 @@ public class CubeSurface implements Surface {
      * Returns a cube surface like this one but zoomed around a given
      * data position by a given factor.
      *
-     * @param  factor  zoom factor
      * @param  dpos0  zoom centre in data coordinates
-     * @return   new cube
+     * @param   xFactor  factor to zoom in X direction
+     * @param   yFactor  factor to zoom in Y direction
+     * @param   zFactor  factor to zoom in Z direction
+     * @return   new cube aspect
      */
-    CubeAspect zoomData( double factor, double[] dpos0 ) {
+    private CubeAspect zoomData( double[] dpos0, double xFactor,
+                                 double yFactor, double zFactor ) {
+        double[] factors = new double[] { xFactor, yFactor, zFactor };
         double[][] limits = new double[ 3 ][];
         for ( int i = 0; i < 3; i++ ) {
             double d0 = dpos0[ i ];
             double dlo = dlos_[ i ];
             double dhi = dhis_[ i ];
+            double factor = factors[ i ];
             limits[ i ] = logFlags_[ i ]
                 ? new double[] { d0 * Math.pow( dlo / d0, 1. / factor ),
                                  d0 * Math.pow( dhi / d0, 1. / factor ) }
@@ -791,8 +961,8 @@ public class CubeSurface implements Surface {
         Axis ax = Axis.createAxis( 0, sx, dlos_[ iaxis ], dhis_[ iaxis ],
                                    logFlags_[ iaxis ],
                                    ( ! forward ) ^ flipFlags_[ iaxis ] );
-        ax.drawLabels( ticks_[ iaxis ], labels_[ iaxis ], captioner_,
-                       Orientation.X, false, g2 );
+        ax.drawLabels( ticks_[ iaxis ], labels_[ iaxis ],
+                       captioner_, ORIENTATION, false, g2 );
         g2.setTransform( atf0 );
     }
 
@@ -860,9 +1030,10 @@ public class CubeSurface implements Surface {
         for ( int i = 0; i < 3; i++ ) {
             dlos[ i ] = limits[ i ][ 0 ];
             dhis[ i ] = limits[ i ][ 1 ];
-            ticks[ i ] = Tick.getTicks( dlos[ i ], dhis[ i ], npix,
-                                        logFlags[ i ], minor,
-                                        crowdFactors[ i ] );
+            ticks[ i ] = ( logFlags[ i ] ? BasicTicker.LOG
+                                         : BasicTicker.LINEAR )
+                        .getTicks( dlos[ i ], dhis[ i ], minor, captioner,
+                                   ORIENTATION, npix, crowdFactors[ i ] );
         }
         double[] rotmat = aspect.getRotation();
         double zoom = aspect.getZoom();

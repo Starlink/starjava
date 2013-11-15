@@ -39,6 +39,7 @@ public class ShaderControl extends ConfigControl {
     private static final AuxScale SCALE = AuxScale.COLOR;
     private static final ConfigKey[] SHADER_KEYS = new ConfigKey[] {
         StyleKeys.AUX_SHADER,
+        StyleKeys.AUX_SHADER_CLIP,
         StyleKeys.SHADE_LOG,
         StyleKeys.SHADE_FLIP,
         StyleKeys.SHADE_NULL_COLOR,
@@ -135,7 +136,9 @@ public class ShaderControl extends ConfigControl {
             };
         }
         final String label = config.get( AUXLABEL_KEY );
-        final Shader shader = config.get( StyleKeys.AUX_SHADER );
+        final Shader shader =
+           StyleKeys.createShader( config, StyleKeys.AUX_SHADER,
+                                           StyleKeys.AUX_SHADER_CLIP );
         final boolean log = config.get( StyleKeys.SHADE_LOG );
         final boolean flip = config.get( StyleKeys.SHADE_FLIP );
         final Color nullColor = config.get( StyleKeys.SHADE_NULL_COLOR );

@@ -5,8 +5,6 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.ttools.plot2.LegendEntry;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
@@ -91,7 +89,7 @@ public class FunctionLayerControl extends ConfigControl
 
     public LegendEntry[] getLegendEntries() {
         ConfigMap config = getConfig();
-        FunctionPlotter.FunctionStyle style = getFunctionStyle( config );;
+        FunctionPlotter.FunctionStyle style = getFunctionStyle( config );
         Boolean showLabel = config.get( StyleKeys.SHOW_LABEL );
         String label = config.get( FUNCLABEL_KEY );
         return showLabel && style != null && label != null
@@ -121,20 +119,5 @@ public class FunctionLayerControl extends ConfigControl
         catch ( ConfigException e ) {
             return null;
         }
-    }
-
-    public static Action createStackAction( final ControlStack stack,
-                                            final FunctionPlotter plotter ) {
-        Action act = new AbstractAction( "Add " + plotter.getPlotterName()
-                                       + " Layer",
-                                         plotter.getPlotterIcon() ) {
-            public void actionPerformed( ActionEvent evt ) {
-                stack.addControl( new FunctionLayerControl( plotter ) );
-            }
-        };
-        act.putValue( Action.SHORT_DESCRIPTION,
-                      "Add a new " + plotter.getPlotterName().toLowerCase()
-                    + " layer control to the stack" );
-        return act;
     }
 }

@@ -15,3 +15,9 @@
 !/junit/docs/
 !/src/docs/
 !/src/etc/
+*.dvi
+*.log
+*.aux
+*~
+*.toc
+splat/src/docs/sun243.pdf
