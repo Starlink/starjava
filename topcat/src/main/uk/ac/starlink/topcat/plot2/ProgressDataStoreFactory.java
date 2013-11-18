@@ -2,7 +2,6 @@ package uk.ac.starlink.topcat.plot2;
 
 import java.io.IOException;
 import javax.swing.BoundedRangeModel;
-import javax.swing.SwingUtilities;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.WrapperRowSequence;
@@ -37,63 +36,25 @@ public class ProgressDataStoreFactory extends WrapperDataStoreFactory {
 
     protected RowSequence createRowSequence( StarTable table )
             throws IOException {
-        return new ProgressRowSequence( table.getRowSequence(),
-                                        table.getRowCount() );
-    }
-
-    /**
-     * Sets the current state of the progress bar.
-     * This method may be called from any thread.
-     *
-     * @param  irow  row index (progress model value)
-     */
-    private void setProgress( final int irow ) {
-        SwingUtilities.invokeLater( new Runnable() {
-            public void run() {
-                progModel_.setValue( irow );
-            }
-        } );
-    }
-
-    /**
-     * RowSequence implementation that messages this object's progress bar
-     * as rows are read.
-     */
-    private class ProgressRowSequence extends WrapperRowSequence {
-
-        final int step;
-        long irow = -1;
-
-        /**
-         * Constructor.
-         *
-         * @param  baseSeq  row sequence to which most behaviour is delegated
-         * @param  lnrow   number of rows in sequence
-         */
-        ProgressRowSequence( RowSequence baseSeq, long lnrow ) {
-            super( baseSeq );
-            final int nrow = (int) Math.min( lnrow, Integer.MAX_VALUE );
-            step = Math.max( nrow / 200, 1000 );
-            SwingUtilities.invokeLater( new Runnable() {
-                public void run() {
-                    progModel_.setMinimum( 0 );
-                    progModel_.setMaximum( nrow );
+        final Progresser progresser =
+            new Progresser( progModel_, table.getRowCount() );
+        final RowSequence baseSeq = table.getRowSequence();
+        return new WrapperRowSequence( baseSeq ) {
+            @Override
+            public boolean next() throws IOException {
+                if ( baseSeq.next() ) {
+                    progresser.increment();
+                    return true;
                 }
-            } );
-        }
-
-        @Override
-        public boolean next() throws IOException {
-            if ( ++irow % step == 0 ) {
-                setProgress( (int) irow );
+                else {
+                    return false;
+                }
             }
-            return super.next();
-        }
-
-        @Override
-        public void close() throws IOException {
-            setProgress( 0 );
-            super.close();
-        }
+            @Override
+            public void close() throws IOException {
+                progresser.reset();
+                baseSeq.close();
+            }
+        };
     }
 }
