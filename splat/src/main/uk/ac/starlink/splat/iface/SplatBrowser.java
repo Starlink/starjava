@@ -1752,6 +1752,9 @@ public class SplatBrowser
                 ErrorDialog.showError( this, e );
                 return;
             }
+        } else {
+            if (authenticator == null )
+                authenticator = ssapBrowser.getAuthenticator();
         }
         ssapBrowser.setVisible( true );
     }
