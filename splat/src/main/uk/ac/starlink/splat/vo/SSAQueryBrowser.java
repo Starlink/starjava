@@ -1595,7 +1595,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
 		  
                     if ( getDataFrame == null ) {
                          getDataFrame = new GetDataQueryFrame();
-                         getDataFrame.setBandParams(lowerBandField.getText(), upperBandField.getText());
+                        // getDataFrame.setBandParams(lowerBandField.getText(), upperBandField.getText());
                     }
                     getDataFrame.addService(shortName, getDataTable);
                     getDataButton.setEnabled(true);
@@ -3218,8 +3218,8 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
            
             if (owner == upperBandField || owner == lowerBandField ) {
                 queryLine.setBand(lowerBandField.getText(), upperBandField.getText());
-                if (getDataFrame != null)
-                    getDataFrame.setBandParams(lowerBandField.getText(), upperBandField.getText());
+                //if (getDataFrame != null)
+                //    getDataFrame.setBandParams(lowerBandField.getText(), upperBandField.getText());
             }
             
             if (owner == upperTimeField || owner == lowerTimeField) {
