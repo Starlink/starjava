@@ -705,9 +705,16 @@ public class TableSpecDataImpl
         catch (ClassCastException e) {
             //  Isn't a Number, is it a vector?
             if ( isPrimitiveArray( cellData ) ) {
-                //  Read vector data from first row. XXX handle SED.
-                double newdata[] = readCell( 0, index );
-                System.arraycopy( newdata, 0, data, 0, newdata.length );
+                
+                if (starTable.getRowCount()==1) {
+                                    
+                    //  Read vector data from first row. XXX handle SED.
+                    double newdata[] = readCell( 0, index );
+                    System.arraycopy( newdata, 0, data, 0, newdata.length );
+                } else {
+                    throw new SEDSplatException( dims[0], 
+                    "Table contains vector cells, assuming it is an SED" );
+                }
             }
             else {
                 throw new SplatException
