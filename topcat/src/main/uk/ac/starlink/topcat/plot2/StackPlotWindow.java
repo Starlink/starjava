@@ -356,6 +356,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         if ( axlockModel != null ) {
             getToolBar().add( axlockModel.createToolbarButton() );
         }
+        getToolBar().add( sketchModel.createToolbarButton() );
         getToolBar().add( exportAction );
         getToolBar().addSeparator();
 

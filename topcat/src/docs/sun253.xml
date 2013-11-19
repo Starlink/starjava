@@ -9050,6 +9050,17 @@ and experiment with the various options to see what happens to the plot.
     This is not available for the <label>Sky Plot</label>.
     </p></dd>
 
+<dt>&IMG.SKETCH; Sketch Frames</dt>
+<dd><p>If selected causes intermediate "sketch" frames to be drawn when
+    navigating around very large plots.
+    For plots that take a long time (at least a non-negligable fraction
+    of a second) to draw, if this option is selected then when
+    navigating around it will paint intermediate frames based on a subsample
+    of the data rather than painting the whole plot at every step.
+    This can result in a somewhat flickering appearance, but it means
+    that frame updates happen more frequently, so it's a bit more responsive.
+    </p></dd>
+
 <dt>&IMG.IMAGE; Export Plot</dt>
 <dd><p>Allows you to save the plot in a variety of graphics formats
     using the <ref id="plot2-export">Plot Export</ref> window.
