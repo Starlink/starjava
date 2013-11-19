@@ -1461,8 +1461,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             Runnable fullJob = new Runnable() {
                 public void run() {
                     Workings<A> workings =
-                        plotJob.calculateWorkings( 1, rowStep_ > 1 ? progModel_
-                                                                   : null );
+                        plotJob.calculateWorkings( 1, progModel_ );
                     fullPlotMillis_ = workings.plotMillis_;
                     submitWorkings( workings );
                 }
