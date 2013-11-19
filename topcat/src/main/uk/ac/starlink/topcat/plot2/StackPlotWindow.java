@@ -164,16 +164,9 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         shaderControl.addActionListener( plotPanel_ );
 
         /* Arrange for user navigation actions to adjust the view. */
-        new NavigationListener<A>() {
-            public Surface getSurface() {
-                return plotPanel_.getLatestSurface();
-            }
+        new GuiNavigationListener<A>( plotPanel_ ) {
             public Navigator<A> getNavigator() {
                 return axisControl_.getNavigator();
-            }
-            public Iterable<double[]> createDataPosIterable() {
-                return new PointCloud( plotPanel_.getPlotLayers(), true )
-                      .createDataPosIterable( plotPanel_.getDataStore() );
             }
             public void setAspect( A aspect ) {
                 axisControl_.setAspect( aspect );

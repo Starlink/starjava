@@ -87,12 +87,28 @@ public abstract class NavigationListener<A>
             Navigator<A> navigator = getNavigator();
             Surface surface = getSurface();
             if ( navigator != null && surface != null ) {
-                A aspect = navigator
-                          .click( surface, evt, createDataPosIterable() );
-                if ( aspect != null ) {
-                    setAspect( aspect );
-                }
+                handleClick( navigator, surface, evt, createDataPosIterable() );
             }
+        }
+    }
+
+    /**
+     * Performs the actual work when a mouse click event is detected.
+     * This method is invoked by {@link #mouseClicked mouseClicked}.
+     * The default behaviour is to get a corresponding aspect from the
+     * navigator, and call <code>setAspect</code> accordingly.
+     * However, it may be overridden by subclasses.
+     *
+     * @param   navigator   navigator
+     * @param   surface  plot surface
+     * @param   evt  mouse event
+     * @param   dposIt  iterable over points if available
+     */
+    protected void handleClick( Navigator<A> navigator, Surface surface,
+                                MouseEvent evt, Iterable<double[]> dposIt ) {
+        A aspect = navigator.click( surface, evt, createDataPosIterable() );
+        if ( aspect != null ) {
+            setAspect( aspect );
         }
     }
 

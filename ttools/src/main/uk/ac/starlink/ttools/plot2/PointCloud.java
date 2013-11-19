@@ -127,6 +127,22 @@ public class PointCloud {
         return new DataPosIterator( dataStore );
     }
 
+    /**
+     * Returns an array of the DataSpecs contained in this point cloud.
+     * A single data spec may appear more than once in the list, though
+     * it's not necessarily going to be one for each of the layers used
+     * at construction time.
+     *
+     * @return  data spec array
+     */
+    public DataSpec[] getDataSpecs() {
+        List<DataSpec> specs = new ArrayList<DataSpec>( subClouds_.size() );
+        for ( SubCloud sc : subClouds_ ) {
+            specs.add( sc.spec_ );
+        }
+        return specs.toArray( new DataSpec[ 0 ] );
+    }
+
     @Override
     public int hashCode() {
         int code = 74433;
