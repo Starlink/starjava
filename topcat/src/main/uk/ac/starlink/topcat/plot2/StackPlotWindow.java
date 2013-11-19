@@ -31,6 +31,7 @@ import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JPanel;
 import javax.swing.OverlayLayout;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import uk.ac.starlink.table.StarTable;
@@ -45,7 +46,6 @@ import uk.ac.starlink.topcat.TopcatEvent;
 import uk.ac.starlink.topcat.TopcatListener;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.TopcatUtils;
-import uk.ac.starlink.topcat.plot.BlobPanel;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.DataGeom;
@@ -91,6 +91,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     private final ControlStackModel stackModel_;
     private final JLabel posLabel_;
     private final JLabel countLabel_;
+    private final BlobPanel2 blobPanel_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.plot2" );
 
@@ -219,23 +220,25 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                                  "Define a new row subset containing only "
                                + "currently visible points" ) {
             public void actionPerformed( ActionEvent evt ) {
-                addMaskSubsets( getVisibleMasks() );
+                addMaskSubsets( createVisibleMasker() );
             }
         };
 
         /* Prepare the action that allows the user to select points by
          * hand-drawn region. */
-        final BlobPanel blobPanel = new BlobPanel() {
+        blobPanel_ = new BlobPanel2() {
             protected void blobCompleted( Shape blob ) {
-                addMaskSubsets( createBlobMasker( blob ).getItem() );
+                setListening( false );
+                // will call setActive(false) later
+                addMaskSubsets( createBlobMasker( blob ) );
             }
         };
         stackModel_.addPlotActionListener( new ActionListener() {
             public void actionPerformed( ActionEvent evt ) {
-                blobPanel.setActive( false );
+                blobPanel_.setActive( false );
             }
         } );
-        Action blobAction = blobPanel.getBlobAction();
+        Action blobAction = blobPanel_.getBlobAction();
 
         /* Prepare the plot export action. */
         final PlotExporter plotExporter = PlotExporter.getInstance();
@@ -326,7 +329,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
          * is superimposed using an OverlayLayout. */
         JPanel displayPanel = new JPanel();
         displayPanel.setLayout( new OverlayLayout( displayPanel ) );
-        displayPanel.add( blobPanel );
+        displayPanel.add( blobPanel_ );
         displayPanel.add( plotPanel_ );
 
         /* Prepare management of floating the control stack into a separate
@@ -483,71 +486,113 @@ public class StackPlotWindow<P,A> extends AuxWindow {
      *
      * @param  point  reference graphics position, presumably indicated by user
      */
-    private void identifyPoint( Point point ) {
-
-        /* Acquire a list of data layers that we need to examine.
-         * We go through all the visible layers and hash them by the value
-         * of the corresponding PointCloud.  The point of this is that we
-         * may have several layers with the same point cloud (position
-         * sequence) and there's only any point in treating each position
-         * sequence once, rather than doing it once for each layer. */
-        PlotLayer[] visibleLayers = plotPanel_.getPlotLayers();
-        Map<PointCloud,PlotLayer> cloudMap =
-            new HashMap<PointCloud,PlotLayer>();
-        for ( int il = 0; il < visibleLayers.length; il++ ) {
-            PlotLayer layer = visibleLayers[ il ];
-            DataGeom geom = layer.getDataGeom();
-            DataSpec dataSpec = layer.getDataSpec();
-            if ( dataSpec != null &&
-                 geom != null && geom.hasPosition() ) {
-                cloudMap.put( new PointCloud( geom, dataSpec ), layer );
-            }
-        }
-        Collection<PlotLayer> uniqueLayers = cloudMap.values();
-
-        /* Iterate over each usefully different layer. */
-        Surface surface = plotPanel_.getSurface();
-        DataStore dataStore = plotPanel_.getDataStore();
-        double[] dpos = new double[ surface.getDataDimCount() ];
-        Point gp = new Point();
-        double thresh2 = 4 * 4;
-        Map<TopcatModel,Double> closeMap = new HashMap<TopcatModel,Double>();
-        Map<TopcatModel,Long> indexMap = new HashMap<TopcatModel,Long>();
-        for ( PlotLayer layer : uniqueLayers ) {
-
-            /* Iterate over each visible point in the layer. */
-            DataGeom geom = layer.getDataGeom();
-            assert geom != null && geom.hasPosition();
-            DataSpec dataSpec = layer.getDataSpec();
-            TopcatModel tcModel = getTopcatModel( dataSpec );
-            TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
-            while ( tseq.next() ) {
-                if ( geom.readDataPos( tseq, 0, dpos ) &&
-                     surface.dataToGraphics( dpos, true, gp ) ) {
-
-                    /* If the point is within a given threshold of our
-                     * reference point, and it's closer than any other
-                     * point we've encountered so far for the current table,
-                     * record it. */
-                    double dist2 = gp.distanceSq( point );
-                    if ( dist2 < thresh2 ) {
-                        Double c2 = closeMap.get( tcModel );
-                        if ( c2 == null || c2.doubleValue() > dist2 ) {
-                            closeMap.put( tcModel, dist2 );
-                            indexMap.put( tcModel, tseq.getRowIndex() );
+    private void identifyPoint( final Point point ) {
+        final Factory<Map<TopcatModel,Long>> finder =
+            createPointFinder( point );
+        plotPanel_.submitPlotAnnotator( new Runnable() {
+            public void run() {
+                final Map<TopcatModel,Long> indexMap = finder.getItem();
+                if ( indexMap != null ) {
+                    SwingUtilities.invokeLater( new Runnable() {
+                        public void run() {
+                            applyHighlights( indexMap );
                         }
-                    }
+                    } );
                 }
             }
-        }
+        } );
+    }
 
-        /* We now have a map of the closest point to the reference position
-         * for each visible table (only populated for each table if the
-         * point is within a given threshold - currently 4 pixels).
-         * Message the topcat model in each case to highlight that row.
+    /**
+     * Returns an object that can identify table row indices close to
+     * a given screen position.
+     *
+     * @param  point  screen position to query
+     * @return  factory that returns a map of topcat models to row indices
+     *          giving rows whose markers are close to the point
+     */
+    private Factory<Map<TopcatModel,Long>>
+            createPointFinder( final Point point ) {
+        final Surface surface = plotPanel_.getSurface();
+        final PlotLayer[] layers = getPointCloudLayers();
+        final DataStore dataStore = plotPanel_.getDataStore();
+        return new Factory<Map<TopcatModel,Long>>() {
+
+            @Slow
+            public Map<TopcatModel,Long> getItem() {
+
+                /* Set up an object to log progress. */
+                long nrow = 0;
+                for ( int il = 0; il < layers.length; il++ ) {
+                    nrow += ((GuiDataSpec) layers[ il ].getDataSpec())
+                           .getRowCount();
+                }
+                Progresser progresser = plotPanel_.createProgresser( nrow );
+
+                /* Prepare for iteration. */
+                double[] dpos = new double[ surface.getDataDimCount() ];
+                Point gp = new Point();
+                double thresh2 = 4 * 4;
+                Map<TopcatModel,Double> closeMap =
+                    new HashMap<TopcatModel,Double>();
+                Map<TopcatModel,Long> indexMap =
+                    new HashMap<TopcatModel,Long>();
+
+                /* Iterate over each usefully different layer. */
+                for ( int il = 0; il < layers.length; il++ ) {
+                    PlotLayer layer = layers[ il ];
+                    DataGeom geom = layer.getDataGeom();
+                    assert geom != null && geom.hasPosition();
+                    DataSpec dataSpec = layer.getDataSpec();
+                    TopcatModel tcModel = getTopcatModel( dataSpec );
+                    TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
+
+                    /* Iterate over each visible point in the layer. */
+                    while ( tseq.next() ) {
+                        if ( Thread.currentThread().isInterrupted() ) {
+                            progresser.reset();
+                            return null;
+                        } 
+                        if ( geom.readDataPos( tseq, 0, dpos ) &&
+                             surface.dataToGraphics( dpos, true, gp ) ) {
+
+                            /* If the point is within a given threshold of our
+                             * reference point, and it's closer than any other
+                             * point we've encountered so far for the current
+                             * table, record it. */
+                            double dist2 = gp.distanceSq( point );
+                            if ( dist2 < thresh2 ) {
+                                Double c2 = closeMap.get( tcModel );
+                                if ( c2 == null || c2.doubleValue() > dist2 ) {
+                                    closeMap.put( tcModel, dist2 );
+                                    indexMap.put( tcModel, tseq.getRowIndex() );
+                                }
+                            }
+                        }
+                        progresser.increment();
+                    }
+                }
+
+                /* Return a map of the closest row to the reference position
+                 * for each visible table (only populated for each table if the
+                 * point is within a given threshold - currently 4 pixels). */
+                return indexMap;
+            }
+        };
+    }
+
+    /**
+     * Takes a map indicating a row to highlight for zero or more tables,
+     * and highlights the relevant rows.
+     *
+     * @param  indexMap  map from topcat models to row indices
+     */
+    private void applyHighlights( Map<TopcatModel,Long> indexMap ) {
+
+        /* Message each the topcat model to highlight the relevant row.
          * This will in turn cause the plot panel to visually identify
-         * these points (perhaps amongst other actions unrelated to
-         * this plot). */
+         * these points (perhaps amongst other "activation" actions
+         * unrelated to this plot). */
         int nHigh = 0;
         for ( Map.Entry<TopcatModel,Long> entry : indexMap.entrySet() ) {
             TopcatModel tcModel = entry.getKey();
@@ -559,21 +604,33 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             }
         }
 
-        /* If no points were identified, clear the highlight list for this
-         * plot. */
+        /* If no points were identified, clear the highlight list
+         * for this plot. */
         if ( nHigh == 0 ) {
             plotPanel_.setHighlights( new HashMap<DataSpec,double[]>() );
         }
     }
 
     /**
-     * Returns a map of inclusion masks for the currently visible points
-     * for each displayed table.
+     * Returns a list of plot layers which can be used as representatives
+     * for the purpose of surveying point clouds.  If multiple layers
+     * represent the same point cloud, only one of them will be returned.
      *
-     * @return   table to subset map
+     * @return   representative point-cloud type layers for the current plot
      */
-    private Map<TopcatModel,BitSet> getVisibleMasks() {
-        return createBlobMasker( null ).getItem();
+    private PlotLayer[] getPointCloudLayers() {
+        PlotLayer[] layers = plotPanel_.getPlotLayers();
+        Map<PointCloud,PlotLayer> cloudMap =
+            new LinkedHashMap<PointCloud,PlotLayer>();
+        for ( int il = 0; il < layers.length; il++ ) {
+            PlotLayer layer = layers[ il ];
+            DataGeom geom = layer.getDataGeom();
+            DataSpec dataSpec = layer.getDataSpec();
+            if ( dataSpec != null && geom != null && geom.hasPosition() ) {
+                cloudMap.put( new PointCloud( geom, dataSpec ), layer );
+            }
+        }
+        return cloudMap.values().toArray( new PlotLayer[ 0 ] );
     }
 
     /**
@@ -646,6 +703,16 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     }
 
     /**
+     * Returns an object to calculate a map of inclusion masks
+     * for the currently visible points for each displayed table.
+     *
+     * @return   factory for table to subset map
+     */
+    private Factory<Map<TopcatModel,BitSet>> createVisibleMasker() {
+        return createBlobMasker( null );
+    }
+
+    /**
      * Returns an object which can scan the current plot for table point
      * inclusion masks.
      * The actual scan may be slow for large data sets, so although this
@@ -662,16 +729,31 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         final DataStore dataStore = plotPanel_.getDataStore();
         final PlotLayer[] layers = plotPanel_.getPlotLayers();
         final TopcatModel[] tcModels = new TopcatModel[ layers.length ];
+        final Map<TopcatModel,BitSet> maskMap =
+            new LinkedHashMap<TopcatModel,BitSet>();
+        long nrow = 0;
         for ( int il = 0; il < layers.length; il++ ) {
-            tcModels[ il ] = getTopcatModel( layers[ il ].getDataSpec() );
+            PlotLayer layer = layers[ il ];
+            DataGeom geom = layer.getDataGeom();
+            TopcatModel tcModel = getTopcatModel( layer.getDataSpec() );
+            tcModels[ il ] = tcModel;
+            if ( tcModel != null && geom != null && geom.hasPosition() &&
+                 ! maskMap.containsKey( tcModel ) ) {
+                long nr = tcModel.getDataModel().getRowCount();
+                nrow += nr;
+                if ( ! maskMap.containsKey( tcModel ) ) {
+                    maskMap.put( tcModel,
+                                 new BitSet( Tables.checkedLongToInt( nr ) ) );
+                }
+            }
         }
+        final long rowCount = nrow;
         return new Factory<Map<TopcatModel,BitSet>>() {
             @Slow
             public Map<TopcatModel,BitSet> getItem() {
-                Map<TopcatModel,BitSet> maskMap =
-                    new LinkedHashMap<TopcatModel,BitSet>();
                 double[] dpos = new double[ surface.getDataDimCount() ];
                 Point gp = new Point();
+                Progresser progresser = plotPanel_.createProgresser( rowCount );
                 for ( int il = 0; il < layers.length; il++ ) {
                     PlotLayer layer = layers[ il ];
                     DataGeom geom = layer.getDataGeom();
@@ -679,12 +761,6 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                     TopcatModel tcModel = tcModels[ il ];
                     if ( tcModel != null &&
                          geom != null && geom.hasPosition() ) {
-                        if ( ! maskMap.containsKey( tcModel ) ) {
-                            int nrow =
-                                Tables.checkedLongToInt( tcModel.getDataModel()
-                                                        .getRowCount() );
-                            maskMap.put( tcModel, new BitSet( nrow ) );
-                        }
                         BitSet mask = maskMap.get( tcModel );
                         TupleSequence tseq =
                             dataStore.getTupleSequence( dataSpec );
@@ -696,8 +772,10 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                                 mask.set( Tables.checkedLongToInt( ix ) );
                             }
                             if ( Thread.currentThread().isInterrupted() ) {
+                                progresser.reset();
                                 return null;
                             }
+                            progresser.increment();
                         }
                     }
                 }
@@ -718,36 +796,43 @@ public class StackPlotWindow<P,A> extends AuxWindow {
      * @return  factory for deferred calculation of formatted point count
      */
     private Factory<String> createCounter() {
-        final Factory<Map<TopcatModel,BitSet>> masker =
-            createBlobMasker( null );
+        final PlotLayer[] layers = getPointCloudLayers();
+        final DataStore dataStore = plotPanel_.getDataStore();
+        final Surface surface = plotPanel_.getSurface();
+        final int nl = layers.length;
+        long nr = 0;
+        TopcatModel[] tcModels = new TopcatModel[ nl ];
+        for ( int il = 0; il < nl; il++ ) {
+            tcModels[ il ] = getTopcatModel( layers[ il ].getDataSpec() );
+            assert tcModels[ il ] != null;
+            nr += tcModels[ il ].getDataModel().getRowCount();
+        }
+        final long total = nr;
         return new Factory<String>() {
             @Slow
             public String getItem() {
                 long start = System.currentTimeMillis();
-
-                /* Do the scan. */
-                Map<TopcatModel,BitSet> maskMap = masker.getItem();
-                if ( Thread.currentThread().isInterrupted() ) {
-                    return null;
-                }
-
-                /* Analyse the calculated masks to generate a
-                 * formatted count string. */
-                if ( maskMap == null ) {
-                    return null;
-                }
-                else {
-                    long total = 0;
-                    long count = 0;
-                    for ( TopcatModel tcModel : maskMap.keySet() ) {
-                        BitSet mask = maskMap.get( tcModel );
-                        total += tcModel.getDataModel().getRowCount();
-                        count += mask.cardinality();
+                long count = 0;
+                Point gp = new Point();
+                double[] dpos = new double[ surface.getDataDimCount() ];
+                for ( int il = 0; il < layers.length; il++ ) {
+                    PlotLayer layer = layers[ il ];
+                    DataGeom geom = layer.getDataGeom();
+                    DataSpec dataSpec = layer.getDataSpec();
+                    TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
+                    while ( tseq.next() ) {
+                        if ( geom.readDataPos( tseq, 0, dpos ) &&
+                             surface.dataToGraphics( dpos, true, gp ) ) {
+                            count++;
+                        }
+                        if ( Thread.currentThread().isInterrupted() ) {
+                            return null;
+                        }
                     }
-                    PlotUtil.logTime( logger_, "Count", start );
-                    return TopcatUtils.formatLong( count ) + " / "
-                         + TopcatUtils.formatLong( total );
                 }
+                PlotUtil.logTime( logger_, "Count", start );
+                return TopcatUtils.formatLong( count ) + " / "
+                     + TopcatUtils.formatLong( total );
             }
         };
     }
@@ -757,7 +842,30 @@ public class StackPlotWindow<P,A> extends AuxWindow {
      *
      * @param   maskMap   map from topcat model to subset bit mask
      */
-    private void addMaskSubsets( Map<TopcatModel,BitSet> maskMap ) {
+    private void addMaskSubsets( final Factory<Map<TopcatModel,BitSet>>
+                                       maskMapFact ) {
+        plotPanel_.submitPlotAnnotator( new Runnable() {
+            public void run() {
+                final Map<TopcatModel,BitSet> maskMap = maskMapFact.getItem();
+                SwingUtilities.invokeLater( new Runnable() {
+                    public void run() {
+                        if ( maskMap != null ) {
+                            applyMasks( maskMap );
+                        }
+                        blobPanel_.setActive( false );
+                    }
+                } );
+            }
+        } );
+    }
+
+    /**
+     * Takes a map from tables to new subset masks, presumably derived
+     * from this plot, and passes them to the application.
+     *
+     * @param  maskMap   map from tables to associated row subset bitmasks
+     */
+    private void applyMasks( Map<TopcatModel,BitSet> maskMap ) {
 
         /* Purge empty masks. */
         for ( Iterator<BitSet> it = maskMap.values().iterator();
@@ -797,9 +905,17 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         displayPosition( plotPanel_.getMousePosition() );
 
         /* Initiate updating point count, which may be slow. */
-        plotPanel_.submitAnnotator( new GuiFuture<String>( createCounter() ) {
-            protected void acceptValue( String txt, boolean success ) {
-                countLabel_.setText( success ? txt : null );
+        final Factory<String> counter = createCounter();
+        plotPanel_.submitExtraAnnotator( new Runnable() {
+            public void run() {
+                final String txt = counter.getItem();
+                if ( txt != null ) {
+                    SwingUtilities.invokeLater( new Runnable() {
+                        public void run() {
+                            countLabel_.setText( txt );
+                        }
+                    } );
+                }
             }
         } );
     }

@@ -121,7 +121,8 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
     private final ExecutorService noteExec_;
     private PlotJob<P,A> plotJob_;
     private PlotJobRunner plotRunner_;
-    private Cancellable noteRunner_;
+    private Cancellable plotNoteRunner_;
+    private Cancellable extraNoteRunner_;
     private Workings<A> workings_;
     private Surface latestSurface_;
     private Map<DataSpec,double[]> highlightMap_;
@@ -141,6 +142,14 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      * generally leads to a lot of confusion.  In fact as currently
      * written a couple of GUI compoents, axisControl and shaderControl
      * are passed in and can be affected.  It would be better to sanitize that.
+     *
+     * <p>A progress bar model is used so that progress can be logged
+     * whenever a scan through the data of one or several tables is under way.
+     * An alternative would be to pass a JProgressBar itself, so that a
+     * new model could be inserted every time a new progress operation started.
+     * That would actually be easier to use, but doing it this way makes it
+     * more obvious if multiple progress operations are happening concurrently,
+     * which as it stands they should not be.
      *
      * @param  storeFact   data store factory implementation
      * @param  axisControl  axis control GUI component
@@ -178,7 +187,8 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                   ? Executors.newSingleThreadExecutor()
                   : plotExec_;
         plotRunner_ = new PlotJobRunner();
-        noteRunner_ = new Cancellable();
+        plotNoteRunner_ = new Cancellable();
+        extraNoteRunner_ = new Cancellable();
         setPreferredSize( new Dimension( 500, 400 ) );
         addComponentListener( new ComponentAdapter() {
             @Override
@@ -256,7 +266,8 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
 
         /* Any annotations of the existing plot are out of date and should
          * be cancelled. */
-        noteRunner_.cancel( true );
+        extraNoteRunner_.cancel( true );
+        plotNoteRunner_.cancel( true );
 
         /* If the new plot is quite like the old plot (e.g. pan or zoom)
          * it's a good idea to let the old one complete
@@ -278,20 +289,41 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
 
     /**
      * Submits a runnable to run when the plot is not changing.
-     * It tries in some sense to run at a lower priority than
-     * the actual plots.  If the plot changes while it's in operation,
-     * it may (in fact, it will attempt to) fail.  The supplied annotator
-     * should watch for thread interruptions.
+     * If the plot changes while it's in operation, it will be cancelled.
+     * The supplied runnable should watch for thread interruptions.
+     * Such runnables are notionally run on a different queue than the
+     * one doing the plot.
      *
      * @param  annotator  runnable, typically for annotating the plot
      *                    in some sense
-     * @return  future which will run the annotator
      */
-    public Future submitAnnotator( Runnable annotator ) {
-        noteRunner_.cancel( true );
-        Future noteFuture = noteExec_.submit( annotator );
-        noteRunner_ = new Cancellable( noteFuture );
-        return noteFuture;
+    public void submitExtraAnnotator( Runnable annotator ) {
+        extraNoteRunner_.cancel( true );
+        extraNoteRunner_ = new Cancellable( noteExec_.submit( annotator ) );
+    }
+
+    /**
+     * Submits a runnable to run on the same queue as the plot itself.
+     * If the plot changes while it's in operation, it will be cancelled.
+     * The supplied runnable should watch for thread interruptions.
+     * Such runnables are notionally run on the same queue as the one
+     * doing the plot, so will only run when a plot is complete, and
+     * may (in fact should) use a Progresser to regiter progress.
+     */
+    public void submitPlotAnnotator( Runnable annotator ) {
+        plotNoteRunner_.cancel( true );
+        plotNoteRunner_ = new Cancellable( plotExec_.submit( annotator ) );
+    }
+
+    /**
+     * Returns an object that can be used to register progress.
+     * This will generally be visible in the progress bar.
+     *
+     * @param  count  number of increments expected for progress completion
+     * @return   new progresser
+     */
+    public Progresser createProgresser( long count ) {
+        return new Progresser( progModel_, count );
     }
 
     /**

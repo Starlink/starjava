@@ -25,6 +25,7 @@ public class Progresser {
 
     /**
      * Constructs a progresser with default step values.
+     * Construction also causes it to be initialised in the GUI.
      *
      * @param  progModel  progress bar model
      * @param  count    number of increments expected for progress completion
@@ -35,6 +36,7 @@ public class Progresser {
 
     /**
      * Constructs a progresser with step value configuration.
+     * Construction also causes it to be initialised in the GUI.
      *
      * @param  progModel  progress bar model
      * @param  count    number of increments expected for progress completion
