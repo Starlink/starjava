@@ -9061,6 +9061,15 @@ and experiment with the various options to see what happens to the plot.
     that frame updates happen more frequently, so it's a bit more responsive.
     </p></dd>
 
+<dt>&IMG.PROGRESS; Show Plot Progress</dt>
+<dd><p>If selected a progress bar at the bottom of the window is active
+    when large (slow) plots are in progress.  This can be useful if you
+    are navigating round a very large plot so that you can see something
+    is happening rather than the application apparently just doing nothing.
+    On the other hand a flickering progress bar can be distracting.
+    Updating the progress bar may also slow the plot down a little.
+    </p></dd>
+
 <dt>&IMG.IMAGE; Export Plot</dt>
 <dd><p>Allows you to save the plot in a variety of graphics formats
     using the <ref id="plot2-export">Plot Export</ref> window.

@@ -30,7 +30,7 @@ public class Progresser {
      * @param  count    number of increments expected for progress completion
      */
     public Progresser( BoundedRangeModel progModel, long count ) {
-        this( progModel, count, 200, 1000, 500, 40 );
+        this( progModel, count, 100, 1000, 500, 40 );
     }
 
     /**
@@ -89,13 +89,13 @@ public class Progresser {
         long ix = index_.incrementAndGet() % count_;
 
         /* Perform a GUI update only once every few increments. */
-        long now = System.currentTimeMillis();
         if ( ix % step_ == 0 ) {
+            long now = System.currentTimeMillis();
             if ( start_ == Long.MIN_VALUE ) {
                 throw new IllegalStateException( "Not initialised" );
             }
             if ( ( now - start_ > minStartMillis_ &&
-                   now - lastUpdate_ >= minUpdateMillis_ ) 
+                   now - lastUpdate_ >= minUpdateMillis_ )
                  || ix == 0 ) {
                 lastUpdate_ = now;
                 final int value = getProgValue( ix );
