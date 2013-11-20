@@ -20,23 +20,21 @@ public class Progresser {
     private final long minStartMillis_;
     private final long minUpdateMillis_;
     private final AtomicLong index_;
-    private final long start_;
-    private long lastUpdate_;
+    private volatile long start_;
+    private volatile long lastUpdate_;
 
     /**
      * Constructs a progresser with default step values.
-     * Construction also causes it to be initialised in the GUI.
      *
      * @param  progModel  progress bar model
      * @param  count    number of increments expected for progress completion
      */
     public Progresser( BoundedRangeModel progModel, long count ) {
-        this( progModel, count, 200, 1000, 500, 80 );
+        this( progModel, count, 200, 1000, 500, 40 );
     }
 
     /**
      * Constructs a progresser with step value configuration.
-     * Construction also causes it to be initialised in the GUI.
      *
      * @param  progModel  progress bar model
      * @param  count    number of increments expected for progress completion
@@ -59,10 +57,18 @@ public class Progresser {
         minStartMillis_ = minStartMillis;
         minUpdateMillis_ = minUpdateMillis;
         index_ = new AtomicLong();
+        start_ = Long.MIN_VALUE;
+    }
+
+    /**
+     * Prepares this progresser for use.  Must be called before any 
+     * increments.
+     */
+    public void init() {
         SwingUtilities.invokeLater( new Runnable() {
             public void run() {
                 progModel_.setMinimum( 0 );
-                progModel_.setMaximum( getProgValue( count ) );
+                progModel_.setMaximum( getProgValue( count_ ) );
                 progModel_.setValue( 0 );
             }
         } );
@@ -84,16 +90,21 @@ public class Progresser {
 
         /* Perform a GUI update only once every few increments. */
         long now = System.currentTimeMillis();
-        if ( ix % step_ == 0 &&
-             now - start_ > minStartMillis_ &&
-             now - lastUpdate_ > minUpdateMillis_ ) {
-            lastUpdate_ = now;
-            final int value = getProgValue( ix );
-            SwingUtilities.invokeLater( new Runnable() {
-                public void run() {
-                    progModel_.setValue( value );
-                }
-            } );
+        if ( ix % step_ == 0 ) {
+            if ( start_ == Long.MIN_VALUE ) {
+                throw new IllegalStateException( "Not initialised" );
+            }
+            if ( ( now - start_ > minStartMillis_ &&
+                   now - lastUpdate_ >= minUpdateMillis_ ) 
+                 || ix == 0 ) {
+                lastUpdate_ = now;
+                final int value = getProgValue( ix );
+                SwingUtilities.invokeLater( new Runnable() {
+                    public void run() {
+                        progModel_.setValue( value );
+                    }
+                } );
+            }
         }
     }
 

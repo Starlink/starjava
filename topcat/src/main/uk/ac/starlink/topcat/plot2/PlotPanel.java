@@ -170,9 +170,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                       ShaderControl shaderControl,
                       ToggleButtonModel sketchModel, PaperTypeSelector ptSel,
                       BoundedRangeModel progModel ) {
-        storeFact_ = progModel == null
-                   ? storeFact
-                   : new ProgressDataStoreFactory( storeFact, progModel );
+        storeFact_ = storeFact;
         axisControl_ = axisControl;
         layerFact_ = layerFact;
         legendFact_ = legendFact;
@@ -307,8 +305,12 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      * If the plot changes while it's in operation, it will be cancelled.
      * The supplied runnable should watch for thread interruptions.
      * Such runnables are notionally run on the same queue as the one
-     * doing the plot, so will only run when a plot is complete, and
-     * may (in fact should) use a Progresser to regiter progress.
+     * doing the plot, so will only run when a plot is complete.
+     * They should use a DataStore got from the
+     * {@link #createGuiDataStore createGuiDataStore} method
+     * so that progress is logged as appropriate.
+     *
+     * @param  annotator  runnable to run on the plot queue
      */
     public void submitPlotAnnotator( Runnable annotator ) {
         plotNoteRunner_.cancel( true );
@@ -316,14 +318,32 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
     }
 
     /**
-     * Returns an object that can be used to register progress.
-     * This will generally be visible in the progress bar.
+     * Returns a data store based on a supplied one
+     * that will watch for interrruptions and report progress as appropriate.
      *
-     * @param  count  number of increments expected for progress completion
-     * @return   new progresser
+     * @param  tupleCount  total number of tuples that will be read
+     *                     from the returned data store;
+     *                     if -1 is used, progress will not be reported
+     * @param  dataStore   base data store
+     * @return   data store
      */
-    public Progresser createProgresser( long count ) {
-        return new Progresser( progModel_, count );
+    public DataStore createGuiDataStore( long tupleCount,
+                                         DataStore dataStore ) {
+        return new GuiDataStore( dataStore, progModel_, tupleCount );
+    }
+
+    /**
+     * Returns a data store based on the one used
+     * in the most recent completed plot
+     * that will watch for interruptions and report progresss as appropriate.
+     *
+     * @param  tupleCount  total number of tuples that will be read
+     *                     from the returned data store;
+     *                     if -1 is used, progress will not be reported
+     * @return   data store
+     */
+    public DataStore createGuiDataStore( long tupleCount ) {
+        return createGuiDataStore( tupleCount, getDataStore() );
     }
 
     /**
@@ -848,6 +868,11 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
          * calculated along the way that may be useful next time.
          * This method has no side-effects.
          *
+         * <p>A null return indicates that there is no updated workings
+         * object.  That could be either because the workings object
+         * can be determined to be the same as the old one, or because
+         * the calculations were interrupted.
+         *
          * @param  layers   layers to plot
          * @param  dataStore  data store
          * @param  rowStep   stride for row subsampling, 1 for all rows
@@ -855,13 +880,14 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
          *                    or null for no progress updates
          * @param  ntuple   total tuple count expected; used only for progress
          *                  updates, -1 if not known
-         * @return  workings object representing completed plot
+         * @return  workings object representing completed plot, or null
          */
         @Slow
         private Workings<A> createWorkings( PlotLayer[] layers,
                                             DataStore dataStore, int rowStep,
                                             final BoundedRangeModel progModel,
                                             long ntuple ) {
+            long startPlot = System.currentTimeMillis();
    
             /* Record the base data store which will be stored in the
              * output workings object, and prepare a data store decorated
@@ -870,204 +896,187 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             DataStore dataStore1 = dataStore;
             dataStore = null;
 
-            /* Wrap the data store so that if this job is interrupted
-             * reads will fail quickly and stop the calculations rather
-             * than continuing to calculate unused results. */
-            dataStore1 = new InterruptibleDataStore( dataStore1 );
-
             /* Pick subsample of rows if requested. */
             if ( rowStep > 1 ) {
                 dataStore1 = new StepDataStore( dataStore1, rowStep );
             }
 
-            /* Arrange for progress logging if requested. */
-            if ( progModel != null && ntuple > 0 ) {
-                dataStore1 =
-                    new ProgressDataStore( dataStore1, progModel, ntuple );
+            /* Arrange for progress logging.  This also ensures that
+             * if the thread is interrupted, tuples are no longer dispensed
+             * from the data store.  We still have to check for thread
+             * interruption status periodically, i.e. after every use of
+             * the data store. */
+            dataStore1 =
+                new GuiDataStore( dataStore1, progModel, ntuple / rowStep );
+
+            /* Ascertain the surface aspect.  If it has been set
+             * explicitly, use that. */
+            final A aspect;
+            final Range[] geomRanges;
+            if ( fixAspect_ != null ) {
+                aspect = fixAspect_;
+                geomRanges = geomFixRanges_;
             }
 
-            try {
-                long startPlot = System.currentTimeMillis();
-
-                /* Ascertain the surface aspect.  If it has been set
-                 * explicitly, use that. */
-                final A aspect;
-                final Range[] geomRanges;
-                if ( fixAspect_ != null ) {
-                    aspect = fixAspect_;
+            /* Otherwise work them out from the supplied config and
+             * by scanning the data if necessary. */
+            else {
+                if ( geomFixRanges_ != null ) {
                     geomRanges = geomFixRanges_;
                 }
-
-                /* Otherwise work them out from the supplied config and
-                 * by scanning the data if necessary. */
+                else if ( ! surfFact_.useRanges( profile_, aspectConfig_ ) ) {
+                    geomRanges = null;
+                }
                 else {
-                    if ( geomFixRanges_ != null ) {
-                        geomRanges = geomFixRanges_;
+                    long startRange = System.currentTimeMillis();
+                    geomRanges = surfFact_.readRanges( layers_, dataStore1 );
+                    if ( Thread.currentThread().isInterrupted() ) {
+                        return null;
                     }
-                    else if ( ! surfFact_.useRanges( profile_,
-                                                     aspectConfig_ ) ) {
-                        geomRanges = null;
-                    }
-                    else {
-                        long startRange = System.currentTimeMillis();
-                        geomRanges =
-                            surfFact_.readRanges( layers_, dataStore1 );
-                        PlotUtil.logTime( logger_, "Range", startRange );
-                        // could cache the ranges here by point cloud ID
-                        // for possible later use.
-                    }
-                    aspect = surfFact_.createAspect( profile_, aspectConfig_,
-                                                     geomRanges );
+                    PlotUtil.logTime( logger_, "Range", startRange );
+                    // could cache the ranges here by point cloud ID
+                    // for possible later use.
                 }
+                aspect = surfFact_.createAspect( profile_, aspectConfig_,
+                                                 geomRanges );
+            }
 
-                /* Work out the required aux scale ranges.
-                 * First find out which ones we need. */
-                AuxScale[] scales = AuxScale.getAuxScales( layers );
+            /* Work out the required aux scale ranges.
+             * First find out which ones we need. */
+            AuxScale[] scales = AuxScale.getAuxScales( layers );
 
-                /* See if we can re-use the aux ranges from the oldWorkings.
-                 * This test isn't perfect, the layers may have changed
-                 * without requiring a recalculation of the Aux scales
-                 * (e.g. only colour map may have changed).  Oh well. */
-                Surface approxSurf =
-                    surfFact_.createSurface( bounds_, profile_, aspect );
-                Map<AuxScale,Range> auxDataRanges =
-                      LayerId.layerListEquals( layers, oldWorkings_.layers_ )
-                   && PlotUtil.equals( approxSurf, oldWorkings_.approxSurf_ )
-                    ? oldWorkings_.auxDataRanges_
-                    : new HashMap<AuxScale,Range>();
+            /* See if we can re-use the aux ranges from the oldWorkings.
+             * This test isn't perfect, the layers may have changed
+             * without requiring a recalculation of the Aux scales
+             * (e.g. only colour map may have changed).  Oh well. */
+            Surface approxSurf =
+                surfFact_.createSurface( bounds_, profile_, aspect );
+            Map<AuxScale,Range> auxDataRanges =
+                  LayerId.layerListEquals( layers, oldWorkings_.layers_ )
+               && PlotUtil.equals( approxSurf, oldWorkings_.approxSurf_ )
+                ? oldWorkings_.auxDataRanges_
+                : new HashMap<AuxScale,Range>();
 
-                /* Work out which scales we are going to have to calculate,
-                 * if any, and calculate them. */
-                AuxScale[] calcScales =
-                    AuxScale.getMissingScales( scales, auxDataRanges,
-                                               auxFixRanges_ );
-                if ( calcScales.length > 0 ) {
-                    long startAux = System.currentTimeMillis();
-                    Map<AuxScale,Range> calcRanges =
-                        AuxScale.calculateAuxRanges( calcScales, layers,
-                                                     approxSurf, dataStore1 );
-                    auxDataRanges.putAll( calcRanges );
-                    PlotUtil.logTime( logger_, "AuxRange", startAux );
-                }
-
-                /* Combine available aux scale information to get the
-                 * actual ranges for use in the plot. */
-                Map<AuxScale,Range> auxClipRanges =
-                    AuxScale.getClippedRanges( scales, auxDataRanges,
-                                               auxFixRanges_, auxSubranges_,
-                                               auxLogFlags_ );
-
-                /* Extract and use colour scale range for the shader. */
-                Range shadeRange = auxClipRanges.get( AuxScale.COLOR );
-                ShadeAxis shadeAxis = shadeFact_.createShadeAxis( shadeRange );
-
-                /* Work out the plot placement and plot surface. */
-                PlotPlacement placer =
-                    PlotPlacement.createPlacement( bounds_, surfFact_, profile_,
-                                                   aspect, true, legend_,
-                                                   legpos_, shadeAxis );
-                assert PlotPlacement
-                      .createPlacement( bounds_, surfFact_, profile_,
-                                        aspect, true, legend_,
-                                        legpos_, shadeAxis )
-                      .equals( placer );
-                Surface surface = placer.getSurface();
-
-                /* Place highlighted point icons as plot decorations. */
-                Icon highIcon = HIGHLIGHTER;
-                int xoff = highIcon.getIconWidth() / 2;
-                int yoff = highIcon.getIconHeight() / 2;
-                Point gp = new Point();
-                for ( int ih = 0; ih < highlights_.length; ih++ ) {
-                    if ( surface.dataToGraphics( highlights_[ ih ],
-                                                 true, gp ) ) {
-                        placer.getDecorations()
-                              .add( new Decoration( highIcon,
-                                                    gp.x - xoff,
-                                                    gp.y - yoff ) );
-                    }
-                }
-
-                /* Determine whether first the data part, then the entire
-                 * graphics, of the plot is the same as for the oldWorkings.
-                 * If so, it's likely that we've got this far without any
-                 * expensive calculations (data scans), since the ranges
-                 * will have been picked up from the previous plot. */
-                boolean sameDataIcon =
-                    new DataIconId( placer.getSurface(), layers, auxClipRanges )
-                   .equals( oldWorkings_.getDataIconId() );
-                boolean samePlot =
-                    sameDataIcon &&
-                    placer.equals( oldWorkings_.placer_ );
-
-                /* If the plot is identical to last time, return null as
-                 * an indication that no replot is required. */
-                if ( samePlot ) {
+            /* Work out which scales we are going to have to calculate,
+             * if any, and calculate them. */
+            AuxScale[] calcScales =
+                AuxScale.getMissingScales( scales, auxDataRanges,
+                                           auxFixRanges_ );
+            if ( calcScales.length > 0 ) {
+                long startAux = System.currentTimeMillis();
+                Map<AuxScale,Range> calcRanges =
+                    AuxScale.calculateAuxRanges( calcScales, layers,
+                                                 approxSurf, dataStore1 );
+                if ( Thread.currentThread().isInterrupted() ) {
                     return null;
                 }
-
-                /* If the data part is the same as last time, no need to
-                 * redraw the data icon or recalculate the plans - carry
-                 * them forward from the oldWorkings for the result. */
-                final Icon dataIcon;
-                final long plotMillis;
-                final Object[] plans;
-                if ( sameDataIcon ) {
-                    dataIcon = oldWorkings_.dataIcon_;
-                    plans = oldWorkings_.plans_;
-                    plotMillis = 0;
-                }
-
-                /* Otherwise calculate plans and perform drawing to a new
-                 * cached data icon (image buffer). */
-                else {
-                    int nl = layers.length;
-                    long startPlan = System.currentTimeMillis();
-                    Drawing[] drawings = new Drawing[ nl ];
-                    for ( int il = 0; il < nl; il++ ) {
-                        drawings[ il ] =
-                            layers[ il ].createDrawing( surface, auxClipRanges,
-                                                        paperType_ );
-                    }
-                    plans = calculateDrawingPlans( drawings, dataStore1,
-                                                   oldWorkings_.plans_ );
-                    PlotUtil.logTime( logger_, "Plan", startPlan );
-                    logger_.info( "Layers: " + layers_.length + ", "
-                                + "Paper: " + paperType_ );
-                    long startPaint = System.currentTimeMillis();
-                    dataIcon =
-                        paperType_.createDataIcon( surface, drawings, plans,
-                                                   dataStore1, true );
-                    PlotUtil.logTime( logger_, "Paint", startPaint );
-                    plotMillis = System.currentTimeMillis() - startPlot;
-                }
-
-                /* Create the final plot icon, and store the inputs and
-                 * outputs as a new Workings object for return. */
-                Icon plotIcon = placer.createPlotIcon( dataIcon );
-                return new Workings<A>( layers, dataStore0, approxSurf,
-                                        geomRanges, aspect, auxDataRanges,
-                                        auxClipRanges, placer, plans,
-                                        dataIcon, plotIcon, plotMillis,
-                                        rowStep );
+                auxDataRanges.putAll( calcRanges );
+                PlotUtil.logTime( logger_, "AuxRange", startAux );
             }
 
-            /* In case any of the data scans were interrupted, preserve
-             * the interruption status and return a null value to indicate
-             * that no new plot was drawn. */
-            catch ( SequenceInterruptedException e ) {
-                assert Thread.currentThread().isInterrupted();
+            /* Combine available aux scale information to get the
+             * actual ranges for use in the plot. */
+            Map<AuxScale,Range> auxClipRanges =
+                AuxScale.getClippedRanges( scales, auxDataRanges,
+                                           auxFixRanges_, auxSubranges_,
+                                           auxLogFlags_ );
+
+            /* Extract and use colour scale range for the shader. */
+            Range shadeRange = auxClipRanges.get( AuxScale.COLOR );
+            ShadeAxis shadeAxis = shadeFact_.createShadeAxis( shadeRange );
+
+            /* Work out the plot placement and plot surface. */
+            PlotPlacement placer =
+                PlotPlacement.createPlacement( bounds_, surfFact_, profile_,
+                                               aspect, true, legend_,
+                                               legpos_, shadeAxis );
+            assert PlotPlacement
+                  .createPlacement( bounds_, surfFact_, profile_,
+                                    aspect, true, legend_,
+                                    legpos_, shadeAxis )
+                  .equals( placer );
+            Surface surface = placer.getSurface();
+
+            /* Place highlighted point icons as plot decorations. */
+            Icon highIcon = HIGHLIGHTER;
+            int xoff = highIcon.getIconWidth() / 2;
+            int yoff = highIcon.getIconHeight() / 2;
+            Point gp = new Point();
+            for ( int ih = 0; ih < highlights_.length; ih++ ) {
+                if ( surface.dataToGraphics( highlights_[ ih ], true, gp ) ) {
+                    placer.getDecorations()
+                          .add( new Decoration( highIcon,
+                                                gp.x - xoff, gp.y - yoff ) );
+                }
+            }
+
+            /* Determine whether first the data part, then the entire
+             * graphics, of the plot is the same as for the oldWorkings.
+             * If so, it's likely that we've got this far without any
+             * expensive calculations (data scans), since the ranges
+             * will have been picked up from the previous plot. */
+            boolean sameDataIcon =
+                new DataIconId( placer.getSurface(), layers, auxClipRanges )
+               .equals( oldWorkings_.getDataIconId() );
+            boolean samePlot =
+                sameDataIcon &&
+                placer.equals( oldWorkings_.placer_ );
+
+            /* If the plot is identical to last time, return null as
+             * an indication that no replot is required. */
+            if ( samePlot ) {
                 return null;
             }
-            finally {
-                if ( progModel != null ) {
-                    SwingUtilities.invokeLater( new Runnable() {
-                        public void run() {
-                            progModel.setValue( 0 );
-                        }
-                    } );
-                }
+
+            /* If the data part is the same as last time, no need to
+             * redraw the data icon or recalculate the plans - carry
+             * them forward from the oldWorkings for the result. */
+            final Icon dataIcon;
+            final long plotMillis;
+            final Object[] plans;
+            if ( sameDataIcon ) {
+                dataIcon = oldWorkings_.dataIcon_;
+                plans = oldWorkings_.plans_;
+                plotMillis = 0;
             }
+
+            /* Otherwise calculate plans and perform drawing to a new
+             * cached data icon (image buffer). */
+            else {
+                int nl = layers.length;
+                long startPlan = System.currentTimeMillis();
+                Drawing[] drawings = new Drawing[ nl ];
+                for ( int il = 0; il < nl; il++ ) {
+                    drawings[ il ] =
+                        layers[ il ].createDrawing( surface, auxClipRanges,
+                                                    paperType_ );
+                }
+                plans = calculateDrawingPlans( drawings, dataStore1,
+                                               oldWorkings_.plans_ );
+                if ( Thread.currentThread().isInterrupted() ) {
+                    return null;
+                }
+                PlotUtil.logTime( logger_, "Plan", startPlan );
+                logger_.info( "Layers: " + layers_.length + ", "
+                            + "Paper: " + paperType_ );
+                long startPaint = System.currentTimeMillis();
+                dataIcon =
+                    paperType_.createDataIcon( surface, drawings, plans,
+                                               dataStore1, true );
+                if ( Thread.currentThread().isInterrupted() ) {
+                    return null;
+                }
+                PlotUtil.logTime( logger_, "Paint", startPaint );
+                plotMillis = System.currentTimeMillis() - startPlot;
+            }
+
+            /* Create the final plot icon, and store the inputs and
+             * outputs as a new Workings object for return. */
+            Icon plotIcon = placer.createPlotIcon( dataIcon );
+            return new Workings<A>( layers, dataStore0, approxSurf,
+                                    geomRanges, aspect, auxDataRanges,
+                                    auxClipRanges, placer, plans, dataIcon,
+                                    plotIcon, plotMillis, rowStep );
         }
 
         /**
@@ -1574,59 +1583,6 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             return LayerId.layerList( plotJob == null ? new PlotLayer[ 0 ]
                                                       : plotJob.layers_ );
         }
-    }
-
-    /**
-     * Wrapper DataStore implementation that checks for thread interruption
-     * and throws a SequenceInterruptedException from its <code>next</code>
-     * method if interruption takes place.
-     */
-    private static class InterruptibleDataStore implements DataStore {
-        private final DataStore baseStore_;
-
-        /**
-         * Constructor.
-         *
-         * @param  baseStore   storage object to which methods are deferred
-         */
-        InterruptibleDataStore( DataStore baseStore ) {
-            baseStore_ = baseStore;
-        }
-
-        public boolean hasData( DataSpec spec ) {
-            return baseStore_.hasData( spec );
-        }
-
-        public TupleSequence getTupleSequence( DataSpec spec ) {
-            final TupleSequence baseSeq = baseStore_.getTupleSequence( spec );
-            return new TupleSequence() {
-                public boolean getBooleanValue( int icol ) {
-                    return baseSeq.getBooleanValue( icol );
-                }
-                public double getDoubleValue( int icol ) {
-                    return baseSeq.getDoubleValue( icol );
-                }
-                public Object getObjectValue( int icol ) {
-                    return baseSeq.getObjectValue( icol );
-                }
-                public long getRowIndex() {
-                    return baseSeq.getRowIndex();
-                }
-                public boolean next() {
-                    if ( Thread.currentThread().isInterrupted() ) {
-                        throw new SequenceInterruptedException();
-                    }
-                    return baseSeq.next();
-                }
-            };
-        }
-    }
-
-    /**
-     * Unchecked exception thrown from InterruptibleDataStore
-     * tuple sequence's next method.
-     */
-    private static class SequenceInterruptedException extends RuntimeException {
     }
 
     /**

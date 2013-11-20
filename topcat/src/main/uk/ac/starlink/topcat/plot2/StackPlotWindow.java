@@ -509,19 +509,21 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             createPointFinder( final Point point ) {
         final Surface surface = plotPanel_.getSurface();
         final PlotLayer[] layers = getPointCloudLayers();
-        final DataStore dataStore = plotPanel_.getDataStore();
+        final DataStore baseDataStore = plotPanel_.getDataStore();
         return new Factory<Map<TopcatModel,Long>>() {
 
             @Slow
             public Map<TopcatModel,Long> getItem() {
 
-                /* Set up an object to log progress. */
+                /* Prepare a data store which will watch for interruptions
+                 * and log progress. */
                 long nrow = 0;
                 for ( int il = 0; il < layers.length; il++ ) {
                     nrow += ((GuiDataSpec) layers[ il ].getDataSpec())
                            .getRowCount();
                 }
-                Progresser progresser = plotPanel_.createProgresser( nrow );
+                DataStore dataStore =
+                    plotPanel_.createGuiDataStore( nrow, baseDataStore );
 
                 /* Prepare for iteration. */
                 double[] dpos = new double[ surface.getDataDimCount() ];
@@ -543,10 +545,6 @@ public class StackPlotWindow<P,A> extends AuxWindow {
 
                     /* Iterate over each visible point in the layer. */
                     while ( tseq.next() ) {
-                        if ( Thread.currentThread().isInterrupted() ) {
-                            progresser.reset();
-                            return null;
-                        } 
                         if ( geom.readDataPos( tseq, 0, dpos ) &&
                              surface.dataToGraphics( dpos, true, gp ) ) {
 
@@ -563,7 +561,9 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                                 }
                             }
                         }
-                        progresser.increment();
+                    }
+                    if ( Thread.currentThread().isInterrupted() ) {
+                        return null;
                     }
                 }
 
@@ -720,7 +720,6 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     private Factory<Map<TopcatModel,BitSet>>
             createBlobMasker( final Shape blob ) {
         final Surface surface = plotPanel_.getSurface();
-        final DataStore dataStore = plotPanel_.getDataStore();
         final PlotLayer[] layers = plotPanel_.getPlotLayers();
         final TopcatModel[] tcModels = new TopcatModel[ layers.length ];
         final Map<TopcatModel,BitSet> maskMap =
@@ -741,13 +740,12 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                 }
             }
         }
-        final long rowCount = nrow;
+        final DataStore dataStore = plotPanel_.createGuiDataStore( nrow );
         return new Factory<Map<TopcatModel,BitSet>>() {
             @Slow
             public Map<TopcatModel,BitSet> getItem() {
                 double[] dpos = new double[ surface.getDataDimCount() ];
                 Point gp = new Point();
-                Progresser progresser = plotPanel_.createProgresser( rowCount );
                 for ( int il = 0; il < layers.length; il++ ) {
                     PlotLayer layer = layers[ il ];
                     DataGeom geom = layer.getDataGeom();
@@ -765,13 +763,11 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                                 long ix = tseq.getRowIndex();
                                 mask.set( Tables.checkedLongToInt( ix ) );
                             }
-                            if ( Thread.currentThread().isInterrupted() ) {
-                                progresser.reset();
-                                return null;
-                            }
-                            progresser.increment();
                         }
                     }
+                }
+                if ( Thread.currentThread().isInterrupted() ) {
+                    return null;
                 }
                 assert ! maskMap.containsKey( null );
                 maskMap.remove( null );

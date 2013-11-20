@@ -38,6 +38,7 @@ public class ProgressDataStoreFactory extends WrapperDataStoreFactory {
             throws IOException {
         final Progresser progresser =
             new Progresser( progModel_, table.getRowCount() );
+        progresser.init();
         final RowSequence baseSeq = table.getRowSequence();
         return new WrapperRowSequence( baseSeq ) {
             @Override

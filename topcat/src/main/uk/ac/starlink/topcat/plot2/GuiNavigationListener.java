@@ -1,7 +1,6 @@
 package uk.ac.starlink.topcat.plot2;
 
 import java.awt.event.MouseEvent;
-import java.util.Iterator;
 import javax.swing.SwingUtilities;
 import uk.ac.starlink.ttools.plot2.NavigationListener;
 import uk.ac.starlink.ttools.plot2.Navigator;
@@ -67,43 +66,17 @@ public abstract class GuiNavigationListener<A> extends NavigationListener<A> {
         /* Get a cloud to iterate over for providing data positions. */
         final PointCloud cloud =
             new PointCloud( plotPanel_.getPlotLayers(), true );
-        final DataStore dataStore = plotPanel_.getDataStore();
 
         /* Work out how many positions there are in the cloud. */
-        long nr = 0;
+        long nrow = 0;
         DataSpec[] dataSpecs = cloud.getDataSpecs();
         for ( int i = 0; i < dataSpecs.length; i++ ) {
-            nr += ((GuiDataSpec) dataSpecs[ i ]).getRowCount();
+            nrow += ((GuiDataSpec) dataSpecs[ i ]).getRowCount();
         }
-        final long nrow = nr;
 
-        /* Return an iterable which iterates over those positions, updating
-         * a progresser as it goes.  It also checks for interruptions. */
-        return new Iterable<double[]>() {
-            public Iterator<double[]> iterator() {
-                final Iterator<double[]> baseIt =
-                    cloud.createDataPosIterator( dataStore );
-                final Progresser prog = plotPanel_.createProgresser( nrow );
-                return new Iterator<double[]>() {
-                    public double[] next() {
-                        prog.increment();
-                        return baseIt.next();
-                    }
-                    public boolean hasNext() {
-                        if ( Thread.interrupted() ) {
-                            Thread.currentThread().interrupt();
-                            prog.reset();
-                            return false;
-                        }
-                        else {
-                            return baseIt.hasNext();
-                        }
-                    }
-                    public void remove() {
-                        baseIt.remove();
-                    }
-                };
-            }
-        };
+        /* Return an iterable which can iterate over those positions,
+         * checking for interruptions and reporting progress as it goes. */
+        return cloud
+              .createDataPosIterable( plotPanel_.createGuiDataStore( nrow ) );
     }
 }
