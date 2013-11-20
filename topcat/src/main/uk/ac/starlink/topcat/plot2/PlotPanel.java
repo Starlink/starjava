@@ -117,6 +117,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
     private final List<ChangeListener> changeListenerList_;
     private final PaperTypeSelector ptSel_;
     private final BoundedRangeModel progModel_;
+    private final ToggleButtonModel showProgressModel_;
     private final ExecutorService plotExec_;
     private final ExecutorService noteExec_;
     private PlotJob<P,A> plotJob_;
@@ -163,14 +164,19 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      *                       are posted for slow plots
      * @param  ptSel   rendering policy
      * @param  progModel  progress bar model for showing plot progress
+     * @param  showProgressModel  model to decide whether data scan operations
+     *                            are reported to the progress bar model
      */
     public PlotPanel( DataStoreFactory storeFact, AxisControl<P,A> axisControl,
                       Factory<PlotLayer[]> layerFact, Factory<Icon> legendFact,
                       Factory<float[]> legendPosFact,
                       ShaderControl shaderControl,
                       ToggleButtonModel sketchModel, PaperTypeSelector ptSel,
-                      BoundedRangeModel progModel ) {
-        storeFact_ = storeFact;
+                      BoundedRangeModel progModel,
+                      ToggleButtonModel showProgressModel ) {
+        storeFact_ = progModel == null
+                   ? storeFact
+                   : new ProgressDataStoreFactory( storeFact, progModel );
         axisControl_ = axisControl;
         layerFact_ = layerFact;
         legendFact_ = legendFact;
@@ -179,6 +185,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         sketchModel_ = sketchModel;
         ptSel_ = ptSel;
         progModel_ = progModel;
+        showProgressModel_ = showProgressModel;
         changeListenerList_ = new ArrayList<ChangeListener>();
         plotExec_ = Executors.newSingleThreadExecutor();
         noteExec_ = Runtime.getRuntime().availableProcessors() > 1
@@ -329,7 +336,9 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      */
     public DataStore createGuiDataStore( long tupleCount,
                                          DataStore dataStore ) {
-        return new GuiDataStore( dataStore, progModel_, tupleCount );
+        return showProgressModel_.isSelected()
+             ? new GuiDataStore( dataStore, progModel_, tupleCount )
+             : new GuiDataStore( dataStore, null, -1 );
     }
 
     /**
@@ -779,11 +788,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                                           BoundedRangeModel progModel )
                 throws IOException, InterruptedException {
             if ( bounds_.width > 0 && bounds_.height > 0 ) {
-                DataStoreFactory storeFact =
-                      progModel == null
-                    ? storeFact_
-                    : new ProgressDataStoreFactory( storeFact_, progModel );
-                DataStore dataStore = getDataStore( storeFact );
+                DataStore dataStore = readDataStore();
                 long ntuple = progModel == null
                             ? -1
                             : countTuples( dataStore, rowStep );
@@ -833,11 +838,10 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
          * It may be possible to reuse one from last time (the cached
          * workings object), but if not, read a new one.
          *
-         * @param   storeFact  data store factory
          * @return  data store usable for this plot
          */
         @Slow
-        private DataStore getDataStore( DataStoreFactory storeFact )
+        private DataStore readDataStore()
                 throws IOException, InterruptedException {
 
             /* Assess what data specs we will need. */
@@ -855,7 +859,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             else {
                 long startData = System.currentTimeMillis();
                 DataStore dataStore =
-                    storeFact.readDataStore( dataSpecs, oldDataStore );
+                    storeFact_.readDataStore( dataSpecs, oldDataStore );
                 PlotUtil.logTime( logger_, "Data", startData );
                 return dataStore;
             }
@@ -1467,10 +1471,13 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             plotJob_ = null;
 
             /* Set up runnables to execute the full plot or a subsample plot. */
+            final BoundedRangeModel progModel =
+                showProgressModel_.isSelected() ? progModel_ : null;
+            final boolean showProgress = showProgressModel_.isSelected();
             Runnable fullJob = new Runnable() {
                 public void run() {
                     Workings<A> workings =
-                        plotJob.calculateWorkings( 1, progModel_ );
+                        plotJob.calculateWorkings( 1, progModel );
                     fullPlotMillis_ = workings.plotMillis_;
                     submitWorkings( workings );
                 }

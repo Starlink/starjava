@@ -89,6 +89,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     private final PlotPanel<P,A> plotPanel_;
     private final ControlStack stack_;
     private final ControlStackModel stackModel_;
+    private final ToggleButtonModel showProgressModel_;
     private final JLabel posLabel_;
     private final JLabel countLabel_;
     private final BlobPanel2 blobPanel_;
@@ -146,6 +147,11 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                                    "Draw intermediate frames from subsampled "
                                  + "data when navigating very large plots" );
         sketchModel.setSelected( true );
+        showProgressModel_ =
+            new ToggleButtonModel( "Show Plot Progress", ResourceIcon.PROGRESS,
+                                   "Report progress for slow plots in the "
+                                 + "progress bar at the bottom of the window" );
+        showProgressModel_.setSelected( false );
 
         /* Set up a plot panel with the objects it needs to gather plot
          * requirements from the GUI.  This does the actual plotting. */
@@ -153,7 +159,8 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             new PlotPanel<P,A>( storeFact, axisControl_, layerFact, legendFact,
                                 legendPosFact, shaderControl, sketchModel,
                                 plotType.getPaperTypeSelector(),
-                                placeProgressBar().getModel() );
+                                placeProgressBar().getModel(),
+                                showProgressModel_ );
 
         /* Ensure that the plot panel is messaged when a GUI action occurs
          * that might change the plot appearance.  Each of these controls
@@ -350,6 +357,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             getToolBar().add( axlockModel.createToolbarButton() );
         }
         getToolBar().add( sketchModel.createToolbarButton() );
+        getToolBar().add( showProgressModel_.createToolbarButton() );
         getToolBar().add( exportAction );
         getToolBar().addSeparator();
 
@@ -377,6 +385,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             plotMenu.add( axlockModel.createMenuItem() );
         }
         plotMenu.add( sketchModel.createMenuItem() );
+        plotMenu.add( showProgressModel_.createMenuItem() );
         getJMenuBar().add( plotMenu );
         JMenu exportMenu = new JMenu( "Export" );
         exportMenu.setMnemonic( KeyEvent.VK_E );
@@ -510,6 +519,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         final Surface surface = plotPanel_.getSurface();
         final PlotLayer[] layers = getPointCloudLayers();
         final DataStore baseDataStore = plotPanel_.getDataStore();
+        final boolean showProgress = showProgressModel_.isSelected();
         return new Factory<Map<TopcatModel,Long>>() {
 
             @Slow
@@ -517,10 +527,17 @@ public class StackPlotWindow<P,A> extends AuxWindow {
 
                 /* Prepare a data store which will watch for interruptions
                  * and log progress. */
-                long nrow = 0;
-                for ( int il = 0; il < layers.length; il++ ) {
-                    nrow += ((GuiDataSpec) layers[ il ].getDataSpec())
-                           .getRowCount();
+                final long nrow;
+                if ( showProgress ) {
+                    nrow = -1;
+                }
+                else {
+                    long nr = 0;
+                    for ( int il = 0; il < layers.length; il++ ) {
+                        nr += ((GuiDataSpec) layers[ il ].getDataSpec())
+                             .getRowCount();
+                    }
+                    nrow = nr;
                 }
                 DataStore dataStore =
                     plotPanel_.createGuiDataStore( nrow, baseDataStore );
