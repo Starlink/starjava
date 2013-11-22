@@ -37,9 +37,8 @@ public class TimePlotWindow
             return new TimeAxisControl( stack );
         }
         public PositionCoordPanel createPositionCoordPanel() {
-            return new SimplePositionCoordPanel( PLOT_TYPE
-                                                .getPointDataGeoms()[ 0 ],
-                                                 true );
+            return SimplePositionCoordPanel
+                  .createPanel( PLOT_TYPE.getPointDataGeoms()[ 0 ], true );
         }
     }
 }
