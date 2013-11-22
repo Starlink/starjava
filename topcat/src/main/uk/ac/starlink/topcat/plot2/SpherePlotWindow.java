@@ -36,9 +36,10 @@ public class SpherePlotWindow
                 createAxisControl( ControlStack stack ) {
             return new CubeAxisControl( true, stack );
         }
-        public PositionCoordPanel createPositionCoordPanel() {
+        public PositionCoordPanel createPositionCoordPanel( int npos ) {
             return SimplePositionCoordPanel
-                  .createPanel( PLOT_TYPE.getPointDataGeoms()[ 0 ], true );
+                  .createPanel( PLOT_TYPE.getPointDataGeoms()[ 0 ],
+                                npos, npos == 1 );
         }
     }
 }

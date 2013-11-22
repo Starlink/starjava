@@ -20,7 +20,8 @@ public interface PlotTypeGui<P,A> {
     /**
      * Returns a user panel for entering basic standard data positions.
      *
+     * @param   npos  number of groups of positional coordinates for entry
      * @return   new position entry panel for this plot type
      */
-    PositionCoordPanel createPositionCoordPanel();
+    PositionCoordPanel createPositionCoordPanel( int npos );
 }

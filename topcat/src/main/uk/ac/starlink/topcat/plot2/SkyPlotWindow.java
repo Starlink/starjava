@@ -65,8 +65,8 @@ public class SkyPlotWindow
             return axisControl_;
         }
 
-        public PositionCoordPanel createPositionCoordPanel() {
-            return new SkyPositionCoordPanel( true ) {
+        public PositionCoordPanel createPositionCoordPanel( int npos ) {
+            return new SkyPositionCoordPanel( npos, npos == 1 ) {
                 SkySys getViewSystem() {
                     return axisControl_.getViewSystem();
                 }
@@ -92,16 +92,17 @@ public class SkyPlotWindow
         /**
          * Constructor.
          *
+         * @param   npos  number of groups of positional coordinates for entry
          * @param   autoPopulate  true if it should be filled in with
          *          coordinates from an available table when possible
          */
-        SkyPositionCoordPanel( boolean autoPopulate ) {
+        SkyPositionCoordPanel( int npos, boolean autoPopulate ) {
             autoPopulate_ = autoPopulate;
 
             /* The basic functionality is just a sky panel for the sky
              * coordinates. */
             basePanel_ = new CoordPanel( SkyDataGeom.createGeom( null, null )
-                                        .getPosCoords(), false );
+                                        .getPosCoords(), npos, false );
 
             /* But add a data sky system selector. */
             ConfigSpecifier cspec =
