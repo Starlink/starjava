@@ -54,16 +54,19 @@ public class SimplePositionCoordPanel implements PositionCoordPanel {
 
     /**
      * Constructs a position coord panel based on a given DataGeom.
-     * Each positional coordinate from the DataGeom is represented once.
+     * A given number of groups of the positional coordinates defined
+     * by the DataGeom are shown.
      *
      * @param  geom   provides description of positional coordinates
-     * @param  autoPopulate  if true, some attempt will be made to
+     * @param  npos   number of positional groups to include
+     * @param  autoPopulate  if true, some attempt may be made to
      *                       fill in the fields with non-blank values
      *                       when a table is selected
      */
-    public static SimplePositionCoordPanel createPanel( DataGeom geom,
+    public static SimplePositionCoordPanel createPanel( DataGeom geom, int npos,
                                                         boolean autoPopulate ) {
-        CoordPanel cpanel = new CoordPanel( geom.getPosCoords(), autoPopulate );
+        CoordPanel cpanel =
+            new CoordPanel( geom.getPosCoords(), npos, autoPopulate );
         return new SimplePositionCoordPanel( cpanel, geom );
     }
 }

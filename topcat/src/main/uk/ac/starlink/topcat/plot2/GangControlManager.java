@@ -77,7 +77,7 @@ public class GangControlManager implements ControlManager {
                                           "Add a new table plot layer "
                                           + "control to the stack" ) {
             public void actionPerformed( ActionEvent evt ) {
-                stack_.addControl( createGangControl() );
+                stack_.addControl( createGangControl( 1 ) );
             }
         };
         stackActList.add( 0, gangAct );
@@ -90,7 +90,7 @@ public class GangControlManager implements ControlManager {
     }
 
     public Control createDefaultControl( TopcatModel tcModel ) {
-        GangLayerControl control = createGangControl();
+        GangLayerControl control = createGangControl( 1 );
         control.setTopcatModel( tcModel );
         return control;
     }
@@ -98,10 +98,12 @@ public class GangControlManager implements ControlManager {
     /**
      * Creates a new empty gang layer control.
      *
+     * @param   npos  number of groups of positional coordinates for entry
      * @return   gang control
      */
-    private GangLayerControl createGangControl() {
-        return new GangLayerControl( plotTypeGui_.createPositionCoordPanel(),
+    private GangLayerControl createGangControl( int npos ) {
+        return new GangLayerControl( plotTypeGui_
+                                    .createPositionCoordPanel( npos ),
                                      posPlotters_, baseConfigger_,
                                      nextSupplier_, tcListener_ );
     }
