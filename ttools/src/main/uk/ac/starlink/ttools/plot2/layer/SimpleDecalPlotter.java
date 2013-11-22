@@ -27,18 +27,19 @@ import uk.ac.starlink.ttools.plot2.paper.PaperType;
  * @since    15 Feb 2013
  */
 public abstract class SimpleDecalPlotter<S extends Style>
-                      extends TuplePlotter<S> {
+                      extends AbstractPlotter<S> {
 
     /**
      * Constructor.
      *
      * @param   name   plotter name
      * @param   icon   plotter icon
+     * @param   npos   number of positional coordinate sets
      * @param  extraCoords  any non-positional coordinates
      */
-    protected SimpleDecalPlotter( String name, Icon icon,
+    protected SimpleDecalPlotter( String name, Icon icon, int npos,
                                   Coord[] extraCoords ) {
-        super( name, icon, extraCoords );
+        super( name, icon, npos, extraCoords );
     }
 
     public PlotLayer createLayer( final DataGeom geom, final DataSpec dataSpec,

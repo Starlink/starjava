@@ -9,14 +9,21 @@ import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 
 /**
- * A Plotter can produce PlotLayers given data and apprpriate configuration.
+ * A Plotter can produce PlotLayers given data and appropriate configuration.
  * It can also report what data coordinates and style configuration
  * information are needed for the plot.  This self-describing nature
  * means that a plotting framework can largely build a user interface
  * automatically from a Plotter instance.
- * Finally it acts as part of an identifier for the type of plot being
- * performed, which is necessary for determining PlotLayer equality;
- * two PlotLayers are equivalent if they match in point of
+ *
+ * <p>The coordinates used for a plot layer are one set of positional
+ * coordinates
+ * (<code>DataGeom</code>.{@link DataGeom#getPosCoords})
+ * for each of the positions indicated by {@link #getPositionCount},
+ * followed by any listed by {@link #getExtraCoords}.
+ *
+ * <p>Finally a Plotter acts as part of an identifier for the type of
+ * plot being performed, which is necessary for determining PlotLayer
+ * equality; two PlotLayers are equivalent if they match in point of
  * DataSpec, Style and Plotter.
  *
  * @author   Mark Taylor
@@ -39,18 +46,25 @@ public interface Plotter<S extends Style> {
     Icon getPlotterIcon();
 
     /**
-     * Indicates whether this plotter uses position coordinates.
+     * Returns the number of data positions per tuple used by this plotter.
+     * For instance
+     * a scatter plot would use 1,
+     * a plot linking pairs of positions in the same table would use 2,
+     * and an analytic function would use 0.
+     * Each of these is turned into a data space position by use of the
+     * DataGeom presented at layer creation time.
      * 
-     * @return   true iff <code>createLayer</code> uses a <code>DataGeom</code>
+     * @return   number of positional coordinates
      */
-    boolean hasPosition();
+    int getPositionCount();
 
     /**
      * Returns any coordinates used by this plotter additional to the
-     * base positions (those returned by {@link DataGeom#getPosCoords}
-     * if <code>hasPosition</code> is true).
+     * positional ones.  In fact positional coordinates are permitted here,
+     * but if so they will not be treated in the generic way accorded to
+     * those accounted for by {@link #getPositionCount}.
      *
-     * @return  coordinates apart from base positions
+     * @return  non-positional coordinates
      */
     Coord[] getExtraCoords();
 
@@ -80,14 +94,15 @@ public interface Plotter<S extends Style> {
      * <p>The <code>style</code> parameter is the result of a call to
      * {@link #createStyle}.
      *
-     * <p>The <code>dataSpec</code> parameter must contain coordinate
-     * entries corresponding to the results of
-     * <code>dataGeom.getPosCoords</code> and
-     * {@link #getExtraCoords}.
+     * <p>The <code>dataSpec</code> parameter must contain the coordinates
+     * defined by this plotter.
+     * That is, <code>getPositionCount</code>} groups
+     * of the coordinates given by <code>dataGeom.getPosCoords</code>,
+     * followed by the coordinates given by <code>getExtraCoords</code>.
      *
      * <p>The <code>pointDataGeom</code>
-     * parameter is only used if {@link #hasPosition} returns true,
-     * otherwise the plot does not have point positions.
+     * parameter is only used if {@link #getPositionCount} returns a
+     * non-zero value, otherwise the plot does not have point positions.
      *
      * <p>It is legal to supply null for any of the parameters;
      * if insufficient data is supplied to generate a plot, then

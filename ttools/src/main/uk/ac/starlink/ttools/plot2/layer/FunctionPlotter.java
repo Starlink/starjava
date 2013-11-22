@@ -52,7 +52,8 @@ import uk.ac.starlink.ttools.plot2.paper.PaperType;
  * @author   Mark Taylor
  * @since    15 Feb 2013
  */
-public class FunctionPlotter implements Plotter<FunctionPlotter.FunctionStyle> {
+public class FunctionPlotter extends
+        AbstractPlotter<FunctionPlotter.FunctionStyle> {
 
     private final FuncAxis[] axes_;
     private static final Pattern TOKEN_REGEXP =
@@ -76,7 +77,8 @@ public class FunctionPlotter implements Plotter<FunctionPlotter.FunctionStyle> {
      *
      * @param  axes  options for function variable definitions
      */
-    protected FunctionPlotter( FuncAxis[] axes ) {
+    public FunctionPlotter( FuncAxis[] axes ) {
+        super( "Function", ResourceIcon.PLOT_FUNCTION, 0, new Coord[ 0 ] );
         axes_ = axes;
         axisKey_ = new OptionConfigKey<FuncAxis>(
                        new ConfigMeta( "axis", "Independent Axis" ),
@@ -85,22 +87,6 @@ public class FunctionPlotter implements Plotter<FunctionPlotter.FunctionStyle> {
                 return axis.getAxisName();
             }
         };
-    }
-
-    public String getPlotterName() {
-        return "Function";
-    }
-
-    public Icon getPlotterIcon() {
-        return ResourceIcon.PLOT_FUNCTION;
-    }
-
-    public boolean hasPosition() {
-        return false;
-    }
-
-    public Coord[] getExtraCoords() {
-        return new Coord[ 0 ];
     }
 
     public ConfigKey[] getStyleKeys() {

@@ -716,13 +716,9 @@ public class Plot2Task implements Task {
             throws TaskException {
 
         /* Get basic and additional coordinate specifications. */
-        List<Coord> coordList = new ArrayList<Coord>();
-        if ( plotter.hasPosition() ) {
-            coordList.addAll( Arrays.asList( geom.getPosCoords() ) );
-        }
-        coordList.addAll( Arrays.asList( plotter.getExtraCoords() ) );
         DataSpec dataSpec =
-            createDataSpec( env, suffix, coordList.toArray( new Coord[ 0 ] ) );
+            createDataSpec( env, suffix, geom, plotter.getPositionCount(),
+                            plotter.getExtraCoords() );
 
         /* Work out the requested Style. */
         ConfigMap config =
@@ -740,28 +736,54 @@ public class Plot2Task implements Task {
      *
      * @param  env  execution environment
      * @param  suffix   parameter suffix of interest
-     * @param  coords  coordinates for which values are required
+     * @param  geom  defines positional coordinate groups
+     * @param  npos  number of positional coordinate groups
+     * @param  extraCoords   non-positional coordinates
      * @return   data spec from environment
      */
     private DataSpec createDataSpec( Environment env, String suffix,
-                                     Coord[] coords )
+                                     DataGeom geom, int npos,
+                                     Coord[] extraCoords )
             throws TaskException {
-        if ( coords.length == 0 ) {
+        if ( npos == 0 && extraCoords.length == 0 ) {
             return null;
         }
         StarTable table = getInputTable( env, suffix );
-        String[][] exprs = new String[ coords.length ][];
-        for ( int ic = 0; ic < coords.length; ic++ ) {
-            Coord coord = coords[ ic ];
-            ValueInfo[] infos = coord.getUserInfos();
-            exprs[ ic ] = new String[ infos.length ];
-            for ( int iuc = 0; iuc < infos.length; iuc++ ) {
-                Parameter param = createDataParameter( infos[ iuc ], suffix );
-                param.setNullPermitted( ! coord.isRequired() );
-                exprs[ ic ][ iuc ] = param.stringValue( env );
+        List<CoordValue> cvlist = new ArrayList<CoordValue>();
+        for ( int ipos = 0; ipos < npos; ipos++ ) {
+            Coord[] posCoords = geom.getPosCoords();
+            String posSuffix = npos > 1 ? Integer.toString( ipos + 1 ) : "";
+            for ( int ic = 0; ic < posCoords.length; ic++ ) {
+                cvlist.add( getCoordValue( env, posCoords[ ic ],
+                                           posSuffix + suffix ) );
             }
         }
-        return new JELDataSpec( table, null, coords, exprs );
+        for ( int ic = 0; ic < extraCoords.length; ic++ ) {
+            cvlist.add( getCoordValue( env, extraCoords[ ic ], suffix ) );
+        }
+        CoordValue[] coordVals = cvlist.toArray( new CoordValue[ 0 ] );
+        return new JELDataSpec( table, null, coordVals );
+    }
+
+    /**
+     * Turns a coord into a CoordValue.
+     *
+     * @param   env  execution environment
+     * @param   coord  coordinate definition
+     * @param   suffix  suffix to append to parameter name
+     * @return   coordinate with expression values acquired from environment
+     */
+    private CoordValue getCoordValue( Environment env, Coord coord,
+                                      String suffix ) throws TaskException {
+        ValueInfo[] infos = coord.getUserInfos();
+        int nuc = infos.length;
+        String[] exprs = new String[ nuc ];
+        for ( int iuc = 0; iuc < nuc; iuc++ ) {
+            Parameter param = createDataParameter( infos[ iuc ], suffix );
+            param.setNullPermitted( ! coord.isRequired() );
+            exprs[ iuc ] = param.stringValue( env );
+        }
+        return new CoordValue( coord, exprs );
     }
 
     /**

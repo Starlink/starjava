@@ -34,7 +34,7 @@ import uk.ac.starlink.ttools.plot2.paper.PaperType;
  * @author   Mark Taylor
  * @since    17 Feb 2013
  */
-public class ContourPlotter extends TuplePlotter<ContourStyle> {
+public class ContourPlotter extends AbstractPlotter<ContourStyle> {
 
     private static final ConfigKey<Integer> NLEVEL_KEY =
         new IntegerConfigKey( new ConfigMeta( "nlevel", "Level Count" ),
@@ -52,7 +52,7 @@ public class ContourPlotter extends TuplePlotter<ContourStyle> {
      * Constructor.
      */
     public ContourPlotter() {
-        super( "Contour", ResourceIcon.PLOT_CONTOUR, new Coord[ 0 ] );
+        super( "Contour", ResourceIcon.PLOT_CONTOUR, 1, new Coord[ 0 ] );
     }
 
     public ConfigKey[] getStyleKeys() {
