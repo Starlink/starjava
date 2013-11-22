@@ -43,7 +43,7 @@ public class SpectrogramLayerControl extends ConfigControl
     public SpectrogramLayerControl( SpectrogramPlotter plotter ) {
         super( null, plotter.getPlotterIcon() );
         plotter_ = plotter;
-        assert ! plotter.hasPosition();
+        assert plotter.getPositionCount() == 0;
 
         /* Create data selection components. */
         tableSelector_ = new TablesListComboBox();

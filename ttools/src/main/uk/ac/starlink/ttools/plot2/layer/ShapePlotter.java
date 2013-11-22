@@ -27,7 +27,7 @@ import uk.ac.starlink.ttools.plot2.data.DataSpec;
  * @author   Mark Taylor
  * @since    18 Feb 2013
  */
-public class ShapePlotter extends TuplePlotter<ShapeStyle> {
+public class ShapePlotter extends AbstractPlotter<ShapeStyle> {
 
     private final ShapeForm form_;
     private final ShapeMode mode_;
@@ -40,7 +40,7 @@ public class ShapePlotter extends TuplePlotter<ShapeStyle> {
      * @param   mode  colour determiner
      */
     public ShapePlotter( String name, ShapeForm form, ShapeMode mode ) {
-        super( name, form.getFormIcon(),
+        super( name, form.getFormIcon(), 1,
                PlotUtil.arrayConcat( form.getExtraCoords(),
                                      mode.getExtraCoords() ) );
         form_ = form;

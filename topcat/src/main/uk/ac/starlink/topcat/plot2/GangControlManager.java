@@ -57,7 +57,7 @@ public class GangControlManager implements ControlManager {
         Plotter[] plotters = plotType_.getPlotters();
         for ( int i = 0; i < plotters.length; i++ ) {
             Plotter plotter = plotters[ i ];
-            if ( plotter.hasPosition() ) {
+            if ( plotter.getPositionCount() == 1 ) {
                 posPlotterList.add( plotter );
             }
             else {

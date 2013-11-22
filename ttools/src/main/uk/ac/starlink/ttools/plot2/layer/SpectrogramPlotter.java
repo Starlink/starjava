@@ -124,8 +124,8 @@ public class SpectrogramPlotter
     /**
      * Returns false, since rows do not correspond to a point-like position.
      */
-    public boolean hasPosition() {
-        return false;
+    public int getPositionCount() {
+        return 0;
     }
 
     public Coord[] getExtraCoords() {

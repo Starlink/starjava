@@ -45,13 +45,13 @@ import uk.ac.starlink.ttools.plot2.paper.PaperType3D;
  * @author   Mark Taylor
  * @since    17 Feb 2013
  */
-public class SpotPlotter extends TuplePlotter<SpotPlotter.SpotStyle> {
+public class SpotPlotter extends AbstractPlotter<SpotPlotter.SpotStyle> {
 
     /**
      * Constructor.
      */
     public SpotPlotter() {
-        super( "Spot", createSpotIcon( Color.RED ), new Coord[ 0 ] );
+        super( "Spot", createSpotIcon( Color.RED ), 1, new Coord[ 0 ] );
     }
 
     public ConfigKey[] getStyleKeys() {

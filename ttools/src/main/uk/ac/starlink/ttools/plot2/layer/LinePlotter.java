@@ -32,7 +32,7 @@ public class LinePlotter extends SimpleDecalPlotter<LineStyle> {
      * Constructor.
      */
     public LinePlotter() {
-        super( "Line", ResourceIcon.PLOT_LINE, new Coord[ 0 ] );
+        super( "Line", ResourceIcon.PLOT_LINE, 1, new Coord[ 0 ] );
     }
 
     public ConfigKey[] getStyleKeys() {

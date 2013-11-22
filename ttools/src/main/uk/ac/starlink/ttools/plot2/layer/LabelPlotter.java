@@ -39,7 +39,7 @@ import uk.ac.starlink.ttools.plot2.paper.PaperType3D;
  * @author   Mark Taylor
  * @since    15 Feb 2013
  */
-public class LabelPlotter extends TuplePlotter<LabelStyle> {
+public class LabelPlotter extends AbstractPlotter<LabelStyle> {
 
     private static final StringCoord LABEL_COORD =
         new StringCoord( "Text",
@@ -51,7 +51,8 @@ public class LabelPlotter extends TuplePlotter<LabelStyle> {
      * Constructor.
      */
     public LabelPlotter() {
-        super( "Label", ResourceIcon.PLOT_LABEL, new Coord[] { LABEL_COORD } );
+        super( "Label", ResourceIcon.PLOT_LABEL, 1,
+               new Coord[] { LABEL_COORD } );
     }
 
     public ConfigKey[] getStyleKeys() {

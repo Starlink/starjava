@@ -32,8 +32,7 @@ public class JELDataSpec extends AbstractDataSpec {
 
     private final StarTable table_;
     private final String maskExpr_;
-    private final Coord[] coords_;
-    private final String[][] userCoordExprs_;
+    private final CoordValue[] coordValues_;
     private final ValueInfo[][] userCoordInfos_;
     private final JELKey maskId_;
     private final JELKey[] coordIds_;
@@ -48,39 +47,33 @@ public class JELDataSpec extends AbstractDataSpec {
      * @param  table   table containing data
      * @param  maskExpr   JEL boolean expression giving mask inclusion;
      *                    null may be used to indicate unconditional inclusion
-     * @param  coords  coordinate definitions for which columns are required
-     * @param  userCoordExprs   nCoord-element array, each element an array of
-     *                          JEL expressions corresponding to the user
-     *                          values for the cooresponding Coord
+     * @param  coordValues  coordinate definitions for which columns
+     *                      are required, along with the JEL expressions
+     *                      for their values
      */
     public JELDataSpec( StarTable table, String maskExpr,
-                        Coord[] coords, String[][] userCoordExprs )
+                        CoordValue[] coordValues )
             throws TaskException {
-        int nCoord = coords.length;
-        if ( userCoordExprs.length != nCoord ) {
-            throw new IllegalArgumentException( "coord count mismatch" );
-        }
         table_ = table;
         maskExpr_ = maskExpr;
-        coords_ = coords;
-        userCoordExprs_ = userCoordExprs;
+        coordValues_ = coordValues;
+        int nCoord = coordValues.length;
         maskId_ = maskExpr == null || "true".equals( maskExpr.trim() )
                 ? ALL_MASK
                 : new JELKey( new String[] { maskExpr } );
         coordIds_ = new JELKey[ nCoord ];
         for ( int ic = 0; ic < nCoord; ic++ ) {
-            coordIds_[ ic ] = new JELKey( userCoordExprs[ ic ] );
+            coordIds_[ ic ] = new JELKey( coordValues[ ic ].getExpressions() );
         }
 
         /* Dry run of creating a data reader.  This checks that the JEL
          * expressions can be compiled, and throws a TaskException if not. */
         JELUserDataReader dataRdr = createJELUserDataReader();
 
-        /* For simple (one-element) coordinates, extract and store their
-         * column metadata from the data reader. */
+        /* Extract and store column metadata from the data reader. */
         userCoordInfos_ = new ValueInfo[ nCoord ][];
         for ( int ic = 0; ic < nCoord; ic++ ) {
-            int nu = userCoordExprs[ ic ].length;
+            int nu = coordValues[ ic ].getExpressions().length;
             userCoordInfos_[ ic ] = new ValueInfo[ nu ];
             for ( int iu = 0; iu < nu; iu++ ) {
                 userCoordInfos_[ ic ][ iu ] =
@@ -94,7 +87,7 @@ public class JELDataSpec extends AbstractDataSpec {
     }
 
     public int getCoordCount() {
-        return coords_.length;
+        return coordValues_.length;
     }
 
     public Object getCoordId( int ic ) {
@@ -102,7 +95,7 @@ public class JELDataSpec extends AbstractDataSpec {
     }
 
     public Coord getCoord( int ic ) {
-        return coords_[ ic ];
+        return coordValues_[ ic ].getCoord();
     }
 
     public Object getMaskId() {
@@ -131,8 +124,7 @@ public class JELDataSpec extends AbstractDataSpec {
      * @throws TaskException if JEL compilation fails
      */
     private JELUserDataReader createJELUserDataReader() throws TaskException {
-        return new JELUserDataReader( table_, maskExpr_, userCoordExprs_,
-                                      coords_ );
+        return new JELUserDataReader( table_, maskExpr_, coordValues_ );
     }
 
     /**
@@ -148,15 +140,12 @@ public class JELDataSpec extends AbstractDataSpec {
          *
          * @param  table   table containing data
          * @param  maskExpr   JEL boolean expression giving mask inclusion
-         * @param  userCoordExprs   nCoord-element array, each element an array
-         *                          of JEL expressions corresponding to
-         *                          the user values for the cooresponding Coord
-         * @param  coords    nCoord-element array of coordinate definitions
+         * @param  coordValues   coordinate definitions with expressions
          * @throws  TaskException   with an informative message
          *                          if compilation fails
          */
         JELUserDataReader( StarTable table, String maskExpr,
-                           String[][] userCoordExprs, Coord[] coords )
+                           CoordValue[] coordValues )
                 throws TaskException {
 
             /* Set up for JEL compilation against our table. */
@@ -168,12 +157,13 @@ public class JELDataSpec extends AbstractDataSpec {
                                              Boolean.TRUE, boolean.class );
 
             /* Compile coord expressions. */
-            int nCoord = userCoordExprs.length;
+            int nCoord = coordValues.length;
             userCoordRows_ = new Object[ nCoord ][];
             userCoordReaders_ = new ValueReader[ nCoord ][];
             for ( int ic = 0; ic < nCoord; ic++ ) {
-                ValueInfo[] reqInfos = coords[ ic ].getUserInfos();
-                String[] ucexprs = userCoordExprs[ ic ];
+                CoordValue coordVal = coordValues[ ic ];
+                ValueInfo[] reqInfos = coordVal.getCoord().getUserInfos();
+                String[] ucexprs = coordVal.getExpressions();
                 int nu = ucexprs.length;
                 userCoordRows_[ ic ] = new Object[ nu ];
                 ValueReader[] vrdrs = new ValueReader[ nu ];
