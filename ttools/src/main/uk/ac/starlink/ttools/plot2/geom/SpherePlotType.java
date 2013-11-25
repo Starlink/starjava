@@ -10,6 +10,7 @@ import uk.ac.starlink.ttools.plot2.SurfaceFactory;
 import uk.ac.starlink.ttools.plot2.layer.ContourPlotter;
 import uk.ac.starlink.ttools.plot2.layer.LabelPlotter;
 import uk.ac.starlink.ttools.plot2.layer.MarkForm;
+import uk.ac.starlink.ttools.plot2.layer.PairPlotter;
 import uk.ac.starlink.ttools.plot2.layer.SizeForm;
 import uk.ac.starlink.ttools.plot2.layer.ShapeForm;
 import uk.ac.starlink.ttools.plot2.layer.ShapeMode;
@@ -60,6 +61,7 @@ public class SpherePlotType implements PlotType {
             new LabelPlotter(),
             new ContourPlotter(),
         } ) );
+        list.add( new PairPlotter() );
         return list.toArray( new Plotter[ 0 ] );
     }
 
