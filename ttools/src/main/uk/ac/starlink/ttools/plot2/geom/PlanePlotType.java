@@ -13,12 +13,12 @@ import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
 import uk.ac.starlink.ttools.plot2.layer.CartesianErrorCoordSet;
 import uk.ac.starlink.ttools.plot2.layer.CartesianVectorCoordSet;
 import uk.ac.starlink.ttools.plot2.layer.ContourPlotter;
-import uk.ac.starlink.ttools.plot2.layer.EdgeForm;
 import uk.ac.starlink.ttools.plot2.layer.FunctionPlotter;
 import uk.ac.starlink.ttools.plot2.layer.LinePlotter;
 import uk.ac.starlink.ttools.plot2.layer.LabelPlotter;
 import uk.ac.starlink.ttools.plot2.layer.MarkForm;
 import uk.ac.starlink.ttools.plot2.layer.MultiPointForm;
+import uk.ac.starlink.ttools.plot2.layer.PairPlotter;
 import uk.ac.starlink.ttools.plot2.layer.PlaneEllipseCoordSet;
 import uk.ac.starlink.ttools.plot2.layer.SizeForm;
 import uk.ac.starlink.ttools.plot2.layer.ShapeForm;
@@ -72,8 +72,6 @@ public class PlanePlotType implements PlotType {
                              StyleKeys.ERROR_SHAPE_2D ),
             MultiPointForm
            .createEllipseForm( new PlaneEllipseCoordSet(), true ),
-            new EdgeForm( 1, dataGeoms_[ 0 ] ),
-            new EdgeForm( 2, dataGeoms_[ 0 ] ),
         };
         Plotter[] shapePlotters =
             ShapePlotter.createShapePlotters( forms, ShapeMode.MODES_2D );
@@ -82,6 +80,7 @@ public class PlanePlotType implements PlotType {
             new LinePlotter(),
             new LabelPlotter(),
             new ContourPlotter(),
+            new PairPlotter(),
             FunctionPlotter.PLANE,
         } ) );
         return list.toArray( new Plotter[ 0 ] );
