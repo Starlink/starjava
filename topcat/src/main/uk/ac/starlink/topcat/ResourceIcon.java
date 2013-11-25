@@ -232,6 +232,7 @@ public class ResourceIcon implements Icon {
         UP_DOWN = makeIcon( "updown8.gif" ),
         FLOAT = makeIcon( "float1.gif" ),
         PLOT_DATA = makeIcon( "dataplot.gif" ),
+        PLOT_PAIR = makeIcon( "pairplot.gif" ),
         PLOT2_PLANE = makeIcon( "plot2plane.gif" ),
         PLOT2_SKY = makeIcon( "plot2sky.gif" ),
         PLOT2_CUBE = makeIcon( "plot2cube.gif" ),

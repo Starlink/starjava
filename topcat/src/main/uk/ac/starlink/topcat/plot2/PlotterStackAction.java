@@ -53,7 +53,8 @@ public abstract class PlotterStackAction extends BasicAction {
      * @param  stack    stack to which controls are to be added
      * @return  new action to add plotter control to stack, or null
      */
-    public static Action createAction( Plotter plotter, ControlStack stack ) {
+    public static Action createAction( final Plotter plotter,
+                                       ControlStack stack ) {
         if ( plotter instanceof FunctionPlotter ) {
             final FunctionPlotter fPlotter = (FunctionPlotter) plotter;
             return new PlotterStackAction( plotter, stack ) {
@@ -67,6 +68,23 @@ public abstract class PlotterStackAction extends BasicAction {
             return new PlotterStackAction( plotter, stack ) {
                 protected LayerControl createLayerControl() {
                     return new SpectrogramLayerControl( sPlotter );
+                }
+            };
+        }
+
+        /* Not great - no options for miscellaneous plotters with both
+         * positional and non-positional coordinates.  There's no reason
+         * it can't be done, but the (probably unnecessarily messy)
+         * way that CoordPanel and PositionCoordPanel are currently
+         * defined makes it fiddly to do. */
+        else if ( plotter.getPositionCount() == 0 ) {
+            return new PlotterStackAction( plotter, stack ) {
+                protected LayerControl createLayerControl() {
+                    PositionCoordPanel coordPanel =
+                        new SimplePositionCoordPanel(
+                            new CoordPanel( plotter.getExtraCoords(), false ),
+                            null );
+                    return new BasicCoordLayerControl( plotter, coordPanel );
                 }
             };
         }

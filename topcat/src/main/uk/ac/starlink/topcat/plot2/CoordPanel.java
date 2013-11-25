@@ -93,7 +93,8 @@ public class CoordPanel extends JPanel {
      *
      * @param  coords  template coordinates
      * @param  ncopy   number of copies of group
-     * @param  whether to attempt to fill in values when table changes
+     * @param  autoPopulate  whether to attempt to fill in values
+     *                       when table changes
      */
     public CoordPanel( Coord[] coords, int ncopy, boolean autoPopulate ) {
         this( multiplyCoords( coords, ncopy ), autoPopulate );

@@ -15,6 +15,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.Box;
 import javax.swing.DefaultListModel;
+import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -81,12 +82,13 @@ public class GangLayerControl extends TabberControl implements LayerControl {
      * @param  tcListener  listener for TopcatEvents; this manager will arrange
      *                     for it to listen to whatever is the currently
      *                     selected TopcatModel
+     * @param  controlIcon  icon for control stack
      */
     public GangLayerControl( PositionCoordPanel posCoordPanel,
                              Plotter[] plotters, Configger baseConfigger,
                              NextSupplier nextSupplier,
-                             TopcatListener tcListener ) {
-        super( null, ResourceIcon.PLOT_DATA );
+                             TopcatListener tcListener, Icon controlIcon ) {
+        super( null, controlIcon );
         posCoordPanel_ = posCoordPanel;
         baseConfigger_ = baseConfigger;
         subsetKeys_ = nextSupplier.getKeys();
