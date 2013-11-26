@@ -518,7 +518,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         ProxySetup.getInstance().restore();
     }
 
-    
     /* The Query text that will be displayed */
     /**
      * @uml.property  name="queryLine"
@@ -2998,13 +2997,12 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                 getDataFrame.setVisible(false);
                 //getDataButton.set.setEnabled(false);
                 deactivateGetDataSupport();
-                
-                // activateAll !!!!!!!
+            
             } else {
                 getDataFrame.setVisible(true);
                // getDataButton.setEnabled(true);
                 activateGetDataSupport();
-                //deactivatenotSupportedServices!!!!!!!!!
+               
             }
             return;
         }
