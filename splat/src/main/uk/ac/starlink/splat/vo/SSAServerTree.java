@@ -239,7 +239,8 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
     {
     
       // this.setPreferredSize(new Dimension(this.WIDTH,this.HEIGHT));
-       this.setMinimumSize(new Dimension(this.WIDTH-300,this.HEIGHT-300));
+       this.setMinimumSize(new Dimension(this.WIDTH-450,this.HEIGHT-300));
+       this.setPreferredSize(new Dimension(this.WIDTH-285,this.HEIGHT-300));
       // setLayout( new BorderLayout() );
        
        optionTabs = new JTabbedPane();
@@ -1780,6 +1781,8 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
                             src_cust.setSelected(false);
                             src_art.setSelected(false);
                             src_all.setSelected(false);
+                            src_inv.setSelected(false);
+                            src_obs.setSelected(true);
                             treeRenderer.setAllObsSources(true);                           
                         }
                         else if (src.equals("Theoretical data")) {
@@ -1789,6 +1792,8 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
                             src_cust.setSelected(false);
                             src_art.setSelected(false);
                             src_all.setSelected(false);
+                            src_inv.setSelected(false);
+                            src_theo.setSelected(true);
                             treeRenderer.setAllSources(false);
                             treeRenderer.setAllTheoSources(true);
                         }
