@@ -331,7 +331,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         ProxySetup.getInstance().restore();
     }
 
-    
     /* The Query text that will be displayed */
     private SSAQuery queryLine;
     
@@ -412,7 +411,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
    
         initServerComponents();
     //    tabPane.addTab("Server selection", leftPanel);
-       
+      
         centrePanel = new JPanel( new GridBagLayout() );
         centrePanel.setMinimumSize(new Dimension(400,200));
         gbcentre=new GridBagConstraints();
@@ -427,6 +426,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
          gbcentre.weighty=1;
          gbcentre.fill=GridBagConstraints.BOTH;
          initResultsComponent();
+         
          setDefaultNameServers();
       //   tabPane.addTab("Query", centrePanel);
          
@@ -905,10 +905,11 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         queryPanel.add( sendQueryPanel, c);
        
         centrePanel.add( queryPanel, gbcentre );
-        
+       
         
         // add query text to query text area
         updateQueryText();
+        
     }
 
     /**
@@ -916,7 +917,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
      * JTable for each set of results (the tables are realized later) and
      * a button to display the selected spectra.
      */
-    private void initResultsComponent()
+    private  void initResultsComponent()
     {
         JPanel resultsPanel = new JPanel( );
         resultsPanel.setLayout(new GridBagLayout());
@@ -933,6 +934,13 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         resultsPane = new JTabbedPane();
 //        resultsPane.setPreferredSize(new (600,310));
         resultsPanel.add( resultsPane , gbc);
+        resultsPane.addChangeListener(new ChangeListener() {
+            public void stateChanged(ChangeEvent e) {
+                if (getDataFrame != null && getDataEnabled) {
+                    getDataFrame.setService(resultsPane.getTitleAt(resultsPane.getSelectedIndex()));
+                }
+            }
+        });
         
      
         JPanel controlPanel = new JPanel(new GridBagLayout());
@@ -1016,6 +1024,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         gbc.fill=GridBagConstraints.HORIZONTAL;
         resultsPanel.add( controlPanel, gbc );
         centrePanel.add( resultsPanel, gbcentre );
+     
     }
 
     /**
@@ -1437,6 +1446,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
            
             starTable = DalResourceXMLFilter.getDalResultTable( voe );
             getDataTable = DalResourceXMLFilter.getDalGetDataTable( voe );
+            
             if (getDataTable != null) {
                 ssaQuery.setGetDataTable( getDataTable);
 
@@ -1594,10 +1604,13 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                 if (getDataTable != null) {
 		  
                     if ( getDataFrame == null ) {
+                       //  getDataFrame=null;
                          getDataFrame = new GetDataQueryFrame();
                         // getDataFrame.setBandParams(lowerBandField.getText(), upperBandField.getText());
-                    }
-                    getDataFrame.addService(shortName, getDataTable);
+                        
+                    } 
+                  
+                    getDataFrame.addService(shortName, getDataTable);                    
                     getDataButton.setEnabled(true);
                     getDataButton.setVisible(true);
                     getDataButton.setForeground(Color.GRAY);
@@ -2332,6 +2345,8 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
 
         if ( source.equals( goButton ) ) {
             {
+                deactivateGetDataSupport();
+                getDataButton.setVisible(false);
                 doQuery();
                
             }        
@@ -2580,13 +2595,12 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                 getDataFrame.setVisible(false);
                 //getDataButton.set.setEnabled(false);
                 deactivateGetDataSupport();
-                
-                // activateAll !!!!!!!
+            
             } else {
                 getDataFrame.setVisible(true);
                // getDataButton.setEnabled(true);
                 activateGetDataSupport();
-                //deactivatenotSupportedServices!!!!!!!!!
+               
             }
             return;
         }
@@ -2601,15 +2615,30 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
     private void activateGetDataSupport() {
         
         getDataEnabled=true;
+        int selected=-1;
+        int anyGDIndex = -1;
         getDataButton.setForeground(Color.BLACK);
         int nrTabs = resultsPane.getTabCount();
         for(int i = 0; i < nrTabs; i++)
         {
-           if (resultsPane.getIconAt(i) == null) 
+           if (resultsPane.getIconAt(i) == null) {
                resultsPane.setEnabledAt(i, false);
-           else 
-               resultsPane.setSelectedIndex(i);
+           }
+           else {
+               if (resultsPane.getSelectedIndex() == i)
+                   selected = i;
+               anyGDIndex = i;
+              // resultsPane.setSelectedIndex(i);
+           }
         }
+        
+        // if current selection is a getData service, keep it. If not,
+        // set selection to one getData service.
+        if (selected < 0)
+            selected=anyGDIndex;
+        resultsPane.setSelectedIndex(selected);
+        getDataFrame.setService(resultsPane.getTitleAt(selected));
+            
     }
     /**
      * DeactivateGetDataSupport
