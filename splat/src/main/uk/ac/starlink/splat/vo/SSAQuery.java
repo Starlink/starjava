@@ -379,6 +379,10 @@ public class SSAQuery
         this.baseURL = rci[0].getAccessUrl();  //  Fudge one capability per   interface. 
         this.description = server.getShortName();
     }
+    
+    public String getShortName() {
+        return this.description;
+    }
         
  
 }
