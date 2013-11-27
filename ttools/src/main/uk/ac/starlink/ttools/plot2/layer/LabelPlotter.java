@@ -10,13 +10,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
-import uk.ac.starlink.ttools.plot.Pixellator;
 import uk.ac.starlink.ttools.plot.Range;
+import uk.ac.starlink.ttools.plot2.Anchor;
 import uk.ac.starlink.ttools.plot2.AuxScale;
+import uk.ac.starlink.ttools.plot2.Captioner;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Drawing;
 import uk.ac.starlink.ttools.plot2.Glyph;
 import uk.ac.starlink.ttools.plot2.LayerOpt;
+import uk.ac.starlink.ttools.plot2.Pixer;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
@@ -380,12 +382,24 @@ public class LabelPlotter extends AbstractPlotter<LabelStyle> {
             style_.drawLabel( g, label_ );
         }
 
-        public Pixellator getPixelOffsets( Rectangle clip ) {
+        public Pixer createPixer( Rectangle clip ) {
+            Anchor anchor = style_.getAnchor();
+            Captioner captioner = style_.getCaptioner();
+            Rectangle labelBox =
+                anchor.getCaptionBounds( label_, 0, 0, captioner );
+            Rectangle drawBox = labelBox.intersection( clip );
+            if ( drawBox.isEmpty() ) {
+                return null;
+            }
+            GreyImage bitmap =
+                GreyImage.createGreyImage( drawBox.width, drawBox.height );
 
-            /* Could be more efficient in the case of large labels
-             * by passing the clip to the style instead. */
-            return ClipPixellator.clip( style_.getPixelOffsets( label_ ),
-                                        clip );
+            /* We don't do anything clever with antialiased text. */
+            Graphics g = bitmap.getImage().createGraphics();
+            anchor.drawCaption( label_, -labelBox.x, -labelBox.y,
+                                captioner, g );
+            return Pixers.translate( bitmap.createPixer(),
+                                     drawBox.x, drawBox.y );
         }
     }
 }

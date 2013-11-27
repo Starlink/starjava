@@ -7,7 +7,6 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import javax.swing.Icon;
 import java.util.Map;
-import uk.ac.starlink.ttools.plot.Pixellator;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot.Style;
 import uk.ac.starlink.ttools.plot2.AuxScale;
@@ -15,6 +14,7 @@ import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Drawing;
 import uk.ac.starlink.ttools.plot2.Glyph;
 import uk.ac.starlink.ttools.plot2.LayerOpt;
+import uk.ac.starlink.ttools.plot2.Pixer;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
@@ -198,16 +198,23 @@ public class SpotPlotter extends AbstractPlotter<SpotPlotter.SpotStyle> {
      * @return  new spot glyph
      */
     private static Glyph createSpotGlyph() {
-        final uk.ac.starlink.ttools.plot.Drawing drawing =
-            new uk.ac.starlink.ttools.plot.Drawing( new Rectangle( -2, -2,
-                                                                    4, 4 ) );
-        drawing.fillRect( -2, -2, 4, 4 );
+        final int np = 9;
+        final int[] xs = new int[ np ];
+        final int[] ys = new int[ np ];
+        int ip = 0;
+        for ( int ix = -1; ix < 2; ix++ ) {
+            for ( int iy = -1; iy < 2; iy++ ) {
+                xs[ ip ] = ix;
+                ys[ ip ] = iy;
+                ip++;
+            }
+        }
         return new Glyph() {
             public void paintGlyph( Graphics g ) {
-                g.fillRect( -2, -2, 4, 4 );
+                g.fillRect( -1, -1, 3, 3 );
             }
-            public Pixellator getPixelOffsets( Rectangle clip ) {
-                return ClipPixellator.clip( drawing, clip );
+            public Pixer createPixer( Rectangle clip ) {
+                return Pixers.createArrayPixer( xs, ys, np );
             }
         };
     }

@@ -3,7 +3,7 @@ package uk.ac.starlink.ttools.plot2.paper;
 import java.awt.Color;
 import java.awt.Rectangle;
 import java.util.Arrays;
-import uk.ac.starlink.ttools.plot.Pixellator;
+import uk.ac.starlink.ttools.plot2.Pixer;
 
 /**
  * Bitmapped 3D PaperType for opaque pixels only.
@@ -52,14 +52,14 @@ public class ZBufferPaperType3D extends RgbPaperType3D {
         }
 
         protected void placePixels( int xoff, int yoff, double dz,
-                                    Pixellator pixer, Color color ) {
+                                    Pixer pixer, Color color ) {
             if ( color != lastColor_ ) {
                 lastColor_ = color;
                 lastRgb_ = color.getRGB();
             }
             int rgb = lastRgb_;
             float fz = (float) dz;
-            for ( pixer.start(); pixer.next(); ) {
+            while ( pixer.next() ) {
                 int index = getPixelIndex( xoff, yoff, pixer );
                 if ( fz <= zs_[ index ] ) {
                     zs_[ index ] = fz;

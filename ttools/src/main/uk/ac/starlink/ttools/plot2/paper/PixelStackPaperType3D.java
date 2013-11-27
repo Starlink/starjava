@@ -3,7 +3,7 @@ package uk.ac.starlink.ttools.plot2.paper;
 import java.awt.Color;
 import java.awt.Rectangle;
 import java.util.Arrays;
-import uk.ac.starlink.ttools.plot.Pixellator;
+import uk.ac.starlink.ttools.plot2.Pixer;
 import uk.ac.starlink.util.DoubleList;
 
 /**
@@ -124,7 +124,7 @@ public class PixelStackPaperType3D extends RgbPaperType3D {
         }
 
         protected void placePixels( int xoff, int yoff, double dz,
-                                    Pixellator pixer, Color color ) {
+                                    Pixer pixer, Color color ) {
             if ( color != lastColor_ ) {
                 lastColor_ = color;
                 int rgba = color.getRGB();
@@ -134,7 +134,7 @@ public class PixelStackPaperType3D extends RgbPaperType3D {
             }
             int rgb = lastRgb_;
             float alpha = lastAlpha_;
-            for ( pixer.start(); pixer.next(); ) {
+            while ( pixer.next() ) {
                 int index = getPixelIndex( xoff, yoff, pixer );
                 PixelStack stack = stacks_[ index ];
                 if ( stack == null ) {

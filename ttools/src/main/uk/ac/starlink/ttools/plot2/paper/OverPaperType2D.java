@@ -2,7 +2,7 @@ package uk.ac.starlink.ttools.plot2.paper;
 
 import java.awt.Color;
 import java.awt.Rectangle;
-import uk.ac.starlink.ttools.plot.Pixellator;
+import uk.ac.starlink.ttools.plot2.Pixer;
 
 /**
  * Bitmapped 2D PaperType which just plots graphics over the top of any
@@ -44,14 +44,14 @@ public class OverPaperType2D extends RgbPaperType2D {
             rgbs_ = getRgbImage().getBuffer();
         }
 
-        protected void placePixels( int xoff, int yoff, Pixellator pixer,
+        protected void placePixels( int xoff, int yoff, Pixer pixer,
                                     Color color ) {
             if ( color != lastColor_ ) {
                 lastColor_ = color;
                 lastRgb_ = color.getRGB();
             }
             int rgb = lastRgb_;
-            for ( pixer.start(); pixer.next(); ) {
+            while ( pixer.next() ) {
                 int index = getPixelIndex( xoff, yoff, pixer );
                 rgbs_[ index ] = rgb;
             }

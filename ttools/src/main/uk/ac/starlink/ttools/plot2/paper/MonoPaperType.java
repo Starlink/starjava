@@ -3,9 +3,9 @@ package uk.ac.starlink.ttools.plot2.paper;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Rectangle;
-import uk.ac.starlink.ttools.plot.Pixellator;
 import uk.ac.starlink.ttools.plot2.Decal;
 import uk.ac.starlink.ttools.plot2.Glyph;
+import uk.ac.starlink.ttools.plot2.Pixer;
 
 /**
  * Bitmapped PaperType which can paint transparent or opaque pixels
@@ -136,22 +136,24 @@ public class MonoPaperType extends RgbPaperType
         public void placeGlyph( int gx, int gy, Glyph glyph, Color color ) {
             clip_.x -= gx;
             clip_.y -= gy;
-            Pixellator pixer = glyph.getPixelOffsets( clip_ );
-            placePixels( gx - x0_, gy - y0_, pixer, color );
+            Pixer pixer = glyph.createPixer( clip_ );
+            if ( pixer != null ) {
+                placePixels( gx - x0_, gy - y0_, pixer, color );
+            }
             clip_.x += gx;
             clip_.y += gy;
         }
 
         /**
-         * Paints the pixels of a pixellator in a given colour at a given
+         * Paints the pixels of a pixel iterator in a given colour at a given
          * position.
          *
          * @param  xoff  X offset
          * @param  yoff  Y offset
-         * @param  pixer  clipped pixellator
+         * @param  pixer  clipped pixel iterator
          * @param  color  painting colour
          */
-        private void placePixels( int xoff, int yoff, Pixellator pixer,
+        private void placePixels( int xoff, int yoff, Pixer pixer,
                                   Color color ) {
 
             /* Obtain the alpha value of the required colour, using caching
@@ -165,8 +167,8 @@ public class MonoPaperType extends RgbPaperType
             float alpha = lastAlpha_;
 
             /* Increment elements of the alpha pixel array corresponding
-             * to the pixellator's footprint. */
-            for ( pixer.start(); pixer.next(); ) {
+             * to the pixer's footprint. */
+            while ( pixer.next() ) {
                 int index = getPixelIndex( xoff, yoff, pixer );
                 alphas_[ index ] += alpha;
             }

@@ -19,6 +19,7 @@ import uk.ac.starlink.ttools.plot2.AuxReader;
 import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Glyph;
+import uk.ac.starlink.ttools.plot2.Pixer;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
@@ -454,8 +455,21 @@ public class MultiPointForm implements ShapeForm {
             renderer_.drawErrors( g, 0, 0, xoffs_, yoffs_ );
         }
 
-        public Pixellator getPixelOffsets( Rectangle clip ) {
-            return renderer_.getPixels( clip, 0, 0, xoffs_, yoffs_ );
+        public Pixer createPixer( Rectangle clip ) {
+            final Pixellator pixellator =
+                renderer_.getPixels( clip, 0, 0, xoffs_, yoffs_ );
+            pixellator.start();
+            return new Pixer() {
+                public boolean next() {
+                    return pixellator.next();
+                }
+                public int getX() {
+                    return pixellator.getX();
+                }
+                public int getY() {
+                    return pixellator.getY();
+                }
+            };
         }
     }
 
