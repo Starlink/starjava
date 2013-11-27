@@ -5,10 +5,7 @@ import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Rectangle;
 import javax.swing.Icon;
-import uk.ac.starlink.ttools.plot.GraphicsBitmap;
-import uk.ac.starlink.ttools.plot.Pixellator;
 import uk.ac.starlink.ttools.plot.Style;
-import uk.ac.starlink.ttools.plot.TranslatedPixellator;
 import uk.ac.starlink.ttools.plot2.Anchor;
 import uk.ac.starlink.ttools.plot2.Captioner;
 import uk.ac.starlink.ttools.plot2.Equality;
@@ -43,6 +40,29 @@ public class LabelStyle implements Style {
         return new LabelStyleIcon();
     }
 
+    /**
+     * Returns the captioner used by this style.
+     *
+     * @return  captioner
+     */
+    public Captioner getCaptioner() {
+        return captioner_;
+    }
+
+    /**
+     * Returns the positioning anchor used by this style.
+     *
+     * @return  anchor
+     */
+    public Anchor getAnchor() {
+        return anchor_;
+    }
+
+    /**
+     * Returns the colour used by this style.
+     *
+     * @return   colour
+     */
     public Color getColor() {
         return color_;
     }
@@ -56,21 +76,6 @@ public class LabelStyle implements Style {
      */
     public void drawLabel( Graphics g, String label ) {
         anchor_.drawCaption( label, 0, 0, captioner_, g );
-    }
-
-    /**
-     * Returns a pixellator for a given text string.
-     *
-     * @param   label  text string
-     * @return  pixellator; doesn't do anything clever with antialiased text
-     */
-    public Pixellator getPixelOffsets( String label ) {
-        Rectangle box = anchor_.getCaptionBounds( label, 0, 0, captioner_ );
-        GraphicsBitmap bitmap = new GraphicsBitmap( box.width, box.height ); 
-        Graphics g = bitmap.createGraphics();
-        anchor_.drawCaption( label, -box.x, -box.y, captioner_, g );
-        return new TranslatedPixellator( bitmap.createPixellator(),
-                                         box.x, box.y );
     }
 
     @Override

@@ -2,7 +2,6 @@ package uk.ac.starlink.ttools.plot2;
 
 import java.awt.Graphics;
 import java.awt.Rectangle;
-import uk.ac.starlink.ttools.plot.Pixellator;
 
 /**
  * Represents an uncoloured shape to be drawn, typically a small point marker.
@@ -22,13 +21,16 @@ public interface Glyph {
     void paintGlyph( Graphics g );
 
     /**
-     * Gives pixel offsets for the shape, centred on the origin.
-     * The returned pixellator must not include any points outside of
+     * Returns an iterator over pixel offsets for this glyph's shape,
+     * considered to be at the origin.
+     * Typically this means the pixel collection is centred at that point.
+     * The returned iterator must not include any points outside of
      * the given clip rectangle.
+     * A null return indicates that no pixels fall within the given clip.
      *
      * @param   clip  clip rectangle
      * @return   pixel iterator for the intersection of this glyph's shape
-     *           and the given clip
+     *           and the given clip, or null for no pixels
      */
-    Pixellator getPixelOffsets( Rectangle clip );
+    Pixer createPixer( Rectangle clip );
 }

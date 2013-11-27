@@ -5,9 +5,9 @@ import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Rectangle;
 import javax.swing.Icon;
-import uk.ac.starlink.ttools.plot.Pixellator;
 import uk.ac.starlink.ttools.plot2.Decal;
 import uk.ac.starlink.ttools.plot2.Drawing;
+import uk.ac.starlink.ttools.plot2.Pixer;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 
@@ -161,17 +161,17 @@ public abstract class RgbPaperType implements PaperType {
 
         /**
          * Returns the index into the RGB image buffer corresponding to
-         * the current state of a pixellator object and an X/Y offset.
+         * the current state of a pixel iterator and an X/Y offset.
          *
          * @param  xoff  offset in X
          * @param  yoff  offset in Y
-         * @param  pixer   pixellator
+         * @param  pixer   pixel iterator
          * @return  buffer offset for current position of pixer
          */
-        protected int getPixelIndex( int xoff, int yoff, Pixellator pixer ) {
+        protected int getPixelIndex( int xoff, int yoff, Pixer pixer ) {
             int x = xoff + pixer.getX();
             int y = yoff + pixer.getY();
-            assert x >= 0 && x < xpix_ && y >= 0 && y < ypix_;
+            assert x >= 0 && x < xpix_ && y >= 0 && y < ypix_ : pixer;
             return x + xpix_ * y;
         }
 

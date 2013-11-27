@@ -17,6 +17,7 @@ import uk.ac.starlink.ttools.plot2.AuxReader;
 import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Glyph;
+import uk.ac.starlink.ttools.plot2.Pixer;
 import uk.ac.starlink.ttools.plot2.PointCloud;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
@@ -109,13 +110,14 @@ public class MarkForm implements ShapeForm {
      * @return  marker glyph
      */
     public static Glyph createMarkGlyph( final MarkStyle style ) {
-        final Pixellator pixer = style.getPixelOffsets();
+        final PixellatorPixerFactory pfact =
+            new PixellatorPixerFactory( style.getPixelOffsets() );
         return new Glyph() {
             public void paintGlyph( Graphics g ) {
                 style.drawShape( g );
             }
-            public Pixellator getPixelOffsets( Rectangle clip ) {
-                return ClipPixellator.clip( pixer, clip );
+            public Pixer createPixer( Rectangle clip ) {
+                return pfact.createPixer( clip );
             }
         };
     }

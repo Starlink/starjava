@@ -3,8 +3,8 @@ package uk.ac.starlink.ttools.plot2.paper;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Rectangle;
-import uk.ac.starlink.ttools.plot.Pixellator;
 import uk.ac.starlink.ttools.plot2.Decal;
+import uk.ac.starlink.ttools.plot2.Pixer;
 
 /**
  * Bitmapped 2D PaperType which can render any combination of coloured,
@@ -95,7 +95,7 @@ public class CompositePaperType2D extends RgbPaperType2D {
             }
         }
 
-        protected void placePixels( int xoff, int yoff, Pixellator pixer,
+        protected void placePixels( int xoff, int yoff, Pixer pixer,
                                     Color color ) {
 
             /* Obtain the RGBA values of the required colour, using caching
@@ -109,9 +109,9 @@ public class CompositePaperType2D extends RgbPaperType2D {
                 lastAlpha_ = frgba_[ 3 ];
             }
 
-            /* Add samples to the RGBA buffer corresponding to the pixellator's
+            /* Add samples to the RGBA buffer corresponding to the pixer's
              * footprint. */
-            for ( pixer.start(); pixer.next(); ) {
+            while ( pixer.next() ) {
                 composBuf_.addSample( getPixelIndex( xoff, yoff, pixer ),
                                       lastR_, lastG_, lastB_, lastAlpha_ );
             }

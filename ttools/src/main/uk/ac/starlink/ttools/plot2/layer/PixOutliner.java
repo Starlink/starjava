@@ -4,13 +4,13 @@ import java.awt.Color;
 import java.awt.Rectangle;
 import javax.swing.Icon;
 import java.util.Map;
-import uk.ac.starlink.ttools.plot.Pixellator;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Decal;
 import uk.ac.starlink.ttools.plot2.Drawing;
 import uk.ac.starlink.ttools.plot2.Glyph;
+import uk.ac.starlink.ttools.plot2.Pixer;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
@@ -91,16 +91,18 @@ public abstract class PixOutliner implements Outliner {
             /* Get the presented glyph's pixellator and clip it to bounds. */
             Rectangle cbox = new Rectangle( bounds );
             cbox.translate( -gx, -gy );
-            Pixellator pixer = glyph.getPixelOffsets( cbox );
+            Pixer pixer = glyph.createPixer( cbox );
 
             /* Increment bins per pixel as appropriate. */
-            for ( pixer.start(); pixer.next(); ) {
-                int px = gx + pixer.getX();
-                int py = gy + pixer.getY();
-                assert bounds.contains( px, py );
-                int ix = px - xoff;
-                int iy = py - yoff;
-                counts[ gridder.getIndex( ix, iy ) ]++;
+            if ( pixer != null ) {
+                while ( pixer.next() ) {
+                    int px = gx + pixer.getX();
+                    int py = gy + pixer.getY();
+                    assert bounds.contains( px, py );
+                    int ix = px - xoff;
+                    int iy = py - yoff;
+                    counts[ gridder.getIndex( ix, iy ) ]++;
+                }
             }
             binPaper.pointCount_++;
         }

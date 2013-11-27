@@ -2,8 +2,8 @@ package uk.ac.starlink.ttools.plot2.paper;
 
 import java.awt.Color;
 import java.awt.Rectangle;
-import uk.ac.starlink.ttools.plot.Pixellator;
 import uk.ac.starlink.ttools.plot2.Glyph;
+import uk.ac.starlink.ttools.plot2.Pixer;
 
 /**
  * Abstract RgbPaperType subclass for 3-dimensional plots.
@@ -75,16 +75,18 @@ public abstract class RgbPaperType3D extends RgbPaperType
                                  Color color ) {
             clip_.x -= gx;
             clip_.y -= gy;
-            Pixellator pixer = glyph.getPixelOffsets( clip_ );
-            placePixels( gx - x0_, gy - y0_, dz, pixer, color );
+            Pixer pixer = glyph.createPixer( clip_ );
+            if ( pixer != null ) {
+                placePixels( gx - x0_, gy - y0_, dz, pixer, color );
+            }
             clip_.x += gx;
             clip_.y += gy;
         }
 
         /**
-         * Paints the pixels of a pixellator in a given colour at a given
+         * Paints the pixels of a pixel iterator in a given colour at a given
          * 3d position.  Subclasses implement this method to perform the
-         * actual pixel compositing.  The supplied pixellator will already
+         * actual pixel compositing.  The supplied pixer will already
          * have been clipped, so implementations don't need to worry about
          * checking the positions are within the bounds of this paper.
          * Implementations can (and usually should) use the
@@ -94,10 +96,10 @@ public abstract class RgbPaperType3D extends RgbPaperType
          * @param  xoff  X graphics offset
          * @param  yoff  Y graphics offset
          * @param  dz  depth coordinate, lower value means closer to viewer
-         * @param  pixer  clipped pixellator
+         * @param  pixer  clipped pixel iterator, not null
          * @param  color  painting colour
          */
         protected abstract void placePixels( int xoff, int yoff, double dz,
-                                             Pixellator pixer, Color color );
+                                             Pixer pixer, Color color );
     }
 }
