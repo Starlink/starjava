@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.util.Map;
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
@@ -105,12 +106,16 @@ public class PairPlotter extends AbstractPlotter<PairPlotter.PairStyle> {
         Point gp1 = new Point();
         Point gp2 = new Point();
         int npc = geom.getPosCoords().length;
+        Rectangle bounds = surface.getPlotBounds();
         TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
         while ( tseq.next() ) {
+
+            /* Paint the line if any part of it falls in the plot region. */
             if ( geom.readDataPos( tseq, 0, dpos1 ) &&
-                 surface.dataToGraphics( dpos1, true, gp1 ) &&
+                 surface.dataToGraphics( dpos1, false, gp1 ) &&
                  geom.readDataPos( tseq, npc, dpos2 ) &&
-                 surface.dataToGraphics( dpos2, true, gp2 ) ) {
+                 surface.dataToGraphics( dpos2, false, gp2 ) &&
+                 lineMightCross( bounds, gp1, gp2 ) ) {
                 Glyph glyph =
                     LineGlyph.getLineGlyph( gp2.x - gp1.x, gp2.y - gp1.y );
                 paperType.placeGlyph( paper, gp1.x, gp1.y, glyph, color );
@@ -133,6 +138,12 @@ public class PairPlotter extends AbstractPlotter<PairPlotter.PairStyle> {
         int npc = geom.getPosCoords().length;
         TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
         while ( tseq.next() ) {
+
+            /* Paint the line only if both ends fall within the plot region.
+             * It would be nice to do it if any part of the line,
+             * or at least, either of the ends, fell within the region,
+             * but it would need some additional arithmetic to work out
+             * where to stop the line. */
             if ( geom.readDataPos( tseq, 0, dpos1 ) &&
                  surface.dataToGraphicZ( dpos1, true, gp1, dz1 ) &&
                  geom.readDataPos( tseq, npc, dpos2 ) &&
@@ -143,6 +154,48 @@ public class PairPlotter extends AbstractPlotter<PairPlotter.PairStyle> {
                 paperType.placeGlyph( paper, gp1.x, gp1.y, z, glyph, color );
             }
         }
+    }
+
+    /**
+     * Determines whether any part of a line between two points is contained
+     * within a given rectangle.
+     *
+     * @param   box  boundary box
+     * @param   p1   one end of line
+     * @param   p2   other end of line
+     * @return  false guarantees that no part of the line appears in the box;
+     *          true means it might do
+     */
+    private static boolean lineMightCross( Rectangle box, Point p1, Point p2 ) {
+        int xmin = box.x;
+        int xmax = box.x + box.width;
+        if ( getRegion( p1.x, xmin, xmax ) *
+             getRegion( p2.x, xmin, xmax ) == 1 ) {
+            return false;
+        }
+        int ymin = box.y;
+        int ymax = box.y + box.height;
+        if ( getRegion( p1.y, ymin, ymax ) *
+             getRegion( p2.y, ymin, ymax ) == 1 ) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Returns the region of a point with respect to an interval.
+     * The return value is -1, 0, or 1 according to whether the point
+     * is lower than, within, or higher than the interval bounds.
+     *
+     * @param   point   test value
+     * @param   lo    region lower bound
+     * @param   hi    region upper bound
+     * @return  region code
+     */
+    private static int getRegion( int point, int lo, int hi ) {
+        return point >= lo ? ( point <= hi ? 0
+                                           : +1 )
+                           : -1;
     }
 
     /**
