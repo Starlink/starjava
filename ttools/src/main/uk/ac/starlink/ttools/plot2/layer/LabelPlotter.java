@@ -113,6 +113,7 @@ public class LabelPlotter extends AbstractPlotter<LabelStyle> {
         final DataSpec dataSpec_;
         final LabelStyle style_;
         final Surface surface_;
+        final Class<T> clazz_;
         final DataGeom geom_;
         final int icLabel_;
 
@@ -123,13 +124,15 @@ public class LabelPlotter extends AbstractPlotter<LabelStyle> {
          * @param  dataSpec  full data specification
          * @param  style  style
          * @param  surface  plot surface
+         * @param  clazz  parameterising class
          */
         LabelDrawing( DataGeom geom, DataSpec dataSpec, LabelStyle style,
-                      Surface surface ) {
+                      Surface surface, Class<T> clazz ) {
             geom_ = geom;
             dataSpec_ = dataSpec;
             style_ = style;
             surface_ = surface;
+            clazz_ = clazz;
             icLabel_ = geom.getPosCoords().length;
         }
 
@@ -155,12 +158,12 @@ public class LabelPlotter extends AbstractPlotter<LabelStyle> {
                 Object plan = knownPlans[ i ];
                 if ( plan instanceof LabelPlan &&
                      ((LabelPlan) plan).matches( geom_, dataSpec_,
-                                                 surface_ ) ) {
+                                                 surface_, clazz_ ) ) {
                     return plan;
                 }
             }
             Map<Point,T> map = createMap( dataStore );
-            return new LabelPlan<T>( geom_, dataSpec_, surface_, map );
+            return new LabelPlan<T>( geom_, dataSpec_, surface_, map, clazz_ );
         }
 
         public void paintData( Object plan, Paper paper, DataStore dataStore ) {
@@ -188,7 +191,7 @@ public class LabelPlotter extends AbstractPlotter<LabelStyle> {
          */
         LabelDrawing2D( DataGeom geom, DataSpec dataSpec, LabelStyle style,
                         Surface surface, PaperType2D paperType ) {
-            super( geom, dataSpec, style, surface );
+            super( geom, dataSpec, style, surface, String.class );
             paperType_ = paperType;
         }
 
@@ -245,7 +248,7 @@ public class LabelPlotter extends AbstractPlotter<LabelStyle> {
          */
         LabelDrawing3D( DataGeom geom, DataSpec dataSpec, LabelStyle style,
                         Surface surface, PaperType3D paperType ) {
-            super( geom, dataSpec, style, surface );
+            super( geom, dataSpec, style, surface, DepthString.class );
             paperType_ = paperType;
         }
 
@@ -316,6 +319,7 @@ public class LabelPlotter extends AbstractPlotter<LabelStyle> {
         final DataSpec dataSpec_;
         final Surface surface_;
         final Map<Point,T> map_;
+        final Class<T> clazz_;
 
         /**
          * Constructor.
@@ -325,13 +329,15 @@ public class LabelPlotter extends AbstractPlotter<LabelStyle> {
          * @param  surface  plot surface
          * @param  map  plan payload - a map from screen position to
          *              placeable label
+         * @param  clazz  class parameterising map values
          */
         LabelPlan( DataGeom geom, DataSpec dataSpec, Surface surface,
-                   Map<Point,T> map ) {
+                   Map<Point,T> map, Class<T> clazz ) {
             geom_ = geom;
             dataSpec_ = dataSpec;
             surface_ = surface;
             map_ = map;
+            clazz_ = clazz;
         }
 
         /**
@@ -341,11 +347,14 @@ public class LabelPlotter extends AbstractPlotter<LabelStyle> {
          * @param  geom  data geom
          * @param  dataSpec  data specfication
          * @param  surface  plot surface
+         * @param  parameterising class
          */
-        boolean matches( DataGeom geom, DataSpec dataSpec, Surface surface ) {
+        boolean matches( DataGeom geom, DataSpec dataSpec, Surface surface,
+                         Class clazz ) {
             return geom.equals( geom_ )
                 && dataSpec.equals( dataSpec_ )
-                && surface.equals( surface_ );
+                && surface.equals( surface_ ) 
+                && clazz.equals( clazz_ );
         }
     }
 
