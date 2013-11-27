@@ -222,7 +222,7 @@ public class CubeSurface implements Surface {
      * @param  dataPos  3-element array of non-normalised data coordinates
      * @return   true if it falls within this surface's data bounds
      */
-    private boolean inRange( double[] dataPos ) {
+    public boolean inRange( double[] dataPos ) {
         for ( int i = 0; i < 3; i++ ) {
             double d = dataPos[ i ];
             if ( ! ( dlos_[ i ] <= d && d <= dhis_[ i ] ) ) {
