@@ -139,15 +139,18 @@ public class PairPlotter extends AbstractPlotter<PairPlotter.PairStyle> {
         TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
         while ( tseq.next() ) {
 
-            /* Paint the line only if both ends fall within the plot region.
-             * It would be nice to do it if any part of the line,
-             * or at least, either of the ends, fell within the region,
-             * but it would need some additional arithmetic to work out
-             * where to stop the line. */
+            /* Paint the line if either end falls within the plot region.
+             * It would require some additional arithmetic to cover the case
+             * where neither end is in the region but part of the line
+             * would be.  Note this can lead to part of the line sticking
+             * out of the cube.  It's not really the right thing to do,
+             * but it's not too bad.  Additional work would be required as
+             * well to truncate it at the cube face. */
             if ( geom.readDataPos( tseq, 0, dpos1 ) &&
-                 surface.dataToGraphicZ( dpos1, true, gp1, dz1 ) &&
                  geom.readDataPos( tseq, npc, dpos2 ) &&
-                 surface.dataToGraphicZ( dpos2, true, gp2, dz2 ) ) {
+                 ( surface.inRange( dpos1 ) || surface.inRange( dpos2 ) ) &&
+                 surface.dataToGraphicZ( dpos1, false, gp1, dz1 ) &&
+                 surface.dataToGraphicZ( dpos2, false, gp2, dz2 ) ) {
                 double z = 0.5 * ( dz1[ 0 ] + dz2[ 0 ] );
                 Glyph glyph =
                     LineGlyph.getLineGlyph( gp2.x - gp1.x, gp2.y - gp1.y );
