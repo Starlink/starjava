@@ -16,7 +16,7 @@ import uk.ac.starlink.ttools.plot2.layer.ContourPlotter;
 import uk.ac.starlink.ttools.plot2.layer.LabelPlotter;
 import uk.ac.starlink.ttools.plot2.layer.MarkForm;
 import uk.ac.starlink.ttools.plot2.layer.MultiPointForm;
-import uk.ac.starlink.ttools.plot2.layer.PairPlotter;
+import uk.ac.starlink.ttools.plot2.layer.PairLinkForm;
 import uk.ac.starlink.ttools.plot2.layer.SizeForm;
 import uk.ac.starlink.ttools.plot2.layer.ShapeForm;
 import uk.ac.starlink.ttools.plot2.layer.ShapeMode;
@@ -72,12 +72,12 @@ public class CubePlotType implements PlotType {
            .createErrorForm( CartesianErrorCoordSet
                             .createAllAxesErrorCoordSet( axisNames_ ),
                              StyleKeys.ERROR_SHAPE_3D ),
+            new PairLinkForm(),
         };
         Plotter[] shapePlotters =
             ShapePlotter.createShapePlotters( forms, ShapeMode.MODES_3D );
         list.addAll( Arrays.asList( shapePlotters ) );
         list.addAll( Arrays.asList( new Plotter[] {
-            new PairPlotter(),
             new LabelPlotter(),
             new ContourPlotter(),
         } ) );

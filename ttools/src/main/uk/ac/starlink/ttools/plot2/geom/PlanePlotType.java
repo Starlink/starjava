@@ -18,7 +18,7 @@ import uk.ac.starlink.ttools.plot2.layer.LinePlotter;
 import uk.ac.starlink.ttools.plot2.layer.LabelPlotter;
 import uk.ac.starlink.ttools.plot2.layer.MarkForm;
 import uk.ac.starlink.ttools.plot2.layer.MultiPointForm;
-import uk.ac.starlink.ttools.plot2.layer.PairPlotter;
+import uk.ac.starlink.ttools.plot2.layer.PairLinkForm;
 import uk.ac.starlink.ttools.plot2.layer.PlaneEllipseCoordSet;
 import uk.ac.starlink.ttools.plot2.layer.SizeForm;
 import uk.ac.starlink.ttools.plot2.layer.ShapeForm;
@@ -72,6 +72,7 @@ public class PlanePlotType implements PlotType {
                              StyleKeys.ERROR_SHAPE_2D ),
             MultiPointForm
            .createEllipseForm( new PlaneEllipseCoordSet(), true ),
+            new PairLinkForm(),
         };
         Plotter[] shapePlotters =
             ShapePlotter.createShapePlotters( forms, ShapeMode.MODES_2D );
@@ -80,7 +81,6 @@ public class PlanePlotType implements PlotType {
             new LinePlotter(),
             new LabelPlotter(),
             new ContourPlotter(),
-            new PairPlotter(),
             FunctionPlotter.PLANE,
         } ) );
         return list.toArray( new Plotter[ 0 ] );
