@@ -126,8 +126,8 @@ public interface Outliner {
 
     /**
      * Interface to define the actual shape drawing.
-     * It contains a single method, {@link #paintPoint}, which is called
-     * once for each point.
+     * It contains a single method, {@link #paintPoint paintPoint},
+     * which is called once for each point.
      */
     interface ShapePainter {
 

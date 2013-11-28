@@ -42,6 +42,10 @@ public class MarkForm implements ShapeForm {
 
     private static final Color DUMMY_COLOR = Color.GRAY;
 
+    public int getPositionCount() {
+        return 1;
+    }
+
     public String getFormName() {
         return "Mark";
     }

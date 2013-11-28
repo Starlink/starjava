@@ -54,7 +54,7 @@ public interface Plotter<S extends Style> {
      * Each of these is turned into a data space position by use of the
      * DataGeom presented at layer creation time.
      * 
-     * @return   number of positional coordinates
+     * @return   number of sets of positional coordinates
      */
     int getPositionCount();
 

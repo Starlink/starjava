@@ -51,6 +51,10 @@ public class SizeForm implements ShapeForm {
                                          16, 2, 64, false );
     private static final AuxScale SIZE_SCALE = new AuxScale( "globalsize" );
 
+    public int getPositionCount() {
+        return 1;
+    }
+
     public String getFormName() {
         return "Size";
     }
