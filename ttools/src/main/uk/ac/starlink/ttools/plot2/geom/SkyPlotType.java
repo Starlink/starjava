@@ -11,7 +11,7 @@ import uk.ac.starlink.ttools.plot2.layer.ContourPlotter;
 import uk.ac.starlink.ttools.plot2.layer.LabelPlotter;
 import uk.ac.starlink.ttools.plot2.layer.MarkForm;
 import uk.ac.starlink.ttools.plot2.layer.MultiPointForm;
-import uk.ac.starlink.ttools.plot2.layer.PairPlotter;
+import uk.ac.starlink.ttools.plot2.layer.PairLinkForm;
 import uk.ac.starlink.ttools.plot2.layer.SizeForm;
 import uk.ac.starlink.ttools.plot2.layer.ShapeForm;
 import uk.ac.starlink.ttools.plot2.layer.ShapeMode;
@@ -60,6 +60,7 @@ public class SkyPlotType implements PlotType {
             MultiPointForm.createVectorForm( new SkyVectorCoordSet( true ),
                                              true ),
             MultiPointForm.createEllipseForm( new SkyEllipseCoordSet(), true ),
+            new PairLinkForm(),
         };
         Plotter[] shapePlotters =
             ShapePlotter.createShapePlotters( forms, ShapeMode.MODES_2D );
@@ -68,7 +69,6 @@ public class SkyPlotType implements PlotType {
             new LabelPlotter(),
             new ContourPlotter(),
         } ) );
-        list.add( new PairPlotter() );
         return list.toArray( new Plotter[ 0 ] );
     }
 
