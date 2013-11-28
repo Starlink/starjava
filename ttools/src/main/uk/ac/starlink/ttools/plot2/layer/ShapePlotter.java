@@ -40,7 +40,7 @@ public class ShapePlotter extends AbstractPlotter<ShapeStyle> {
      * @param   mode  colour determiner
      */
     public ShapePlotter( String name, ShapeForm form, ShapeMode mode ) {
-        super( name, form.getFormIcon(), 1,
+        super( name, form.getFormIcon(), form.getPositionCount(),
                PlotUtil.arrayConcat( form.getExtraCoords(),
                                      mode.getExtraCoords() ) );
         form_ = form;
@@ -76,7 +76,7 @@ public class ShapePlotter extends AbstractPlotter<ShapeStyle> {
      * @return  index of first mode-specific coordinate
      */
     public int getModeCoordsIndex( DataGeom geom ) {
-        return geom.getPosCoords().length
+        return geom.getPosCoords().length * form_.getPositionCount()
              + form_.getExtraCoords().length;
     }
 

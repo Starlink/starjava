@@ -10,13 +10,20 @@ import uk.ac.starlink.ttools.plot2.data.Coord;
 /**
  * Plotter Form sub-interface for use with ShapeMode.
  * This defines the shape of data points plotted, which may be influenced
- * by additional data than the actual point position
- * (for instance error bar sizes).
+ * by data other than the actual point position(s), for instance
+ * error bar sizes.
  *
  * @author   Mark Taylor
  * @since    18 Feb 2013
  */
 public interface ShapeForm extends ModePlotter.Form {
+
+    /**
+     * Returns the number of data positions per tuple used by this form.
+     *
+     * @return   number of sets of positional coordinates
+     */
+    int getPositionCount();
 
     /**
      * Returns data coordinates additional to the basic position which

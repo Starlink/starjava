@@ -33,9 +33,10 @@ import uk.ac.starlink.ttools.plot2.paper.PaperType2D;
 import uk.ac.starlink.ttools.plot2.paper.PaperType3D;
 
 /**
- * ShapeForm implementation that draws shapes based on the positions of
- * more than one data point.
- * The actual coordinates required (defining one or more non-central
+ * ShapeForm implementation that draws shapes based on a single main
+ * position, and a number of additional positions supplied as
+ * {@link ShapeForm#getExtraCoords extra} coordinates.
+ * The extra coordinates required (defining one or more non-central
  * data positions) are defined by a supplied {@link MultiPointCoordSet}
  * and those coordinates are then plotted by a corresponding
  * {@link uk.ac.starlink.ttools.plot.ErrorRenderer}.
@@ -76,6 +77,10 @@ public class MultiPointForm implements ShapeForm {
         extraCoordSet_ = extraCoordSet;
         canScale_ = canScale;
         rendererKey_ = rendererKey;
+    }
+
+    public int getPositionCount() {
+        return 1;
     }
 
     public String getFormName() {
