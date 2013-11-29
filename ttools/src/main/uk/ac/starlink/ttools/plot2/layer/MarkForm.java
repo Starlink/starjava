@@ -18,6 +18,7 @@ import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Glyph;
 import uk.ac.starlink.ttools.plot2.Pixer;
 import uk.ac.starlink.ttools.plot2.PointCloud;
+import uk.ac.starlink.ttools.plot2.SubCloud;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
@@ -390,7 +391,7 @@ public abstract class MarkForm implements ShapeForm {
         }
 
         protected PointCloud createPointCloud( DataGeom geom, DataSpec spec ) {
-            return new PointCloud( geom, spec, 1, false );
+            return new PointCloud( new SubCloud( geom, spec, 0 ) );
         }
 
 
@@ -474,7 +475,8 @@ public abstract class MarkForm implements ShapeForm {
         }
 
         protected PointCloud createPointCloud( DataGeom geom, DataSpec spec ) {
-            return new PointCloud( geom, spec, npos_, false );
+            return new PointCloud( SubCloud.createSubClouds( geom, spec,
+                                                             npos_, false ) );
         }
 
         @Override

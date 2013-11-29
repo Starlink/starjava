@@ -51,9 +51,9 @@ import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotPlacement;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Plotter;
-import uk.ac.starlink.ttools.plot2.PointCloud;
 import uk.ac.starlink.ttools.plot2.ShadeAxis;
 import uk.ac.starlink.ttools.plot2.Slow;
+import uk.ac.starlink.ttools.plot2.SubCloud;
 import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
@@ -127,7 +127,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
     private Cancellable extraNoteRunner_;
     private Workings<A> workings_;
     private Surface latestSurface_;
-    private Map<PointCloud.SubCloud,double[]> highlightMap_;
+    private Map<SubCloud,double[]> highlightMap_;
 
     private static final Icon HIGHLIGHTER = new HighlightIcon();
     private static final Logger logger_ =
@@ -202,7 +202,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                 replot();
             }
         } );
-        highlightMap_ = new HashMap<PointCloud.SubCloud,double[]>();
+        highlightMap_ = new HashMap<SubCloud,double[]>();
         clearData();
     }
 
@@ -384,6 +384,18 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
     }
 
     /**
+     * Returns a list of point clouds giving the positions currently plotted.
+     * The clouds are deduplicated, so that point sets from the same
+     * table which are plotted more than once (as part of multiple layers)
+     * are not reported multiple times.
+     *
+     * @return   distinct point clouds currently plotted
+     */
+    public SubCloud[] getSubClouds() {
+        return SubCloud.createSubClouds( workings_.layers_, true );
+    }
+
+    /**
      * Returns the data store used in the most recent completed plot.
      *
      * @return  data store
@@ -433,8 +445,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      *
      * @param  highlightMap  sequence of data positions labelled by SubCloud
      */
-    public void setHighlights( Map<PointCloud.SubCloud,double[]>
-                               highlightMap ) {
+    public void setHighlights( Map<SubCloud,double[]> highlightMap ) {
         highlightMap_ = highlightMap;
         replot();
     }
@@ -483,8 +494,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
          * than at plot job creation, since creating a plot job does
          * not entail that it will ever be plotted, but it's likely
          * that the effect will be the same. */
-        PointCloud.SubCloud[] subClouds =
-            new PointCloud( layers, true ).getSubClouds();
+        SubCloud[] subClouds = getSubClouds();
         highlightMap_.keySet().retainAll( Arrays.asList( subClouds ) );
         double[][] highlights = highlightMap_.values()
                                              .toArray( new double[ 0 ][] );

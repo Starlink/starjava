@@ -25,6 +25,7 @@ import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.PointCloud;
 import uk.ac.starlink.ttools.plot2.ShadeAxis;
 import uk.ac.starlink.ttools.plot2.Slow;
+import uk.ac.starlink.ttools.plot2.SubCloud;
 import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
@@ -119,7 +120,8 @@ public class PlotDisplay<P,A> extends JComponent {
                     return navigator;
                 }
                 public Iterable<double[]> createDataPosIterable() {
-                    return new PointCloud( layers_, true )
+                    return new PointCloud( SubCloud
+                                          .createSubClouds( layers_, true ) )
                           .createDataPosIterable( dataStore_ );
                 }
                 public void setAspect( A aspect ) {

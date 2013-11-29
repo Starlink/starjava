@@ -177,7 +177,8 @@ public class PlotUtil {
          * represented by the supplied layers.  If there are several
          * layers using the same basic positions, this should combine
          * them efficiently. */
-        PointCloud cloud = new PointCloud( layers, true );
+        PointCloud cloud =
+            new PointCloud( SubCloud.createSubClouds( layers, true ) );
 
         /* Iterate over the represented points to mark out the basic
          * range of data positions covered by the layers. */
