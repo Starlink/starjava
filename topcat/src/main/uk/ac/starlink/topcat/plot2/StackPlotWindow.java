@@ -517,28 +517,33 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     private Factory<Map<TopcatModel,Long>>
             createPointFinder( final Point point ) {
         final Surface surface = plotPanel_.getSurface();
-        final PlotLayer[] layers = getPointCloudLayers();
         final DataStore baseDataStore = plotPanel_.getDataStore();
         final boolean showProgress = showProgressModel_.isSelected();
-        return new Factory<Map<TopcatModel,Long>>() {
+        final PointCloud.SubCloud[] subClouds =
+            new PointCloud( plotPanel_.getPlotLayers(), true ).getSubClouds();
 
+        /* If necessary, count the number of positions we will need to
+         * iterate over. */
+        final long nrow;
+        if ( showProgress ) {
+            long nr = 0;
+            for ( int is = 0; is < subClouds.length; is++ ) {
+                nr += ((GuiDataSpec) subClouds[ is ].getDataSpec())
+                     .getRowCount();
+            }
+            nrow = nr;
+        }
+        else {
+            nrow = -1;
+        }
+
+        /* Create and return the object that will do the work. */
+        return new Factory<Map<TopcatModel,Long>>() {
             @Slow
             public Map<TopcatModel,Long> getItem() {
 
-                /* Prepare a data store which will watch for interruptions
-                 * and log progress. */
-                final long nrow;
-                if ( showProgress ) {
-                    nrow = -1;
-                }
-                else {
-                    long nr = 0;
-                    for ( int il = 0; il < layers.length; il++ ) {
-                        nr += ((GuiDataSpec) layers[ il ].getDataSpec())
-                             .getRowCount();
-                    }
-                    nrow = nr;
-                }
+                /* Prepare a datastore which will watch for interruptions
+                 * and possibly log progress. */
                 DataStore dataStore =
                     plotPanel_.createGuiDataStore( nrow, baseDataStore );
 
@@ -551,18 +556,19 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                 Map<TopcatModel,Long> indexMap =
                     new HashMap<TopcatModel,Long>();
 
-                /* Iterate over each usefully different layer. */
-                for ( int il = 0; il < layers.length; il++ ) {
-                    PlotLayer layer = layers[ il ];
-                    DataGeom geom = layer.getDataGeom();
+                /* Iterate over each sub point cloud distinct positions. */
+                for ( int is = 0; is < subClouds.length; is++ ) {
+                    PointCloud.SubCloud subCloud = subClouds[ is ];
+                    DataGeom geom = subCloud.getDataGeom();
                     assert geom != null && geom.hasPosition();
-                    DataSpec dataSpec = layer.getDataSpec();
+                    DataSpec dataSpec = subCloud.getDataSpec();
+                    int iPosCoord = subCloud.getPosCoordIndex();
                     TopcatModel tcModel = getTopcatModel( dataSpec );
                     TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
 
-                    /* Iterate over each visible point in the layer. */
+                    /* Iterate over each position in the cloud. */
                     while ( tseq.next() ) {
-                        if ( geom.readDataPos( tseq, 0, dpos ) &&
+                        if ( geom.readDataPos( tseq, iPosCoord, dpos ) &&
                              surface.dataToGraphics( dpos, true, gp ) ) {
 
                             /* If the point is within a given threshold of our
@@ -618,30 +624,9 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         /* If no points were identified, clear the highlight list
          * for this plot. */
         if ( nHigh == 0 ) {
-            plotPanel_.setHighlights( new HashMap<DataSpec,double[]>() );
+            plotPanel_
+           .setHighlights( new HashMap<PointCloud.SubCloud,double[]>() );
         }
-    }
-
-    /**
-     * Returns a list of plot layers which can be used as representatives
-     * for the purpose of surveying point clouds.  If multiple layers
-     * represent the same point cloud, only one of them will be returned.
-     *
-     * @return   representative point-cloud type layers for the current plot
-     */
-    private PlotLayer[] getPointCloudLayers() {
-        PlotLayer[] layers = plotPanel_.getPlotLayers();
-        Map<PointCloud,PlotLayer> cloudMap =
-            new LinkedHashMap<PointCloud,PlotLayer>();
-        for ( int il = 0; il < layers.length; il++ ) {
-            PlotLayer layer = layers[ il ];
-            DataGeom geom = layer.getDataGeom();
-            DataSpec dataSpec = layer.getDataSpec();
-            if ( dataSpec != null && geom != null && geom.hasPosition() ) {
-                cloudMap.put( new PointCloud( geom, dataSpec ), layer );
-            }
-        }
-        return cloudMap.values().toArray( new PlotLayer[ 0 ] );
     }
 
     /**
@@ -652,24 +637,22 @@ public class StackPlotWindow<P,A> extends AuxWindow {
      * @param   irow   row index
      */
     private void highlightRow( TopcatModel tcModel, long irow ) {
-        StarTable highTable = tcModel.getDataModel();
-        PlotLayer[] layers = plotPanel_.getPlotLayers();
-        DataStore dataStore = plotPanel_.getDataStore();
         Surface surface = plotPanel_.getSurface();
         if ( surface == null ) {
             return;
         }
-        Map<DataSpec,double[]> highMap =
-            new LinkedHashMap<DataSpec,double[]>();
-        for ( int il = 0; il < layers.length; il++ ) {
-            PlotLayer layer = layers[ il ];
-            DataSpec dataSpec = layer.getDataSpec();
-            if ( dataSpec != null &&
-                 dataSpec.getSourceTable() == highTable &&
-                 ! highMap.containsKey( dataSpec ) ) {
-                double[] dpos = getDataPos( layer, irow, dataStore );
+        Map<PointCloud.SubCloud,double[]> highMap =
+            new LinkedHashMap<PointCloud.SubCloud,double[]>();
+        PointCloud.SubCloud[] subClouds =
+            new PointCloud( plotPanel_.getPlotLayers(), true ).getSubClouds();
+        StarTable highTable = tcModel.getDataModel();
+        DataStore dataStore = plotPanel_.getDataStore();
+        for ( int is = 0; is < subClouds.length; is++ ) {
+            PointCloud.SubCloud subCloud = subClouds[ is ];
+            if ( subCloud.getDataSpec().getSourceTable() == highTable ) {
+                double[] dpos = getDataPos( subCloud, irow, dataStore );
                 if ( dpos != null ) {
-                    highMap.put( dataSpec, dpos );
+                    highMap.put( subCloud, dpos );
                 }
             }
         }
@@ -682,28 +665,30 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     }
 
     /**
-     * Returns the data position for a given table row in a plot layer.
+     * Returns the data position for a given table row in a point cloud.
      *
-     * @param  layer  plot layer
+     * @param  subCloud  point subcloud
      * @param  irow   row index
      * @param  dataStore  data storage object
      * @return   data position if visible, else null
      */
-    private static double[] getDataPos( PlotLayer layer, long irow,
-                                        DataStore dataStore ) {
-        DataGeom geom = layer.getDataGeom();
+    private static double[] getDataPos( PointCloud.SubCloud subCloud,
+                                        long irow, DataStore dataStore ) {
+        DataGeom geom = subCloud.getDataGeom();
+        int iPosCoord = subCloud.getPosCoordIndex();
         if ( geom == null || ! geom.hasPosition() ) {
             return null;
         }
         double[] dpos = new double[ geom.getDataDimCount() ];
-        TupleSequence tseq = dataStore.getTupleSequence( layer.getDataSpec() );
+        TupleSequence tseq =
+            dataStore.getTupleSequence( subCloud.getDataSpec() );
 
         /* Iterates over all rows, since random access is not defined for
          * tuple sequence.  Typical TupleSequence implementation means this
          * should be pretty fast though.  I think. */
         while ( tseq.next() ) {
             long ir = tseq.getRowIndex();
-            if ( ir == irow && geom.readDataPos( tseq, 0, dpos ) ) {
+            if ( ir == irow && geom.readDataPos( tseq, iPosCoord, dpos ) ) {
                 return dpos;
             }
             if ( ir > irow ) {
@@ -770,15 +755,20 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                     TopcatModel tcModel = tcModels[ il ];
                     if ( tcModel != null &&
                          geom != null && geom.hasPosition() ) {
+                        int npos = layer.getPlotter().getPositionCount();
+                        int npc = geom.getPosCoords().length;
                         BitSet mask = maskMap.get( tcModel );
                         TupleSequence tseq =
                             dataStore.getTupleSequence( dataSpec );
                         while ( tseq.next() ) {
-                            if ( geom.readDataPos( tseq, 0, dpos ) &&
-                                 surface.dataToGraphics( dpos, true, gp ) &&
-                                 ( blob == null || blob.contains( gp ) ) ) {
-                                long ix = tseq.getRowIndex();
-                                mask.set( Tables.checkedLongToInt( ix ) );
+                            for ( int ip = 0; ip < npos; ip++ ) {
+                                if ( geom.readDataPos( tseq, ip * npc, dpos ) &&
+                                     surface.dataToGraphics( dpos, true, gp ) &&
+                                     ( blob == null || blob.contains( gp ) ) ) {
+                                    long ix = tseq.getRowIndex();
+                                    mask.set( Tables.checkedLongToInt( ix ) );
+                                    break;
+                                }
                             }
                         }
                     }
@@ -796,25 +786,43 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     /**
      * Returns an object which can count the number of points visible in
      * the current plot.
-     * The actual count may be slow for large data sets, so although this
+     *
+     * <p>The actual count may be slow for large data sets, so although this
      * method may be called on the event dispatch thread, the returned
      * factory's getItem method should not be.
+     *
+     * <p>The count is effectively determined while making the plots,
+     * since the various layers have to see which points are in bounds
+     * to work out whether to plot them.  But the count information is not
+     * recorded or passed back to this window.  A future improvement 
+     * might do that somehow, in which case it wouldn't be necessary to
+     * re-do the count here.
      *
      * @return  factory for deferred calculation of formatted point count
      */
     private Factory<String> createCounter() {
-        final PlotLayer[] layers = getPointCloudLayers();
-        final DataStore dataStore = plotPanel_.getDataStore();
-        final Surface surface = plotPanel_.getSurface();
-        final int nl = layers.length;
+
+        /* Get an iterable representing all the positions in all the layers
+         * currently visible. */
+        final PointCloud.SubCloud[] subClouds =
+            new PointCloud( plotPanel_.getPlotLayers(), true ).getSubClouds();
+
+        /* Calculate the total number of points contained in those layers.
+         * This is an upper limit for the number of visible positions,
+         * and it's also the number of positions we will have to iterate over
+         * to find the real count. */
         long nr = 0;
-        TopcatModel[] tcModels = new TopcatModel[ nl ];
-        for ( int il = 0; il < nl; il++ ) {
-            tcModels[ il ] = getTopcatModel( layers[ il ].getDataSpec() );
-            assert tcModels[ il ] != null;
-            nr += tcModels[ il ].getDataModel().getRowCount();
+        for ( int is = 0; is < subClouds.length; is++ ) {
+            PointCloud.SubCloud subCloud = subClouds[ is ];
+            TopcatModel tcModel = getTopcatModel( subCloud.getDataSpec() );
+            nr += tcModel.getDataModel().getRowCount();
         }
         final long total = nr;
+
+        /* Prepare an object which can iterate over all the positions
+         * to count the ones which are actually visible. */
+        final DataStore dataStore = plotPanel_.getDataStore();
+        final Surface surface = plotPanel_.getSurface();
         return new Factory<String>() {
             @Slow
             public String getItem() {
@@ -822,13 +830,14 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                 long count = 0;
                 Point gp = new Point();
                 double[] dpos = new double[ surface.getDataDimCount() ];
-                for ( int il = 0; il < layers.length; il++ ) {
-                    PlotLayer layer = layers[ il ];
-                    DataGeom geom = layer.getDataGeom();
-                    DataSpec dataSpec = layer.getDataSpec();
+                for ( int is = 0; is < subClouds.length; is++ ) {
+                    PointCloud.SubCloud subcloud = subClouds[ is ];
+                    DataSpec dataSpec = subcloud.getDataSpec();
+                    DataGeom geom = subcloud.getDataGeom();
+                    int iPosCoord = subcloud.getPosCoordIndex();
                     TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
                     while ( tseq.next() ) {
-                        if ( geom.readDataPos( tseq, 0, dpos ) &&
+                        if ( geom.readDataPos( tseq, iPosCoord, dpos ) &&
                              surface.dataToGraphics( dpos, true, gp ) ) {
                             count++;
                         }

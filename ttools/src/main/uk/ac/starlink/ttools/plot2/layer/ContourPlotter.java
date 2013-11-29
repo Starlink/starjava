@@ -78,7 +78,7 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
 
     public PlotLayer createLayer( DataGeom geom, DataSpec dataSpec,
                                   final ContourStyle style ) {
-        final PointCloud pointCloud = new PointCloud( geom, dataSpec );
+        final PointCloud pointCloud = new PointCloud( geom, dataSpec, 1, true );
         LayerOpt opt = new LayerOpt( style.getColor(), true );
         return new AbstractPlotLayer( this, geom, dataSpec, style, opt ) {
             public Drawing createDrawing( Surface surface,

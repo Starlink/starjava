@@ -51,9 +51,10 @@ public class SpherePlotType implements PlotType {
     public Plotter[] getPlotters() {
         List<Plotter> list = new ArrayList<Plotter>();
         ShapeForm[] forms = new ShapeForm[] {
-            new MarkForm(),
+            MarkForm.SINGLE,
             new SizeForm(),
             new PairLinkForm(),
+            MarkForm.PAIR,
         };
         Plotter[] shapePlotters =
             ShapePlotter.createShapePlotters( forms, ShapeMode.MODES_3D );

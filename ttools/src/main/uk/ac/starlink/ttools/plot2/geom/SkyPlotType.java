@@ -55,12 +55,13 @@ public class SkyPlotType implements PlotType {
     public Plotter[] getPlotters() {
         List<Plotter> list = new ArrayList<Plotter>();
         ShapeForm[] forms = new ShapeForm[] {
-            new MarkForm(),
+            MarkForm.SINGLE,
             new SizeForm(),
             MultiPointForm.createVectorForm( new SkyVectorCoordSet( true ),
                                              true ),
             MultiPointForm.createEllipseForm( new SkyEllipseCoordSet(), true ),
             new PairLinkForm(),
+            MarkForm.PAIR,
         };
         Plotter[] shapePlotters =
             ShapePlotter.createShapePlotters( forms, ShapeMode.MODES_2D );
