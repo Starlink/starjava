@@ -15,6 +15,7 @@ import uk.ac.starlink.ttools.plot2.Drawing;
 import uk.ac.starlink.ttools.plot2.LayerOpt;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PointCloud;
+import uk.ac.starlink.ttools.plot2.SubCloud;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
@@ -78,7 +79,8 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
 
     public PlotLayer createLayer( DataGeom geom, DataSpec dataSpec,
                                   final ContourStyle style ) {
-        final PointCloud pointCloud = new PointCloud( geom, dataSpec, 1, true );
+        final PointCloud pointCloud =
+            new PointCloud( new SubCloud( geom, dataSpec, 0 ) );
         LayerOpt opt = new LayerOpt( style.getColor(), true );
         return new AbstractPlotLayer( this, geom, dataSpec, style, opt ) {
             public Drawing createDrawing( Surface surface,

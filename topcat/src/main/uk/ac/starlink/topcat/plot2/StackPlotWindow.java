@@ -55,8 +55,8 @@ import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotPlacement;
 import uk.ac.starlink.ttools.plot2.PlotType;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
-import uk.ac.starlink.ttools.plot2.PointCloud;
 import uk.ac.starlink.ttools.plot2.Slow;
+import uk.ac.starlink.ttools.plot2.SubCloud;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
@@ -519,8 +519,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         final Surface surface = plotPanel_.getSurface();
         final DataStore baseDataStore = plotPanel_.getDataStore();
         final boolean showProgress = showProgressModel_.isSelected();
-        final PointCloud.SubCloud[] subClouds =
-            new PointCloud( plotPanel_.getPlotLayers(), true ).getSubClouds();
+        final SubCloud[] subClouds = plotPanel_.getSubClouds();
 
         /* If necessary, count the number of positions we will need to
          * iterate over. */
@@ -558,7 +557,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
 
                 /* Iterate over each sub point cloud distinct positions. */
                 for ( int is = 0; is < subClouds.length; is++ ) {
-                    PointCloud.SubCloud subCloud = subClouds[ is ];
+                    SubCloud subCloud = subClouds[ is ];
                     DataGeom geom = subCloud.getDataGeom();
                     assert geom != null && geom.hasPosition();
                     DataSpec dataSpec = subCloud.getDataSpec();
@@ -624,8 +623,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         /* If no points were identified, clear the highlight list
          * for this plot. */
         if ( nHigh == 0 ) {
-            plotPanel_
-           .setHighlights( new HashMap<PointCloud.SubCloud,double[]>() );
+            plotPanel_.setHighlights( new HashMap<SubCloud,double[]>() );
         }
     }
 
@@ -641,14 +639,12 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         if ( surface == null ) {
             return;
         }
-        Map<PointCloud.SubCloud,double[]> highMap =
-            new LinkedHashMap<PointCloud.SubCloud,double[]>();
-        PointCloud.SubCloud[] subClouds =
-            new PointCloud( plotPanel_.getPlotLayers(), true ).getSubClouds();
+        Map<SubCloud,double[]> highMap = new LinkedHashMap<SubCloud,double[]>();
+        SubCloud[] subClouds = plotPanel_.getSubClouds();
         StarTable highTable = tcModel.getDataModel();
         DataStore dataStore = plotPanel_.getDataStore();
         for ( int is = 0; is < subClouds.length; is++ ) {
-            PointCloud.SubCloud subCloud = subClouds[ is ];
+            SubCloud subCloud = subClouds[ is ];
             if ( subCloud.getDataSpec().getSourceTable() == highTable ) {
                 double[] dpos = getDataPos( subCloud, irow, dataStore );
                 if ( dpos != null ) {
@@ -672,8 +668,8 @@ public class StackPlotWindow<P,A> extends AuxWindow {
      * @param  dataStore  data storage object
      * @return   data position if visible, else null
      */
-    private static double[] getDataPos( PointCloud.SubCloud subCloud,
-                                        long irow, DataStore dataStore ) {
+    private static double[] getDataPos( SubCloud subCloud, long irow,
+                                        DataStore dataStore ) {
         DataGeom geom = subCloud.getDataGeom();
         int iPosCoord = subCloud.getPosCoordIndex();
         if ( geom == null || ! geom.hasPosition() ) {
@@ -804,8 +800,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
 
         /* Get an iterable representing all the positions in all the layers
          * currently visible. */
-        final PointCloud.SubCloud[] subClouds =
-            new PointCloud( plotPanel_.getPlotLayers(), true ).getSubClouds();
+        final SubCloud[] subClouds = plotPanel_.getSubClouds();
 
         /* Calculate the total number of points contained in those layers.
          * This is an upper limit for the number of visible positions,
@@ -813,7 +808,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
          * to find the real count. */
         long nr = 0;
         for ( int is = 0; is < subClouds.length; is++ ) {
-            PointCloud.SubCloud subCloud = subClouds[ is ];
+            SubCloud subCloud = subClouds[ is ];
             TopcatModel tcModel = getTopcatModel( subCloud.getDataSpec() );
             nr += tcModel.getDataModel().getRowCount();
         }
@@ -831,7 +826,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                 Point gp = new Point();
                 double[] dpos = new double[ surface.getDataDimCount() ];
                 for ( int is = 0; is < subClouds.length; is++ ) {
-                    PointCloud.SubCloud subcloud = subClouds[ is ];
+                    SubCloud subcloud = subClouds[ is ];
                     DataSpec dataSpec = subcloud.getDataSpec();
                     DataGeom geom = subcloud.getDataGeom();
                     int iPosCoord = subcloud.getPosCoordIndex();

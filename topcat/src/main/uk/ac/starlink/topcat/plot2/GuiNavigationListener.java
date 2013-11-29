@@ -5,6 +5,7 @@ import javax.swing.SwingUtilities;
 import uk.ac.starlink.ttools.plot2.NavigationListener;
 import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.PointCloud;
+import uk.ac.starlink.ttools.plot2.SubCloud;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
@@ -63,20 +64,19 @@ public abstract class GuiNavigationListener<A> extends NavigationListener<A> {
 
     public Iterable<double[]> createDataPosIterable() {
 
-        /* Get a cloud to iterate over for providing data positions. */
-        final PointCloud cloud =
-            new PointCloud( plotPanel_.getPlotLayers(), true );
+        /* Get distinct point clouds to iterate over for providing
+         * data positions. */
+        SubCloud[] subClouds = plotPanel_.getSubClouds();
 
-        /* Work out how many positions there are in the cloud. */
+        /* Work out how many distinct positions there are. */
         long nrow = 0;
-        PointCloud.SubCloud[] subClouds = cloud.getSubClouds();
         for ( int i = 0; i < subClouds.length; i++ ) {
             nrow += ((GuiDataSpec) subClouds[ i ].getDataSpec()).getRowCount();
         }
 
         /* Return an iterable which can iterate over those positions,
          * checking for interruptions and reporting progress as it goes. */
-        return cloud
+        return new PointCloud( subClouds )
               .createDataPosIterable( plotPanel_.createGuiDataStore( nrow ) );
     }
 }

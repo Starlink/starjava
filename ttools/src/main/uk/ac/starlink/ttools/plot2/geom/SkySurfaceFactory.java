@@ -9,6 +9,7 @@ import uk.ac.starlink.ttools.plot2.Captioner;
 import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PointCloud;
+import uk.ac.starlink.ttools.plot2.SubCloud;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
 import uk.ac.starlink.ttools.plot2.config.BooleanConfigKey;
@@ -157,7 +158,8 @@ public class SkySurfaceFactory
     }
 
     public Range[] readRanges( PlotLayer[] layers, DataStore dataStore ) {
-        PointCloud pointCloud = new PointCloud( layers, true );
+        PointCloud pointCloud =
+            new PointCloud( SubCloud.createSubClouds( layers, true ) );
         Range[] ranges = new Range[] { new Range(), new Range(), new Range() };
         long ip = 0;
         for ( double[] dpos : pointCloud.createDataPosIterable( dataStore ) ) {
