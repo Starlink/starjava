@@ -34,9 +34,11 @@ public class PixellatorPixerFactory {
         IntList xlist = new IntList();
         IntList ylist = new IntList();
         int np = 0;
-        for ( pixellator.start(); pixellator.next(); np++ ) {
-            xlist.add( pixellator.getX() );
-            ylist.add( pixellator.getY() );
+        synchronized ( pixellator ) {
+            for ( pixellator.start(); pixellator.next(); np++ ) {
+                xlist.add( pixellator.getX() );
+                ylist.add( pixellator.getY() );
+            }
         }
         xs_ = xlist.toIntArray();
         ys_ = ylist.toIntArray();

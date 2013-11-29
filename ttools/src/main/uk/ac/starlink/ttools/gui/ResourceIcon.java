@@ -39,6 +39,8 @@ public class ResourceIcon {
         FORM_VECTOR = readIcon( "form-vector.gif" ),
         FORM_LINK2 = readIcon( "form-link2.gif" ),
         FORM_LINK3 = readIcon( "form-link3.gif" ),
+        FORM_MARKS2 = readIcon( "form-marks2.gif" ),
+        FORM_MARKS3 = readIcon( "form-marks3.gif" ),
         MODE_FLAT = readIcon( "mode-flat.gif" ),
         MODE_AUTO = readIcon( "mode-auto.gif" ),
         MODE_DENSITY = readIcon( "mode-density.gif" ),

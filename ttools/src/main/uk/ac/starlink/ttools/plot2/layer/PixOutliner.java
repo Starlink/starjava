@@ -71,7 +71,7 @@ public abstract class PixOutliner implements Outliner {
 
     /**
      * Partial PaperType implementation that accepts glyphs and uses their
-     * pixellators to build a 2-d histogram.  It doesn't do all the
+     * pixel iterators to build a 2-d histogram.  It doesn't do all the
      * other things that PaperTypes do, like create an icon or support
      * decals.  That's OK, we're not going to ask it to do those things.
      */
@@ -88,7 +88,7 @@ public abstract class PixOutliner implements Outliner {
             int xoff = bounds.x;
             int yoff = bounds.y;
 
-            /* Get the presented glyph's pixellator and clip it to bounds. */
+            /* Get the presented glyph's pixels clipped to bounds. */
             Rectangle cbox = new Rectangle( bounds );
             cbox.translate( -gx, -gy );
             Pixer pixer = glyph.createPixer( cbox );

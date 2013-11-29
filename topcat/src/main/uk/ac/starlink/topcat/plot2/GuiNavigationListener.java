@@ -69,9 +69,9 @@ public abstract class GuiNavigationListener<A> extends NavigationListener<A> {
 
         /* Work out how many positions there are in the cloud. */
         long nrow = 0;
-        DataSpec[] dataSpecs = cloud.getDataSpecs();
-        for ( int i = 0; i < dataSpecs.length; i++ ) {
-            nrow += ((GuiDataSpec) dataSpecs[ i ]).getRowCount();
+        PointCloud.SubCloud[] subClouds = cloud.getSubClouds();
+        for ( int i = 0; i < subClouds.length; i++ ) {
+            nrow += ((GuiDataSpec) subClouds[ i ].getDataSpec()).getRowCount();
         }
 
         /* Return an iterable which can iterate over those positions,

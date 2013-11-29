@@ -4,8 +4,10 @@ import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 
 /**
- * Defines input positional coordinates for a plot
- * and their mapping to the data space of a suitable plot surface.
+ * Translates the coordinates found in a TupleSequence to data space
+ * coordinates.
+ * It also contains metadata about the coordinates to assist
+ * in generating a UI to acquire them.
  *
  * @author   Mark Taylor
  * @since    11 Feb 2013
@@ -43,8 +45,17 @@ public interface DataGeom {
     boolean hasPosition();
 
     /**
-     * Determines the base positional coordinates in data space
+     * Determines the positional coordinates in data space
      * for the current row of a supplied tuple sequence.
+     *
+     * <p>A parameter supplies the index of the column in the tuple
+     * at which the positional coordinate(s) can be found.
+     * Each position is represented by {@link #getPosCoords} columns of
+     * the tuple.
+     * By convention positions are at the start of the tuple,
+     * so if there is one position in the tuple it will be at icol=0,
+     * and there are multiple positions the N'th one will be at
+     * icol=N*getPosCoords().
      *
      * <p>An array of (at least) {@link #getDataDimCount} elements is
      * supplied, and on success the data space coordinate values of the
@@ -52,8 +63,8 @@ public interface DataGeom {
      *
      * @param   tseq   coordinate row sequence,
      *                 positioned at the row of interest
-     * @param   icol   column index in <code>tseq</code> at which the geometry
-     *                 columns start; in most cases this is zero
+     * @param   icol   column index in <code>tseq</code> at which the
+     *                 positional information starts
      * @param   dpos   array into which data space coordinates are written
      * @return  true  iff conversion was successful
      */

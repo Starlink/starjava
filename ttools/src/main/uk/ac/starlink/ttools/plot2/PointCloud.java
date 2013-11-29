@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
@@ -57,7 +58,8 @@ public class PointCloud {
      * @param  layer   plot layer
      */
     public PointCloud( PlotLayer layer ) {
-        this( layer.getDataGeom(), layer.getDataSpec() );
+        this( layer.getDataGeom(), layer.getDataSpec(),
+              layer.getPlotter().getPositionCount(), true );
     }
 
     /**
@@ -66,24 +68,12 @@ public class PointCloud {
      *
      * @param  geom  data geom
      * @param  spec  data spec
+     * @param  npos  number of positions in the data spec
+     * @param  deduplicate  true to cull duplicated entries
      */
-    public PointCloud( DataGeom geom, DataSpec spec ) {
-        this( Collections.singletonList( new SubCloud( geom, spec ) ) );
-    }
-
-    /**
-     * Constructs a point cloud from matched arrays of geometries and dataspecs.
-     * The geometry information is assumed to start in each case from the
-     * first column.
-     *
-     * @param  geoms  array of data geoms
-     * @param  specs  array of data specs, each element corresponding to an
-     *                element of <code>geoms</code>
-     * @param  deduplicate  true to cull duplicate layers
-     */
-    public PointCloud( DataGeom[] geoms, DataSpec[] specs,
+    public PointCloud( DataGeom geom, DataSpec spec, int npos,
                        boolean deduplicate ) {
-        this( createSubClouds( geoms, specs, deduplicate ) );
+        this( createSubClouds( geom, spec, npos, deduplicate ) );
     }
 
     /**
@@ -91,7 +81,7 @@ public class PointCloud {
      *
      * @return  subcloud collection
      */
-    private PointCloud( Collection<SubCloud> subClouds ) {
+    public PointCloud( Collection<SubCloud> subClouds ) {
         subClouds_ = subClouds;
         Iterator<SubCloud> it = subClouds.iterator();
         ndim_ = it.hasNext() ? it.next().geom_.getDataDimCount() : 0;
@@ -128,19 +118,12 @@ public class PointCloud {
     }
 
     /**
-     * Returns an array of the DataSpecs contained in this point cloud.
-     * A single data spec may appear more than once in the list, though
-     * it's not necessarily going to be one for each of the layers used
-     * at construction time.
+     * Returns an array of the subclouds in this point cloud.
      *
-     * @return  data spec array
+     * @return  subcloud array
      */
-    public DataSpec[] getDataSpecs() {
-        List<DataSpec> specs = new ArrayList<DataSpec>( subClouds_.size() );
-        for ( SubCloud sc : subClouds_ ) {
-            specs.add( sc.spec_ );
-        }
-        return specs.toArray( new DataSpec[ 0 ] );
+    public SubCloud[] getSubClouds() {
+        return subClouds_.toArray( new SubCloud[ 0 ] );
     }
 
     @Override
@@ -216,42 +199,23 @@ public class PointCloud {
      */
     private static Collection<SubCloud> createSubClouds( PlotLayer[] layers,
                                                          boolean deduplicate ) {
+        Collection<SubCloud> subClouds = deduplicate
+                                       ? new LinkedHashSet<SubCloud>()
+                                       : new ArrayList<SubCloud>();
         int nl = layers.length;
-        DataGeom[] geoms = new DataGeom[ nl ];
-        DataSpec[] specs = new DataSpec[ nl ];
+        int ndim0 = -1;
         for ( int il = 0; il < nl; il++ ) {
             PlotLayer layer = layers[ il ];
-            geoms[ il ] = layer.getDataGeom();
-            specs[ il ] = layer.getDataSpec();
-        }
-        return createSubClouds( geoms, specs, deduplicate );
-    }
+            DataGeom geom = layer.getDataGeom();
+            DataSpec spec = layer.getDataSpec();
+            int npos = layer.getPlotter().getPositionCount();
+            if ( geom != null && spec != null && npos > 0 ) {
 
-    /**
-     * Returns a collection of subclouds from matched arrays of
-     * DataGeoms and DataSpecs, with optional deduplication.
-     *
-     * @param  geoms  array of data geoms
-     * @param  specs  array of data specs, each element corresponding to an
-     *                element of <code>geoms</code>
-     * @param  deduplicate  true to cull duplicate layers
-     * @return subcloud collection
-     */
-    private static Collection<SubCloud> createSubClouds( DataGeom[] geoms,
-                                                         DataSpec[] specs,
-                                                         boolean deduplicate ) {
-        Collection<SubCloud> subClouds = deduplicate
-                                       ? new HashSet<SubCloud>()
-                                       : new ArrayList<SubCloud>();
-        int n = geoms.length;
-        if ( specs.length != n ) {
-            throw new IllegalArgumentException( "Count mismatch" );
-        }
-        int ndim0 = -1;
-        for ( int i = 0; i < n; i++ ) {
-            DataGeom geom = geoms[ i ];
-            DataSpec spec = specs[ i ];
-            if ( geom != null && spec != null ) {
+                /* Add an entry. */
+                subClouds.addAll( createSubClouds( geom, spec, npos,
+                                                   deduplicate ) );
+
+                /* Check consistency. */
                 int ndim = geom.getDataDimCount();
                 if ( ndim0 < 0 ) {
                     ndim0 = ndim;
@@ -260,7 +224,32 @@ public class PointCloud {
                     throw new IllegalArgumentException( "dimensionality "
                                                       + "mismatch" );
                 }
-                subClouds.add( new SubCloud( geom, spec ) );
+            }
+        }
+        return subClouds;
+    }
+
+    /**
+     * Returns a collection of subclouds for a number of positions from
+     * a data spec.
+     *
+     * @param  geom  data geom
+     * @param  spec  data spec
+     * @param  npos  number of positions in the data spec
+     * @param  deduplicate  true to cull duplicate layers
+     * @return  collection of subclouds
+     */
+    private static Collection<SubCloud> createSubClouds( DataGeom geom,
+                                                         DataSpec spec,
+                                                         int npos,
+                                                         boolean deduplicate ) {
+        Collection<SubCloud> subClouds = deduplicate
+                                       ? new LinkedHashSet<SubCloud>()
+                                       : new ArrayList<SubCloud>();
+        if ( geom != null && spec != null && npos > 0 ) {
+            int npc = geom.getPosCoords().length;
+            for ( int ip = 0; ip < npos; ip++ ) {
+                subClouds.add( new SubCloud( geom, spec, ip * npc ) );
             }
         }
         return subClouds;
@@ -276,6 +265,7 @@ public class PointCloud {
         private final double[] dpos1_;
         private final Point gp_;
         private DataGeom geom_;
+        private int iPosCoord_;
         private TupleSequence tseq_;
         private boolean hasNext_;
 
@@ -318,13 +308,14 @@ public class PointCloud {
          */
         private boolean advance() {
             while ( tseq_.next() ) {
-                if ( geom_.readDataPos( tseq_, 0, dpos_ ) ) {
+                if ( geom_.readDataPos( tseq_, iPosCoord_, dpos_ ) ) {
                     return true;
                 }
             }
             while ( cloudIt_.hasNext() ) {
                 SubCloud cloud = cloudIt_.next();
                 geom_ = cloud.geom_;
+                iPosCoord_ = cloud.iPosCoord_;
                 tseq_ = dataStore_.getTupleSequence( cloud.spec_ );
                 return advance();
             }
@@ -338,19 +329,51 @@ public class PointCloud {
      * This determines what data positions it will return.
      */
     @Equality
-    private static class SubCloud {
-        final DataGeom geom_;
-        final DataSpec spec_;
+    public static class SubCloud {
+        private final DataGeom geom_;
+        private final DataSpec spec_;
+        private final int iPosCoord_;
  
         /**
          * Constructor.
          *
          * @param  geom  data geom
          * @param  spec  data spec
+         * @param  iPosCoord  index of coordinate at which position information
+         *                    starts in the DataSpec
          */
-        SubCloud( DataGeom geom, DataSpec spec ) {
+        SubCloud( DataGeom geom, DataSpec spec, int iPosCoord ) {
             geom_ = geom;
             spec_ = spec;
+            iPosCoord_ = iPosCoord;
+        }
+
+        /**
+         * Returns the data geom for this subcloud.
+         *
+         * @return  geom
+         */
+        public DataGeom getDataGeom() {
+            return geom_;
+        }
+
+        /**
+         * Returns the data spec for this subcloud.
+         *
+         * @return  spec
+         */
+        public DataSpec getDataSpec() {
+            return spec_;
+        }
+
+        /**
+         * Returns the index of the data spec coordinate at which the
+         * position information starts for this subcloud.
+         *
+         * @return  position coordinate index
+         */
+        public int getPosCoordIndex() {
+            return iPosCoord_;
         }
 
         @Override
@@ -380,7 +403,7 @@ public class PointCloud {
             list.add( spec_.getSourceTable() );
             list.add( spec_.getMaskId() );
             for ( int ic = 0; ic < nc; ic++ ) {
-                list.add( spec_.getCoordId( ic ) );
+                list.add( spec_.getCoordId( iPosCoord_ + ic ) );
             }
             assert list.size() == ni;
             return list;

@@ -51,6 +51,7 @@ import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotPlacement;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Plotter;
+import uk.ac.starlink.ttools.plot2.PointCloud;
 import uk.ac.starlink.ttools.plot2.ShadeAxis;
 import uk.ac.starlink.ttools.plot2.Slow;
 import uk.ac.starlink.ttools.plot2.Subrange;
@@ -126,7 +127,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
     private Cancellable extraNoteRunner_;
     private Workings<A> workings_;
     private Surface latestSurface_;
-    private Map<DataSpec,double[]> highlightMap_;
+    private Map<PointCloud.SubCloud,double[]> highlightMap_;
 
     private static final Icon HIGHLIGHTER = new HighlightIcon();
     private static final Logger logger_ =
@@ -201,7 +202,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                 replot();
             }
         } );
-        highlightMap_ = new HashMap<DataSpec,double[]>();
+        highlightMap_ = new HashMap<PointCloud.SubCloud,double[]>();
         clearData();
     }
 
@@ -430,9 +431,10 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      * These highlights will be retained for as long as the given
      * data specs are visible.
      *
-     * @param  highlightMap  sequence of data positions labelled by DataSpec
+     * @param  highlightMap  sequence of data positions labelled by SubCloud
      */
-    public void setHighlights( Map<DataSpec,double[]> highlightMap ) {
+    public void setHighlights( Map<PointCloud.SubCloud,double[]>
+                               highlightMap ) {
         highlightMap_ = highlightMap;
         replot();
     }
@@ -481,7 +483,9 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
          * than at plot job creation, since creating a plot job does
          * not entail that it will ever be plotted, but it's likely
          * that the effect will be the same. */
-        highlightMap_.keySet().retainAll( getDataSpecs( layers ) );
+        PointCloud.SubCloud[] subClouds =
+            new PointCloud( layers, true ).getSubClouds();
+        highlightMap_.keySet().retainAll( Arrays.asList( subClouds ) );
         double[][] highlights = highlightMap_.values()
                                              .toArray( new double[ 0 ][] );
 

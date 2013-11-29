@@ -1,7 +1,6 @@
 package uk.ac.starlink.ttools.plot2.layer;
 
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -63,23 +62,15 @@ public class PairLinkForm implements ShapeForm {
      * @return  legend icon
      */
     private static Icon createLegendIcon() {
-        final int dist = 10;
-        final int pad = 3;
-        final int size = dist + 2 * pad;
-        final Glyph glyph = getLineGlyph( dist, -dist );
-        return new Icon() {
-            public int getIconHeight() {
-                return size;
-            }
-            public int getIconWidth() {
-                return size;
-            }
-            public void paintIcon( Component c, Graphics g, int x, int y ) {
-                int xoff = x + pad;
-                int yoff = y + size - pad;
-                g.translate( xoff, yoff );
-                glyph.paintGlyph( g );
-                g.translate( -xoff, -yoff );
+        return new MultiPosIcon( 2 ) {
+            protected void paintPositions( Graphics g, Point[] positions ) {
+                Point p0 = positions[ 0 ];
+                Point p1 = positions[ 1 ];
+                int xoff = p0.x;
+                int yoff = p0.y;
+                g.translate( p0.x, p0.y );
+                getLineGlyph( p1.x - p0.x, p1.y - p0.y ).paintGlyph( g );
+                g.translate( -p0.x, -p0.y );
             }
         };
     }

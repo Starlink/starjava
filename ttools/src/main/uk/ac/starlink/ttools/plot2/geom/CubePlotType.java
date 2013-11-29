@@ -63,7 +63,7 @@ public class CubePlotType implements PlotType {
     public Plotter[] getPlotters() {
         List<Plotter> list = new ArrayList<Plotter>();
         ShapeForm[] forms = new ShapeForm[] {
-            new MarkForm(),
+            MarkForm.SINGLE,
             new SizeForm(),
             MultiPointForm
            .createVectorForm( new CartesianVectorCoordSet( axisNames_ ),
@@ -73,6 +73,7 @@ public class CubePlotType implements PlotType {
                             .createAllAxesErrorCoordSet( axisNames_ ),
                              StyleKeys.ERROR_SHAPE_3D ),
             new PairLinkForm(),
+            MarkForm.PAIR,
         };
         Plotter[] shapePlotters =
             ShapePlotter.createShapePlotters( forms, ShapeMode.MODES_3D );

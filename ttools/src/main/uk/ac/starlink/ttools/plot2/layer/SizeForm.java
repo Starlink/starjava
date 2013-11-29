@@ -8,7 +8,6 @@ import java.util.Map;
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.plot.MarkShape;
-import uk.ac.starlink.ttools.plot.MarkStyle;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.AuxReader;
 import uk.ac.starlink.ttools.plot2.AuxScale;
@@ -244,8 +243,7 @@ public class SizeForm implements ShapeForm {
             isize = Math.max( 0, isize );
             Glyph glyph = glyphMap_.get( isize );
             if ( glyph == null ) {
-                MarkStyle style = MarkForm.createMarkStyle( shape_, isize );
-                glyph = MarkForm.createMarkGlyph( style );
+                glyph = MarkForm.createMarkGlyph( shape_, isize );
                 glyphMap_.put( isize, glyph );
             }
             return glyph;
