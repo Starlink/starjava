@@ -8503,6 +8503,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
             That has been broken since mid-2010.</li>
         <li>Add new command <code>tloop</code> for generating single-column
             tables from a numeric loop variable.</li>
+        <li><code>taplint</code> now checks for the right ObsCore ID,
+            though still recognises the wrong one (got from TAPRegExt),
+            and warns if found.</li>
         </ul>
         </p></dd>
 
