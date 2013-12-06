@@ -31,7 +31,9 @@ public class ObsTapStage implements Stage {
     private final CapabilityHolder capHolder_;
     private final MetadataHolder metaHolder_;
 
-    private static final String OBSCORE_ID = "ivo://ivoa.net/std/ObsCore-1.0";
+    private static final String OBSCORE_ID = "ivo://ivoa.net/std/ObsCore/v1.0";
+    private static final String OBSCORE_ID_WRONG =
+        "ivo://ivoa.net/std/ObsCore-1.0";
     private static final String OBSCORE_TNAME = "ivoa.ObsCore";
 
     private static Map<String,ObsCol> mandatoryColumnMap_;
@@ -60,9 +62,7 @@ public class ObsTapStage implements Stage {
         /* Check prerequisites. */
         TapCapability tcap = capHolder_.getCapability();
         if ( tcap != null ) {
-            String[] dms = tcap.getDataModels();
-            if ( dms == null ||
-                 ! Arrays.asList( dms ).contains( OBSCORE_ID ) ) {
+            if ( ! hasObscoreDm( reporter, tcap ) ) {
                 reporter.report( ReportType.FAILURE, "NODM",
                                  "Table capabilities lists no DataModel "
                                + OBSCORE_ID );
@@ -93,6 +93,65 @@ public class ObsTapStage implements Stage {
 
         /* Run tests. */
         new ObsTapRunner( reporter, serviceUrl, obsMeta, tapRunner_ ).run();
+    }
+
+    /**
+     * Determines whether a table capability reports conformance to the
+     * ObsCore data model.  If not, an appropriate report is made.
+     *
+     * @param  reporter   reporter
+     * @param  tcap    tap capability object
+     * @param  true  iff it looks like ObsCore is indicated
+     */
+    private boolean hasObscoreDm( Reporter reporter, TapCapability tcap ) {
+        String[] dms = tcap.getDataModels();
+        List<String> dmList = new ArrayList<String>();
+
+        /* Matching for IDs is case-insensitive - see document
+         * IVOA Identifiers v1.12, section 2. */
+        if ( dms != null ) {
+            for ( int i = 0; i < dms.length; i++ ) {
+                dmList.add( dms[ i ].toLowerCase() );
+            }
+        }
+
+        /* Check for OBSCORE_ID, which is the identifier taken from the
+         * ObsCore 1.0 document. */
+        if ( dmList.contains( OBSCORE_ID.toLowerCase() ) ) {
+            return true;
+        }
+
+        /* Failing that, check for OBSCORE_ID_WRONG, which is a string
+         * erroneously used in examples in TAPRegExt 1.0.  This confusion
+         * reported on {dal,dm}@ivoa.net mailing lists on 4 Dec 2013. */
+        else if ( dmList.contains( OBSCORE_ID_WRONG.toLowerCase() ) ) {
+            String msg = new StringBuffer()
+               .append( "Wrong ObsCore identifier " )
+               .append( OBSCORE_ID_WRONG )
+               .append( " reported, should be " )
+               .append( OBSCORE_ID )
+               .append( " (known error in TAPRegExt 1.0 document)" )
+               .toString();
+            reporter.report( ReportType.WARNING, "WODM", msg );
+            return true;
+        }
+
+        /* Failing that, if it says ObsCore, that's probably what it means. */
+        else {
+            for ( String dm : dmList ) {
+                if ( dm.toLowerCase().indexOf( "obscore" ) >= 0 ) {
+                    String msg = new StringBuffer()
+                       .append( "Mis-spelt ObsCore identifier? " )
+                       .append( dm )
+                       .append( " reported, should be " )
+                       .append( OBSCORE_ID )
+                       .toString();
+                    reporter.report( ReportType.WARNING, "IODM", msg );
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 
     /**
