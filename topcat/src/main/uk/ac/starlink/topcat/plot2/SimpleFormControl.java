@@ -31,7 +31,8 @@ public class SimpleFormControl extends FormControl {
         Coord[] extraCoords = plotter.getExtraCoords();
         extraCoordPanel_ = new CoordPanel( extraCoords, false );
         if ( extraCoords.length > 0 ) {
-            extraCoordPanel_.setBorder( AuxWindow
+            extraCoordPanel_.getComponent()
+                            .setBorder( AuxWindow
                                        .makeTitledBorder( "Coordinates" ) );
         }
         extraCoordPanel_.addActionListener( getActionForwarder() );
@@ -46,7 +47,7 @@ public class SimpleFormControl extends FormControl {
     }
 
     protected JComponent getCoordPanel() {
-        return extraCoordPanel_;
+        return extraCoordPanel_.getComponent();
     }
 
     public GuiCoordContent[] getExtraCoordContents() {

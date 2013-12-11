@@ -15,7 +15,6 @@ import uk.ac.starlink.ttools.plot2.layer.SpectrogramPlotter;
 public class SpectrogramLayerControl extends BasicCoordLayerControl {
 
     private final SpectrogramPlotter plotter_;
-    private final CoordPanel coordPanel_;
 
     /**
      * Constructor.
@@ -24,14 +23,10 @@ public class SpectrogramLayerControl extends BasicCoordLayerControl {
      */
     public SpectrogramLayerControl( SpectrogramPlotter plotter ) {
         super( plotter,
-               new SimplePositionCoordPanel( new CoordPanel( plotter
-                                                            .getExtraCoords(),
-                                                             false ),
-                                             null ) );
+               new SimplePositionCoordPanel( plotter.getExtraCoords(),
+                                             false, null ) );
         plotter_ = plotter;
         assert plotter.getPositionCount() == 0;
-        coordPanel_ = (CoordPanel) ((SimplePositionCoordPanel) getCoordPanel())
-                                  .getComponent();  // sorry.
     }
 
     /**
@@ -46,18 +41,19 @@ public class SpectrogramLayerControl extends BasicCoordLayerControl {
     @Override
     protected void tableChanged( TopcatModel tcModel ) {
         super.tableChanged( tcModel );
+        CoordPanel coordPanel = getCoordPanel();
 
         /* Fix default xExtent value to null, since it gives reasonable
          * results. */
-        coordPanel_.getColumnSelector( plotter_.getExtentCoordIndex(), 0 )
-                   .setSelectedItem( null );
+        coordPanel.getColumnSelector( plotter_.getExtentCoordIndex(), 0 )
+                  .setSelectedItem( null );
 
         /* Replace the default column selector for spectrum.
          * The default picks any column [with content class descended
          * from Object], because that's how the ValueInfo is described.
          * But we really only want columns with numeric vector values. */
         if ( tcModel != null ) {
-            coordPanel_
+            coordPanel
            .setColumnSelector( plotter_.getSpectrumCoordIndex(), 0,
                                createSpectrumColumnSelector( tcModel ) );
         }
