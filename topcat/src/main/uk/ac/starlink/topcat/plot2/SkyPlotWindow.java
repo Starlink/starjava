@@ -1,7 +1,7 @@
 package uk.ac.starlink.topcat.plot2;
 
+import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -82,12 +82,11 @@ public class SkyPlotWindow
      * is projected (set in the axis controller).
      */
     private static abstract class SkyPositionCoordPanel
-            implements PositionCoordPanel {
+            extends PositionCoordPanel {
 
         private final boolean autoPopulate_;
-        private final JComponent panel_;
-        private final CoordPanel basePanel_;
         private final Specifier<SkySys> dataSysSpecifier_;
+        private final JComponent panel_;
 
         /**
          * Constructor.
@@ -97,23 +96,24 @@ public class SkyPlotWindow
          *          coordinates from an available table when possible
          */
         SkyPositionCoordPanel( int npos, boolean autoPopulate ) {
+            super( multiplyCoords( SkyDataGeom.createGeom( null, null )
+                                              .getPosCoords(), npos ),
+                   autoPopulate );
             autoPopulate_ = autoPopulate;
-
-            /* The basic functionality is just a sky panel for the sky
-             * coordinates. */
-            basePanel_ = new CoordPanel( SkyDataGeom.createGeom( null, null )
-                                        .getPosCoords(), npos, false );
 
             /* But add a data sky system selector. */
             ConfigSpecifier cspec =
                 new ConfigSpecifier( new ConfigKey[] { DATASYS_KEY } );
             dataSysSpecifier_ = cspec.getSpecifier( DATASYS_KEY );
-            dataSysSpecifier_.addActionListener( basePanel_
-                                                .getActionForwarder() );
+            dataSysSpecifier_.addActionListener( getActionForwarder() );
             panel_ = Box.createVerticalBox();
-            panel_.add( cspec.getComponent() );
-            panel_.add( Box.createVerticalStrut( 5 ) );
-            panel_.add( new LineBox( basePanel_ ) );
+            panel_.add( new LineBox( null, cspec.getComponent(), true ) );
+            panel_.add( super.getComponent() );
+        }
+
+        @Override
+        public JComponent getComponent() {
+            return panel_;
         }
 
         /**
@@ -138,17 +138,11 @@ public class SkyPlotWindow
             return SkyDataGeom.createGeom( getDataSystem(), getViewSystem() );
         }
 
-        public JComponent getComponent() {
-            return panel_;
-        }
-
         public void setTable( TopcatModel table ) {
-            basePanel_.setTable( table );
+            super.setTable( table );
             if ( autoPopulate_ ) {
-                ColumnDataComboBoxModel lonModel =
-                    basePanel_.getColumnSelector( 0, 0 );
-                ColumnDataComboBoxModel latModel =
-                    basePanel_.getColumnSelector( 0, 1 );
+                ColumnDataComboBoxModel lonModel = getColumnSelector( 0, 0 );
+                ColumnDataComboBoxModel latModel = getColumnSelector( 0, 1 );
                 ColPopulator cp = new ColPopulator( lonModel, latModel );
                 SkySys currentSys = dataSysSpecifier_.getSpecifiedValue();
                 SkySys sys = new ColPopulator( lonModel, latModel )
@@ -157,18 +151,6 @@ public class SkyPlotWindow
                     dataSysSpecifier_.setSpecifiedValue( sys );
                 }
             }
-        }
-
-        public GuiCoordContent[] getContents() {
-            return basePanel_.getContents();
-        }
-
-        public void addActionListener( ActionListener listener ) {
-            basePanel_.addActionListener( listener );
-        }
-
-        public void removeActionListener( ActionListener listener ) {
-            basePanel_.removeActionListener( listener );
         }
     }
 

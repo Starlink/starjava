@@ -73,17 +73,14 @@ public abstract class PlotterStackAction extends BasicAction {
         }
 
         /* Not great - no options for miscellaneous plotters with both
-         * positional and non-positional coordinates.  There's no reason
-         * it can't be done, but the (probably unnecessarily messy)
-         * way that CoordPanel and PositionCoordPanel are currently
-         * defined makes it fiddly to do. */
+         * positional and non-positional coordinates.  Could be done if
+         * necessary. */
         else if ( plotter.getPositionCount() == 0 ) {
             return new PlotterStackAction( plotter, stack ) {
                 protected LayerControl createLayerControl() {
                     PositionCoordPanel coordPanel =
-                        new SimplePositionCoordPanel(
-                            new CoordPanel( plotter.getExtraCoords(), false ),
-                            null );
+                        new SimplePositionCoordPanel( plotter.getExtraCoords(),
+                                                      false, null );
                     return new BasicCoordLayerControl( plotter, coordPanel );
                 }
             };

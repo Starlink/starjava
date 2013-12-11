@@ -86,6 +86,7 @@ public class ModeFormControl extends FormControl {
                             false );
         if ( ! commonExtraCoordList.isEmpty() ) {
             commonExtraCoordPanel_
+           .getComponent()
            .setBorder( AuxWindow.makeTitledBorder( "Coordinates" ) );
         }
         commonExtraCoordPanel_.addActionListener( forwarder );
@@ -153,7 +154,8 @@ public class ModeFormControl extends FormControl {
         modePanel.setBorder( AuxWindow.makeTitledBorder( "Shading" ) );
         panel_ = new JPanel( new BorderLayout() );
         panel_.add( modePanel, BorderLayout.NORTH );
-        panel_.add( commonExtraCoordPanel_, BorderLayout.CENTER );
+        panel_.add( commonExtraCoordPanel_.getComponent(),
+                    BorderLayout.CENTER );
         modeSpecifier.setSpecifiedValue( modeMap_.keySet().iterator().next() );
     }
 
@@ -232,7 +234,7 @@ public class ModeFormControl extends FormControl {
         if ( state_ != null ) {
             CoordPanel coordPanel = state_.modeCoordPanel_;
             coordPanel.addActionListener( forwarder );
-            modeCoordHolder_.add( coordPanel );
+            modeCoordHolder_.add( coordPanel.getComponent() );
             ConfigSpecifier configSpecifier = state_.modeConfigSpecifier_;
             configSpecifier.addActionListener( forwarder );
             modeConfigHolder_.add( configSpecifier.getComponent() );
@@ -336,7 +338,8 @@ public class ModeFormControl extends FormControl {
             plotter_ = plotter;
             modeCoordPanel_ = new CoordPanel( modeCoords, false );
             if ( modeCoords.length > 0 ) {
-                modeCoordPanel_.setBorder( BorderFactory
+                modeCoordPanel_.getComponent()
+                               .setBorder( BorderFactory
                                           .createEmptyBorder( 0, 0, 5, 0 ) );
             }
             modeConfigSpecifier_ = new ConfigSpecifier( configKeys );
