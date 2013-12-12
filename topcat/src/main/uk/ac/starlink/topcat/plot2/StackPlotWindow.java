@@ -89,6 +89,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     private final PlotPanel<P,A> plotPanel_;
     private final ControlStack stack_;
     private final ControlStackModel stackModel_;
+    private final ControlManager controlManager_;
     private final ToggleButtonModel showProgressModel_;
     private final JLabel posLabel_;
     private final JLabel countLabel_;
@@ -289,10 +290,10 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                 }
             }
         };
-        ControlManager controlManager =
+        controlManager_ =
             new GangControlManager( stack_, plotType, plotTypeGui, configger,
                                     tcListener );
-        Action[] stackActions = controlManager.getStackActions();
+        Action[] stackActions = controlManager_.getStackActions();
 
         /* Action for deleting a control from the stack. */
         Action removeAction =
@@ -402,15 +403,6 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         cpanel.setLayout( new BoxLayout( cpanel, BoxLayout.X_AXIS ) );
         cpanel.add( statusLine );
 
-        /* Try to set up a default control so that when the window opens
-         * something gets plotted immediately. */
-        Control dfltControl =
-            controlManager.createDefaultControl( ControlWindow.getInstance()
-                                                .getCurrentModel() );
-        if ( dfltControl != null ) {
-            stack_.addControl( dfltControl );
-        }
-
         /* Set default component dimensions. */
         displayPanel.setMinimumSize( new Dimension( 150, 150 ) );
         displayPanel.setPreferredSize( new Dimension( 500, 400 ) );
@@ -420,6 +412,25 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         /* Place the plot and control components. */
         getMainArea().setLayout( new BorderLayout() );
         floater.init();
+    }
+
+    /**
+     * Returns the stack containing controls which define what this
+     * window is displaying.
+     *
+     * @return   control stack
+     */
+    public ControlStack getControlStack() {
+        return stack_;
+    }
+
+    /**
+     * Returns the manager object that controls this window's stack.
+     *
+     * @return   control manager
+     */
+    public ControlManager getControlManager() {
+        return controlManager_;
     }
 
     @Override
