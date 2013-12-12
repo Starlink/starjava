@@ -80,7 +80,7 @@ public abstract class PlotterStackAction extends BasicAction {
                 protected LayerControl createLayerControl() {
                     PositionCoordPanel coordPanel =
                         new SimplePositionCoordPanel( plotter.getExtraCoords(),
-                                                      false, null );
+                                                      null );
                     return new BasicCoordLayerControl( plotter, coordPanel );
                 }
             };

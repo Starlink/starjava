@@ -58,6 +58,7 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
 public class GangLayerControl extends TabberControl implements LayerControl {
 
     private final PositionCoordPanel posCoordPanel_;
+    private final boolean autoPopulate_;
     private final Configger baseConfigger_;
     private final ConfigKey[] subsetKeys_;
     private final TablesListComboBox tableSelector_;
@@ -74,6 +75,9 @@ public class GangLayerControl extends TabberControl implements LayerControl {
      *
      * @param  posCoordPanel  panel for entering table and basic positional
      *                        coordinates
+     * @param  autoPopulate  if true, when the table is changed an attempt
+     *                       will be made to initialise the coordinate fields
+     *                       with some suitable values
      * @param  plotters    plotter objects providing different plot layer
      *                     type options
      * @param  baseConfigger  configuration source for some global config
@@ -85,11 +89,13 @@ public class GangLayerControl extends TabberControl implements LayerControl {
      * @param  controlIcon  icon for control stack
      */
     public GangLayerControl( PositionCoordPanel posCoordPanel,
+                             boolean autoPopulate,
                              Plotter[] plotters, Configger baseConfigger,
                              NextSupplier nextSupplier,
                              TopcatListener tcListener, Icon controlIcon ) {
         super( null, controlIcon );
         posCoordPanel_ = posCoordPanel;
+        autoPopulate_ = autoPopulate;
         baseConfigger_ = baseConfigger;
         subsetKeys_ = nextSupplier.getKeys();
         final TopcatListener externalTcListener = tcListener;
@@ -418,6 +424,9 @@ public class GangLayerControl extends TabberControl implements LayerControl {
         /* Message the position selection panel and form controls so they
          * can update their lists of selectable columns etc. */
         posCoordPanel_.setTable( tcModel_ );
+        if ( autoPopulate_ ) {
+            posCoordPanel_.autoPopulate();
+        }
         FormControl[] fcs = getActiveFormControls();
         for ( int ifc = 0; ifc < fcs.length; ifc++ ) {
             fcs[ ifc ].setTable( tcModel_, subsetManager_ );

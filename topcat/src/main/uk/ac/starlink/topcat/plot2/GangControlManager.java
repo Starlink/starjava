@@ -134,6 +134,7 @@ public class GangControlManager implements ControlManager {
         return plotterList != null && plotterList.size() > 0
              ? new GangLayerControl( plotTypeGui_
                                     .createPositionCoordPanel( npos ),
+                                     npos == 1,
                                      plotterList.toArray( new Plotter[ 0 ] ),
                                      baseConfigger_, nextSupplier_,
                                      tcListener_, icon )

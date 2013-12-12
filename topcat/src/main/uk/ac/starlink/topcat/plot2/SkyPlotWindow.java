@@ -66,7 +66,7 @@ public class SkyPlotWindow
         }
 
         public PositionCoordPanel createPositionCoordPanel( int npos ) {
-            return new SkyPositionCoordPanel( npos, npos == 1 ) {
+            return new SkyPositionCoordPanel( npos ) {
                 SkySys getViewSystem() {
                     return axisControl_.getViewSystem();
                 }
@@ -84,7 +84,6 @@ public class SkyPlotWindow
     private static abstract class SkyPositionCoordPanel
             extends PositionCoordPanel {
 
-        private final boolean autoPopulate_;
         private final Specifier<SkySys> dataSysSpecifier_;
         private final JComponent panel_;
 
@@ -92,14 +91,10 @@ public class SkyPlotWindow
          * Constructor.
          *
          * @param   npos  number of groups of positional coordinates for entry
-         * @param   autoPopulate  true if it should be filled in with
-         *          coordinates from an available table when possible
          */
-        SkyPositionCoordPanel( int npos, boolean autoPopulate ) {
+        SkyPositionCoordPanel( int npos ) {
             super( multiplyCoords( SkyDataGeom.createGeom( null, null )
-                                              .getPosCoords(), npos ),
-                   autoPopulate );
-            autoPopulate_ = autoPopulate;
+                                              .getPosCoords(), npos ) );
 
             /* But add a data sky system selector. */
             ConfigSpecifier cspec =
@@ -138,18 +133,16 @@ public class SkyPlotWindow
             return SkyDataGeom.createGeom( getDataSystem(), getViewSystem() );
         }
 
-        public void setTable( TopcatModel table ) {
-            super.setTable( table );
-            if ( autoPopulate_ ) {
-                ColumnDataComboBoxModel lonModel = getColumnSelector( 0, 0 );
-                ColumnDataComboBoxModel latModel = getColumnSelector( 0, 1 );
-                ColPopulator cp = new ColPopulator( lonModel, latModel );
-                SkySys currentSys = dataSysSpecifier_.getSpecifiedValue();
-                SkySys sys = new ColPopulator( lonModel, latModel )
-                            .attemptPopulate( currentSys );
-                if ( sys != null && sys != currentSys ) {
-                    dataSysSpecifier_.setSpecifiedValue( sys );
-                }
+        @Override
+        public void autoPopulate() {
+            ColumnDataComboBoxModel lonModel = getColumnSelector( 0, 0 );
+            ColumnDataComboBoxModel latModel = getColumnSelector( 0, 1 );
+            ColPopulator cp = new ColPopulator( lonModel, latModel );
+            SkySys currentSys = dataSysSpecifier_.getSpecifiedValue();
+            SkySys sys = new ColPopulator( lonModel, latModel )
+                        .attemptPopulate( currentSys );
+            if ( sys != null && sys != currentSys ) {
+                dataSysSpecifier_.setSpecifiedValue( sys );
             }
         }
     }

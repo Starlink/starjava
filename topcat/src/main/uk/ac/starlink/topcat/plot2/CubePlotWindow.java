@@ -37,8 +37,7 @@ public class CubePlotWindow
         }
         public PositionCoordPanel createPositionCoordPanel( int npos ) {
             return SimplePositionCoordPanel
-                  .createPanel( PLOT_TYPE.getPointDataGeoms()[ 0 ],
-                                npos, npos == 1 );
+                  .createPanel( PLOT_TYPE.getPointDataGeoms()[ 0 ], npos );
         }
     }
 }
