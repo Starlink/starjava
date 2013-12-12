@@ -117,6 +117,7 @@ import uk.ac.starlink.topcat.plot.HistogramWindow;
 import uk.ac.starlink.topcat.plot.LinesWindow;
 import uk.ac.starlink.topcat.plot.PlotWindow;
 import uk.ac.starlink.topcat.plot.SphereWindow;
+import uk.ac.starlink.topcat.plot2.Control;
 import uk.ac.starlink.topcat.plot2.CubePlotWindow;
 import uk.ac.starlink.topcat.plot2.PlanePlotWindow;
 import uk.ac.starlink.topcat.plot2.SkyPlotWindow;
@@ -418,28 +419,28 @@ public class ControlWindow extends AuxWindow
                                       DensityWindow.class ),
         };
         plot2Acts_ = new Action[] {
-            new TopcatWindowAction( "Plane Layer Plot",
-                                    ResourceIcon.PLOT2_PLANE,
-                                    "Plane plotting window",
-                                    PlanePlotWindow.class ),
-            new TopcatWindowAction( "Sky Layer Plot",
-                                    ResourceIcon.PLOT2_SKY,
-                                    "Sky plotting window",
-                                    SkyPlotWindow.class ),
-            new TopcatWindowAction( "Cube Layer Plot",
-                                    ResourceIcon.PLOT2_CUBE,
-                                    "3D plotting window"
-                                    + " using Cartesian coordinates",
-                                    CubePlotWindow.class ),
-            new TopcatWindowAction( "Sphere Layer Plot",
-                                    ResourceIcon.PLOT2_SPHERE,
-                                    "3D plotting window"
-                                    + " using spherical polar coordinates",
-                                    SpherePlotWindow.class ),
-            new TopcatWindowAction( "Time Layer Plot",
-                                    ResourceIcon.PLOT2_TIME,
-                                    "Time series plotting window",
-                                    TimePlotWindow.class ),
+            new Plot2WindowAction( "Plane Layer Plot",
+                                   ResourceIcon.PLOT2_PLANE,
+                                   "Plane plotting window",
+                                   PlanePlotWindow.class ),
+            new Plot2WindowAction( "Sky Layer Plot",
+                                   ResourceIcon.PLOT2_SKY,
+                                   "Sky plotting window",
+                                   SkyPlotWindow.class ),
+            new Plot2WindowAction( "Cube Layer Plot",
+                                   ResourceIcon.PLOT2_CUBE,
+                                   "3D plotting window"
+                                   + " using Cartesian coordinates",
+                                   CubePlotWindow.class ),
+            new Plot2WindowAction( "Sphere Layer Plot",
+                                   ResourceIcon.PLOT2_SPHERE,
+                                   "3D plotting window"
+                                   + " using spherical polar coordinates",
+                                   SpherePlotWindow.class ),
+            new Plot2WindowAction( "Time Layer Plot",
+                                   ResourceIcon.PLOT2_TIME,
+                                   "Time series plotting window",
+                                   TimePlotWindow.class ),
         };
 
         matchActs_ = new Action[] {
@@ -1694,69 +1695,73 @@ public class ControlWindow extends AuxWindow
     }
 
     /**
-     * Action implementation for graphics windows.
+     * Action class for old-style graphics windows.
      */
-    private class GraphicsWindowAction extends BasicAction {
-        final Constructor constructor_;
+    private class GraphicsWindowAction
+            extends TopcatWindowAction<GraphicsWindow> {
 
         /**
          * Constructor.
+         *
          * @param  name  action name
          * @param  icon  action icon
          * @param  shortdesc  action short description
-         * @param  winClass  AuxWindow subclass - must have a
+         * @param  winClass  GraphicsWindow subclass - must have a
          *         constructor that takes (Component)
          */
         GraphicsWindowAction( String name, Icon icon, String shortdesc,
-                              Class winClass ) {
-            super( name, icon, shortdesc );
-            if ( ! GraphicsWindow.class.isAssignableFrom( winClass ) ) {
-                throw new IllegalArgumentException();
-            }
-            try {
-                constructor_ = winClass.getConstructor( new Class[] {
-                    Component.class,
-                } );
-            }
-            catch ( NoSuchMethodException e ) {
-                throw (IllegalArgumentException)
-                      new IllegalArgumentException( "No suitable constructor" )
-                     .initCause( e );
-            }
+                              Class<? extends GraphicsWindow> winClass ) {
+            super( name, icon, shortdesc, winClass );
         }
 
+        @Override
         public void actionPerformed( ActionEvent evt ) {
-            try {
-                Object[] args = new Object[] { ControlWindow.this };
-                try {
-                    GraphicsWindow window = 
-                        (GraphicsWindow) constructor_.newInstance( args );
-                    TopcatModel tcModel = getCurrentModel();
-                    if ( tcModel != null ) {
-                        int npoint =
-                            (int) Math.min( tcModel.getDataModel()
-                                                   .getRowCount(),
-                                            (long) Integer.MAX_VALUE );
-                        window.setGuidePointCount( npoint );
-                    }
-                    window.setVisible( true );
-                    if ( tcModel != null ) {
-                        window.setMainTable( tcModel );
-                    }
-                }
-                catch ( InvocationTargetException e ) {
-                    throw e.getCause();
+            GraphicsWindow window = createWindow();
+            TopcatModel tcModel = getCurrentModel();
+            if ( tcModel != null ) {
+                int npoint =
+                    (int) Math.min( tcModel.getDataModel().getRowCount(),
+                                    (long) Integer.MAX_VALUE );
+                window.setGuidePointCount( npoint );
+                window.setVisible( true );
+                if ( tcModel != null ) {
+                    window.setMainTable( tcModel );
                 }
             }
-            catch ( RuntimeException e ) {
-                throw e;
+            window.setVisible( true );
+        }
+    }
+
+    /**
+     * Action class for new-style graphics windows.
+     */
+    private class Plot2WindowAction
+            extends TopcatWindowAction<StackPlotWindow> {
+
+        /**
+         * Constructor.
+         *
+         * @param  name  action name
+         * @param  icon  action icon
+         * @param  shortdesc  action short description
+         * @param  winClass  StackPlotWindow subclass - must have a
+         *         constructor that takes (Component)
+         */
+        Plot2WindowAction( String name, Icon icon, String shortdesc,
+                           Class<? extends StackPlotWindow> winClazz ) {
+            super( name, icon, shortdesc, winClazz );
+        }
+
+        @Override
+        public void actionPerformed( ActionEvent evt ) {
+            StackPlotWindow window = createWindow();
+            TopcatModel tcModel = getCurrentModel();
+            Control dfltControl =
+                window.getControlManager().createDefaultControl( tcModel );
+            if ( dfltControl != null ) {
+                window.getControlStack().addControl( dfltControl );
             }
-            catch ( Error e ) {
-                throw e;
-            }
-            catch ( Throwable e ) {
-                throw new RuntimeException( "Window creation failed???", e );
-            }
+            window.setVisible( true );
         }
     }
 

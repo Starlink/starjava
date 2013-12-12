@@ -18,9 +18,11 @@ import javax.swing.JFrame;
  * @author   Mark Taylor
  * @since    24 Jul 2013
  */
-public class TopcatWindowAction extends BasicAction
-                                implements TopcatToolAction {
-    private final Constructor constructor_;
+public class TopcatWindowAction<W extends JFrame>
+            extends BasicAction
+            implements TopcatToolAction {
+
+    private final Constructor<? extends W> constructor_;
     private Component parent_;
 
     /**
@@ -34,7 +36,7 @@ public class TopcatWindowAction extends BasicAction
      *                   java.awt.Component giving the window parent
      */
     public TopcatWindowAction( String name, Icon icon, String shortdesc,
-                               Class<? extends JFrame> winClazz ) {
+                               Class<? extends W> winClazz ) {
         super( name, icon, shortdesc );
         try {
             constructor_ = winClazz.getConstructor( new Class[] {
@@ -54,12 +56,16 @@ public class TopcatWindowAction extends BasicAction
         }
     }
 
-    public void actionPerformed( ActionEvent evt ) {
+    /**
+     * Creates an instance of the window class used by this action.
+     *
+     * @return  window initialised with parent component
+     */
+    protected W createWindow() {
         try {
             Object[] args = new Object[] { parent_ };
             try {
-                JFrame window = (JFrame) constructor_.newInstance( args );
-                window.setVisible( true );
+                return constructor_.newInstance( args );
             }
             catch ( InvocationTargetException e ) {
                 throw e.getCause();
@@ -76,6 +82,22 @@ public class TopcatWindowAction extends BasicAction
         }
     }
 
+    /**
+     * Performs the action.
+     * The default immplementation just calls {@link #createWindow}
+     * and sets it visible.   This may be overridden.
+     */
+    public void actionPerformed( ActionEvent evt ) {
+        W window = createWindow();
+        window.setVisible( true );
+    }
+
+    /**
+     * Sets the parent component to use for initialising windows
+     * created by this action.
+     *
+     * @param  parent  parent component
+     */
     public void setParent( Component parent ) {
         parent_ = parent;
     }
