@@ -82,8 +82,7 @@ public class ModeFormControl extends FormControl {
          * and prepare a panel for entering them. */
         List<Coord> commonExtraCoordList = getCommonCoords( plotters );
         commonExtraCoordPanel_ =
-            new CoordPanel( commonExtraCoordList.toArray( new Coord[ 0 ] ),
-                            false );
+            new CoordPanel( commonExtraCoordList.toArray( new Coord[ 0 ] ) );
         if ( ! commonExtraCoordList.isEmpty() ) {
             commonExtraCoordPanel_
            .getComponent()
@@ -336,7 +335,7 @@ public class ModeFormControl extends FormControl {
         ModeState( ModePlotter plotter, Coord[] modeCoords,
                    ConfigKey[] configKeys ) {
             plotter_ = plotter;
-            modeCoordPanel_ = new CoordPanel( modeCoords, false );
+            modeCoordPanel_ = new CoordPanel( modeCoords );
             if ( modeCoords.length > 0 ) {
                 modeCoordPanel_.getComponent()
                                .setBorder( BorderFactory

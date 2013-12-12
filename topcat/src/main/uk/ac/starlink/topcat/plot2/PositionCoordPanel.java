@@ -21,12 +21,9 @@ public abstract class PositionCoordPanel extends CoordPanel {
      * Constructor.
      *
      * @param  coords  coordinate definitions for which values are required
-     * @param  autoPopulate  if true, some attempt will be made to
-     *                       fill in the fields with non-blank values
-     *                       when a table is selected
      */
-    protected PositionCoordPanel( Coord[] coords, boolean autoPopulate ) {
-        super( coords, autoPopulate );
+    protected PositionCoordPanel( Coord[] coords ) {
+        super( coords );
     }
 
     /**

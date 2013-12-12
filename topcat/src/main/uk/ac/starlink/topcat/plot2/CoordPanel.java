@@ -30,22 +30,17 @@ public class CoordPanel {
     private final Coord[] coords_;
     private final ActionForwarder forwarder_;
     private final JComboBox[][] colSelectors_;
-    private final boolean autoPopulate_;
     private final JComponent panel_;   
 
     /**
      * Constructor.
      *
      * @param  coords  coordinate definitions for which values are required
-     * @param  autoPopulate  if true, some attempt will be made to
-     *                       fill in the fields with non-blank values
-     *                       when a table is selected
      */
-    public CoordPanel( Coord[] coords, boolean autoPopulate ) {
+    public CoordPanel( Coord[] coords ) {
         panel_ = new JPanel( new BorderLayout() );
         coords_ = coords;
         forwarder_ = new ActionForwarder();
-        autoPopulate_ = autoPopulate;
 
         /* Place entry components for each required coordinate. */
         int nc = coords.length;
@@ -135,8 +130,8 @@ public class CoordPanel {
             int nu = colsels.length;
             for ( int iu = 0; iu < nu; iu++ ) {
                 JComboBox cs = colsels[ iu ];
+                cs.setSelectedItem( null );
                 if ( tcModel == null ) {
-                    cs.setSelectedItem( null );
                     cs.setEnabled( false );
                 }
                 else {
@@ -145,14 +140,26 @@ public class CoordPanel {
                                                      userInfos[ iu ]
                                                     .getContentClass(), true );
                     cs.setModel( model );
-
-                    /* In case of autopopulate, just pick the first few
-                     * columns in the table and fill them in for the
-                     * required coordinates. */
-                    if ( autoPopulate_ && is < model.getSize() ) {
-                        cs.setSelectedIndex( is++ );
-                    }
                     cs.setEnabled( true );
+                }
+            }
+        }
+    }
+
+    /**
+     * Makes some attempt to fill in the fields with non-blank values.
+     * The default implementation fills in the first few suitable columns,
+     * but subclasses are encouraged to override this behaviour if something
+     * smarter is possible.
+     */
+    public void autoPopulate() {
+        int is = 1;
+        for ( int ic = 0; ic < coords_.length; ic++ ) {
+            JComboBox[] colsels = colSelectors_[ ic ];
+            for ( int iu = 0; iu < colsels.length; iu++ ) {
+                JComboBox cs = colsels[ iu ];
+                if ( is < cs.getItemCount() ) {
+                    cs.setSelectedIndex( is++ );
                 }
             }
         }

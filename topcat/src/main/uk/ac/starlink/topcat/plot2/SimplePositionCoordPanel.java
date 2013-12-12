@@ -18,14 +18,10 @@ public class SimplePositionCoordPanel extends PositionCoordPanel {
      * Constructor.
      *
      * @param  coords  coordinate definitions for which values are required
-     * @param  autoPopulate  if true, some attempt will be made to
-     *                       fill in the fields with non-blank values
-     *                       when a table is selected
      * @param  geom  fixed data geom
      */
-    public SimplePositionCoordPanel( Coord[] coords, boolean autoPopulate,
-                                     DataGeom geom ) {
-        super( coords, autoPopulate );
+    public SimplePositionCoordPanel( Coord[] coords, DataGeom geom ) {
+        super( coords );
         geom_ = geom;
     }
 
@@ -40,13 +36,10 @@ public class SimplePositionCoordPanel extends PositionCoordPanel {
      *
      * @param  geom   provides description of positional coordinates
      * @param  npos   number of positional groups to include
-     * @param  autoPopulate  if true, some attempt may be made to
-     *                       fill in the fields with non-blank values
-     *                       when a table is selected
      */
-    public static SimplePositionCoordPanel createPanel( DataGeom geom, int npos,
-                                                        boolean autoPopulate ) {
+    public static SimplePositionCoordPanel createPanel( DataGeom geom,
+                                                        int npos ) {
         Coord[] coords = multiplyCoords( geom.getPosCoords(), npos );
-        return new SimplePositionCoordPanel( coords, autoPopulate, geom );
+        return new SimplePositionCoordPanel( coords, geom );
     }
 }
