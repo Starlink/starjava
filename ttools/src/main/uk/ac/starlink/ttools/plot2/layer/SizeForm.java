@@ -32,6 +32,7 @@ import uk.ac.starlink.ttools.plot2.paper.PaperType3D;
  * ShapeForm implementation that draws shaped markers of a size
  * given by an additional data coordinate.
  * Auto-scaling is provided.
+ * Singleton class.
  *
  * @author   Mark Taylor
  * @since    18 Feb 2013
@@ -49,6 +50,14 @@ public class SizeForm implements ShapeForm {
                                                          "Max Marker Size" ),
                                          16, 2, 64, false );
     private static final AuxScale SIZE_SCALE = new AuxScale( "globalsize" );
+
+    private static final SizeForm instance_ = new SizeForm();
+
+    /**
+     * Private constructor prevents instantiation.
+     */
+    private SizeForm() {
+    }
 
     public int getPositionCount() {
         return 1;
@@ -88,6 +97,15 @@ public class SizeForm implements ShapeForm {
             autoscale = null;
         }
         return new SizeOutliner( shape, scale, autoscale );
+    }
+
+    /**
+     * Returns the sole instance of this class.
+     *
+     * @return  singleton instance
+     */
+    public static SizeForm getInstance() {
+        return instance_;
     }
 
     /**

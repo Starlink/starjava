@@ -82,6 +82,22 @@ public abstract class MarkForm implements ShapeForm {
         return new Coord[ 0 ];
     }
 
+    @Override
+    public int hashCode() {
+        return npos_;
+    }
+
+    @Override
+    public boolean equals( Object o ) {
+        if ( o instanceof MarkForm ) {
+            MarkForm other = (MarkForm) o;
+            return this.npos_ == other.npos_;
+        }
+        else {
+            return false;
+        }
+    }
+
     /**
      * Factory method to create an instance of this class.
      *
