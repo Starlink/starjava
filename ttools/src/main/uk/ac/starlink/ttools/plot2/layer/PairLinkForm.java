@@ -25,11 +25,20 @@ import uk.ac.starlink.ttools.plot2.paper.PaperType3D;
 
 /**
  * Draws a line between two related positions.
+ * Singleton class.
  *
  * @author   Mark Taylor
  * @since    28 Nov 2013
  */
 public class PairLinkForm implements ShapeForm {
+
+    private static final PairLinkForm instance_ = new PairLinkForm();
+
+    /**
+     * Private constructor prevents instantiation.
+     */
+    private PairLinkForm() {
+    }
 
     public String getFormName() {
         return "Link";
@@ -54,6 +63,15 @@ public class PairLinkForm implements ShapeForm {
 
     public Outliner createOutliner( ConfigMap config ) {
         return new LinkOutliner();
+    }
+
+    /**
+     * Returns the singleton instance of this class.
+     *
+     * @return sole instance
+     */
+    public static PairLinkForm getInstance() {
+        return instance_;
     }
 
     /**

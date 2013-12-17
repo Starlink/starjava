@@ -63,7 +63,7 @@ public class PlanePlotType implements PlotType {
         List<Plotter> list = new ArrayList<Plotter>();
         ShapeForm[] forms = new ShapeForm[] {
             MarkForm.SINGLE,
-            new SizeForm(),
+            SizeForm.getInstance(),
             MultiPointForm
            .createVectorForm( new CartesianVectorCoordSet( axisNames_ ), true ),
             MultiPointForm
@@ -72,7 +72,7 @@ public class PlanePlotType implements PlotType {
                              StyleKeys.ERROR_SHAPE_2D ),
             MultiPointForm
            .createEllipseForm( new PlaneEllipseCoordSet(), true ),
-            new PairLinkForm(),
+            PairLinkForm.getInstance(),
             MarkForm.PAIR,
         };
         Plotter[] shapePlotters =
