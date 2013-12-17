@@ -6,6 +6,7 @@ import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DomainMapper;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.plot2.DataGeom;
+import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.StorageType;
 
@@ -69,7 +70,7 @@ public abstract class PositionCoordPanel extends CoordPanel {
      * @return   new coord like the input one
      */
     private static Coord relabel( final Coord baseCoord, int iPoint ) {
-        String iptxt = Integer.toString( iPoint + 1 );
+        String iptxt = PlotUtil.getIndexSuffix( iPoint );
         final ValueInfo[] infos = baseCoord.getUserInfos().clone();
         int nuc = infos.length;
         for ( int iuc = 0; iuc < nuc; iuc++ ) {
