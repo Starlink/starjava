@@ -94,6 +94,22 @@ public class PlotUtil {
     }
 
     /**
+     * Returns a suffix to append to one of a set of similar coordinate
+     * names for disambiguation.
+     * Where there are several sets of positional coordinates that would
+     * otherwise have the same names, use this method to come up with
+     * a consistent suffix.  It is only usual to invoke this method
+     * if there are in fact multiple positions, if there's only one just
+     * don't give it a suffix.
+     * 
+     * @param  ipos  zero-based position number
+     * @return  suffix; currently <code>1+ipos</code>
+     */
+    public static String getIndexSuffix( int ipos ) {
+        return Integer.toString( 1 + ipos );
+    }
+
+    /**
      * Writes message through the logging system
      * about the time a named step has taken.
      * The elapsed time is presumed to be the time between the supplied

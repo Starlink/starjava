@@ -752,7 +752,7 @@ public class Plot2Task implements Task {
         List<CoordValue> cvlist = new ArrayList<CoordValue>();
         for ( int ipos = 0; ipos < npos; ipos++ ) {
             Coord[] posCoords = geom.getPosCoords();
-            String posSuffix = npos > 1 ? Integer.toString( ipos + 1 ) : "";
+            String posSuffix = npos > 1 ? PlotUtil.getIndexSuffix( ipos ) : "";
             for ( int ic = 0; ic < posCoords.length; ic++ ) {
                 cvlist.add( getCoordValue( env, posCoords[ ic ],
                                            posSuffix + suffix ) );
