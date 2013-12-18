@@ -4,9 +4,11 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.logging.Logger;
 import javax.swing.Box;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.util.gui.ComboBoxBumper;
 import uk.ac.starlink.util.gui.CustomComboBoxRenderer;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
@@ -20,19 +22,28 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
 public class ComboBoxSpecifier<V> extends SpecifierPanel<V> {
 
     private final JComboBox comboBox_;
+    private final boolean allowAny_;
+
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.ttools.plot2.config" );
 
     /**
      * Constructs a specifier with a given combo box, and optional custom
-     * laelling.
+     * labelling and setting restrictions.
      *
      * @param  comboBox  combo box instance with appropriate options
      *                   (must all be assignable from V)
      * @param  customStringify  if true, this object's <code>stringify</code>
      *                          method is used to provide combo box text
+     * @param  allowAny   if true, then the <code>setSpecifiedValue</code>
+     *                    method is allowed to set any value; otherwise,
+     *                    it is restricted to the options in the combo box
      */
-    public ComboBoxSpecifier( JComboBox comboBox, boolean customStringify ) {
+    public ComboBoxSpecifier( JComboBox comboBox, boolean customStringify,
+                              boolean allowAny ) {
         super( comboBox.isEditable() );
         comboBox_ = comboBox;
+        allowAny_ = allowAny;
         if ( customStringify ) {
             comboBox_.setRenderer( new CustomComboBoxRenderer() {
                 public Object mapValue( Object value ) {
@@ -45,13 +56,13 @@ public class ComboBoxSpecifier<V> extends SpecifierPanel<V> {
     }
 
     /**
-     * Constructs a specifier with a given combo box and default labelling.
+     * Constructs a specifier with a given combo box and default options.
      *
      * @param  comboBox  combo box instance with appropriate options
      *                   (must all be assignable from V)
      */
     public ComboBoxSpecifier( JComboBox comboBox ) {
-        this( comboBox, false );
+        this( comboBox, false, true );
     }
 
     /**
@@ -60,7 +71,7 @@ public class ComboBoxSpecifier<V> extends SpecifierPanel<V> {
      * @param  options   options
      */
     public ComboBoxSpecifier( Collection<V> options ) {
-        this( new JComboBox( options.toArray() ), true );
+        this( new JComboBox( options.toArray() ), true, true );
         comboBox_.setSelectedIndex( 0 );
     }
 
@@ -109,7 +120,19 @@ public class ComboBoxSpecifier<V> extends SpecifierPanel<V> {
     }
 
     public void setSpecifiedValue( V value ) {
+        boolean tmpEditable = allowAny_ && ! comboBox_.isEditable();
+        if ( tmpEditable ) {
+            comboBox_.setEditable( true );
+        }
         comboBox_.setSelectedItem( value );
+        if ( tmpEditable ) {
+            comboBox_.setEditable( false );
+        }
+        if ( ! PlotUtil.equals( comboBox_.getSelectedItem(), value ) ) {
+            assert ! allowAny_;
+            logger_.warning( "Attempt to set unlisted value " + value
+                           + " failed" );
+        }
     }
 
     /**
