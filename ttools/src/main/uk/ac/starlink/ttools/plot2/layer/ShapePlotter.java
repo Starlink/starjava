@@ -111,14 +111,16 @@ public class ShapePlotter extends AbstractPlotter<ShapeStyle> {
     }
 
     /**
-     * Creates a single ShapePlotter using mode flat.
-     * It is not intended for use with other plotters of the same form.
+     * Creates a single ShapePlotter using mode flat.  Suitable for
+     * 2d plot types only.
+     * The returned object is not a {@link ModePlotter}, so will not be
+     * ganged together with other ShapePlotters.
      *
      * @param   form   shape form
-     * @return   new plotter
+     * @return   new 2d plotter
      */
-    public static ShapePlotter createFlatPlotter( ShapeForm form ) {
-        return new ShapePlotter( form.getFormName(), form, ShapeMode.FLAT );
+    public static ShapePlotter createFlat2dPlotter( ShapeForm form ) {
+        return new ShapePlotter( form.getFormName(), form, ShapeMode.FLAT2D );
     }
 
     /**

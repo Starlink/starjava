@@ -48,8 +48,8 @@ public class TimePlotType implements PlotType {
                                 false, StyleKeys.ERROR_SHAPE_1D );
         return new Plotter[] {
             new LinePlotter(),
-            ShapePlotter.createFlatPlotter( MarkForm.SINGLE ),
-            ShapePlotter.createFlatPlotter( errorForm ),
+            ShapePlotter.createFlat2dPlotter( MarkForm.SINGLE ),
+            ShapePlotter.createFlat2dPlotter( errorForm ),
             new SpectrogramPlotter( TimeDataGeom.T_COORD ),
             new LabelPlotter(),
             FunctionPlotter.PLANE,
