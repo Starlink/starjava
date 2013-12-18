@@ -24,7 +24,7 @@ public class SphereDataGeom implements DataGeom {
     /**
      * Private singleton constructor.
      */
-    public SphereDataGeom() {
+    private SphereDataGeom() {
     }
 
     /**

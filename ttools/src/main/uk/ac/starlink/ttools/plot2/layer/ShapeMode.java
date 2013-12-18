@@ -54,6 +54,7 @@ import uk.ac.starlink.util.IconUtils;
  * @since    19 Feb 2013
  */
 public abstract class ShapeMode implements ModePlotter.Mode {
+
     private final String name_;
     private final Icon icon_;
     private final Coord[] extraCoords_;
@@ -70,33 +71,49 @@ public abstract class ShapeMode implements ModePlotter.Mode {
      */
     private static final int NO_BINS = Integer.MAX_VALUE;
 
-    /**
-     * List of modes suitable for use with 2D plotting.
-     */
+    /** Auto density mode, no user settings. */
+    public static final ShapeMode AUTO = new AutoDensityMode();
+
+    /** Simple flat mode for use with 2D plots.  */
+    public static final ShapeMode FLAT2D = new FlatMode( false, BIN_THRESH_2D );
+
+    /** Simple flat mode for use with 3D plots. */
+    public static final ShapeMode FLAT3D = new FlatMode( false, NO_BINS );
+
+    /** Transparency with automatic adjustment of opacity level. */
+    public static final ShapeMode TRANSLUCENT = new AutoTransparentMode();
+
+    /** Transparency with explicit opacity setting, suitable for 2D plots. */
+    public static final ShapeMode TRANSPARENT2D = new FlatMode( true,
+                                                                BIN_THRESH_2D );
+
+    /** Transparency with explicit opacity setting, suitable for 3D plots. */
+    public static final ShapeMode TRANSPARENT3D = new FlatMode( true, NO_BINS );
+
+    /** Configurable density mode. */
+    public static final ShapeMode DENSITY = new CustomDensityMode();
+
+    /** Aux variable colouring mode. */
+    public static final ShapeMode AUX = new AuxShadingMode( true );
+
+    /** List of modes suitable for use with 2D plotting. */
     public static final ShapeMode[] MODES_2D = new ShapeMode[] {
-        new AutoDensityMode(),
-        new FlatMode( false, BIN_THRESH_2D ),
-        new AutoTransparentMode(),
-        new FlatMode( true, BIN_THRESH_2D ),
-        new CustomDensityMode(),
-        new AuxShadingMode( true ),
+        AUTO,
+        FLAT2D,
+        TRANSLUCENT,
+        TRANSPARENT2D,
+        DENSITY,
+        AUX,
     };
 
-    /**
-     * List of modes suitable for use with 3D plotting.
-     */
+    /** List of modes suitable for use with 3D plotting. */
     public static final ShapeMode[] MODES_3D = new ShapeMode[] {
-        new FlatMode( false, NO_BINS ),
-        new AutoTransparentMode(),
-        new FlatMode( true, NO_BINS ),
-        new CustomDensityMode(),
-        new AuxShadingMode( true ),
+        FLAT3D,
+        TRANSLUCENT,
+        TRANSPARENT3D,
+        DENSITY,
+        AUX,
     };
-
-    /**
-     * Simple flat mode.
-     */
-    public static final ShapeMode FLAT = new FlatMode( false, NO_BINS );
 
     /**
      * Constructor.
