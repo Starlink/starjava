@@ -1,6 +1,7 @@
 package uk.ac.starlink.topcat.plot2;
 
 import java.awt.event.ActionListener;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import javax.swing.JComponent;
@@ -57,6 +58,19 @@ public class SubsetConfigManager {
     }
 
     /**
+     * Indicates whether this manager currently has an initialised
+     * configuration object for the given subset.
+     * If not, then calling {@link #getConfigger getConfigger} would
+     * construct and initialise such an object.
+     * 
+     * @param  subset  row subset
+     * @return   true iff getConfigger would do actual work
+     */
+    public boolean hasConfigger( RowSubset subset ) {
+        return configgers_.containsKey( subset );
+    }
+
+    /**
      * Lazily constructs and returns a SubsetConfigger for a given subset.
      *
      * @param   subset   subset for which the configger is required
@@ -64,6 +78,18 @@ public class SubsetConfigManager {
      */
     public Configger getConfigger( RowSubset subset ) {
         return getSubsetConfigger( subset );
+    }
+
+    /**
+     * Adjusts the configuration for a given row subset managed by this object.
+     *
+     * @param  subset  subset whose configuration characteristcics
+     *                 are to be changed
+     * @param  config  configuration options to be set; any irrelevant
+     *                 entries are ignored
+     */
+    public void setConfig( RowSubset subset, ConfigMap config ) {
+        getSubsetConfigger( subset ).setConfig( config );
     }
 
     /**
@@ -144,6 +170,20 @@ public class SubsetConfigManager {
         }
 
         /**
+         * Sets configuration options from a supplied map.
+         *
+         * @param  config  config options to apply;
+         *                 irrelevant entries will be ignored
+         */
+        public void setConfig( ConfigMap config ) {
+            config = new ConfigMap( config );
+            config.keySet().retainAll( Arrays.asList( allKeys_ ) );
+            for ( ConfigKey<?> key : config.keySet() ) {
+                setValue( key, config );
+            }
+        }
+
+        /**
          * Returns the user interaction component for this configger.
          *
          * @return  GUI component
@@ -159,6 +199,17 @@ public class SubsetConfigManager {
                 specifier_.setSpecifiedValue( map );
             }
             return panel_;
+        }
+
+        /**
+         * Sets the value for a single configuration entry from a given map.
+         *
+         * @param  key  key for config option to set
+         * @param  config   map containing an entry for the given key
+         */
+        private <T> void setValue( ConfigKey<T> key, ConfigMap config ) {
+            Specifier<T> speccer = specifier_.getSpecifier( key );
+            speccer.setSpecifiedValue( config.get( key ) );
         }
 
         /**

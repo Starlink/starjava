@@ -142,6 +142,14 @@ public abstract class FormControl implements Control {
      */
     protected abstract void setTable( TopcatModel tcModel );
 
+    /**
+     * Returns the style panel currently in use.
+     *
+     * @return  style panel
+     */
+    public FormStylePanel getStylePanel() {
+        return stylePanel_;
+    }
 
     /**
      * Creates a plot layer given the current state of this control and

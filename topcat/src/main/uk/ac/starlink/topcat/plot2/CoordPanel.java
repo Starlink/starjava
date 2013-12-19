@@ -79,6 +79,15 @@ public class CoordPanel {
     }
 
     /**
+     * Returns the coordinates which this panel is getting values for.
+     *
+     * @return  coords
+     */
+    public Coord[] getCoords() {
+        return coords_;
+    }
+
+    /**
      * Returns the graphical component for this object.
      *
      * @return  component
