@@ -1,5 +1,7 @@
 package uk.ac.starlink.topcat.plot2;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.plot2.data.Coord;
@@ -7,7 +9,7 @@ import uk.ac.starlink.ttools.plot2.data.Coord;
 /**
  * Aggregates user-supplied information about a coordinate value used
  * as input for a plot.
- * The <code>dataLabels</code> and <code>colDatas<code> arrays both
+ * The <code>dataLabels</code> and <code>colDatas</code> arrays both
  * correspond to (and have the same array size as) the 
  * {@link uk.ac.starlink.ttools.plot2.data.Coord#getUserInfos userInfos}
  * arrays for the coord.
@@ -25,8 +27,9 @@ public class GuiCoordContent {
      *
      * @param   coord   plot coordinate definition
      * @param  dataLabels   array of strings naming quantities
-     *                      for the user variables constituting the coord value
-     * @param  colDatas  array of column data arrays supplyig values
+     *                      for the user variables constituting the coord value;
+     *                      these are typically the values typed in by the user
+     * @param  colDatas  array of column data arrays supplying values
      *                   for the user variables constituting the coord value
      */
     public GuiCoordContent( Coord coord, String[] dataLabels,
@@ -61,6 +64,32 @@ public class GuiCoordContent {
      */
     public ColumnData[] getColDatas() {
         return colDatas_;
+    }
+
+    /**
+     * Utility method to generate a mapping from user coordinate names
+     * to their string specifications, given a set of GuiCoordContents.
+     *
+     * @param  contents  objects specifying selected coordinate values
+     * @return  userInfo name->coord specifier map conveying
+     *          the same information
+     * @see   LayerCommand#getCoordValues
+     */
+    public static Map<String,String>
+            getCoordValues( GuiCoordContent[] contents ) {
+        Map<String,String> coordValues = new LinkedHashMap<String,String>();
+        for ( int ic = 0; ic < contents.length; ic++ ) {
+            GuiCoordContent content = contents[ ic ];
+            ValueInfo[] userInfos = content.getCoord().getUserInfos();
+            String[] dataLabels = content.getDataLabels();
+            int nuc = userInfos.length;
+            assert dataLabels.length == nuc;
+            for ( int iuc = 0; iuc < nuc; iuc++ ) {
+                coordValues.put( userInfos[ iuc ].getName(),
+                                 dataLabels[ iuc ] );
+            }
+        }
+        return coordValues;
     }
 
     /**

@@ -191,6 +191,17 @@ public class FormStylePanel extends JPanel {
     }
 
     /**
+     * Sets global (not subset-specific) configuration options for this panel.
+     * Any supplied config options not used by this style panel are ignored.
+     *
+     * @param  config  configuration map containing zero or more entries
+     *                 for this panel's options
+     */
+    public void setGlobalConfig( ConfigMap config ) {
+        globalSpecifier_.setSpecifiedValue( config );
+    }
+
+    /**
      * Stores the current state of the per-subset specifier component
      * as the value for a given subset.
      *

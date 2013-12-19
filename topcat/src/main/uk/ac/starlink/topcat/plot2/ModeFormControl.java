@@ -55,6 +55,7 @@ public class ModeFormControl extends FormControl {
 
     private final Map<ModePlotter.Mode,ModeState> modeMap_;
     private final JComponent panel_;
+    private final Specifier<ModePlotter.Mode> modeSpecifier_;
     private final JComponent modeCoordHolder_;
     private final JComponent modeConfigHolder_;
     private final CoordPanel commonExtraCoordPanel_;
@@ -133,11 +134,10 @@ public class ModeFormControl extends FormControl {
 
         /* Set up a selector for which mode to use, and get it to
          * modify the GUI appropriately when a mode is selected. */
-        final Specifier<ModePlotter.Mode> modeSpecifier =
-            createPlotterModeSpecifier( modeMap_.keySet() );
-        modeSpecifier.addActionListener( new ActionListener() {
+        modeSpecifier_ = createPlotterModeSpecifier( modeMap_.keySet() );
+        modeSpecifier_.addActionListener( new ActionListener() {
             public void actionPerformed( ActionEvent evt ) {
-                setMode( modeSpecifier.getSpecifiedValue() );
+                updateMode();
                 forwarder.actionPerformed( evt );
             }
         } );
@@ -146,7 +146,7 @@ public class ModeFormControl extends FormControl {
         modeCoordHolder_ = Box.createHorizontalBox();
         modeConfigHolder_ = Box.createHorizontalBox();
         JComponent modePanel = Box.createVerticalBox();
-        modePanel.add( new LineBox( "Mode", modeSpecifier.getComponent(),
+        modePanel.add( new LineBox( "Mode", modeSpecifier_.getComponent(),
                                     true ) );
         modePanel.add( modeCoordHolder_ );
         modePanel.add( modeConfigHolder_ );
@@ -155,7 +155,7 @@ public class ModeFormControl extends FormControl {
         panel_.add( modePanel, BorderLayout.NORTH );
         panel_.add( commonExtraCoordPanel_.getComponent(),
                     BorderLayout.CENTER );
-        modeSpecifier.setSpecifiedValue( modeMap_.keySet().iterator().next() );
+        setMode( modeMap_.keySet().iterator().next() );
     }
 
     @Override
@@ -198,6 +198,16 @@ public class ModeFormControl extends FormControl {
         }
     }
 
+    /**
+     * Sets the current mode for this control.
+     *
+     * @param   mode  new mode
+     */
+    public void setMode( ModePlotter.Mode mode ) {
+        modeSpecifier_.setSpecifiedValue( mode );
+        updateMode();
+    }
+
     protected Plotter<?> getPlotter() {
         return state_.plotter_;
     }
@@ -211,11 +221,10 @@ public class ModeFormControl extends FormControl {
     }
 
     /**
-     * Update the GUI for use with a given mode.
-     *
-     * @param  mode  mode to use
+     * Update the GUI for use with the currently selected mode.
      */
-    private void setMode( ModePlotter.Mode mode ) {
+    private void updateMode() {
+        ModePlotter.Mode mode = modeSpecifier_.getSpecifiedValue();
         ActionListener forwarder = getActionForwarder();
 
         /* Clear out existing mode, if any. */

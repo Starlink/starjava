@@ -31,4 +31,13 @@ public interface ControlManager {
      *          using table data
      */
     Control createDefaultControl( TopcatModel tcModel );
+
+    /**
+     * Adds a layer to the plot as specified by the given layer command.
+     * Ideally, appropriate changes should be made to the GUI as well,
+     * so the effect is just as if the user had added the layer by hand.
+     *
+     * @param   lcmd  specifies the layer to add
+     */
+    void addLayer( LayerCommand lcmd );
 }

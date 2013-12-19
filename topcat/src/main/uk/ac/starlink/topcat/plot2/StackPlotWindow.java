@@ -84,6 +84,7 @@ import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 public class StackPlotWindow<P,A> extends AuxWindow {
 
     private final PlotType plotType_;
+    private final PlotTypeGui<P,A> plotTypeGui_;
     private final AxisControl<P,A> axisControl_;
     private final SurfaceFactory<P,A> surfFact_;
     private final PlotPanel<P,A> plotPanel_;
@@ -110,6 +111,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                             PlotTypeGui<P,A> plotTypeGui ) {
         super( name, parent );
         plotType_ = plotType;
+        plotTypeGui_ = plotTypeGui;
 
         /* Set up user interface components in the window that can gather
          * all the information required to perform (re-)plots. */
@@ -412,6 +414,15 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         /* Place the plot and control components. */
         getMainArea().setLayout( new BorderLayout() );
         floater.init();
+    }
+
+    /**
+     * Returns the plot type used by this window.
+     *
+     * @return  GUI plot type
+     */
+    public PlotTypeGui<P,A> getPlotTypeGui() {
+        return plotTypeGui_;
     }
 
     /**
