@@ -1,16 +1,33 @@
 package uk.ac.starlink.topcat.join;
 
+import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Container;
+import java.awt.Frame;
+import java.awt.event.ActionEvent;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.JoinFixAction;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.join.ProgressIndicator;
 import uk.ac.starlink.topcat.TopcatUtils;
+import uk.ac.starlink.util.IconUtils;
 import uk.ac.starlink.util.gui.ErrorDialog;
 
 /**
@@ -102,5 +119,94 @@ public abstract class MatchSpec extends JPanel {
                           .makeRenameDuplicatesAction( "_" + ( i + 1 ) );
         }
         return fixActs;
+    }
+
+    /**
+     * Displays a modal dialogue containing a message, and possibly the
+     * option to plot the match result.
+     *
+     * @param  parent   parent component
+     * @param  lines    lines of text summarising the result
+     * @param  plotAct  an action which can generate a plot of the match result
+     */
+    public static void showSuccessMessage( Component parent, String[] lines,
+                                           final Action plotAct ) {
+
+        /* Create a dialogue window to contain the components. */
+        Frame fparent = parent == null
+                      ? null
+                      : (Frame) SwingUtilities
+                               .getAncestorOfClass( Frame.class, parent );
+        final JDialog dialog = new JDialog( fparent, "Successful Match", true );
+        JComponent panel = (JComponent) dialog.getContentPane();
+        panel.setLayout( new BorderLayout() );
+        panel.setBorder( BorderFactory.createEmptyBorder( 5, 5, 5, 5 ) );
+
+        /* Add an info icon like JOptionPane does. */
+        JLabel iconLabel =
+            new JLabel( UIManager.getIcon( "OptionPane.informationIcon" ) );
+        iconLabel.setBorder( BorderFactory.createEmptyBorder( 5, 5, 5, 5 ) );
+        panel.add( iconLabel, BorderLayout.WEST );
+
+        /* Add the lines of text. */
+        JComponent txtBox = Box.createVerticalBox();
+        for ( int il = 0; il < lines.length; il++ ) {
+            txtBox.add( new JLabel( lines[ il ] ) );
+        } 
+        txtBox.setBorder( BorderFactory.createEmptyBorder( 5, 5, 5, 5 ) );
+        panel.add( txtBox, BorderLayout.CENTER );
+
+        /* Prepare a button that just dismisses the dialogue. */
+        Action dismissAct = new AbstractAction( "Dismiss" ) {
+            public void actionPerformed( ActionEvent evt ) {
+                dialog.dispose();
+            }
+        };
+        dismissAct.putValue( Action.SMALL_ICON, IconUtils.emptyIcon( 0, 24 ) );
+        JButton dismissButt = new JButton( dismissAct );
+
+        /* Prepare a button that performs a plot.  Decorate the supplied
+         * action to dispose of the dialogue as well as doing the actual
+         * plot. */
+        JButton plotButt;
+        if ( plotAct != null ) {
+            Action pAct = new AbstractAction() {
+                public void actionPerformed( ActionEvent evt ) {
+                    plotAct.actionPerformed( evt );
+                    dialog.dispose();
+                }
+            };
+            String[] keys =
+                { Action.NAME, Action.SMALL_ICON, Action.LONG_DESCRIPTION };
+            for ( int ik = 0; ik < keys.length; ik++ ) {
+                String key = keys[ ik ];
+                pAct.putValue( key, plotAct.getValue( key ) );
+            }
+            pAct.setEnabled( plotAct.isEnabled() );
+            plotButt = new JButton( pAct );
+        }
+        else {
+            plotButt = null;
+        }
+
+        /* Place the button(s). */
+        JComponent actBox = Box.createHorizontalBox();
+        actBox.add( Box.createHorizontalGlue() );
+        actBox.add( dismissButt );
+        if ( plotButt != null ) {
+            actBox.add( Box.createHorizontalStrut( 10 ) );
+            actBox.add( plotButt );
+        }
+        actBox.add( Box.createHorizontalGlue() );
+        actBox.setBorder( BorderFactory.createEmptyBorder( 5, 5, 5, 5 ) );
+        panel.add( actBox, BorderLayout.SOUTH );
+
+        /* Show the dialogue. */
+        dialog.pack();
+        if ( plotButt != null && plotButt.isEnabled() ) {
+            plotButt.requestFocusInWindow();
+        }
+        dialog.setLocationRelativeTo( parent );
+        dialog.setVisible( true );
     }
 }

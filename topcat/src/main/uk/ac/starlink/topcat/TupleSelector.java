@@ -118,6 +118,21 @@ public class TupleSelector extends JPanel {
     }
 
     /**
+     * Returns the string values currently entered for the tuple elements.
+     * These are column names or JEL expressions.
+     *
+     * @return   an array of string values entered by the user representing
+     *           the tuple values
+     */
+    public String[] getTupleExpressions() {
+        String[] names = new String[ nCols_ ];
+        for ( int j = 0; j < nCols_; j++ ) {
+            names[ j ] = colSelectors_[ j ].getStringValue();
+        }
+        return names;
+    }
+
+    /**
      * Sets this selector to work from a table described by a given 
      * TopcatModel.
      *
