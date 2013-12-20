@@ -38,6 +38,7 @@ public interface ControlManager {
      * so the effect is just as if the user had added the layer by hand.
      *
      * @param   lcmd  specifies the layer to add
+     * @throws  LayerException if the layer can't be added
      */
-    void addLayer( LayerCommand lcmd );
+    void addLayer( LayerCommand lcmd ) throws LayerException;
 }

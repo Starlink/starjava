@@ -135,7 +135,8 @@ public class GangControlManager implements ControlManager {
         return control;
     }
 
-    public void addLayer( LayerCommand lcmd ) {
+    public void addLayer( LayerCommand lcmd ) throws LayerException {
+        logger_.info( "Add layer: " + lcmd );
         getGangControl( lcmd ).addLayer( lcmd );
     }
 
@@ -149,7 +150,8 @@ public class GangControlManager implements ControlManager {
      * @return  control in the stack for which <code>addLayer(lcmd)</code>
      *          will work
      */
-    private GangLayerControl getGangControl( LayerCommand lcmd ) {
+    private GangLayerControl getGangControl( LayerCommand lcmd )
+            throws LayerException {
         ControlStackModel stackModel = stack_.getStackModel();
 
         /* Try to find and return an existing compatible control. */
@@ -237,7 +239,8 @@ public class GangControlManager implements ControlManager {
      * @param  lcmd  layer specification
      * @return  new control for which <code>addLayer(lcmd)</code> will work
      */
-    private GangLayerControl createGangControl( LayerCommand lcmd ) {
+    private GangLayerControl createGangControl( LayerCommand lcmd )
+            throws LayerException {
 
         /* Create the control. */
         int npos = lcmd.getPlotter().getPositionCount();
@@ -264,8 +267,8 @@ public class GangControlManager implements ControlManager {
                         colData = colModel.stringToColumnData( value );
                     }
                     catch ( CompilationException e ) {
-                        colData = null;
-                        logger_.log( Level.WARNING, "Can't compile: " + value );
+                        throw new LayerException( "Can't compile: " + value,
+                                                  e );
                     }
                     posCoordPanel.getColumnSelector( ic, iu )
                                  .setSelectedItem( colData );
