@@ -7,6 +7,7 @@ import java.util.BitSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
+import javax.swing.Action;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JComboBox;
@@ -48,6 +49,8 @@ public class PairMatchSpec extends MatchSpec {
     private StarTable result_;
     private RowSubset matchSubset_;
     private int pairCount_;
+    private JoinType joinType_;
+    private JoinFixAction[] fixActs_;
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.topcat.join" );
@@ -120,7 +123,7 @@ public class PairMatchSpec extends MatchSpec {
             rowCounts[ i ] = Tables.checkedLongToInt( tables[ i ]
                                                      .getRowCount() );
         }
-        JoinType joinType = joinSelector_.getJoinType();
+        joinType_ = joinSelector_.getJoinType();
         PairMode pairMode = pairModeSelector_.getMode();
 
         /* Find the matching row pairs. */
@@ -134,29 +137,29 @@ public class PairMatchSpec extends MatchSpec {
         }
 
         /* Process these pairs according to the chosen join type. */
-        LinkSet links = joinType.processLinks( pairs, rowCounts );
+        LinkSet links = joinType_.processLinks( pairs, rowCounts );
 
         /* Get a match score column metadata object. */
-        ValueInfo scoreInfo = joinType.getUsedMatchFlag()
+        ValueInfo scoreInfo = joinType_.getUsedMatchFlag()
                             ? engine_.getMatchScoreInfo()
                             : null;
 
         /* Create a new table based on the matched lines. */
         boolean addGroups = pairMode.mayProduceGroups();
-        JoinFixAction[] fixActs = getDefaultFixActions( 2 );
+        fixActs_ = getDefaultFixActions( 2 );
         StarTable[] useBases = (StarTable[]) bases.clone();
         for ( int i = 0; i < 2; i++ ) {
-            if ( ! joinType.getUsedTableFlags()[ i ] ) {
+            if ( ! joinType_.getUsedTableFlags()[ i ] ) {
                 useBases[ i ] = null;
-                fixActs[ i ] = null;
+                fixActs_[ i ] = null;
             }
         }
         result_ = MatchStarTables.makeJoinTable( useBases, links, addGroups,
-                                                 fixActs, scoreInfo );
-        addMatchMetadata( result_, engine_, pairMode, joinType, tcModels );
+                                                 fixActs_, scoreInfo );
+        addMatchMetadata( result_, engine_, pairMode, joinType_, tcModels );
 
         /* If it makes sense to do so, record which rows count as matches. */
-        if ( joinType.getUsedMatchFlag() ) {
+        if ( joinType_.getUsedMatchFlag() ) {
             BitSet matched = new BitSet();
             int iLink = 0;
             for ( Iterator it = links.iterator(); it.hasNext(); ) {
@@ -172,22 +175,19 @@ public class PairMatchSpec extends MatchSpec {
     }
 
     public void matchSuccess( Component parent ) {
-        Object msg;
-        String title;
-        int msgType;
         if ( result_.getRowCount() == 0 ) {
-            title = "Match failed";
-            msgType = JOptionPane.ERROR_MESSAGE;
-            msg = "Result of match contains no rows";
+            String title = "Match failed";
+            int msgType = JOptionPane.ERROR_MESSAGE;
+            String msg = "Result of match contains no rows";
+            JOptionPane.showMessageDialog( parent, msg, title, msgType );
         }
         else if ( pairCount_ == 0 ) {
-            title = "Match failed";
-            msgType = JOptionPane.ERROR_MESSAGE;
-            msg = "No pairs were found when matching";
+            String title = "Match failed";
+            int msgType = JOptionPane.ERROR_MESSAGE;
+            String msg = "No pairs were found when matching";
+            JOptionPane.showMessageDialog( parent, msg, title, msgType );
         }
         else {
-            title = "Match Successful";
-            msgType = JOptionPane.INFORMATION_MESSAGE;
             String tname = "match(" 
                          + tupleSelectors_[ 0 ].getTable().getID()
                          + ","
@@ -198,13 +198,20 @@ public class PairMatchSpec extends MatchSpec {
             if ( matchSubset_ != null ) {
                 tcModel.addSubset( matchSubset_ );
             }
-            msg = new String[] {
+            boolean[] tflags = joinType_.getUsedTableFlags();
+            Action plotAct =
+                 tflags[ 0 ] && tflags[ 1 ]
+               ? MatchPlotter.createPlotAction( parent, engine_,
+                                                tupleSelectors_, fixActs_,
+                                                tcModel )
+               : null;
+            String[] lines = new String[] {
                 pairCount_ + " pairs found",
                 "New table created by match: " + tcModel +
                 " (" + result_.getRowCount() + " rows)",
             };
+            showSuccessMessage( parent, lines, plotAct );
         }
-        JOptionPane.showMessageDialog( parent, msg, title, msgType );
     }
 
     public String getDescription() {

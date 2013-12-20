@@ -18273,6 +18273,10 @@ introduced since the last version:
         <li>Layer plot windows now show progress bar as data is loaded.</li>
         <li>Layer plot windows more responsive (subsampled intermediate
             plots displayed during navigation round very large/slow plots).</li>
+        <li>Pair position plots are now provided.</li>
+        <li>When a pair match completes successfully, you get the option to
+            plot the results, which shows you exactly how the located matches
+            relate to the input positions.</li>
         </ul>
         </p></dd>
 </dl>
