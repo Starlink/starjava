@@ -18269,6 +18269,9 @@ introduced since the last version:
                 plot windows; there are better ways to zoom.</li>
             <li>Exported histogram now contains cumulative counts if the
                 visible histogram is currently in cumulative mode.</li>
+            <li>2d pan/zoom navigation now works in 3d plots; the pair of
+                axes on which they operate is that defining the plane closest
+                to the plane of the screen.</li>
             </ul></li>
         <li>Layer plot windows now show progress bar as data is loaded.</li>
         <li>Layer plot windows more responsive (subsampled intermediate

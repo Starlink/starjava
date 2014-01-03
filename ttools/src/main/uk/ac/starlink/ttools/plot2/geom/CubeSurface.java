@@ -450,10 +450,12 @@ public class CubeSurface implements Surface {
     /**
      * Returns a cube surface like this one but zoomed in two dimensions
      * around a point indicated by a given screen position.
+     * The two dimensions are those closest to the plane of the screen.
      *
      * @param   pos  reference point in graphics coordinates
      * @param   xZoom  zoom factor requested in X screen direction
      * @param   yZoom  zoom factor requested in Y screen direction
+     * @return   new cube
      */
     CubeAspect pointZoom( Point gpos, double xZoom, double yZoom ) {
         int[] dirs = getScreenDirections();
@@ -462,6 +464,27 @@ public class CubeSurface implements Surface {
         factors[ dirs[ 1 ] ] = yZoom;
         return zoomData( graphicsToData( gpos ),
                          factors[ 0 ], factors[ 1 ], factors[ 2 ] );
+    }
+
+    /**
+     * Returns a cube surface like this one but panned in two dimensions
+     * given a screen start and end position.
+     * The two dimensions are those closest to the plane of the screen.
+     *
+     * @param  gpos0  start point in graphics coordinates
+     * @param  gpos1  end point in graphics coordinates
+     * @return  new cube
+     */
+    CubeAspect pointPan( Point gpos0, Point gpos1 ) {
+        double[] dp0 = graphicsToData( gpos0 );
+        double[] dp1 = graphicsToData( gpos1 );
+        double[][] limits = new double[ 3 ][];
+        for ( int i = 0; i < 3; i++ ) {
+            limits[ i ] = Axis.pan( dlos_[ i ], dhis_[ i ], dp0[ i ], dp1[ i ],
+                                    logFlags_[ i ] );
+        }
+        return new CubeAspect( limits[ 0 ], limits[ 1 ], limits[ 2 ],
+                               rotmat_, zoom_, xoff_, yoff_ );
     }
 
     /**
