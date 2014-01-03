@@ -47,7 +47,10 @@ public class CubeNavigator implements Navigator<CubeAspect> {
     public CubeAspect drag( Surface surface, MouseEvent evt, Point origin ) {
         CubeSurface csurf = (CubeSurface) surface;
         Point point = evt.getPoint();
-        if ( PlotUtil.isZoomDrag( evt ) ) {
+        if ( ( evt.getModifiersEx() & MouseEvent.BUTTON2_DOWN_MASK ) != 0 ) {
+            return csurf.pointPan( origin, point );
+        }
+        else if ( PlotUtil.isZoomDrag( evt ) ) {
             return axisFlags_ == null
                  ? csurf.pointZoom( origin,
                                     PlotUtil.toZoom( zoomFactor_, origin,
