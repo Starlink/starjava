@@ -289,13 +289,11 @@ public abstract class Axis {
         }
 
         public double[] dataZoom( double d0, double factor ) {
-            return new double[] { d0 + ( dlo_ - d0 ) / factor,
-                                  d0 + ( dhi_ - d0 ) / factor };
+            return zoom( dlo_, dhi_, d0, factor, false );
         }
 
         public double[] dataPan( double d0, double d1 ) {
-            double d10 = d1 - d0;
-            return new double[] { dlo_ - d10, dhi_ - d10 };
+            return pan( dlo_, dhi_, d0, d1, false );
         }
     }
 
@@ -339,13 +337,57 @@ public abstract class Axis {
         }
 
         public double[] dataZoom( double d0, double factor ) {
-            return new double[] { d0 * Math.pow( dlo_ / d0, 1. / factor ),
-                                  d0 * Math.pow( dhi_ / d0, 1. / factor ) };
+            return zoom( dlo_, dhi_, d0, factor, true );
         }
 
         public double[] dataPan( double d0, double d1 ) {
+            return pan( dlo_, dhi_, d0, d1, true );
+        }
+    }
+
+    /**
+     * Utility method for axis panning.
+     *
+     * @param   dlo  initial axis lower bound
+     * @param   dhi  initial axis upper bound
+     * @param   d0   pan gesture start position
+     * @param   d1   pan gesture end position
+     * @param   isLog  false for linear axis, true for logarithmic
+     * @return  2-element array giving final (panned) axis {lower,upper} bounds
+     */
+    public static double[] pan( double dlo, double dhi,
+                                double d0, double d1, boolean isLog ) {
+        if ( isLog ) {
             double d10 = d0 / d1;
-            return new double[] { dlo_ * d10, dhi_ * d10 };
+            return new double[] { dlo * d10, dhi * d10 };
+        }
+        else {
+            double d10 = d1 - d0;
+            return new double[] { dlo - d10, dhi - d10 };
+        }
+    }
+
+    /**
+     * Utility method for axis zooming.
+     *
+     * @param   dlo  initial axis lower bound
+     * @param   dhi  initial axis upper bound
+     * @param   d0   zoom gesture reference position
+     * @param   factor  zoom factor
+     * @param   isLog   false for linear axis, true for logarithmic
+     * @return  2-element array giving final (zoomed) axis {lower,upper} bounds
+     */
+    public static double[] zoom( double dlo, double dhi,
+                                 double d0, double factor, boolean isLog ) {
+        if ( isLog ) {
+            double f1 = 1. / factor;
+            return new double[] { d0 * Math.pow( dlo / d0, f1 ),
+                                  d0 * Math.pow( dhi / d0, f1 ) };
+        }
+        else {
+            double f1 = 1. / factor;
+            return new double[] { d0 + ( dlo - d0 ) * f1,
+                                  d0 + ( dhi - d0 ) * f1 };
         }
     }
 }
