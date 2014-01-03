@@ -638,15 +638,8 @@ public class CubeSurface implements Surface {
         double[] factors = new double[] { xFactor, yFactor, zFactor };
         double[][] limits = new double[ 3 ][];
         for ( int i = 0; i < 3; i++ ) {
-            double d0 = dpos0[ i ];
-            double dlo = dlos_[ i ];
-            double dhi = dhis_[ i ];
-            double factor = factors[ i ];
-            limits[ i ] = logFlags_[ i ]
-                ? new double[] { d0 * Math.pow( dlo / d0, 1. / factor ),
-                                 d0 * Math.pow( dhi / d0, 1. / factor ) }
-                : new double[] { d0 + ( dlo - d0 ) / factor,
-                                 d0 + ( dhi - d0 ) / factor };
+            limits[ i ] = Axis.zoom( dlos_[ i ], dhis_[ i ],
+                                     dpos0[ i ], factors[ i ], logFlags_[ i ] );
         }
         return new CubeAspect( limits[ 0 ], limits[ 1 ], limits[ 2 ],
                                rotmat_, zoom_, xoff_, yoff_ );
