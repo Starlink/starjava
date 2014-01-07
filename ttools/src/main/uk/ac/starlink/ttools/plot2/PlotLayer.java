@@ -56,13 +56,21 @@ public interface PlotLayer {
      * The implementation may or may not need to acquire
      * a tuple sequence from the supplied <code>dataStore</code>.
      *
+     * <p>An array of flags indicating whether each range corresponds to
+     * a logarithmic axis is also supplied (same number of eements as
+     * <code>ranges</code>).  This may or may not make physical sense
+     * for a given case - if in doubt, false elements are given.
+     *
      * <p>In many cases (especially for point-plotting type layers)
      * the implementation of this method will be a no-operation.
      *
      * @param   ranges   array of data space dimension ranges, may be adjusted
+     * @param   logFlags    array of scaling flags (false=linear, true=log)
+     *                      corresponding to <code>ranges</code> array
      * @param   dataStore   data storage object
      */
-    void extendCoordinateRanges( Range[] ranges, DataStore dataStore );
+    void extendCoordinateRanges( Range[] ranges, boolean[] logFlags,
+                                 DataStore dataStore );
 
     /**
      * Returns the data spec that defines the data used by this layer.

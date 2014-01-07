@@ -947,7 +947,8 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                 }
                 else {
                     long startRange = System.currentTimeMillis();
-                    geomRanges = surfFact_.readRanges( layers_, dataStore1 );
+                    geomRanges =
+                        surfFact_.readRanges( profile_, layers_, dataStore1 );
                     if ( Thread.currentThread().isInterrupted() ) {
                         return null;
                     }

@@ -157,7 +157,8 @@ public class SkySurfaceFactory
                                   ranges );
     }
 
-    public Range[] readRanges( PlotLayer[] layers, DataStore dataStore ) {
+    public Range[] readRanges( Profile profile, PlotLayer[] layers,
+                               DataStore dataStore ) {
         PointCloud pointCloud =
             new PointCloud( SubCloud.createSubClouds( layers, true ) );
         Range[] ranges = new Range[] { new Range(), new Range(), new Range() };

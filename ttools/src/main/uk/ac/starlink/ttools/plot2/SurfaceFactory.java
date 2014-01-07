@@ -87,12 +87,13 @@ public interface SurfaceFactory<P,A> {
      * There is only any point calling this if {@link #useRanges useRanges}
      * returns true.
      *
+     * @param   profile  surface configuration profile
      * @param  layers   plot layers to be plotted
      * @param  dataStore  contains actual data
      * @return   data ranges covered by the given layers filled in from data
      */
     @Slow
-    Range[] readRanges( PlotLayer[] layers, DataStore dataStore );
+    Range[] readRanges( P profile, PlotLayer[] layers, DataStore dataStore );
 
     /**
      * Creates an aspect from configuration information.

@@ -207,6 +207,7 @@ public class SpectrogramPlotter
                 }
                 @Override
                 public void extendCoordinateRanges( Range[] ranges,
+                                                    boolean[] logFlags,
                                                     DataStore dataStore ) {
                     Range specRange = ranges[ 1 ];
                     ChannelGrid grid = style.grid_;

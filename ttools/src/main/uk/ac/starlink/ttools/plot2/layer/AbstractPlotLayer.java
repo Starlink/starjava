@@ -59,7 +59,8 @@ public abstract class AbstractPlotLayer implements PlotLayer {
     /**
      * This implementation does nothing.
      */
-    public void extendCoordinateRanges( Range[] ranges, DataStore dataStore ) {
+    public void extendCoordinateRanges( Range[] ranges, boolean[] logFlags,
+                                        DataStore dataStore ) {
     }
 
     public DataSpec getDataSpec() {

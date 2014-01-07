@@ -176,8 +176,11 @@ public class PlaneSurfaceFactory
         }
     }
 
-    public Range[] readRanges( PlotLayer[] layers, DataStore dataStore ) {
-        return PlotUtil.readCoordinateRanges( layers, 2, dataStore );
+    public Range[] readRanges( Profile profile, PlotLayer[] layers,
+                               DataStore dataStore ) {
+        boolean[] logFlags = profile.getLogFlags();
+        assert logFlags.length == 2;
+        return PlotUtil.readCoordinateRanges( layers, 2, logFlags, dataStore );
     }
 
     public ConfigKey[] getNavigatorKeys() {

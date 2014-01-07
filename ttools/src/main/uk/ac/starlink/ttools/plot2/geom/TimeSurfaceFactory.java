@@ -167,8 +167,10 @@ public class TimeSurfaceFactory
         }
     }
 
-    public Range[] readRanges( PlotLayer[] layers, DataStore dataStore ) {
-        return PlotUtil.readCoordinateRanges( layers, 2, dataStore );
+    public Range[] readRanges( Profile profile, PlotLayer[] layers,
+                               DataStore dataStore ) {
+        boolean[] logFlags = new boolean[] { false, profile.getYLog() };
+        return PlotUtil.readCoordinateRanges( layers, 2, logFlags, dataStore );
     }
 
     public ConfigKey[] getNavigatorKeys() {
