@@ -315,8 +315,11 @@ public class CubeSurfaceFactory
                                rotmat, zoom, xoff, yoff );
     }
 
-    public Range[] readRanges( PlotLayer[] layers, DataStore dataStore ) {
-        return PlotUtil.readCoordinateRanges( layers, 3, dataStore );
+    public Range[] readRanges( Profile profile, PlotLayer[] layers,
+                               DataStore dataStore ) {
+        boolean[] logFlags = profile.getLogFlags();
+        assert logFlags.length == 3;
+        return PlotUtil.readCoordinateRanges( layers, 3, logFlags, dataStore );
     }
 
     public ConfigKey[] getNavigatorKeys() {

@@ -270,7 +270,7 @@ public class PlotDisplay<P,A> extends JComponent {
         /* Read ranges from data if necessary. */
         long t0 = System.currentTimeMillis();
         Range[] ranges = surfFact.useRanges( profile, config )
-                       ? surfFact.readRanges( layers, dataStore )
+                       ? surfFact.readRanges( profile, layers, dataStore )
                        : null;
         PlotUtil.logTime( logger_, "Range", t0 );
 

@@ -961,7 +961,7 @@ public class Plot2Task implements Task {
         P profile = surfFact.createProfile( config );
         long t0 = System.currentTimeMillis();
         Range[] ranges = surfFact.useRanges( profile, config )
-                       ? surfFact.readRanges( layers, dataStore )
+                       ? surfFact.readRanges( profile, layers, dataStore )
                        : null;
         PlotUtil.logTime( logger_, "Range", t0 );
         A aspect = surfFact.createAspect( profile, config, ranges );

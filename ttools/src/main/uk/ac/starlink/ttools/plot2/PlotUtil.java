@@ -171,16 +171,24 @@ public class PlotUtil {
      * Determines range information for a set of layers which have
      * Cartesian (or similar) coordinates.
      *
+     * <p>The <code>logFlags</code> array can flag whether
+     * some of the data dimensions have logarithmic scaling.
+     * This may not make sense in all cases, if not, supply null.
+     *
      * @param   layers   plot layers
      * @param   nDataDim  dimensionality of data points
+     * @param   logFlags  <code>nDataDim</code>-element array indicating
+     *                    whether data dimensions are
+     *                    linear (false) or logarithmic (true)
      * @param   dataStore  data storage
-     * @return   nDataDim-element array of ranges, each containing the
-     *           range of data position coordinate values for
+     * @return   <code>nDataDim</code>-element array of ranges, each containing
+     *           the range of data position coordinate values for
      *           the corresponding dimension
      */
     @Slow
     public static Range[] readCoordinateRanges( PlotLayer[] layers,
                                                 int nDataDim,
+                                                boolean[] logFlags,
                                                 DataStore dataStore ) {
 
         /* Set up an array of range objects, one for each data dimension. */
@@ -206,8 +214,10 @@ public class PlotUtil {
 
         /* If any of the layers wants to supply non-data-position points
          * to mark out additional space, take account of those too. */
+        boolean[] lflags = logFlags == null ? new boolean[ nDataDim ]
+                                            : logFlags;
         for ( int il = 0; il < layers.length; il++ ) {
-            layers[ il ].extendCoordinateRanges( ranges, dataStore );
+            layers[ il ].extendCoordinateRanges( ranges, lflags, dataStore );
         }
 
         /* Return the ranges. */
