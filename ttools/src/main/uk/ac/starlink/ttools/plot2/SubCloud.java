@@ -121,9 +121,7 @@ public class SubCloud {
      */
     public static SubCloud[] createSubClouds( PlotLayer[] layers,
                                               boolean deduplicate ) {
-        Collection<SubCloud> subClouds = deduplicate 
-                                       ? new LinkedHashSet<SubCloud>()
-                                       : new ArrayList<SubCloud>();
+        Collection<SubCloud> subClouds = createCollection( deduplicate );
         int nl = layers.length;
         int ndim0 = -1;
         for ( int il = 0; il < nl; il++ ) {
@@ -153,6 +151,30 @@ public class SubCloud {
     }
 
     /**
+     * Returns a collection of subclouds from a list of layers,
+     * but including only those layers whose positions are partial.
+     * This means that the data position coordinate arrays will have
+     * some elements NaN, indicating something other than an actual
+     * point in the data space - for instance a vertical or horizontal
+     * line.
+     *
+     * @see   PlotUtil#hasPartialPosition
+     */
+    public static SubCloud[] createPartialSubClouds( PlotLayer[] layers,
+                                                     boolean deduplicate ) {
+        Collection<SubCloud> subClouds = createCollection( deduplicate );
+        int nl = layers.length;
+        for ( int il = 0; il < nl; il++ ) {
+            PlotLayer layer = layers[ il ];
+            if ( PlotUtil.hasPartialPosition( layer ) ) {
+                subClouds.add( new SubCloud( layer.getDataGeom(),
+                                             layer.getDataSpec(), 0 ) );
+            }
+        }
+        return subClouds.toArray( new SubCloud[ 0 ] );
+    }
+
+    /**
      * Returns a collection of subclouds for a number of positions from
      * a data spec.
      *
@@ -164,9 +186,7 @@ public class SubCloud {
      */
     public static SubCloud[] createSubClouds( DataGeom geom, DataSpec spec,
                                               int npos, boolean deduplicate ) {
-        Collection<SubCloud> subClouds = deduplicate
-                                       ? new LinkedHashSet<SubCloud>()
-                                       : new ArrayList<SubCloud>();
+        Collection<SubCloud> subClouds = createCollection( deduplicate );
         if ( geom != null && spec != null && npos > 0 ) {
             int npc = geom.getPosCoords().length;
             for ( int ip = 0; ip < npos; ip++ ) {
@@ -174,5 +194,21 @@ public class SubCloud {
             }
         }
         return subClouds.toArray( new SubCloud[ 0 ] );
+    }
+
+    /**
+     * Returns a SubCloud collection that will handle addition of equal
+     * items appropriately for a given deduplication strategy.
+     * If <code>deduplicate</code> is false, all added items will be in
+     * the result, but if true, then the result will only contain one
+     * instance of each equal item.
+     *
+     * @param  deduplicate  whether deduplication is required
+     * @return  new mutable collection to which subclouds can be added
+     */
+    private static Collection<SubCloud>
+            createCollection( boolean deduplicate ) {
+        return deduplicate ? new LinkedHashSet<SubCloud>()
+                           : new ArrayList<SubCloud>();
     }
 }
