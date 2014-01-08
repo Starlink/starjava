@@ -14,6 +14,7 @@ import uk.ac.starlink.ttools.plot2.layer.CartesianErrorCoordSet;
 import uk.ac.starlink.ttools.plot2.layer.CartesianVectorCoordSet;
 import uk.ac.starlink.ttools.plot2.layer.ContourPlotter;
 import uk.ac.starlink.ttools.plot2.layer.FunctionPlotter;
+import uk.ac.starlink.ttools.plot2.layer.HistogramPlotter;
 import uk.ac.starlink.ttools.plot2.layer.LinePlotter;
 import uk.ac.starlink.ttools.plot2.layer.LabelPlotter;
 import uk.ac.starlink.ttools.plot2.layer.MarkForm;
@@ -82,6 +83,7 @@ public class PlanePlotType implements PlotType {
             new LinePlotter(),
             new LabelPlotter(),
             new ContourPlotter(),
+            new HistogramPlotter( PlaneDataGeom.X_COORD ),
             FunctionPlotter.PLANE,
         } ) );
         return list.toArray( new Plotter[ 0 ] );

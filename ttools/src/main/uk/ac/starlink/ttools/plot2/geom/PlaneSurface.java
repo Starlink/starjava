@@ -188,6 +188,25 @@ public class PlaneSurface implements Surface {
     }
 
     /**
+     * Returns the limits in data coordinates of the plot region.
+     *
+     * @return  2x2 array <code>{{xlo, xhi}, {ylo, yhi}}</code>
+     */
+    public double[][] getDataLimits() {
+        return new double[][] { { dxlo_, dxhi_ }, { dylo_, dyhi_ } };
+    }
+
+    /**
+     * Indicates the scaling along the two axes.
+     *
+     * @return  2-element array giving X,Y scaling flags:
+     *          false for linear, true for logarithmic
+     */
+    public boolean[] getLogFlags() {
+        return new boolean[] { xlog_, ylog_ };
+    }
+
+    /**
      * Returns a plot aspect representing a view of this surface zoomed
      * in some or all dimensions around the given central position.
      *
