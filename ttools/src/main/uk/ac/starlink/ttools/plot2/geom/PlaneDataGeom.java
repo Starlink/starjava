@@ -14,9 +14,12 @@ import uk.ac.starlink.ttools.plot2.data.TupleSequence;
  */
 public class PlaneDataGeom implements DataGeom {
 
-    private static final FloatingCoord X_COORD =
+    /** Horizontal coordinate. */
+    public static final FloatingCoord X_COORD =
          FloatingCoord.createCoord( "X", "Horizontal coordinate", true );
-    private static final FloatingCoord Y_COORD =
+
+    /** Vertical coordinate. */
+    public static final FloatingCoord Y_COORD =
          FloatingCoord.createCoord( "Y", "Vertical coordinate", true );
 
     /** Singleton instance. */
