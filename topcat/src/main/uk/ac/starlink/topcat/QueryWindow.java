@@ -111,6 +111,11 @@ public abstract class QueryWindow extends AuxWindow {
         contentBox.add( auxControls, BorderLayout.CENTER );
         getMainArea().add( iconBox, BorderLayout.WEST );
         getMainArea().add( contentBox, BorderLayout.CENTER );
+
+        /* Fix it so that the components in the stack have the focus
+         * when the window is displayed. */
+        pack();
+        stack.requestFocusInWindow();
     }
 
     /**
