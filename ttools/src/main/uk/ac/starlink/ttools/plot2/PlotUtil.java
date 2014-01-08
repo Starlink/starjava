@@ -14,8 +14,10 @@ import javax.swing.Icon;
 import uk.ac.starlink.ttools.plot.PdfGraphicExporter;
 import uk.ac.starlink.ttools.plot.Picture;
 import uk.ac.starlink.ttools.plot.Range;
+import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
+import uk.ac.starlink.ttools.plot2.geom.SliceDataGeom;
 
 /**
  * Miscellaneous utilities for use with the plotting classes.
@@ -24,6 +26,9 @@ import uk.ac.starlink.ttools.plot2.data.TupleSequence;
  * @since    13 Feb 2013
  */
 public class PlotUtil {
+
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.ttools.plot2" );
 
     /**
      * TupleSequence instance that contains no tuples.
@@ -197,12 +202,17 @@ public class PlotUtil {
             ranges[ idim ] = new Range();
         }
 
-        /* Create a point cloud containing all the point positions
+        /* Create a point cloud containing all the data coordinates
          * represented by the supplied layers.  If there are several
-         * layers using the same basic positions, this should combine
-         * them efficiently. */
-        PointCloud cloud =
-            new PointCloud( SubCloud.createSubClouds( layers, true ) );
+         * layers using the same basic positions, this will combine
+         * them efficiently.  This includes two sets of subclouds:
+         * firstly tuples giving actual point positions,
+         * and secondly tuples that may only represent partial positions
+         * (some elements of the data space coordinate vector are NaN). */
+        SubCloud[] subClouds =
+            arrayConcat( SubCloud.createSubClouds( layers, true ),
+                         SubCloud.createPartialSubClouds( layers, true ) );
+        PointCloud cloud = new PointCloud( subClouds );
 
         /* Iterate over the represented points to mark out the basic
          * range of data positions covered by the layers. */
@@ -222,6 +232,37 @@ public class PlotUtil {
 
         /* Return the ranges. */
         return ranges;
+    }
+
+    /**
+     * Determines whether a layer has "partial" positions.
+     * That is to say that it represents a set of tuples that map to
+     * data position coordinate arrays, but that those coordinate arrays
+     * have at least one element equal to NaN, indicating for instance
+     * a line rather than a point in the coordinate space.
+     *
+     * <p>At present this determination is done in a somewhat ad hoc way.
+     * Perhaps in future the PlotLayer interface could be modified to make
+     * it clearer when a PlotLayer supplies partial positions.
+     *
+     * @param  layer  layer to test
+     * @return  true if layer table data is in the form of partial positions
+     */
+    public static boolean hasPartialPosition( PlotLayer layer ) {
+        DataGeom geom = layer.getDataGeom();
+        DataSpec spec = layer.getDataSpec();
+        if ( geom != null && spec != null && ! geom.hasPosition() &&
+             geom.getPosCoords().length > 0 ) {
+            if ( layer.getPlotter().getPositionCount() != 0 ||
+                 ! ( geom instanceof SliceDataGeom ) ) {
+                logger_.warning( "Partial position layer looks unexpected"
+                               + " - hmmm." );
+            }
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 
     /**
