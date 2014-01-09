@@ -30,7 +30,7 @@ import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 
 /**
- * Control manager that uses GangLayerControls to provide
+ * Control manager that uses FormLayerControls to provide
  * panels that allow you to enter the position values once
  * for a given table and then go to other tabs in the control
  * to customise the layers generated.
@@ -54,6 +54,15 @@ public class GangControlManager implements ControlManager {
 
     /**
      * Constructor.
+     *
+     * @param   stack  control stack which this object will manage
+     * @param   plotType  defines basic plot characteristics
+     * @param   plotTypeGui  defines GUI-specific plot characteristics
+     * @param   baseConfigger  configuration source for some global config
+     *                        options
+     * @param   tcListener listener for TopcatEvents; this manager will arrange
+     *                     for it to listen to whatever is the currently
+     *                     selected TopcatModel
      */
     public GangControlManager( ControlStack stack, PlotType plotType,
                                PlotTypeGui plotTypeGui, Configger baseConfigger,
@@ -129,7 +138,7 @@ public class GangControlManager implements ControlManager {
     }
 
     public Control createDefaultControl( TopcatModel tcModel ) {
-        GangLayerControl control =
+        FormLayerControl control =
             createGangControl( 1, ResourceIcon.PLOT_DATA, true );
         control.setTopcatModel( tcModel );
         return control;
@@ -150,15 +159,16 @@ public class GangControlManager implements ControlManager {
      * @return  control in the stack for which <code>addLayer(lcmd)</code>
      *          will work
      */
-    private GangLayerControl getGangControl( LayerCommand lcmd )
+    private MultiFormLayerControl getGangControl( LayerCommand lcmd )
             throws LayerException {
         ControlStackModel stackModel = stack_.getStackModel();
 
         /* Try to find and return an existing compatible control. */
         for ( int ic = 0; ic < stackModel.getSize(); ic++ ) {
             Control control = stackModel.getControlAt( ic );
-            if ( control instanceof GangLayerControl ) {
-                GangLayerControl gangControl = (GangLayerControl) control;
+            if ( control instanceof MultiFormLayerControl ) {
+                MultiFormLayerControl gangControl =
+                    (MultiFormLayerControl) control;
                 if ( isCompatible( gangControl, lcmd ) ) {
                     return gangControl;
                 }
@@ -167,7 +177,7 @@ public class GangControlManager implements ControlManager {
 
         /* If there wasn't one, create a new one, add it to the stack,
          * and return it. */
-        GangLayerControl control = createGangControl( lcmd );
+        MultiFormLayerControl control = createGangControl( lcmd );
         stack_.addControl( control );
         return control;
     }
@@ -180,11 +190,11 @@ public class GangControlManager implements ControlManager {
      * @param  lcmd   specifies layer to add
      * @return  true iff <code>control.addLayer(lcmd)</code> will work
      */
-    private static boolean isCompatible( GangLayerControl control,
+    private static boolean isCompatible( MultiFormLayerControl control,
                                          LayerCommand lcmd ) {
 
         /* Note the implementation of this method is closely tied to the
-         * implementation of GangLayerControl.addLayer. */
+         * implementation of MultiFormLayerControl.addLayer. */
 
         /* Must have the same table data. */
         if ( lcmd.getTopcatModel() != control.getTopcatModel() ) {
@@ -239,13 +249,13 @@ public class GangControlManager implements ControlManager {
      * @param  lcmd  layer specification
      * @return  new control for which <code>addLayer(lcmd)</code> will work
      */
-    private GangLayerControl createGangControl( LayerCommand lcmd )
+    private MultiFormLayerControl createGangControl( LayerCommand lcmd )
             throws LayerException {
 
         /* Create the control. */
         int npos = lcmd.getPlotter().getPositionCount();
         Icon icon = npos == 1 ? ResourceIcon.PLOT_DATA : ResourceIcon.PLOT_PAIR;
-        GangLayerControl control = createGangControl( npos, icon, false );
+        MultiFormLayerControl control = createGangControl( npos, icon, false );
 
         /* Set the table. */
         control.setTopcatModel( lcmd.getTopcatModel() );
@@ -290,18 +300,19 @@ public class GangControlManager implements ControlManager {
      * @param   npos  number of groups of positional coordinates for entry
      * @return   gang control, or null if it would be useless
      */
-    private GangLayerControl createGangControl( int npos, Icon icon,
-                                                boolean autoPlot ) {
+    private MultiFormLayerControl createGangControl( int npos, Icon icon,
+                                                     boolean autoPlot ) {
         List<Plotter> plotterList = plotterMap_.get( npos );
         if ( plotterList != null && plotterList.size() > 0 ) {
             PositionCoordPanel coordPanel =
                 plotTypeGui_.createPositionCoordPanel( npos );
             boolean autoPop = npos == 1;
-            GangLayerControl control = 
-                new GangLayerControl( coordPanel, autoPop,
-                                      plotterList.toArray( new Plotter[ 0 ] ),
-                                      baseConfigger_, nextSupplier_,
-                                      tcListener_, icon );
+            MultiFormLayerControl control = 
+                new MultiFormLayerControl( coordPanel, autoPop, nextSupplier_,
+                                           tcListener_, icon,
+                                           plotterList
+                                          .toArray( new Plotter[ 0 ] ),
+                                           baseConfigger_ );
             if ( autoPlot ) {
                 control.addDefaultLayer();
             }
