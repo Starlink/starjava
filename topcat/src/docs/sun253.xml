@@ -18280,6 +18280,7 @@ introduced since the last version:
         <li>When a pair match completes successfully, you get the option to
             plot the results, which shows you exactly how the located matches
             relate to the input positions.</li>
+        <li>Add layer plot histogram.</li>
         </ul>
         </p></dd>
 </dl>
