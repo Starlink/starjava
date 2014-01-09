@@ -24,11 +24,13 @@ public class SimpleFormControl extends FormControl {
      *
      * @param  baseConfigger  provides global configuration info
      * @param  plotter  plotter for which this control provides style config
+     * @param  extraCoords  any coordinates which are to be solicited from
+     *                      the form control
      */
-    public SimpleFormControl( Configger baseConfigger, Plotter plotter ) {
+    public SimpleFormControl( Configger baseConfigger, Plotter plotter,
+                              Coord[] extraCoords ) {
         super( baseConfigger );
         plotter_ = plotter;
-        Coord[] extraCoords = plotter.getExtraCoords();
         extraCoordPanel_ = new CoordPanel( extraCoords );
         if ( extraCoords.length > 0 ) {
             extraCoordPanel_.getComponent()

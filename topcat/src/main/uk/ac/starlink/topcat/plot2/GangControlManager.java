@@ -114,7 +114,9 @@ public class GangControlManager implements ControlManager {
 
         /* Add actions for non-positional plotters. */
         for ( Plotter plotter : plotterMap_.get( 0 ) ) {
-            Action stackAct = PlotterStackAction.createAction( plotter, stack );
+            Action stackAct =
+                PlotterStackAction.createAction( plotter, stack, nextSupplier_,
+                                                 tcListener_, baseConfigger_ );
             if ( stackAct != null ) {
                 stackActList.add( stackAct );
             }
