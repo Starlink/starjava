@@ -1,8 +1,5 @@
 package uk.ac.starlink.topcat.plot2;
 
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -11,36 +8,22 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
 import javax.swing.Box;
 import javax.swing.DefaultListModel;
 import javax.swing.Icon;
-import javax.swing.JButton;
 import javax.swing.JComponent;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JToolBar;
 import javax.swing.ListModel;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-import uk.ac.starlink.table.ColumnData;
-import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.plot.Style;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.LegendEntry;
-import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
-import uk.ac.starlink.ttools.plot2.layer.ModePlotter;
-import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.TablesListComboBox;
 import uk.ac.starlink.topcat.TopcatEvent;
@@ -49,33 +32,26 @@ import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 /**
- * Plot control which allows you to enter the positional coordinates once
- * and define a number of plot layers based on this by providing
- * additional different tabs to configure subset inclusion and plot form.
+ * Plot layer control which manages coordinates and subsets in a common way
+ * for multiple layers defined by one or more forms.
+ * It provides a tab for common coordinates (including table)
+ * and a tab for configuring subset-specific defaults.
+ * Concrete subclasses must provide their form panels.
  *
  * @author   Mark Taylor
- * @since    18 Mar 2013
+ * @since    8 Jan 2014
  */
-public class GangLayerControl extends TabberControl implements LayerControl {
+public abstract class FormLayerControl
+        extends TabberControl implements LayerControl {
 
     private final PositionCoordPanel posCoordPanel_;
     private final boolean autoPopulate_;
-    private final Configger baseConfigger_;
-    private final ConfigKey[] subsetKeys_;
     private final TablesListComboBox tableSelector_;
-    private final ControlStack formStack_;
-    private final ControlStackModel formStackModel_;
     private final WrapperListModel subListModel_;
     private final SubsetConfigManager subsetManager_;
     private final TopcatListener tcListener_;
     private final SubsetStack subStack_;
-    private final List<Plotter> singlePlotterList_;
-    private final Map<ModePlotter.Form,List<ModePlotter>> modePlotterMap_;
-    private final Action dfltFormAct_;
     private TopcatModel tcModel_;
-
-    private static final Logger logger_ =
-        Logger.getLogger( "uk.ac.starlink.topcat.plot2" );
 
     /**
      * Constructor.
@@ -85,26 +61,19 @@ public class GangLayerControl extends TabberControl implements LayerControl {
      * @param  autoPopulate  if true, when the table is changed an attempt
      *                       will be made to initialise the coordinate fields
      *                       with some suitable values
-     * @param  plotters    plotter objects providing different plot layer
-     *                     type options
-     * @param  baseConfigger  configuration source for some global config
-     *                        options
      * @param  nextSupplier  manages global dispensing for some style options
      * @param  tcListener  listener for TopcatEvents; this manager will arrange
      *                     for it to listen to whatever is the currently
      *                     selected TopcatModel
      * @param  controlIcon  icon for control stack
      */
-    public GangLayerControl( PositionCoordPanel posCoordPanel,
-                             boolean autoPopulate,
-                             Plotter[] plotters, Configger baseConfigger,
-                             NextSupplier nextSupplier,
-                             TopcatListener tcListener, Icon controlIcon ) {
+    protected FormLayerControl( PositionCoordPanel posCoordPanel,
+                                boolean autoPopulate,
+                                NextSupplier nextSupplier,
+                                TopcatListener tcListener, Icon controlIcon ) {
         super( null, controlIcon );
         posCoordPanel_ = posCoordPanel;
         autoPopulate_ = autoPopulate;
-        baseConfigger_ = baseConfigger;
-        subsetKeys_ = nextSupplier.getKeys();
         final TopcatListener externalTcListener = tcListener;
 
         /* Set up a selector for which table to plot. */
@@ -127,88 +96,6 @@ public class GangLayerControl extends TabberControl implements LayerControl {
         posbox.add( new LineBox( "Table", new ShrinkWrapper( tableSelector_ ),
                                  true ) );
         posbox.add( posCoordPanel_.getComponent() );
-
-        /* Set up the panel holding the form selector.
-         * This is a (visually) complicated component which allows the
-         * user to configure many different plot layers based on the
-         * selected table and positional coordinates. 
-         * It has a list of controls and a panel; when an item is
-         * selected from the list, the panel is filled in with the
-         * corresponding component. */
-        final JComponent fcHolder = new JPanel( new BorderLayout() );
-        formStackModel_ = new ControlStackModel();
-        formStack_ = new ControlStack( formStackModel_ );
-        formStack_.addListSelectionListener( new ListSelectionListener() {
-            public void valueChanged( ListSelectionEvent evt ) {
-                fcHolder.removeAll();
-                Object item = formStack_.getSelectedValue();
-                if ( item instanceof FormControl ) {
-                    FormControl fc = (FormControl) item;
-                    fcHolder.add( fc.getPanel(), BorderLayout.NORTH );
-                    fcHolder.revalidate();
-                    fcHolder.repaint();
-                }
-            }
-        } );
-        JScrollPane stackScroller = new JScrollPane( formStack_ );
-        stackScroller.setHorizontalScrollBarPolicy( JScrollPane
-                                                  .HORIZONTAL_SCROLLBAR_NEVER );
-        JScrollPane fcScroller = new JScrollPane( fcHolder );
-        fcScroller.getVerticalScrollBar().setUnitIncrement( 16 );
-        JComponent formPanel = new JPanel( new BorderLayout() );
-        JComponent body =  new JPanel( new BorderLayout() );
-        body.add( stackScroller, BorderLayout.WEST );
-        body.add( fcScroller, BorderLayout.CENTER );
-        formPanel.add( body, BorderLayout.CENTER );
-        formStackModel_.addPlotActionListener( forwarder );
-
-        /* Divide up the supplied plotters into those which constitute
-         * mode/form families, and standalone ones. */
-        singlePlotterList_ = new ArrayList<Plotter>();
-        modePlotterMap_ =
-            new LinkedHashMap<ModePlotter.Form,List<ModePlotter>>();
-        for ( int ip = 0; ip < plotters.length; ip++ ) {
-            Plotter plotter = plotters[ ip ];
-            if ( plotter instanceof ModePlotter ) {
-                ModePlotter modePlotter = (ModePlotter) plotter;
-                ModePlotter.Form form = modePlotter.getForm();
-                if ( ! modePlotterMap_.containsKey( form ) ) {
-                    modePlotterMap_.put( form, new ArrayList<ModePlotter>() );
-                }
-                modePlotterMap_.get( form ).add( modePlotter );
-            }
-            else {
-                singlePlotterList_.add( plotter );
-            }
-        }
-
-        /* Set up an action for each form-family of plotters, and each
-         * standalone plotter. */
-        List<Action> formActionList = new ArrayList<Action>();
-        for ( ModePlotter.Form form : modePlotterMap_.keySet() ) {
-            ModePlotter[] modePlotters =
-                modePlotterMap_.get( form ).toArray( new ModePlotter[ 0 ] );
-            formActionList.add( new ModeFormAction( modePlotters, form ) );
-        }
-        for ( Plotter plotter : singlePlotterList_ ) {
-            formActionList.add( new SingleFormAction( plotter ) );
-        }
-
-        /* Action to remove the current form from the stack. */
-        Action removeAction =
-            formStack_.createRemoveAction( "Remove",
-                                           "Delete the current form" );
-
-        /* Populate a toolbar with these actions. */
-        JToolBar formToolbar = new JToolBar();
-        formToolbar.setFloatable( false );
-        for ( Action formAct : formActionList ) {
-            formToolbar.add( formAct );
-        }
-        formToolbar.addSeparator();
-        formToolbar.add( removeAction );
-        formPanel.add( formToolbar, BorderLayout.NORTH );
-        dfltFormAct_ = formActionList.get( 0 );
 
         /* Set up a manager for per-subset configuration. */
         subsetManager_ =
@@ -237,7 +124,6 @@ public class GangLayerControl extends TabberControl implements LayerControl {
         /* Position the components in tabs of this control. */
         addControlTab( "Position", posbox, true );
         addControlTab( "Subsets", subStack_.getComponent(), false );
-        addControlTab( "Form", formPanel, false );
     }
 
     @Override
@@ -273,11 +159,13 @@ public class GangLayerControl extends TabberControl implements LayerControl {
     }
 
     /**
-     * Adds a layer that will give some default plot or other.
+     * Returns the controls in the form control list which are contributing
+     * to the plot.  Controls that the user has deactivated (unchecked)
+     * are ignored.
+     *
+     * @return  list of active form controls
      */
-    public void addDefaultLayer() {
-        dfltFormAct_.actionPerformed( null );
-    }
+    protected abstract FormControl[] getActiveFormControls();
 
     public PlotLayer[] getPlotLayers() {
         RowSubset[] subsets = subStack_.getSelectedSubsets();
@@ -430,111 +318,6 @@ public class GangLayerControl extends TabberControl implements LayerControl {
     }
 
     /**
-     * Attempts to add a specified layer to this control.
-     *
-     * @param   lcmd  layer specification
-     */
-    public void addLayer( LayerCommand lcmd ) {
-        FormControl fc = createFormControl( lcmd.getPlotter() );
-        if ( fc != null ) {
-            FormStylePanel stylePanel = fc.getStylePanel();
-            if ( stylePanel != null ) {
-                subStack_.setSelected( lcmd.getRowSubset(), true );
-                stylePanel.setGlobalConfig( lcmd.getConfig() ); 
-                formStack_.addControl( fc );
-            }
-        }
-        else {
-            logger_.warning( "Failed to add layer " + lcmd );
-        }
-    }
-
-    /**
-     * Creates a new form control for controlling a given plotter type.
-     *
-     * @param  plotter  plotter
-     * @return  new control
-     */
-    private FormControl createFormControl( Plotter plotter ) {
-
-        /* If it's a mode plotter, try to set up a ModeFormControl with
-         * all the other associated modes present, but the relevant one
-         * currently selected. 
-         * Note this currently only works if the supplied plotter is one of
-         * the ones supplied at construction time.  This can be problematic,
-         * since ModePlotter is not currently declared with @Equality,
-         * so you could have a plotter which is equivalent but not actually
-         * equal.  In that case you'll end up falling through this part,
-         * and get a SimpleFormControl instead. */
-        if ( plotter instanceof ModePlotter ) {
-            ModePlotter mPlotter = (ModePlotter) plotter;
-            ModePlotter.Mode mode = mPlotter.getMode();
-            ModePlotter.Form form = mPlotter.getForm();
-            List<ModePlotter> mPlotterList = modePlotterMap_.get( form );
-            if ( mPlotterList != null ) {
-                for ( ModePlotter mp1 : mPlotterList ) {
-                    if ( mp1.getMode().equals( mode ) ) {
-                        ModePlotter[] mPlotters =
-                            mPlotterList.toArray( new ModePlotter[ 0 ] );
-                        ModeFormControl fc = createModeFormControl( mPlotters );
-                        fc.setMode( mp1.getMode() );
-                        return fc;
-                    }
-                }
-            }
-        }
-
-        /* If that didn't work (not a mode plotter, or couldn't assemble
-         * an appropriate ModeFormControl for some other reason) return a
-         * simple form control instead. */
-        return createSimpleFormControl( plotter );
-    }
-
-    /**
-     * Creates a simple form control for a given plotter.
-     *
-     * @param   plotter  plotter
-     * @return   new form control configured for the current table
-     */
-    private FormControl createSimpleFormControl( Plotter plotter ) {
-        FormControl fc = new SimpleFormControl( baseConfigger_, plotter );
-        fc.setTable( tcModel_, subsetManager_ );
-        return fc;
-    }
-
-    /**
-     * Creates a mode form control for a number of plotters.
-     *
-     * @param  plotters  list of mode plotters with the same form
-     * @return   new form control configured for the current table
-     */
-    private ModeFormControl createModeFormControl( ModePlotter[] plotters ) {
-        ModeFormControl fc =
-            new ModeFormControl( baseConfigger_, plotters, subsetKeys_ );
-        fc.setTable( tcModel_, subsetManager_ );
-        return fc;
-    }
-
-    /**
-     * Returns the controls in the form control list which are contributing
-     * to the plot.  Controls that the user has deactivated (unchecked)
-     * are ignored.
-     *
-     * @return  list of active form controls
-     */
-    private FormControl[] getActiveFormControls() {
-        List<FormControl> fcList = new ArrayList<FormControl>();
-        int nf = formStackModel_.getSize();
-        for ( int ifm = 0; ifm < nf; ifm++ ) {
-            FormControl fc = (FormControl) formStackModel_.getControlAt( ifm );
-            if ( formStackModel_.isControlActive( fc ) ) {
-                fcList.add( fc );
-            }
-        }
-        return fcList.toArray( new FormControl[ 0 ] );
-    }
-
-    /**
      * Called when the TopcatModel for which this control is generating plots
      * is changed.  Usually this will be because the user has selected
      * a new one from the table selector.
@@ -571,55 +354,6 @@ public class GangLayerControl extends TabberControl implements LayerControl {
             subListModel_.setBaseModel( tcModel_.getSubsets() );
             RowSubset rset = tcModel_.getSelectedSubset();
             subStack_.setSelectedSubsets( new RowSubset[] { rset } );
-        }
-    }
-
-    /**
-     * Action to add a form control for a non-modal plotter.
-     */
-    private class SingleFormAction extends AbstractAction {
-        private final Plotter plotter_;
-
-        /**
-         * Constructor.
-         *
-         * @param  plotter   object that generates plot layers
-         */
-        public SingleFormAction( Plotter plotter ) {
-            super( plotter.getPlotterName(), plotter.getPlotterIcon() );
-            putValue( SHORT_DESCRIPTION,
-                      "Add new " + plotter.getPlotterName() + " form" );
-            plotter_ = plotter;
-        }
-
-        public void actionPerformed( ActionEvent evt ) {
-            formStack_.addControl( createSimpleFormControl( plotter_ ) );
-        }
-    }
-
-    /**
-     * Action to add a form control for a family of plotters with a common
-     * form and a selection of modes.
-     */
-    private class ModeFormAction extends AbstractAction {
-        private final ModePlotter[] plotters_;
-
-        /**
-         * Constructor.
-         *
-         * @param  plotters   family of plotters which all have the same form
-         *                    but different modes
-         * @param  form   common form
-         */
-        public ModeFormAction( ModePlotter[] plotters, ModePlotter.Form form ) {
-            super( form.getFormName(), form.getFormIcon() );
-            putValue( SHORT_DESCRIPTION,
-                      "Add new " + form.getFormName() + " form" );
-            plotters_ = plotters;
-        }
-
-        public void actionPerformed( ActionEvent evt ) {
-            formStack_.addControl( createModeFormControl( plotters_ ) );
         }
     }
 
