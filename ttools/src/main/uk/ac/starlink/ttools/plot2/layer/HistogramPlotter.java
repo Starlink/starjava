@@ -97,7 +97,7 @@ public class HistogramPlotter
         BarStyle.Placement placement = BarStyle.PLACE_OVER;
         int thick = config.get( THICK_KEY );
         float[] dash = config.get( StyleKeys.DASH );
-        BinSizer sizer = BinSizer.createCountBinSizer( 20 );
+        BinSizer sizer = BinSizer.createCountBinSizer( 20, true );
         double binBase = 0;
         return new HistoStyle( color, barForm, placement, thick, dash,
                                sizer, binBase );
