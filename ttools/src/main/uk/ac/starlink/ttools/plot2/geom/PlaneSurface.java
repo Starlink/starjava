@@ -207,6 +207,16 @@ public class PlaneSurface implements Surface {
     }
 
     /**
+     * Indicates which axes are reversed.
+     *
+     * @return  2-element array giving X,Y flip flags;
+     *          true to invert normal plot direction
+     */
+    public boolean[] getFlipFlags() {
+        return new boolean[] { xflip_, yflip_ };
+    }
+
+    /**
      * Returns a plot aspect representing a view of this surface zoomed
      * in some or all dimensions around the given central position.
      *

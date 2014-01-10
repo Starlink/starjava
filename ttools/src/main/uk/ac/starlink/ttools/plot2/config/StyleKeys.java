@@ -7,6 +7,7 @@ import java.awt.Stroke;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import javax.swing.Icon;
 import javax.swing.JComboBox;
 import javax.swing.ListModel;
 import org.scilab.forge.jlatexmath.TeXFormula;
@@ -15,6 +16,8 @@ import uk.ac.starlink.ttools.gui.DashComboBox;
 import uk.ac.starlink.ttools.gui.MarkStyleSelectors;
 import uk.ac.starlink.ttools.gui.ThicknessComboBox;
 import uk.ac.starlink.ttools.gui.ShaderListCellRenderer;
+import uk.ac.starlink.ttools.plot.BarStyle;
+import uk.ac.starlink.ttools.plot.BarStyles;
 import uk.ac.starlink.ttools.plot.ErrorMode;
 import uk.ac.starlink.ttools.plot.ErrorRenderer;
 import uk.ac.starlink.ttools.plot.MarkShape;
@@ -30,6 +33,7 @@ import uk.ac.starlink.ttools.plot2.layer.LevelMode;
 import uk.ac.starlink.ttools.plottask.ColorParameter;
 import uk.ac.starlink.ttools.plottask.DashParameter;
 import uk.ac.starlink.ttools.plottask.NamedObjectParameter;
+import uk.ac.starlink.util.gui.RenderingComboBox;
 
 /**
  * Contains many common config keys and associated utility methods.
@@ -87,21 +91,38 @@ public class StyleKeys {
                          0.1, 0.001, 2, true );
 
     /** Config key for line thickness. */
-    private static final ConfigKey<Integer> THICKNESS =
-            new IntegerConfigKey( new ConfigMeta( "thick", "Thickness" ),
-                                  1, 5, 1 ) {
-        public Specifier<Integer> createSpecifier() {
-            return new ComboBoxSpecifier<Integer>( new ThicknessComboBox( 5 ) );
-        }
-    };
+    private static final ConfigKey<Integer> THICKNESS = createThicknessKey( 1 );
 
     /** Config key for line dash style. */
-    private static final ConfigKey<float[]> DASH =
+    public static final ConfigKey<float[]> DASH =
             new NamedObjectKey<float[]>( new ConfigMeta( "dash", "Dash" ),
                                          float[].class, null,
                                          new DashParameter( "dash" ) ) {
         public Specifier<float[]> createSpecifier() {
             return new ComboBoxSpecifier<float[]>( new DashComboBox() );
+        }
+    };
+
+    private static final BarStyle.Form[] BARFORMS = new BarStyle.Form[] {
+        BarStyle.FORM_FILLED,
+        BarStyle.FORM_OPEN,
+        BarStyle.FORM_TOP,
+        BarStyle.FORM_SPIKE,
+    };
+
+    /** Config key for histogram bar style. */
+    public static final ConfigKey<BarStyle.Form> BAR_FORM =
+            new OptionConfigKey<BarStyle.Form>( new ConfigMeta( "barform",
+                                                                "Bar Form" ),
+                                                BarStyle.Form.class,
+                                                BARFORMS ) {
+        public Specifier<BarStyle.Form> createSpecifier() {
+            JComboBox formSelector = new RenderingComboBox( BARFORMS ) {
+                protected Icon getRendererIcon( Object form ) {
+                    return BarStyles.getIcon( (BarStyle.Form) form );
+                }
+            };
+            return new ComboBoxSpecifier<BarStyle.Form>( formSelector );
         }
     };
 
@@ -375,6 +396,22 @@ public class StyleKeys {
                                                     + "label",
                                                     axName + " Label" ),
                                                     axName );
+    }
+
+    /**
+     * Returns a config key for line thickness with a given default value.
+     *
+     * @param  dfltThick  default value for line width in pixels
+     * @return   new config key
+     */
+    public static ConfigKey<Integer> createThicknessKey( int dfltThick ) {
+        return new IntegerConfigKey( new ConfigMeta( "thick", "Thickness" ),
+                                     1, 5, dfltThick ) {
+            public Specifier<Integer> createSpecifier() {
+                return new ComboBoxSpecifier<Integer>(
+                               new ThicknessComboBox( 5 ) );
+            }
+        };
     }
 
     /**
