@@ -19,7 +19,7 @@ public class BinBag {
 
     private final boolean log_;
     private final double binWidth_;
-    private final double binBase_;
+    private final double binPhase_;
     private final BinMapper mapper_;
     private final Map<Integer,Bin> binMap_;
 
@@ -27,33 +27,33 @@ public class BinBag {
      * Constructor.
      * Notional bin boundaries are for <code>log=false</code>:
      * <pre>
-     *   binBase, binBase+binWidth, binBase+2*binWidth, ...
+     *   binWidth*(0+binPhase), binWidth*(1+binPhase), ...
      * </pre>
      * and for <code>log=true</code>:
      * <pre>
-     *   binBase, binBase*binWidth, binBase*binWidth*binWidth, ...
+     *   binWidth**(0+binPhase), binWidth**(1+binPhase), ...
      * </pre>
      *
      * <p>The <code>point</code> parameter is used internally to determine
      * the zero point of the bins.  In principle this should make no
      * difference to behaviour, but in case that the data is situated
-     * a very long way from <code>binBase</code>, setting it close to
+     * a very long way from 1,  setting it close to
      * the actual data point locations may avoid rounding errors.
      *
      * @param   log   false for linear axis scaling, true for logarithmic
      * @param   binWidth   width of each bin; this is additive for linear
      *                     and multiplicative for logarithmic scaling
-     * @param   binBase    notional zero point for one bin
-     *                     (determines sub-bin boundary shifts along axis)
+     * @param   binPhase   determines sub-bin boundary shifts along axis,
+     *                     normally in range 0..1
      * @param   point   representative point on axis near which bins are
      *                  situated
      */
-    public BinBag( boolean log, double binWidth, double binBase,
+    public BinBag( boolean log, double binWidth, double binPhase,
                    double point ) {
         log_ = log;
         binWidth_ = binWidth;
-        binBase_ = binBase;
-        double ref = baseFloor( log, binWidth, binBase, point );
+        binPhase_ = binPhase;
+        double ref = getRef( log, binWidth, binPhase, point );
         mapper_ = log ? new LogBinMapper( binWidth, ref )
                       : new LinearBinMapper( binWidth, ref );
         binMap_ = new HashMap<Integer,Bin>();
@@ -101,70 +101,51 @@ public class BinBag {
      * @param   log  false for linear scaling, true for logarithmic
      * @param   binWidth   width of each bin; this is additive for linear
      *                     and multiplicative for logarithmic scaling
-     * @param   binBase    notional zero point for one bin
-     *                     (determines sub-bin boundary shifts along axis)
+     * @param   binPhase   determines sub-bin boundary shifts along axis
+     *                     normally in range 0..1
      * @return  true iff a BinBag constructed using the given parameters
      *          would have the same bin boundaries as this one
      */
-    public boolean matches( boolean log, double binWidth, double binBase ) {
-
-        /* It would be slightly better to match the binBase modulo the widths,
-         * since bin boundaries are degenerate with respect to width multiples
-         * of base, but in practice it's not going to make much difference. */
+    public boolean matches( boolean log, double binWidth, double binPhase ) {
         return log == log_
             && binWidth == binWidth_
-            && binBase == binBase_;
+            && binPhase == binPhase_;
     }
 
     /**
-     * Determines a bin base reference point which is
-     * equivalent modulo width to a supplied one,
-     * but which is close to a supplied point.
+     * Determines a bin base reference point with a phase equivalent to
+     * the given one, but which is close to a supplied point.
      *
      * @param  logFlag  false for linear scaling, true for logarithmic
      * @param  width    bin width
-     * @param  base     bin base
+     * @param  phase    bin phase
      * @param  point    representative point
-     * @return  value equivalent to <code>base</code> modulo <code>width</code>
-     *          (using the appropriate scaling arithmetic),
-     *          but numerically close to <code>point</code>
+     * @return   axis position of a bin boundary
+     *           for the given <code>width</code> and <code>phase</code>,
+     *           but close to <code>point</code>
      */
-    private static double baseFloor( boolean logFlag, double width,
-                                     double base, double point ) {
-
-        /* Log case. */
-        if ( logFlag ) {
-
-            /* Ensure we have sane values for log scaling. */
-            if ( point <= 0 ) {
-                point = 1;
-            }
-            if ( base <= 0 ) {
-                base = 1;
-            }
-
-            /* Get base-equivalent value just below point. */
-            double lf = Math.floor( Math.log( point ) / Math.log( width ) )
-                      * Math.log( width );
-            double f = Math.exp( lf ) * base;
-            if ( f > point ) {
-                f /= width;
-            }
-            assert point / f >= 1 && point / f <= width;
-            return f;
-        }
-
-        /* Linear case. */
-        else {
-
-            /* Get base-equivalent value just below point. */
-            double f = Math.floor( point / width ) * width + base;
-            if ( f > point ) {
-                f -= width;
-            }
-            assert point - f >= 0 && point - f <= width;
-            return f;
-        }
+    private static double getRef( boolean logFlag, double width, double phase,
+                                  double point ) {
+       phase = phase % 1;
+       if ( phase < 0 ) {
+           phase += 1;
+       }
+       assert phase >= 0 && phase < 1 : phase;
+       if ( logFlag ) {
+           if ( point <= 0 ) {
+               point = 1;
+           }
+           int n = (int) Math.floor( Math.log( point ) / Math.log( width ) );
+           double ref = Math.pow( width, n + phase );
+           assert Math.abs( Math.log( ref / point ) ) <= width;
+           return ref;
+       }
+       else {
+           int n = (int) Math.floor( point / width );
+           double ref = ( n + phase ) * width;
+           assert Math.abs( ref - point ) <= width;
+           return ref;
+       }
     }
 
     /**
