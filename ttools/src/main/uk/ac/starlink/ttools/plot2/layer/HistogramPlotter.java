@@ -7,6 +7,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.Map;
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
@@ -21,6 +22,7 @@ import uk.ac.starlink.ttools.plot2.LayerOpt;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.Surface;
+import uk.ac.starlink.ttools.plot2.config.BooleanConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
@@ -54,6 +56,10 @@ public class HistogramPlotter
     public static final ConfigKey<Double> PHASE_KEY =
         DoubleConfigKey.createSliderKey( new ConfigMeta( "phase", "Bin Phase" ),
                                                          0, 0, 1, false );
+    public static final ConfigKey<Boolean> CUMULATIVE_KEY =
+        new BooleanConfigKey( new ConfigMeta( "cumulative", "Cumulative" ) );
+    public static final ConfigKey<Boolean> NORM_KEY =
+        new BooleanConfigKey( new ConfigMeta( "norm", "Normalised" ) );
 
     /**
      * Constructor.
@@ -91,6 +97,8 @@ public class HistogramPlotter
         return new ConfigKey[] {
             StyleKeys.COLOR,
             BinSizer.BINSIZER_KEY,
+            CUMULATIVE_KEY,
+            NORM_KEY,
             PHASE_KEY,
             StyleKeys.BAR_FORM,
             THICK_KEY,
@@ -102,12 +110,14 @@ public class HistogramPlotter
         Color color = config.get( StyleKeys.COLOR );
         BarStyle.Form barForm = config.get( StyleKeys.BAR_FORM );
         BarStyle.Placement placement = BarStyle.PLACE_OVER;
+        boolean cumulative = config.get( CUMULATIVE_KEY );
+        boolean norm = config.get( NORM_KEY );
         int thick = config.get( THICK_KEY );
         float[] dash = config.get( StyleKeys.DASH );
         BinSizer sizer = config.get( BinSizer.BINSIZER_KEY );
         double binPhase = config.get( PHASE_KEY );
-        return new HistoStyle( color, barForm, placement, thick, dash,
-                               sizer, binPhase );
+        return new HistoStyle( color, barForm, placement, cumulative, norm,
+                               thick, dash, sizer, binPhase );
     }
 
     /**
@@ -121,6 +131,8 @@ public class HistogramPlotter
         else {
             final double binPhase = style.phase_;
             final BinSizer sizer = style.sizer_;
+            final boolean cumul = style.cumulative_;
+            final boolean norm = style.norm_;
             Color color = style.color_;
             final boolean isOpaque = color.getAlpha() == 255;
             LayerOpt layerOpt = new LayerOpt( color, isOpaque );
@@ -216,7 +228,10 @@ public class HistogramPlotter
                      * cut off in the middle.  The fact that this resets the
                      * X range in turn means that the Y ranging may no longer
                      * be exactly right, but it won't be far off. */
-                    for ( BinBag.Bin bin : binBag.getBins() ) {
+                    for ( Iterator<BinBag.Bin> it =
+                              binBag.binIterator( cumul, norm );
+                          it.hasNext(); ) {
+                        BinBag.Bin bin = it.next();
                         double y = bin.getY();
                         if ( y != 0 ) {
                             yRange.submit( y );
@@ -267,6 +282,8 @@ public class HistogramPlotter
         Color color0 = g.getColor();
         g.setColor( style.color_ );
         BarStyle barStyle = style.barStyle_;
+        boolean cumul = style.cumulative_;
+        boolean norm = style.norm_;
         Rectangle clip = surface.getPlotBounds();
         int xClipMin = clip.x - 64;
         int xClipMax = clip.x + clip.width + 64;
@@ -289,7 +306,9 @@ public class HistogramPlotter
         int commonGy0 = 0;
 
         /* Iterate over bins, plotting each one individually. */
-        for ( BinBag.Bin bin : binBag.getBins() ) {
+        for ( Iterator<BinBag.Bin> binIt = binBag.binIterator( cumul, norm );
+              binIt.hasNext(); ) {
+            BinBag.Bin bin = binIt.next();
 
             /* Get bin data. */
             double dxlo = bin.getXMin();
@@ -395,6 +414,8 @@ public class HistogramPlotter
         private final Color color_;
         private final BarStyle.Form barForm_;
         private final BarStyle.Placement placement_;
+        private final boolean cumulative_;
+        private final boolean norm_;
         private final int thick_;
         private final float[] dash_;
         private final BinSizer sizer_;
@@ -408,6 +429,8 @@ public class HistogramPlotter
          * @param  color   bar colour
          * @param  barForm  bar form
          * @param  placement  bar placement
+         * @param  cumulative  whether to plot cumulative bars
+         * @param  norm    whether to normalise vertical scale
          * @param  thick   line thickness (only relevant for some forms)
          * @param  dash    line dash pattern (only relevant for some forms)
          * @param  sizer   determines bin widths
@@ -415,11 +438,14 @@ public class HistogramPlotter
          */
         public HistoStyle( Color color, BarStyle.Form barForm,
                            BarStyle.Placement placement,
+                           boolean cumulative, boolean norm,
                            int thick, float[] dash,
                            BinSizer sizer, double phase ) {
             color_ = color;
             barForm_ = barForm;
             placement_ = placement;
+            cumulative_ = cumulative;
+            norm_ = norm;
             thick_ = thick;
             dash_ = dash;
             sizer_ = sizer;
@@ -439,6 +465,8 @@ public class HistogramPlotter
             code = 23 * code + color_.hashCode();
             code = 23 * code + barForm_.hashCode();
             code = 23 * code + placement_.hashCode();
+            code = 23 * code + ( cumulative_ ? 11 : 13 );
+            code = 23 * code + ( norm_ ? 17 : 19 );
             code = 23 * code + thick_;
             code = 23 * code + Arrays.hashCode( dash_ );
             code = 23 * code + sizer_.hashCode();
@@ -453,6 +481,8 @@ public class HistogramPlotter
                 return this.color_.equals( other.color_ )
                     && this.barForm_.equals( other.barForm_ )
                     && this.placement_.equals( other.placement_ )
+                    && this.cumulative_ == other.cumulative_
+                    && this.norm_ == other.norm_
                     && this.thick_ == other.thick_
                     && Arrays.equals( this.dash_, other.dash_ )
                     && this.sizer_.equals( other.sizer_ )
