@@ -98,9 +98,9 @@ public class HistogramPlotter
         int thick = config.get( THICK_KEY );
         float[] dash = config.get( StyleKeys.DASH );
         BinSizer sizer = BinSizer.createCountBinSizer( 20, true );
-        double binBase = 0;
+        double binPhase = 0;
         return new HistoStyle( color, barForm, placement, thick, dash,
-                               sizer, binBase );
+                               sizer, binPhase );
     }
 
     /**
@@ -112,7 +112,7 @@ public class HistogramPlotter
             return null;
         }
         else {
-            final double binBase = style.base_;
+            final double binPhase = style.phase_;
             final BinSizer sizer = style.sizer_;
             Color color = style.color_;
             final boolean isOpaque = color.getAlpha() == 255;
@@ -149,13 +149,13 @@ public class HistogramPlotter
                                     HistoPlan plan =
                                         (HistoPlan) knownPlans[ ip ];
                                     if ( plan.matches( xlog, binWidth,
-                                                       binBase, dataSpec ) ) {
+                                                       binPhase, dataSpec ) ) {
                                         return plan;
                                     }
                                 }
                             }
                             BinBag binBag =
-                                readBins( xlog, binWidth, binBase, xlo,
+                                readBins( xlog, binWidth, binPhase, xlo,
                                           dataSpec, dataStore );
                             return new HistoPlan( binBag, dataSpec );
                         }
@@ -195,7 +195,7 @@ public class HistogramPlotter
                     double xlo = xlimits[ 0 ];
                     double xhi = xlimits[ 1 ];
                     double binWidth = sizer.getWidth( xlog, xlo, xhi );
-                    BinBag binBag = readBins( xlog, binWidth, binBase, xlo,
+                    BinBag binBag = readBins( xlog, binWidth, binPhase, xlo,
                                               dataSpec, dataStore );
 
                     /* Assume y=0 is always of interest for a histogram. */
@@ -227,15 +227,15 @@ public class HistogramPlotter
      *
      * @param   xlog  false for linear scaling, true for logarithmic
      * @param   binWidth  additive/multiplicative bin width
-     * @param   binBase   zero point for bin zero
+     * @param   binPhase   bin reference point, 0..1
      * @param   point     representative data value along axis
      * @param   dataSpec  specification for histogram data values
      * @param   dataStore  data storage
      */
-    private BinBag readBins( boolean xlog, double binWidth, double binBase,
+    private BinBag readBins( boolean xlog, double binWidth, double binPhase,
                              double point, DataSpec dataSpec,
                              DataStore dataStore ) {
-        BinBag binBag = new BinBag( xlog, binWidth, binBase, point );
+        BinBag binBag = new BinBag( xlog, binWidth, binPhase, point );
         TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
         while ( tseq.next() ) {
             double x = xCoord_.readDoubleCoord( tseq, 0 );
@@ -391,7 +391,7 @@ public class HistogramPlotter
         private final int thick_;
         private final float[] dash_;
         private final BinSizer sizer_;
-        private final double base_;
+        private final double phase_;
 
         private final BarStyle barStyle_;
 
@@ -404,19 +404,19 @@ public class HistogramPlotter
          * @param  thick   line thickness (only relevant for some forms)
          * @param  dash    line dash pattern (only relevant for some forms)
          * @param  sizer   determines bin widths
-         * @param  base    bin reference point
+         * @param  phase   bin reference point, 0..1
          */
         public HistoStyle( Color color, BarStyle.Form barForm,
                            BarStyle.Placement placement,
                            int thick, float[] dash,
-                           BinSizer sizer, double base ) {
+                           BinSizer sizer, double phase ) {
             color_ = color;
             barForm_ = barForm;
             placement_ = placement;
             thick_ = thick;
             dash_ = dash;
             sizer_ = sizer;
-            base_ = base;
+            phase_ = phase;
             barStyle_ = new BarStyle( color, barForm, placement );
             barStyle_.setLineWidth( thick );
             barStyle_.setDash( dash );
@@ -435,7 +435,7 @@ public class HistogramPlotter
             code = 23 * code + thick_;
             code = 23 * code + Arrays.hashCode( dash_ );
             code = 23 * code + sizer_.hashCode();
-            code = 23 * code + Float.floatToIntBits( (float) base_ );
+            code = 23 * code + Float.floatToIntBits( (float) phase_ );
             return code;
         }
 
@@ -449,7 +449,7 @@ public class HistogramPlotter
                     && this.thick_ == other.thick_
                     && Arrays.equals( this.dash_, other.dash_ )
                     && this.sizer_.equals( other.sizer_ )
-                    && this.base_ == other.base_;
+                    && this.phase_ == other.phase_;
             }
             else {
                 return false;
@@ -481,12 +481,12 @@ public class HistogramPlotter
          *
          * @param   xlog   axis scaling
          * @param   binWidth   bin width
-         * @param   binBase    bin reference position
+         * @param   binPhase    bin reference point, 0..1
          * @param   dataSpec   source of coordinate data
          */
-        boolean matches( boolean xlog, double binWidth, double binBase,
+        boolean matches( boolean xlog, double binWidth, double binPhase,
                          DataSpec dataSpec ) {
-            return binBag_.matches( xlog, binWidth, binBase )
+            return binBag_.matches( xlog, binWidth, binPhase )
                 && dataSpec_.equals( dataSpec );
         }
     }
