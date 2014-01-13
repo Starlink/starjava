@@ -1,7 +1,15 @@
 package uk.ac.starlink.ttools.plot2.layer;
 
+import java.util.logging.Logger;
+import javax.swing.JComponent;
 import uk.ac.starlink.ttools.plot.Rounder;
 import uk.ac.starlink.ttools.plot2.Equality;
+import uk.ac.starlink.ttools.plot2.config.ConfigException;
+import uk.ac.starlink.ttools.plot2.config.ConfigKey;
+import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
+import uk.ac.starlink.ttools.plot2.config.SliderSpecifier;
+import uk.ac.starlink.ttools.plot2.config.Specifier;
+import uk.ac.starlink.ttools.plot2.config.SpecifierPanel;
 
 /**
  * Determines 1-d histogram bin widths from data bounds.
@@ -11,7 +19,11 @@ import uk.ac.starlink.ttools.plot2.Equality;
  */
 @Equality
 public abstract class BinSizer {
-    
+
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.ttools.plot2.layer" );
+    public static final ConfigKey<BinSizer> BINSIZER_KEY =
+        new BinSizerConfigKey( new ConfigMeta( "binsize", "Bin Size" ), 20 );    
     /**
      * Provides a bin width value for a given axis data range.
      *
@@ -43,7 +55,8 @@ public abstract class BinSizer {
      * @param   rounding   if true, only round numbers are returned
      * @return  bin sizer instance
      */
-    public static BinSizer createCountBinSizer( int nbin, boolean rounding ) {
+    public static BinSizer createCountBinSizer( double nbin,
+                                                boolean rounding ) {
         return new CountBinSizer( nbin, rounding );
     }
 
@@ -89,7 +102,7 @@ public abstract class BinSizer {
      * of the resulting width.
      */
     private static class CountBinSizer extends BinSizer {
-        private final int nbin_;
+        private final double nbin_;
         private final boolean rounding_;
 
         /**
@@ -99,7 +112,7 @@ public abstract class BinSizer {
          * @param  rounding  true to round the output bin widths to sensible
          *                   values
          */
-        CountBinSizer( int nbin, boolean rounding ) {
+        CountBinSizer( double nbin, boolean rounding ) {
             nbin_ = nbin;
             rounding_ = rounding;
         }
@@ -119,7 +132,7 @@ public abstract class BinSizer {
         @Override
         public int hashCode() {
             int code = 44301;
-            code = 23 * code + nbin_;
+            code = 23 * code + Float.floatToIntBits( (float) nbin_ );
             code = 23 * code + ( rounding_ ? 5 : 7 );
             return code;
         }
@@ -134,6 +147,87 @@ public abstract class BinSizer {
             else {
                 return false;
             }
+        }
+    }
+
+    /**
+     * Config key implementation for a bin sizer object.
+     * The string representation may be either a positive floating point value
+     * giving bin width, or a negative value giving the approximate
+     * number of bins visible.
+     * For the graphical part, a slider is used to allow selection
+     * of the approximate number of bins visible.
+     */
+    private static class BinSizerConfigKey extends ConfigKey<BinSizer> {
+
+        /**
+         * Constructor.
+         *
+         * @param   meta  key metadata
+         * @parma   dlftNbin  default bin count
+         */
+        BinSizerConfigKey( ConfigMeta meta, int dfltNbin ) {
+            super( meta, BinSizer.class, new CountBinSizer( dfltNbin, true ) );
+        }
+
+        public BinSizer stringToValue( String txt ) {
+            double dval;
+            try {
+                dval = Double.valueOf( txt.trim() );
+            }
+            catch ( NumberFormatException e ) {
+                throw new ConfigException( this,
+                                           "\"" + txt + "\" not numeric", e );
+            }
+            if ( dval > 0 ) {
+                return new FixedBinSizer( dval );
+            }
+            else if ( dval <= -1 ) {
+                return new CountBinSizer( -dval, true );
+            }
+            else {
+                String msg = "Bad sizer value " + dval
+                           + " - should be >0 (fixed) or <1 (-bin_count)";
+                throw new ConfigException( this, msg );
+            }
+        }
+
+        public String valueToString( BinSizer sizer ) {
+            if ( sizer instanceof FixedBinSizer ) {
+                double width = ((FixedBinSizer) sizer).binWidth_;
+                return Double.toString( width );
+            }
+            else if ( sizer instanceof CountBinSizer ) {
+                double nbin = ((CountBinSizer) sizer).nbin_;
+                return Integer.toString( - (int) nbin );
+            }
+            else {
+                return "??";
+            }
+        }
+
+        public Specifier<BinSizer> createSpecifier() {
+            final SliderSpecifier sliderSpecifier =
+                new SliderSpecifier( 2, 400, true );
+            return new SpecifierPanel<BinSizer>( true ) {
+                protected JComponent createComponent() {
+                    sliderSpecifier.addChangeListener( getChangeForwarder() );
+                    return sliderSpecifier.getComponent();
+                }
+                public BinSizer getSpecifiedValue() {
+                    double dval = sliderSpecifier.getSpecifiedValue();
+                    return new CountBinSizer( dval, true );
+                }
+                public void setSpecifiedValue( BinSizer sizer ) {
+                    if ( sizer instanceof CountBinSizer ) {
+                        double nbin = ((CountBinSizer) sizer).nbin_;
+                        sliderSpecifier.setSpecifiedValue( nbin );
+                    }
+                    else {
+                        logger_.warning( "Can't reset to non-count sizer" );
+                    }
+                }
+            };
         }
     }
 }
