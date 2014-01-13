@@ -1,12 +1,10 @@
 package uk.ac.starlink.ttools.plot2.layer;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
+import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 /**
  * Data model for a one-dimensional histogram.
@@ -21,7 +19,7 @@ public class BinBag {
     private final double binWidth_;
     private final double binPhase_;
     private final BinMapper mapper_;
-    private final Map<Integer,Bin> binMap_;
+    private final Map<Integer,Value> valueMap_;
 
     /**
      * Constructor.
@@ -56,7 +54,7 @@ public class BinBag {
         double ref = getRef( log, binWidth, binPhase, point );
         mapper_ = log ? new LogBinMapper( binWidth, ref )
                       : new LinearBinMapper( binWidth, ref );
-        binMap_ = new HashMap<Integer,Bin>();
+        valueMap_ = new HashMap<Integer,Value>();
     }
 
     /**
@@ -68,30 +66,113 @@ public class BinBag {
     public void addToBin( double point, double inc ) {
         if ( ! Double.isNaN( point ) && ! Double.isInfinite( point ) ) {
             int ix = mapper_.getBinIndex( point );
-            Bin bin = binMap_.get( ix );
-            if ( bin == null ) {
-                double[] limits = mapper_.getBinLimits( ix );
-                bin = new Bin( limits[ 0 ], limits[ 1 ] );
-                binMap_.put( ix, bin );
+            Value val = valueMap_.get( ix );
+            if ( val == null ) {
+                val = new Value();
+                valueMap_.put( ix, val );
             }
-            bin.add( inc );
+            val.value_ += inc;
         }
     }
 
     /**
-     * Returns a sorted collection of all bins which have had values
-     * added to them.
+     * Returns a sorted iterator over all bins with non-zero values.
      *
-     * @return  sorted list of bins
+     * @param   cumulative  true for bins of a cumulative histogram
+     * @param   normalised  true for bins of a normalised histogram (sum to 1)
+     * @return  sorted iterator over bins
      */
-    public Collection<Bin> getBins() {
-        List<Bin> list = new ArrayList<Bin>( binMap_.values() );
-        Collections.sort( list, new Comparator<Bin>() {
-            public int compare( Bin b1, Bin b2 ) {
-                return (int) Math.signum( b1.xmin_ - b2.xmin_ );
+    public Iterator<Bin> binIterator( boolean cumulative, boolean normalised ) {
+
+        /* Prepare an integer array giving bin indices for all the non-empty
+         * bins accumulated by this object. */
+        final int nbin = valueMap_.size();
+        final int[] binIndices = new int[ nbin ];
+        {
+            int ib = 0;
+            for ( Integer index : valueMap_.keySet() ) {
+                binIndices[ ib++ ] = index;
             }
-        } );
-        return list;
+            assert ib == nbin;
+        }
+
+        /* Sort it in ascending order of bin index, which is also ascending
+         * order of bin axis position. */
+        Arrays.sort( binIndices );
+
+        /* Prepare a double array of bin values corresponding to the
+         * bin index array.  At the same time accumulate the running total
+         * and adjust the values to be cumulative if so requested. */
+        final double[] binValues = new double[ nbin ];
+        double total = 0;
+        for ( int ib = 0; ib < nbin; ib++ ) {
+            double value = valueMap_.get( binIndices[ ib ] ).value_;
+            binValues[ ib ] = cumulative ? total + value : value;
+            total += value;
+        }
+
+        /* If normalised values are requested rescale them using the
+         * final total. */
+        if ( normalised ) {
+            double scale = 1. / total;
+            for ( int ib = 0; ib < nbin; ib++ ) {
+                binValues[ ib ] *= scale;
+            }
+        }
+
+        /* For a cumulative result, bins which never had values accumulated
+         * into them, and hence did not appear in the bin map,
+         * will (probably) have non-zero values that must be returned.
+         * Step up from the lowest to highest known bin value in steps of 1. */
+        if ( cumulative ) {
+            return new Iterator<Bin>() {
+                int ib = 0;
+                int index = binIndices[ 0 ];
+                public boolean hasNext() {
+                    return ib < nbin;
+                }
+                public Bin next() {
+                    if ( ib < nbin ) {
+                        Bin bin = createBin( index++, binValues[ ib ] );
+                        if ( index >= binIndices[ ib ] ) {
+                            ib++;
+                        }
+                        return bin;
+                    }
+                    else {
+                        throw new NoSuchElementException();
+                    }
+                }
+                public void remove() {
+                    throw new UnsupportedOperationException();
+                }
+            };
+        }
+
+        /* For a non-cumulative result, we just need to return one bin for
+         * each map entry. */
+        else {
+            return new Iterator<Bin>() {
+                int ib = 0;
+                public boolean hasNext() {
+                    return ib < nbin;
+                }
+                public Bin next() {
+                    if ( ib < nbin ) {
+                        Bin bin = createBin( binIndices[ ib ],
+                                             binValues[ ib ] );
+                        ib++;
+                        return bin;
+                    }
+                    else {
+                        throw new NoSuchElementException();
+                    }
+                }
+                public void remove() {
+                    throw new UnsupportedOperationException();
+                }
+            };
+        }
     }
 
     /**
@@ -110,6 +191,30 @@ public class BinBag {
         return log == log_
             && binWidth == binWidth_
             && binPhase == binPhase_;
+    }
+
+    /**
+     * Constructs a bin for this object.
+     *
+     * @param   binIndex  bin index relating to this bag's mapper
+     * @param   binValue  value reported for the bin
+     */
+    private Bin createBin( int binIndex, final double binValue ) {
+        final double[] limits = mapper_.getBinLimits( binIndex );
+        return new Bin() {
+            public double getXMin() {
+                return limits[ 0 ];
+            }
+            public double getXMax() {
+                return limits[ 1 ];
+            }
+            public double getY() {
+                return binValue;
+            }
+            public String toString() {
+                return limits[ 0 ] + ".." + limits[ 1 ] + ": " + binValue;
+            }
+        };
     }
 
     /**
@@ -151,57 +256,28 @@ public class BinBag {
     /**
      * Describes the extent of a bin and the value it contains.
      */
-    public static class Bin {
-        private final double xmin_;
-        private final double xmax_;
-        private double value_;
-
-        /**
-         * Constructor.
-         *
-         * @param  xmin  bin lower bound
-         * @param  xmax  bin upper bound
-         */
-        private Bin( double xmin, double xmax ) {
-            xmin_ = xmin;
-            xmax_ = xmax;
-        }
+    public interface Bin {
 
         /**
          * Returns the lower bound of this bin.
          *
          * @return  axis minimum of bin
          */
-        public double getXMin() {
-            return xmin_;
-        }
+        public double getXMin();
 
         /**
          * Returns the upper bound of this bin.
          *
          * @return  axis maximum of bin
          */
-        public double getXMax() {
-            return xmax_;
-        }
+        public double getXMax();
 
         /**
          * Returns the value so far accumulated into this bin.
          *
          * @return   bin value
          */
-        public double getY() {
-            return value_;
-        }
-
-        /**
-         * Accumulates a value into this bin.
-         *
-         * @param   inc  value to add to bin
-         */
-        private void add( double inc ) {
-            value_ += inc;
-        }
+        public double getY();
     }
 
     /**
@@ -286,5 +362,12 @@ public class BinBag {
             double lo = floor_ * Math.pow( width_, index );
             return new double[] { lo, lo * width_ };
         }
+    }
+
+    /**
+     * Holds a single mutable double value.  Used for accumulating bin sums.
+     */
+    private static class Value {
+        double value_;
     }
 }
