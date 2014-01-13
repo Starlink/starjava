@@ -23,6 +23,8 @@ import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
+import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
+import uk.ac.starlink.ttools.plot2.config.DoubleConfigKey;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
@@ -47,8 +49,11 @@ public class HistogramPlotter
     private final FloatingCoord xCoord_;
     private final SliceDataGeom histoDataGeom_;
 
-    private static final ConfigKey<Integer> THICK_KEY =
+    public static final ConfigKey<Integer> THICK_KEY =
         StyleKeys.createThicknessKey( 2 );
+    public static final ConfigKey<Double> PHASE_KEY =
+        DoubleConfigKey.createSliderKey( new ConfigMeta( "phase", "Bin Phase" ),
+                                                         0, 0, 1, false );
 
     /**
      * Constructor.
@@ -85,6 +90,8 @@ public class HistogramPlotter
     public ConfigKey[] getStyleKeys() {
         return new ConfigKey[] {
             StyleKeys.COLOR,
+            BinSizer.BINSIZER_KEY,
+            PHASE_KEY,
             StyleKeys.BAR_FORM,
             THICK_KEY,
             StyleKeys.DASH,
@@ -97,8 +104,8 @@ public class HistogramPlotter
         BarStyle.Placement placement = BarStyle.PLACE_OVER;
         int thick = config.get( THICK_KEY );
         float[] dash = config.get( StyleKeys.DASH );
-        BinSizer sizer = BinSizer.createCountBinSizer( 20, true );
-        double binPhase = 0;
+        BinSizer sizer = config.get( BinSizer.BINSIZER_KEY );
+        double binPhase = config.get( PHASE_KEY );
         return new HistoStyle( color, barForm, placement, thick, dash,
                                sizer, binPhase );
     }
