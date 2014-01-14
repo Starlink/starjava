@@ -664,6 +664,9 @@
         <attribute name="Main-Class"
                    value="uk.ac.starlink.topcat.Driver"/>
         <attribute name="Class-Path" value="${jar.class.path}"/>
+        <!-- Required for WebStart signed jars at java 7u51+ -->
+        <attribute name="Permissions" value="all-permissions"/>
+        <attribute name="Application-Name" value="TOPCAT"/>
       </manifest>
     </jar>
 
