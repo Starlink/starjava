@@ -164,11 +164,13 @@ public class CoordPanel {
     public void autoPopulate() {
         int is = 1;
         for ( int ic = 0; ic < coords_.length; ic++ ) {
-            JComboBox[] colsels = colSelectors_[ ic ];
-            for ( int iu = 0; iu < colsels.length; iu++ ) {
-                JComboBox cs = colsels[ iu ];
-                if ( is < cs.getItemCount() ) {
-                    cs.setSelectedIndex( is++ );
+            if ( coords_[ ic ].isRequired() ) {
+                JComboBox[] colsels = colSelectors_[ ic ];
+                for ( int iu = 0; iu < colsels.length; iu++ ) {
+                    JComboBox cs = colsels[ iu ];
+                    if ( is < cs.getItemCount() ) {
+                        cs.setSelectedIndex( is++ );
+                    }
                 }
             }
         }

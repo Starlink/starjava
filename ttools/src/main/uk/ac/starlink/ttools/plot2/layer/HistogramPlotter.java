@@ -6,8 +6,10 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
@@ -49,7 +51,10 @@ public class HistogramPlotter
         implements Plotter<HistogramPlotter.HistoStyle> {
 
     private final FloatingCoord xCoord_;
+    private final FloatingCoord weightCoord_;
     private final SliceDataGeom histoDataGeom_;
+    private final int icX_;
+    private final int icWeight_;
 
     public static final ConfigKey<Integer> THICK_KEY =
         StyleKeys.createThicknessKey( 2 );
@@ -65,11 +70,20 @@ public class HistogramPlotter
      * Constructor.
      *
      * @param   xCoord  X axis coordinate
+     * @param   hasWeight   true to permit histogram weighting
      */
-    public HistogramPlotter( FloatingCoord xCoord ) {
+    public HistogramPlotter( FloatingCoord xCoord, boolean hasWeight ) {
         xCoord_ = xCoord;
+        weightCoord_ =
+              hasWeight
+            ? FloatingCoord.createCoord( "Weight", "Weighting of data points"
+                                       + ", if not unity", false )
+            : null;
         histoDataGeom_ =
             new SliceDataGeom( new FloatingCoord[] { xCoord_, null }, "X" );
+        int icol = 0;
+        icX_ = icol++;
+        icWeight_ = hasWeight ? icol++ : -1;
     }
 
     public String getPlotterName() {
@@ -88,9 +102,12 @@ public class HistogramPlotter
     }
 
     public Coord[] getExtraCoords() {
-        return new Coord[] {
-            xCoord_,
-        };
+        List<Coord> list = new ArrayList<Coord>();
+        list.add( xCoord_ );
+        if ( weightCoord_ != null ) {
+            list.add( weightCoord_ );
+        }
+        return list.toArray( new Coord[ 0 ] );
     }
 
     public ConfigKey[] getStyleKeys() {
@@ -259,9 +276,19 @@ public class HistogramPlotter
                              DataStore dataStore ) {
         BinBag binBag = new BinBag( xlog, binWidth, binPhase, point );
         TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
-        while ( tseq.next() ) {
-            double x = xCoord_.readDoubleCoord( tseq, 0 );
-            binBag.addToBin( x, 1 );
+        if ( weightCoord_ == null ) {
+            while ( tseq.next() ) {
+                double x = xCoord_.readDoubleCoord( tseq, icX_ );
+                binBag.addToBin( x, 1 );
+            }
+        }
+        else {
+            while ( tseq.next() ) {
+                double x = xCoord_.readDoubleCoord( tseq, icX_ );
+                double w = weightCoord_.readDoubleCoord( tseq, icWeight_ );
+                double weight = Double.isNaN( w ) ? 1 : w;
+                binBag.addToBin( x, weight );
+            }
         }
         return binBag;
     }
