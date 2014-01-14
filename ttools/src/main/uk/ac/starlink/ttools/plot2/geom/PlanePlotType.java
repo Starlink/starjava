@@ -83,7 +83,7 @@ public class PlanePlotType implements PlotType {
             new LinePlotter(),
             new LabelPlotter(),
             new ContourPlotter(),
-            new HistogramPlotter( PlaneDataGeom.X_COORD ),
+            new HistogramPlotter( PlaneDataGeom.X_COORD, true ),
             FunctionPlotter.PLANE,
         } ) );
         return list.toArray( new Plotter[ 0 ] );
