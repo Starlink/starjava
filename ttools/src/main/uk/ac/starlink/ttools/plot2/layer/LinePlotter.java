@@ -15,7 +15,7 @@ import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
-import uk.ac.starlink.ttools.plot2.data.Coord;
+import uk.ac.starlink.ttools.plot2.data.CoordGroup;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
@@ -32,7 +32,8 @@ public class LinePlotter extends SimpleDecalPlotter<LineStyle> {
      * Constructor.
      */
     public LinePlotter() {
-        super( "Line", ResourceIcon.PLOT_LINE, 1, new Coord[ 0 ] );
+        super( "Line", ResourceIcon.PLOT_LINE,
+               CoordGroup.createSinglePositionCoordGroup() );
     }
 
     public ConfigKey[] getStyleKeys() {
@@ -60,11 +61,12 @@ public class LinePlotter extends SimpleDecalPlotter<LineStyle> {
                                 LineStyle style, Graphics g ) {
         LineTracer tracer =
             style.createLineTracer( g, surface.getPlotBounds(), 10240 );
+        int icPos = getCoordGroup().getPosCoordIndex( 0, geom );
         double[] dpos = new double[ surface.getDataDimCount() ];
         Point gp = new Point();
         TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
         while ( tseq.next() ) {
-            if ( geom.readDataPos( tseq, 0, dpos ) &&
+            if ( geom.readDataPos( tseq, icPos, dpos ) &&
                  surface.dataToGraphics( dpos, false, gp ) ) {
                 tracer.addVertex( gp.x, gp.y );
             }

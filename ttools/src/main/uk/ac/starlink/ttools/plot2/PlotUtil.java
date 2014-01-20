@@ -14,10 +14,8 @@ import javax.swing.Icon;
 import uk.ac.starlink.ttools.plot.PdfGraphicExporter;
 import uk.ac.starlink.ttools.plot.Picture;
 import uk.ac.starlink.ttools.plot.Range;
-import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
-import uk.ac.starlink.ttools.plot2.geom.SliceDataGeom;
 
 /**
  * Miscellaneous utilities for use with the plotting classes.
@@ -232,37 +230,6 @@ public class PlotUtil {
 
         /* Return the ranges. */
         return ranges;
-    }
-
-    /**
-     * Determines whether a layer has "partial" positions.
-     * That is to say that it represents a set of tuples that map to
-     * data position coordinate arrays, but that those coordinate arrays
-     * have at least one element equal to NaN, indicating for instance
-     * a line rather than a point in the coordinate space.
-     *
-     * <p>At present this determination is done in a somewhat ad hoc way.
-     * Perhaps in future the PlotLayer interface could be modified to make
-     * it clearer when a PlotLayer supplies partial positions.
-     *
-     * @param  layer  layer to test
-     * @return  true if layer table data is in the form of partial positions
-     */
-    public static boolean hasPartialPosition( PlotLayer layer ) {
-        DataGeom geom = layer.getDataGeom();
-        DataSpec spec = layer.getDataSpec();
-        if ( geom != null && spec != null && ! geom.hasPosition() &&
-             geom.getPosCoords().length > 0 ) {
-            if ( layer.getPlotter().getPositionCount() != 0 ||
-                 ! ( geom instanceof SliceDataGeom ) ) {
-                logger_.warning( "Partial position layer looks unexpected"
-                               + " - hmmm." );
-            }
-            return true;
-        }
-        else {
-            return false;
-        }
     }
 
     /**

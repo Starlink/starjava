@@ -25,6 +25,7 @@ import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
+import uk.ac.starlink.ttools.plot2.data.CoordGroup;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.StringCoord;
@@ -48,13 +49,14 @@ public class LabelPlotter extends AbstractPlotter<LabelStyle> {
                          "Column or expression giving the text "
                        + "to be written near the position being labelled",
                          true );
+    private static final CoordGroup LABEL_CGRP =
+        CoordGroup.createCoordGroup( 1, new Coord[] { LABEL_COORD } );
 
     /**
      * Constructor.
      */
     public LabelPlotter() {
-        super( "Label", ResourceIcon.PLOT_LABEL, 1,
-               new Coord[] { LABEL_COORD } );
+        super( "Label", ResourceIcon.PLOT_LABEL, LABEL_CGRP );
     }
 
     public ConfigKey[] getStyleKeys() {
@@ -117,6 +119,7 @@ public class LabelPlotter extends AbstractPlotter<LabelStyle> {
         final Surface surface_;
         final Class<T> clazz_;
         final DataGeom geom_;
+        final int icPos_;
         final int icLabel_;
 
         /**
@@ -135,7 +138,8 @@ public class LabelPlotter extends AbstractPlotter<LabelStyle> {
             style_ = style;
             surface_ = surface;
             clazz_ = clazz;
-            icLabel_ = geom.getPosCoords().length;
+            icPos_ = LABEL_CGRP.getPosCoordIndex( 0, geom );
+            icLabel_ = LABEL_CGRP.getExtraCoordIndex( 0, geom );
         }
 
         /**
@@ -204,7 +208,7 @@ public class LabelPlotter extends AbstractPlotter<LabelStyle> {
             Point gp = new Point();
             TupleSequence tseq = dataStore.getTupleSequence( dataSpec_ );
             while ( tseq.next() ) {
-                if ( geom_.readDataPos( tseq, 0, dpos ) &&
+                if ( geom_.readDataPos( tseq, icPos_, dpos ) &&
                      surface_.dataToGraphics( dpos, true, gp ) ) {
                     String label =
                         LABEL_COORD.readStringCoord( tseq, icLabel_ );
@@ -263,7 +267,7 @@ public class LabelPlotter extends AbstractPlotter<LabelStyle> {
             CubeSurface surf = (CubeSurface) surface_;
             TupleSequence tseq = dataStore.getTupleSequence( dataSpec_ );
             while ( tseq.next() ) {
-                if ( geom_.readDataPos( tseq, 0, dpos ) &&
+                if ( geom_.readDataPos( tseq, icPos_, dpos ) &&
                     surf.dataToGraphicZ( dpos, true, gp, depthArr ) ) {
                     String label =
                         LABEL_COORD.readStringCoord( tseq, icLabel_ );

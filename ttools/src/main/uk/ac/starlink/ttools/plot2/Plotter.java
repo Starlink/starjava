@@ -5,7 +5,7 @@ import uk.ac.starlink.ttools.plot.Style;
 import uk.ac.starlink.ttools.plot2.config.ConfigException;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
-import uk.ac.starlink.ttools.plot2.data.Coord;
+import uk.ac.starlink.ttools.plot2.data.CoordGroup;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 
 /**
@@ -15,13 +15,7 @@ import uk.ac.starlink.ttools.plot2.data.DataSpec;
  * means that a plotting framework can largely build a user interface
  * automatically from a Plotter instance.
  *
- * <p>The coordinates used for a plot layer are one set of positional
- * coordinates
- * (<code>DataGeom</code>.{@link DataGeom#getPosCoords})
- * for each of the positions indicated by {@link #getPositionCount},
- * followed by any listed by {@link #getExtraCoords}.
- *
- * <p>Finally a Plotter acts as part of an identifier for the type of
+ * <p>A Plotter also acts as part of an identifier for the type of
  * plot being performed, which is necessary for determining PlotLayer
  * equality; two PlotLayers are equivalent if they match in point of
  * DataSpec, Style and Plotter.
@@ -46,27 +40,12 @@ public interface Plotter<S extends Style> {
     Icon getPlotterIcon();
 
     /**
-     * Returns the number of data positions per tuple used by this plotter.
-     * For instance
-     * a scatter plot would use 1,
-     * a plot linking pairs of positions in the same table would use 2,
-     * and an analytic function would use 0.
-     * Each of these is turned into a data space position by use of the
-     * DataGeom presented at layer creation time.
-     * 
-     * @return   number of sets of positional coordinates
-     */
-    int getPositionCount();
-
-    /**
-     * Returns any coordinates used by this plotter additional to the
-     * positional ones.  In fact positional coordinates are permitted here,
-     * but if so they will not be treated in the generic way accorded to
-     * those accounted for by {@link #getPositionCount}.
+     * Returns an object describing which data coordinates are used for
+     * this plotter and how they are arranged in supplied DataSpec objects.
      *
-     * @return  non-positional coordinates
+     * @return  coordinate group
      */
-    Coord[] getExtraCoords();
+    CoordGroup getCoordGroup();
 
     /**
      * Returns the configuration keys used to configure style for this plotter.
@@ -95,14 +74,15 @@ public interface Plotter<S extends Style> {
      * {@link #createStyle}.
      *
      * <p>The <code>dataSpec</code> parameter must contain the coordinates
-     * defined by this plotter.
-     * That is, <code>getPositionCount</code>} groups
-     * of the coordinates given by <code>dataGeom.getPosCoords</code>,
-     * followed by the coordinates given by <code>getExtraCoords</code>.
+     * defined by this plotter's CoordGroup.
      *
      * <p>The <code>pointDataGeom</code>
-     * parameter is only used if {@link #getPositionCount} returns a
-     * non-zero value, otherwise the plot does not have point positions.
+     * parameter is only used if
+     * <code>getCoordGroup()</code>.
+     * {@link uk.ac.starlink.ttools.plot2.data.CoordGroup#getPositionCount
+     *                                                    getPositionCount}
+     * returns a non-zero value,
+     * otherwise the plot does not have point positions.
      *
      * <p>It is legal to supply null for any of the parameters;
      * if insufficient data is supplied to generate a plot, then

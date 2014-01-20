@@ -35,7 +35,6 @@ import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
 import uk.ac.starlink.ttools.plot2.config.OptionConfigKey;
 import uk.ac.starlink.ttools.plot2.config.StringConfigKey;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
-import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.geom.PlaneSurface;
@@ -78,7 +77,7 @@ public class FunctionPlotter extends
      * @param  axes  options for function variable definitions
      */
     public FunctionPlotter( FuncAxis[] axes ) {
-        super( "Function", ResourceIcon.PLOT_FUNCTION, 0, new Coord[ 0 ] );
+        super( "Function", ResourceIcon.PLOT_FUNCTION );
         axes_ = axes;
         axisKey_ = new OptionConfigKey<FuncAxis>(
                        new ConfigMeta( "axis", "Independent Axis" ),

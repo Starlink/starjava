@@ -27,6 +27,7 @@ import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
+import uk.ac.starlink.ttools.plot2.data.CoordGroup;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.FloatingArrayCoord;
@@ -52,6 +53,7 @@ public class SpectrogramPlotter
     private final FloatingCoord xExtentCoord_;
     private final FloatingArrayCoord spectrumCoord_;
     private final SliceDataGeom spectroDataGeom_;
+    private final CoordGroup spectroCoordGrp_;
     private final int icX_;
     private final int icExtent_;
     private final int icSpectrum_;
@@ -88,11 +90,17 @@ public class SpectrogramPlotter
         spectroDataGeom_ =
             new SliceDataGeom( new FloatingCoord[] { xCoord_, null }, "Time" );
 
-        /* Record which coordinate is where in the tuples. */
-        int icol = 0;
-        icX_ = icol++;
-        icSpectrum_ = icol++;
-        icExtent_ = icol++;
+        Coord[] coords = new Coord[] { xCoord_, spectrumCoord_, xExtentCoord_ };
+        boolean[] rangeFlags = new boolean[] { true, true, false };
+        spectroCoordGrp_ =
+            CoordGroup.createPartialCoordGroup( coords, rangeFlags );
+
+        /* For this plot type, coordinate indices are not sensitive to
+         * plot-time geom (the CoordGroup has no point positions),
+         * so we can calculate them here. */
+        icX_ = spectroCoordGrp_.getExtraCoordIndex( 0, null );
+        icSpectrum_ = spectroCoordGrp_.getExtraCoordIndex( 1, null );
+        icExtent_ = spectroCoordGrp_.getExtraCoordIndex( 2, null );
     }
 
     /**
@@ -121,19 +129,8 @@ public class SpectrogramPlotter
         return ResourceIcon.PLOT_SPECTRO;
     }
 
-    /**
-     * Returns false, since rows do not correspond to a point-like position.
-     */
-    public int getPositionCount() {
-        return 0;
-    }
-
-    public Coord[] getExtraCoords() {
-        return new Coord[] {
-            xCoord_,
-            spectrumCoord_,
-            xExtentCoord_,
-        };
+    public CoordGroup getCoordGroup() {
+        return spectroCoordGrp_;
     }
 
     public ConfigKey[] getStyleKeys() {

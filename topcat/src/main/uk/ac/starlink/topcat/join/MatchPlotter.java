@@ -311,8 +311,8 @@ public abstract class MatchPlotter {
              * by looking at the values the user entered into the
              * TupleSelectors to specify the match. */
             Plotter plotter1 =
-                new ShapePlotter
-                   .ShapeModePlotter( "input", MarkForm.SINGLE, markMode1_ );
+                new ShapePlotter.ShapeModePlotter( "input", MarkForm.SINGLE,
+                                                   markMode1_ );
             for ( int iin = 0; iin < nin; iin++ ) {
                 TupleSelector tsel = tselectors[ iin ];
                 String[] texprs = tsel.getTupleExpressions();

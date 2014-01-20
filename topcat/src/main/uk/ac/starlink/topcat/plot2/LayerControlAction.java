@@ -6,6 +6,7 @@ import javax.swing.Icon;
 import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.TopcatListener;
 import uk.ac.starlink.ttools.plot2.Plotter;
+import uk.ac.starlink.ttools.plot2.data.CoordGroup;
 import uk.ac.starlink.ttools.plot2.layer.FunctionPlotter;
 import uk.ac.starlink.ttools.plot2.layer.HistogramPlotter;
 import uk.ac.starlink.ttools.plot2.layer.SpectrogramPlotter;
@@ -77,6 +78,7 @@ public abstract class LayerControlAction extends BasicAction {
                                  final NextSupplier nextSupplier,
                                  final TopcatListener tcListener,
                                  final Configger baseConfigger ) {
+        final CoordGroup cgrp = plotter.getCoordGroup();
 
         /* This disjunction is currently a rather messy and ad hoc list of
          * tests.  Each one is added to cater for specific plotters,
@@ -105,11 +107,11 @@ public abstract class LayerControlAction extends BasicAction {
                 }
             };
         }
-        else if ( plotter instanceof HistogramPlotter ) {
+        else if ( cgrp.isSinglePartialPosition() ) {
             return new LayerControlAction( plotter, stack ) {
                 public LayerControl createLayerControl() {
                     PositionCoordPanel posCoordPanel =
-                        new SimplePositionCoordPanel( plotter.getExtraCoords(),
+                        new SimplePositionCoordPanel( cgrp.getExtraCoords(),
                                                       null );
                     return new SingleFormLayerControl( posCoordPanel, true,
                                                        nextSupplier,
@@ -124,11 +126,11 @@ public abstract class LayerControlAction extends BasicAction {
         /* Not great - no options for miscellaneous plotters with both
          * positional and non-positional coordinates.  Could be done if
          * necessary. */
-        else if ( plotter.getPositionCount() == 0 ) {
+        else if ( cgrp.getPositionCount() == 0 ) {
             return new LayerControlAction( plotter, stack ) {
                 public LayerControl createLayerControl() {
                     PositionCoordPanel coordPanel =
-                        new SimplePositionCoordPanel( plotter.getExtraCoords(),
+                        new SimplePositionCoordPanel( cgrp.getExtraCoords(),
                                                       null );
                     return new BasicCoordLayerControl( plotter, coordPanel );
                 }

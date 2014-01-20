@@ -2,17 +2,17 @@ package uk.ac.starlink.topcat.plot2;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
+import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Equality;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
+import uk.ac.starlink.ttools.plot2.data.CoordGroup;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 
 /**
@@ -117,9 +117,11 @@ public abstract class CartesianAxisController<P,A> extends AxisController<P,A> {
             PlotLayer layer = newLayers[ il ];
             DataGeom geom = layer.getDataGeom();
             DataSpec spec = layer.getDataSpec();
-            if ( geom != null && spec != null ) {
-                DataId did = new DataId( geom, spec );
-                assert did.equals( new DataId( geom, spec ) );
+            CoordGroup cgrp = layer.getPlotter().getCoordGroup();
+            if ( geom != null && spec != null &&
+                 cgrp.getRangeCoordIndices( geom ).length > 0 ) {
+                DataId did = new DataId( geom, spec, cgrp );
+                assert did.equals( new DataId( geom, spec, cgrp ) );
                 dataIdSet.add( did );
             }
         }
@@ -184,32 +186,48 @@ public abstract class CartesianAxisController<P,A> extends AxisController<P,A> {
      */
     @Equality
     private static class DataId {
-        List<Object> list_;
+        final DataGeom geom_;
+        final StarTable srcTable_;
+        final Object[] coordIds_;
 
         /**
          * Constructor.
          *
          * @param  geom  data geom, not null
          * @param  dataSpec  data spec, not null
+         * @param  cgrp   coordinate group
          */
-        DataId( DataGeom geom, DataSpec dataSpec ) {
-            int nc = geom.getPosCoords().length;
-            int ni = nc + 1;
-            list_ = new ArrayList<Object>( ni );
-            list_.add( dataSpec.getSourceTable() );
-            for ( int ic = 0; ic < nc; ic++ ) {
-                list_.add( dataSpec.getCoordId( ic ) );
+        DataId( DataGeom geom, DataSpec dataSpec, CoordGroup cgrp ) {
+            geom_ = geom;
+            srcTable_ = dataSpec.getSourceTable();
+
+            /* A CoordinateGroup explicitly labels those coordinates that
+             * are relevant for ranging.  Use these. */
+            int[] rcis = cgrp.getRangeCoordIndices( geom );
+            coordIds_ = new Object[ rcis.length ];
+            for ( int i = 0; i < rcis.length; i++ ) {
+                coordIds_[ i ] = dataSpec.getCoordId( rcis[ i ] );
             }
-            assert list_.size() == ni;
         }
         @Override
         public int hashCode() {
-            return list_.hashCode();
+            int code = 33771;
+            code = 23 * code + geom_.hashCode();
+            code = 23 * code + srcTable_.hashCode();
+            code = 23 * code + Arrays.hashCode( coordIds_ );
+            return code;
         }
         @Override
-        public boolean equals( Object other ) {
-            return other instanceof DataId
-                && this.list_.equals( ((DataId) other).list_ );
+        public boolean equals( Object o ) {
+            if ( o instanceof DataId ) {
+                DataId other = (DataId) o;
+                return this.geom_.equals( other.geom_ )
+                    && this.srcTable_.equals( other.srcTable_ )
+                    && Arrays.equals( this.coordIds_, other.coordIds_ );
+            }
+            else {
+                return false;
+            }
         }
     }
 }

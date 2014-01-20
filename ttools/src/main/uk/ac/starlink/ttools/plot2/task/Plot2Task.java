@@ -63,6 +63,7 @@ import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.LoggingConfigMap;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
+import uk.ac.starlink.ttools.plot2.data.CoordGroup;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.DataStoreFactory;
@@ -716,9 +717,10 @@ public class Plot2Task implements Task {
             throws TaskException {
 
         /* Get basic and additional coordinate specifications. */
+        CoordGroup cgrp = plotter.getCoordGroup();
         DataSpec dataSpec =
-            createDataSpec( env, suffix, geom, plotter.getPositionCount(),
-                            plotter.getExtraCoords() );
+            createDataSpec( env, suffix, geom, cgrp.getPositionCount(),
+                            cgrp.getExtraCoords() );
 
         /* Work out the requested Style. */
         ConfigMap config =
