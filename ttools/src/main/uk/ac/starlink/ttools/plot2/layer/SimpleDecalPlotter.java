@@ -13,7 +13,7 @@ import uk.ac.starlink.ttools.plot2.Drawing;
 import uk.ac.starlink.ttools.plot2.LayerOpt;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.Surface;
-import uk.ac.starlink.ttools.plot2.data.Coord;
+import uk.ac.starlink.ttools.plot2.data.CoordGroup;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.paper.Paper;
@@ -34,12 +34,10 @@ public abstract class SimpleDecalPlotter<S extends Style>
      *
      * @param   name   plotter name
      * @param   icon   plotter icon
-     * @param   npos   number of positional coordinate sets
-     * @param  extraCoords  any non-positional coordinates
+     * @param   cgrp   coordinate group
      */
-    protected SimpleDecalPlotter( String name, Icon icon, int npos,
-                                  Coord[] extraCoords ) {
-        super( name, icon, npos, extraCoords );
+    protected SimpleDecalPlotter( String name, Icon icon, CoordGroup cgrp ) {
+        super( name, icon, cgrp );
     }
 
     public PlotLayer createLayer( final DataGeom geom, final DataSpec dataSpec,

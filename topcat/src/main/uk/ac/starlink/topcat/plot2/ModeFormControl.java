@@ -100,7 +100,7 @@ public class ModeFormControl extends FormControl {
 
             /* Get all coords specific to this mode. */
             Collection<Coord> coordList =
-                new ArrayList<Coord>( Arrays.asList( plotter
+                new ArrayList<Coord>( Arrays.asList( plotter.getCoordGroup()
                                                     .getExtraCoords() ) );
             coordList.removeAll( commonExtraCoordList );
             Coord[] modeCoords = coordList.toArray( new Coord[ 0 ] );
@@ -260,11 +260,12 @@ public class ModeFormControl extends FormControl {
      */
     private static List<Coord> getCommonCoords( Plotter[] plotters ) {
         List<Coord> commonList = new ArrayList<Coord>();
-        commonList.addAll( Arrays.asList( plotters[ 0 ]
-                                         .getExtraCoords() ) );
+        commonList.addAll( Arrays.asList( plotters[ 0 ].getCoordGroup()
+                                                       .getExtraCoords() ) );
         for ( int ip = 1; ip < plotters.length; ip++ ) {
             Collection<Coord> coordSet =
                 new HashSet<Coord>( Arrays.asList( plotters[ ip ]
+                                                  .getCoordGroup()
                                                   .getExtraCoords() ) );
             for ( Iterator<Coord> it = commonList.iterator();
                   it.hasNext(); ) {

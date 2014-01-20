@@ -248,7 +248,7 @@ public class MultiFormLayerControl extends FormLayerControl {
     private FormControl createSimpleFormControl( Plotter plotter ) {
         FormControl fc =
             new SimpleFormControl( baseConfigger_, plotter,
-                                   plotter.getExtraCoords() );
+                                   plotter.getCoordGroup().getExtraCoords() );
         fc.setTable( getTopcatModel(), getSubsetManager() );
         return fc;
     }

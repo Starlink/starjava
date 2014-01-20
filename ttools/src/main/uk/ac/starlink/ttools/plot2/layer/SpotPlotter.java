@@ -117,11 +117,12 @@ public class SpotPlotter extends AbstractPlotter<SpotPlotter.SpotStyle> {
                                PaperType2D paperType, Paper paper ) {
         Glyph spotGlyph = createSpotGlyph();
         Color spotColor = style.color_;
+        int icPos = getCoordGroup().getPosCoordIndex( 0, geom );
         double[] dpos = new double[ surface.getDataDimCount() ];
         Point gp = new Point();
         TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
         while ( tseq.next() ) {
-            if ( geom.readDataPos( tseq, 0, dpos ) &&
+            if ( geom.readDataPos( tseq, icPos, dpos ) &&
                  surface.dataToGraphics( dpos, true, gp ) ) {
                 paperType.placeGlyph( paper, gp.x, gp.y, spotGlyph, spotColor );
             }
@@ -145,12 +146,13 @@ public class SpotPlotter extends AbstractPlotter<SpotPlotter.SpotStyle> {
                                PaperType3D paperType, Paper paper ) {
         Glyph spotGlyph = createSpotGlyph();
         Color spotColor = style.getColor();
+        int icPos = getCoordGroup().getPosCoordIndex( 0, geom );
         double[] dpos = new double[ surface.getDataDimCount() ];
         Point gp = new Point();
         double[] dz = new double[ 1 ];
         TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
         while ( tseq.next() ) {
-            if ( geom.readDataPos( tseq, 0, dpos ) &&
+            if ( geom.readDataPos( tseq, icPos, dpos ) &&
                  surface.dataToGraphicZ( dpos, true, gp, dz ) ) {
                 paperType.placeGlyph( paper, gp.x, gp.y, dz[ 0 ],
                                       spotGlyph, spotColor );

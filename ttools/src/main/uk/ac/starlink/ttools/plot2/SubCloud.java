@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashSet;
+import uk.ac.starlink.ttools.plot2.data.CoordGroup;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 
@@ -128,8 +129,10 @@ public class SubCloud {
             PlotLayer layer = layers[ il ];
             DataGeom geom = layer.getDataGeom();
             DataSpec spec = layer.getDataSpec();
-            int npos = layer.getPlotter().getPositionCount();
+            CoordGroup cgrp = layer.getPlotter().getCoordGroup();
+            int npos = cgrp.getPositionCount();
             if ( geom != null && spec != null && npos > 0 ) {
+                assert ! cgrp.isSinglePartialPosition();
 
                 /* Add an entry. */
                 subClouds.addAll( Arrays
@@ -158,7 +161,9 @@ public class SubCloud {
      * point in the data space - for instance a vertical or horizontal
      * line.
      *
-     * @see   PlotUtil#hasPartialPosition
+     * @param  layers  plot layers
+     * @param  deduplicate  true to cull duplicate subclouds
+     * @return subclouds from partial position layers only
      */
     public static SubCloud[] createPartialSubClouds( PlotLayer[] layers,
                                                      boolean deduplicate ) {
@@ -166,7 +171,9 @@ public class SubCloud {
         int nl = layers.length;
         for ( int il = 0; il < nl; il++ ) {
             PlotLayer layer = layers[ il ];
-            if ( PlotUtil.hasPartialPosition( layer ) ) {
+            CoordGroup cgrp = layer.getPlotter().getCoordGroup();
+            if ( cgrp.isSinglePartialPosition() ) {
+                assert cgrp.getPositionCount() == 0;
                 subClouds.add( new SubCloud( layer.getDataGeom(),
                                              layer.getDataSpec(), 0 ) );
             }

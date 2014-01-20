@@ -6,10 +6,8 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
@@ -31,6 +29,7 @@ import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
 import uk.ac.starlink.ttools.plot2.config.DoubleConfigKey;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
+import uk.ac.starlink.ttools.plot2.data.CoordGroup;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
@@ -53,6 +52,7 @@ public class HistogramPlotter
     private final FloatingCoord xCoord_;
     private final FloatingCoord weightCoord_;
     private final SliceDataGeom histoDataGeom_;
+    private final CoordGroup histoCoordGrp_;
     private final int icX_;
     private final int icWeight_;
 
@@ -74,16 +74,32 @@ public class HistogramPlotter
      */
     public HistogramPlotter( FloatingCoord xCoord, boolean hasWeight ) {
         xCoord_ = xCoord;
-        weightCoord_ =
-              hasWeight
-            ? FloatingCoord.createCoord( "Weight", "Weighting of data points"
-                                       + ", if not unity", false )
-            : null;
+        if ( hasWeight ) {
+            weightCoord_ =
+                FloatingCoord.createCoord( "Weight", "Weighting of data points"
+                                         + ", if not unity", false );
+            histoCoordGrp_ =
+                CoordGroup
+               .createPartialCoordGroup( new Coord[] { xCoord, weightCoord_ },
+                                         new boolean[] { true, true } );
+        }
+        else {
+            weightCoord_ = null;
+            histoCoordGrp_ =
+               CoordGroup
+              .createPartialCoordGroup( new Coord[] { xCoord },
+                                        new boolean[] { true } );
+        }
         histoDataGeom_ =
             new SliceDataGeom( new FloatingCoord[] { xCoord_, null }, "X" );
-        int icol = 0;
-        icX_ = icol++;
-        icWeight_ = hasWeight ? icol++ : -1;
+
+        /* For this plot type, coordinate indices are not sensitive to
+         * plot-time geom (the CoordGroup has no point positions),
+         * so we can calculate them here. */
+        icX_ = histoCoordGrp_.getExtraCoordIndex( 0, null );
+        icWeight_ = hasWeight
+                  ? histoCoordGrp_.getExtraCoordIndex( 1, null )
+                  : -1;
     }
 
     public String getPlotterName() {
@@ -94,20 +110,8 @@ public class HistogramPlotter
         return ResourceIcon.PLOT_HISTO;
     }
 
-    /**
-     * Returns false, since rows do not correspond to a point-like position.
-     */
-    public int getPositionCount() {
-        return 0;
-    }
-
-    public Coord[] getExtraCoords() {
-        List<Coord> list = new ArrayList<Coord>();
-        list.add( xCoord_ );
-        if ( weightCoord_ != null ) {
-            list.add( weightCoord_ );
-        }
-        return list.toArray( new Coord[ 0 ] );
+    public CoordGroup getCoordGroup() {
+        return histoCoordGrp_;
     }
 
     public ConfigKey[] getStyleKeys() {

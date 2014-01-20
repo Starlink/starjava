@@ -61,6 +61,7 @@ import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.data.CachedDataStoreFactory;
+import uk.ac.starlink.ttools.plot2.data.CoordGroup;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.DataStoreFactory;
@@ -587,7 +588,6 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                 for ( int is = 0; is < subClouds.length; is++ ) {
                     SubCloud subCloud = subClouds[ is ];
                     DataGeom geom = subCloud.getDataGeom();
-                    assert geom != null && geom.hasPosition();
                     DataSpec dataSpec = subCloud.getDataSpec();
                     int iPosCoord = subCloud.getPosCoordIndex();
                     TopcatModel tcModel = getTopcatModel( dataSpec );
@@ -700,7 +700,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                                         DataStore dataStore ) {
         DataGeom geom = subCloud.getDataGeom();
         int iPosCoord = subCloud.getPosCoordIndex();
-        if ( geom == null || ! geom.hasPosition() ) {
+        if ( geom == null ) {
             return null;
         }
         double[] dpos = new double[ geom.getDataDimCount() ];
@@ -756,7 +756,8 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             DataGeom geom = layer.getDataGeom();
             TopcatModel tcModel = getTopcatModel( layer.getDataSpec() );
             tcModels[ il ] = tcModel;
-            if ( tcModel != null && geom != null && geom.hasPosition() &&
+            if ( tcModel != null &&
+                 layer.getPlotter().getCoordGroup().getPositionCount() > 0 &&
                  ! maskMap.containsKey( tcModel ) ) {
                 long nr = tcModel.getDataModel().getRowCount();
                 nrow += nr;
@@ -776,17 +777,20 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                     PlotLayer layer = layers[ il ];
                     DataGeom geom = layer.getDataGeom();
                     DataSpec dataSpec = layer.getDataSpec();
+                    CoordGroup cgrp = layer.getPlotter().getCoordGroup();
+                    int npos = cgrp.getPositionCount();
                     TopcatModel tcModel = tcModels[ il ];
-                    if ( tcModel != null &&
-                         geom != null && geom.hasPosition() ) {
-                        int npos = layer.getPlotter().getPositionCount();
-                        int npc = geom.getPosCoords().length;
+                    if ( tcModel != null && npos > 0 ) {
+                        assert geom != null;
+                        int[] ipcs =
+                            CoordGroup.getPosCoordIndices( cgrp, geom );
                         BitSet mask = maskMap.get( tcModel );
                         TupleSequence tseq =
                             dataStore.getTupleSequence( dataSpec );
                         while ( tseq.next() ) {
                             for ( int ip = 0; ip < npos; ip++ ) {
-                                if ( geom.readDataPos( tseq, ip * npc, dpos ) &&
+                                if ( geom
+                                    .readDataPos( tseq, ipcs[ ip ], dpos ) &&
                                      surface.dataToGraphics( dpos, true, gp ) &&
                                      ( blob == null || blob.contains( gp ) ) ) {
                                     long ix = tseq.getRowIndex();

@@ -23,9 +23,11 @@ public class SpectrogramLayerControl extends BasicCoordLayerControl {
      */
     public SpectrogramLayerControl( SpectrogramPlotter plotter ) {
         super( plotter,
-               new SimplePositionCoordPanel( plotter.getExtraCoords(), null ) );
+               new SimplePositionCoordPanel( plotter.getCoordGroup()
+                                                    .getExtraCoords(),
+                                             null ) );
         plotter_ = plotter;
-        assert plotter.getPositionCount() == 0;
+        assert plotter.getCoordGroup().getPositionCount() == 0;
     }
 
     /**

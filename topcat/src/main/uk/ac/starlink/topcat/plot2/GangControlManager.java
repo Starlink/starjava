@@ -85,7 +85,7 @@ public class GangControlManager implements ControlManager {
         Plotter[] plotters = plotType_.getPlotters();
         for ( int i = 0; i < plotters.length; i++ ) {
             Plotter plotter = plotters[ i ];
-            int npos = plotter.getPositionCount();
+            int npos = plotter.getCoordGroup().getPositionCount();
             if ( ! plotterMap_.containsKey( npos ) ) {
                 plotterMap_.put( npos, new ArrayList<Plotter>() );
             }
@@ -270,7 +270,7 @@ public class GangControlManager implements ControlManager {
             throws LayerException {
 
         /* Create the control. */
-        int npos = lcmd.getPlotter().getPositionCount();
+        int npos = lcmd.getPlotter().getCoordGroup().getPositionCount();
         Icon icon = npos == 1 ? ResourceIcon.PLOT_DATA : ResourceIcon.PLOT_PAIR;
         MultiFormLayerControl control = createGangControl( npos, icon, false );
 
