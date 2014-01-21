@@ -73,7 +73,7 @@ public class PlaneAxisControl
      *
      * @return  X, Y axis label config keys
      */
-    private static ConfigKey<String>[] createAxisLabelKeys() {
+    static ConfigKey<String>[] createAxisLabelKeys() {
         List<ConfigKey<String>> list = new ArrayList<ConfigKey<String>>();
         list.add( PlaneSurfaceFactory.XLABEL_KEY );
         list.add( PlaneSurfaceFactory.YLABEL_KEY );

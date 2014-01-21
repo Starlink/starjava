@@ -75,6 +75,15 @@ public class AutoSpecifier<T> extends SpecifierPanel<T> {
         }
     }
 
+    /**
+     * Sets whether the auto button is on or off.
+     *
+     * @param  isAuto  true for automatic values
+     */
+    public void setAuto( boolean isAuto ) {
+        autoModel_.setSelected( isAuto );
+    }
+
     public T getSpecifiedValue() {
         return base_.getSpecifiedValue();
     }

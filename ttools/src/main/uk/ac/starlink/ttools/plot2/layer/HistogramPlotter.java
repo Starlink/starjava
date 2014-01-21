@@ -482,6 +482,33 @@ public class HistogramPlotter
             barStyle_.setDash( dash );
         }
 
+        /**
+         * Returns the bin sizer.
+         *
+         * @return   bin sizer
+         */
+        public BinSizer getBinSizer() {
+            return sizer_;
+        }
+
+        /**
+         * Returns cumulative flag.
+         *
+         * @return  true iff counts are cumulative
+         */
+        public boolean isCumulative() {
+            return cumulative_;
+        }
+
+        /**
+         * Returns normalised flag.
+         *
+         * @return  true iff counts are normalised
+         */
+        public boolean isNormalised() {
+            return norm_;
+        }
+
         public Icon getLegendIcon() {
             return barStyle_;
         }

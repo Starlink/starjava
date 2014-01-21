@@ -25,6 +25,7 @@ import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
  */
 public class HistogramPlotWindow
              extends StackPlotWindow<PlaneSurfaceFactory.Profile,PlaneAspect> {
+
     private static final PlotType PLOT_TYPE = new HistogramPlotType();
     private static final PlotTypeGui PLOT_GUI = new HistogramPlotTypeGui();
 
@@ -34,7 +35,7 @@ public class HistogramPlotWindow
      * @param  parent  parent component
      */
     public HistogramPlotWindow( Component parent ) {
-        super( "Histo2", parent, PLOT_TYPE, PLOT_GUI );
+        super( "Histogram2", parent, PLOT_TYPE, PLOT_GUI );
         addHelp( "HistogramPlotWindow" );
     }
 
@@ -69,7 +70,7 @@ public class HistogramPlotWindow
             implements PlotTypeGui<PlaneSurfaceFactory.Profile,PlaneAspect> {
         public AxisControl<PlaneSurfaceFactory.Profile,PlaneAspect>
                 createAxisControl( ControlStack stack ) {
-            return new PlaneAxisControl( stack );
+            return new HistogramAxisControl( stack );
         }
         public PositionCoordPanel createPositionCoordPanel( int npos ) {
             return SimplePositionCoordPanel
