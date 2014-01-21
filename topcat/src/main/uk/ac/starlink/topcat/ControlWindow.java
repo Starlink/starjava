@@ -119,6 +119,7 @@ import uk.ac.starlink.topcat.plot.PlotWindow;
 import uk.ac.starlink.topcat.plot.SphereWindow;
 import uk.ac.starlink.topcat.plot2.Control;
 import uk.ac.starlink.topcat.plot2.CubePlotWindow;
+import uk.ac.starlink.topcat.plot2.HistogramPlotWindow;
 import uk.ac.starlink.topcat.plot2.PlanePlotWindow;
 import uk.ac.starlink.topcat.plot2.SkyPlotWindow;
 import uk.ac.starlink.topcat.plot2.SpherePlotWindow;
@@ -437,6 +438,11 @@ public class ControlWindow extends AuxWindow
                                    "3D plotting window"
                                    + " using spherical polar coordinates",
                                    SpherePlotWindow.class ),
+            new Plot2WindowAction( "Histogram Layer Plot",
+                                   ResourceIcon.PLOT2_HISTOGRAM,
+                                   "Plane plotting window configured for "
+                                   + "convenience for histogram plotting",
+                                   HistogramPlotWindow.class ),
             new Plot2WindowAction( "Time Layer Plot",
                                    ResourceIcon.PLOT2_TIME,
                                    "Time series plotting window",
