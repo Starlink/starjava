@@ -2,6 +2,7 @@ package uk.ac.starlink.topcat.plot2;
 
 import java.awt.event.ActionEvent;
 import javax.swing.Action;
+import javax.swing.Icon;
 import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.TopcatListener;
 import uk.ac.starlink.ttools.plot2.Plotter;
@@ -15,24 +16,36 @@ import uk.ac.starlink.ttools.plot2.layer.SpectrogramPlotter;
  * @author   Mark Taylor
  * @since    25 Jul 2013
  */
-public abstract class PlotterStackAction extends BasicAction {
+public abstract class LayerControlAction extends BasicAction {
 
-    private final Plotter plotter_;
     private final ControlStack stack_;
 
     /**
-     * Constructor.
+     * Constructs a LayerControlAction from name, icon and description.
      *
-     * @param   plotter  plotter this action is based on
+     * @param   name   action name
+     * @param   icon   action icon
+     * @param   descrip  action description
      * @param   stack   plot stack
      */
-    public PlotterStackAction( Plotter plotter, ControlStack stack ) {
-        super( "Add " + plotter.getPlotterName() + " Layer",
-               plotter.getPlotterIcon(),
-               "Add a new " + plotter.getPlotterName().toLowerCase()
-                            + " layer control to the stack" );
-        plotter_ = plotter;
+    public LayerControlAction( String name, Icon icon, String descrip,
+                               ControlStack stack ) {
+        super( name, icon, descrip );
         stack_ = stack;
+    }
+
+    /**
+     * Constructs a LayerControlAction from a Plotter.
+     *
+     * @param  plotter   plotter which will be added to the stack
+     * @param  stack    plot stack
+     */
+    public LayerControlAction( Plotter plotter, ControlStack stack ) {
+        this( "Add " + plotter.getPlotterName() + " Layer",
+              plotter.getPlotterIcon(),
+              "Add a new " + plotter.getPlotterName().toLowerCase()
+                           + " layer control to the stack",
+              stack );
     }
 
     /**
@@ -40,7 +53,7 @@ public abstract class PlotterStackAction extends BasicAction {
      *
      * @return   new layer control
      */
-    protected abstract LayerControl createLayerControl();
+    public abstract LayerControl createLayerControl();
 
     public void actionPerformed( ActionEvent evt ) {
         stack_.addControl( createLayerControl() );
@@ -59,11 +72,11 @@ public abstract class PlotterStackAction extends BasicAction {
      *                        options
      * @return  new action to add plotter control to stack, or null
      */
-    public static Action createAction( final Plotter plotter,
-                                       ControlStack stack,
-                                       final NextSupplier nextSupplier,
-                                       final TopcatListener tcListener,
-                                       final Configger baseConfigger ) {
+    public static LayerControlAction
+            createPlotterAction( final Plotter plotter, ControlStack stack,
+                                 final NextSupplier nextSupplier,
+                                 final TopcatListener tcListener,
+                                 final Configger baseConfigger ) {
 
         /* This disjunction is currently a rather messy and ad hoc list of
          * tests.  Each one is added to cater for specific plotters,
@@ -78,23 +91,23 @@ public abstract class PlotterStackAction extends BasicAction {
 
         if ( plotter instanceof FunctionPlotter ) {
             final FunctionPlotter fPlotter = (FunctionPlotter) plotter;
-            return new PlotterStackAction( plotter, stack ) {
-                protected LayerControl createLayerControl() {
+            return new LayerControlAction( plotter, stack ) {
+                public LayerControl createLayerControl() {
                     return new FunctionLayerControl( fPlotter );
                 }
             };
         }
         else if ( plotter instanceof SpectrogramPlotter ) {
             final SpectrogramPlotter sPlotter = (SpectrogramPlotter) plotter;
-            return new PlotterStackAction( plotter, stack ) {
-                protected LayerControl createLayerControl() {
+            return new LayerControlAction( plotter, stack ) {
+                public LayerControl createLayerControl() {
                     return new SpectrogramLayerControl( sPlotter );
                 }
             };
         }
         else if ( plotter instanceof HistogramPlotter ) {
-            return new PlotterStackAction( plotter, stack ) {
-                protected LayerControl createLayerControl() {
+            return new LayerControlAction( plotter, stack ) {
+                public LayerControl createLayerControl() {
                     PositionCoordPanel posCoordPanel =
                         new SimplePositionCoordPanel( plotter.getExtraCoords(),
                                                       null );
@@ -112,8 +125,8 @@ public abstract class PlotterStackAction extends BasicAction {
          * positional and non-positional coordinates.  Could be done if
          * necessary. */
         else if ( plotter.getPositionCount() == 0 ) {
-            return new PlotterStackAction( plotter, stack ) {
-                protected LayerControl createLayerControl() {
+            return new LayerControlAction( plotter, stack ) {
+                public LayerControl createLayerControl() {
                     PositionCoordPanel coordPanel =
                         new SimplePositionCoordPanel( plotter.getExtraCoords(),
                                                       null );

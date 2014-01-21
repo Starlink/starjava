@@ -93,30 +93,37 @@ public class GangControlManager implements ControlManager {
         }
 
         /* Add an action for single-position plotters. */
-        final Icon icon1 = ResourceIcon.PLOT_DATA;
-        stackActList.add( new BasicAction( "Add Position Plot", icon1,
-                                           "Add a new positional "
-                                         + "plot control to the stack" ) {
-            public void actionPerformed( ActionEvent evt ) {
-                stack_.addControl( createGangControl( 1, icon1, true ) );
-            }
-        } );
+        if ( ! plotterMap_.get( 1 ).isEmpty() ) {
+            final Icon icon1 = ResourceIcon.PLOT_DATA;
+            stackActList.add( new LayerControlAction(
+                                  "Add Position Plot", icon1,
+                                  "Add a new positional plot control"
+                                  + " to the stack", stack_ ) {
+                public LayerControl createLayerControl() {
+                    return createGangControl( 1, icon1, true );
+                }
+            } );
+        }
 
         /* Add an action for double-position plotters. */
-        final Icon icon2 = ResourceIcon.PLOT_PAIR;
-        stackActList.add( new BasicAction( "Add Pair Plot", icon2,
-                                           "Add a new pair position "
-                                         + "plot control to the stack" ) {
-            public void actionPerformed( ActionEvent evt ) {
-                stack_.addControl( createGangControl( 2, icon2, true ) );
-            }
-        } );
-
+        if ( ! plotterMap_.get( 2 ).isEmpty() ) {
+            final Icon icon2 = ResourceIcon.PLOT_PAIR;
+            stackActList.add( new LayerControlAction(
+                                  "Add Pair Plot", icon2,
+                                  "Add a new pair position plot control"
+                                  + " to the stack", stack_ ) {
+                public LayerControl createLayerControl() {
+                    return createGangControl( 2, icon2, true );
+                }
+            } );
+        }
+    
         /* Add actions for non-positional plotters. */
         for ( Plotter plotter : plotterMap_.get( 0 ) ) {
             Action stackAct =
-                PlotterStackAction.createAction( plotter, stack, nextSupplier_,
-                                                 tcListener_, baseConfigger_ );
+                LayerControlAction
+               .createPlotterAction( plotter, stack, nextSupplier_,
+                                     tcListener_, baseConfigger_ );
             if ( stackAct != null ) {
                 stackActList.add( stackAct );
             }
@@ -140,10 +147,18 @@ public class GangControlManager implements ControlManager {
     }
 
     public Control createDefaultControl( TopcatModel tcModel ) {
-        FormLayerControl control =
-            createGangControl( 1, ResourceIcon.PLOT_DATA, true );
-        control.setTopcatModel( tcModel );
-        return control;
+        Action act0 = stackActs_[ 0 ];
+        for ( int ia = 0; ia < stackActs_.length; ia++ ) {
+            if ( stackActs_[ ia ] instanceof LayerControlAction ) {
+                LayerControlAction cact = (LayerControlAction) stackActs_[ ia ];
+                LayerControl control = cact.createLayerControl();
+                if ( control instanceof FormLayerControl ) {
+                    ((FormLayerControl) control).setTopcatModel( tcModel );
+                }
+                return control;
+            }
+        }
+        return null;
     }
 
     public void addLayer( LayerCommand lcmd ) throws LayerException {
