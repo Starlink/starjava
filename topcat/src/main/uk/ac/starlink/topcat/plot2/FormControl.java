@@ -2,6 +2,9 @@ package uk.ac.starlink.topcat.plot2;
 
 import java.awt.BorderLayout;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -119,7 +122,14 @@ public abstract class FormControl implements Control {
                     return FormControl.this.getPlotter();
                 }
             };
-            stylePanel_ = new FormStylePanel( getConfigKeys(), baseConfigger_,
+
+            /* If any of the config keys are supplied by the base configger,
+             * don't acquire them from the layer style panel. */
+            List<ConfigKey> klist = new ArrayList<ConfigKey>();
+            klist.addAll( Arrays.asList( getConfigKeys() ) );
+            klist.removeAll( baseConfigger_.getConfig().keySet() );
+            ConfigKey[] keys = klist.toArray( new ConfigKey[ 0 ] );
+            stylePanel_ = new FormStylePanel( keys, baseConfigger_,
                                               plotterFact, subManager,
                                               tcModel );
             stylePanel_.addActionListener( forwarder_ );

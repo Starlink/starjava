@@ -95,6 +95,15 @@ public abstract class CartesianAxisControl<P,A> extends AxisControl<P,A> {
         addSpecifierTab( "Labels", labelSpecifier_ );
     }
 
+    /**
+     * Returns the specifier used for axis labels.
+     *
+     * @return  axis label specifier
+     */
+    public AutoConfigSpecifier getLabelSpecifier() {
+        return labelSpecifier_;
+    }
+
     @Override
     protected boolean clearRange( P oldProfile, P newProfile,
                                   PlotLayer[] oldLayers, PlotLayer[] newLayers,
