@@ -21,8 +21,8 @@ import uk.ac.starlink.ttools.plot2.geom.CubeSurfaceFactory;
  * @author   Mark Taylor
  * @since    14 Mar 2013
  */
-public class CubeAxisControl
-       extends CartesianAxisControl<CubeSurfaceFactory.Profile,CubeAspect> {
+public class CubeAxisController
+       extends CartesianAxisController<CubeSurfaceFactory.Profile,CubeAspect> {
 
     private final boolean isIso_;
     private CubeAspect oldAspect_;
@@ -33,15 +33,17 @@ public class CubeAxisControl
      * @param  isIso   true for isotropic, false for anisotropic
      * @param  stack   plot control stack
      */
-    public CubeAxisControl( boolean isIso, ControlStack stack ) {
+    public CubeAxisController( boolean isIso, ControlStack stack ) {
         super( new CubeSurfaceFactory( isIso ), createAxisLabelKeys(), stack );
         isIso_ = isIso;
         final SurfaceFactory<CubeSurfaceFactory.Profile,CubeAspect> surfFact =
             getSurfaceFactory();
+        ConfigControl mainControl = getMainControl();
 
         /* Log/flip config tab - only makes sense for anisotropic mode. */
         if ( ! isIso ) {
-            addSpecifierTab( "Coords", new ConfigSpecifier( new ConfigKey[] {
+            mainControl.addSpecifierTab( "Coords",
+                                         new ConfigSpecifier( new ConfigKey[] {
                 CubeSurfaceFactory.XLOG_KEY,
                 CubeSurfaceFactory.YLOG_KEY,
                 CubeSurfaceFactory.ZLOG_KEY,
@@ -118,7 +120,7 @@ public class CubeAxisControl
             }
         };
         viewPanel.addActionListener( getActionForwarder() );
-        addControlTab( "View", viewPanel.getComponent(), true );
+        mainControl.addControlTab( "View", viewPanel.getComponent(), true );
 
         /* Grid config tab. */
         List<ConfigKey> gridKeyList = new ArrayList<ConfigKey>();
@@ -134,7 +136,7 @@ public class CubeAxisControl
                 CubeSurfaceFactory.ZCROWD_KEY,
             } ) );
         }
-        addSpecifierTab( "Grid",
+        mainControl.addSpecifierTab( "Grid",
                          new ConfigSpecifier( gridKeyList
                                              .toArray( new ConfigKey[ 0 ] ) ) );
 
@@ -142,7 +144,7 @@ public class CubeAxisControl
         addLabelsTab();
 
         /* Font config tab. */
-        addSpecifierTab( "Font",
+        mainControl.addSpecifierTab( "Font",
                          new ConfigSpecifier( StyleKeys.getCaptionerKeys() ) );
 
         assert assertHasKeys( surfFact.getProfileKeys() );

@@ -16,20 +16,23 @@ import uk.ac.starlink.ttools.plot2.geom.PlaneSurfaceFactory;
  * @author   Mark Taylor
  * @since    14 Mar 2013
  */
-public class PlaneAxisControl
-        extends CartesianAxisControl<PlaneSurfaceFactory.Profile,PlaneAspect> {
+public class PlaneAxisController
+        extends CartesianAxisController<PlaneSurfaceFactory.Profile,
+                                        PlaneAspect> {
 
     /**
      * Constructor.
      *
      * @param  stack   control stack
      */
-    public PlaneAxisControl( ControlStack stack ) {
+    public PlaneAxisController( ControlStack stack ) {
         super( new PlaneSurfaceFactory(), createAxisLabelKeys(), stack );
         SurfaceFactory surfFact = getSurfaceFactory();
+        ConfigControl mainControl = getMainControl();
    
         /* Log/flip tab. */
-        addSpecifierTab( "Coords", new ConfigSpecifier( new ConfigKey[] {
+        mainControl.addSpecifierTab( "Coords",
+                                     new ConfigSpecifier( new ConfigKey[] {
             PlaneSurfaceFactory.XLOG_KEY,
             PlaneSurfaceFactory.YLOG_KEY,
             PlaneSurfaceFactory.XFLIP_KEY,
@@ -45,7 +48,8 @@ public class PlaneAxisControl
                             new ConfigSpecifier( surfFact.getAspectKeys() ) );
 
         /* Grid tab. */
-        addSpecifierTab( "Grid", new ConfigSpecifier( new ConfigKey[] {
+        mainControl.addSpecifierTab( "Grid",
+                                     new ConfigSpecifier( new ConfigKey[] {
             PlaneSurfaceFactory.GRID_KEY,
             StyleKeys.MINOR_TICKS,
             PlaneSurfaceFactory.XCROWD_KEY,
@@ -56,8 +60,8 @@ public class PlaneAxisControl
         addLabelsTab();
 
         /* Font tab. */
-        addSpecifierTab( "Font",
-                         new ConfigSpecifier( StyleKeys.getCaptionerKeys() ) );
+        mainControl.addSpecifierTab( "Font",
+                          new ConfigSpecifier( StyleKeys.getCaptionerKeys() ) );
 
         assert assertHasKeys( surfFact.getProfileKeys() );
     }

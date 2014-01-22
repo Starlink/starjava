@@ -85,7 +85,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
 
     private final PlotType plotType_;
     private final PlotTypeGui<P,A> plotTypeGui_;
-    private final AxisControl<P,A> axisControl_;
+    private final AxisController<P,A> axisController_;
     private final SurfaceFactory<P,A> surfFact_;
     private final PlotPanel<P,A> plotPanel_;
     private final ControlStack stack_;
@@ -118,10 +118,10 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         stack_ = new ControlStack();
         stackModel_ = stack_.getStackModel();
         MultiConfigger configger = new MultiConfigger();
-        axisControl_ = plotTypeGui.createAxisControl( stack_ );
-        ToggleButtonModel axlockModel = axisControl_.getAxisLockModel();
-        surfFact_ = axisControl_.getSurfaceFactory();
-        configger.addConfigger( axisControl_ );
+        axisController_ = plotTypeGui.createAxisController( stack_ );
+        ToggleButtonModel axlockModel = axisController_.getAxisLockModel();
+        surfFact_ = axisController_.getSurfaceFactory();
+        configger.addConfigger( axisController_ );
         final ShaderControl shaderControl =
             new ShaderControl( stackModel_, configger );
         configger.addConfigger( shaderControl );
@@ -159,8 +159,9 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         /* Set up a plot panel with the objects it needs to gather plot
          * requirements from the GUI.  This does the actual plotting. */
         plotPanel_ =
-            new PlotPanel<P,A>( storeFact, axisControl_, layerFact, legendFact,
-                                legendPosFact, shaderControl, sketchModel,
+            new PlotPanel<P,A>( storeFact, axisController_, layerFact,
+                                legendFact, legendPosFact,
+                                shaderControl, sketchModel,
                                 plotType.getPaperTypeSelector(),
                                 placeProgressBar().getModel(),
                                 showProgressModel_ );
@@ -170,16 +171,16 @@ public class StackPlotWindow<P,A> extends AuxWindow {
          * is forwarding actions from all of its constituent controls. */
         stackModel_.addPlotActionListener( plotPanel_ );
         legendControl.addActionListener( plotPanel_ );
-        axisControl_.addActionListener( plotPanel_ );
+        axisController_.addActionListener( plotPanel_ );
         shaderControl.addActionListener( plotPanel_ );
 
         /* Arrange for user navigation actions to adjust the view. */
         new GuiNavigationListener<A>( plotPanel_ ) {
             public Navigator<A> getNavigator() {
-                return axisControl_.getNavigator();
+                return axisController_.getNavigator();
             }
             public void setAspect( A aspect ) {
-                axisControl_.setAspect( aspect );
+                axisController_.setAspect( aspect );
                 plotPanel_.replot();
             }
         }.addListeners( plotPanel_ );
@@ -265,9 +266,9 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                 new BasicAction( "Rescale", ResourceIcon.RESIZE,
                                  "Rescale plot to view all plotted data" ) {
             public void actionPerformed( ActionEvent evt ) {
-                axisControl_.setAspect( null );
-                axisControl_.setRanges( null );
-                axisControl_.clearAspect();
+                axisController_.setAspect( null );
+                axisController_.setRanges( null );
+                axisController_.clearAspect();
                 plotPanel_.replot();
             }
         };
@@ -307,7 +308,10 @@ public class StackPlotWindow<P,A> extends AuxWindow {
          * either at the bottom of the plot window or floated into a
          * separate window. */
         final ControlStackPanel stackPanel = new ControlStackPanel( stack_ );
-        stackPanel.addFixedControl( axisControl_ );
+        Control[] axisControls = axisController_.getControls();
+        for ( int i = 0; i < axisControls.length; i++ ) {
+            stackPanel.addFixedControl( axisControls[ i ] );
+        }
         stackPanel.addFixedControl( legendControl );
 
         /* The shader control is only visible in the stack when one of the
@@ -503,7 +507,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
      * @return  navigator
      */
     private Navigator<A> getNavigator() {
-        return axisControl_.getNavigator();
+        return axisController_.getNavigator();
     }
 
     /**

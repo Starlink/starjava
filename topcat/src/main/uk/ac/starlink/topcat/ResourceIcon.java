@@ -240,6 +240,7 @@ public class ResourceIcon implements Icon {
         PLOT2_SPHERE = makeIcon( "plot2sphere.gif" ),
         PLOT2_TIME = makeIcon( "plot2time.gif" ),
         PLOT2_HISTOGRAM = makeIcon( "plot2hist.gif" ),
+        HISTOBARS = makeIcon( "histobars.gif" ),
 
         /* Datanode (hierarchy browser) icons. */
         COLLAPSED = makeIcon( "handle1.gif" ),

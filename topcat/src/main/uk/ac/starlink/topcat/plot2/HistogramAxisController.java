@@ -1,6 +1,7 @@
 package uk.ac.starlink.topcat.plot2;
 
 import java.util.Arrays;
+import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.ttools.plot.Style;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
@@ -17,8 +18,9 @@ import uk.ac.starlink.ttools.plot2.layer.HistogramPlotter;
  * @author   Mark Taylor
  * @since    21 Jan 2014
  */
-public class HistogramAxisControl
-        extends CartesianAxisControl<PlaneSurfaceFactory.Profile,PlaneAspect> {
+public class HistogramAxisController
+        extends CartesianAxisController<PlaneSurfaceFactory.Profile,
+                                        PlaneAspect> {
 
     /** Keys to control common bar configuration for all histogram layers. */
     private static final ConfigKey[] BAR_KEYS = new ConfigKey[] {
@@ -33,16 +35,15 @@ public class HistogramAxisControl
      *
      * @param  stack  control stack
      */
-    public HistogramAxisControl( ControlStack stack ) {
+    public HistogramAxisController( ControlStack stack ) {
         super( new PlaneSurfaceFactory(),
-               PlaneAxisControl.createAxisLabelKeys(), stack );
+               PlaneAxisController.createAxisLabelKeys(), stack );
         SurfaceFactory surfFact = getSurfaceFactory();
-
-        /* Bars tab. */
-        addSpecifierTab( "Bars", new ConfigSpecifier( BAR_KEYS ) );
+        ConfigControl mainControl = getMainControl();
 
         /* Log/flip tab. */
-        addSpecifierTab( "Coords", new ConfigSpecifier( new ConfigKey[] {
+        mainControl.addSpecifierTab( "Coords",
+                                     new ConfigSpecifier( new ConfigKey[] {
             PlaneSurfaceFactory.XLOG_KEY,
             PlaneSurfaceFactory.YLOG_KEY,
             PlaneSurfaceFactory.XFLIP_KEY,
@@ -58,7 +59,8 @@ public class HistogramAxisControl
                             new ConfigSpecifier( surfFact.getAspectKeys() ) );
 
         /* Grid tab. */
-        addSpecifierTab( "Grid", new ConfigSpecifier( new ConfigKey[] {
+        mainControl.addSpecifierTab( "Grid",
+                                     new ConfigSpecifier( new ConfigKey[] {
             PlaneSurfaceFactory.GRID_KEY,
             StyleKeys.MINOR_TICKS,
             PlaneSurfaceFactory.XCROWD_KEY,
@@ -74,8 +76,15 @@ public class HistogramAxisControl
         ySpecifier.setSpecifiedValue( null );
 
         /* Font tab. */
-        addSpecifierTab( "Font",
+        mainControl.addSpecifierTab( "Font",
                          new ConfigSpecifier( StyleKeys.getCaptionerKeys() ) );
+
+
+        /* Bars control. */
+        ConfigControl barControl =
+            new ConfigControl( "Bars", ResourceIcon.HISTOBARS );
+        barControl.addSpecifierTab( "Bars", new ConfigSpecifier( BAR_KEYS ) );
+        addControl( barControl );
 
         assert assertHasKeys( surfFact.getProfileKeys() );
     }

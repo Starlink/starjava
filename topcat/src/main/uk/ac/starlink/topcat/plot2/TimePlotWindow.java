@@ -32,9 +32,9 @@ public class TimePlotWindow
      */
     private static class TimePlotTypeGui
             implements PlotTypeGui<TimeSurfaceFactory.Profile,TimeAspect> {
-        public AxisControl<TimeSurfaceFactory.Profile,TimeAspect>
-                createAxisControl( ControlStack stack ) {
-            return new TimeAxisControl( stack );
+        public AxisController<TimeSurfaceFactory.Profile,TimeAspect>
+                createAxisController( ControlStack stack ) {
+            return new TimeAxisController( stack );
         }
         public PositionCoordPanel createPositionCoordPanel( int npos ) {
             return SimplePositionCoordPanel
