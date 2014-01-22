@@ -29,23 +29,24 @@ import uk.ac.starlink.vo.DoubleValueField;
 import uk.ac.starlink.vo.SkyPositionEntry;
 
 /**
- * AxisControl for sky plot.
+ * AxisController for sky plot.
  *
  * @author   Mark Taylor
  * @since    14 Mar 2013
  */
-public class SkyAxisControl
-             extends AxisControl<SkySurfaceFactory.Profile,SkyAspect> {
+public class SkyAxisController
+             extends AxisController<SkySurfaceFactory.Profile,SkyAspect> {
 
     private static final Logger logger_ =
-        Logger.getLogger( "uk.ac.starlink.ttools.SkyAxisControl" );
+        Logger.getLogger( "uk.ac.starlink.ttools.SkyAxisController" );
 
     /**
      * Constructor.
      */
-    public SkyAxisControl() {
+    public SkyAxisController() {
         super( new SkySurfaceFactory() );
         SurfaceFactory surfFact = getSurfaceFactory();
+        ConfigControl mainControl = getMainControl();
 
         /* Projection specifier. */
         final ConfigSpecifier projSpecifier =
@@ -54,7 +55,7 @@ public class SkyAxisControl
             SkySurfaceFactory.REFLECT_KEY,
             SkySurfaceFactory.VIEWSYS_KEY,
         } );
-        addSpecifierTab( "Projection", projSpecifier );
+        mainControl.addSpecifierTab( "Projection", projSpecifier );
 
         /* Navigator specifier. */
         addNavigatorTab();
@@ -69,7 +70,8 @@ public class SkyAxisControl
         } );
 
         /* Grid appearance specifier. */
-        addSpecifierTab( "Grid", new ConfigSpecifier( new ConfigKey[] {
+        mainControl.addSpecifierTab( "Grid",
+                                     new ConfigSpecifier( new ConfigKey[] {
             SkySurfaceFactory.GRID_KEY,
             SkySurfaceFactory.SEX_KEY,
             SkySurfaceFactory.CROWD_KEY,
@@ -77,7 +79,7 @@ public class SkyAxisControl
         } ) );
 
         /* Font specifier. */
-        addSpecifierTab( "Font",
+        mainControl.addSpecifierTab( "Font",
                          new ConfigSpecifier( StyleKeys.getCaptionerKeys() ) );
 
         assert assertHasKeys( surfFact.getProfileKeys() );
@@ -177,7 +179,7 @@ public class SkyAxisControl
 
                 /* It would be nice to fill in the radius field from the
                  * existing zoom value.  This may be feasible, via
-                 * SkyAxisControl.getAspect() but it's tricky because
+                 * SkyAxisController.getAspect() but it's tricky because
                  * the aspect (a SkyAspect) has zoom which is related
                  * in a non-trivial way to the FOV radius. */
                 radiusField_.setValue( configMap.get( SkySurfaceFactory

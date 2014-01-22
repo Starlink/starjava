@@ -16,20 +16,22 @@ import uk.ac.starlink.ttools.plot2.geom.TimeSurfaceFactory;
  * @author   Mark Taylor
  * @since    24 Jul 2013
  */
-public class TimeAxisControl
-        extends CartesianAxisControl<TimeSurfaceFactory.Profile,TimeAspect> {
+public class TimeAxisController
+        extends CartesianAxisController<TimeSurfaceFactory.Profile,TimeAspect> {
 
     /**
      * Constructor.
      *
      * @param  stack  control stack
      */
-    public TimeAxisControl( ControlStack stack ) {
+    public TimeAxisController( ControlStack stack ) {
         super( new TimeSurfaceFactory(), createAxisLabelKeys(), stack );
         SurfaceFactory surfFact = getSurfaceFactory();
+        ConfigControl mainControl = getMainControl();
 
         /* Log/flip tab. */
-        addSpecifierTab( "Coords", new ConfigSpecifier( new ConfigKey[] {
+        mainControl.addSpecifierTab( "Coords",
+                                     new ConfigSpecifier( new ConfigKey[] {
             TimeSurfaceFactory.YLOG_KEY,
             TimeSurfaceFactory.YFLIP_KEY,
         } ) );
@@ -42,7 +44,8 @@ public class TimeAxisControl
                             new ConfigSpecifier( surfFact.getAspectKeys() ) );
 
         /* Grid tab. */
-        addSpecifierTab( "Grid", new ConfigSpecifier( new ConfigKey[] {
+        mainControl.addSpecifierTab( "Grid",
+                                     new ConfigSpecifier( new ConfigKey[] {
             TimeSurfaceFactory.TFORMAT_KEY,
             TimeSurfaceFactory.GRID_KEY,
             StyleKeys.MINOR_TICKS,
@@ -54,7 +57,7 @@ public class TimeAxisControl
         addLabelsTab();
 
         /* Font tab. */
-        addSpecifierTab( "Font",
+        mainControl.addSpecifierTab( "Font",
                          new ConfigSpecifier( StyleKeys.getCaptionerKeys() ) );
 
         assert assertHasKeys( surfFact.getProfileKeys() );

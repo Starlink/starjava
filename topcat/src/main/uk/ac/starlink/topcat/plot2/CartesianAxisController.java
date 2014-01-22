@@ -23,7 +23,7 @@ import uk.ac.starlink.ttools.plot2.data.DataSpec;
  * @author   Mark Taylor
  * @since    14 Mar 2013
  */
-public abstract class CartesianAxisControl<P,A> extends AxisControl<P,A> {
+public abstract class CartesianAxisController<P,A> extends AxisController<P,A> {
 
     private final AutoConfigSpecifier labelSpecifier_;
     private final Set<DataId> seenDataIdSet_;
@@ -35,9 +35,9 @@ public abstract class CartesianAxisControl<P,A> extends AxisControl<P,A> {
      * @param  axisLabelKeys  config keys for axis labels
      * @param  stack   control stack, used to get default axis label strings
      */
-    public CartesianAxisControl( SurfaceFactory<P,A> surfFact,
-                                 final ConfigKey<String>[] axisLabelKeys,
-                                 ControlStack stack ) {
+    public CartesianAxisController( SurfaceFactory<P,A> surfFact,
+                                    final ConfigKey<String>[] axisLabelKeys,
+                                    ControlStack stack ) {
         super( surfFact );
         final int ndim = axisLabelKeys.length;
         seenDataIdSet_ = new HashSet<DataId>();
@@ -92,7 +92,7 @@ public abstract class CartesianAxisControl<P,A> extends AxisControl<P,A> {
      * where it goes in terms of the other config tabs.
      */
     protected void addLabelsTab() {
-        addSpecifierTab( "Labels", labelSpecifier_ );
+        getMainControl().addSpecifierTab( "Labels", labelSpecifier_ );
     }
 
     /**

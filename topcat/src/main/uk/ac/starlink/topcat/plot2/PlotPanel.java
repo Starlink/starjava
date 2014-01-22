@@ -109,7 +109,7 @@ import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
 public class PlotPanel<P,A> extends JComponent implements ActionListener {
 
     private final DataStoreFactory storeFact_;
-    private final AxisControl<P,A> axisControl_;
+    private final AxisController<P,A> axisController_;
     private final Factory<PlotLayer[]> layerFact_;
     private final Factory<Icon> legendFact_;
     private final Factory<float[]> legendPosFact_;
@@ -142,7 +142,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      * reads the data and the plot does not have side-effects on its
      * constituent components, since passing information both ways
      * generally leads to a lot of confusion.  In fact as currently
-     * written a couple of GUI compoents, axisControl and shaderControl
+     * written a couple of GUI compoents, axisController and shaderControl
      * are passed in and can be affected.  It would be better to sanitize that.
      *
      * <p>A progress bar model is used so that progress can be logged
@@ -154,7 +154,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      * which as it stands they should not be.
      *
      * @param  storeFact   data store factory implementation
-     * @param  axisControl  axis control GUI component
+     * @param  axisController  axis control GUI component
      * @param  layerFact   supplier of plot layers
      * @param  legendFact   supplier of legend icon
      * @param  legendPosFact    supplier of legend position
@@ -168,7 +168,8 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      * @param  showProgressModel  model to decide whether data scan operations
      *                            are reported to the progress bar model
      */
-    public PlotPanel( DataStoreFactory storeFact, AxisControl<P,A> axisControl,
+    public PlotPanel( DataStoreFactory storeFact,
+                      AxisController<P,A> axisController,
                       Factory<PlotLayer[]> layerFact, Factory<Icon> legendFact,
                       Factory<float[]> legendPosFact,
                       ShaderControl shaderControl,
@@ -178,7 +179,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         storeFact_ = progModel == null
                    ? storeFact
                    : new ProgressDataStoreFactory( storeFact, progModel );
-        axisControl_ = axisControl;
+        axisController_ = axisController;
         layerFact_ = layerFact;
         legendFact_ = legendFact;
         legendPosFact_ = legendPosFact;
@@ -462,12 +463,12 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         PlotLayer[] layers = layerFact_.getItem();
         assert LayerId.layerListEquals( layers, layerFact_.getItem() );
         assert LayerId.layerSetEquals( layers, layerFact_.getItem() );
-        SurfaceFactory<P,A> surfFact = axisControl_.getSurfaceFactory();
-        ConfigMap surfConfig = axisControl_.getConfig();
+        SurfaceFactory<P,A> surfFact = axisController_.getSurfaceFactory();
+        ConfigMap surfConfig = axisController_.getConfig();
         P profile = surfFact.createProfile( surfConfig );
-        axisControl_.configureForLayers( profile, layers );
-        A fixAspect = axisControl_.getAspect();
-        Range[] geomFixRanges = axisControl_.getRanges();
+        axisController_.configureForLayers( profile, layers );
+        A fixAspect = axisController_.getAspect();
+        Range[] geomFixRanges = axisController_.getRanges();
         ShaderControl.AxisFactory shadeFact =
             shaderControl_.createShadeAxisFactory();
         Boolean shadeLog = shaderControl_.getConfig()
@@ -1566,8 +1567,8 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                             ! workings.getDataIconId()
                              .equals( workings_.getDataIconId() );
                         workings_ = workings;
-                        axisControl_.setAspect( workings.aspect_ );
-                        axisControl_.setRanges( workings.geomRanges_ );
+                        axisController_.setAspect( workings.aspect_ );
+                        axisController_.setRanges( workings.geomRanges_ );
                         repaint();
 
                         /* If the plot changed materially, notify listeners. */

@@ -51,24 +51,24 @@ public class SkyPlotWindow
      */
     private static class SkyPlotTypeGui
             implements PlotTypeGui<SkySurfaceFactory.Profile,SkyAspect> {
-        SkyAxisControl axisControl_;
+        SkyAxisController axisController_;
 
         /**
          * Constructor.
          */
         SkyPlotTypeGui() {
-            axisControl_ = new SkyAxisControl();
+            axisController_ = new SkyAxisController();
         }
 
-        public AxisControl<SkySurfaceFactory.Profile,SkyAspect>
-                createAxisControl( ControlStack stack ) {
-            return axisControl_;
+        public AxisController<SkySurfaceFactory.Profile,SkyAspect>
+                createAxisController( ControlStack stack ) {
+            return axisController_;
         }
 
         public PositionCoordPanel createPositionCoordPanel( int npos ) {
             return new SkyPositionCoordPanel( npos ) {
                 SkySys getViewSystem() {
-                    return axisControl_.getViewSystem();
+                    return axisController_.getViewSystem();
                 }
             };
         }

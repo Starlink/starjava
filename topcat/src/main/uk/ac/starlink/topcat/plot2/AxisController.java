@@ -1,30 +1,40 @@
 package uk.ac.starlink.topcat.plot2;
 
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
-import javax.swing.Icon;
+import java.util.Set;
+import uk.ac.starlink.topcat.ActionForwarder;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
+import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.Specifier;
-import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 
 /**
- * Abstract superclass for control that configures details of a plot's
- * axes, including surface aspect and ranges.
+ * Object which configures details of a plot's axes, including surface
+ * aspect and ranges.
+ * As well as methods which are used by the plot classes to interrogate
+ * and configure the plot programmatically, this supplies one or more
+ * controls to be placed in the GUI allowing user control of these things.
  *
  * @author   Mark Taylor
- * @since    14 Mar 2013
+ * @since    22 Jan 2014
  */
-public abstract class AxisControl<P,A> extends ConfigControl {
+public abstract class AxisController<P,A> implements Configger {
 
     private final SurfaceFactory<P,A> surfFact_;
+    private final ConfigControl mainControl_;
     private final ToggleButtonModel stickyModel_;
+    private final ActionForwarder actionForwarder_;
+    private final List<ConfigControl> controlList_;
     private ConfigMap aspectConfig_;
     private Range[] ranges_;
     private A aspect_;
@@ -41,12 +51,15 @@ public abstract class AxisControl<P,A> extends ConfigControl {
      *
      * @param  surfFact  plot surface factory
      */
-    protected AxisControl( SurfaceFactory<P,A> surfFact ) {
-        super( "Axes", ResourceIcon.AXIS_EDIT );
+    protected AxisController( SurfaceFactory<P,A> surfFact ) {
         surfFact_ = surfFact;
+        mainControl_ = new ConfigControl( "Axes", ResourceIcon.AXIS_EDIT );
         stickyModel_ =
             new ToggleButtonModel( "Lock Axes", ResourceIcon.AXIS_LOCK,
                                    "Do not auto-rescale axes" );
+        actionForwarder_ = new ActionForwarder();
+        controlList_ = new ArrayList<ConfigControl>();
+        addControl( mainControl_ );
         lastLayers_ = new PlotLayer[ 0 ];
         lastProfile_ = surfFact.createProfile( new ConfigMap() );
         aspectPanels_ = new ArrayList<ActionSpecifierPanel>();
@@ -63,7 +76,7 @@ public abstract class AxisControl<P,A> extends ConfigControl {
 
     /**
      * Returns a toggler which controls whether auto-rescaling should be
-     * inhibited.  May be overridden to return null if the axis control
+     * inhibited.  May be overridden to return null if this controller
      * does not honour the setting of such a model.
      *
      * @return   axis lock model, or null
@@ -72,7 +85,78 @@ public abstract class AxisControl<P,A> extends ConfigControl {
     public ToggleButtonModel getAxisLockModel() {
         return stickyModel_;
     }
-  
+
+    /**
+     * Returns the control that provides the main part of the GUI
+     * configurability.  Subclasses may provide additional controls.
+     *
+     * @return  main control
+     */
+    public ConfigControl getMainControl() {
+        return mainControl_;
+    }
+
+    /**
+     * Returns all the controls for user configuration of this controller.
+     * This includes the main control and possibly others.
+     *
+     * @return  user controls
+     */
+    public Control[] getControls() {
+        return controlList_.toArray( new Control[ 0 ] );
+    }
+
+    /**
+     * Adds a control to the list of controls managed by this object.
+     *
+     * @param  control   control to add
+     */
+    public void addControl( ConfigControl control ) {
+        controlList_.add( control );
+        control.addActionListener( actionForwarder_ );
+    }
+
+    /**
+     * Returns the configuration defined by all this object's controls.
+     *
+     * @return   config map
+     */
+    public ConfigMap getConfig() {
+        ConfigMap config = new ConfigMap();
+        for ( ConfigControl control : controlList_ ) {
+            config.putAll( control.getConfig() );
+        }
+        return config;
+    }
+
+    /**
+     * Adds a listener notified when any of the controls changes.
+     *
+     * @param  listener  listener to add
+     */
+    public void addActionListener( ActionListener listener ) {
+        actionForwarder_.addActionListener( listener );
+    }
+
+    /**
+     * Removes a listener previously added by addActionListener.
+     *
+     * @param   listener   listener to remove
+     */
+    public void removeActionListener( ActionListener listener ) {
+        actionForwarder_.removeActionListener( listener );
+    }
+
+    /**
+     * Returns an object which will forward actions to listeners registered
+     * with this panel.
+     *
+     * @return  action forwarder
+     */
+    public ActionListener getActionForwarder() {
+        return actionForwarder_;
+    }
+
     /**
      * Sets fixed data position coordinate ranges.
      * If these are not set then they may need to be calculated by
@@ -104,7 +188,7 @@ public abstract class AxisControl<P,A> extends ConfigControl {
     public void setAspect( A aspect ) {
         aspect_ = aspect;
     }
- 
+
     /**
      * Returns the plot aspect to use for setting up the plot surface.
      * If not known, null is returned.
@@ -116,13 +200,13 @@ public abstract class AxisControl<P,A> extends ConfigControl {
     }
 
     /**
-     * Adds a tab for selecting navigator options.
+     * Adds a tab to the main control for selecting navigator options.
      * These are determined by the surface factory.
      */
     protected void addNavigatorTab() {
         ConfigSpecifier navSpecifier =
             new ConfigSpecifier( surfFact_.getNavigatorKeys() );
-        addSpecifierTab( "Navigation", navSpecifier );
+        mainControl_.addSpecifierTab( "Navigation", navSpecifier );
         navSpecifier_ = navSpecifier;
     }
 
@@ -139,7 +223,7 @@ public abstract class AxisControl<P,A> extends ConfigControl {
     }
 
     /**
-     * Adds a tab for specifying the aspect.
+     * Adds a tab to the main control for specifying the aspect.
      * This is like a config tab for the aspect keys, but has additional
      * submit decoration.
      *
@@ -155,7 +239,7 @@ public abstract class AxisControl<P,A> extends ConfigControl {
             }
         };
         aspectPanels_.add( aspectPanel );
-        addSpecifierTab( label, aspectPanel );
+        mainControl_.addSpecifierTab( label, aspectPanel );
     }
 
     /**
@@ -169,7 +253,7 @@ public abstract class AxisControl<P,A> extends ConfigControl {
     }
 
     /**
-     * Configures this axis control for a given set of plot layers.
+     * Configures this controller for a given set of plot layers.
      * This may trigger a resetting of the aspect and ranges, generally
      * if the new plot is sufficiently different from most recent one.
      * Whether that's the case is determined by calling
@@ -192,6 +276,25 @@ public abstract class AxisControl<P,A> extends ConfigControl {
         }
         lastProfile_ = profile;
         lastLayers_ = layers;
+    }
+
+    /**
+     * Utility method to assert that all of a given set of keys
+     * are actually being obtained by this controller.
+     *
+     * @param  requiredKeys   list of keys this control should obtain
+     * @return  true iff the <code>getConfig</code> method contains entries
+     *          for all the required keys
+     * @throws  AssertionError if the result would be false and assertions
+     *                         are enabled
+     */
+    public boolean assertHasKeys( ConfigKey[] requiredKeys ) {
+        Set<ConfigKey> reqSet =
+            new HashSet<ConfigKey>( Arrays.asList( requiredKeys ) );
+        Set<ConfigKey<?>> gotSet = getConfig().keySet();
+        reqSet.removeAll( gotSet );
+        assert reqSet.isEmpty() : "Missing required keys " + reqSet;
+        return reqSet.isEmpty();
     }
 
     /**

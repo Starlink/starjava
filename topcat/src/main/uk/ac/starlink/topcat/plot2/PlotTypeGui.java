@@ -15,7 +15,7 @@ public interface PlotTypeGui<P,A> {
      * @param  stack   control stack into which control will be integrated
      * @return  new axis control for this plot type
      */
-    AxisControl<P,A> createAxisControl( ControlStack stack );
+    AxisController<P,A> createAxisController( ControlStack stack );
 
     /**
      * Returns a user panel for entering basic standard data positions.
