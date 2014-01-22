@@ -133,7 +133,7 @@ public class LegendControl extends TabberControl {
         topBox.add( new LineBox( butts[ 1 ] ) );
         posBox.add( topBox, BorderLayout.NORTH );
         posBox.add( pusher_, BorderLayout.CENTER );
-        addControlTab( "Position", posBox, false );
+        addControlTab( "Location", posBox, false );
     }
 
     /**

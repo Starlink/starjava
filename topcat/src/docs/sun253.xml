@@ -9266,11 +9266,11 @@ panel, and has the folowing options:
 </p>
 
 <figure>
-<caption><px>Legend control Position tab</px></caption>
+<caption><px>Legend control Location tab</px></caption>
 <figureimage src="&FIG.LegendControl_position;"/>
 </figure>
 
-<p>The <label>Position</label> tab configures where on the plot
+<p>The <label>Location</label> tab configures where on the plot
 the legend is drawn (if present).
 There are two options, <label>External</label> and <label>Internal</label>.
 If Internal is chosen, then a control is activated showing a small box
