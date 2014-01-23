@@ -95,6 +95,8 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     private final JLabel posLabel_;
     private final JLabel countLabel_;
     private final BlobPanel2 blobPanel_;
+    private final Action blobAction_;
+    private final Action fromVisibleAction_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.plot2" );
 
@@ -218,7 +220,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
 
         /* Prepare the action that allows the user to select the currently
          * visible points. */
-        Action fromVisibleAction =
+        fromVisibleAction_ =
                 new BasicAction( "New subset from visible",
                                  ResourceIcon.VISIBLE_SUBSET,
                                  "Define a new row subset containing only "
@@ -242,7 +244,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                 blobPanel_.setActive( false );
             }
         } );
-        Action blobAction = blobPanel_.getBlobAction();
+        blobAction_ = blobPanel_.getBlobAction();
 
         /* Prepare the plot export action. */
         final PlotExporter plotExporter = PlotExporter.getInstance();
@@ -356,8 +358,8 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         }
         getToolBar().add( removeAction );
         getToolBar().addSeparator();
-        getToolBar().add( blobAction );
-        getToolBar().add( fromVisibleAction );
+        getToolBar().add( blobAction_ );
+        getToolBar().add( fromVisibleAction_ );
         getToolBar().add( replotAction );
         getToolBar().add( resizeAction );
         if ( axlockModel != null ) {
@@ -381,8 +383,8 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         getJMenuBar().add( layerMenu );
         JMenu subsetMenu = new JMenu( "Subsets" );
         subsetMenu.setMnemonic( KeyEvent.VK_S );
-        subsetMenu.add( blobAction );
-        subsetMenu.add( fromVisibleAction );
+        subsetMenu.add( blobAction_ );
+        subsetMenu.add( fromVisibleAction_ );
         getJMenuBar().add( subsetMenu );
         JMenu plotMenu = new JMenu( "Plot" );
         plotMenu.setMnemonic( KeyEvent.VK_P );
@@ -940,6 +942,11 @@ public class StackPlotWindow<P,A> extends AuxWindow {
 
         /* Update position immediately. */
         displayPosition( plotPanel_.getMousePosition() );
+
+        /* Work out if it makes any sense to do a blob selection. */
+        SubCloud[] clouds = plotPanel_.getSubClouds();
+        blobAction_.setEnabled( clouds.length > 0 );
+        fromVisibleAction_.setEnabled( clouds.length > 0 );
 
         /* Initiate updating point count, which may be slow. */
         final Factory<String> counter = createCounter();
