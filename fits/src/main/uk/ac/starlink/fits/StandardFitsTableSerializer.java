@@ -96,7 +96,7 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
         /* Work out column shapes, and check if any are unknown (variable
          * last dimension). */
         boolean hasVarShapes = false;
-        boolean hasNullableInts = false;
+        boolean checkForNullableInts = false;
         int[][] shapes = new int[ ncol ][];
         int[] maxChars = new int[ ncol ];
         int[] maxElements = new int[ ncol ];
@@ -105,8 +105,9 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
         boolean[] varShapes = new boolean[ ncol ];
         boolean[] varChars = new boolean[ ncol ];
         boolean[] varElementChars = new boolean[ ncol ];
-        boolean[] nullableInts = new boolean[ ncol ];
+        boolean[] mayHaveNullableInts = new boolean[ ncol ];
         Arrays.fill( useCols, true );
+        boolean[] hasNulls = new boolean[ ncol ];
         for ( int icol = 0; icol < ncol; icol++ ) {
             ColumnInfo colinfo = colInfos[ icol ];
             Class clazz = colinfo.getContentClass();
@@ -143,21 +144,32 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
             else if ( colinfo.isNullable() && 
                       ( clazz == Byte.class || clazz == Short.class ||
                         clazz == Integer.class || clazz == Long.class ) ) {
-                nullableInts[ icol ] = true;
-                hasNullableInts = true;
+                mayHaveNullableInts[ icol ] = true;
+
+                /* Only set the flag which forces a first pass if we need
+                 * to work out whether nulls actually exist.  If the
+                 * aux datum giving a null value exists we will use it in
+                 * any case, so finding out whether there are in fact null
+                 * values by scanning the data is not necessary. */
+                if ( colinfo.getAuxDatumValue( Tables.NULL_VALUE_INFO,
+                                               Number.class ) != null ) {
+                    hasNulls[ icol ] = true;
+                }
+                else {
+                    checkForNullableInts = true;
+                }
             }
         }
 
         /* If necessary, make a first pass through the table data to
          * find out the maximum size of variable length fields and the length
          * of the table. */
-        boolean[] hasNulls = new boolean[ ncol ];
-        if ( hasVarShapes || hasNullableInts || nrow < 0 ) {
+        if ( hasVarShapes || checkForNullableInts || nrow < 0 ) {
             StringBuffer sbuf = new StringBuffer( "First pass needed: " );
             if ( hasVarShapes ) {
                 sbuf.append( "(variable array shapes) " );
             }
-            if ( hasNullableInts ) {
+            if ( checkForNullableInts ) {
                 sbuf.append( "(nullable ints) " );
             }
             if ( nrow < 0 ) {
@@ -176,11 +188,11 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
                              ( varShapes[ icol ] || 
                                varChars[ icol ] ||
                                varElementChars[ icol ] || 
-                               ( nullableInts[ icol ] && 
+                               ( mayHaveNullableInts[ icol ] && 
                                  ! hasNulls[ icol ] ) ) ) {
                             Object cell = rseq.getCell( icol );
                             if ( cell == null ) {
-                                if ( nullableInts[ icol ] ) {
+                                if ( mayHaveNullableInts[ icol ] ) {
                                     hasNulls[ icol ] = true;
                                 }
                             }
@@ -273,7 +285,7 @@ public class StandardFitsTableSerializer implements FitsTableSerializer {
                                         varShapes[ icol ], maxChars[ icol ],
                                         maxElements[ icol ],
                                         totalElements[ icol ],
-                                        nullableInts[ icol ] 
+                                        mayHaveNullableInts[ icol ] 
                                         && hasNulls[ icol ] );
                 if ( writer == null ) {
                     logger.warning( "Ignoring column " + cinfo.getName() +
