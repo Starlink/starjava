@@ -315,8 +315,8 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      * The supplied runnable should watch for thread interruptions.
      * Such runnables are notionally run on the same queue as the one
      * doing the plot, so will only run when a plot is complete.
-     * They should use a DataStore got from the
-     * {@link #createGuiDataStore createGuiDataStore} method
+     * They should use a GuiDataStore such as the one used by
+     * {@link #createGuiPointCloud createGuiPointCloud} method
      * so that progress is logged as appropriate.
      *
      * @param  annotator  runnable to run on the plot queue
@@ -324,37 +324,6 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
     public void submitPlotAnnotator( Runnable annotator ) {
         plotNoteRunner_.cancel( true );
         plotNoteRunner_ = new Cancellable( plotExec_.submit( annotator ) );
-    }
-
-    /**
-     * Returns a data store based on a supplied one
-     * that will watch for interrruptions and report progress as appropriate.
-     *
-     * @param  tupleCount  total number of tuples that will be read
-     *                     from the returned data store;
-     *                     if -1 is used, progress will not be reported
-     * @param  dataStore   base data store
-     * @return   data store
-     */
-    public DataStore createGuiDataStore( long tupleCount,
-                                         DataStore dataStore ) {
-        return showProgressModel_.isSelected()
-             ? new GuiDataStore( dataStore, progModel_, tupleCount )
-             : new GuiDataStore( dataStore, null, -1 );
-    }
-
-    /**
-     * Returns a data store based on the one used
-     * in the most recent completed plot
-     * that will watch for interruptions and report progresss as appropriate.
-     *
-     * @param  tupleCount  total number of tuples that will be read
-     *                     from the returned data store;
-     *                     if -1 is used, progress will not be reported
-     * @return   data store
-     */
-    public DataStore createGuiDataStore( long tupleCount ) {
-        return createGuiDataStore( tupleCount, getDataStore() );
     }
 
     /**
@@ -403,6 +372,23 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      */
     public DataStore getDataStore() {
         return workings_.dataStore_;
+    }
+
+    /**
+     * Returns a point cloud that describes all the point positions included
+     * in the most recent plot.  This contains all the points from all the
+     * subsets requested for plotting, including points not visible because
+     * they fell outside the plot surface.
+     * Iterating over the points described by the returned point cloud,
+     * when using the DataStore available from it, takes care of progress
+     * updates and thread interruptions.
+     *
+     * @return  positions in most recent plot
+     */
+    public GuiPointCloud createGuiPointCloud() {
+        return new GuiPointCloud( getSubClouds(), getDataStore(),
+                                  showProgressModel_.isSelected() ? progModel_
+                                                                  : null );
     }
 
     /**
@@ -1489,7 +1475,6 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             /* Set up runnables to execute the full plot or a subsample plot. */
             final BoundedRangeModel progModel =
                 showProgressModel_.isSelected() ? progModel_ : null;
-            final boolean showProgress = showProgressModel_.isSelected();
             Runnable fullJob = new Runnable() {
                 public void run() {
                     Workings<A> workings =

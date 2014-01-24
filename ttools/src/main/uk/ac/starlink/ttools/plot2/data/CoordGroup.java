@@ -147,25 +147,6 @@ public abstract class CoordGroup {
     }
 
     /**
-     * Utility method to read the start indices of each set of positional
-     * coordinates in a group.
-     * Just calls <code>getPositionCount</code>
-     * and <code>getPosCoordIndex</code>.
-     *
-     * @param  cgrp  coord group
-     * @param  geom  data geom with which indices will be used
-     * @return  array of starting indices in DataSpec for positions
-     */
-    public static int[] getPosCoordIndices( CoordGroup cgrp, DataGeom geom ) {
-        int npos = cgrp.getPositionCount();
-        int[] ipcs = new int[ npos ];
-        for ( int ip = 0; ip < npos; ip++ ) {
-            ipcs[ ip ] = cgrp.getPosCoordIndex( ip, geom );
-        }
-        return ipcs;
-    }
-
-    /**
      * Returns the number of coordinates used to store a single point position,
      * for a given DataGeom.
      *
