@@ -5,6 +5,7 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -34,7 +35,6 @@ import javax.swing.OverlayLayout;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.topcat.AuxWindow;
 import uk.ac.starlink.topcat.BasicAction;
@@ -538,7 +538,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                 DataStore dataStore = pointCloud.createGuiDataStore();
 
                 /* Prepare for iteration. */
-                SubCloud[] subClouds = pointCloud.getSubClouds();
+                TableCloud[] tclouds = pointCloud.getTableClouds();
                 double[] dpos = new double[ surface.getDataDimCount() ];
                 Point gp = new Point();
                 double thresh2 = 4 * 4;
@@ -548,13 +548,13 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                     new HashMap<TopcatModel,Long>();
 
                 /* Iterate over each sub point cloud distinct positions. */
-                for ( int is = 0; is < subClouds.length; is++ ) {
-                    SubCloud subCloud = subClouds[ is ];
-                    DataGeom geom = subCloud.getDataGeom();
-                    DataSpec dataSpec = subCloud.getDataSpec();
-                    int iPosCoord = subCloud.getPosCoordIndex();
-                    TopcatModel tcModel = getTopcatModel( dataSpec );
-                    TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
+                for ( int ic = 0; ic < tclouds.length; ic++ ) {
+                    TableCloud tcloud = tclouds[ ic ];
+                    DataGeom geom = tcloud.getDataGeom();
+                    int iPosCoord = tcloud.getPosCoordIndex();
+                    TopcatModel tcModel = tcloud.getTopcatModel();
+                    TupleSequence tseq =
+                        tcloud.createTupleSequence( dataStore );
 
                     /* Iterate over each position in the cloud. */
                     while ( tseq.next() ) {
@@ -632,11 +632,10 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         }
         Map<SubCloud,double[]> highMap = new LinkedHashMap<SubCloud,double[]>();
         SubCloud[] subClouds = plotPanel_.getSubClouds();
-        StarTable highTable = tcModel.getDataModel();
         DataStore dataStore = plotPanel_.getDataStore();
-        for ( int is = 0; is < subClouds.length; is++ ) {
-            SubCloud subCloud = subClouds[ is ];
-            if ( subCloud.getDataSpec().getSourceTable() == highTable ) {
+        for ( int ic = 0; ic < subClouds.length; ic++ ) {
+            SubCloud subCloud = subClouds[ ic ];
+            if ( getTopcatModel( subCloud.getDataSpec() ) == tcModel ) {
                 double[] dpos = getDataPos( subCloud, irow, dataStore );
                 if ( dpos != null ) {
                     highMap.put( subCloud, dpos );
@@ -688,9 +687,6 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             if ( ir == irow && geom.readDataPos( tseq, iPosCoord, dpos ) ) {
                 return dpos;
             }
-            if ( ir > irow ) {
-                break;
-            }
         }
         return null;
     }
@@ -720,48 +716,42 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             createBlobMasker( final Shape blob ) {
         final Surface surface = plotPanel_.getSurface();
         final GuiPointCloud pointCloud = plotPanel_.createGuiPointCloud();
-        final SubCloud[] subClouds = plotPanel_.getSubClouds();
-        final Map<TopcatModel,BitSet> maskMap =
-            new LinkedHashMap<TopcatModel,BitSet>();
-        for ( int ic = 0; ic < subClouds.length; ic++ ) {
-            SubCloud subCloud = subClouds[ ic ];
-            TopcatModel tcModel = getTopcatModel( subCloud.getDataSpec() );
-            if ( ! maskMap.containsKey( tcModel ) ) {
-                long nr = tcModel.getDataModel().getRowCount();
-                maskMap.put( tcModel,
-                             new BitSet( Tables.checkedLongToInt( nr ) ) );
-            }
-        }
+        final Rectangle blobBounds = blob == null ? null : blob.getBounds();
         return new Factory<Map<TopcatModel,BitSet>>() {
             @Slow
             public Map<TopcatModel,BitSet> getItem() {
+                TableCloud[] tclouds = pointCloud.getTableClouds();
                 DataStore dataStore = pointCloud.createGuiDataStore();
                 double[] dpos = new double[ surface.getDataDimCount() ];
                 Point gp = new Point();
-                for ( int ic = 0; ic < subClouds.length; ic++ ) {
-                    SubCloud subCloud = subClouds[ ic ];
-                    DataGeom geom = subCloud.getDataGeom();
-                    DataSpec dataSpec = subCloud.getDataSpec();
-                    TopcatModel tcModel = getTopcatModel( dataSpec );
-                    int icPos = subCloud.getPosCoordIndex();
+                Map<TopcatModel,BitSet> maskMap =
+                    new LinkedHashMap<TopcatModel,BitSet>();
+                for ( int ic = 0; ic < tclouds.length; ic++ ) {
+                    TableCloud tcloud = tclouds[ ic ];
+                    TopcatModel tcModel = tcloud.getTopcatModel();
+                    DataGeom geom = tcloud.getDataGeom();
+                    int icPos = tcloud.getPosCoordIndex();
+                    if ( ! maskMap.containsKey( tcModel ) ) {
+                        long nr = tcModel.getDataModel().getRowCount();
+                        maskMap.put( tcModel,
+                                     new BitSet( Tables
+                                                .checkedLongToInt( nr ) ) );
+                    }
                     BitSet mask = maskMap.get( tcModel );
-                    TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
+                    TupleSequence tseq =
+                        tcloud.createTupleSequence( dataStore );
                     while ( tseq.next() ) {
-                        int ix = Tables.checkedLongToInt( tseq.getRowIndex() );
-                        if ( ! mask.get( ix ) &&
-                             geom.readDataPos( tseq, icPos, dpos ) &&
+                        if ( geom.readDataPos( tseq, icPos, dpos ) &&
                              surface.dataToGraphics( dpos, true, gp ) &&
-                             ( blob == null || blob.contains( gp ) ) ) {
-                            mask.set( ix );
+                             ( blob == null ||
+                               ( blobBounds.contains( gp )
+                                 && blob.contains( gp ) ) ) ) {
+                            long ix = tseq.getRowIndex();
+                            mask.set( Tables.checkedLongToInt( ix ) );
                         }
                     }
                 }
-                if ( Thread.currentThread().isInterrupted() ) {
-                    return null;
-                }
-                assert ! maskMap.containsKey( null );
-                maskMap.remove( null );
-                return maskMap;
+                return Thread.currentThread().isInterrupted() ? null : maskMap;
             }
         };
     }
@@ -784,46 +774,32 @@ public class StackPlotWindow<P,A> extends AuxWindow {
      * @return  factory for deferred calculation of formatted point count
      */
     private Factory<String> createCounter() {
-
-        /* Get an iterable representing all the positions in all the layers
-         * currently visible. */
-        final SubCloud[] subClouds = plotPanel_.getSubClouds();
-
-        /* Calculate the total number of points contained in those layers.
-         * This is an upper limit for the number of visible positions,
-         * and it's also the number of positions we will have to iterate over
-         * to find the real count. */
-        long nr = 0;
-        for ( int is = 0; is < subClouds.length; is++ ) {
-            SubCloud subCloud = subClouds[ is ];
-            TopcatModel tcModel = getTopcatModel( subCloud.getDataSpec() );
-            nr += tcModel.getDataModel().getRowCount();
-        }
-        final long total = nr;
-
-        /* Prepare an object which can iterate over all the positions
-         * to count the ones which are actually visible. */
-        final DataStore dataStore = plotPanel_.getDataStore();
         final Surface surface = plotPanel_.getSurface();
+        final GuiPointCloud pointCloud = plotPanel_.createGuiPointCloud();
+        final DataStore dataStore = plotPanel_.getDataStore();
         return new Factory<String>() {
             @Slow
             public String getItem() {
+                TableCloud[] tclouds = pointCloud.getTableClouds();
+                double[] dpos = new double[ surface.getDataDimCount() ];
+                Point gp = new Point();
                 long start = System.currentTimeMillis();
                 long count = 0;
-                Point gp = new Point();
-                double[] dpos = new double[ surface.getDataDimCount() ];
-                for ( int is = 0; is < subClouds.length; is++ ) {
-                    SubCloud subcloud = subClouds[ is ];
-                    DataSpec dataSpec = subcloud.getDataSpec();
-                    DataGeom geom = subcloud.getDataGeom();
-                    int iPosCoord = subcloud.getPosCoordIndex();
-                    TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
+                long total = 0;
+                for ( int ic = 0; ic < tclouds.length; ic++ ) {
+                    TableCloud tcloud = tclouds[ ic ];
+                    DataGeom geom = tcloud.getDataGeom();
+                    int iPosCoord = tcloud.getPosCoordIndex();
+                    TupleSequence tseq =
+                        tcloud.createTupleSequence( dataStore );
                     while ( tseq.next() ) {
                         if ( geom.readDataPos( tseq, iPosCoord, dpos ) &&
                              surface.dataToGraphics( dpos, true, gp ) ) {
                             count++;
                         }
                     }
+                    total +=
+                        tcloud.getTopcatModel().getDataModel().getRowCount();
                 }
                 if ( Thread.currentThread().isInterrupted() ) {
                     return null;

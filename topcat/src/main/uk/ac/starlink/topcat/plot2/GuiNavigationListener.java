@@ -61,6 +61,8 @@ public abstract class GuiNavigationListener<A> extends NavigationListener<A> {
     public Iterable<double[]> createDataPosIterable() {
 
         /* Handles progress reporting and thread interruption. */
-        return plotPanel_.createGuiPointCloud().createDataPosIterable();
+        GuiPointCloud pointCloud = plotPanel_.createGuiPointCloud();
+        return pointCloud
+              .createDataPosIterable( pointCloud.createGuiDataStore() );
     }
 }
