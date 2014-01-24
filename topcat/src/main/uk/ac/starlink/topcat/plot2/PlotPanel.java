@@ -283,7 +283,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
          * directly and restart the new one. */
         PlotJobRunner plotRunner = plotRunner_;
         boolean isSimilar = plotRunner.isSimilar( plotJob );
-        plotRunner.cancel( isSimilar );
+        plotRunner.cancel( ! isSimilar );
 
         /* Store the plot surface now if it can be done fast. */
         latestSurface_ = plotJob.getSurfaceQuickly();
@@ -414,12 +414,17 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
     }
 
     /**
-     * Clears state to initial values, and in particular disposes of
-     * potentially expensive memory assets.
+     * Clears state to initial values, cancels any plots in progress,
+     * and disposes of potentially expensive memory assets.
      */
     public void clearData() {
         plotJob_ = null;
+        plotRunner_.cancel( true );
+        plotNoteRunner_.cancel( true );
+        extraNoteRunner_.cancel( true );
         plotRunner_ = new PlotJobRunner();
+        plotNoteRunner_ = new Cancellable();
+        extraNoteRunner_ = new Cancellable();
         workings_ = new Workings<A>();
     }
 
@@ -1506,9 +1511,9 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
          * is similar to this one.  This may have implications for how
          * aggressively the cancellation is applied.
          *
-         * @param  nextIsSimilar  whether the next job will be similar
+         * @param  nextIsNotSimilar   false iff the next job will be similar
          */
-        public void cancel( boolean nextIsSimilar ) {
+        public void cancel( boolean nextIsNotSimilar ) {
 
             /* If the next job is quite like the old plot (e.g. pan or zoom)
              * it's a good idea to let the old one complete, so that
@@ -1521,7 +1526,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
              * If the plot is different (different layers or data) then
              * cancel the existing plot immediately and start work on
              * a new one. */
-            boolean mayInterruptIfRunning = ! nextIsSimilar;
+            boolean mayInterruptIfRunning = nextIsNotSimilar;
             if ( stepCanceler_ != null ) {
                 fullCanceler_.cancel( true );
                 stepCanceler_.cancel( mayInterruptIfRunning );
