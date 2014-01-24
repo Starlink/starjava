@@ -485,26 +485,6 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     }
 
     /**
-     * Returns the TopcatModel associated with a given DataSpec.
-     *
-     * @param  dataSpec   data spec
-     * @return   topcat model supplying its table data
-     */
-    private TopcatModel getTopcatModel( DataSpec dataSpec ) {
-        if ( dataSpec == null ) {
-            return null;
-        }
-        LayerControl[] controls = stackModel_.getActiveLayerControls();
-        for ( int ic = 0; ic < controls.length; ic++ ) {
-            TopcatModel tcModel = controls[ ic ].getTopcatModel( dataSpec );
-            if ( tcModel != null ) {
-                return tcModel;
-            }
-        }
-        return null;
-    }
-
-    /**
      * Returns the navigator currently in use for this window.
      *
      * @return  navigator
@@ -669,6 +649,16 @@ public class StackPlotWindow<P,A> extends AuxWindow {
          * retain highlights for tables other than the one that is currently
          * being updated. */
         plotPanel_.setHighlights( highMap );
+    }
+
+    /**
+     * Returns the TopcatModel associated with a given DataSpec.
+     *
+     * @param  dataSpec   data spec
+     * @return   topcat model supplying its table data
+     */
+    private static TopcatModel getTopcatModel( DataSpec dataSpec ) {
+        return GuiDataSpec.getTopcatModel( dataSpec );
     }
 
     /**

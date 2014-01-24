@@ -5,7 +5,6 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.ttools.plot2.LegendEntry;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.config.ConfigException;
@@ -14,7 +13,6 @@ import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
 import uk.ac.starlink.ttools.plot2.config.StringConfigKey;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
-import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.layer.FunctionPlotter;
 
 /**
@@ -98,10 +96,6 @@ public class FunctionLayerControl extends ConfigControl
     }
 
     public String getCoordLabel( String userCoordName ) {
-        return null;
-    }
-
-    public TopcatModel getTopcatModel( DataSpec dataSpec ) {
         return null;
     }
 
