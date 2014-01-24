@@ -102,6 +102,15 @@ public class GuiDataSpec extends AbstractDataSpec {
     }
 
     /**
+     * Returns the topcat model supplying the data for this data spec.
+     *
+     * @return  topcat model
+     */
+    public TopcatModel getTopcatModel() {
+        return tcModel_;
+    }
+
+    /**
      * Returns the number of rows associated with this data spec.
      * In most cases this will execute quickly, but if necessary a count
      * will be carried out by scanning the associated RowSubset.
@@ -137,5 +146,19 @@ public class GuiDataSpec extends AbstractDataSpec {
             subsetCounts.put( subset_, new Long( count ) );
             return count;
         }
+    }
+
+    /**
+     * Retrieves a TopcatModel from a data spec used within topcat.
+     * It does this by casting the supplied dataSpec to a GuiDataSpec.
+     * All DataSpecs within topcat are an instance of GuiDataSpec,
+     * though that is not enforced at compile-time.
+     *
+     * @param  dataSpec  data spec
+     * @return  topcat model
+     */
+    public static TopcatModel getTopcatModel( DataSpec dataSpec ) {
+        return dataSpec == null ? null
+                                : ((GuiDataSpec) dataSpec).getTopcatModel();
     }
 }

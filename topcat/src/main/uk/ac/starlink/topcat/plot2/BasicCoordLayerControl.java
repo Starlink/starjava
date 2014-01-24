@@ -114,12 +114,6 @@ public class BasicCoordLayerControl extends ConfigControl
         return new LegendEntry[ 0 ];
     }
 
-    public TopcatModel getTopcatModel( DataSpec dataSpec ) {
-        return tcModel_.getDataModel() == dataSpec.getSourceTable()
-             ? tcModel_
-             : null;
-    }
-
     /**
      * Sets in the GUI the topcat model for which this control
      * is making plots.

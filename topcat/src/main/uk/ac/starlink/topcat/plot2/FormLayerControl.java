@@ -285,20 +285,6 @@ public abstract class FormLayerControl
     }
 
     /**
-     * Try to determine what TopcatModel gave rise to a DataSpec supplied
-     * by this control.
-     *
-     * @param  dataSpec  data spec supplied by this control
-     * @return  TopcatModel to which <code>dataSpec</code> refers,
-     *          or null if not known
-     */
-    public TopcatModel getTopcatModel( DataSpec dataSpec ) {
-        return tcModel_.getDataModel() == dataSpec.getSourceTable()
-             ? tcModel_
-             : null;
-    }
-
-    /**
      * Sets in the GUI the topcat model for which this control
      * is making plots.
      *
