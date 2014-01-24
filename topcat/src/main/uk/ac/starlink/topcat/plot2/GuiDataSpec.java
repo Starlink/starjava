@@ -17,6 +17,7 @@ import uk.ac.starlink.ttools.plot2.data.UserDataReader;
 
 /**
  * DataSpec implementation used by TOPCAT classes.
+ * All DataSpecs in use in the TOPCAT application are instances of this class.
  *
  * @author   Mark Taylor
  * @since    13 Mar 2013
@@ -111,6 +112,29 @@ public class GuiDataSpec extends AbstractDataSpec {
     }
 
     /**
+     * Returns the row subset forming the row mask for this dataspec.
+     *
+     * @return  row subset
+     */
+    public RowSubset getRowSubset() {
+        return subset_;
+    }
+
+    /**
+     * Returns the number of rows associated with this dataspec if it
+     * can be determined quickly.  If it would require a count, return -1.
+     *
+     * @return   row count or -1
+     */
+    public long getKnownRowCount() {
+        Map subsetCounts = tcModel_.getSubsetCounts();
+        Object countObj = subsetCounts.get( subset_ );
+        return countObj instanceof Number
+             ? ((Number) countObj).longValue()
+             : -1L;
+    }
+
+    /**
      * Returns the number of rows associated with this data spec.
      * In most cases this will execute quickly, but if necessary a count
      * will be carried out by scanning the associated RowSubset.
@@ -125,15 +149,13 @@ public class GuiDataSpec extends AbstractDataSpec {
 
         /* If the row count for the relevant subset is already known,
          * use that. */
-        Map subsetCounts = tcModel_.getSubsetCounts();
-        Object countObj = subsetCounts.get( subset_ );
-        if ( countObj instanceof Number ) {
-            return ((Number) countObj).longValue();
+        long knownCount = getKnownRowCount();
+        if ( knownCount >= 0 ) {
+            return knownCount;
         }
 
         /* If not, count it now. */
         else {
-            assert countObj == null;
             long nrow = tcModel_.getDataModel().getRowCount();
             long count = 0;
             for ( long ir = 0; ir < nrow; ir++ ) {
@@ -143,7 +165,7 @@ public class GuiDataSpec extends AbstractDataSpec {
             }
 
             /* Having got the result, save it for later. */
-            subsetCounts.put( subset_, new Long( count ) );
+            tcModel_.getSubsetCounts().put( subset_, new Long( count ) );
             return count;
         }
     }

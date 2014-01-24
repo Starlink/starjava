@@ -354,12 +354,14 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
     }
 
     /**
-     * Returns a list of point clouds giving the positions currently plotted.
+     * Returns a list of point clouds by subset giving the positions
+     * currently plotted.
      * The clouds are deduplicated, so that point sets from the same
      * table which are plotted more than once (as part of multiple layers)
-     * are not reported multiple times.
+     * are not reported multiple times.  However, the same point may
+     * appear in multiple subclouds, if it appears in more than one subset.
      *
-     * @return   distinct point clouds currently plotted
+     * @return  distinct point clouds by subset
      */
     public SubCloud[] getSubClouds() {
         return SubCloud.createSubClouds( workings_.layers_, true );
@@ -386,9 +388,11 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      * @return  positions in most recent plot
      */
     public GuiPointCloud createGuiPointCloud() {
-        return new GuiPointCloud( getSubClouds(), getDataStore(),
-                                  showProgressModel_.isSelected() ? progModel_
-                                                                  : null );
+        return
+            new GuiPointCloud( TableCloud.createTableClouds( getSubClouds() ),
+                               getDataStore(),
+                               showProgressModel_.isSelected() ? progModel_
+                                                               : null );
     }
 
     /**
@@ -486,7 +490,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
          * than at plot job creation, since creating a plot job does
          * not entail that it will ever be plotted, but it's likely
          * that the effect will be the same. */
-        SubCloud[] subClouds = getSubClouds();
+        SubCloud[] subClouds = SubCloud.createSubClouds( layers, true );
         highlightMap_.keySet().retainAll( Arrays.asList( subClouds ) );
         double[][] highlights = highlightMap_.values()
                                              .toArray( new double[ 0 ][] );

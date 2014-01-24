@@ -18285,6 +18285,7 @@ introduced since the last version:
             report mean values (true/true+false proportion).</li>
         <li>Fix TST input handler so TST files with fewer than 3 columns
             can be read.</li>
+        <li>Fix point counting in layer plots.</li>
         </ul>
         </p></dd>
 </dl>
