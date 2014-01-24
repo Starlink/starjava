@@ -546,24 +546,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     private Factory<Map<TopcatModel,Long>>
             createPointFinder( final Point point ) {
         final Surface surface = plotPanel_.getSurface();
-        final DataStore baseDataStore = plotPanel_.getDataStore();
-        final boolean showProgress = showProgressModel_.isSelected();
-        final SubCloud[] subClouds = plotPanel_.getSubClouds();
-
-        /* If necessary, count the number of positions we will need to
-         * iterate over. */
-        final long nrow;
-        if ( showProgress ) {
-            long nr = 0;
-            for ( int is = 0; is < subClouds.length; is++ ) {
-                nr += ((GuiDataSpec) subClouds[ is ].getDataSpec())
-                     .getRowCount();
-            }
-            nrow = nr;
-        }
-        else {
-            nrow = -1;
-        }
+        final GuiPointCloud pointCloud = plotPanel_.createGuiPointCloud();
 
         /* Create and return the object that will do the work. */
         return new Factory<Map<TopcatModel,Long>>() {
@@ -572,10 +555,10 @@ public class StackPlotWindow<P,A> extends AuxWindow {
 
                 /* Prepare a datastore which will watch for interruptions
                  * and possibly log progress. */
-                DataStore dataStore =
-                    plotPanel_.createGuiDataStore( nrow, baseDataStore );
+                DataStore dataStore = pointCloud.createGuiDataStore();
 
                 /* Prepare for iteration. */
+                SubCloud[] subClouds = pointCloud.getSubClouds();
                 double[] dpos = new double[ surface.getDataDimCount() ];
                 Point gp = new Point();
                 double thresh2 = 4 * 4;
@@ -746,58 +729,40 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     private Factory<Map<TopcatModel,BitSet>>
             createBlobMasker( final Shape blob ) {
         final Surface surface = plotPanel_.getSurface();
-        final PlotLayer[] layers = plotPanel_.getPlotLayers();
-        final TopcatModel[] tcModels = new TopcatModel[ layers.length ];
+        final GuiPointCloud pointCloud = plotPanel_.createGuiPointCloud();
+        final SubCloud[] subClouds = plotPanel_.getSubClouds();
         final Map<TopcatModel,BitSet> maskMap =
             new LinkedHashMap<TopcatModel,BitSet>();
-        long nrow = 0;
-        for ( int il = 0; il < layers.length; il++ ) {
-            PlotLayer layer = layers[ il ];
-            DataGeom geom = layer.getDataGeom();
-            TopcatModel tcModel = getTopcatModel( layer.getDataSpec() );
-            tcModels[ il ] = tcModel;
-            if ( tcModel != null &&
-                 layer.getPlotter().getCoordGroup().getPositionCount() > 0 &&
-                 ! maskMap.containsKey( tcModel ) ) {
+        for ( int ic = 0; ic < subClouds.length; ic++ ) {
+            SubCloud subCloud = subClouds[ ic ];
+            TopcatModel tcModel = getTopcatModel( subCloud.getDataSpec() );
+            if ( ! maskMap.containsKey( tcModel ) ) {
                 long nr = tcModel.getDataModel().getRowCount();
-                nrow += nr;
-                if ( ! maskMap.containsKey( tcModel ) ) {
-                    maskMap.put( tcModel,
-                                 new BitSet( Tables.checkedLongToInt( nr ) ) );
-                }
+                maskMap.put( tcModel,
+                             new BitSet( Tables.checkedLongToInt( nr ) ) );
             }
         }
-        final DataStore dataStore = plotPanel_.createGuiDataStore( nrow );
         return new Factory<Map<TopcatModel,BitSet>>() {
             @Slow
             public Map<TopcatModel,BitSet> getItem() {
+                DataStore dataStore = pointCloud.createGuiDataStore();
                 double[] dpos = new double[ surface.getDataDimCount() ];
                 Point gp = new Point();
-                for ( int il = 0; il < layers.length; il++ ) {
-                    PlotLayer layer = layers[ il ];
-                    DataGeom geom = layer.getDataGeom();
-                    DataSpec dataSpec = layer.getDataSpec();
-                    CoordGroup cgrp = layer.getPlotter().getCoordGroup();
-                    int npos = cgrp.getPositionCount();
-                    TopcatModel tcModel = tcModels[ il ];
-                    if ( tcModel != null && npos > 0 ) {
-                        assert geom != null;
-                        int[] ipcs =
-                            CoordGroup.getPosCoordIndices( cgrp, geom );
-                        BitSet mask = maskMap.get( tcModel );
-                        TupleSequence tseq =
-                            dataStore.getTupleSequence( dataSpec );
-                        while ( tseq.next() ) {
-                            for ( int ip = 0; ip < npos; ip++ ) {
-                                if ( geom
-                                    .readDataPos( tseq, ipcs[ ip ], dpos ) &&
-                                     surface.dataToGraphics( dpos, true, gp ) &&
-                                     ( blob == null || blob.contains( gp ) ) ) {
-                                    long ix = tseq.getRowIndex();
-                                    mask.set( Tables.checkedLongToInt( ix ) );
-                                    break;
-                                }
-                            }
+                for ( int ic = 0; ic < subClouds.length; ic++ ) {
+                    SubCloud subCloud = subClouds[ ic ];
+                    DataGeom geom = subCloud.getDataGeom();
+                    DataSpec dataSpec = subCloud.getDataSpec();
+                    TopcatModel tcModel = getTopcatModel( dataSpec );
+                    int icPos = subCloud.getPosCoordIndex();
+                    BitSet mask = maskMap.get( tcModel );
+                    TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
+                    while ( tseq.next() ) {
+                        int ix = Tables.checkedLongToInt( tseq.getRowIndex() );
+                        if ( ! mask.get( ix ) &&
+                             geom.readDataPos( tseq, icPos, dpos ) &&
+                             surface.dataToGraphics( dpos, true, gp ) &&
+                             ( blob == null || blob.contains( gp ) ) ) {
+                            mask.set( ix );
                         }
                     }
                 }
@@ -868,10 +833,10 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                              surface.dataToGraphics( dpos, true, gp ) ) {
                             count++;
                         }
-                        if ( Thread.currentThread().isInterrupted() ) {
-                            return null;
-                        }
                     }
+                }
+                if ( Thread.currentThread().isInterrupted() ) {
+                    return null;
                 }
                 PlotUtil.logTime( logger_, "Count", start );
                 return TopcatUtils.formatLong( count ) + " / "
