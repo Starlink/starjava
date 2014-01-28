@@ -354,20 +354,6 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
     }
 
     /**
-     * Returns a list of point clouds by subset giving the positions
-     * currently plotted.
-     * The clouds are deduplicated, so that point sets from the same
-     * table which are plotted more than once (as part of multiple layers)
-     * are not reported multiple times.  However, the same point may
-     * appear in multiple subclouds, if it appears in more than one subset.
-     *
-     * @return  distinct point clouds by subset
-     */
-    public SubCloud[] getSubClouds() {
-        return SubCloud.createSubClouds( workings_.layers_, true );
-    }
-
-    /**
      * Returns the data store used in the most recent completed plot.
      *
      * @return  data store
@@ -388,11 +374,29 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      * @return  positions in most recent plot
      */
     public GuiPointCloud createGuiPointCloud() {
-        return
-            new GuiPointCloud( TableCloud.createTableClouds( getSubClouds() ),
-                               getDataStore(),
-                               showProgressModel_.isSelected() ? progModel_
-                                                               : null );
+        SubCloud[] subClouds =
+            SubCloud.createSubClouds( workings_.layers_, true );
+        return new GuiPointCloud( TableCloud.createTableClouds( subClouds ),
+                                  getDataStore(),
+                                  showProgressModel_.isSelected() ? progModel_
+                                                                  : null );
+    }
+
+    /**
+     * Returns a point cloud like that from {@link #createGuiPointCloud}
+     * but for partial positions - ones for which data positions will have
+     * one or more missing (NaN) coordinates.
+     *
+     * @return   partial positions in most recent plot
+     * @see  uk.ac.starlink.ttools.plot2.SubCloud#createPartialSubClouds
+     */
+    public GuiPointCloud createPartialGuiPointCloud() {
+        SubCloud[] subClouds =
+            SubCloud.createPartialSubClouds( workings_.layers_, true );
+        return new GuiPointCloud( TableCloud.createTableClouds( subClouds ),
+                                  getDataStore(),
+                                  showProgressModel_.isSelected() ? progModel_
+                                                                  : null );
     }
 
     /**
