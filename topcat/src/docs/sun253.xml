@@ -18283,6 +18283,8 @@ introduced since the last version:
         <li>Add layer plot histogram.</li>
         <li>Fix bug in Statistics window so that Boolean columns correctly
             report mean values (true/true+false proportion).</li>
+        <li>Fix TST input handler so TST files with fewer than 3 columns
+            can be read.</li>
         </ul>
         </p></dd>
 </dl>
