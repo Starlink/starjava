@@ -8506,6 +8506,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <li><code>taplint</code> now checks for the right ObsCore ID,
             though still recognises the wrong one (got from TAPRegExt),
             and warns if found.</li>
+        <li>Fix TST input handler so TST files with fewer than 3 columns
+            can be read.</li>
         </ul>
         </p></dd>
 

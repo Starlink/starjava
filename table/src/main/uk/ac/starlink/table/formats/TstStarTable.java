@@ -99,9 +99,9 @@ class TstStarTable extends StreamStarTable {
         }
 
         /* Set default values for special column indices. */
-        int idIndex = 0;
-        int raIndex = 1;
-        int decIndex = 2;
+        int idIndex = ncol_ > 0 ? 0 : -1;
+        int raIndex = ncol_ > 1 ? 1 : -1;
+        int decIndex = ncol_ > 2 ? 2 : -1;
         int xIndex = -1;
         int yIndex = -1;
 
