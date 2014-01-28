@@ -65,6 +65,9 @@ public abstract class BlobPanel2 extends JComponent {
                     if ( ! blobs_.isEmpty() ) {
                         blobCompleted( getBlob() );
                     }
+                    else {
+                        setActive( false );
+                    }
                 }
                 else {
                     setActive( true );
