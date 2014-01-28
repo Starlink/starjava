@@ -1106,6 +1106,24 @@ public class StatsWindow extends AuxWindow {
                                     }
                                 }
                             }
+                            else if ( isBoolean[ icol ] ) {
+                                if ( ! ( val instanceof Boolean ) ) {
+                                    System.err.println(
+                                        "Error in table data: not boolean at " +
+                                        lrow1 + "," + icol + "(" + val + ")" );
+                                    good = false;
+                                }
+                                else {
+                                    good = true;
+                                }
+                                if ( good ) {
+                                    boolean bval =
+                                        ((Boolean) val).booleanValue();
+                                    if ( bval ) {
+                                        ntrues[ icol ]++;
+                                    }
+                                }
+                            }
                             else if ( isComparable[ icol ] ) {
                                 if ( ! ( val instanceof Comparable ) ) {
                                     System.err.println(
@@ -1149,24 +1167,6 @@ public class StatsWindow extends AuxWindow {
                                         catch ( ClassCastException e ) {
                                             badcompars[ icol ] = true;
                                         }
-                                    }
-                                }
-                            }
-                            else if ( isBoolean[ icol ] ) {
-                                if ( ! ( val instanceof Boolean ) ) {
-                                    System.err.println(
-                                        "Error in table data: not boolean at " +
-                                        lrow1 + "," + icol + "(" + val + ")" );
-                                    good = false;
-                                }
-                                else {
-                                    good = true;
-                                }
-                                if ( good ) {
-                                    boolean bval =
-                                        ((Boolean) val).booleanValue();
-                                    if ( bval ) {
-                                        ntrues[ icol ]++;
                                     }
                                 }
                             }
