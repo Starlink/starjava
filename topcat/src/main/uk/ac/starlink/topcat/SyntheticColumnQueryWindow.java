@@ -110,7 +110,7 @@ public class SyntheticColumnQueryWindow extends QueryWindow {
      *
      * @return  name
      */
-    public String getName() {
+    public String getColumnName() {
         return nameField.getText();
     }
 
@@ -119,7 +119,7 @@ public class SyntheticColumnQueryWindow extends QueryWindow {
      *
      * @param  name new contents of the name field
      */
-    public void setName( String name ) {
+    public void setColumnName( String name ) {
         nameField.setText( name );
     }
 
@@ -232,7 +232,7 @@ public class SyntheticColumnQueryWindow extends QueryWindow {
      * @return   new synthetic column as specified, or <tt>null</tt>
      */
     protected SyntheticColumn makeColumn() {
-        String name = getName();
+        String name = getColumnName();
         String desc = getDescription();
         String unit = getUnit();
         String expr = getExpression();
@@ -342,7 +342,7 @@ public class SyntheticColumnQueryWindow extends QueryWindow {
                     return true;
                 }
             };
-        qwin.setName( baseName );
+        qwin.setColumnName( baseName );
         qwin.setUnit( baseInfo.getUnitString() );
         qwin.setDescription( TopcatUtils.getBaseDescription( baseInfo ) );
         qwin.setUCD( baseInfo.getUCD() );
