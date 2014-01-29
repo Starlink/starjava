@@ -39,6 +39,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import uk.ac.starlink.topcat.ToggleButtonModel;
+import uk.ac.starlink.topcat.TopcatUtils;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot.Style;
 import uk.ac.starlink.ttools.plot2.AuxScale;
@@ -777,6 +778,10 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             }
             catch ( IOException e ) {
                 logger_.log( Level.WARNING, "Plot data error: " + e, e );
+                return null;
+            }
+            catch ( OutOfMemoryError e ) {
+                TopcatUtils.memoryErrorLater( e );
                 return null;
             }
             catch ( Throwable e ) {
