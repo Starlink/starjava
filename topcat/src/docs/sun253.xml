@@ -4389,10 +4389,14 @@ dealing with large datasets.  In particular it does not in general
 have to read entire files into memory in order to do its work, 
 so it's not restricted to using files which fit into the java virtual
 machine's 'heap memory' or into the physical memory of the machine.
-As a rule of thumb, the program will work with tables up to about a 
-million rows at a reasonable speed; the number of columns is less of
-an issue (though see below concerning performance).
-However, the way you invoke the program affects how well it can cope 
+As a rule of thumb, the program will work at reasonable speed
+with tables up to about 1-10 million rows, depending on the machine
+it's running on.
+The number of columns is less of an issue,
+though see below concerning performance.
+</p>
+
+<p>However, the way you invoke the program affects how well it can cope 
 with large tables; you may in some circumstances get a message that 
 TOPCAT has run out of memory (either a popup or a terse "OutOfMemoryError" 
 report on the console), and there are some things you can do about this:
@@ -4404,7 +4408,8 @@ report on the console), and there are some things you can do about this:
 <dt>Increase Java's heap memory</dt>
 <dd><p>When a Java program runs, it has a fixed maximum amount of memory
     that it will use; Java does not really make use of virtual memory.
-    The default maximum is typically 64Mb.  You can increase this by
+    The default maximum is typically 64Mb, though that depends on your
+    java setup.  You can increase this by
     using the <code>-Xmx</code> flag, followed by the maximum heap memory,
     for instance "<code>topcat -Xmx256M</code>" or 
     "<code>java -Xmx256M -jar topcat-full.jar</code>".
@@ -4423,7 +4428,7 @@ report on the console), and there are some things you can do about this:
     (in this case loading just reads the metadata, and any data elements
     are only read if and when they are required).
     So if you have a large file stored in VOTable or ASCII-based form
-    which you use often and takes a long time to load, you may wish
+    which you use often and takes a long time to load, it's a good idea
     to convert it to FITS format once for subsequent use.
     You can do this either by loading it into TOPCAT once and saving it
     as FITS, or using the separate command-line package 
@@ -4434,23 +4439,7 @@ report on the console), and there are some things you can do about this:
     so you won't normally lose information by doing this 
     (see <ref id="outFits"/>).
     As well as speeding things up, using FITS files will 
-    also reduce the need to use <code>-disk</code> or
-    <code>-Xmx</code> flags as above.
-    </p></dd>
-
-<dt>Use the -disk flag</dt>
-<dd><p>The way TOPCAT stores table data is configurable, and 
-    the details can be controlled by setting its <em>Storage Policy</em>.
-    The default storage policy (since version 3.5),
-    "<code>adaptive</code>", means that the data for relatively small
-    tables are stored in memory, and for larger ones in temporary disk files.
-    This usually works fairly well, but you can save some memory by
-    encouraging it to store all table data on disk,
-    by specifying the <code>-disk</code> flag on the command line.
-    You can achieve the same effect by adding the line 
-    <code>startable.storage=disk</code> in the 
-    <code>.starjava.properties</code> in your home directory.
-    See <ref id="topcatArgs"/>, <ref id="jvmProperties"/>.
+    also reduce the need to use <code>-Xmx</code> flags as above.
     </p></dd>
 
 <dt>Run in 64-bit mode</dt>
@@ -4483,6 +4472,22 @@ report on the console), and there are some things you can do about this:
     such large files means that the conversion is likely to be rather
     slow, so you may be better off converting the original file to
     <code>colfits</code> format in a separate step and using that.
+    </p></dd>
+
+<dt>Use the -disk flag</dt>
+<dd><p>The way TOPCAT stores table data is configurable, and 
+    the details can be controlled by setting its <em>Storage Policy</em>.
+    The default storage policy (since version 3.5),
+    "<code>adaptive</code>", means that the data for relatively small
+    tables are stored in memory, and for larger ones in temporary disk files.
+    This usually works fairly well and you're not likely to need to change it.
+    However, you can experiment if you like, and a small amount of
+    memory may be saved if you encourage it to store all table data on disk,
+    by specifying the <code>-disk</code> flag on the command line.
+    You can achieve the same effect by adding the line 
+    <code>startable.storage=disk</code> in the 
+    <code>.starjava.properties</code> in your home directory.
+    See <ref id="topcatArgs"/>, <ref id="jvmProperties"/>.
     </p></dd>
 </dl>
 </p>
