@@ -706,20 +706,13 @@ public class StackPlotWindow<P,A> extends AuxWindow {
      */
     private Factory<Map<TopcatModel,BitSet>>
             createBlobMasker( final Shape blob ) {
-        final Surface surface = plotPanel_.getSurface();
 
         /* Prepare a criterion for inclusion of data positions
          * in the given blob. */
         final GuiPointCloud pointCloud = plotPanel_.createGuiPointCloud();
-        final Rectangle blobBounds = blob.getBounds();
-        final PosIncluder includer = new PosIncluder() {
-            final Point gp = new Point();
-            public boolean isIncluded( double[] dpos ) {
-                return surface.dataToGraphics( dpos, true, gp )
-                    && blobBounds.contains( gp )
-                    && blob.contains( gp );
-            }
-        };
+        final PositionCriterion blobCriterion =
+            PositionCriterion.createBlobCriterion( plotPanel_.getSurface(),
+                                                   blob );
 
         /* Return an object that will scan the data given that criterion. */
         return new Factory<Map<TopcatModel,BitSet>>() {
@@ -727,7 +720,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             public Map<TopcatModel,BitSet> getItem() {
                 Map<TopcatModel,BitSet> maskMap =
                     new LinkedHashMap<TopcatModel,BitSet>();
-                updateMasks( maskMap, pointCloud, includer );
+                updateMasks( maskMap, pointCloud, blobCriterion );
                 return Thread.currentThread().isInterrupted() ? null : maskMap;
             }
         };
@@ -745,17 +738,13 @@ public class StackPlotWindow<P,A> extends AuxWindow {
      * @return   factory for deferred calculation of bit masks
      */
     private Factory<Map<TopcatModel,BitSet>> createVisibleMasker() {
-        final Surface surface = plotPanel_.getSurface();
+        Surface surface = plotPanel_.getSurface();
 
         /* Prepare a criterion for inclusion of normal data positions
          * in the bounds of the plotting surface. */
         final GuiPointCloud pointCloud = plotPanel_.createGuiPointCloud();
-        final PosIncluder fullIncluder = new PosIncluder() {
-            final Point gp = new Point();
-            public boolean isIncluded( double[] dpos ) {
-                return surface.dataToGraphics( dpos, true, gp );
-            }
-        };
+        final PositionCriterion fullCriterion =
+            PositionCriterion.createBoundsCriterion( surface );
 
         /* Prepare a criterion for appearance of partial data positions
          * in the bounds.
@@ -765,19 +754,8 @@ public class StackPlotWindow<P,A> extends AuxWindow {
          * counts as visibility. */
         final GuiPointCloud partialPointCloud =
             plotPanel_.createPartialGuiPointCloud();
-        Rectangle plotBounds = surface.getPlotBounds();
-        final int gxlo = plotBounds.x;
-        final int gxhi = plotBounds.x + plotBounds.width;
-        final int gylo = plotBounds.y;
-        final int gyhi = plotBounds.y + plotBounds.height;
-        final PosIncluder partialIncluder = new PosIncluder() {
-            final Point gp = new Point();
-            public boolean isIncluded( double[] dpos ) {
-                return surface.dataToGraphics( dpos, false, gp )
-                    && ( ( gxlo <= gp.x && gp.x < gxhi ) ||
-                         ( gylo <= gp.y && gp.y < gyhi ) );
-            }
-        };
+        final PositionCriterion partialCriterion =
+            PositionCriterion.createPartialBoundsCriterion( surface );
 
         /* Return an object that will scan the data given these criteria.
          * This isn't perfect, because this constitutes two scans through
@@ -791,8 +769,8 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             public Map<TopcatModel,BitSet> getItem() {
                 Map<TopcatModel,BitSet> maskMap =
                     new LinkedHashMap<TopcatModel,BitSet>();
-                updateMasks( maskMap, pointCloud, fullIncluder );
-                updateMasks( maskMap, partialPointCloud, partialIncluder );
+                updateMasks( maskMap, pointCloud, fullCriterion );
+                updateMasks( maskMap, partialPointCloud, partialCriterion );
                 return Thread.currentThread().isInterrupted() ? null : maskMap;
             }
         };
@@ -806,12 +784,12 @@ public class StackPlotWindow<P,A> extends AuxWindow {
      * @param   maskMap  map to update; will be populated with blank entries
      *                   as required
      * @param   pointCloud  sequence of points to assess
-     * @param   includer  criterion for inclusion of a point
+     * @param   criterion  condition for inclusion of a point
      */
     @Slow
     private static void updateMasks( Map<TopcatModel,BitSet> maskMap,
                                      GuiPointCloud pointCloud,
-                                     PosIncluder includer ) {
+                                     PositionCriterion criterion ) {
         TableCloud[] tclouds = pointCloud.getTableClouds();
         DataStore dataStore = pointCloud.createGuiDataStore();
         int nc = tclouds.length;
@@ -838,7 +816,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             TupleSequence tseq = tcloud.createTupleSequence( dataStore );
             while ( tseq.next() ) {
                 if ( geom.readDataPos( tseq, icPos, dpos ) &&
-                     includer.isIncluded( dpos ) ) {
+                     criterion.isIncluded( dpos ) ) {
                     long ix = tseq.getRowIndex();
                     mask.set( Tables.checkedLongToInt( ix ) );
                 }
@@ -1045,19 +1023,5 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                 identifyPoint( evt.getPoint() );
             }
         }
-    }
-
-    /**
-     * Defines a criterion for inclusion of a data position.
-     */
-    private interface PosIncluder {
-
-        /**
-         * Indicates if a position counts as included.
-         *
-         * @param  dpos  data space coordinate array
-         * @return  true iff the given position fits this criterion
-         */
-        boolean isIncluded( double[] dpos );
     }
 }
