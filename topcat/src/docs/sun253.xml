@@ -18291,6 +18291,7 @@ introduced since the last version:
         <li>Fix TST input handler so TST files with fewer than 3 columns
             can be read.</li>
         <li>Fix point counting in layer plots.</li>
+        <li>Add some padding around auto-ranged plot limits.</li>
         </ul>
         </p></dd>
 </dl>

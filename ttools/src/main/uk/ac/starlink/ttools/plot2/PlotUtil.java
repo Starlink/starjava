@@ -59,6 +59,9 @@ public class PlotUtil {
        .createExternalFontExporter( PlotUtil.class
                                    .getResource( LATEX_FONT_PATHS ) );
 
+    /** Amount of padding added to data ranges for axis scaling. */
+    private static final double PAD_FRACTION = 0.02;
+
     /**
      * Private constructor prevents instantiation.
      */
@@ -228,8 +231,49 @@ public class PlotUtil {
             layers[ il ].extendCoordinateRanges( ranges, lflags, dataStore );
         }
 
+        /* Pad the ranges with a bit of space. */
+        for ( int idim = 0; idim < nDataDim; idim++ ) {
+            padRange( ranges[ idim ], logFlags[ idim ], PAD_FRACTION );
+        }
+
         /* Return the ranges. */
         return ranges;
+    }
+
+    /**
+     * Pads a data range to provide a bit of extra space at each end.
+     * If one of the limits is near to zero, it is padded to zero
+     * instead of adding a fixed amount.
+     *
+     * @param  range  range to pad
+     * @param  logFlag  true for logarithmic scaling, false for linear
+     * @param  padFrac  fraction to add to range for padding purposes.
+     */
+    private static void padRange( Range range, boolean logFlag,
+                                  double padFrac ) {
+        double[] bounds = range.getBounds();
+        double lo = bounds[ 0 ];
+        double hi = bounds[ 1 ];
+        if ( lo < hi ) {
+            final boolean loNearZero;
+            final boolean hiNearZero;
+            if ( logFlag ) {
+                loNearZero = false;
+                hiNearZero = false;
+            }
+            else {
+                double ztol = 2 * padFrac;
+                double zfrac = unscaleValue( lo, hi, 0., logFlag );
+                loNearZero = 0 - zfrac >= 0 && 0 - zfrac <= ztol;
+                hiNearZero = zfrac - 1 >= 0 && zfrac - 1 <= ztol;
+            }
+            range.submit( loNearZero
+                          ? 0
+                          : scaleValue( lo, hi, 0 - padFrac, logFlag ) );
+            range.submit( hiNearZero
+                          ? 0
+                          : scaleValue( lo, hi, 1 + padFrac, logFlag ) );
+        }
     }
 
     /**
@@ -301,21 +345,41 @@ public class PlotUtil {
     }
 
     /**
-     * Returns a value determined by a fixed range and a scale point
+     * Returns a value determined by a fixed range and a fractional scale point
      * within it.  If the point is zero the minimum value is returned,
      * and if it is one the maximum value is returned.
      *
      * @param  min  minimum of range
      * @param  max  maximum of range
-     * @param  point  scale point
+     * @param  frac  fractional scale point
      * @param  isLog  true iff the range is logarithmic
-     * @return   scaled value
+     * @return   data value corresponding to fractional scale point
      */
-    public static double scaleValue( double min, double max, double point,
+    public static double scaleValue( double min, double max, double frac,
                                      boolean isLog ) {
         return isLog
-             ? Math.exp( Math.log( min ) + point * Math.log( max / min ) )
-             : min + point * ( max - min );
+             ? min * Math.pow( ( max / min ), frac )
+             : min + ( max - min ) * frac;
+    }
+
+    /**
+     * Returns the proportional position of a point within a fixed range.
+     * If the point is equal to the minimum value zero is returned,
+     * and if it is equal to the maximum value one is returned.
+     * This is the inverse function of {@link #scaleValue}.
+     *
+     * @param  min  minimum of range
+     * @param  max  maximum of range
+     * @param  point  data value
+     * @param  isLog  true iff the range is logarithmic
+     * @return  fractional value corresponding to data point
+     */
+    public static double unscaleValue( double min, double max, double point,
+                                       boolean isLog ) {
+        return isLog
+             ? ( Math.log( point ) - Math.log( min ) )
+               / ( Math.log( max ) - Math.log( min ) )
+             : ( point - min ) / ( max - min );
     }
 
     /**
