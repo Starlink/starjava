@@ -706,15 +706,10 @@ public class StackPlotWindow<P,A> extends AuxWindow {
      */
     private Factory<Map<TopcatModel,BitSet>>
             createBlobMasker( final Shape blob ) {
-
-        /* Prepare a criterion for inclusion of data positions
-         * in the given blob. */
         final GuiPointCloud pointCloud = plotPanel_.createGuiPointCloud();
         final PositionCriterion blobCriterion =
             PositionCriterion.createBlobCriterion( plotPanel_.getSurface(),
                                                    blob );
-
-        /* Return an object that will scan the data given that criterion. */
         return new Factory<Map<TopcatModel,BitSet>>() {
             @Slow
             public Map<TopcatModel,BitSet> getItem() {
@@ -832,51 +827,83 @@ public class StackPlotWindow<P,A> extends AuxWindow {
      * method may be called on the event dispatch thread, the returned
      * factory's getItem method should not be.
      *
-     * <p>The count is effectively determined while making the plots,
+     * <p>The count is implicitly determined while making the plots,
      * since the various layers have to see which points are in bounds
      * to work out whether to plot them.  But the count information is not
      * recorded or passed back to this window.  A future improvement 
      * might do that somehow, in which case it wouldn't be necessary to
-     * re-do the count here.
+     * re-do the count here.  It wouldn't be straightforward though,
+     * because you need to worry about double counting of points that
+     * appear in multiple plots.
      *
      * @return  factory for deferred calculation of formatted point count
      */
     private Factory<String> createCounter() {
-        final Surface surface = plotPanel_.getSurface();
+        Surface surface = plotPanel_.getSurface();
         final GuiPointCloud pointCloud = plotPanel_.createGuiPointCloud();
+        final GuiPointCloud partialCloud =
+            plotPanel_.createPartialGuiPointCloud();
+        final PositionCriterion pointCriterion =
+            PositionCriterion.createBoundsCriterion( surface );
+        final PositionCriterion partialCriterion =
+            PositionCriterion.createPartialBoundsCriterion( surface );
         final DataStore dataStore = plotPanel_.getDataStore();
         return new Factory<String>() {
             @Slow
             public String getItem() {
-                TableCloud[] tclouds = pointCloud.getTableClouds();
-                double[] dpos = new double[ surface.getDataDimCount() ];
-                Point gp = new Point();
                 long start = System.currentTimeMillis();
-                long count = 0;
-                long total = 0;
-                for ( int ic = 0; ic < tclouds.length; ic++ ) {
-                    TableCloud tcloud = tclouds[ ic ];
-                    DataGeom geom = tcloud.getDataGeom();
-                    int iPosCoord = tcloud.getPosCoordIndex();
-                    TupleSequence tseq =
-                        tcloud.createTupleSequence( dataStore );
-                    while ( tseq.next() ) {
-                        if ( geom.readDataPos( tseq, iPosCoord, dpos ) &&
-                             surface.dataToGraphics( dpos, true, gp ) ) {
-                            count++;
-                        }
-                    }
-                    total +=
-                        tcloud.getTopcatModel().getDataModel().getRowCount();
-                }
+                long[] pointCounts =
+                    countPoints( pointCloud, pointCriterion, dataStore );
+                long[] partialCounts =
+                    countPoints( partialCloud, partialCriterion, dataStore );
                 if ( Thread.currentThread().isInterrupted() ) {
                     return null;
                 }
-                PlotUtil.logTime( logger_, "Count", start );
-                return TopcatUtils.formatLong( count ) + " / "
-                     + TopcatUtils.formatLong( total );
+                else {
+                    PlotUtil.logTime( logger_, "Count", start );
+                    long count = pointCounts[ 0 ] + partialCounts[ 0 ];
+                    long total = pointCounts[ 1 ] + partialCounts[ 1 ];
+                    return TopcatUtils.formatLong( count ) + " / "
+                         + TopcatUtils.formatLong( total );
+                }
             }
         };
+    }
+
+    /**
+     * Counts the actual and potential number of points in a point cloud.
+     * The potential number is the sum of the row counts of all the
+     * tables contributing to the cloud.  The actual number is determined
+     * by applying a supplied position criterion to each of the positions
+     * in the cloud.
+     *
+     * @param   pointCloud  aggregation of points contributed by multiple tables
+     * @param   criterion   test to define what counts as an included point
+     * @param   dataStore   data storage object
+     * @return  2-element array giving (actual,potential) counts
+     */
+    @Slow
+    private static long[] countPoints( GuiPointCloud pointCloud,
+                                       PositionCriterion criterion,
+                                       DataStore dataStore ) {
+        TableCloud[] tclouds = pointCloud.getTableClouds();
+        long count = 0;
+        long total = 0;
+        for ( int ic = 0; ic < tclouds.length; ic++ ) {
+            TableCloud tcloud = tclouds[ ic ];
+            DataGeom geom = tcloud.getDataGeom();
+            int iPosCoord = tcloud.getPosCoordIndex();
+            double[] dpos = new double[ geom.getDataDimCount() ];
+            TupleSequence tseq = tcloud.createTupleSequence( dataStore );
+            while ( tseq.next() ) {
+                if ( geom.readDataPos( tseq, iPosCoord, dpos ) &&
+                     criterion.isIncluded( dpos ) ) {
+                    count++;
+                }
+            }
+            total += tcloud.getTopcatModel().getDataModel().getRowCount();
+        }
+        return new long[] { count, total };
     }
 
     /**
