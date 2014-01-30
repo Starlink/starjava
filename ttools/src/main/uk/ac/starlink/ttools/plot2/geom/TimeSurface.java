@@ -273,6 +273,7 @@ public class TimeSurface implements Surface {
         code = 23 * code + PlotUtil.hashCode( tlabel_ );
         code = 23 * code + PlotUtil.hashCode( ylabel_ );
         code = 23 * code + captioner_.hashCode();
+        code = 23 * code + ( grid_ ? 11 : 13 );
         code = 23 * code + tformat_.hashCode();
         return code;
     }
@@ -296,6 +297,7 @@ public class TimeSurface implements Surface {
                 && PlotUtil.equals( this.tlabel_, this.tlabel_ )
                 && PlotUtil.equals( this.ylabel_, other.ylabel_ )
                 && this.captioner_.equals( other.captioner_ )
+                && this.grid_ == other.grid_
                 && this.tformat_.equals( other.tformat_ );
         }
         else {
