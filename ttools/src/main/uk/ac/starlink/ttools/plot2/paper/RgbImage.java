@@ -17,6 +17,11 @@ import java.util.Arrays;
  * array here directly.
  * These RGB values are also the same as those used by {@link Compositor}.
  *
+ * <p><strong>Note:</strong> in tests, painting a colour on the image's
+ * graphics context does not seem to give exactly the expected result
+ * in terms of ARGB values in the buffer, though it's not far off.
+ * See the <code>RgbImageTest</code> testcase for more discussion.
+ *
  * @author   Mark Taylor
  * @since    14 Feb 2013
  */

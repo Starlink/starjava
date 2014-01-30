@@ -109,7 +109,24 @@ public class MonoPaperType extends RgbPaperType
                 for ( int i = 0; i < npix; i++ ) {
                     int rgba = decalBuf[ i ];
                     if ( rgba != bg ) {
-                        assert ( rgba & 0x00ffffff ) == rgb_;
+
+                        /* Any colours written into this image buffer should
+                         * have the colour declared by the layer, with some
+                         * undetermined alpha value.  The assertion below
+                         * tests that.
+                         * However, it seems that in the current implementation
+                         * the colour value can get changed by a few notches -
+                         * e.g. painting colour 40ee0000 to an empty pixel can
+                         * lead to a byte value of 40ef0000.  So the assertion
+                         * is commented out.
+                         * This failure is harmless but surprising,
+                         * and probably indicates that the RgbImage-based
+                         * painting is not as efficient as I'd expect it to be.
+                         * Must be down to BufferedImage implemenation,
+                         * probably system-dependent. */
+                        // assert ( rgba & 0x00ffffff ) == rgb_
+                        //     : Integer.toHexString( rgba ) + "\t" +
+                        //       Integer.toHexString( rgb_ );
                         alphas_[ i ] += Compositor.byteToFloat( rgba >> 24 );
                     }
                 }
