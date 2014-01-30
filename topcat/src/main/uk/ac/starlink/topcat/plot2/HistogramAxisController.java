@@ -62,6 +62,8 @@ public class HistogramAxisController
         mainControl.addSpecifierTab( "Grid",
                                      new ConfigSpecifier( new ConfigKey[] {
             PlaneSurfaceFactory.GRID_KEY,
+            StyleKeys.GRID_COLOR,
+            StyleKeys.AXLABEL_COLOR,
             StyleKeys.MINOR_TICKS,
             PlaneSurfaceFactory.XCROWD_KEY,
             PlaneSurfaceFactory.YCROWD_KEY,

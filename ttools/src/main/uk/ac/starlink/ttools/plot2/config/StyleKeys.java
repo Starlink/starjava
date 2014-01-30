@@ -24,6 +24,7 @@ import uk.ac.starlink.ttools.plot.MarkShape;
 import uk.ac.starlink.ttools.plot.MarkStyle;
 import uk.ac.starlink.ttools.plot.Shader;
 import uk.ac.starlink.ttools.plot.Shaders;
+import uk.ac.starlink.ttools.plot.Styles;
 import uk.ac.starlink.ttools.plot2.Anchor;
 import uk.ac.starlink.ttools.plot2.Captioner;
 import uk.ac.starlink.ttools.plot2.BasicCaptioner;
@@ -108,6 +109,16 @@ public class StyleKeys {
             return new ComboBoxSpecifier<float[]>( new DashComboBox() );
         }
     };
+
+    /** Config key for axis grid colour. */
+    public static final ConfigKey<Color> GRID_COLOR =
+        new ColorConfigKey( new ConfigMeta( "gridcolor", "Grid Colour" ),
+                            Color.LIGHT_GRAY, false );
+
+    /** Config key for axis label colour. */
+    public static final ConfigKey<Color> AXLABEL_COLOR =
+        new ColorConfigKey( new ConfigMeta( "labelcolor", "Label Colour" ),
+                            Color.BLACK, false );
 
     private static final BarStyle.Form[] BARFORMS = new BarStyle.Form[] {
         BarStyle.FORM_FILLED,
@@ -597,6 +608,7 @@ public class StyleKeys {
      */
     private static class ColorConfigKey extends NamedObjectKey<Color> {
         private final boolean nullPermitted_;
+        private final Color[] colors_;
 
         /**
          * Constructor.
@@ -610,11 +622,16 @@ public class StyleKeys {
                    new ColorParameter( meta.getShortName() ) );
             nullPermitted_ = nullPermitted;
             param_.setNullPermitted( nullPermitted );
-     
+            List<Color> colorList =
+                new ArrayList<Color>( Arrays.asList( Styles.COLORS ) );
+            if ( ! colorList.contains( dflt ) ) {
+                colorList.add( 0, dflt );
+            }
+            colors_ = colorList.toArray( new Color[ 0 ] );
         }
         public Specifier<Color> createSpecifier() {
             Specifier<Color> basic =
-                new ComboBoxSpecifier<Color>( new ColorComboBox() );
+                new ComboBoxSpecifier<Color>( new ColorComboBox( colors_ ) );
             return nullPermitted_
                  ? new ToggleSpecifier<Color>( basic, null, "Hide" )
                  : basic;
