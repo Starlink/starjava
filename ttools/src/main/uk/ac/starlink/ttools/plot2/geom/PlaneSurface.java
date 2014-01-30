@@ -41,7 +41,8 @@ public class PlaneSurface implements Surface {
     private final String xlabel_;
     private final String ylabel_;
     private final Captioner captioner_;
-    private final boolean grid_;
+    private final Color gridcolor_;
+    private final Color axlabelcolor_;
     private final Axis xAxis_;
     private final Axis yAxis_;
 
@@ -64,16 +65,17 @@ public class PlaneSurface implements Surface {
      * @param  yticks  array of tickmark objects for Y axis
      * @param  xlabel  text for labelling X axis
      * @param  ylabel  text for labelling Y axis
-     * @param  captioner  text renderer for axis labels etc
-     * @param  grid   whether to draw grid lines
+     * @param  captioner  text renderer for axis labels etc, or null if absent
+     * @param  gridcolor  colour of grid lines, or null if not plotted
+     * @param  axlabelcolor  colour of axis labels
      */
     public PlaneSurface( int gxlo, int gxhi, int gylo, int gyhi,
                          double dxlo, double dxhi, double dylo, double dyhi,
                          boolean xlog, boolean ylog,
                          boolean xflip, boolean yflip,
                          Tick[] xticks, Tick[] yticks,
-                         String xlabel, String ylabel,
-                         Captioner captioner, boolean grid ) {
+                         String xlabel, String ylabel, Captioner captioner,
+                         Color gridcolor, Color axlabelcolor ) {
         gxlo_ = gxlo;
         gxhi_ = gxhi;
         gylo_ = gylo;
@@ -91,7 +93,8 @@ public class PlaneSurface implements Surface {
         xlabel_ = xlabel;
         ylabel_ = ylabel;
         captioner_ = captioner;
-        grid_ = grid;
+        gridcolor_ = gridcolor;
+        axlabelcolor_ = axlabelcolor;
         xAxis_ = Axis.createAxis( gxlo_, gxhi_, dxlo_, dxhi_, xlog_, xflip_ );
         yAxis_ = Axis.createAxis( gylo_, gyhi_, dylo_, dyhi_, ylog_,
                                   yflip_ ^ PlaneAxisAnnotation.INVERT_Y );
@@ -154,8 +157,8 @@ public class PlaneSurface implements Surface {
         Color color0 = g.getColor();
         g.setColor( Color.WHITE );
         g.fillRect( gxlo_, gylo_, gxhi_ - gxlo_, gyhi_ - gylo_ );
-        if ( grid_ ) {
-            g.setColor( Color.LIGHT_GRAY );
+        if ( gridcolor_ != null ) {
+            g.setColor( gridcolor_ );
             for ( int it = 0; it < xticks_.length; it++ ) {
                 Tick tick = xticks_[ it ];
                 if ( tick.getLabel() != null ) {
@@ -175,16 +178,18 @@ public class PlaneSurface implements Surface {
     }
 
     public void paintForeground( Graphics g ) {
-        Graphics2D g2 = (Graphics2D) g;
-        Color color0 = g2.getColor();
-        g2.setColor( Color.BLACK );
-        createAxisAnnotation().drawLabels( g );
+        if ( axlabelcolor_ != null ) {
+            Graphics2D g2 = (Graphics2D) g;
+            Color color0 = g2.getColor();
+            g2.setColor( axlabelcolor_ );
+            createAxisAnnotation().drawLabels( g );
 
-        /* Boundary. */
-        g2.drawRect( gxlo_, gylo_, gxhi_ - gxlo_, gyhi_ - gylo_ );
+            /* Boundary. */
+            g2.drawRect( gxlo_, gylo_, gxhi_ - gxlo_, gyhi_ - gylo_ );
 
-        /* Restore. */
-        g2.setColor( color0 );
+            /* Restore. */
+            g2.setColor( color0 );
+        }
     }
 
     /**
@@ -306,7 +311,8 @@ public class PlaneSurface implements Surface {
                 && PlotUtil.equals( this.xlabel_, other.xlabel_ )
                 && PlotUtil.equals( this.ylabel_, other.ylabel_ )
                 && this.captioner_.equals( other.captioner_ )
-                && this.grid_ == other.grid_;
+                && PlotUtil.equals( this.gridcolor_, other.gridcolor_ )
+                && PlotUtil.equals( this.axlabelcolor_, other.axlabelcolor_ );
         }
         else {
             return false;
@@ -333,7 +339,8 @@ public class PlaneSurface implements Surface {
         code = 23 * code + PlotUtil.hashCode( xlabel_ );
         code = 23 * code + PlotUtil.hashCode( ylabel_ );
         code = 23 * code + captioner_.hashCode();
-        code = 23 * code + ( grid_ ? 3 : 7 );
+        code = 23 * code + PlotUtil.hashCode( gridcolor_ );
+        code = 23 * code + PlotUtil.hashCode( axlabelcolor_ );
         return code;
     }
 
@@ -360,6 +367,8 @@ public class PlaneSurface implements Surface {
      * @param  ycrowd  crowding factor for tick marks on Y axis;
      *                 1 is normal
      * @param  minor   whether to paint minor tick marks on axes
+     * @param  gridcolor  colour of grid lines, if plotted
+     * @param  axlabelcolor  colour of axis labels
      * @return  new plot surface
      */
     public static PlaneSurface createSurface( Rectangle plotBounds,
@@ -370,7 +379,8 @@ public class PlaneSurface implements Surface {
                                               Captioner captioner,
                                               double xyfactor, boolean grid,
                                               double xcrowd, double ycrowd,
-                                              boolean minor ) {
+                                              boolean minor, Color gridcolor,
+                                              Color axlabelcolor ) {
         int gxlo = plotBounds.x;
         int gxhi = plotBounds.x + plotBounds.width;
         int gylo = plotBounds.y;
@@ -387,6 +397,7 @@ public class PlaneSurface implements Surface {
         Tick[] yticks = yTicker.getTicks( dylo, dyhi, minor, captioner,
                                           PlaneAxisAnnotation.Y_ORIENT,
                                           plotBounds.height, ycrowd );
+        gridcolor = grid ? gridcolor : null;
 
         /* Fixed ratio of X/Y data scales.  Interpret this by ensuring that
          * all of both requested data ranges is included, and one of them is
@@ -433,7 +444,8 @@ public class PlaneSurface implements Surface {
         }
         return new PlaneSurface( gxlo, gxhi, gylo, gyhi, dxlo, dxhi, dylo, dyhi,
                                  xlog, ylog, xflip, yflip, xticks, yticks,
-                                 xlabel, ylabel, captioner, grid );
+                                 xlabel, ylabel, captioner, gridcolor,
+                                 axlabelcolor );
     }
 
     /**

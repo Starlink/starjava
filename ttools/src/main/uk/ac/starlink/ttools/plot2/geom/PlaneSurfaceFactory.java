@@ -1,5 +1,6 @@
 package uk.ac.starlink.ttools.plot2.geom;
 
+import java.awt.Color;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -107,7 +108,7 @@ public class PlaneSurfaceFactory
                               p.xlog_, p.ylog_, p.xflip_, p.yflip_,
                               p.xlabel_, p.ylabel_, p.captioner_,
                               p.xyfactor_, p.grid_, p.xcrowd_, p.ycrowd_,
-                              p.minor_ );
+                              p.minor_, p.gridcolor_, p.axlabelcolor_ );
     }
 
     public ConfigKey[] getProfileKeys() {
@@ -124,6 +125,8 @@ public class PlaneSurfaceFactory
             XCROWD_KEY,
             YCROWD_KEY,
             StyleKeys.MINOR_TICKS,
+            StyleKeys.GRID_COLOR,
+            StyleKeys.AXLABEL_COLOR,
         } ) );
         list.addAll( Arrays.asList( StyleKeys.getCaptionerKeys() ) );
         return list.toArray( new ConfigKey[ 0 ] );
@@ -141,9 +144,12 @@ public class PlaneSurfaceFactory
         double xcrowd = config.get( XCROWD_KEY );
         double ycrowd = config.get( YCROWD_KEY );
         boolean minor = config.get( StyleKeys.MINOR_TICKS );
+        Color gridcolor = config.get( StyleKeys.GRID_COLOR );
+        Color axlabelcolor = config.get( StyleKeys.AXLABEL_COLOR );
         Captioner captioner = StyleKeys.createCaptioner( config );
         return new Profile( xlog, ylog, xflip, yflip, xlabel, ylabel,
-                            captioner, xyfactor, grid, xcrowd, ycrowd, minor );
+                            captioner, xyfactor, grid, xcrowd, ycrowd, minor,
+                            gridcolor, axlabelcolor );
     }
 
     public ConfigKey[] getAspectKeys() {
@@ -273,6 +279,8 @@ public class PlaneSurfaceFactory
         private final double xcrowd_;
         private final double ycrowd_;
         private final boolean minor_;
+        private final Color gridcolor_;
+        private final Color axlabelcolor_;
 
         /**
          * Constructor.
@@ -293,12 +301,15 @@ public class PlaneSurfaceFactory
          * @param  ycrowd  crowding factor for tick marks on Y axis;
          *                 1 is normal
          * @param  minor   whether to paint minor tick marks on axes
+         * @param  gridcolor  colour of grid lines, if plotted
+         * @param  axlabelcolor  colour of axis labels
          */
         public Profile( boolean xlog, boolean ylog,
                         boolean xflip, boolean yflip,
                         String xlabel, String ylabel, Captioner captioner,
                         double xyfactor, boolean grid,
-                        double xcrowd, double ycrowd, boolean minor ) {
+                        double xcrowd, double ycrowd, boolean minor,
+                        Color gridcolor, Color axlabelcolor ) {
             xlog_ = xlog;
             ylog_ = ylog;
             xflip_ = xflip;
@@ -311,6 +322,8 @@ public class PlaneSurfaceFactory
             xcrowd_ = xcrowd;
             ycrowd_ = ycrowd;
             minor_ = minor;
+            gridcolor_ = gridcolor;
+            axlabelcolor_ = axlabelcolor;
         }
 
         /**
