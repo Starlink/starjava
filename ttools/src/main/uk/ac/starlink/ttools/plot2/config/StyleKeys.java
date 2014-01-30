@@ -90,6 +90,12 @@ public class StyleKeys {
        .createSliderKey( new ConfigMeta( "translevel", "Transparency Level" ),
                          0.1, 0.001, 2, true );
 
+    /** Config key for "normal" transparency - it's just 1-alpha. */
+    public static final ConfigKey<Double> TRANSPARENCY =
+        DoubleConfigKey.createSliderKey( new ConfigMeta( "transparency",
+                                                         "Transparency" ),
+                                         0, 0, 1, false );
+
     /** Config key for line thickness. */
     private static final ConfigKey<Integer> THICKNESS = createThicknessKey( 1 );
 
