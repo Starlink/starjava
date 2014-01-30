@@ -74,6 +74,8 @@ public class SkyAxisController
                                      new ConfigSpecifier( new ConfigKey[] {
             SkySurfaceFactory.GRID_KEY,
             SkySurfaceFactory.SEX_KEY,
+            StyleKeys.GRID_COLOR,
+            StyleKeys.AXLABEL_COLOR,
             SkySurfaceFactory.CROWD_KEY,
             SkySurfaceFactory.AXISLABELLER_KEY,
         } ) );

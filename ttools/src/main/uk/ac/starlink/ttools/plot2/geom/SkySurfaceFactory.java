@@ -1,5 +1,6 @@
 package uk.ac.starlink.ttools.plot2.geom;
 
+import java.awt.Color;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -94,12 +95,13 @@ public class SkySurfaceFactory
 
     public Surface createSurface( Rectangle plotBounds, Profile p,
                                   SkyAspect aspect ) {
+        
         return new SkySurface( plotBounds, aspect.getProjection(),
                                aspect.getRotation(), aspect.getZoom(),
                                aspect.getOffsetX(), aspect.getOffsetY(),
-                               p.viewSystem_, p.grid_,
-                               p.axisLabeller_, p.sex_, p.crowd_,
-                               p.captioner_ );
+                               p.viewSystem_, p.axisLabeller_,
+                               p.grid_ ? p.gridColor_ : null, p.axlabelColor_,
+                               p.sex_, p.crowd_, p.captioner_ );
     }
 
     public ConfigKey[] getProfileKeys() {
@@ -111,6 +113,8 @@ public class SkySurfaceFactory
             AXISLABELLER_KEY,
             SEX_KEY,
             CROWD_KEY,
+            StyleKeys.GRID_COLOR,
+            StyleKeys.AXLABEL_COLOR,
         } ) );
         list.addAll( Arrays.asList( StyleKeys.getCaptionerKeys() ) );
         return list.toArray( new ConfigKey[ 0 ] );
@@ -124,9 +128,11 @@ public class SkySurfaceFactory
         SkyAxisLabeller axLabeller = config.get( AXISLABELLER_KEY );
         boolean sex = config.get( SEX_KEY );
         double crowd = config.get( CROWD_KEY );
+        Color gridColor = config.get( StyleKeys.GRID_COLOR );
+        Color axlabelColor = config.get( StyleKeys.AXLABEL_COLOR );
         Captioner captioner = StyleKeys.createCaptioner( config );
         return new Profile( proj, reflect, viewSystem, grid, axLabeller,
-                            sex, crowd, captioner );
+                            gridColor, axlabelColor, sex, crowd, captioner );
     }
 
     public ConfigKey[] getAspectKeys() {
@@ -217,6 +223,8 @@ public class SkySurfaceFactory
         private final SkySys viewSystem_;
         private final boolean grid_;
         private final SkyAxisLabeller axisLabeller_;
+        private final Color gridColor_;
+        private final Color axlabelColor_;
         private final boolean sex_;
         private final double crowd_;
         private final Captioner captioner_;
@@ -229,19 +237,24 @@ public class SkySurfaceFactory
          * @param  viewSystem  sky system into which coordinates are projected
          * @param  grid   whether to draw coordinate grid
          * @param  axisLabeller  sky axis labelling object
+         * @param  gridColor   colour of grid lines
+         * @param  axlabelColor  colour of axis labels
          * @param  sex  whether to use sexagesimal coordinates
          * @param  crowd   tick mark crowding factor, 1 is normal
          * @param  captioner  text rendering object
          */
         public Profile( Projection projection, boolean reflect,
                         SkySys viewSystem, boolean grid, 
-                        SkyAxisLabeller axisLabeller, boolean sex,
+                        SkyAxisLabeller axisLabeller, Color gridColor,
+                        Color axlabelColor, boolean sex,
                         double crowd, Captioner captioner ) {
             projection_ = projection;
             reflect_ = reflect;
             viewSystem_ = viewSystem;
             grid_ = grid;
             axisLabeller_ = axisLabeller;
+            gridColor_ = gridColor;
+            axlabelColor_ = axlabelColor;
             sex_ = sex;
             crowd_ = crowd;
             captioner_ = captioner;

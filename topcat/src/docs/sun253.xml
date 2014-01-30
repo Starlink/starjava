@@ -18292,6 +18292,8 @@ introduced since the last version:
             can be read.</li>
         <li>Fix point counting in layer plots.</li>
         <li>Add some padding around auto-ranged plot limits.</li>
+        <li>Add grid and label colour configuration options to plane and
+            sky plots.</li>
         </ul>
         </p></dd>
 </dl>

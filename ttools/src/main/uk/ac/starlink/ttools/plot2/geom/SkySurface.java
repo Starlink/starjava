@@ -40,8 +40,9 @@ public class SkySurface implements Surface {
     private final int gylo_;
     private final int gyhi_;
     private final SkySys viewSystem_;
-    private final boolean grid_;
     private final SkyAxisLabeller axLabeller_;
+    private final Color gridColor_;
+    private final Color axlabelColor_;
     private final boolean sexagesimal_;
     private final double crowd_;
     private final Captioner captioner_;
@@ -72,23 +73,25 @@ public class SkySurface implements Surface {
      * @param  yoff  y offset of plot centre from plot bounds centre
      *               in dimensionless units; 0 is centred
      * @param  viewSystem  sky system into which coordinates are projected
-     * @param  grid   whether to draw coordinate grid
      * @param  axLabeller  sky axis labelling object
+     * @param  gridColor   colour for grid drawing, or null if no grid
+     * @param  axlabelColor  colour for axis labels, or null if no labels
      * @param  sexagesimal  whether to use sexagesimal coordinates
      * @param  crowd   tick mark crowding factor, 1 is normal
      * @param  captioner  text rendering object
      */
     public SkySurface( Rectangle plotBounds, Projection projection,
                        double[] rotmat, double zoom, double xoff, double yoff,
-                       SkySys viewSystem, boolean grid,
-                       SkyAxisLabeller axLabeller, boolean sexagesimal,
+                       SkySys viewSystem, SkyAxisLabeller axLabeller,
+                       Color gridColor, Color axlabelColor, boolean sexagesimal,
                        double crowd, Captioner captioner ) {
         gxlo_ = plotBounds.x;
         gxhi_ = plotBounds.x + plotBounds.width;
         gylo_ = plotBounds.y;
         gyhi_ = plotBounds.y + plotBounds.height;
         viewSystem_ = viewSystem;
-        grid_ = grid;
+        gridColor_ = gridColor;
+        axlabelColor_ = axlabelColor;
         sexagesimal_ = sexagesimal;
         crowd_ = crowd;
         captioner_ = captioner;
@@ -115,9 +118,15 @@ public class SkySurface implements Surface {
                                     ( gxhi_ - gxlo_ ) / gZoom_,
                                     ( gyhi_ - gylo_ ) / gZoom_ );
         skyFillsBounds_ = projShape.contains( projBounds );
-        axLabeller_ = axLabeller == null
-                    ? SkyAxisLabellers.getAutoLabeller( skyFillsBounds_ )
-                    : axLabeller;
+        if ( axlabelColor_ == null ) {
+            axLabeller_ = SkyAxisLabellers.NONE;
+        }
+        else if ( axLabeller == null ) {
+            axLabeller_ = SkyAxisLabellers.getAutoLabeller( skyFillsBounds_ );
+        }
+        else {
+            axLabeller_ = axLabeller;
+        }
         assert this.equals( this );
     }
 
@@ -133,7 +142,7 @@ public class SkySurface implements Surface {
     }
 
     public Insets getPlotInsets( boolean withScroll ) {
-        GridLiner gl = grid_ ? createGridder() : null;
+        GridLiner gl = gridColor_ == null ? null : createGridder();
         return gl == null
              ? new Insets( 0, 0, 0, 0 )
              : axLabeller_.createAxisAnnotation( gl, captioner_ )
@@ -163,14 +172,16 @@ public class SkySurface implements Surface {
     }
 
     public void paintForeground( Graphics g ) {
-        if ( grid_ ) {
-            Color color0 = g.getColor();
-            Graphics2D g2 = (Graphics2D) g;
-            g2.setColor( Color.GRAY );
-            GridLiner gl = createGridder();
+        Color color0 = g.getColor();
+        Graphics2D g2 = (Graphics2D) g;
+        GridLiner gl = gridColor_ != null || axlabelColor_ != null
+                     ? createGridder()
+                     : null;
+        if ( gridColor_ != null ) {
             if ( gl == null ) {
                 return;
             }
+            g2.setColor( gridColor_ );
             double[][][] lines = gl.getLines();
             String[] labels = gl.getLabels();
             int nl = labels.length;
@@ -187,11 +198,13 @@ public class SkySurface implements Surface {
                 }
                 g2.draw( path );
             }
-            g2.setColor( Color.BLACK );
+        }
+        if ( axlabelColor_ != null ) {
+            g2.setColor( axlabelColor_ );
             axLabeller_.createAxisAnnotation( gl, captioner_ )
                        .drawLabels( g2 );
-            g2.setColor( color0 );
         }
+        g2.setColor( color0 );
     }
 
     /**
@@ -632,8 +645,9 @@ public class SkySurface implements Surface {
                 && this.xoff_ == other.xoff_
                 && this.yoff_ == other.yoff_
                 && PlotUtil.equals( this.viewSystem_, other.viewSystem_ )
-                && this.grid_ == other.grid_
                 && PlotUtil.equals( this.axLabeller_, other.axLabeller_ )
+                && PlotUtil.equals( this.gridColor_, other.gridColor_ )
+                && PlotUtil.equals( this.axlabelColor_, other.axlabelColor_ )
                 && this.sexagesimal_ == other.sexagesimal_
                 && this.crowd_ == other.crowd_
                 && PlotUtil.equals( this.captioner_, other.captioner_ );
@@ -656,8 +670,9 @@ public class SkySurface implements Surface {
         code = 23 * code + Float.floatToIntBits( (float) xoff_ );
         code = 23 * code + Float.floatToIntBits( (float) yoff_ );
         code = 23 * code + PlotUtil.hashCode( viewSystem_ );
-        code = 23 * code + ( grid_ ? 11 : 77 );
         code = 23 * code + PlotUtil.hashCode( axLabeller_ );
+        code = 23 * code + PlotUtil.hashCode( gridColor_ );
+        code = 23 * code + PlotUtil.hashCode( axlabelColor_ );
         code = 23 * code + ( sexagesimal_ ? 5 : 13 );
         code = 23 * code + Float.floatToIntBits( (float) crowd_ );
         code = 23 * code + PlotUtil.hashCode( captioner_ );
