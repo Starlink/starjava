@@ -1,5 +1,19 @@
 1 Starlink SPLAT news.
 
+
+
+   3.11-0
+   ======
+
+   The already deprecated PLASTIC VO interoperability mechanism has
+   now been removed from SPLAT. All interoperability is now only available
+   using SAMP.
+
+   A new command-line option "--interop none" has been added so that
+   SPLAT can run without attempting to communicate with any running
+   SAMP hubs.
+
+   
    3.10-8
    ======
 
@@ -59,17 +73,6 @@
 
 	-  Echelle Spectra: A new data model for chelle spectra has been 
 	introduced, making it possible to download only selected orders.
-
-   3.11-0
-   ======
-
-   The already deprecated PLASTIC VO interoperability mechanism has
-   now been removed from SPLAT. All interoperability is now only available
-   using SAMP.
-
-   A new command-line option "--interop none" has been added so that
-   SPLAT can run without attempting to communicate with any running
-   SAMP hubs.
 
    3.10-1
    ======
@@ -143,11 +146,10 @@
    has been fixed. Previously SPLAT ran out of memory after printing a plot
    around 24 times.
 
-   Post Kapuahi
+
 
    Post Hikianalia
    Post Kapuahi
-
    3.9-8
    =====
 
