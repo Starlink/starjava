@@ -53,7 +53,12 @@
 
    The column selection for tables now prefers those with UCD meta.main.
 
+   A problem with memory handling when printing hardcopies from a plot
+   has been fixed. Previously SPLAT ran out of memory after printing a plot
+   around 24 times.
+
    Post Hikianalia
+   Post Kapuahi
 
    3.9-8
    =====
