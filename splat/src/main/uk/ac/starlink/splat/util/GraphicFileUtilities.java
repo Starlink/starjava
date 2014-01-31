@@ -78,6 +78,7 @@ public class GraphicFileUtilities
                            chooser.getWidth(), chooser.getHeight(),
                            chooser.getFit() );
         }
+        chooser.dispose();
     }
 
     /**
@@ -112,7 +113,6 @@ public class GraphicFileUtilities
 
         //  Now make the JComponent draw into this.
         component.print( g2d );
-        g2d.dispose();
 
         //  And write this to the file format we need.
         try {
@@ -128,6 +128,7 @@ public class GraphicFileUtilities
         catch (Exception e) {
             e.printStackTrace();
         }
+        g2d.dispose();
     }
 
     /**
@@ -243,6 +244,9 @@ public class GraphicFileUtilities
                 e.printStackTrace();
             }
             this.accepted = false;
+
+            //  Don't want to keep any references to this after close?
+            setDefaultCloseOperation( DISPOSE_ON_CLOSE );
         }
 
         /**
