@@ -72,6 +72,10 @@ public class SkyPlotWindow
                 }
             };
         }
+
+        public boolean hasPositions() {
+            return true;
+        }
     }
 
     /**

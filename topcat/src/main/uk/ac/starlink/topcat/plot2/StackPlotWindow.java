@@ -101,6 +101,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     private final BlobPanel2 blobPanel_;
     private final Action blobAction_;
     private final Action fromVisibleAction_;
+    private final boolean canSelectPoints_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.plot2" );
 
@@ -118,6 +119,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         super( name, parent );
         plotType_ = plotType;
         plotTypeGui_ = plotTypeGui;
+        canSelectPoints_ = plotTypeGui.hasPositions();
 
         /* Set up user interface components in the window that can gather
          * all the information required to perform (re-)plots. */
@@ -200,7 +202,9 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         } );
 
         /* Arrange for user clicks to identify points. */
-        plotPanel_.addMouseListener( new IdentifyListener() );
+        if ( canSelectPoints_ ) {
+            plotPanel_.addMouseListener( new IdentifyListener() );
+        }
 
         /* Prepare a panel that reports current cursor position. */
         posLabel_ = new JLabel();
@@ -370,7 +374,9 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         }
         getToolBar().add( removeAction );
         getToolBar().addSeparator();
-        getToolBar().add( blobAction_ );
+        if ( canSelectPoints_ ) {
+            getToolBar().add( blobAction_ );
+        }
         getToolBar().add( fromVisibleAction_ );
         getToolBar().add( replotAction );
         getToolBar().add( resizeAction );
@@ -395,7 +401,9 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         getJMenuBar().add( layerMenu );
         JMenu subsetMenu = new JMenu( "Subsets" );
         subsetMenu.setMnemonic( KeyEvent.VK_S );
-        subsetMenu.add( blobAction_ );
+        if ( canSelectPoints_ ) {
+            subsetMenu.add( blobAction_ );
+        }
         subsetMenu.add( fromVisibleAction_ );
         getJMenuBar().add( subsetMenu );
         JMenu plotMenu = new JMenu( "Plot" );
@@ -1080,7 +1088,9 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             /* Add an item referring to the point selection provided by the
              * mouse listener added by this window. */
             navOpts = new LinkedHashMap<Gesture,String>();
-            navOpts.put( Gesture.CLICK_1, "Select" );
+            if ( canSelectPoints_ ) {
+                navOpts.put( Gesture.CLICK_1, "Select" );
+            }
             navOpts.putAll( navigator.getNavOptions( surface, pos1 ) );
         }
         else {

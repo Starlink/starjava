@@ -76,5 +76,8 @@ public class HistogramPlotWindow
             return SimplePositionCoordPanel
                   .createPanel( PLOT_TYPE.getPointDataGeoms()[ 0 ], npos );
         }
+        public boolean hasPositions() {
+            return false;
+        }
     }
 }
