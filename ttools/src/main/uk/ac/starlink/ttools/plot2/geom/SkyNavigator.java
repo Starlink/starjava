@@ -3,7 +3,10 @@ package uk.ac.starlink.ttools.plot2.geom;
 import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.Gesture;
 import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
@@ -45,6 +48,14 @@ public class SkyNavigator implements Navigator<SkyAspect> {
     public SkyAspect click( Surface surface, MouseEvent evt,
                             Iterable<double[]> dposIt ) {
         return null;
+    }
+
+    public Map<Gesture,String> getNavOptions( Surface surface, Point pos ) {
+        Map<Gesture,String> map = new LinkedHashMap<Gesture,String>();
+        map.put( Gesture.DRAG_1, "Pan" );
+        map.put( Gesture.DRAG_3, "Zoom" );
+        map.put( Gesture.WHEEL, "Zoom" );
+        return map;
     }
 
     /**

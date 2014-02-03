@@ -4,7 +4,10 @@ import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import uk.ac.starlink.ttools.plot2.Gesture;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.Surface;
@@ -24,6 +27,7 @@ public class CubeNavigator implements Navigator<CubeAspect> {
 
     private final double zoomFactor_;
     private final boolean[] axisFlags_;
+    private static final char[] XYZ = new char[] { 'X', 'Y', 'Z' };
 
     /** Config key to select which axes zoom will operate on. */
     public static final ConfigKey<boolean[]> ZOOMAXES_KEY =
@@ -91,6 +95,45 @@ public class CubeNavigator implements Navigator<CubeAspect> {
                              Iterable<double[]> dposIt ) {
         double[] dpos = surface.graphicsToData( evt.getPoint(), dposIt );
         return dpos == null ? null : ((CubeSurface) surface).center( dpos );
+    }
+
+    public Map<Gesture,String> getNavOptions( Surface surface, Point pos ) {
+        int[] dirs = ((CubeSurface) surface).getScreenDirections();
+        String planeTxt = new String( new char[] { XYZ[ dirs[ 0 ] ], '/',
+                                                   XYZ[ dirs[ 1 ] ] } ); 
+        final String wzoomTxt;
+        if ( axisFlags_ == null ||
+             ( axisFlags_[ 0 ] && axisFlags_[ 1 ] && axisFlags_[ 2 ] ) ) {
+            wzoomTxt = " Iso";
+        }
+        else {
+            int leng = 4;
+            StringBuffer wzBuf = new StringBuffer( leng );
+            for ( int idim = 0; idim < 3; idim++ ) {
+                if ( axisFlags_[ idim ] ) {
+                    if ( wzBuf.length() > 0 ) {
+                        wzBuf.append( '/' );
+                    }
+                    wzBuf.append( XYZ[ idim ] );
+                }
+            }
+            wzBuf.insert( 0, ' ' );
+            while ( wzBuf.length() < leng ) {
+                wzBuf.append( ' ' );
+            }
+            wzoomTxt = wzBuf.toString();;
+            assert wzoomTxt.length() == leng;
+        }
+        
+        Map<Gesture,String> map = new LinkedHashMap<Gesture,String>();
+        map.put( Gesture.DRAG_1, "Rotate" );
+        map.put( Gesture.WHEEL, "Zoom Center" + wzoomTxt );
+        map.put( Gesture.CLICK_3, "Re-center" );
+        map.put( Gesture.DRAG_2, "Pan " + planeTxt );
+        map.put( Gesture.DRAG_3, ( axisFlags_ == null
+                                 ? "Zoom " + planeTxt
+                                 : "Zoom Center" + wzoomTxt ) );
+        return map;
     }
 
     /**

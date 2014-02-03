@@ -381,6 +381,17 @@ public class AuxWindow extends JFrame {
     }
 
     /**
+     * Returns the panel containing the body of this window.
+     * This contains most of the content but not the parts that have to
+     * go at the top and bottom like the toolbar and progress bar.
+     *
+     * @return   body panel
+     */
+    public JComponent getBodyPanel() {
+        return overPanel;
+    }
+
+    /**
      * Obtains simple confirmation from a user.
      * This is just a convenience method wrapping a JOptionPane invocation.
      *

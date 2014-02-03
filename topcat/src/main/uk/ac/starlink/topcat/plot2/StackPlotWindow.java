@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.Icon;
 import javax.swing.JComponent;
@@ -49,6 +50,7 @@ import uk.ac.starlink.topcat.TopcatUtils;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.DataGeom;
+import uk.ac.starlink.ttools.plot2.Gesture;
 import uk.ac.starlink.ttools.plot2.NavigationListener;
 import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
@@ -95,6 +97,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     private final ToggleButtonModel showProgressModel_;
     private final JLabel posLabel_;
     private final JLabel countLabel_;
+    private final NavigationHelpPanel navPanel_;
     private final BlobPanel2 blobPanel_;
     private final Action blobAction_;
     private final Action fromVisibleAction_;
@@ -188,6 +191,14 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             }
         }.addListeners( plotPanel_ );
 
+        /* Arrange to update the GUI appropriately when the user moves the
+         * mouse around. */
+        axisController_.addActionListener( new ActionListener() {
+            public void actionPerformed( ActionEvent evt ) {
+                updatePositionDisplay( plotPanel_.getMousePosition() );
+            }
+        } );
+
         /* Arrange for user clicks to identify points. */
         plotPanel_.addMouseListener( new IdentifyListener() );
 
@@ -197,15 +208,15 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         posLine.setBorder( BorderFactory.createEtchedBorder() );
         plotPanel_.addMouseListener( new MouseAdapter() {
             public void mouseEntered( MouseEvent evt ) {
-                displayPosition( evt.getPoint() );
+                updatePositionDisplay( evt.getPoint() );
             }
             public void mouseExited( MouseEvent evt ) {
-                displayPosition( null );
+                updatePositionDisplay( null );
             }
         } );
         plotPanel_.addMouseMotionListener( new MouseMotionAdapter() {
             public void mouseMoved( MouseEvent evt ) {
-                displayPosition( evt.getPoint() );
+                updatePositionDisplay( evt.getPoint() );
             }
         } );
 
@@ -409,14 +420,19 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         statusLine.add( posLine );
         statusLine.add( countLine );
         JComponent cpanel = getControlPanel();
-        cpanel.setLayout( new BoxLayout( cpanel, BoxLayout.X_AXIS ) );
+        cpanel.setLayout( new BoxLayout( cpanel, BoxLayout.Y_AXIS ) );
         cpanel.add( statusLine );
+        navPanel_ = new NavigationHelpPanel();
+        navPanel_.setBorder( BorderFactory.createEmptyBorder( 2, 0, 0, 0 ) );
+        cpanel.add( navPanel_ );
 
         /* Set default component dimensions. */
         displayPanel.setMinimumSize( new Dimension( 150, 150 ) );
         displayPanel.setPreferredSize( new Dimension( 500, 400 ) );
         stackPanel.setMinimumSize( new Dimension( 200, 100 ) );
         stackPanel.setPreferredSize( new Dimension( 500, 240 ) );
+        getBodyPanel().setBorder( BorderFactory
+                                 .createEmptyBorder( 10, 10, 2, 10 ) );
 
         /* Place the plot and control components. */
         getMainArea().setLayout( new BorderLayout() );
@@ -971,7 +987,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     private void plotChanged() {
 
         /* Update position immediately. */
-        displayPosition( plotPanel_.getMousePosition() );
+        updatePositionDisplay( plotPanel_.getMousePosition() );
 
         /* Work out if it makes any sense to do a blob or visibility
          * selection. */
@@ -999,6 +1015,18 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     }
 
     /**
+     * This method is called when the mouse position changes in the plot panel.
+     *
+     *
+     * @param  pos  current (new) mouse position, or null if the mouse
+     *              is positioned outside the bounds of the PlotPanel
+     */
+    private void updatePositionDisplay( Point pos ) {
+        displayPosition( pos );
+        displayNavHelp( pos );
+    }
+
+    /**
      * Displays the formatted position at a given point in the status panel.
      *
      * @param  point  cursor position
@@ -1016,6 +1044,53 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             }
         }
         posLabel_.setText( pos );
+    }
+
+    /**
+     * Ensures that navigation help is displayed correctly for the current
+     * cursor position.
+     *
+     * @param  pos  cursor position, or null if outside the plot panel
+     */
+    private void displayNavHelp( Point pos ) {
+        Surface surface = plotPanel_.getSurface();
+        final Map<Gesture,String> navOpts;
+        final boolean active;
+        if ( surface != null ) {
+            Navigator<A> navigator = getNavigator();
+
+            /* Get a notional position for the navigation help to refer to.
+             * If the reported position is within the plot panel, use that.
+             * If it's outside the component altogether, use a position which
+             * is within the actual bounds of the plot (inside the axes).
+             * Navigation options may be different outside the plot bounds
+             * (e.g. below the X axis or left of the Y axis). */
+            boolean inBounds = pos != null
+                            && plotPanel_.getBounds().contains( pos );
+            final Point pos1;
+            if ( inBounds ) {
+                pos1 = pos;
+            }
+            else {
+                Point origin = surface.getPlotBounds().getLocation();
+                pos1 = new Point( origin.x + 1, origin.y + 1 );
+            }
+            active = inBounds;
+
+            /* Add an item referring to the point selection provided by the
+             * mouse listener added by this window. */
+            navOpts = new LinkedHashMap<Gesture,String>();
+            navOpts.put( Gesture.CLICK_1, "Select" );
+            navOpts.putAll( navigator.getNavOptions( surface, pos1 ) );
+        }
+        else {
+            active = false;
+            navOpts = new HashMap<Gesture,String>();
+        }
+
+        /* Update the panel. */
+        navPanel_.setOptions( navOpts );
+        navPanel_.setEnabled( active );
     }
 
     /**

@@ -48,6 +48,13 @@ public class ResourceIcon {
         MODE_ALPHA = readIcon( "mode-transparent.gif" ),
         MODE_ALPHA_FIX = readIcon( "mode-transparent-lock.gif" ),
         MODE_AUX = readIcon( "mode-aux.gif" ),
+        DRAG1 = readIcon( "drag1.gif" ),
+        DRAG2 = readIcon( "drag2.gif" ),
+        DRAG3 = readIcon( "drag3.gif" ),
+        CLICK1 = readIcon( "click1.gif" ),
+        CLICK2 = readIcon( "click2.gif" ),
+        CLICK3 = readIcon( "click3.gif" ),
+        MOUSE_WHEEL = readIcon( "mwheel.gif" ),
 
         /* Placeholder and terminator. */
         DO_WHAT = readIcon( "burst.gif" );

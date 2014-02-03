@@ -3,6 +3,7 @@ package uk.ac.starlink.ttools.plot2;
 import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
+import java.util.Map;
 
 /**
  * A navigator controls how user gestures affect a plot surface.
@@ -75,4 +76,17 @@ public interface Navigator<A> {
      * @return   new surface indicated by the gesture, or null for no change
      */
     A click( Surface surface, MouseEvent evt, Iterable<double[]> dposIt );
+
+    /**
+     * Returns a description of the available navigation gestures and the
+     * behaviour they cause when the mouse is positioned at a particular point.
+     * The order of the returned list may be reflected in their presentation
+     * to users, so it is generally a good idea to use a LinkedHashMap.
+     *
+     * @param   surface  plot surface
+     * @param   pos  mouse position
+     * @return   mapping of available gestures to short textual descriptions
+     *           of their behaviour
+     */
+    Map<Gesture,String> getNavOptions( Surface surface, Point pos );
 }

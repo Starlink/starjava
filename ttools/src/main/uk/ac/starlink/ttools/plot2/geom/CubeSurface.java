@@ -496,7 +496,7 @@ public class CubeSurface implements Surface {
      *          elements are indices of screen {horizontal, vertical, normal}
      *          axes respectively
      */
-    private int[] getScreenDirections() {
+    int[] getScreenDirections() {
         double[] screenXs = new double[ 3 ];
         double[] screenYs = new double[ 3 ];
         double[] screenNs = new double[ 3 ];
