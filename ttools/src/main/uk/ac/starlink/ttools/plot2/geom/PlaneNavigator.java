@@ -4,6 +4,9 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import uk.ac.starlink.ttools.plot2.Gesture;
 import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Surface;
@@ -81,6 +84,35 @@ public class PlaneNavigator implements Navigator<PlaneAspect> {
     public PlaneAspect click( Surface surface, MouseEvent evt,
                               Iterable<double[]> dposIt ) {
         return null;
+    }
+
+    public Map<Gesture,String> getNavOptions( Surface surface, Point pos ) {
+        boolean[] useFlags = getAxisNavFlags( surface, pos, xPan_, yPan_ );
+        boolean xUse = useFlags[ 0 ];
+        boolean yUse = useFlags[ 1 ];
+        final String isoTxt;
+        final String freeTxt;
+        if ( xUse && yUse ) {
+            freeTxt = "X/Y";
+            isoTxt = "Iso";
+        }
+        else {
+            if ( xUse ) {
+               freeTxt = "X ";
+            }
+            else if ( yUse ) {
+               freeTxt = "Y  ";
+            }
+            else {
+               freeTxt = "   ";
+            }
+            isoTxt = freeTxt;
+        }
+        Map<Gesture,String> map = new LinkedHashMap<Gesture,String>();
+        map.put( Gesture.DRAG_1, "Pan " + freeTxt );
+        map.put( Gesture.DRAG_3, "Zoom " + freeTxt );
+        map.put( Gesture.WHEEL, "Zoom " + isoTxt );
+        return map;
     }
 
     /**
