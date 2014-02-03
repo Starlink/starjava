@@ -24,4 +24,13 @@ public interface PlotTypeGui<P,A> {
      * @return   new position entry panel for this plot type
      */
     PositionCoordPanel createPositionCoordPanel( int npos );
+
+    /**
+     * Indicates whether this plot type supports selectable point positions.
+     * Normally the return is true, but if this plot type never plots
+     * points that can be identified by a screen X,Y position, return false.
+     *
+     * @return  false iff this plot type never supports selectable points
+     */
+    boolean hasPositions();
 }
