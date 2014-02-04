@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridLayout;
+import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Shape;
@@ -23,11 +24,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.Icon;
+import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -357,6 +360,49 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         displayPanel.add( blobPanel_ );
         displayPanel.add( plotPanel_ );
 
+        /* Place position and count status panels at the bottom of the
+         * window. */
+        JComponent cpanel = getControlPanel();
+        cpanel.setLayout( new BoxLayout( cpanel, BoxLayout.Y_AXIS ) );
+        JComponent statusLine = new JPanel( new GridLayout( 1, 2, 5, 0 ) );
+        statusLine.setBorder( BorderFactory.createEmptyBorder( 4, 0, 0, 0 ) );
+        statusLine.add( posLine );
+        statusLine.add( countLine );
+        cpanel.add( statusLine );
+
+        /* Place mouse hints panel at the bottom of the window, with
+         * actions to hide it. */
+        final JComponent navhelpHolder = Box.createVerticalBox();
+        navPanel_ = new NavigationHelpPanel();
+        navPanel_.setBorder( BorderFactory.createEmptyBorder( 2, 0, 0, 0 ) );
+        final JComponent navhelpLine = Box.createHorizontalBox();
+        final ToggleButtonModel navhelpModel =
+            new ToggleButtonModel( "Show Navigation Help",
+                                   ResourceIcon.NAV_HELP,
+                                   "Display mouse action hints"
+                                 + " at the bottom of the window" );
+        navhelpModel.addChangeListener( new ChangeListener() {
+            public void stateChanged( ChangeEvent evt ) {
+                navhelpHolder.removeAll();
+                if ( navhelpModel.isSelected() ) {
+                    navhelpHolder.add( navhelpLine );
+                }
+                navhelpHolder.revalidate();
+            }
+        } );
+        JButton hideNavButt = new JButton( null, ResourceIcon.SMALL_CLOSE );
+        hideNavButt.setMargin( new Insets( 0, 0, 0, 0 ) );
+        hideNavButt.setModel( navhelpModel );
+        hideNavButt.setAlignmentY( 0.5f );
+        navPanel_.setAlignmentY( 0.5f );
+        navhelpLine.add( hideNavButt );
+        navhelpLine.add( Box.createHorizontalStrut( 5 ) );
+        navhelpLine.add( navPanel_ );
+        navhelpHolder.add( navhelpLine );
+        cpanel.add( navhelpHolder );
+        navhelpModel.setSelected( true );
+        updatePositionDisplay( null );
+
         /* Prepare management of floating the control stack into a separate
          * window. */
         FloatManager floater =
@@ -389,6 +435,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         getToolBar().addSeparator();
 
         /* Add actions etc to menus. */
+        getFileMenu().insert( navhelpModel.createMenuItem(), 1 );
         if ( floatModel != null ) {
             getFileMenu().insert( floatModel.createMenuItem(), 1 );
         }
@@ -421,18 +468,6 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         exportMenu.add( exportAction );
         getJMenuBar().add( exportMenu );
 
-        /* Place position and count status panels at the bottom of the
-         * window. */
-        JComponent statusLine = new JPanel( new GridLayout( 1, 2, 5, 0 ) );
-        statusLine.setBorder( BorderFactory.createEmptyBorder( 4, 0, 0, 0 ) );
-        statusLine.add( posLine );
-        statusLine.add( countLine );
-        JComponent cpanel = getControlPanel();
-        cpanel.setLayout( new BoxLayout( cpanel, BoxLayout.Y_AXIS ) );
-        cpanel.add( statusLine );
-        navPanel_ = new NavigationHelpPanel();
-        navPanel_.setBorder( BorderFactory.createEmptyBorder( 2, 0, 0, 0 ) );
-        cpanel.add( navPanel_ );
 
         /* Set default component dimensions. */
         displayPanel.setMinimumSize( new Dimension( 150, 150 ) );
@@ -1095,7 +1130,14 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         }
         else {
             active = false;
+
+            /* Add at least one option in case of no surface.
+             * This is just to make sure that the component has its nominal
+             * size on initial window view, otherwise it gets resized as
+             * soon as the surface shows up which is slightly visually
+             * annoying. */
             navOpts = new HashMap<Gesture,String>();
+            navOpts.put( Gesture.CLICK_1, "Select" );
         }
 
         /* Update the panel. */

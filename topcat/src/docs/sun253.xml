@@ -18294,6 +18294,7 @@ introduced since the last version:
         <li>Add some padding around auto-ranged plot limits.</li>
         <li>Add grid and label colour configuration options to plane and
             sky plots.</li>
+        <li>Add mouse help at bottom of plot windows.</li>
         </ul>
         </p></dd>
 </dl>
