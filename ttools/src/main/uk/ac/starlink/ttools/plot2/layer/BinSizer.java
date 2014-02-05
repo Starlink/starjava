@@ -208,23 +208,38 @@ public abstract class BinSizer {
 
         public Specifier<BinSizer> createSpecifier() {
             final SliderSpecifier sliderSpecifier =
-                new SliderSpecifier( 2, 400, true );
+                    new SliderSpecifier( 400, 2, true, true );
             return new SpecifierPanel<BinSizer>( true ) {
                 protected JComponent createComponent() {
-                    sliderSpecifier.addChangeListener( getChangeForwarder() );
+                    sliderSpecifier.addActionListener( getActionForwarder() );
                     return sliderSpecifier.getComponent();
                 }
                 public BinSizer getSpecifiedValue() {
-                    double dval = sliderSpecifier.getSpecifiedValue();
-                    return new CountBinSizer( dval, true );
+                    if ( ! sliderSpecifier.isSliderActive() ) {
+                        double txtval = sliderSpecifier.getTextValue();
+                        if ( txtval > 0 ) {
+                            return new FixedBinSizer( txtval );
+                        }
+                        else if ( txtval < 0 ) {
+                            return new CountBinSizer( -txtval, true );
+                        }
+                    }
+                    return new CountBinSizer( sliderSpecifier.getSliderValue(),
+                                              true );
                 }
                 public void setSpecifiedValue( BinSizer sizer ) {
                     if ( sizer instanceof CountBinSizer ) {
                         double nbin = ((CountBinSizer) sizer).nbin_;
+                        sliderSpecifier.setSliderActive( true );
                         sliderSpecifier.setSpecifiedValue( nbin );
                     }
+                    else if ( sizer instanceof FixedBinSizer ) {
+                        double bw = ((FixedBinSizer) sizer).binWidth_;
+                        sliderSpecifier.setSliderActive( false );
+                        sliderSpecifier.setSpecifiedValue( bw );
+                    }
                     else {
-                        logger_.warning( "Can't reset to non-count sizer" );
+                        logger_.warning( "Can't reset to unknown sizer type" );
                     }
                 }
             };
