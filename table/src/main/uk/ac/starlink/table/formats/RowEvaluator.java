@@ -32,7 +32,8 @@ public class RowEvaluator {
     private long nrow_;
     private int ncol_ = -1;
 
-    static final Pattern ISO8601_REGEX = Pattern.compile(
+    /** Regular expression for ISO 8601 dates. */
+    public static final Pattern ISO8601_REGEX = Pattern.compile(
         "([0-9]+)-([0-9]{1,2})-([0-9]{1,2})" +
         "(?:[" + 'T' + " ]([0-9]{1,2})" +
             "(?::([0-9]{1,2})" +

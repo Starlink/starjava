@@ -1,4 +1,4 @@
-package uk.ac.starlink.table.formats;
+package uk.ac.starlink.ttools.example;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -14,6 +14,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.TableFormatException;
+import uk.ac.starlink.table.formats.RowEvaluator;
+import uk.ac.starlink.table.formats.StreamStarTable;
 import uk.ac.starlink.util.DataSource;
 
 /**
