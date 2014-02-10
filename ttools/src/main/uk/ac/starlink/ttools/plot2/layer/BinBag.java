@@ -1,5 +1,6 @@
 package uk.ac.starlink.ttools.plot2.layer;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -59,12 +60,15 @@ public class BinBag {
 
     /**
      * Adds a value to the bin in which a given point falls.
+     * Checking is performed; if the value is unsuitable
+     * (for instance infinite) it will be ignored.
      *
      * @param  point  axis coordinate
      * @param  inc   value to accumulate onto bin value
      */
     public void addToBin( double point, double inc ) {
-        if ( ! Double.isNaN( point ) && ! Double.isInfinite( point ) ) {
+        if ( ! Double.isNaN( point ) && ! Double.isInfinite( point ) &&
+             ( ( ! log_ ) || point > 0 ) ) {
             int ix = mapper_.getBinIndex( point );
             Value val = valueMap_.get( ix );
             if ( val == null ) {
@@ -83,6 +87,12 @@ public class BinBag {
      * @return  sorted iterator over bins
      */
     public Iterator<Bin> binIterator( boolean cumulative, boolean normalised ) {
+
+        /* Avoid some edge cases by returning an empty iterator immediately
+         * in case of no bins. */
+        if ( valueMap_.isEmpty() ) {
+            return new ArrayList<Bin>().iterator();
+        }
 
         /* Prepare an integer array giving bin indices for all the non-empty
          * bins accumulated by this object. */
