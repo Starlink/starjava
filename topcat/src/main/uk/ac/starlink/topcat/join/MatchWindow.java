@@ -28,6 +28,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import uk.ac.starlink.table.join.AnisotropicCartesianMatchEngine;
 import uk.ac.starlink.table.join.CombinedMatchEngine;
+import uk.ac.starlink.table.join.CuboidCartesianMatchEngine;
 import uk.ac.starlink.table.join.EllipseCartesianMatchEngine;
 import uk.ac.starlink.table.join.EllipseSkyMatchEngine;
 import uk.ac.starlink.table.join.ErrorCartesianMatchEngine;
@@ -467,10 +468,12 @@ public class MatchWindow extends AuxWindow implements ItemListener {
             new ErrorCartesianMatchEngine( 1, someLength ),
             new IsotropicCartesianMatchEngine( 2, someLength, false ),
             new AnisotropicCartesianMatchEngine( someLengths2 ),
+            new CuboidCartesianMatchEngine( someLengths2 ),
             new ErrorCartesianMatchEngine( 2, someLength ),
             new EllipseCartesianMatchEngine( someLength ),
             new IsotropicCartesianMatchEngine( 3, someLength, false ),
             new AnisotropicCartesianMatchEngine( someLengths3 ),
+            new CuboidCartesianMatchEngine( someLengths3 ),
             new ErrorCartesianMatchEngine( 3, someLength ),
             new AnisotropicCartesianMatchEngine( someLengths4 ),
             skyPlus1Engine,

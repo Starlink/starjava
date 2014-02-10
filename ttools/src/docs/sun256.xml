@@ -82,6 +82,7 @@
   <!ENTITY matcher-1d-usage SYSTEM 'matcher-1d-usage.xml'>
   <!ENTITY matcher-2d-usage SYSTEM 'matcher-2d-usage.xml'>
   <!ENTITY matcher-2d_anis-usage SYSTEM 'matcher-2d_anisotropic-usage.xml'>
+  <!ENTITY matcher-2d_cuboid-usage SYSTEM 'matcher-2d_cuboid-usage.xml'>
   <!ENTITY matcher-2d_err-usage SYSTEM 'matcher-2d_err-usage.xml'>
   <!ENTITY matcher-2d_ellipse-usage SYSTEM 'matcher-2d_ellipse-usage.xml'>
   <!ENTITY matcher-sky.1d-usage SYSTEM 'matcher-sky.1d-usage.xml'>
@@ -2689,6 +2690,27 @@ different axes are not related to each other.
 
 <p>Matching in any number of dimensions of Cartesian space using an
 anisotropic metric can be done by extending this syntax in the obvious way.
+</p>
+
+</subsubsect>
+
+<subsubsect id="CuboidCartesianMatchEngine">
+<subhead><title><code>2d_cuboid</code>, ...:
+         Cuboid Cartesian Matching</title></subhead>
+
+<p>&matcher-2d_cuboid-usage;</p>
+
+<p>The <code>2d_cuboid</code> matcher compares positions
+in 2-dimensional Cartesian space in cuboidal cells.
+Rows are considered to match if their (<code>x</code>,<code>y</code>)
+positions fall within an error cuboid with half-axis lengths
+<code>error-in-x</code>, <code>error-in-y</code> of each other.
+This kind of match is suitable for grouping items into pixels,
+though it's not a very efficient way of doing that.
+</p>
+
+<p>Matching in any number of dimensions using N-dimensional hyper-cuboids
+can be done by extending this syntax in the obvious way.
 </p>
 
 </subsubsect>
@@ -8508,6 +8530,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
             and warns if found.</li>
         <li>Fix TST input handler so TST files with fewer than 3 columns
             can be read.</li>
+        <li>Add <code>Nd_cuboid</code> matcher option to match commands.</li>
         </ul>
         </p></dd>
 
