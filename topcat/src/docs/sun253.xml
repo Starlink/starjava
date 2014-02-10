@@ -12542,6 +12542,15 @@ of a metric on that space to count as a match.
     does anyone want a higher number?
     </p></dd>
 
+<dt>N-dimensional Cuboids</dt>
+<dd><p>This matching is like that for <label>N-dimensional Cartesian</label>
+    above, but points are considered to match if they fall within the same
+    cuboid rather than ellipsoid.  The error values are the half-axis
+    lengths of the cuboid, like rectangular "radii".
+    This kind of match is suitable for grouping items into regularly-spaced
+    pixels, though it's not a very efficient way of doing that.
+    </p></dd>
+
 <dt>N-dimensional Cartesian with Errors</dt>
 <dd><p>The matching is like that for the <label>N-dimensional Cartesian</label>
     option above, but an error radius (positional uncertainty) is given
@@ -18301,6 +18310,7 @@ introduced since the last version:
         <li>Add some more colour maps.</li>
         <li>Improve re-ranging in sky plot; new data set now re-ranges unless
             lock button is set.</li>
+        <li>Add cuboid match algorithm to match windows.</li>
         </ul>
         </p></dd>
 </dl>

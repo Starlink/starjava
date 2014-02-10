@@ -8,6 +8,7 @@ import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.join.AnisotropicCartesianMatchEngine;
 import uk.ac.starlink.table.join.CombinedMatchEngine;
+import uk.ac.starlink.table.join.CuboidCartesianMatchEngine;
 import uk.ac.starlink.table.join.ErrorCartesianMatchEngine;
 import uk.ac.starlink.table.join.ErrorSkyMatchEngine;
 import uk.ac.starlink.table.join.EllipseCartesianMatchEngine;
@@ -489,6 +490,11 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
                 component =
                     new AnisotropicCartesianMatchEngine( new double[ ndim ] );
             }
+            else if ( cName.toLowerCase().matches( "[0-9]d_cuboid" ) ) {
+                int ndim = Integer.parseInt( cName.substring( 0, 1 ) );
+                component =
+                   new CuboidCartesianMatchEngine( new double[ ndim ] );
+            }
             else if ( cName.equalsIgnoreCase( "htm" ) ) {
                 component = new FixedSkyMatchEngine( new HtmSkyPixellator(),
                                                      ARC_SECOND );
@@ -606,6 +612,7 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
             "sky", "sky3d", "skyerr", "skyellipse",
             "exact", "1d", "2d", "3d",
             "2d_anisotropic", "3d_anisotropic",
+            "2d_cuboid", "3d_cuboid",
             "1d_err", "2d_err",
             "2d_ellipse",
             "sky+1d",
