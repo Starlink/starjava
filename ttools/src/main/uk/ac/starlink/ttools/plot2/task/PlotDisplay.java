@@ -31,6 +31,7 @@ import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
+import uk.ac.starlink.ttools.plot2.paper.Compositor;
 import uk.ac.starlink.ttools.plot2.paper.PaperType;
 import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
 
@@ -57,6 +58,7 @@ public class PlotDisplay<P,A> extends JComponent {
     private final ShadeAxis shadeAxis_;
     private final Range shadeFixRange_;
     private final boolean surfaceAuxRange_;
+    private final Compositor compositor_;
     private final boolean caching_;
     private Map<AuxScale,Range> auxRanges_;
     private Surface approxSurf_;
@@ -87,6 +89,7 @@ public class PlotDisplay<P,A> extends JComponent {
      *                         when the surface changes
      * @param  navigator  user gesture navigation controller,
      *                    or null for a non-interactive plot
+     * @param  compositor  compositor for pixel composition
      * @param  caching   if true, plot image will be cached where applicable,
      *                   if false it will be regenerated from the data
      *                   on every repaint
@@ -96,7 +99,7 @@ public class PlotDisplay<P,A> extends JComponent {
                         Icon legend, float[] legPos, ShadeAxis shadeAxis,
                         Range shadeFixRange, DataStore dataStore,
                         boolean surfaceAuxRange, final Navigator<A> navigator,
-                        boolean caching ) {
+                        Compositor compositor, boolean caching ) {
         plotType_ = plotType;
         layers_ = layers;
         surfFact_ = surfFact;
@@ -108,6 +111,7 @@ public class PlotDisplay<P,A> extends JComponent {
         shadeFixRange_ = shadeFixRange;
         dataStore_ = dataStore;
         surfaceAuxRange_ = surfaceAuxRange;
+        compositor_ = compositor;
         caching_ = caching;
 
         /* Add mouse listeners if required. */
@@ -191,7 +195,7 @@ public class PlotDisplay<P,A> extends JComponent {
             /* Get rendering implementation. */
             LayerOpt[] opts = PaperTypeSelector.getOpts( layers_ );
             PaperType paperType = plotType_.getPaperTypeSelector()
-                                 .getPixelPaperType( opts, this );
+                                 .getPixelPaperType( opts, compositor_, this );
 
             /* Perform the plot to a possibly cached image. */
             long start = System.currentTimeMillis();
@@ -252,6 +256,7 @@ public class PlotDisplay<P,A> extends JComponent {
      * @param surfaceAuxRange  determines whether aux ranges are recalculated
      *                         when the surface changes
      * @param  navigable true for an interactive plot
+     * @param  compositor  compositor for pixel composition
      * @param  caching   if true, plot image will be cached where applicable,
      *                   if false it will be regenerated from the data
      *                   on every repaint
@@ -264,7 +269,8 @@ public class PlotDisplay<P,A> extends JComponent {
                                Icon legend, float[] legPos,
                                ShadeAxis shadeAxis, Range shadeFixRange,
                                DataStore dataStore, boolean surfaceAuxRange,
-                               boolean navigable, boolean caching ) {
+                               boolean navigable, Compositor compositor,
+                               boolean caching ) {
         P profile = surfFact.createProfile( config );
 
         /* Read ranges from data if necessary. */
@@ -284,8 +290,8 @@ public class PlotDisplay<P,A> extends JComponent {
         /* Create and return the component. */
         return new PlotDisplay<P,A>( plotType, layers, surfFact, profile,
                                      aspect, legend, legPos, shadeAxis,
-                                     shadeFixRange, dataStore,
-                                     surfaceAuxRange, navigator, caching );
+                                     shadeFixRange, dataStore, surfaceAuxRange,
+                                     navigator, compositor, caching );
     }
 
     /**

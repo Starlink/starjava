@@ -32,6 +32,7 @@ import uk.ac.starlink.table.WrapperStarTable;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.task.BooleanParameter;
 import uk.ac.starlink.task.ChoiceParameter;
+import uk.ac.starlink.task.DoubleParameter;
 import uk.ac.starlink.task.Executable;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.ExecutionException;
@@ -72,6 +73,7 @@ import uk.ac.starlink.ttools.plot2.geom.PlanePlotType;
 import uk.ac.starlink.ttools.plot2.geom.SpherePlotType;
 import uk.ac.starlink.ttools.plot2.geom.SkyPlotType;
 import uk.ac.starlink.ttools.plot2.geom.TimePlotType;
+import uk.ac.starlink.ttools.plot2.paper.Compositor;
 import uk.ac.starlink.ttools.plot2.paper.PaperType;
 import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
 import uk.ac.starlink.ttools.plottask.ColorParameter;
@@ -103,6 +105,7 @@ public class Plot2Task implements Task {
     private final DataStoreParameter dstoreParam_;
     private final DefaultMultiParameter orderParam_;
     private final BooleanParameter bitmapParam_;
+    private final DoubleParameter boostParam_;
     private final InputTableParameter animateParam_;
     private final FilterParameter animateFilterParam_;
     private final IntegerParameter parallelParam_;
@@ -138,6 +141,10 @@ public class Plot2Task implements Task {
         orderParam_.setNullPermitted( true );
         bitmapParam_ = new BooleanParameter( "forcebitmap" );
         bitmapParam_.setDefault( Boolean.FALSE.toString() );
+        boostParam_ = new DoubleParameter( "boost" );
+        boostParam_.setMinimum( 0, true );
+        boostParam_.setMaximum( 1, true );
+        boostParam_.setDefault( Double.toString( 0.05 ) );
         animateParam_ = new InputTableParameter( "animate" );
         animateParam_.setNullPermitted( true );
         animateFilterParam_ = new FilterParameter( "acmd" );
@@ -542,6 +549,10 @@ public class Plot2Task implements Task {
         final boolean forceBitmap = bitmapParam_.booleanValue( env );
         final boolean surfaceAuxRange = false;
         final DataStoreFactory storeFact = dstoreParam_.objectValue( env );
+        double boost = boostParam_.doubleValue( env );
+        final Compositor compositor =
+            boost == 0 ? Compositor.SATURATION
+                       : Compositor.createBoostCompositor( (float) boost );
 
         /* Leave out some optional extras for now. */
         final Icon legend = null;
@@ -589,7 +600,7 @@ public class Plot2Task implements Task {
                                        surfConfig, legend, legpos,
                                        shadeAxis, shadeFixRange,
                                        dataStore, surfaceAuxRange,
-                                       navigable, caching );
+                                       navigable, compositor, caching );
                 panel.setPreferredSize( new Dimension( xpix, ypix ) );
                 return panel;
             }
@@ -601,7 +612,7 @@ public class Plot2Task implements Task {
                                        legend, legpos,
                                        shadeAxis, shadeFixRange, dataStore,
                                        xpix, ypix, insets,
-                                       ptsel, forceBitmap );
+                                       ptsel, compositor, forceBitmap );
             }
         };
     }
@@ -946,6 +957,7 @@ public class Plot2Task implements Task {
      *                 axis decoration etc; if null, this will be worked out
      *                 automatically
      * @param  ptsel   paper type selector
+     * @param  compositor   compositor for pixel composition
      * @param  forceBitmap   true to force bitmap output of vector graphics,
      *                       false to use default behaviour
      * @return  icon  icon for plotting
@@ -959,6 +971,7 @@ public class Plot2Task implements Task {
                                              DataStore dataStore,
                                              int xpix, int ypix, Insets insets,
                                              PaperTypeSelector ptsel,
+                                             Compositor compositor,
                                              boolean forceBitmap ) {
         P profile = surfFact.createProfile( config );
         long t0 = System.currentTimeMillis();
@@ -1004,7 +1017,7 @@ public class Plot2Task implements Task {
 
         LayerOpt[] opts = PaperTypeSelector.getOpts( layers );
         PaperType paperType = forceBitmap
-                            ? ptsel.getPixelPaperType( opts, null )
+                            ? ptsel.getPixelPaperType( opts, compositor, null )
                             : ptsel.getVectorPaperType( opts );
         return PlotDisplay.createIcon( placer, layers, auxRanges, dataStore,
                                        paperType, false );

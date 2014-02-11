@@ -19,9 +19,6 @@ import uk.ac.starlink.ttools.plot2.PlotLayer;
  */
 public abstract class PaperTypeSelector {
 
-    private static final Compositor DEFAULT_COMPOSITOR =
-        Compositor.createBoostCompositor( 0.1f );
-
     /** Default selector for 2d output. */
     public static PaperTypeSelector SELECTOR_2D = createSelector2D();
 
@@ -44,16 +41,20 @@ public abstract class PaperTypeSelector {
      * <p>If a component is supplied, it indicates the component on which this
      * paper will be rendered.  It is legal to supply a null component if
      * the destination component is unavailable (including if it is headless).
-     * Note the supplied component may not be the actual one it's going to be
+     * Note the supplied component need not be the actual one it's going to be
      * rendered on, but it should be similar in terms of graphics configuration,
      * background colour etc.
      *
      * @param  opts  layer options
-     * @param  c   destination component, or component similar to destination
-     *             component, or null
+     * @param  compositor  compositor for combining colours (relevant only
+     *                     if some transparency is present)
+     * @param  component  destination component, or component similar to
+     *                    destination component, or null
      * @return  paper type
      */
-    public abstract PaperType getPixelPaperType( LayerOpt[] opts, Component c );
+    public abstract PaperType getPixelPaperType( LayerOpt[] opts,
+                                                 Compositor compositor,
+                                                 Component component );
 
     /**
      * Constructs the default selector for 2D plots.
@@ -61,10 +62,12 @@ public abstract class PaperTypeSelector {
      * @return  2d selector
      */
     private static PaperTypeSelector createSelector2D() {
-        return
-            new BasicSelector( new PaintPaperType2D(),
-                               new OverPaperType2D(),
-                               new CompositePaperType2D( DEFAULT_COMPOSITOR ) );
+        return new BasicSelector( new PaintPaperType2D(),
+                                  new OverPaperType2D() ) {
+            PaperType createGeneralPixelPaperType( Compositor compos ) {
+                return new CompositePaperType2D( compos );
+            }
+        };
     }
 
     /**
@@ -74,9 +77,11 @@ public abstract class PaperTypeSelector {
      */
     private static PaperTypeSelector createSelector3D() {
         return new BasicSelector( new SortedPaperType3D(),
-                                  new ZBufferPaperType3D(),
-                                  new PixelStackPaperType3D( DEFAULT_COMPOSITOR,
-                                                             1e-4f ) );
+                                  new ZBufferPaperType3D() ) {
+            PaperType createGeneralPixelPaperType( Compositor compos ) {
+                return new PixelStackPaperType3D( compos, 1e-4f );
+            }
+        };
     }
 
     /**
@@ -93,7 +98,8 @@ public abstract class PaperTypeSelector {
                 return ptype;
             }
             public PaperType getPixelPaperType( LayerOpt[] opts,
-                                                Component c ) {
+                                                Compositor compositor,
+                                                Component component ) {
                 return ptype;
             }
         };
@@ -154,39 +160,45 @@ public abstract class PaperTypeSelector {
     /**
      * Basic PaperTypeSelector implementation.
      */
-    private static class BasicSelector extends PaperTypeSelector {
+    private static abstract class BasicSelector extends PaperTypeSelector {
 
         private final PaperType vector_;
         private final PaperType pixelOpaque_;
-        private final PaperType pixelGeneral_;
 
         /**
          * Constructor.
          *
          * @param  vector  paper type for vector output
-         * @param  pixelOpaue  paper type for pixel output with no transparency
-         * @param  pixelGeneral  paper type for pixel output without constraints
+         * @param  pixelOpaque  paper type for pixel output with no transparency
          */
-        BasicSelector( PaperType vector, PaperType pixelOpaque,
-                       PaperType pixelGeneral ) {
+        BasicSelector( PaperType vector, PaperType pixelOpaque ) {
             vector_ = vector;
             pixelOpaque_ = pixelOpaque;
-            pixelGeneral_ = pixelGeneral;
         }
 
         public PaperType getVectorPaperType( LayerOpt[] opts ) {
             return vector_;
         }
 
-        public PaperType getPixelPaperType( LayerOpt[] opts, Component c ) {
+        public PaperType getPixelPaperType( LayerOpt[] opts, Compositor compos,
+                                            Component component ) {
             if ( isOpaque( opts ) ) {
                 return pixelOpaque_;
             }
             Color color = getMonochromeColor( opts );
             if ( color != null ) {
-                return new MonoPaperType( color, DEFAULT_COMPOSITOR );
+                return new MonoPaperType( color, compos );
             }
-            return pixelGeneral_;
+            return createGeneralPixelPaperType( compos );
         }
+
+        /**
+         * Returns a paper type for rendering pixel output without
+         * constraints.  A compositor is supplied.
+         *
+         * @param  compos  compositor for compositing transparent pixels
+         * @return   paper type
+         */
+        abstract PaperType createGeneralPixelPaperType( Compositor compos );
     }
 }

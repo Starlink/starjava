@@ -26,6 +26,7 @@ import uk.ac.starlink.ttools.plot2.PlotPlacement;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
+import uk.ac.starlink.ttools.plot2.paper.Compositor;
 import uk.ac.starlink.ttools.plot2.paper.PaperType;
 import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
 import uk.ac.starlink.util.gui.CustomComboBoxRenderer;
@@ -86,10 +87,12 @@ public class PlotExporter {
      * @param  auxRanges   layer-requested range data
      * @param  dataStore  data storage ojbect
      * @param  ptsel   paper type selector
+     * @param  compositor  compositor for compositing transparent pixels
      */
     public void exportPlot( Component parent, PlotPlacement placer,
                             PlotLayer[] layers, Map<AuxScale,Range> auxRanges,
-                            DataStore dataStore, PaperTypeSelector ptsel ) {
+                            DataStore dataStore, PaperTypeSelector ptsel,
+                            Compositor compositor ) {
         while ( saveChooser_.showDialog( parent, "Export Plot" )
                 == JFileChooser.APPROVE_OPTION ) {
             File file = saveChooser_.getSelectedFile();
@@ -103,8 +106,8 @@ public class PlotExporter {
             else {
                 LayerOpt[] opts = PaperTypeSelector.getOpts( layers );
                 PaperType paperType = bitmapButton_.isSelected()
-                                    ? ptsel.getPixelPaperType( opts, null )
-                                    : ptsel.getVectorPaperType( opts );
+                          ? ptsel.getPixelPaperType( opts, compositor, null )
+                          : ptsel.getVectorPaperType( opts );
                 Icon icon = createPlotIcon( placer, layers, auxRanges,
                                             dataStore, paperType );
                 try {
