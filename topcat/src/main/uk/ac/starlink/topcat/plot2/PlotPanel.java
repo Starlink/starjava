@@ -65,6 +65,7 @@ import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.DataStoreFactory;
 import uk.ac.starlink.ttools.plot2.data.StepDataStore;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
+import uk.ac.starlink.ttools.plot2.paper.Compositor;
 import uk.ac.starlink.ttools.plot2.paper.PaperType;
 import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
 
@@ -118,6 +119,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
     private final ToggleButtonModel sketchModel_;
     private final List<ChangeListener> changeListenerList_;
     private final PaperTypeSelector ptSel_;
+    private final Compositor compositor_;
     private final BoundedRangeModel progModel_;
     private final ToggleButtonModel showProgressModel_;
     private final ExecutorService plotExec_;
@@ -165,6 +167,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      * @param  sketchModel   model to decide whether intermediate sketch frames
      *                       are posted for slow plots
      * @param  ptSel   rendering policy
+     * @param  compositor  compositor for composition of transparent pixels
      * @param  progModel  progress bar model for showing plot progress
      * @param  showProgressModel  model to decide whether data scan operations
      *                            are reported to the progress bar model
@@ -174,7 +177,8 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                       Factory<PlotLayer[]> layerFact, Factory<Icon> legendFact,
                       Factory<float[]> legendPosFact,
                       ShaderControl shaderControl,
-                      ToggleButtonModel sketchModel, PaperTypeSelector ptSel,
+                      ToggleButtonModel sketchModel,
+                      PaperTypeSelector ptSel, Compositor compositor,
                       BoundedRangeModel progModel,
                       ToggleButtonModel showProgressModel ) {
         storeFact_ = progModel == null
@@ -187,6 +191,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         shaderControl_ = shaderControl;
         sketchModel_ = sketchModel;
         ptSel_ = ptSel;
+        compositor_ = compositor;
         progModel_ = progModel;
         showProgressModel_ = showProgressModel;
         changeListenerList_ = new ArrayList<ChangeListener>();
@@ -491,7 +496,8 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         float[] legpos = legendPosFact_.getItem();
         Rectangle bounds = getOuterBounds();
         LayerOpt[] opts = PaperTypeSelector.getOpts( layers );
-        PaperType paperType = ptSel_.getPixelPaperType( opts, this );
+        PaperType paperType =
+            ptSel_.getPixelPaperType( opts, compositor_, this );
         GraphicsConfiguration graphicsConfig = getGraphicsConfiguration();
         Color bgColor = getBackground();
 

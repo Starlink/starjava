@@ -73,6 +73,7 @@ import uk.ac.starlink.ttools.plot2.data.DataStoreFactory;
 import uk.ac.starlink.ttools.plot2.data.MemoryColumnFactory;
 import uk.ac.starlink.ttools.plot2.data.SmartColumnFactory;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
+import uk.ac.starlink.ttools.plot2.paper.Compositor;
 
 /**
  * Window for all plots.
@@ -124,6 +125,13 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         plotTypeGui_ = plotTypeGui;
         canSelectPoints_ = plotTypeGui.hasPositions();
 
+        /* Use a compositor with a fixed boost.  Maybe make the compositor
+         * implementation controllable from the GUI at some point, but
+         * the replot machinery currently assumes that PaperType is fixed
+         * (does not check whether it's changed between replot requests)
+         * so a bit of re-engineering would be required. */
+        final Compositor compositor = Compositor.createBoostCompositor( 0.05f );
+
         /* Set up user interface components in the window that can gather
          * all the information required to perform (re-)plots. */
         stack_ = new ControlStack();
@@ -173,7 +181,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             new PlotPanel<P,A>( storeFact, axisController_, layerFact,
                                 legendFact, legendPosFact,
                                 shaderControl, sketchModel,
-                                plotType.getPaperTypeSelector(),
+                                plotType.getPaperTypeSelector(), compositor,
                                 placeProgressBar().getModel(),
                                 showProgressModel_ );
 
@@ -278,7 +286,8 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                 DataStore dataStore = plotPanel_.getDataStore();
                 plotExporter.exportPlot( StackPlotWindow.this,
                                          placer, layers, auxRanges, dataStore,
-                                         plotType_.getPaperTypeSelector() );
+                                         plotType_.getPaperTypeSelector(),
+                                         compositor );
             }
         };
 
