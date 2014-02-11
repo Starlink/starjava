@@ -61,6 +61,6 @@ public class SimpleFormControl extends FormControl {
     }
 
     protected void setTable( TopcatModel tcModel ) {
-        extraCoordPanel_.setTable( tcModel );
+        extraCoordPanel_.setTable( tcModel, false );
     }
 }

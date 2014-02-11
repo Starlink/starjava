@@ -141,7 +141,7 @@ public class BasicCoordLayerControl extends ConfigControl
      * @param   tcModel   new topcat model, may be null
      */
     protected void tableChanged( TopcatModel tcModel ) {
-        coordPanel_.setTable( tcModel );
+        coordPanel_.setTable( tcModel, false );
 
         /* Set up subset selector. */
         final ComboBoxModel subselModel;

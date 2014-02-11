@@ -1,5 +1,6 @@
 package uk.ac.starlink.topcat.plot2;
 
+import gnu.jel.CompilationException;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionListener;
@@ -129,28 +130,72 @@ public class CoordPanel {
      * Sets the table with reference to which this panel will resolve
      * coordinate descriptions.
      *
+     * <p>If the existing selected coordinate values still make sense
+     * (if the new table has sufficiently compatible column names),
+     * they are retained.  If the columns cannot be retained they are
+     * cleared, and in that case if the <code>autopopulate</code> parameter
+     * is set, some default columns will be used.
+     *
      * @param  tcModel   table from which coordinate values will be drawn
+     * @param  autoPopulate   whether to autopopulate columns when old ones
+     *                        can't be used or are absent
      */
-    public void setTable( TopcatModel tcModel ) {
+    public void setTable( TopcatModel tcModel, boolean autoPopulate ) {
         int is = 1;
+        int ncuRequired = 0;
+        int ncuPopulated = 0;
         for ( int ic = 0; ic < coords_.length; ic++ ) {
             JComboBox[] colsels = colSelectors_[ ic ];
-            ValueInfo[] userInfos = coords_[ ic ].getUserInfos();
+            Coord coord = coords_[ ic ];
+            boolean isReq = coord.isRequired();
+            ValueInfo[] userInfos = coord.getUserInfos();
             int nu = colsels.length;
+            if ( isReq ) {
+                ncuRequired += nu;
+            }
             for ( int iu = 0; iu < nu; iu++ ) {
                 JComboBox cs = colsels[ iu ];
+                Object sel0 = cs.getSelectedItem();
+                String str0 = sel0 instanceof ColumnData
+                            ? sel0.toString()
+                            : null;
                 cs.setSelectedItem( null );
                 if ( tcModel == null ) {
                     cs.setEnabled( false );
                 }
                 else {
-                    ComboBoxModel model =
+                    ColumnDataComboBoxModel model =
                         new ColumnDataComboBoxModel( tcModel,
                                                      userInfos[ iu ]
                                                     .getContentClass(), true );
                     cs.setModel( model );
                     cs.setEnabled( true );
+
+                    /* If there was a previous value for the column,
+                     * and if it can be used with the new table, re-use it. */
+                    if ( str0 != null ) {
+                        ColumnData cdata;
+                        try {
+                            cdata = model.stringToColumnData( str0 );
+                        }
+                        catch ( CompilationException e ) {
+                            cdata = null;
+                        }
+                        if ( cdata != null ) {
+                            model.setSelectedItem( cdata );
+                            if ( isReq ) {
+                                ncuPopulated++;
+                            }
+                        }
+                    }
                 }
+            }
+
+            /* Autopopulate only if none of the existing columns can be used.  
+             * There are other possibilities, such as autopopulating those
+             * columns which can't be re-used, but for now keep it simple. */
+            if ( ncuPopulated == 0 && ncuRequired > 0 ) {
+                autoPopulate();
             }
         }
     }
