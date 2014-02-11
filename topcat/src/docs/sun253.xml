@@ -18295,6 +18295,8 @@ introduced since the last version:
         <li>Add grid and label colour configuration options to plane and
             sky plots.</li>
         <li>Add mouse help at bottom of plot windows.</li>
+        <li>Changing table in a plot now tries to retain the coordinate values
+            if they still make sense.</li>
         </ul>
         </p></dd>
 </dl>

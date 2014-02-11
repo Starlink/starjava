@@ -192,9 +192,9 @@ public class ModeFormControl extends FormControl {
     }
 
     protected void setTable( TopcatModel tcModel ) {
-        commonExtraCoordPanel_.setTable( tcModel );
+        commonExtraCoordPanel_.setTable( tcModel, false );
         for ( ModeState state : modeMap_.values() ) {
-            state.modeCoordPanel_.setTable( tcModel );
+            state.modeCoordPanel_.setTable( tcModel, false );
         }
     }
 
