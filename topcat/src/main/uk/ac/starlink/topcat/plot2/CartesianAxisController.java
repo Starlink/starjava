@@ -67,7 +67,7 @@ public abstract class CartesianAxisController<P,A> extends AxisController<P,A> {
                 }
             }
             private LayerControl getLeadControl() {
-                LayerControl[] controls = stackModel.getActiveLayerControls();
+                LayerControl[] controls = stackModel.getLayerControls( true );
                 return controls.length > 0 ? controls[ 0 ] : null;
             }
             private String[] getAxisLabels( LayerControl control ) {
