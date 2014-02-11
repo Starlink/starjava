@@ -277,21 +277,27 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         extraNoteRunner_.cancel( true );
         plotNoteRunner_.cancel( true );
 
-        /* If the new plot is quite like the old plot (e.g. pan or zoom)
-         * it's a good idea to let the old one complete
-         * (mayInterruptIfRunning false).  But if the new one is different
-         * (different layers, different data) then cancel the old one
-         * directly and restart the new one. */
+        /* If the previously requested plot has not yet started, simply
+         * cancel it.  If it has started, work out whether we want to let
+         * it complete or to interrupt it directly.
+         * This is not an easy call to make, but interactive response
+         * seems to be best served by allowing the previous one to
+         * complete if it was "on the way to" the new one - e.g. part of
+         * the same (pan, zoom, style slider) drag gesture.  If not,
+         * (e.g. different data, new layer) it's better to cancel the
+         * previous one directly and start drawing the new one. 
+         * Working out if one plot is on the way to another is itself
+         * not easy, we delegate it here to the isSimilar method. */
         PlotJobRunner plotRunner = plotRunner_;
-        boolean isSimilar = plotRunner.isSimilar( plotJob );
-        plotRunner.cancel( ! isSimilar );
+        boolean interruptPrevious = ! plotRunner.isSimilar( plotJob );
+        plotRunner.cancel( interruptPrevious );
 
         /* Store the plot surface now if it can be done fast. */
         latestSurface_ = plotJob.getSurfaceQuickly();
 
         /* Schedule the plot job for execution. */
         plotRunner_ =
-            new PlotJobRunner( plotJob, isSimilar ? plotRunner : null );
+            new PlotJobRunner( plotJob, interruptPrevious ? null : plotRunner );
         plotRunner_.submit();
     }
 
@@ -1275,13 +1281,17 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         /**
          * Constructor.
          *
-         * @param  layer  plot layer
+         * @param  plotter  plotter
+         * @param  dataSpec   data specification
+         * @param  dataGeom   mapping to graphics space
+         * @param  style    layer style
          */
-        public LayerId( PlotLayer layer ) {
-            plotter_ = layer.getPlotter();
-            dataSpec_ = layer.getDataSpec();
-            dataGeom_ = layer.getDataGeom();
-            style_ = layer.getStyle();
+        public LayerId( Plotter plotter, DataSpec dataSpec, DataGeom dataGeom,
+                        Style style ) {
+            plotter_ = plotter;
+            dataSpec_ = dataSpec;
+            dataGeom_ = dataGeom;
+            style_ = style;
         }
 
         @Override
@@ -1309,6 +1319,17 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         }
 
         /**
+         * Returns a layerId characterising a given plot layer.
+         *
+         * @param  layer
+         * @return  layer id
+         */
+        static LayerId createLayerId( PlotLayer layer ) {
+            return new LayerId( layer.getPlotter(), layer.getDataSpec(),
+                                layer.getDataGeom(), layer.getStyle() );
+        }
+
+        /**
          * Returns a list of LayerIds corresponding to an array of plot layers.
          *
          * @param  layers   plot layers
@@ -1317,7 +1338,24 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         static List<LayerId> layerList( PlotLayer[] layers ) {
             List<LayerId> llist = new ArrayList<LayerId>( layers.length );
             for ( int il = 0; il < layers.length; il++ ) {
-                llist.add( new LayerId( layers[ il ] ) );
+                llist.add( LayerId.createLayerId( layers[ il ] ) );
+            }
+            return llist;
+        }
+
+        /**
+         * Returns a list of LayerIds corresponding to an array of plot layers,
+         * but in which the layer styles are not recorded (are set to null).
+         *
+         * @param  layers  plot layers
+         * @return  list of style-less layer ids
+         */
+        static List<LayerId> layerListNoStyle( PlotLayer[] layers ) {
+            List<LayerId> llist = new ArrayList<LayerId>( layers.length );
+            for ( int il = 0; il < layers.length; il++ ) {
+                PlotLayer layer = layers[ il ];
+                llist.add( new LayerId( layer.getPlotter(), layer.getDataSpec(),
+                                        layer.getDataGeom(), null ) );
             }
             return llist;
         }
@@ -1585,10 +1623,8 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
 
         /**
          * Indicates whether the plot job which this object will execute
-         * is similar to a given plot job.  Similarity means, for now,
-         * that it's got the same layers, but not necessarily the same
-         * plot surface.  It will be similar therefore if the difference
-         * is just an axis change like a pan or zoom.
+         * is similar to a given plot job, for the purposes of working out
+         * whether to let an old job complete.
          *
          * @param  plotJob   other plot job
          * @return  true iff this object's job is like the other one
@@ -1599,15 +1635,27 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
 
         /**
          * Returns an identity object representing the parts of a plot job
-         * that must be equal between two instances to confer similarity.
+         * that must be equal between two instances to confer similarity
+         * for the purposes of working out whether to interrupt a previous job.
+         * This notion of similarity is not very well defined, and may be
+         * adjusted in the future; it's a case of trying to get something
+         * which works well in the UI.
+         *
+         * <p>For now two jobs are characterised as similar if they have
+         * the same list of layer types, in the same order, with the same
+         * data.  However the plot surface and the layer styles may change.
+         * This accommodates as similar for instance panned/zoomed versions
+         * of the same plot or versions which differ by having the
+         * transparency limit adjusted.
          *
          * @param  plotJob  job to identify
          * @return   list of layerIds
          */
         @Equality
         private Object getSimilarityObject( PlotJob plotJob ) {
-            return LayerId.layerList( plotJob == null ? new PlotLayer[ 0 ]
-                                                      : plotJob.layers_ );
+            return LayerId.layerListNoStyle( plotJob == null
+                                                 ? new PlotLayer[ 0 ]
+                                                 : plotJob.layers_ );
         }
     }
 
