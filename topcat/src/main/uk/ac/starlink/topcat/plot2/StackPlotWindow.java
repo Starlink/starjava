@@ -149,7 +149,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                 new SmartColumnFactory( new MemoryColumnFactory() ) );
         Factory<PlotLayer[]> layerFact = new Factory<PlotLayer[]>() {
             public PlotLayer[] getItem() {
-                return readPlotLayers();
+                return readPlotLayers( true );
             }
         };
         final LegendControl legendControl =
@@ -349,7 +349,8 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         stackModel_.addPlotActionListener( new ActionListener() {
             boolean hasShader;
             public void actionPerformed( ActionEvent evt ) {
-                boolean requiresShader = hasShadedLayers( readPlotLayers() );
+                boolean requiresShader =
+                    hasShadedLayers( readPlotLayers( false ) );
                 if ( hasShader ^ requiresShader ) {
                     if ( requiresShader ) {
                         stackPanel.addFixedControl( shaderControl );
@@ -540,11 +541,14 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     /**
      * Acquires the list of requested plot layers from the GUI.
      *
+     * @param  activeOnly   if true, return only layers from active controls
+     *                      (those which will actually be plotted)
+     *                      if false, return even inactive ones
      * @return  plot layer list
      */
-    private PlotLayer[] readPlotLayers() {
+    private PlotLayer[] readPlotLayers( boolean activeOnly ) {
         List<PlotLayer> layerList = new ArrayList<PlotLayer>();
-        LayerControl[] controls = stackModel_.getActiveLayerControls();
+        LayerControl[] controls = stackModel_.getLayerControls( activeOnly );
         for ( int ic = 0; ic < controls.length; ic++ ) {
             PlotLayer[] layers = controls[ ic ].getPlotLayers();
             layerList.addAll( Arrays.asList( layers ) );

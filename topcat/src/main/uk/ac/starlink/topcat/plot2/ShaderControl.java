@@ -162,7 +162,7 @@ public class ShaderControl extends ConfigControl {
      * Configures state according to the current state of the control stack.
      */
     private void adjustAutoConfig() {
-        LayerControl[] controls = stackModel_.getActiveLayerControls();
+        LayerControl[] controls = stackModel_.getLayerControls( true );
         labelSpecifier_.setAutoValue( getDefaultAxisLabel( controls ) );
         visibleSpecifier_.setAutoValue( hasShaders( controls ) );
     }

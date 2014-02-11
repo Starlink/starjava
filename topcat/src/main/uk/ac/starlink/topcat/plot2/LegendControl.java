@@ -179,7 +179,7 @@ public class LegendControl extends TabberControl {
      */
     private LegendEntry[] getLegendEntries() {
         List<LegendEntry> entryList = new ArrayList<LegendEntry>();
-        LayerControl[] controls = stackModel_.getActiveLayerControls();
+        LayerControl[] controls = stackModel_.getLayerControls( true );
         for ( int ic = 0; ic < controls.length; ic++ ) {
             entryList.addAll( Arrays.asList( controls[ ic ]
                                             .getLegendEntries() ) );
