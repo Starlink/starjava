@@ -18297,6 +18297,7 @@ introduced since the last version:
         <li>Add mouse help at bottom of plot windows.</li>
         <li>Changing table in a plot now tries to retain the coordinate values
             if they still make sense.</li>
+        <li>Add crowding config options to text plotter.</li>
         </ul>
         </p></dd>
 </dl>
