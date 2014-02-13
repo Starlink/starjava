@@ -1,12 +1,11 @@
 package uk.ac.starlink.ttools.plot2.layer;
 
-import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
@@ -20,9 +19,14 @@ import uk.ac.starlink.ttools.plot2.Glyph;
 import uk.ac.starlink.ttools.plot2.LayerOpt;
 import uk.ac.starlink.ttools.plot2.Pixer;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
+import uk.ac.starlink.ttools.plot2.PointCloud;
+import uk.ac.starlink.ttools.plot2.SubCloud;
 import uk.ac.starlink.ttools.plot2.Surface;
+import uk.ac.starlink.ttools.plot2.config.ConfigException;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
+import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
+import uk.ac.starlink.ttools.plot2.config.IntegerConfigKey;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.CoordGroup;
@@ -36,7 +40,7 @@ import uk.ac.starlink.ttools.plot2.paper.PaperType;
 import uk.ac.starlink.ttools.plot2.paper.PaperType2D;
 import uk.ac.starlink.ttools.plot2.paper.PaperType3D;
 
-/** 
+/**
  * Plotter that writes a text label at each graphics position.
  *
  * @author   Mark Taylor
@@ -51,6 +55,19 @@ public class LabelPlotter extends AbstractPlotter<LabelStyle> {
                          true );
     private static final CoordGroup LABEL_CGRP =
         CoordGroup.createCoordGroup( 1, new Coord[] { LABEL_COORD } );
+    private static final int MAX_CROWDLIMIT = Byte.MAX_VALUE / 2 - 1;
+
+    /** Config key to control minimum pixel label spacing. */
+    private static final ConfigKey<Integer> SPACING_KEY =
+        IntegerConfigKey
+       .createSliderKey( new ConfigMeta( "spacing", "Spacing Threshold" ),
+                         12, 0.5, 200, true );
+
+    /** Config key to control max label count in spacing region. */
+    private static final ConfigKey<Integer> CROWDLIMIT_KEY =
+        IntegerConfigKey
+       .createSpinnerKey( new ConfigMeta( "crowdlimit", "Crowding Limit" ),
+                          2, 1, MAX_CROWDLIMIT );
 
     /**
      * Constructor.
@@ -65,14 +82,25 @@ public class LabelPlotter extends AbstractPlotter<LabelStyle> {
         list.addAll( Arrays.asList( new ConfigKey[] {
             StyleKeys.ANCHOR,
             StyleKeys.COLOR,
+            SPACING_KEY,
+            CROWDLIMIT_KEY,
         } ) );
         return list.toArray( new ConfigKey[ 0 ] );
     }
 
     public LabelStyle createStyle( ConfigMap config ) {
+        int iclimit = config.get( CROWDLIMIT_KEY );
+        if ( iclimit < 1 || iclimit > MAX_CROWDLIMIT ) {
+            throw new ConfigException( CROWDLIMIT_KEY,
+                                       iclimit + " out of range "
+                                     + 1 + ".." + MAX_CROWDLIMIT );
+        }
+        byte crowdLimit = (byte) iclimit;
+        assert crowdLimit == iclimit;
         return new LabelStyle( StyleKeys.createCaptioner( config ),
                                config.get( StyleKeys.ANCHOR ),
-                               config.get( StyleKeys.COLOR ) );
+                               config.get( StyleKeys.COLOR ),
+                               config.get( SPACING_KEY ), crowdLimit );
     }
 
     public PlotLayer createLayer( final DataGeom geom,
@@ -101,13 +129,10 @@ public class LabelPlotter extends AbstractPlotter<LabelStyle> {
     /**
      * Abstract Drawing implementation for writing labels.
      * The plan it creates is a map of labels indexed by screen position.
-     * Doing it like this incurs the cost of storing that map.
-     * However, it has the benefit that if there are many labels plotted
-     * at the same point, only one gets drawn.  There are two advantages
-     * to that: first, it's faster for crowded fields (drawing millions of
-     * labels could be extremely slow), and second, the top one may
-     * actually be legible in the eventual plot; if many are overplotted
-     * *on the same point* they will almost certainly be illegible.
+     * The number of entries in this map cannot be greater than the
+     * number of pixels in the plot, and if spacing is set non-zero then
+     * it will be (probably much) smaller.  This limits the number of
+     * text strings that need to be drawn.
      *
      * <p>The parameterised type <code>T</code> is the type of the
      * label object stored; it differs according to plot (PaperType)
@@ -146,9 +171,10 @@ public class LabelPlotter extends AbstractPlotter<LabelStyle> {
          * Constructs a map of screen positions to label contents.
          *
          * @param  dataStore  data storage object
+         * @param  mask  indicates at which positions labels may appear
          * @return   position label map
          */
-        abstract Map<Point,T> createMap( DataStore dataStore );
+        abstract Map<Point,T> createMap( DataStore dataStore, GridMask mask );
 
         /**
          * Renders the contents of the label map to the paper.
@@ -160,16 +186,27 @@ public class LabelPlotter extends AbstractPlotter<LabelStyle> {
 
         public Object calculatePlan( Object[] knownPlans,
                                      DataStore dataStore ) {
+            int spacing = style_.getSpacing();
+            byte crowdLimit = style_.getCrowdLimit();
             for ( int i = 0; i < knownPlans.length; i++ ) {
                 Object plan = knownPlans[ i ];
                 if ( plan instanceof LabelPlan &&
-                     ((LabelPlan) plan).matches( geom_, dataSpec_,
-                                                 surface_, clazz_ ) ) {
+                    ((LabelPlan) plan).matches( geom_, dataSpec_, surface_,
+                                                spacing, crowdLimit,
+                                                clazz_ ) ) {
                     return plan;
                 }
             }
-            Map<Point,T> map = createMap( dataStore );
-            return new LabelPlan<T>( geom_, dataSpec_, surface_, map, clazz_ );
+            PointCloud cloud =
+                new PointCloud( new SubCloud( geom_, dataSpec_, icPos_ ) );
+            BinPlan binPlan =
+                BinPlan.calculatePointCloudPlan( cloud, surface_, dataStore,
+                                                 knownPlans );
+            GridMask gridMask =
+                calculateGridMask( binPlan, spacing, crowdLimit, surface_ );
+            Map<Point,T> map = createMap( dataStore, gridMask );
+            return new LabelPlan<T>( geom_, dataSpec_, surface_, spacing,
+                                     crowdLimit, map, clazz_ );
         }
 
         public void paintData( Object plan, Paper paper, DataStore dataStore ) {
@@ -177,6 +214,101 @@ public class LabelPlotter extends AbstractPlotter<LabelStyle> {
             LabelPlan<T> labelPlan = (LabelPlan<T>) plan;
             paintMap( labelPlan.map_, paper );
         }
+    }
+
+    /**
+     * From a bin plan, works out the positions on the plot pixel grid
+     * at which a label is permitted.  Labels are blocked if they are
+     * too close, as determined by the <code>spacing</code> argument.
+     *
+     * @param  binPlan  grid of point counts per pixel
+     * @param  spacing  minimum spacing in pixels between points to permit a
+     *                  label to be drawn
+     * @param  crowdLimit  number of labels allowed within spacing
+     * @param  surface  plot surface
+     */
+    private static GridMask calculateGridMask( BinPlan binPlan, int spacing,
+                                               byte crowdLimit,
+                                               Surface surface ) {
+
+        /* If spacing is zero, there are no restrictions; any grid position
+         * is permitted. */
+        if ( spacing == 0 ) {
+            return new GridMask() {
+                public boolean isFree( Point gp ) {
+                    return true;
+                }
+            };
+        }
+
+        /* Otherwise, form a grid giving the count of points within
+         * spacing pixels of each pixel.  For efficiency, the count value
+         * is actually truncated at a fixed crowdLimit1, since any value above
+         * that delivers the same behaviour (label forbidden). */
+        final byte crowdLimit1 = (byte) ( crowdLimit + 1 );
+        assert crowdLimit1 < Byte.MAX_VALUE / 2;  // else overflow possibilities
+        final Gridder gridder = binPlan.getGridder();
+        Binner binner = binPlan.getBinner();
+        Rectangle plotBounds = surface.getPlotBounds();
+        int count = gridder.getLength();
+        int nx = gridder.getWidth();
+        int ny = gridder.getHeight();
+
+        /* Copy values from the bin plan to a mask array
+         * (truncate at crowdLimit1). */
+        byte[] mask0 = new byte[ count ];
+        for ( int i = 0; i < count; i++ ) {
+            mask0[ i ] = (byte) Math.min( binner.getCount( i ), crowdLimit1 );
+        }
+
+        /* Convolve the original mask with a kernel corresponding to a
+         * horizontal line of pixels of length 2*spacing,
+         * centered on the origin. */
+        byte[] mask1 = new byte[ count ];
+        for ( int ix = 0; ix < nx; ix++ ) {
+            int x1 = Math.max( 0, ix - spacing );
+            int x2 = Math.min( nx, ix + spacing );
+            for ( int iy = 0; iy < ny; iy++ ) {
+                int itarget = gridder.getIndex( ix, iy );
+                for ( int jx = x1; jx < x2 && mask1[ itarget ] < crowdLimit1;
+                      jx++ ) {
+                    mask1[ itarget ] += mask0[ gridder.getIndex( jx, iy ) ];
+                }
+            }
+        }
+
+        /* Convolve the result of that step with a kernel corresponding to a
+         * vertical line of pixels of length 2*spacing,
+         * centered on the origin. */
+        Arrays.fill( mask0, (byte) 0 );
+        final byte[] mask2 = mask0;
+        for ( int iy = 0; iy < ny; iy++ ) {
+            int y1 = Math.max( 0, iy - spacing );
+            int y2 = Math.min( ny, iy + spacing );
+            for ( int ix = 0; ix < nx; ix++ ) {
+                int itarget = gridder.getIndex( ix, iy );
+                for ( int jy = y1; jy < y2 && mask2[ itarget ] < crowdLimit1;
+                      jy++ ) {
+                    mask2[ itarget ] += mask1[ gridder.getIndex( ix, jy ) ];
+                }
+            }
+        }
+
+        /* The result is a convolution of the original mask with a square
+         * kernel with sides 2*spacing, centered on the origin.
+         * The pixel counts in the result are the sums of the input values,
+         * truncated at crowdLimit1.  The result is that any grid position
+         * in the result mask with value >=crowdLimit1 has >=crowdLimit1
+         * points plotted within spacing pixels of itself
+         * (including itself). */
+        final int gx0 = plotBounds.x;
+        final int gy0 = plotBounds.y;
+        return new GridMask() {
+            public boolean isFree( Point gp ) {
+                return mask2[ gridder.getIndex( gp.x - gx0, gp.y - gy0 ) ]
+                     < crowdLimit1;
+            }
+        };
     }
 
     /**
@@ -202,14 +334,15 @@ public class LabelPlotter extends AbstractPlotter<LabelStyle> {
         }
 
         @Override
-        Map<Point,String> createMap( DataStore dataStore ) {
-            Map<Point,String> map = new HashMap<Point,String>();
+        Map<Point,String> createMap( DataStore dataStore, GridMask gridMask ) {
+            Map<Point,String> map = new LinkedHashMap<Point,String>();
             double[] dpos = new double[ surface_.getDataDimCount() ];
             Point gp = new Point();
             TupleSequence tseq = dataStore.getTupleSequence( dataSpec_ );
             while ( tseq.next() ) {
                 if ( geom_.readDataPos( tseq, icPos_, dpos ) &&
-                     surface_.dataToGraphics( dpos, true, gp ) ) {
+                     surface_.dataToGraphics( dpos, true, gp ) &&
+                     gridMask.isFree( gp ) ) {
                     String label =
                         LABEL_COORD.readStringCoord( tseq, icLabel_ );
                     if ( label != null && label.trim().length() > 0 ) {
@@ -259,8 +392,9 @@ public class LabelPlotter extends AbstractPlotter<LabelStyle> {
         }
 
         @Override
-        Map<Point,DepthString> createMap( DataStore dataStore ) {
-            Map<Point,DepthString> map = new HashMap<Point,DepthString>();
+        Map<Point,DepthString> createMap( DataStore dataStore,
+                                          GridMask gridMask ) {
+            Map<Point,DepthString> map = new LinkedHashMap<Point,DepthString>();
             double[] dpos = new double[ surface_.getDataDimCount() ];
             Point gp = new Point();
             double[] depthArr = new double[ 1 ];
@@ -268,7 +402,8 @@ public class LabelPlotter extends AbstractPlotter<LabelStyle> {
             TupleSequence tseq = dataStore.getTupleSequence( dataSpec_ );
             while ( tseq.next() ) {
                 if ( geom_.readDataPos( tseq, icPos_, dpos ) &&
-                    surf.dataToGraphicZ( dpos, true, gp, depthArr ) ) {
+                     surf.dataToGraphicZ( dpos, true, gp, depthArr ) &&
+                     gridMask.isFree( gp ) ) {
                     String label =
                         LABEL_COORD.readStringCoord( tseq, icLabel_ );
                     if ( label != null && label.trim().length() > 0 ) {
@@ -324,6 +459,8 @@ public class LabelPlotter extends AbstractPlotter<LabelStyle> {
         final DataGeom geom_;
         final DataSpec dataSpec_;
         final Surface surface_;
+        final int spacing_;
+        final byte crowdLimit_;
         final Map<Point,T> map_;
         final Class<T> clazz_;
 
@@ -333,15 +470,20 @@ public class LabelPlotter extends AbstractPlotter<LabelStyle> {
          * @param  geom  data geom
          * @param  dataSpec  data specfication
          * @param  surface  plot surface
+         * @param  spacing  minimum distance in pixels between labels
+         * @param  crowdLimit  maximum number of labels in spacing area
          * @param  map  plan payload - a map from screen position to
          *              placeable label
          * @param  clazz  class parameterising map values
          */
         LabelPlan( DataGeom geom, DataSpec dataSpec, Surface surface,
-                   Map<Point,T> map, Class<T> clazz ) {
+                   int spacing, byte crowdLimit, Map<Point,T> map,
+                   Class<T> clazz ) {
             geom_ = geom;
             dataSpec_ = dataSpec;
             surface_ = surface;
+            spacing_ = spacing;
+            crowdLimit_ = crowdLimit;
             map_ = map;
             clazz_ = clazz;
         }
@@ -353,15 +495,34 @@ public class LabelPlotter extends AbstractPlotter<LabelStyle> {
          * @param  geom  data geom
          * @param  dataSpec  data specfication
          * @param  surface  plot surface
+         * @param  spacing  minimum distance in pixels between labels
+         * @param  crowdLimit  maximum number of labels in spacing area
          * @param  parameterising class
          */
         boolean matches( DataGeom geom, DataSpec dataSpec, Surface surface,
-                         Class clazz ) {
+                         int spacing, byte crowdLimit, Class clazz ) {
             return geom.equals( geom_ )
                 && dataSpec.equals( dataSpec_ )
-                && surface.equals( surface_ ) 
+                && surface.equals( surface_ )
+                && spacing == spacing_
+                && crowdLimit == crowdLimit_
                 && clazz.equals( clazz_ );
         }
+    }
+
+    /**
+     * Characterises grid point availability.
+     */
+    private static interface GridMask {
+
+        /**
+         * Indicates whether given pixel positions on the plot grid are
+         * permitted to receive a text label.
+         * 
+         * @param   gp  pixel position
+         * @return  true iff a text label is permitted at <code>gp</code>
+         */
+        boolean isFree( Point gp );
     }
 
     /**

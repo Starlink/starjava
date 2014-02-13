@@ -22,6 +22,8 @@ public class LabelStyle implements Style {
     private final Captioner captioner_;
     private final Anchor anchor_;
     private final Color color_;
+    private final int spacing_;
+    private final byte crowdLimit_;
 
     /**
      * Constructor.
@@ -29,11 +31,16 @@ public class LabelStyle implements Style {
      * @param  captioner  renders text to graphics
      * @param  anchor  positions text relative to plot point
      * @param  color  text colour
+     * @param  spacing  minimum pixel distance between labels
+     * @param  crowdLimit  number of labels allowed within spacing
      */
-    public LabelStyle( Captioner captioner, Anchor anchor, Color color ) {
+    public LabelStyle( Captioner captioner, Anchor anchor, Color color,
+                       int spacing, byte crowdLimit ) {
         captioner_ = captioner;
         anchor_ = anchor;
         color_ = color;
+        spacing_ = spacing;
+        crowdLimit_ = crowdLimit;
     }
 
     public Icon getLegendIcon() {
@@ -68,6 +75,24 @@ public class LabelStyle implements Style {
     }
 
     /**
+     * Returns the minimum pixel spacing permitted between labels.
+     *
+     * @return  label spacing in pixels
+     */
+    public int getSpacing() {
+        return spacing_;
+    }
+
+    /**
+     * Returns the number of labels allowed within spacing pixels.
+     *
+     * @return  crowd limit
+     */
+    public byte getCrowdLimit() {
+        return crowdLimit_;
+    }
+
+    /**
      * Draws the label at the origin without colouring it.
      * The drawing is therefore in the default colour of the graphics context.
      *
@@ -84,7 +109,9 @@ public class LabelStyle implements Style {
             LabelStyle other = (LabelStyle) o;
             return this.captioner_.equals( other.captioner_ )
                 && this.anchor_.equals( other.anchor_ )
-                && this.color_.equals( other.color_ );
+                && this.color_.equals( other.color_ )
+                && this.spacing_ == other.spacing_
+                && this.crowdLimit_ == other.crowdLimit_;
         }
         else {
             return false;
@@ -97,6 +124,8 @@ public class LabelStyle implements Style {
         code = 23 * code + captioner_.hashCode();
         code = 23 * code + anchor_.hashCode();
         code = 23 * code + color_.hashCode();
+        code = 23 * code + spacing_;
+        code = 23 * code + crowdLimit_;
         return code;
     }
 
