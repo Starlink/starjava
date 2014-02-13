@@ -38,11 +38,13 @@ import uk.ac.starlink.ttools.plot2.paper.PaperType;
 public class ContourPlotter extends AbstractPlotter<ContourStyle> {
 
     private static final ConfigKey<Integer> NLEVEL_KEY =
-        new IntegerConfigKey( new ConfigMeta( "nlevel", "Level Count" ),
-                              0, 999, 5 );
+        IntegerConfigKey.createSpinnerKey( new ConfigMeta( "nlevel",
+                                                           "Level Count" ),
+                                           5, 0, 999 );
     private static final ConfigKey<Integer> SMOOTH_KEY =
-        new IntegerConfigKey( new ConfigMeta( "smooth", "Smoothing" ),
-                              1, 40, 3 );
+        IntegerConfigKey.createSpinnerKey( new ConfigMeta( "smooth",
+                                                           "Smoothing" ),
+                                           4, 1, 40 );
     private static final ConfigKey<Double> OFFSET_KEY =
         DoubleConfigKey.createSliderKey( new ConfigMeta( "zero", "Zero Point" ),
                                          0, -2, +2, false );
