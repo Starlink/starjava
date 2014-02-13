@@ -59,7 +59,7 @@ public class StyleKeys {
 
     /** Config key for marker size. */
     public static final ConfigKey<Integer> SIZE =
-            new IntegerConfigKey( new ConfigMeta( "size", "Size" ), 0, 5, 1 ) {
+            new IntegerConfigKey( new ConfigMeta( "size", "Size" ), 1 ) {
         public Specifier<Integer> createSpecifier() {
             return new ComboBoxSpecifier<Integer>( MarkStyleSelectors
                                                   .createSizeSelector() );
@@ -168,8 +168,9 @@ public class StyleKeys {
     /** Config key for label font size.
      *  @see  #createCaptioner */
     private static final ConfigKey<Integer> FONT_SIZE =
-        new IntegerConfigKey( new ConfigMeta( "fontsize", "Font Size" ),
-                              2, 64, 12 );
+        IntegerConfigKey.createSpinnerKey( new ConfigMeta( "fontsize",
+                                                           "Font Size" ),
+                                           12, 2, 64 );
 
     /** Config key for label font style.
      *  @see  #createCaptioner */
@@ -423,7 +424,7 @@ public class StyleKeys {
      */
     public static ConfigKey<Integer> createThicknessKey( int dfltThick ) {
         return new IntegerConfigKey( new ConfigMeta( "thick", "Thickness" ),
-                                     1, 5, dfltThick ) {
+                                     dfltThick ) {
             public Specifier<Integer> createSpecifier() {
                 return new ComboBoxSpecifier<Integer>(
                                new ThicknessComboBox( 5 ) );
