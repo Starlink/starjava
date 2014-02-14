@@ -18298,6 +18298,7 @@ introduced since the last version:
         <li>Changing table in a plot now tries to retain the coordinate values
             if they still make sense.</li>
         <li>Add crowding config options to text plotter.</li>
+        <li>Add some more colour maps.</li>
         </ul>
         </p></dd>
 </dl>
