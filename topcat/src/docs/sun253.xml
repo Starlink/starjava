@@ -18299,6 +18299,8 @@ introduced since the last version:
             if they still make sense.</li>
         <li>Add crowding config options to text plotter.</li>
         <li>Add some more colour maps.</li>
+        <li>Improve re-ranging in sky plot; new data set now re-ranges unless
+            lock button is set.</li>
         </ul>
         </p></dd>
 </dl>

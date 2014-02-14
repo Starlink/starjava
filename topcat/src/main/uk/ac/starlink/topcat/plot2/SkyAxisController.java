@@ -10,7 +10,6 @@ import javax.swing.Icon;
 import javax.swing.JComponent;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.topcat.ResourceIcon;
-import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.ttools.plot.Matrices;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
@@ -85,16 +84,6 @@ public class SkyAxisController
                          new ConfigSpecifier( StyleKeys.getCaptionerKeys() ) );
 
         assert assertHasKeys( surfFact.getProfileKeys() );
-    }
-
-    /**
-     * Currently the axis lock value is ignored,
-     * (see the <code>clearRange</code> method),
-     * so return null here.
-     */
-    @Override
-    public ToggleButtonModel getAxisLockModel() {
-        return null;
     }
 
     /**
@@ -246,10 +235,8 @@ public class SkyAxisController
         return getConfig().get( SkySurfaceFactory.VIEWSYS_KEY );
     }
 
-    protected boolean clearRange( SkySurfaceFactory.Profile oldProfile,
-                                  SkySurfaceFactory.Profile newProfile,
-                                  PlotLayer[] oldLayers, PlotLayer[] newLayers,
-                                  boolean lock ) {
+    protected boolean forceClearRange( SkySurfaceFactory.Profile oldProfile,
+                                       SkySurfaceFactory.Profile newProfile ) {
         return ! oldProfile.getProjection().equals( newProfile.getProjection() )
             || ! oldProfile.getViewSystem().equals( newProfile.getViewSystem() )
             || oldProfile.isReflected() != newProfile.isReflected();

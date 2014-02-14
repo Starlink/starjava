@@ -7,16 +7,21 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.topcat.ActionForwarder;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.ttools.plot.Range;
+import uk.ac.starlink.ttools.plot2.DataGeom;
+import uk.ac.starlink.ttools.plot2.Equality;
 import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.Specifier;
+import uk.ac.starlink.ttools.plot2.data.CoordGroup;
+import uk.ac.starlink.ttools.plot2.data.DataSpec;
 
 /**
  * Object which configures details of a plot's axes, including surface
@@ -35,6 +40,7 @@ public abstract class AxisController<P,A> implements Configger {
     private final ToggleButtonModel stickyModel_;
     private final ActionForwarder actionForwarder_;
     private final List<ConfigControl> controlList_;
+    private final Set<DataId> seenDataIdSet_;
     private ConfigMap aspectConfig_;
     private Range[] ranges_;
     private A aspect_;
@@ -63,6 +69,7 @@ public abstract class AxisController<P,A> implements Configger {
         lastLayers_ = new PlotLayer[ 0 ];
         lastProfile_ = surfFact.createProfile( new ConfigMap() );
         aspectPanels_ = new ArrayList<ActionSpecifierPanel>();
+        seenDataIdSet_ = new HashSet<DataId>();
     }
 
     /**
@@ -312,8 +319,140 @@ public abstract class AxisController<P,A> implements Configger {
      *                      if it needs to
      * @return  true iff the range should be re-established for the next plot
      */
-    protected abstract boolean clearRange( P oldProfile, P newProfile,
-                                           PlotLayer[] oldLayers,
-                                           PlotLayer[] newLayers,
-                                           boolean lock );
+    protected boolean clearRange( P oldProfile, P newProfile,
+                                  PlotLayer[] oldLayers, PlotLayer[] newLayers,
+                                  boolean lock ) {
+
+        /* Assemble a set of objects that characterise the datasets being
+         * plotted by these layers. */
+        Set<DataId> dataIdSet = new HashSet<DataId>();
+        for ( int il = 0; il < newLayers.length; il++ ) {
+            DataId did = createDataId( newLayers[ il ] );
+            if ( did != null ) {
+                assert did.equals( createDataId( newLayers[ il ] ) );
+                dataIdSet.add( did );
+            }
+        }
+
+        /* Does this contain any datasets we've never seen before? */
+        boolean hasNewLayers = ! seenDataIdSet_.containsAll( dataIdSet );
+
+        /* A re-range may be required by the change in profile. */
+        if ( forceClearRange( oldProfile, newProfile ) ) {
+            seenDataIdSet_.clear();
+            seenDataIdSet_.addAll( dataIdSet );
+            return true;
+        }
+
+        /* Otherwise, if the axis lock is in place, do not re-range. */
+        else if ( lock ) {
+            seenDataIdSet_.clear();
+            seenDataIdSet_.addAll( dataIdSet );
+            return false;
+        }
+
+        /* Otherwise, try to make an intelligent decision:
+         * re-range only if there are new data sets present. */
+        else if ( hasNewLayers ) {
+            seenDataIdSet_.clear();
+            seenDataIdSet_.addAll( dataIdSet );
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    /**
+     * Determines whether the change between two profiles forces an
+     * unconditional re-range of the plotting surface.
+     * This method should return true if the plotting surface will change
+     * between the old and new supplied profiles sufficiently to invalidate
+     * previously calculated auto range data.
+     *
+     * @param  oldProfile   profile before change
+     * @param  newProfile   profile after change
+     * @return  true if a new auto-ranging is required
+     */
+    protected abstract boolean forceClearRange( P oldProfile, P newProfile );
+
+    /**
+     * Returns an object that characterises a plot layer for ranging
+     * purposes.  Two layers that return the equivalent ({@link Equality})
+     * results from this method should be treated as having the same ranges.
+     *
+     * @param  layer  plot layer
+     * @return   opaque object characterising identity of ranging information
+     *           associated with the layer, or null if no range
+     */
+    @Equality
+    protected DataId createDataId( PlotLayer layer ) {
+        DataGeom geom = layer.getDataGeom();
+        DataSpec spec = layer.getDataSpec();
+        CoordGroup cgrp = layer.getPlotter().getCoordGroup();
+        return geom == null ||
+               spec == null ||
+               cgrp.getRangeCoordIndices( geom ).length == 0
+             ? null 
+             : new DataId( geom, spec, cgrp );
+    }
+
+    /**
+     * Characterises a plotted data set for the purposes of working out
+     * whether this is new data we need to re-range for.
+     * DataIds are equal if they have the same table and the same
+     * positional coordinates
+     * (it's like a {@link uk.ac.starlink.ttools.plot2.PointCloud}
+     * but without reference to the mask).
+     * We leave the mask out because probably (though not for sure)
+     * the first time a dataset is plotted the mask will be ALL,
+     * so any subsequent changes will just remove data, which doesn't
+     * warrant a re-range.
+     */
+    @Equality
+    private static class DataId {
+        private final DataGeom geom_;
+        private final StarTable srcTable_;
+        private final Object[] coordIds_; 
+
+        /**
+         * Constructor.
+         *
+         * @param  geom  data geom, not null
+         * @param  dataSpec  data spec, not null
+         * @param  cgrp   coordinate group 
+         */
+        DataId( DataGeom geom, DataSpec dataSpec, CoordGroup cgrp ) {
+            geom_ = geom;
+            srcTable_ = dataSpec.getSourceTable();
+
+            /* A CoordinateGroup explicitly labels those coordinates that
+             * are relevant for ranging.  Use these. */ 
+            int[] rcis = cgrp.getRangeCoordIndices( geom );
+            coordIds_ = new Object[ rcis.length ];
+            for ( int i = 0; i < rcis.length; i++ ) {
+                coordIds_[ i ] = dataSpec.getCoordId( rcis[ i ] );
+            }
+        }
+        @Override
+        public int hashCode() {
+            int code = 33771;
+            code = 23 * code + geom_.hashCode();
+            code = 23 * code + srcTable_.hashCode();
+            code = 23 * code + Arrays.hashCode( coordIds_ );
+            return code; 
+        }
+        @Override  
+        public boolean equals( Object o ) {
+            if ( o instanceof DataId ) {
+                DataId other = (DataId) o;
+                return this.geom_.equals( other.geom_ )
+                    && this.srcTable_.equals( other.srcTable_ )
+                    && Arrays.equals( this.coordIds_, other.coordIds_ );
+            }
+            else {
+                return false;
+            }
+        }
+    }
 }
