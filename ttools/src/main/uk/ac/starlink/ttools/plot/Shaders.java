@@ -26,6 +26,13 @@ import uk.ac.starlink.util.FloatList;
 /**
  * Provides some implementations of the {@link Shader} interface.
  *
+ * <p>Many other lookup tables are available.
+ * See for instance
+ * <a href="http://www.ncl.ucar.edu/Document/Graphics/color_table_gallery.shtml"
+ *    >http://www.ncl.ucar.edu/Document/Graphics/color_table_gallery.shtml</a>.
+ * The utility class {@link LutSteal} is available to help turn these into
+ * lut files that can be used here.
+ *
  * @author   Mark Taylor
  * @since    5 Jun 2007
  */
@@ -169,6 +176,15 @@ public class Shaders {
     /** Shader copied from glNemo2 application. */
     public static final Shader LUT_GLNEMO2;
 
+    /** Shader based on lookup table Cubehelix. */
+    public static final Shader LUT_CUBEHELIX;
+
+    /** Shader copied from Matplotlib Gnuplot lookup table. */
+    public static final Shader LUT_GNUPLOT;
+
+    /** Shader copied from Matplotlib Gnuplot2 lookup table. */
+    public static final Shader LUT_GNUPLOT2;
+
     /** Selection of lookup table-based shaders. */
     public final static Shader[] LUT_SHADERS = new Shader[] {
         LUT_AIPS0 = new ResourceLutShader( "AIPS0", "aips0.lut" ),
@@ -191,6 +207,9 @@ public class Shaders {
         LUT_ACCENT = new ResourceLutShader( "Accent", "accent.lut" ),
         LUT_COLD = new ResourceLutShader( "Cold", "cold.lut" ),
         LUT_GLNEMO2 = new ResourceLutShader( "Rainbow2", "glnemo2.lut" ),
+        LUT_CUBEHELIX = new ResourceLutShader( "Cubehelix", "cubehelix.lut" ),
+        LUT_GNUPLOT = new ResourceLutShader( "Gnuplot", "MPL_gnuplot.lut" ),
+        LUT_GNUPLOT2 = new ResourceLutShader( "Gnuplot2", "MPL_gnuplot2.lut" ),
     };
 
     /* ColorBrewer.
