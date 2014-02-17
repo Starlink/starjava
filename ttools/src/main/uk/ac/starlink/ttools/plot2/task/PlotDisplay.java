@@ -60,6 +60,7 @@ public class PlotDisplay<P,A> extends JComponent {
     private final boolean surfaceAuxRange_;
     private final Compositor compositor_;
     private final boolean caching_;
+    private Decoration navDecoration_;
     private Map<AuxScale,Range> auxRanges_;
     private Surface approxSurf_;
     private Surface surface_;
@@ -128,8 +129,11 @@ public class PlotDisplay<P,A> extends JComponent {
                                           .createSubClouds( layers_, true ) )
                           .createDataPosIterable( dataStore_ );
                 }
-                public void setAspect( A aspect ) {
+                protected void setAspect( A aspect ) {
                     PlotDisplay.this.setAspect( aspect );
+                }
+                protected void setDecoration( Decoration dec ) {
+                    setNavDecoration( dec );
                 }
             }.addListeners( this );
         }
@@ -210,6 +214,9 @@ public class PlotDisplay<P,A> extends JComponent {
         /* Paint the image to this component. */
         long start = System.currentTimeMillis();
         icon.paintIcon( this, g, insets.left, insets.top );
+        if ( navDecoration_ != null ) {
+            navDecoration_.paintDecoration( g );
+        }
         PlotUtil.logTime( logger_, "Paint", start );
     }
 
@@ -222,6 +229,18 @@ public class PlotDisplay<P,A> extends JComponent {
         if ( aspect != null && ! aspect.equals( aspect_ ) ) {
             aspect_ = aspect;
             clearPlot();
+            repaint();
+        }
+    }
+
+    /**
+     * Sets the navigation decoration.
+     *
+     * @param  dec  navigation decoration
+     */
+    private void setNavDecoration( Decoration dec ) {
+        if ( ! PlotUtil.equals( navDecoration_, dec ) ) {
+            navDecoration_ = dec;
             repaint();
         }
     }
