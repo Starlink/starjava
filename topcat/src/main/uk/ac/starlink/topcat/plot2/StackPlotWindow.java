@@ -53,6 +53,7 @@ import uk.ac.starlink.topcat.TopcatUtils;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.DataGeom;
+import uk.ac.starlink.ttools.plot2.Decoration;
 import uk.ac.starlink.ttools.plot2.Gesture;
 import uk.ac.starlink.ttools.plot2.NavigationListener;
 import uk.ac.starlink.ttools.plot2.Navigator;
@@ -201,6 +202,9 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             public void setAspect( A aspect ) {
                 axisController_.setAspect( aspect );
                 plotPanel_.replot();
+            }
+            public void setDecoration( Decoration navDec ) {
+                plotPanel_.setNavDecoration( navDec );
             }
         }.addListeners( plotPanel_ );
 

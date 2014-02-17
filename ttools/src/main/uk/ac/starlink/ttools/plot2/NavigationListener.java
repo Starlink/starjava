@@ -2,11 +2,14 @@ package uk.ac.starlink.ttools.plot2;
 
 import java.awt.Component;
 import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import javax.swing.Timer;
 
 /**
  * Listener that receives mouse events and uses them in conjunction with
@@ -17,8 +20,24 @@ import java.awt.event.MouseWheelListener;
  */
 public abstract class NavigationListener<A>
         implements MouseListener, MouseMotionListener, MouseWheelListener {
+
+    private final Timer decTimer_;
     private Surface dragSurface_;
     private Point startPoint_;
+
+    /** Lifetime of an auto-cancelled navigation decoration. */
+    private static final int DECORATION_AUTO_MILLIS = 500;
+
+    /**
+     * Constructor.
+     */
+    protected NavigationListener() {
+        decTimer_ = new Timer( DECORATION_AUTO_MILLIS, new ActionListener() {
+            public void actionPerformed( ActionEvent evt ) {
+                setDecoration( null );
+            }
+        } );
+    }
 
     /**
      * Returns a plotting surface which provides the context for navigation
@@ -51,13 +70,59 @@ public abstract class NavigationListener<A>
      *
      * @param  aspect   definition of requested plot surface
      */
-    public abstract void setAspect( A aspect );
+    protected abstract void setAspect( A aspect );
+
+    /**
+     * Sets a decoration to display over the plot to indicate navigation
+     * actions in progress.  This decoration should be displayed until
+     * further notice, that is, until this method is called again with
+     * a null argument.
+     *
+     * <p>This method is called by {@link #updateDecoration updateDecoration}.
+     * It should not be called directly.
+     *
+     * @param   decoration  navigation decoration, or null for none
+     */
+    protected abstract void setDecoration( Decoration decoration );
+
+    /**
+     * Requests a change of the current navigation decoration.
+     * This performs some housekeeping operations, and calls
+     * {@link #setDecoration}.
+     * The <code>autoCancel</code> parameter controls whether the decoration
+     * will be cancelled automatically or by hand.
+     * If the caller can guarantee to make a matching call with a null
+     * decoration in the future, <code>autoCancel</code> may be false,
+     * otherwise it should be true.
+     *
+     * @param  dec  new decoration
+     * @param  autoCancel  if true, decoration will be automatically cancelled
+     */
+    public void updateDecoration( Decoration dec, boolean autoCancel ) {
+        decTimer_.stop();
+        setDecoration( dec );
+        if ( autoCancel && dec != null ) {
+            decTimer_.start();
+        }
+    }
 
     public void mousePressed( MouseEvent evt ) {
 
         /* Start a drag gesture. */
         startPoint_ = evt.getPoint();
         dragSurface_ = getSurface();
+
+        /* Arrange to display the relevant decoration if there is one. */
+        Navigator<A> navigator = getNavigator();
+        if ( navigator != null ) {
+            NavAction<A> drag0act =
+                navigator.drag( dragSurface_, evt, startPoint_ );
+            Decoration dragDec = drag0act == null ? null
+                                                  : drag0act.getDecoration();
+            if ( dragDec != null ) {
+                updateDecoration( dragDec, false );
+            }
+        }
     }
 
     public void mouseDragged( MouseEvent evt ) {
@@ -69,13 +134,26 @@ public abstract class NavigationListener<A>
                 NavAction<A> navact =
                     navigator.drag( dragSurface_, evt, startPoint_ );
                 if ( navact != null ) {
-                    processAction( navact );
+                    updateDecoration( navact.getDecoration(), false );
+                    A aspect = navact.getAspect();
+                    if ( aspect != null ) {
+                        setAspect( aspect );
+                    }
                 }
-            } 
-        } 
-    }   
+            }
+        }
+    }
 
     public void mouseReleased( MouseEvent evt ) {
+
+        /* Eliminate the drag decoration, if there is one. */
+        if ( dragSurface_ != null ) {
+            NavAction navact =
+                getNavigator().drag( dragSurface_, evt, startPoint_ );
+            if ( navact != null && navact.getDecoration() != null ) {
+                updateDecoration( null, false );
+            }
+        }
 
         /* Terminate any current drag gesture. */
         dragSurface_ = null;
@@ -97,7 +175,8 @@ public abstract class NavigationListener<A>
      * Performs the actual work when a mouse click event is detected.
      * This method is invoked by {@link #mouseClicked mouseClicked}.
      * The default behaviour is to get a corresponding navigation action
-     * from the navigator, and call <code>setAspect</code> accordingly.
+     * from the navigator,
+     * and call {@link #setAspect} and {@link #updateDecoration} accordingly.
      * However, it may be overridden by subclasses.
      *
      * @param   navigator   navigator
@@ -110,6 +189,7 @@ public abstract class NavigationListener<A>
         NavAction<A> navact =
             navigator.click( surface, evt, createDataPosIterable() );
         if ( navact != null ) {
+            updateDecoration( navact.getDecoration(), true );
             A aspect = navact.getAspect();
             if ( aspect != null ) {
                 setAspect( aspect );
@@ -123,7 +203,11 @@ public abstract class NavigationListener<A>
         if ( navigator != null && surface != null ) {
             NavAction<A> navact = navigator.wheel( surface, evt );
             if ( navact != null ) {
-                processAction( navact );
+                updateDecoration( navact.getDecoration(), true );
+                A aspect = navact.getAspect();
+                if ( aspect != null ) {
+                    setAspect( aspect );
+                }
             }
         }
     }
@@ -159,20 +243,5 @@ public abstract class NavigationListener<A>
         component.removeMouseListener( this );
         component.removeMouseMotionListener( this );
         component.removeMouseWheelListener( this );
-    }
-
-    /**
-     * Receives a new navigation action produced by user interface actions in
-     * conjunction with this object.
-     *
-     * @param  navact   navigation action
-     */
-    private void processAction( NavAction<A> navact ) {
-        if ( navact != null ) {
-            A aspect = navact.getAspect();
-            if ( aspect != null ) {
-                setAspect( aspect );
-            }
-        }
     }
 }

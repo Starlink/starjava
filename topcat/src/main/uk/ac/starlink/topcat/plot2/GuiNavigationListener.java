@@ -47,6 +47,7 @@ public abstract class GuiNavigationListener<A> extends NavigationListener<A> {
         plotPanel_.submitPlotAnnotator( new Runnable() {
             public void run() {
                 NavAction<A> navact = navigator.click( surface, evt, dposIt );
+                updateDecoration( navact.getDecoration(), true );
                 final A aspect = navact == null ? null : navact.getAspect();
                 if ( aspect != null &&
                      ! Thread.currentThread().isInterrupted() ) {

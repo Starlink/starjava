@@ -66,6 +66,11 @@ public class Decoration {
     }
 
     @Override
+    public String toString() {
+        return "(" + gx_ + "," + gy_ + "):" + icon_;
+    }
+
+    @Override
     public boolean equals( Object o ) {
         if ( o instanceof Decoration ) {
             Decoration other = (Decoration) o;
