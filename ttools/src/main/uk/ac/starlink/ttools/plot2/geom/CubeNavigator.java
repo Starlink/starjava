@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import uk.ac.starlink.ttools.plot2.Gesture;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.NavAction;
 import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.CombinationConfigKey;
@@ -48,31 +49,34 @@ public class CubeNavigator implements Navigator<CubeAspect> {
         axisFlags_ = axisFlags;
     }
 
-    public CubeAspect drag( Surface surface, MouseEvent evt, Point origin ) {
+    public NavAction<CubeAspect> drag( Surface surface, MouseEvent evt,
+                                       Point origin ) {
         CubeSurface csurf = (CubeSurface) surface;
         Point point = evt.getPoint();
+        final CubeAspect aspect;
         if ( ( evt.getModifiersEx() & MouseEvent.BUTTON2_DOWN_MASK ) != 0 ) {
-            return csurf.pointPan( origin, point );
+            aspect = csurf.pointPan( origin, point );
         }
         else if ( PlotUtil.isZoomDrag( evt ) ) {
-            return axisFlags_ == null
-                 ? csurf.pointZoom( origin,
-                                    PlotUtil.toZoom( zoomFactor_, origin,
-                                                     point, false ),
-                                    PlotUtil.toZoom( zoomFactor_, origin,
-                                                     point, true ) )
-                 : csurf.centerZoom( PlotUtil.toZoom( zoomFactor_, origin,
-                                                      point, null ),
-                                     axisFlags_[ 0 ],
-                                     axisFlags_[ 1 ],
-                                     axisFlags_[ 2 ] );
+            aspect = axisFlags_ == null
+                   ? csurf.pointZoom( origin,
+                                      PlotUtil.toZoom( zoomFactor_, origin,
+                                                       point, false ),
+                                      PlotUtil.toZoom( zoomFactor_, origin,
+                                                       point, true ) )
+                   : csurf.centerZoom( PlotUtil.toZoom( zoomFactor_, origin,
+                                                        point, null ),
+                                       axisFlags_[ 0 ],
+                                       axisFlags_[ 1 ],
+                                       axisFlags_[ 2 ] );
         }
         else {
-            return csurf.pan( origin, point );
+            aspect = csurf.pan( origin, point );
         }
+        return new NavAction<CubeAspect>( aspect, null );
     }
 
-    public CubeAspect wheel( Surface surface, MouseWheelEvent evt ) {
+    public NavAction<CubeAspect> wheel( Surface surface, MouseWheelEvent evt ) {
         final boolean xZoom;
         final boolean yZoom;
         final boolean zZoom;
@@ -86,15 +90,22 @@ public class CubeNavigator implements Navigator<CubeAspect> {
             yZoom = axisFlags_[ 1 ];
             zZoom = axisFlags_[ 2 ];
         }
-        return ((CubeSurface) surface)
-              .centerZoom( PlotUtil.toZoom( zoomFactor_, evt ),
-                           xZoom, yZoom, zZoom );
+        CubeAspect aspect = ((CubeSurface) surface)
+                           .centerZoom( PlotUtil.toZoom( zoomFactor_, evt ),
+                                        xZoom, yZoom, zZoom );
+        return new NavAction<CubeAspect>( aspect, null );
     }
 
-    public CubeAspect click( Surface surface, MouseEvent evt,
-                             Iterable<double[]> dposIt ) {
+    public NavAction<CubeAspect> click( Surface surface, MouseEvent evt,
+                                        Iterable<double[]> dposIt ) {
         double[] dpos = surface.graphicsToData( evt.getPoint(), dposIt );
-        return dpos == null ? null : ((CubeSurface) surface).center( dpos );
+        if ( dpos == null ) {
+            return null;
+        }
+        else {
+            CubeAspect aspect = ((CubeSurface) surface).center( dpos );
+            return new NavAction<CubeAspect>( aspect, null );
+        }
     }
 
     public Map<Gesture,String> getNavOptions( Surface surface, Point pos ) {

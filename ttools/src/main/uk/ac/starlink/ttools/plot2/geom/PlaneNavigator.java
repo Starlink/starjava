@@ -7,6 +7,7 @@ import java.awt.event.MouseWheelEvent;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import uk.ac.starlink.ttools.plot2.Gesture;
+import uk.ac.starlink.ttools.plot2.NavAction;
 import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Surface;
@@ -53,36 +54,42 @@ public class PlaneNavigator implements Navigator<PlaneAspect> {
         yPan_ = yPan;
     }
 
-    public PlaneAspect drag( Surface surface, MouseEvent evt, Point origin ) {
+    public NavAction<PlaneAspect> drag( Surface surface, MouseEvent evt,
+                                        Point origin ) {
         boolean[] useFlags = getAxisNavFlags( surface, origin, xPan_, yPan_ );
         PlaneSurface psurf = (PlaneSurface) surface;
         Point point = evt.getPoint();
         if ( PlotUtil.isZoomDrag( evt ) ) {
-            return psurf
-                  .zoom( origin,
-                         useFlags[ 0 ] ? PlotUtil.toZoom( zoomFactor_, origin,
-                                                          point, false )
-                                       : 1,
-                         useFlags[ 1 ] ? PlotUtil.toZoom( zoomFactor_, origin,
-                                                          point, true )
-                                       : 1 );
+            PlaneAspect aspect =
+                psurf
+               .zoom( origin,
+                      useFlags[ 0 ] ? PlotUtil.toZoom( zoomFactor_, origin,
+                                                       point, false )
+                                    : 1,
+                      useFlags[ 1 ] ? PlotUtil.toZoom( zoomFactor_, origin,
+                                                       point, true )
+                                    : 1 );
+            return new NavAction<PlaneAspect>( aspect, null );
         }
         else {
-            return psurf.pan( origin, point, useFlags[ 0 ], useFlags[ 1 ] );
+            PlaneAspect aspect =
+                psurf.pan( origin, point, useFlags[ 0 ], useFlags[ 1 ] );
+            return new NavAction<PlaneAspect>( aspect, null );
         }
     }
 
-    public PlaneAspect wheel( Surface surface, MouseWheelEvent evt ) {
+    public NavAction<PlaneAspect>wheel( Surface surface, MouseWheelEvent evt ) {
         Point pos = evt.getPoint();
         boolean[] useFlags = getAxisNavFlags( surface, pos, xZoom_, yZoom_ );
         double zfact = PlotUtil.toZoom( zoomFactor_, evt );
-        return ((PlaneSurface) surface)
-              .zoom( pos, useFlags[ 0 ] ? zfact : 1,
-                          useFlags[ 1 ] ? zfact : 1 );
+        PlaneAspect aspect = ((PlaneSurface) surface)
+                            .zoom( pos, useFlags[ 0 ] ? zfact : 1,
+                                        useFlags[ 1 ] ? zfact : 1 );
+        return new NavAction<PlaneAspect>( aspect, null );
     }
 
-    public PlaneAspect click( Surface surface, MouseEvent evt,
-                              Iterable<double[]> dposIt ) {
+    public NavAction<PlaneAspect> click( Surface surface, MouseEvent evt,
+                                         Iterable<double[]> dposIt ) {
         return null;
     }
 

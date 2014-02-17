@@ -10,7 +10,7 @@ import java.awt.event.MouseWheelListener;
 
 /**
  * Listener that receives mouse events and uses them in conjunction with
- * a supplied navigator to updae the aspect of a plot surface.
+ * a supplied navigator to feed navigation actions to a plot surface.
  *
  * @author   Mark Taylor
  * @since    30 Oct 2013
@@ -30,7 +30,7 @@ public abstract class NavigationListener<A>
 
     /**
      * Returns a navigator which is used to convert mouse gestures into
-     * updated surface aspects.
+     * navigation actions.
      *
      * @return  current navigator, may be null
      */
@@ -66,9 +66,10 @@ public abstract class NavigationListener<A>
         if ( dragSurface_ != null ) {
             Navigator<A> navigator = getNavigator();
             if ( navigator != null ) {
-                A aspect = navigator.drag( dragSurface_, evt, startPoint_ );
-                if ( aspect != null ) {
-                    setAspect( aspect );
+                NavAction<A> navact =
+                    navigator.drag( dragSurface_, evt, startPoint_ );
+                if ( navact != null ) {
+                    processAction( navact );
                 }
             } 
         } 
@@ -95,8 +96,8 @@ public abstract class NavigationListener<A>
     /**
      * Performs the actual work when a mouse click event is detected.
      * This method is invoked by {@link #mouseClicked mouseClicked}.
-     * The default behaviour is to get a corresponding aspect from the
-     * navigator, and call <code>setAspect</code> accordingly.
+     * The default behaviour is to get a corresponding navigation action
+     * from the navigator, and call <code>setAspect</code> accordingly.
      * However, it may be overridden by subclasses.
      *
      * @param   navigator   navigator
@@ -106,9 +107,13 @@ public abstract class NavigationListener<A>
      */
     protected void handleClick( Navigator<A> navigator, Surface surface,
                                 MouseEvent evt, Iterable<double[]> dposIt ) {
-        A aspect = navigator.click( surface, evt, createDataPosIterable() );
-        if ( aspect != null ) {
-            setAspect( aspect );
+        NavAction<A> navact =
+            navigator.click( surface, evt, createDataPosIterable() );
+        if ( navact != null ) {
+            A aspect = navact.getAspect();
+            if ( aspect != null ) {
+                setAspect( aspect );
+            }
         }
     }
 
@@ -116,9 +121,9 @@ public abstract class NavigationListener<A>
         Navigator<A> navigator = getNavigator();
         Surface surface = getSurface();
         if ( navigator != null && surface != null ) {
-            A aspect = navigator.wheel( surface, evt );
-            if ( aspect != null ) {
-                setAspect( aspect );
+            NavAction<A> navact = navigator.wheel( surface, evt );
+            if ( navact != null ) {
+                processAction( navact );
             }
         }
     }
@@ -154,5 +159,20 @@ public abstract class NavigationListener<A>
         component.removeMouseListener( this );
         component.removeMouseMotionListener( this );
         component.removeMouseWheelListener( this );
+    }
+
+    /**
+     * Receives a new navigation action produced by user interface actions in
+     * conjunction with this object.
+     *
+     * @param  navact   navigation action
+     */
+    private void processAction( NavAction<A> navact ) {
+        if ( navact != null ) {
+            A aspect = navact.getAspect();
+            if ( aspect != null ) {
+                setAspect( aspect );
+            }
+        }
     }
 }
