@@ -31,22 +31,24 @@ public interface Navigator<A> {
      * @param   evt    mouse event associated with the final (at least, most
      *                 recent) element of the drag gesture
      * @param   origin   starting point of the drag gesture
-     * @return   new surface indicated by the gesture, or null for no change
+     * @return  navigation action indicated by the gesture,
+     *          or null for no change
      */
-    A drag( Surface surface, MouseEvent evt, Point origin );
+    NavAction<A> drag( Surface surface, MouseEvent evt, Point origin );
 
     /**
      * Mouse wheel gesture.
      *
      * <p>Wheel gestures usually indicate zooming, and in this case should
-     * preferably have the outcome that the samedata position remains
+     * preferably have the outcome that the same data position remains
      * at the mouse position before and after the zoom.
      *
      * @param   surface  initial plot surface
      * @param   evt    mouse event associated with the wheel gesture
-     * @return   new surface indicated by the gesture, or null for no change
+     * @return  navigation action indicated by the gesture,
+     *          or null for no change
      */
-    A wheel( Surface surface, MouseWheelEvent evt );
+    NavAction<A> wheel( Surface surface, MouseWheelEvent evt );
 
     /**
      * Mouse click gesture.
@@ -73,9 +75,11 @@ public interface Navigator<A> {
      * @param   dposIt  iterable over dataDimCount-element arrays
      *                  representing all the data space positions plotted,
      *                  or null
-     * @return   new surface indicated by the gesture, or null for no change
+     * @return  navigation action indicated by the gesture,
+     *          or null for no change
      */
-    A click( Surface surface, MouseEvent evt, Iterable<double[]> dposIt );
+    NavAction<A> click( Surface surface, MouseEvent evt,
+                        Iterable<double[]> dposIt );
 
     /**
      * Returns a description of the available navigation gestures and the

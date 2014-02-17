@@ -2,6 +2,7 @@ package uk.ac.starlink.topcat.plot2;
 
 import java.awt.event.MouseEvent;
 import javax.swing.SwingUtilities;
+import uk.ac.starlink.ttools.plot2.NavAction;
 import uk.ac.starlink.ttools.plot2.NavigationListener;
 import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.Surface;
@@ -45,7 +46,8 @@ public abstract class GuiNavigationListener<A> extends NavigationListener<A> {
          * later on the EDT.  Also make sure that progress is logged. */
         plotPanel_.submitPlotAnnotator( new Runnable() {
             public void run() {
-                final A aspect = navigator.click( surface, evt, dposIt );
+                NavAction<A> navact = navigator.click( surface, evt, dposIt );
+                final A aspect = navact == null ? null : navact.getAspect();
                 if ( aspect != null &&
                      ! Thread.currentThread().isInterrupted() ) {
                     SwingUtilities.invokeLater( new Runnable() {

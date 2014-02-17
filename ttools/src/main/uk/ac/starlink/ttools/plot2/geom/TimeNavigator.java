@@ -6,6 +6,7 @@ import java.awt.event.MouseWheelEvent;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import uk.ac.starlink.ttools.plot2.Gesture;
+import uk.ac.starlink.ttools.plot2.NavAction;
 import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Surface;
@@ -54,39 +55,43 @@ public class TimeNavigator implements Navigator<TimeAspect> {
         yPan_ = yPan;
     }
 
-    public TimeAspect drag( Surface surface, MouseEvent evt, Point origin ) {
+    public NavAction<TimeAspect> drag( Surface surface, MouseEvent evt,
+                                       Point origin ) {
         boolean[] useFlags =
             PlaneNavigator.getAxisNavFlags( surface, origin, tPan_, yPan_ );
         TimeSurface tsurf = (TimeSurface) surface;
         Point point = evt.getPoint();
+        final TimeAspect aspect;
         if ( PlotUtil.isZoomDrag( evt ) ) {
-            return tsurf
-                  .zoom( origin,
-                         useFlags[ 0 ] ? PlotUtil.toZoom( zoomFactor_, origin,
-                                                          point, false )
-                                       : 1,
-                         useFlags[ 1 ] ? PlotUtil.toZoom( zoomFactor_, origin,
-                                                          point, true )
-                                       : 1 );
+            aspect = tsurf
+                    .zoom( origin,
+                           useFlags[ 0 ] ? PlotUtil.toZoom( zoomFactor_, origin,
+                                                            point, false )
+                                         : 1,
+                           useFlags[ 1 ] ? PlotUtil.toZoom( zoomFactor_, origin,
+                                                            point, true )
+                                         : 1 );
         }
         else {
-            return ((TimeSurface) surface)
-                  .pan( origin, point, useFlags[ 0 ], useFlags[ 1 ] );
+            aspect = ((TimeSurface) surface)
+                    .pan( origin, point, useFlags[ 0 ], useFlags[ 1 ] );
         }
+        return new NavAction<TimeAspect>( aspect, null );
     }
 
-    public TimeAspect wheel( Surface surface, MouseWheelEvent evt ) {
+    public NavAction<TimeAspect> wheel( Surface surface, MouseWheelEvent evt ) {
         Point pos = evt.getPoint();
         boolean[] useFlags =
             PlaneNavigator.getAxisNavFlags( surface, pos, tZoom_, yZoom_ );
         double zfact = PlotUtil.toZoom( zoomFactor_, evt );
-        return ((TimeSurface) surface)
-              .zoom( pos, useFlags[ 0 ] ? zfact : 1,
-                          useFlags[ 1 ] ? zfact : 1 );
+        TimeAspect aspect = ((TimeSurface) surface)
+                           .zoom( pos, useFlags[ 0 ] ? zfact : 1,
+                                       useFlags[ 1 ] ? zfact : 1 );
+        return new NavAction<TimeAspect>( aspect, null );
     }
 
-    public TimeAspect click( Surface surface, MouseEvent evt,
-                             Iterable<double[]> dposIt ) {
+    public NavAction<TimeAspect> click( Surface surface, MouseEvent evt,
+                                        Iterable<double[]> dposIt ) {
         return null;
     }
 
