@@ -185,6 +185,9 @@ public class Shaders {
     /** Shader copied from Matplotlib Gnuplot2 lookup table. */
     public static final Shader LUT_GNUPLOT2;
 
+    /** Shader copied from SPECX blue2yellow lookup table. */
+    public static final Shader LUT_SPECXB2Y;
+
     /** Selection of lookup table-based shaders. */
     public final static Shader[] LUT_SHADERS = new Shader[] {
         LUT_AIPS0 = new ResourceLutShader( "AIPS0", "aips0.lut" ),
@@ -210,6 +213,7 @@ public class Shaders {
         LUT_CUBEHELIX = new ResourceLutShader( "Cubehelix", "cubehelix.lut" ),
         LUT_GNUPLOT = new ResourceLutShader( "Gnuplot", "MPL_gnuplot.lut" ),
         LUT_GNUPLOT2 = new ResourceLutShader( "Gnuplot2", "MPL_gnuplot2.lut" ),
+        LUT_SPECXB2Y = new ResourceLutShader( "SpecxBY", "specxbl2yel.lut" ),
     };
 
     /* ColorBrewer.
