@@ -5,6 +5,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import uk.ac.starlink.ttools.plot2.Decoration;
 import uk.ac.starlink.ttools.plot2.Gesture;
 import uk.ac.starlink.ttools.plot2.NavAction;
 import uk.ac.starlink.ttools.plot2.Navigator;
@@ -61,22 +62,26 @@ public class TimeNavigator implements Navigator<TimeAspect> {
             PlaneNavigator.getAxisNavFlags( surface, origin, tPan_, yPan_ );
         TimeSurface tsurf = (TimeSurface) surface;
         Point point = evt.getPoint();
-        final TimeAspect aspect;
         if ( PlotUtil.isZoomDrag( evt ) ) {
-            aspect = tsurf
-                    .zoom( origin,
-                           useFlags[ 0 ] ? PlotUtil.toZoom( zoomFactor_, origin,
-                                                            point, false )
-                                         : 1,
-                           useFlags[ 1 ] ? PlotUtil.toZoom( zoomFactor_, origin,
-                                                            point, true )
-                                         : 1 );
+            double tf = useFlags[ 0 ]
+                      ? PlotUtil.toZoom( zoomFactor_, origin, point, false )
+                      : 1;
+            double yf = useFlags[ 1 ]
+                      ? PlotUtil.toZoom( zoomFactor_, origin, point, true )
+                      : 1;
+            TimeAspect aspect = tsurf.zoom( origin, tf, yf );
+            Decoration dec =
+                NavDecorations
+               .createDragDecoration( origin, tf, yf,
+                                      useFlags[ 0 ], useFlags[ 1 ],
+                                      surface.getPlotBounds() );
+            return new NavAction<TimeAspect>( aspect, dec );
         }
         else {
-            aspect = ((TimeSurface) surface)
-                    .pan( origin, point, useFlags[ 0 ], useFlags[ 1 ] );
+            TimeAspect aspect =
+                tsurf.pan( origin, point, useFlags[ 0 ], useFlags[ 1 ] );
+            return new NavAction<TimeAspect>( aspect, null );
         }
-        return new NavAction<TimeAspect>( aspect, null );
     }
 
     public NavAction<TimeAspect> wheel( Surface surface, MouseWheelEvent evt ) {
@@ -84,10 +89,14 @@ public class TimeNavigator implements Navigator<TimeAspect> {
         boolean[] useFlags =
             PlaneNavigator.getAxisNavFlags( surface, pos, tZoom_, yZoom_ );
         double zfact = PlotUtil.toZoom( zoomFactor_, evt );
-        TimeAspect aspect = ((TimeSurface) surface)
-                           .zoom( pos, useFlags[ 0 ] ? zfact : 1,
-                                       useFlags[ 1 ] ? zfact : 1 );
-        return new NavAction<TimeAspect>( aspect, null );
+        double tf = useFlags[ 0 ] ? zfact : 1;
+        double yf = useFlags[ 1 ] ? zfact : 1;
+        TimeAspect aspect = ((TimeSurface) surface).zoom( pos, tf, yf );
+        Decoration dec =
+            NavDecorations
+           .createWheelDecoration( pos, tf, yf, useFlags[ 0 ], useFlags[ 1 ],
+                                   surface.getPlotBounds() );
+        return new NavAction<TimeAspect>( aspect, dec );
     }
 
     public NavAction<TimeAspect> click( Surface surface, MouseEvent evt,

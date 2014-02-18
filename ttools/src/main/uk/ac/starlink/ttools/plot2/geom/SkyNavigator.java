@@ -5,6 +5,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import uk.ac.starlink.ttools.plot2.Decoration;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Gesture;
 import uk.ac.starlink.ttools.plot2.NavAction;
@@ -36,19 +37,32 @@ public class SkyNavigator implements Navigator<SkyAspect> {
     public NavAction<SkyAspect> drag( Surface surface, MouseEvent evt,
                                       Point origin ) {
         SkySurface ssurf = (SkySurface) surface;
-        SkyAspect aspect =
-               PlotUtil.isZoomDrag( evt )
-             ? ssurf.zoom( origin, PlotUtil.toZoom( zoomFactor_, origin,
-                                                    evt.getPoint(), null ) )
-             : ssurf.pan( origin, evt.getPoint() );
-        return new NavAction<SkyAspect>( aspect, null );
+        Point pos = evt.getPoint();
+        if ( PlotUtil.isZoomDrag( evt ) ) {
+            double fact = PlotUtil.toZoom( zoomFactor_, origin, pos, null );
+            SkyAspect aspect = ssurf.zoom( origin, fact );
+            Decoration dec =
+                NavDecorations
+               .createDragDecoration( origin, fact, fact, true, true,
+                                      surface.getPlotBounds() );
+            return new NavAction<SkyAspect>( aspect, dec );
+        }
+        else {
+            SkyAspect aspect = ssurf.pan( origin, pos );
+            return new NavAction<SkyAspect>( aspect, null );
+        }
     }
 
     public NavAction<SkyAspect> wheel( Surface surface, MouseWheelEvent evt ) {
-        SkyAspect aspect =
-            ((SkySurface) surface)
-           .zoom( evt.getPoint(), PlotUtil.toZoom( zoomFactor_, evt ) );
-        return new NavAction<SkyAspect>( aspect, null );
+        SkySurface ssurf = (SkySurface) surface;
+        Point pos = evt.getPoint();
+        double fact = PlotUtil.toZoom( zoomFactor_, evt );
+        SkyAspect aspect = ssurf.zoom( pos, fact );
+        Decoration dec =
+            NavDecorations
+           .createWheelDecoration( pos, fact, fact, true, true,
+                                   surface.getPlotBounds() );
+        return new NavAction<SkyAspect>( aspect, dec );
     }
 
     public NavAction<SkyAspect> click( Surface surface, MouseEvent evt,
