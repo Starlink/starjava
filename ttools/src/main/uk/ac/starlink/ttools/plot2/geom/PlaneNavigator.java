@@ -6,6 +6,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import uk.ac.starlink.ttools.plot2.Decoration;
 import uk.ac.starlink.ttools.plot2.Gesture;
 import uk.ac.starlink.ttools.plot2.NavAction;
 import uk.ac.starlink.ttools.plot2.Navigator;
@@ -60,16 +61,19 @@ public class PlaneNavigator implements Navigator<PlaneAspect> {
         PlaneSurface psurf = (PlaneSurface) surface;
         Point point = evt.getPoint();
         if ( PlotUtil.isZoomDrag( evt ) ) {
-            PlaneAspect aspect =
-                psurf
-               .zoom( origin,
-                      useFlags[ 0 ] ? PlotUtil.toZoom( zoomFactor_, origin,
-                                                       point, false )
-                                    : 1,
-                      useFlags[ 1 ] ? PlotUtil.toZoom( zoomFactor_, origin,
-                                                       point, true )
-                                    : 1 );
-            return new NavAction<PlaneAspect>( aspect, null );
+            double xf = useFlags[ 0 ]
+                      ? PlotUtil.toZoom( zoomFactor_, origin, point, false )
+                      : 1;
+            double yf = useFlags[ 1 ]
+                      ? PlotUtil.toZoom( zoomFactor_, origin, point, true )
+                      : 1;
+            PlaneAspect aspect = psurf.zoom( origin, xf, yf );
+            Decoration dec =
+                NavDecorations
+               .createDragDecoration( origin, xf, yf,
+                                      useFlags[ 0 ], useFlags[ 1 ],
+                                      surface.getPlotBounds() );
+            return new NavAction<PlaneAspect>( aspect, dec );
         }
         else {
             PlaneAspect aspect =
@@ -78,14 +82,19 @@ public class PlaneNavigator implements Navigator<PlaneAspect> {
         }
     }
 
-    public NavAction<PlaneAspect>wheel( Surface surface, MouseWheelEvent evt ) {
+    public NavAction<PlaneAspect> wheel( Surface surface,
+                                         MouseWheelEvent evt ) {
         Point pos = evt.getPoint();
         boolean[] useFlags = getAxisNavFlags( surface, pos, xZoom_, yZoom_ );
         double zfact = PlotUtil.toZoom( zoomFactor_, evt );
-        PlaneAspect aspect = ((PlaneSurface) surface)
-                            .zoom( pos, useFlags[ 0 ] ? zfact : 1,
-                                        useFlags[ 1 ] ? zfact : 1 );
-        return new NavAction<PlaneAspect>( aspect, null );
+        double xf = useFlags[ 0 ] ? zfact : 1;
+        double yf = useFlags[ 1 ] ? zfact : 1;
+        PlaneAspect aspect = ((PlaneSurface) surface).zoom( pos, xf, yf );
+        Decoration dec =
+            NavDecorations
+           .createWheelDecoration( pos, xf, yf, useFlags[ 0 ], useFlags[ 1 ],
+                                   surface.getPlotBounds() );
+        return new NavAction<PlaneAspect>( aspect, dec );
     }
 
     public NavAction<PlaneAspect> click( Surface surface, MouseEvent evt,
