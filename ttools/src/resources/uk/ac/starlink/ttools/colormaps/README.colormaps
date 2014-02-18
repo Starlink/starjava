@@ -2,7 +2,7 @@ These *.lut colour map files are 3*N arrays of floats, representing
 r1, g1, b1, r2, g2, b2, ....  They represent colour maps for a 
 univariate scale.
 
-The values are taken from SkyCat/GAIA.
+Some of the values are taken from SkyCat/GAIA.
 They were derived from the *.lasc files in directory 
 applications/gaia/skycat/rtd/rtdimg/colormaps/ from the starlink source tree.
 
@@ -41,3 +41,7 @@ public class LutConvert {
         out.flush();
     }
 }
+
+Others were scavenged from image files using the utility
+uk.ac.starlink.ttools.plot.LutSteal.
+
