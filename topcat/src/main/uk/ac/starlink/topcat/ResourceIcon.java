@@ -226,7 +226,7 @@ public class ResourceIcon implements Icon {
         ZOOM_IN = makeIcon( "mag-plus.gif" ),
         ZOOM_OUT = makeIcon( "mag-minus.gif" ),
         SKETCH = makeIcon( "sketch1.gif" ),
-        PROGRESS = makeIcon( "progress.gif" ),
+        PROGRESS = makeIcon( "plot_prog.gif" ),
         MATCHPLOT = makeIcon( "matchplot2.gif" ),
 
         /* Plot2 icons. */
