@@ -343,7 +343,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
 
         /* Action for deleting a control from the stack. */
         Action removeAction =
-            stack_.createRemoveAction( "Remove Current Layer",
+            stack_.createRemoveAction( "Remove Current Control",
                                        "Delete the current layer control"
                                      + " from the stack" );
 

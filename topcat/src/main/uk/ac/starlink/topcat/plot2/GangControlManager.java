@@ -96,7 +96,7 @@ public class GangControlManager implements ControlManager {
         if ( ! plotterMap_.get( 1 ).isEmpty() ) {
             final Icon icon1 = ResourceIcon.PLOT_DATA;
             stackActList.add( new LayerControlAction(
-                                  "Add Position Plot", icon1,
+                                  "Add Position Control", icon1,
                                   "Add a new positional plot control"
                                   + " to the stack", stack_ ) {
                 public LayerControl createLayerControl() {
@@ -109,7 +109,7 @@ public class GangControlManager implements ControlManager {
         if ( ! plotterMap_.get( 2 ).isEmpty() ) {
             final Icon icon2 = ResourceIcon.PLOT_PAIR;
             stackActList.add( new LayerControlAction(
-                                  "Add Pair Plot", icon2,
+                                  "Add Pair Control", icon2,
                                   "Add a new pair position plot control"
                                   + " to the stack", stack_ ) {
                 public LayerControl createLayerControl() {

@@ -16,6 +16,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JToolBar;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.TopcatListener;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
@@ -278,7 +279,8 @@ public class MultiFormLayerControl extends FormLayerControl {
          * @param  plotter   object that generates plot layers
          */
         public SingleFormAction( Plotter plotter ) {
-            super( plotter.getPlotterName(), plotter.getPlotterIcon() );
+            super( plotter.getPlotterName(),
+                   ResourceIcon.toAddIcon( plotter.getPlotterIcon() ) );
             putValue( SHORT_DESCRIPTION,
                       "Add new " + plotter.getPlotterName() + " form" );
             plotter_ = plotter;
@@ -304,7 +306,8 @@ public class MultiFormLayerControl extends FormLayerControl {
          * @param  form   common form
          */
         public ModeFormAction( ModePlotter[] plotters, ModePlotter.Form form ) {
-            super( form.getFormName(), form.getFormIcon() );
+            super( form.getFormName(),
+                   ResourceIcon.toAddIcon( form.getFormIcon() ) );
             putValue( SHORT_DESCRIPTION,
                       "Add new " + form.getFormName() + " form" );
             plotters_ = plotters;

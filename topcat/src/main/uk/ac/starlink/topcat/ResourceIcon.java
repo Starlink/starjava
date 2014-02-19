@@ -5,6 +5,7 @@ import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.MediaTracker;
+import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
@@ -244,6 +245,7 @@ public class ResourceIcon implements Icon {
         NAV_HELP = makeIcon( "navhelp.gif" ),
         NAV_DEC = makeIcon( "navdec1.gif" ),
         SMALL_CLOSE = makeIcon( "x9.gif" ),
+        ADD_CONTROL = makeIcon( "addlayer4.png" ),
 
         /* Datanode (hierarchy browser) icons. */
         COLLAPSED = makeIcon( "handle1.gif" ),
@@ -371,6 +373,42 @@ public class ResourceIcon implements Icon {
             resourceFound = Boolean.FALSE;
         }
         return icon;
+    }
+
+    /**
+     * Paints a stack of icons on top of each other and returns the result.
+     * Later elements obscure earlier ones
+     *
+     * @param  icons  icon array
+     * @return  combination
+     */
+    public static ImageIcon combineIcons( Icon[] icons ) {
+        int width = 0;
+        int height = 0;
+        for ( int i = 0; i < icons.length; i++ ) {
+            width = Math.max( width, icons[ i ].getIconWidth() );
+            height = Math.max( height, icons[ i ].getIconHeight() );
+        }
+        BufferedImage image =
+            new BufferedImage( width, height, BufferedImage.TYPE_INT_ARGB );
+        Component c = null;
+        Graphics g = image.createGraphics();
+        for ( int i = 0; i < icons.length; i++ ) {
+            icons[ i ].paintIcon( c, g, 0, 0 );
+        }
+        g.dispose();
+        return new ImageIcon( image );
+    }
+
+    /**
+     * Doctors an icon representing a control to look like it means adding
+     * that control.  Currently, it puts a little plus sign in the corner.
+     *
+     * @param  baseIcon  standard sized (24x24) base icon
+     * @return  doctored icon
+     */
+    public static ImageIcon toAddIcon( Icon baseIcon ) {
+        return combineIcons( new Icon[] { baseIcon, ADD_CONTROL } );
     }
 
     /**
