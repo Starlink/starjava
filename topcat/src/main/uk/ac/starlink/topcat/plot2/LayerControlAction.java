@@ -4,6 +4,7 @@ import java.awt.event.ActionEvent;
 import javax.swing.Action;
 import javax.swing.Icon;
 import uk.ac.starlink.topcat.BasicAction;
+import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.TopcatListener;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.data.CoordGroup;
@@ -25,13 +26,15 @@ public abstract class LayerControlAction extends BasicAction {
      * Constructs a LayerControlAction from name, icon and description.
      *
      * @param   name   action name
-     * @param   icon   action icon
+     * @param   layerIcon   icon representing the type of layer the action
+     *                      will add; it may get doctored to generate the
+     *                      icon for this action
      * @param   descrip  action description
      * @param   stack   plot stack
      */
-    public LayerControlAction( String name, Icon icon, String descrip,
+    public LayerControlAction( String name, Icon layerIcon, String descrip,
                                ControlStack stack ) {
-        super( name, icon, descrip );
+        super( name, ResourceIcon.toAddIcon( layerIcon ), descrip );
         stack_ = stack;
     }
 
@@ -42,7 +45,7 @@ public abstract class LayerControlAction extends BasicAction {
      * @param  stack    plot stack
      */
     public LayerControlAction( Plotter plotter, ControlStack stack ) {
-        this( "Add " + plotter.getPlotterName() + " Layer",
+        this( "Add " + plotter.getPlotterName() + " Control",
               plotter.getPlotterIcon(),
               "Add a new " + plotter.getPlotterName().toLowerCase()
                            + " layer control to the stack",
