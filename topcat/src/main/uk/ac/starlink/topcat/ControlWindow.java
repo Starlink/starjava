@@ -230,7 +230,6 @@ public class ControlWindow extends AuxWindow
     private final ShowAction[] showActs_;
     private final ModelViewAction[] viewActs_;
     private final Action[] graphicsActs_;
-    private final Action[] plot2Acts_;
 
     /**
      * Constructs a new window.
@@ -400,50 +399,54 @@ public class ControlWindow extends AuxWindow
                                        StatsWindow.class ),
         };
         graphicsActs_ = new Action[] {
-            new GraphicsWindowAction( "Histogram", ResourceIcon.HISTOGRAM,
-                                      "Histogram",
+            new GraphicsWindowAction( "Histogram Plot (old)",
+                                      ResourceIcon.HISTOGRAM,
+                                      "Old-style histogram plot window",
                                       HistogramWindow.class ),
-            new GraphicsWindowAction( "Plot", ResourceIcon.PLOT,
-                                      "Scatter Plot",
+            new GraphicsWindowAction( "2D Plot (old)", ResourceIcon.PLOT,
+                                      "Old-style 2D scatter plot window",
                                       PlotWindow.class ),
-            new GraphicsWindowAction( "3D", ResourceIcon.PLOT3D,
-                                      "Three-dimensional scatter plot",
+            new GraphicsWindowAction( "3D Plot (old)", ResourceIcon.PLOT3D,
+                                      "Old-style 3D scatter plot window",
                                       Cartesian3DWindow.class ),
-            new GraphicsWindowAction( "Sky", ResourceIcon.SPHERE,
-                                      "Spherical polar scatter plot",
+            new GraphicsWindowAction( "Sphere Plot (old)", ResourceIcon.SPHERE,
+                                      "Old-style spherical polar scatter plot",
                                       SphereWindow.class ),
-            new GraphicsWindowAction( "Lines", ResourceIcon.STACK,
-                                      "Stacked line plot",
+            new GraphicsWindowAction( "Lines Plot (old)", ResourceIcon.STACK,
+                                      "Old-style stacked line plot",
                                       LinesWindow.class ),
-            new GraphicsWindowAction( "Density", ResourceIcon.DENSITY,
-                                      "Density plot (2D histogram)",
+            new GraphicsWindowAction( "Density Plot (old)",
+                                      ResourceIcon.DENSITY,
+                                      "Old-style density plot (2D histogram)",
                                       DensityWindow.class ),
         };
-        plot2Acts_ = new Action[] {
-            new Plot2WindowAction( "Plane Layer Plot",
-                                   ResourceIcon.PLOT2_PLANE,
-                                   "Plane plotting window",
-                                   PlanePlotWindow.class ),
-            new Plot2WindowAction( "Sky Layer Plot",
-                                   ResourceIcon.PLOT2_SKY,
-                                   "Sky plotting window",
-                                   SkyPlotWindow.class ),
-            new Plot2WindowAction( "Cube Layer Plot",
-                                   ResourceIcon.PLOT2_CUBE,
-                                   "3D plotting window"
-                                   + " using Cartesian coordinates",
-                                   CubePlotWindow.class ),
-            new Plot2WindowAction( "Sphere Layer Plot",
-                                   ResourceIcon.PLOT2_SPHERE,
-                                   "3D plotting window"
-                                   + " using spherical polar coordinates",
-                                   SpherePlotWindow.class ),
-            new Plot2WindowAction( "Histogram Layer Plot",
+        Action[] plot2Acts = new Action[] {
+            new Plot2WindowAction( "Histogram Plot",
                                    ResourceIcon.PLOT2_HISTOGRAM,
                                    "Plane plotting window configured for "
                                    + "convenience for histogram plotting",
                                    HistogramPlotWindow.class ),
-            new Plot2WindowAction( "Time Layer Plot",
+            new Plot2WindowAction( "Plane Plot",
+                                   ResourceIcon.PLOT2_PLANE,
+                                   "Plane plotting window",
+                                   PlanePlotWindow.class ),
+            new Plot2WindowAction( "Sky Plot",
+                                   ResourceIcon.PLOT2_SKY,
+                                   "Sky plotting window",
+                                   SkyPlotWindow.class ),
+            new Plot2WindowAction( "Cube Plot",
+                                   ResourceIcon.PLOT2_CUBE,
+                                   "3D plotting window"
+                                   + " using Cartesian coordinates",
+                                   CubePlotWindow.class ),
+            new Plot2WindowAction( "Sphere Plot",
+                                   ResourceIcon.PLOT2_SPHERE,
+                                   "3D plotting window"
+                                   + " using spherical polar coordinates",
+                                   SpherePlotWindow.class ),
+        };
+        Action[] morePlot2Acts = new Action[] {
+            new Plot2WindowAction( "Time Plot",
                                    ResourceIcon.PLOT2_TIME,
                                    "Time series plotting window",
                                    TimePlotWindow.class ),
@@ -556,9 +559,9 @@ public class ControlWindow extends AuxWindow
         }
         toolBar.addSeparator();
 
-        /* Add visualistaion buttons to the toolbar. */
-        for ( int i = 0; i < graphicsActs_.length; i++ ) {
-            toolBar.add( graphicsActs_[ i ] );
+        /* Add visualisation buttons to the toolbar. */
+        for ( int i = 0; i < plot2Acts.length; i++ ) {
+            toolBar.add( plot2Acts[ i ] );
         }
         toolBar.addSeparator();
 
@@ -622,12 +625,15 @@ public class ControlWindow extends AuxWindow
         /* Add a menu for visualisation windows. */
         JMenu graphicsMenu = new JMenu( "Graphics" );
         graphicsMenu.setMnemonic( KeyEvent.VK_G );
-        for ( int i = 0; i < graphicsActs_.length; i++ ) {
-            graphicsMenu.add( graphicsActs_[ i ] );
+        for ( int i = 0; i < plot2Acts.length; i++ ) {
+            graphicsMenu.add( plot2Acts[ i ] );
+        }
+        for ( int i = 0; i < morePlot2Acts.length; i++ ) {
+            graphicsMenu.add( morePlot2Acts[ i ] );
         }
         graphicsMenu.addSeparator();
-        for ( int i = 0; i < plot2Acts_.length; i++ ) {
-            graphicsMenu.add( plot2Acts_[ i ] );
+        for ( int i = 0; i < graphicsActs_.length; i++ ) {
+            graphicsMenu.add( graphicsActs_[ i ] );
         }
         getJMenuBar().add( graphicsMenu );
 

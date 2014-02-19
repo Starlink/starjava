@@ -5238,30 +5238,28 @@ functions.  They are grouped as follows:
 <dd><p>
     <dl>
 
-    <dt>&IMG.HISTOGRAM; <ref id="HistogramWindow">Histogram</ref></dt>
-    <dd><p>Displays a window for plotting 1-d histograms.
+    <dt>&IMG.PLOT2_HISTOGRAM;
+        <ref id="HistogramPlotWindow">Histogram Plot</ref></dt>
+    <dd><p>Displays a window for plotting 1D histograms.
         </p></dd>
 
-    <dt>&IMG.PLOT; <ref id="PlotWindow">2d Scatter Plot</ref></dt>
-    <dd><p>Displays a window for plotting 2-d scatter plots.
+    <dt>&IMG.PLOT2_PLANE; <ref id="PlanePlotWindow">Plane Plot</ref></dt>
+    <dd><p>Displays a window for making various types of plot
+        on 2D Cartesian axes.
         </p></dd>
 
-    <dt>&IMG.PLOT3D; <ref id="Cartesian3DWindow">3D Scatter Plot</ref></dt>
-    <dd><p>Displays a window for plotting 3-d scatter plots on Cartesian axes.
+    <dt>&IMG.PLOT2_SKY; <ref id="SkyPlotWindow">Sky Plot</ref></dt>
+    <dd><p>Displays a window for making various types of plot
+        on the celestial sphere.</p></dd>
+
+    <dt>&IMG.PLOT2_CUBE; <ref id="CubePlotWindow">Cube Plot</ref></dt>
+    <dd><p>Displays a window for making various types of plot
+        on 3D Cartesian axes.
         </p></dd>
 
-    <dt>&IMG.SPHERE; <ref id="SphereWindow">Spherical Scatter Plot</ref></dt>
-    <dd><p>Displays a window for plotting 3-d scatter plots on spherical
-        polar axes, with or without a radial coordinate.
-        </p></dd>
-
-    <dt>&IMG.STACK; <ref id="LinesWindow">Stacked Line Plot</ref></dt>
-    <dd><p>Displays a window for plotting multiple stacked line plots 
-        against a single X coordinate</p></dd>
-
-    <dt>&IMG.DENSITY; <ref id="DensityWindow">Density Map</ref></dt>
-    <dd><p>Displays a window for plotting 2-d density maps 
-        (image-like histograms on a 2-d grid of bins).
+    <dt>&IMG.PLOT2_SPHERE; <ref id="SpherePlotWindow">Sphere Plot</ref></dt>
+    <dd><p>Displays a window for making various types of plot
+        on 3D axes using spherical polar coordinates.
         </p></dd>
 
     </dl>
@@ -5396,7 +5394,56 @@ These are all provided as toolbar buttons as well.
 
 <p>The <label>Graphics</label> menu contains actions for launching the
 windows which give various plotting and visualisation options.
-These are all provided as toolbar buttons as well.
+The most important ones are provided as toolbar buttons as well,
+but this menu contains some actions not available elsewhere.
+The ones marked "(old)" are the plotting windows that were available 
+before TOPCAT version 4; they have a different user interface, are
+generally less powerful, and are somewhat deprecated, but still work.
+The other non-toolbar options are somewhat experimental.
+Items available from this menu and not the toolbar are:
+<dl>
+
+<dt>&IMG.PLOT2_TIME; Time Plot</dt>
+<dd><p>Displays the <ref id="TimePlotWindow">Time Plot window</ref>
+    for plotting time series data.
+    This is currently experimental and lacks some useful features.
+    </p></dd>
+
+<dt>&IMG.HISTOGRAM; Histogram Plot (old)</dt>
+<dd><p>Displays the <ref id="HistogramWindow">old-style Histogram window</ref>
+    for plotting 1-d histograms.
+    </p></dd>
+
+<dt>&IMG.PLOT; 2D Plot (old)</dt>
+<dd><p>Displays the <ref id="PlotWindow">old-style 2D plot window</ref>
+    for plotting 2-d scatter plots.
+    </p></dd>
+
+<dt>&IMG.PLOT3D; 3D Plot (old)</dt>
+<dd><p>Displays the <ref id="Cartesian3DWindow">old-style 3D plot window</ref>
+    for plotting 3-d scatter plots on Cartesian axes.
+    </p></dd>
+
+<dt>&IMG.SPHERE; Sphere Plot (old)</dt>
+<dd><p>Displays the <ref id="SphereWindow">old-style sphere window</ref>
+    for plotting 3-d scatter plots on spherical polar axes,
+    with or without a radial coordinate.
+    </p></dd>
+
+<dt>&IMG.STACK; Stacked Line Plot (old)</dt>
+<dd><p>Displays the
+    <ref id="LinesWindow">old-style Stacked Line Plot window</ref>
+    for plotting multiple vertically stacked line plots
+    against a single X coordinate (this functionality is not currently
+    duplicated in one of the new-style windows).
+    </p></dd>
+
+<dt>&IMG.DENSITY; Density Map (old)</dt>
+<dd><p>Displays the <ref id="DensityWindow">old-style Density Map window</ref>
+    for plotting 2-d density maps (image-like histograms on a 2-d grid of bins).
+    </p></dd>
+
+</dl>
 </p>
 
 <p>The <label>Joins</label> menu contains actions for various types of
@@ -8812,12 +8859,16 @@ and they will be made more prominent in the main window,
 possibly replacing the classic plot windows.
 </p>
 
-<p>Four layer plot windows are currently available:
+<p>Six layer plot windows are currently available (one is experimental):
 <ul>
+<li>&IMG.PLOT2_HISTOGRAM;
+    <ref id="HistogramPlotWindow">Histogram Plot</ref></li>
 <li>&IMG.PLOT2_PLANE; <ref id="PlanePlotWindow">Plane Plot</ref></li>
 <li>&IMG.PLOT2_SKY; <ref id="SkyPlotWindow">Sky Plot</ref></li>
 <li>&IMG.PLOT2_CUBE; <ref id="CubePlotWindow">Cube Plot</ref></li>
 <li>&IMG.PLOT2_SPHERE; <ref id="SpherePlotWindow">Sphere Plot</ref></li>
+<li>&IMG.PLOT2_TIME; <ref id="TimePlotWindow">Time Plot</ref>
+                     (experimental)</li>
 </ul>
 More may be introduced in future releases.
 </p>
@@ -10303,6 +10354,11 @@ layers will be completely obscured.
 
 </subsubsect>
 
+<subsubsect id="HistogramPlotWindow">
+<subhead><title>Histogram Plot Window</title></subhead>
+<p><em>Placeholder</em></p>
+</subsubsect>
+
 <subsubsect id="PlanePlotWindow">
 <subhead><title>Plane Plot Window</title></subhead>
 
@@ -11109,6 +11165,11 @@ It also affects some other things like the legend.
 
 </subsubsubsect>
 
+</subsubsect>
+
+<subsubsect id="TimePlotWindow">
+<subhead><title>Histogram Plot Window</title></subhead>
+<p><em>Placeholder</em></p>
 </subsubsect>
 
 </subsect>
@@ -18311,6 +18372,9 @@ introduced since the last version:
         <li>Improve re-ranging in sky plot; new data set now re-ranges unless
             lock button is set.</li>
         <li>Add cuboid match algorithm to match windows.</li>
+        <li>Plot windows available from the Control Window toolbar are now
+            the new-style ("layer") plots.  Old-style plots are still available,
+            but you have to go to the <label>Graphics</label> menu.</li>
         </ul>
         </p></dd>
 </dl>

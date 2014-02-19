@@ -23,7 +23,7 @@ public class PlanePlotWindow
      * @param  parent  parent component
      */
     public PlanePlotWindow( Component parent ) {
-        super( "Plane2", parent, PLOT_TYPE, PLOT_GUI );
+        super( "Plane Plot", parent, PLOT_TYPE, PLOT_GUI );
         addHelp( "PlanePlotWindow" );
     }
 

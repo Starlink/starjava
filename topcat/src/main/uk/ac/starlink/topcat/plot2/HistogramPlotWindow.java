@@ -35,7 +35,7 @@ public class HistogramPlotWindow
      * @param  parent  parent component
      */
     public HistogramPlotWindow( Component parent ) {
-        super( "Histogram2", parent, PLOT_TYPE, PLOT_GUI );
+        super( "Histogram Plot", parent, PLOT_TYPE, PLOT_GUI );
         addHelp( "HistogramPlotWindow" );
     }
 

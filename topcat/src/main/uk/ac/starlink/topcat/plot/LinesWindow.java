@@ -127,7 +127,7 @@ public class LinesWindow extends GraphicsWindow implements TopcatListener {
      * @param   parent  parent component
      */
     public LinesWindow( Component parent ) {
-        super( "Line Plot", new LinesPlot(), AXIS_NAMES, 0, true,
+        super( "Stacked Line Plot (old)", new LinesPlot(), AXIS_NAMES, 0, true,
                createErrorModeModels( AXIS_NAMES ), parent );
 
         /* Set some initial values. */

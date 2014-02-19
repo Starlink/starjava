@@ -23,7 +23,7 @@ public class SpherePlotWindow
      * @param  parent  parent component
      */
     public SpherePlotWindow( Component parent ) {
-        super( "Sphere2", parent, PLOT_TYPE, PLOT_GUI );
+        super( "Sphere Plot", parent, PLOT_TYPE, PLOT_GUI );
         addHelp( "SpherePlotWindow" );
     }
 
