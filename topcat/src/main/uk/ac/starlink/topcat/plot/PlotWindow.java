@@ -97,7 +97,7 @@ public class PlotWindow extends GraphicsWindow implements TopcatListener {
      * @param  parent   parent component (may be used for positioning)
      */
     public PlotWindow( Component parent ) {
-        super( "Scatter Plot", new ScatterPlot( new PtPlotSurface() ),
+        super( "Scatter Plot (old)", new ScatterPlot( new PtPlotSurface() ),
                AXIS_NAMES, 3, true, createErrorModeModels( AXIS_NAMES ),
                parent );
         final ScatterPlot plot = (ScatterPlot) getPlot();

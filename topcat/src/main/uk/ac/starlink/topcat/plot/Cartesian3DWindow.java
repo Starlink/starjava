@@ -23,8 +23,8 @@ public class Cartesian3DWindow extends Plot3DWindow {
      * @param   parent  parent component (may be used for postioning)
      */
     public Cartesian3DWindow( Component parent ) {
-        super( "3D", AXIS_NAMES, 3, parent, createErrorModeModels( AXIS_NAMES ),
-               createPlot() );
+        super( "3D Plot (old)", AXIS_NAMES, 3, parent,
+               createErrorModeModels( AXIS_NAMES ), createPlot() );
 
         getPointSelectorToolBar().addSeparator();
         for ( int ierr = 0; ierr < 3; ierr++ ) {

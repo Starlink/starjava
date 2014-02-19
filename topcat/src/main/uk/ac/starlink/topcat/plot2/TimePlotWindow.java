@@ -23,7 +23,7 @@ public class TimePlotWindow
      * @param  parent  parent component
      */
     public TimePlotWindow( Component parent ) {
-        super( "Time", parent, PLOT_TYPE, PLOT_GUI );
+        super( "Time Plot", parent, PLOT_TYPE, PLOT_GUI );
         addHelp( "TimePlotWindow" );
     }
 

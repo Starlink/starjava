@@ -87,7 +87,7 @@ public class HistogramWindow extends GraphicsWindow {
      * @param  parent  parent component (may be used for positioning)
      */
     public HistogramWindow( Component parent ) {
-        super( "Histogram", new Histogram( new PtPlotSurface() ), 
+        super( "Histogram (old)", new Histogram( new PtPlotSurface() ), 
                new String[] { "X" }, 0, false, new ErrorModeSelectionModel[ 0 ],
                parent );
         final Histogram plot = (Histogram) getPlot();
