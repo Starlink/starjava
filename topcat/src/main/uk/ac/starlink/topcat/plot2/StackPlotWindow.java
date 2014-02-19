@@ -175,6 +175,12 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                                    "Report progress for slow plots in the "
                                  + "progress bar at the bottom of the window" );
         showProgressModel_.setSelected( false );
+        final ToggleButtonModel navdecModel =
+            new ToggleButtonModel( "Show Navigation Graphics",
+                                   ResourceIcon.NAV_DEC,
+                                   "Give visual feedback for plot navigation "
+                                 + "gestures" );
+        navdecModel.setSelected( true );
 
         /* Set up a plot panel with the objects it needs to gather plot
          * requirements from the GUI.  This does the actual plotting. */
@@ -193,6 +199,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         legendControl.addActionListener( plotPanel_ );
         axisController_.addActionListener( plotPanel_ );
         shaderControl.addActionListener( plotPanel_ );
+        navdecModel.addActionListener( plotPanel_ );
 
         /* Arrange for user navigation actions to adjust the view. */
         new GuiNavigationListener<A>( plotPanel_ ) {
@@ -204,7 +211,9 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                 plotPanel_.replot();
             }
             public void setDecoration( Decoration navDec ) {
-                plotPanel_.setNavDecoration( navDec );
+                if ( navdecModel.isSelected() ) {
+                    plotPanel_.setNavDecoration( navDec );
+                }
             }
         }.addListeners( plotPanel_ );
 
@@ -476,6 +485,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         }
         plotMenu.add( sketchModel.createMenuItem() );
         plotMenu.add( showProgressModel_.createMenuItem() );
+        plotMenu.add( navdecModel.createMenuItem() );
         getJMenuBar().add( plotMenu );
         JMenu exportMenu = new JMenu( "Export" );
         exportMenu.setMnemonic( KeyEvent.VK_E );
