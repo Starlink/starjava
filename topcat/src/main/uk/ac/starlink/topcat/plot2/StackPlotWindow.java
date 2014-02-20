@@ -458,9 +458,9 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         getToolBar().addSeparator();
 
         /* Add actions etc to menus. */
-        getFileMenu().insert( navhelpModel.createMenuItem(), 1 );
+        getWindowMenu().insert( navhelpModel.createMenuItem(), 1 );
         if ( floatModel != null ) {
-            getFileMenu().insert( floatModel.createMenuItem(), 1 );
+            getWindowMenu().insert( floatModel.createMenuItem(), 1 );
         }
         JMenu layerMenu = new JMenu( "Layers" );
         layerMenu.setMnemonic( KeyEvent.VK_L );

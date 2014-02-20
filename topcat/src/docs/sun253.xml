@@ -4668,7 +4668,7 @@ may provide some other less-commonly-required actions too.
 <p>Here are some of the menus common to several windows:
 <dl>
 
-<dt>File menu</dt>
+<dt>Window menu</dt>
 <dd><p>Nearly all windows have this menu.
     At least the following options are available:
     <dl>
@@ -5567,7 +5567,7 @@ several of them, the number of windows on the screen can get out of
 hand and it's easy to lose track of what window is where.
 In this case the Control Window's <label>Windows</label> menu
 (described in <ref id="controlMenus"/>), or the
-<label>File|Control Window</label> menu item in any of the view windows
+<label>Window|Control Window</label> menu item in any of the view windows
 can be handy to keep them under control.
 </p>
 
@@ -11185,7 +11185,8 @@ It also affects some other things like the legend.
 <p>The Load Window is used for loading tables from an external location
 (e.g. disk or URL) into TOPCAT.  It is obtained using the 
 <label>Load Table</label> button (&IMG.LOAD;) in the 
-<ref id="ControlWindow">Control Window</ref> toolbar or File menu.
+<ref id="ControlWindow">Control Window</ref> toolbar or
+<label>File</label> menu.
 </p>
 
 <p>This dialogue allows you to specify a new table to open in a number of
@@ -11272,7 +11273,8 @@ main <ref id="ControlWindow">Control Window</ref>, ready for use.
 <p>By default, when a table load has completed, both the Load Window
 itself and whichever specific load dialogue window you used will close.
 If you don't want this to happen use the 
-<label>Stay Open</label> (&IMG.KEEP_OPEN;) item in the File menu or
+<label>Stay Open</label> (&IMG.KEEP_OPEN;) item
+in the <label>Window</label> menu or
 toolbar of the Load Window and/or specific load dialogue.
 If this is selected, the window will not automatically close.
 This can be very convenient if you want to load many tables from
@@ -12100,7 +12102,8 @@ real data to hand.
 
 <p>The Save Window is used to write tables out,
 and it is accessed using the <label>Save Table</label> button (&IMG.SAVE;)
-in the <ref id="ControlWindow">Control Window</ref>'s toolbar or File menu.
+in the <ref id="ControlWindow">Control Window</ref>'s toolbar or 
+<label>File</label> menu.
 </p>
 
 <p>The window consists of two parts.
@@ -18375,6 +18378,8 @@ introduced since the last version:
         <li>Plot windows available from the Control Window toolbar are now
             the new-style ("layer") plots.  Old-style plots are still available,
             but you have to go to the <label>Graphics</label> menu.</li>
+        <li>Rename the <label>File</label> menu in most windows to
+            <label>Window</label>, which is much more appropriate.</li>
         </ul>
         </p></dd>
 </dl>

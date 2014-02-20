@@ -469,7 +469,7 @@ public abstract class GraphicsWindow extends AuxWindow {
                 placeMainComponents( splitModel.isSelected() );
             }
         } );
-        getFileMenu().insert( splitModel.createMenuItem(), 1 );
+        getWindowMenu().insert( splitModel.createMenuItem(), 1 );
 
         /* Add a progress bar. */
         progBar_ = placeProgressBar();
