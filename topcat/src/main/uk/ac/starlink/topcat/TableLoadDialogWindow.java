@@ -48,9 +48,9 @@ public class TableLoadDialogWindow extends AuxWindow {
                                    "successful load" );
         getToolBar().add( stayOpenModel_.createToolbarButton() );
         getToolBar().addSeparator();
-        JMenu fileMenu = getFileMenu();
-        fileMenu.insert( stayOpenModel_.createMenuItem(),
-                         fileMenu.getItemCount() - 2 );
+        JMenu windowMenu = getWindowMenu();
+        windowMenu.insert( stayOpenModel_.createMenuItem(),
+                           windowMenu.getItemCount() - 2 );
 
         /* Action to initiate loading. */
         Action okAct = new BasicAction( "OK", null, "Load Selected Table" ) {

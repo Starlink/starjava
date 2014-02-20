@@ -230,7 +230,7 @@ public class TableViewerWindow extends AuxWindow
         getToolBar().addSeparator();
 
         /* Add print action to the File menu. */
-        getFileMenu().insert( printAct, 1 );
+        getWindowMenu().insert( printAct, 1 );
 
         /* Add a subsets menu. */
         JMenu subsetMenu = new JMenu( "Subsets" );

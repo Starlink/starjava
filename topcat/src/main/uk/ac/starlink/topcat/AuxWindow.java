@@ -61,7 +61,7 @@ import uk.ac.starlink.util.gui.ErrorDialog;
  */
 public class AuxWindow extends JFrame {
 
-    private JMenu fileMenu;
+    private JMenu windowMenu;
     private JMenu helpMenu;
     private JToolBar toolBar;
     private JLabel headingLabel;
@@ -127,25 +127,25 @@ public class AuxWindow extends JFrame {
             }
         } );
 
-        /* Set up a basic menubar with a File menu. */
+        /* Set up a basic menubar with a Window menu. */
         menuBar = new JMenuBar();
         setJMenuBar( menuBar );
-        fileMenu = new JMenu( "File" );
-        fileMenu.setMnemonic( KeyEvent.VK_F );
-        menuBar.add( fileMenu );
+        windowMenu = new JMenu( "Window" );
+        windowMenu.setMnemonic( KeyEvent.VK_W );
+        menuBar.add( windowMenu );
         controlAct = new AuxAction( "Control Window", ResourceIcon.CONTROL,
                                     "Ensure Control Window is visible" );
         closeAct = new AuxAction( "Close", ResourceIcon.CLOSE,
                                   "Close this window" );
         exitAct = new AuxAction( "Exit", ResourceIcon.EXIT,
                                  "Exit the application" );
-        fileMenu.add( controlAct );
-        fileMenu.add( scrollableModel.createMenuItem() );
-        JMenuItem closeItem = fileMenu.add( closeAct );
+        windowMenu.add( controlAct );
+        windowMenu.add( scrollableModel.createMenuItem() );
+        JMenuItem closeItem = windowMenu.add( closeAct );
         closeItem.setMnemonic( KeyEvent.VK_C );
         isStandalone = Driver.isStandalone();
         if ( isStandalone ) {
-            JMenuItem exitItem = fileMenu.add( exitAct );
+            JMenuItem exitItem = windowMenu.add( exitAct );
             exitItem.setMnemonic( KeyEvent.VK_X );
         }
 
@@ -301,20 +301,20 @@ public class AuxWindow extends JFrame {
         if ( isStandalone ) {
             closeIsExit = true;
 
-            /* Remove any Close item in the File menu. */
+            /* Remove any Close item in the Window menu. */
             boolean exitFound = false;
-            for ( int i = fileMenu.getItemCount() - 1; i >= 0; i-- ) {
-                JMenuItem item = fileMenu.getItem( i );
+            for ( int i = windowMenu.getItemCount() - 1; i >= 0; i-- ) {
+                JMenuItem item = windowMenu.getItem( i );
                 if ( item != null ) {
                     Action act = item.getAction();
                     if ( act == closeAct ) {
-                        fileMenu.remove( item );
+                        windowMenu.remove( item );
                     }
                     else if ( act == exitAct ) {
                         exitFound = true;
                     }
                     else if ( act == controlAct ) {
-                        fileMenu.remove( item );
+                        windowMenu.remove( item );
                     }
                 }
             }
@@ -334,12 +334,12 @@ public class AuxWindow extends JFrame {
     }
 
     /**
-     * Returns this window's "File" menu.
+     * Returns this window's "Window" menu.
      *
-     * @return  the file menu
+     * @return  the window menu
      */
-    public JMenu getFileMenu() {
-        return fileMenu;
+    public JMenu getWindowMenu() {
+        return windowMenu;
     }
 
     /**

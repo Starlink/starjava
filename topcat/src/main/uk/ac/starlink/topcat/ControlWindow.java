@@ -585,8 +585,11 @@ public class ControlWindow extends AuxWindow
         }
         toolBar.addSeparator();
 
-        /* Add actions to the file menu. */
-        JMenu fileMenu = getFileMenu();
+        /* Add actions to the file menu.  This is a rebadged version of the
+         * standard Window menu used by most other windows. */
+        JMenu fileMenu = getWindowMenu();
+        fileMenu.setText( "File" );
+        fileMenu.setMnemonic( KeyEvent.VK_F );
         for ( int i = fileMenu.getItemCount() - 1; i >= 0; i-- ) {
             if ( "Scrollable".equals( fileMenu.getItem( i ).getText() ) ) {
                 fileMenu.remove( i );
