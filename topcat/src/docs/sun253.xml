@@ -18380,6 +18380,9 @@ introduced since the last version:
             but you have to go to the <label>Graphics</label> menu.</li>
         <li>Rename the <label>File</label> menu in most windows to
             <label>Window</label>, which is much more appropriate.</li>
+        <li>Rearranged plot2 window toolbars; buttons for adding and removing
+            layer controls are now in the layer control panel not the
+            main window toolbar.</li>
         </ul>
         </p></dd>
 </dl>

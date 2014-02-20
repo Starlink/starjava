@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import javax.swing.Action;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.ListModel;
@@ -17,6 +18,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
+import javax.swing.JToolBar;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import javax.swing.event.ListSelectionEvent;
@@ -39,11 +41,12 @@ public class ControlStackPanel extends JPanel {
      * Constructor.
      *
      * @param  stack   stack in which controls can be added and moved around
+     * @param  stackToolbar  toolbar for stack controls, or null
      */
-    public ControlStackPanel( ControlStack stack ) {
+    public ControlStackPanel( ControlStack stack, JToolBar stackToolbar ) {
         super( new BorderLayout() );
-        JComponent holder = new JPanel( new BorderLayout() );
-        holder.setMinimumSize( new Dimension( 200, 100 ) );
+        JComponent detailHolder = new JPanel( new BorderLayout() );
+        detailHolder.setMinimumSize( new Dimension( 200, 100 ) );
 
         /* Set up a list for the fixed controls. */
         fixListModel_ = new DefaultListModel();
@@ -59,11 +62,11 @@ public class ControlStackPanel extends JPanel {
          * can be selected at a time. */
         stack.setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
         stack.addListSelectionListener(
-            new LayerControlListener( stack, fixList, holder,
+            new LayerControlListener( stack, fixList, detailHolder,
                                       controlSpotter ) );
         fixList.setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
         fixList.addListSelectionListener(
-            new ControlListener( fixList, stack, holder ) );
+            new ControlListener( fixList, stack, detailHolder ) );
 
         /* Position the components. */
         JScrollPane stackScroller = new JScrollPane( stack );
@@ -74,10 +77,16 @@ public class ControlStackPanel extends JPanel {
         JComponent listsPanel = new JPanel( new BorderLayout() );
         listsPanel.add( fixList, BorderLayout.NORTH );
         listsPanel.add( stackScroller, BorderLayout.CENTER );
+        JComponent listsHolder = new JPanel( new BorderLayout() );
+        listsHolder.add( listsPanel, BorderLayout.CENTER );
+        if ( stackToolbar != null ) {
+            listsHolder.add( stackToolbar, BorderLayout.NORTH );
+        }
         JSplitPane splitter = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT,
-                                              listsPanel, holder );
+                                              listsHolder, detailHolder );
         splitter.setResizeWeight( 0.0 );
-        add( splitter );
+        add( stackToolbar, BorderLayout.NORTH );
+        add( splitter, BorderLayout.CENTER );
         splitter.setDividerLocation( 120 );
     }
 

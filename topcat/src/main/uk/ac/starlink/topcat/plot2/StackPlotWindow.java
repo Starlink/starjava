@@ -35,6 +35,7 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JPanel;
+import javax.swing.JToolBar;
 import javax.swing.OverlayLayout;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
@@ -339,9 +340,9 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         controlManager_ =
             new GangControlManager( stack_, plotType, plotTypeGui, configger,
                                     tcListener );
-        Action[] stackActions = controlManager_.getStackActions();
 
-        /* Action for deleting a control from the stack. */
+        /* Prepare actions for adding and removing stack controls. */
+        Action[] stackActions = controlManager_.getStackActions();
         Action removeAction =
             stack_.createRemoveAction( "Remove Current Control",
                                        "Delete the current layer control"
@@ -350,7 +351,9 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         /* Prepare the panel containing the user controls.  This may appear
          * either at the bottom of the plot window or floated into a
          * separate window. */
-        final ControlStackPanel stackPanel = new ControlStackPanel( stack_ );
+        JToolBar stackToolbar = new JToolBar();
+        final ControlStackPanel stackPanel =
+            new ControlStackPanel( stack_, stackToolbar );
         Control[] axisControls = axisController_.getControls();
         for ( int i = 0; i < axisControls.length; i++ ) {
             stackPanel.addFixedControl( axisControls[ i ] );
@@ -433,16 +436,13 @@ public class StackPlotWindow<P,A> extends AuxWindow {
            .createFloatManager( getMainArea(), displayPanel, stackPanel );
         ToggleButtonModel floatModel = floater.getFloatToggle();
      
-        /* Add actions etc to the toolbar. */
+        /* Add actions etc to the toolbars. */
         if ( floatModel != null ) {
             getToolBar().add( floatModel.createToolbarButton() );
             getToolBar().addSeparator();
+            stackToolbar.add( floatModel.createToolbarButton() );
+            stackToolbar.addSeparator();
         }
-        for ( int i = 0; i < stackActions.length; i++ ) {
-            getToolBar().add( stackActions[ i ] );
-        }
-        getToolBar().add( removeAction );
-        getToolBar().addSeparator();
         if ( canSelectPoints_ ) {
             getToolBar().add( blobAction_ );
         }
@@ -456,6 +456,11 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         getToolBar().add( showProgressModel_.createToolbarButton() );
         getToolBar().add( exportAction );
         getToolBar().addSeparator();
+        for ( int i = 0; i < stackActions.length; i++ ) {
+            stackToolbar.add( stackActions[ i ] );
+        }
+        stackToolbar.addSeparator();
+        stackToolbar.add( removeAction );
 
         /* Add actions etc to menus. */
         getWindowMenu().insert( navhelpModel.createMenuItem(), 1 );
@@ -504,6 +509,23 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         /* Place the plot and control components. */
         getMainArea().setLayout( new BorderLayout() );
         floater.init();
+
+        /* The following focus magic is a workaround for some obscure
+         * (buggy?) Swing behaviour.
+         * It seems that if there are two toggle buttons with the same
+         * button model, and one of them has initial focus, then the other
+         * one does not receive an action the first time it's clicked.
+         * That situation applies to this window as currently arranged:
+         * by default, the first toolbar button gets the initial focus,
+         * and the first toolbar button here uses floatModel which is
+         * also used for a button in the stack panel.
+         * By grabbing the focus for some other component, the problem
+         * goes away.
+         * Experiments suggest that the problem exists in Sun/Oracle
+         * Java 1.5.0_22 but not 1.6.0_41, so probably this workaround
+         * could be removed.  But I think it's harmless. */
+        pack();
+        plotPanel_.requestFocusInWindow();
     }
 
     /**
