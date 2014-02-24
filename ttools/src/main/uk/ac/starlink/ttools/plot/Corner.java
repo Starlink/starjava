@@ -11,10 +11,14 @@ public class Corner implements Comparable {
     private final int index_;
 
     private final static int NDIM = 3;
+
+    /** Number of corners in a cube ({@value}). */
+    public static final int COUNT = 1 << NDIM;
+
     private final static Corner[] CORNERS;
     static {
-        CORNERS = new Corner[ 1 << NDIM ];
-        for ( int i = 0; i < CORNERS.length; i++ ) {
+        CORNERS = new Corner[ COUNT ];
+        for ( int i = 0; i < COUNT; i++ ) {
             CORNERS[ i ] = new Corner( i );
         }
     }

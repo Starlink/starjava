@@ -7,6 +7,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.Stroke;
 import java.awt.geom.AffineTransform;
 import javax.swing.Icon;
@@ -14,7 +15,8 @@ import uk.ac.starlink.ttools.plot2.Decoration;
 import uk.ac.starlink.ttools.plot2.Equality;
 
 /**
- * Utility class for supplying navigation visual feedback decorations.
+ * Utility class supplying visual feedback decorations for
+ * two-dimensional plot navigation.
  *
  * @author   Mark Taylor
  * @since    18 Feb 2014
@@ -117,7 +119,7 @@ public class NavDecorations {
      * @param   icon   icon
      * @return  centered decoration
      */
-    private static Decoration center( Point p, Icon icon ) {
+    public static Decoration center( Point p, Icon icon ) {
         return new Decoration( icon, p.x - icon.getIconWidth() / 2,
                                      p.y - icon.getIconHeight() / 2 );
     }
@@ -131,8 +133,8 @@ public class NavDecorations {
      * @param  x1  end (arrow) X coordinate
      * @param  y1  end (arrow) Y coordinate
      */
-    private static void drawArrow( Graphics g,
-                                   int x0, int y0, int x1, int y1 ) {
+    public static void drawArrow( Graphics g,
+                                  int x0, int y0, int x1, int y1 ) {
         if ( x0 != x1 || y0 != y1 ) {
             Graphics2D g2 = (Graphics2D) g;
             AffineTransform trans0 = g2.getTransform();
@@ -143,6 +145,23 @@ public class NavDecorations {
                              new int[] { -5, 0, 5 }, 3 );
             g2.setTransform( trans0 );
         }
+    }
+
+    /**
+     * Sets graphics context ready for navigation decorations.
+     * The colour is modified as appropriate.
+     * The result is a new graphics context, which does not need to be
+     * reset (and should be disposed) when the caller is finished with it.
+     *
+     * @param   g  supplied graphics context
+     * @return  new, adjusted graphics context based on <code>g</code>
+     */
+    public static Graphics2D prepareGraphics( Graphics g ) {
+        Graphics2D g2 = (Graphics2D) g.create();
+        g2.setColor( COLOR );
+        g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING,
+                             RenderingHints.VALUE_ANTIALIAS_ON );
+        return g2;
     }
 
     /**
@@ -170,11 +189,10 @@ public class NavDecorations {
         }
 
         public void paintIcon( Component c, Graphics g, int x, int y ) {
-            Color color0 = g.getColor();
-            g.setColor( COLOR );
+            g = prepareGraphics( g );
             g.drawLine( x + size_, y, x + size_, y + 2 * size_ );
             g.drawLine( x, y + size_, x + 2 * size_, y + size_ );
-            g.setColor( color0 );
+            g.dispose();
         }
 
         public String toString() {
@@ -225,11 +243,10 @@ public class NavDecorations {
         }
 
         public void paintIcon( Component c, Graphics g, int x, int y ) {
-            Color color0 = g.getColor();
-            g.setColor( COLOR );
+            g = prepareGraphics( g );
             doPainting( g, isY_ ? y + getIconHeight() / 2
                                 : x + getIconWidth() / 2 );
-            g.setColor( color0 );
+            g.dispose();
         }
 
         /**
@@ -396,10 +413,9 @@ public class NavDecorations {
         }
 
         public void paintIcon( Component c, Graphics g, int x, int y ) {
-            Color color0 = g.getColor();
-            g.setColor( COLOR );
+            g = prepareGraphics( g );
             doPainting( g, x + getIconWidth() / 2, y + getIconHeight() / 2 );
-            g.setColor( color0 );
+            g.dispose();
         }
 
         /**

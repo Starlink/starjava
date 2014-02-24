@@ -279,7 +279,7 @@ public class CubeSurface implements Surface {
      * @param   nPos  3-element coordinate array in normalised space
      * @return  graphics position
      */
-    private Point2D.Double projectNormalisedPos( double[] nPos ) {
+    public Point2D.Double projectNormalisedPos( double[] nPos ) {
         double[] r = Matrices.mvMult( rotmat_, nPos );
         return new Point2D.Double( gXoff_ + r[ 0 ] * gZoom_,
                                    gYoff_ - r[ 2 ] * gZoom_ );
@@ -429,22 +429,20 @@ public class CubeSurface implements Surface {
      * in some or all dimensions by a given factor.
      *
      * @param  factor  zoom factor
-     * @param   xFlag  true to zoom in X direction
-     * @param   yFlag  true to zoom in Y direction
-     * @param   zFlag  true to zoom in Z direction
+     * @param   useFlags  3-element array of flags indicating whether
+     *                    to zoom in X, Y, Z directions
      * @return   new cube
      */
-    CubeAspect centerZoom( double factor,
-                           boolean xFlag, boolean yFlag, boolean zFlag ) {
+    CubeAspect centerZoom( double factor, boolean[] useFlags ) {
         double[] midPos = new double[ 3 ];
         for ( int i = 0; i < 3; i++ ) {
             midPos[ i ] = logFlags_[ i ]
                         ? Math.sqrt( dlos_[ i ] * dhis_[ i ] )
                         : ( dlos_[ i ] + dhis_[ i ] ) / 2.0;
         }
-        return zoomData( midPos, xFlag ? factor : 1,
-                                 yFlag ? factor : 1,
-                                 zFlag ? factor : 1 );
+        return zoomData( midPos, useFlags[ 0 ] ? factor : 1,
+                                 useFlags[ 1 ] ? factor : 1,
+                                 useFlags[ 2 ] ? factor : 1 );
     }
 
     /**
@@ -496,7 +494,7 @@ public class CubeSurface implements Surface {
      *          elements are indices of screen {horizontal, vertical, normal}
      *          axes respectively
      */
-    int[] getScreenDirections() {
+    public int[] getScreenDirections() {
         double[] screenXs = new double[ 3 ];
         double[] screenYs = new double[ 3 ];
         double[] screenNs = new double[ 3 ];
