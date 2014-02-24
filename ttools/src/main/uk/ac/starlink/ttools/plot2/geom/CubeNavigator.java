@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import uk.ac.starlink.ttools.plot2.Decoration;
 import uk.ac.starlink.ttools.plot2.Gesture;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.NavAction;
@@ -52,59 +53,67 @@ public class CubeNavigator implements Navigator<CubeAspect> {
     public NavAction<CubeAspect> drag( Surface surface, MouseEvent evt,
                                        Point origin ) {
         CubeSurface csurf = (CubeSurface) surface;
-        Point point = evt.getPoint();
-        final CubeAspect aspect;
+        Point pos = evt.getPoint();
         if ( ( evt.getModifiersEx() & MouseEvent.BUTTON2_DOWN_MASK ) != 0 ) {
-            aspect = csurf.pointPan( origin, point );
+            CubeAspect aspect = csurf.pointPan( origin, pos );
+            Decoration dec =
+                NavDecorations3D.create2dPanDecoration( csurf, pos );
+            return new NavAction<CubeAspect>( aspect, dec );
         }
         else if ( PlotUtil.isZoomDrag( evt ) ) {
-            aspect = axisFlags_ == null
-                   ? csurf.pointZoom( origin,
-                                      PlotUtil.toZoom( zoomFactor_, origin,
-                                                       point, false ),
-                                      PlotUtil.toZoom( zoomFactor_, origin,
-                                                       point, true ) )
-                   : csurf.centerZoom( PlotUtil.toZoom( zoomFactor_, origin,
-                                                        point, null ),
-                                       axisFlags_[ 0 ],
-                                       axisFlags_[ 1 ],
-                                       axisFlags_[ 2 ] );
+            if ( axisFlags_ == null ) {
+                double xf = PlotUtil.toZoom( zoomFactor_, origin, pos, false );
+                double yf = PlotUtil.toZoom( zoomFactor_, origin, pos, true );
+                CubeAspect aspect = csurf.pointZoom( origin, xf, yf );
+                Decoration dec =
+                    NavDecorations3D
+                   .create2dZoomDecoration( csurf, origin, xf, yf );
+                return new NavAction<CubeAspect>( aspect, dec );
+            }
+            else {
+                double fact = PlotUtil.toZoom( zoomFactor_, origin, pos, null );
+                CubeAspect aspect = csurf.centerZoom( fact, axisFlags_ );
+                Decoration dec =
+                    NavDecorations3D
+                   .createCenterDragDecoration( csurf, fact, axisFlags_ );
+                return new NavAction<CubeAspect>( aspect, dec );
+            }
         }
         else {
-            aspect = csurf.pan( origin, point );
+            CubeAspect aspect = csurf.pan( origin, pos );
+            return new NavAction<CubeAspect>( aspect, null );
         }
-        return new NavAction<CubeAspect>( aspect, null );
     }
 
     public NavAction<CubeAspect> wheel( Surface surface, MouseWheelEvent evt ) {
         final boolean xZoom;
         final boolean yZoom;
         final boolean zZoom;
-        if ( axisFlags_ == null ) {
-            xZoom = true;
-            yZoom = true;
-            zZoom = true;
-        }
-        else {
-            xZoom = axisFlags_[ 0 ];
-            yZoom = axisFlags_[ 1 ];
-            zZoom = axisFlags_[ 2 ];
-        }
-        CubeAspect aspect = ((CubeSurface) surface)
-                           .centerZoom( PlotUtil.toZoom( zoomFactor_, evt ),
-                                        xZoom, yZoom, zZoom );
-        return new NavAction<CubeAspect>( aspect, null );
+        boolean[] useFlags = axisFlags_ == null
+                           ? new boolean[] { true, true, true }
+                           : axisFlags_;
+        CubeSurface csurf = (CubeSurface) surface;
+        double fact = PlotUtil.toZoom( zoomFactor_, evt );
+        CubeAspect aspect = csurf.centerZoom( fact, useFlags );
+        Decoration dec =
+            NavDecorations3D
+           .createCenterWheelDecoration( csurf, fact, useFlags );
+        return new NavAction<CubeAspect>( aspect, dec );
     }
 
     public NavAction<CubeAspect> click( Surface surface, MouseEvent evt,
                                         Iterable<double[]> dposIt ) {
-        double[] dpos = surface.graphicsToData( evt.getPoint(), dposIt );
+        CubeSurface csurf = (CubeSurface) surface;
+        Point pos = evt.getPoint();
+        double[] dpos = surface.graphicsToData( pos, dposIt );
         if ( dpos == null ) {
             return null;
         }
         else {
             CubeAspect aspect = ((CubeSurface) surface).center( dpos );
-            return new NavAction<CubeAspect>( aspect, null );
+            Decoration dec =
+                NavDecorations3D.createRecenterDecoration( csurf, pos );
+            return new NavAction<CubeAspect>( aspect, dec );
         }
     }
 
