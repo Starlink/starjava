@@ -5,12 +5,15 @@ import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
 import javax.swing.Action;
 import javax.swing.JOptionPane;
 import uk.ac.starlink.table.JoinFixAction;
+import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.join.MatchEngine;
 import uk.ac.starlink.topcat.BasicAction;
@@ -346,28 +349,61 @@ public abstract class MatchPlotter {
              *   - expression made up of columns not renamed
              *   - expression made up of columns some of which are renamed
              *   - expression made up of columns referenced by $ID
-             * The first two are handled correctly by this code.
-             * The third one might work.  The others probably won't, and
+             * The first two have a good chance of being handled
+             * correctly by this code. The third one might work.
+             * The others probably won't, and
              * would require either parsing of the expressions by this
              * code, or columns explicitly inserted into result table
              * giving the join columns.  The latter might be a good idea,
              * since it would allow auto-plotting of joined tables when
              * added to a plot, rather than just doing it here. */
             for ( int iin = 0; iin < nin; iin++ ) {
-                TupleSelector tsel = tselectors[ iin ];
-                String suffix = PlotUtil.getIndexSuffix( iin );
+
+                /* First, prepare to work out how the column names in
+                 * the input table whose expressions we are looking at
+                 * in this iteration will have been mangled for deduplication
+                 * in the joined result table we have.  Amongst other things
+                 * this requires a list of the column names from the
+                 * current input table and another list of the column names
+                 * from all the other tables. */
                 JoinFixAction fixAct = fixActs[ iin ];
-                String[] texprs = tsel.getTupleExpressions();
+                Collection<String> colNames0 = new HashSet<String>();
+                Collection<String> colNamesOther = new HashSet<String>();
+                for ( int jin = 0; jin < nin; jin++ ) {
+                    Collection list = jin == iin ? colNames0 : colNamesOther;
+                    StarTable table =
+                        tselectors[ jin ].getTable().getDataModel();
+                    int ncol = table.getColumnCount();
+                    for ( int ic = 0; ic < ncol; ic++ ) {
+                        list.add( table.getColumnInfo( ic ).getName() );
+                    }
+                }
+
+                /* Then, put together a map of position coordinate names
+                 * to expressions that can be resolved in the context
+                 * of the result table. */
+                String suffix = PlotUtil.getIndexSuffix( iin );
+                String[] texprs = tselectors[ iin ].getTupleExpressions();
                 for ( int iuc = 0; iuc < nupc; iuc++ ) {
+
+                    /* Get the coordinate name. */
                     String cname = userPosCoordNames_[ iuc ] + suffix;
-                    String cvalue =
-                        fixAct != null
-                      ? fixAct.getFixedName( texprs[ iuc ],
-                                             Arrays.asList( exprs[ iuc ] ) )
-                      : null;
+
+                    /* Get the deduplicated expression. */
+                    String baseExpr = texprs[ iuc ];
+                    Collection<String> otherNames = new HashSet<String>();
+                    otherNames.addAll( colNames0 );
+                    otherNames.remove( baseExpr );
+                    otherNames.addAll( colNamesOther );
+                    String cvalue = fixAct.getFixedName( baseExpr, otherNames );
+
+                    /* Store them together in a map. */
                     coordValuesN.put( cname, cvalue );
                 }
             }
+
+            /* Use the calculated information to set up a new layer creation
+             * command. */
             Plotter markPlotterN =
                 new ShapePlotter
                    .ShapeModePlotter( "result", MarkForm.createMarkForm( nin ),
