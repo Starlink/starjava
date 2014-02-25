@@ -409,9 +409,11 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                                  + " at the bottom of the window" );
         navhelpModel.addChangeListener( new ChangeListener() {
             public void stateChanged( ChangeEvent evt ) {
-                navhelpHolder.removeAll();
                 if ( navhelpModel.isSelected() ) {
                     navhelpHolder.add( navhelpLine );
+                }
+                else {
+                    navhelpHolder.remove( navhelpLine );
                 }
                 navhelpHolder.revalidate();
             }
