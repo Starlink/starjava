@@ -466,15 +466,16 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
 
     /**
      * Sets a decoration giving visual feedback for navigation gestures.
-     * This decoratino will overwrite any previously set value, and will be
+     * This decoration will overwrite any previously set value, and will be
      * retained until overwritten with a null value.
-     * This method triggers a replot.
+     * This method triggers a repaint, but not a replot; the data graphics
+     * are assumed to be unaffected.
      *
      * @param  navDec  navigation decoration, or null to erase it
      */
     public void setNavDecoration( Decoration navDec ) {
         navDecoration_ = navDec;
-        replot();
+        repaint();
     }
 
     /**
@@ -515,9 +516,6 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             ptSel_.getPixelPaperType( opts, compositor_, this );
         GraphicsConfiguration graphicsConfig = getGraphicsConfiguration();
         Color bgColor = getBackground();
-        Decoration[] decorations = navDecoration_ == null
-                                 ? new Decoration[ 0 ]
-                                 : new Decoration[] { navDecoration_ };
 
         /* If the existing set of layers does not contain one of the
          * highlighted points, drop that highlight permanently.
@@ -536,7 +534,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                                  shadeFact, auxFixRanges, auxSubranges,
                                  auxLogFlags, legend, legpos, storeFact_,
                                  bounds, paperType, graphicsConfig, bgColor,
-                                 highlights, decorations );
+                                 highlights );
     }
 
     /**
@@ -549,6 +547,10 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         if ( plotIcon != null ) {
             Insets insets = getInsets();
             plotIcon.paintIcon( this, g, insets.left, insets.top );
+        }
+        Decoration navdec = navDecoration_;
+        if ( navdec != null ) {
+            navdec.paintDecoration( g );
         }
     }
 
@@ -726,7 +728,6 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         private final GraphicsConfiguration graphicsConfig_;
         private final Color bgColor_;
         private final double[][] highlights_;
-        private final Decoration[] decorations_;
 
         /**
          * Constructor.
@@ -754,7 +755,6 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
          * @param   graphicsConfig  graphics configuration
          * @param   bgColor   background colour
          * @param   highlights   array of highlight data positions
-         * @param   decorations  miscellaneous plot decorations
          */
         PlotJob( Workings<A> oldWorkings, PlotLayer[] layers,
                  SurfaceFactory<P,A> surfFact, P profile, A fixAspect,
@@ -766,7 +766,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                  Icon legend, float[] legpos, DataStoreFactory storeFact,
                  Rectangle bounds, PaperType paperType,
                  GraphicsConfiguration graphicsConfig, Color bgColor,
-                 double[][] highlights, Decoration[] decorations ) {
+                 double[][] highlights ) {
             oldWorkings_ = oldWorkings;
             layers_ = layers;
             surfFact_ = surfFact;
@@ -786,7 +786,6 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             graphicsConfig_ = graphicsConfig;
             bgColor_ = bgColor;
             highlights_ = highlights;
-            decorations_ = decorations;
         }
 
         /**
@@ -1066,9 +1065,6 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                                                 gp.x - xoff, gp.y - yoff ) );
                 }
             }
-
-            /* Place any other required decorations. */
-            placer.getDecorations().addAll( Arrays.asList( decorations_ ) );
 
             /* Determine whether first the data part, then the entire
              * graphics, of the plot is the same as for the oldWorkings.
