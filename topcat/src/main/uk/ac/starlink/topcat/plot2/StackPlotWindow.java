@@ -175,7 +175,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             new ToggleButtonModel( "Show Plot Progress", ResourceIcon.PROGRESS,
                                    "Report progress for slow plots in the "
                                  + "progress bar at the bottom of the window" );
-        showProgressModel_.setSelected( false );
+        showProgressModel_.setSelected( true );
         final ToggleButtonModel navdecModel =
             new ToggleButtonModel( "Show Navigation Graphics",
                                    ResourceIcon.NAV_DEC,
