@@ -40,40 +40,25 @@ public abstract class GuiNavigationListener<A> extends NavigationListener<A> {
                                 final MouseEvent evt,
                                 final Iterable<double[]> dposIt ) {
 
-        /* The asynchronously submitted operation below does what it is
-         * supposed to.  However, in practice it gets cancelled before it
-         * can complete in PlotPanel because the gesture that generates
-         * this click event generates a drag event just afterwards,
-         * and that adds a drag decoration causing a repaint, which in turn
-         * causes PlotPanel to cancel any pending plot annotation jobs.
-         * So we wrap the whole thing in an SwingUtilities.invokeLater call.
-         * The effect of that is to defer the click part of the gesture so
-         * that it happens after the drag not before it, and you see the
-         * effect of the click after the effect of the drag. */
-        SwingUtilities.invokeLater( new Runnable() {
+        /* The click operation *may* take time, if it is necessary to
+         * iterate over the data positions.  To cover that possibility,
+         * calculate the new aspect asynchronously and update the GUI
+         * later on the EDT.  Also make sure that progress is logged. */
+        plotPanel_.submitPlotAnnotator( new Runnable() {
             public void run() {
-
-                /* The click operation *may* take time, if it is necessary to
-                 * iterate over the data positions.  To cover that possibility,
-                 * calculate the new aspect asynchronously and update the GUI
-                 * later on the EDT.  Also make sure that progress is logged. */
-                plotPanel_.submitPlotAnnotator( new Runnable() {
-                    public void run() {
-                        NavAction<A> navact =
-                            navigator.click( surface, evt, dposIt );
-                        updateDecoration( navact.getDecoration(), true );
-                        final A aspect = navact == null ? null
-                                                        : navact.getAspect();
-                        if ( aspect != null &&
-                             ! Thread.currentThread().isInterrupted() ) {
-                            SwingUtilities.invokeLater( new Runnable() {
-                                public void run() {
-                                    setAspect( aspect );
-                                }
-                            } );
+                NavAction<A> navact =
+                    navigator.click( surface, evt, dposIt );
+                updateDecoration( navact.getDecoration(), true );
+                final A aspect = navact == null ? null
+                                                : navact.getAspect();
+                if ( aspect != null &&
+                     ! Thread.currentThread().isInterrupted() ) {
+                    SwingUtilities.invokeLater( new Runnable() {
+                        public void run() {
+                            setAspect( aspect );
                         }
-                    }
-                } );
+                    } );
+                }
             }
         } );
     }
