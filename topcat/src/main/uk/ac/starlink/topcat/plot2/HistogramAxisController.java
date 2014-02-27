@@ -3,11 +3,14 @@ package uk.ac.starlink.topcat.plot2;
 import java.util.Arrays;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.ttools.plot.Style;
+import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
+import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.geom.PlaneAspect;
+import uk.ac.starlink.ttools.plot2.geom.PlaneNavigator;
 import uk.ac.starlink.ttools.plot2.geom.PlaneSurfaceFactory;
 import uk.ac.starlink.ttools.plot2.layer.BinSizer;
 import uk.ac.starlink.ttools.plot2.layer.HistogramPlotter;
@@ -36,7 +39,7 @@ public class HistogramAxisController
      * @param  stack  control stack
      */
     public HistogramAxisController( ControlStack stack ) {
-        super( new PlaneSurfaceFactory(),
+        super( new HistogramSurfaceFactory(),
                PlaneAxisController.createAxisLabelKeys(), stack );
         SurfaceFactory surfFact = getSurfaceFactory();
         ConfigControl mainControl = getMainControl();
@@ -162,6 +165,41 @@ public class HistogramAxisController
             }
         }
         return null;
+    }
+
+    /**
+     * Surface factory for histogram.
+     */
+    private static class HistogramSurfaceFactory extends PlaneSurfaceFactory {
+        
+        private static final ConfigKey<Boolean> HIST_XANCHOR0_KEY =
+            createAnchor0Key( "X", false );
+        private static final ConfigKey<Boolean> HIST_YANCHOR0_KEY =
+            createAnchor0Key( "Y", true );
+
+        @Override
+        public ConfigKey[] getNavigatorKeys() {
+            return new ConfigKey[] {
+                NAVAXES_KEY,
+                HIST_XANCHOR0_KEY,
+                HIST_YANCHOR0_KEY,
+                StyleKeys.ZOOM_FACTOR,
+            };
+        }
+
+        @Override
+        public Navigator<PlaneAspect> createNavigator( ConfigMap navConfig ) {
+            double zoom = navConfig.get( StyleKeys.ZOOM_FACTOR );
+            boolean[] navFlags = navConfig.get( NAVAXES_KEY );
+            boolean xnav = navFlags[ 0 ];
+            boolean ynav = navFlags[ 1 ];
+            double xAnchor = navConfig.get( HIST_XANCHOR0_KEY ) ? 0.0
+                                                                : Double.NaN;
+            double yAnchor = navConfig.get( HIST_YANCHOR0_KEY ) ? 0.0
+                                                                : Double.NaN;
+            return new PlaneNavigator( zoom, xnav, ynav, xnav, ynav,
+                                       xAnchor, yAnchor );
+        }
     }
 
     /**

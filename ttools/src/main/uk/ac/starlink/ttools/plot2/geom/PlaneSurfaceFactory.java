@@ -14,6 +14,7 @@ import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
 import uk.ac.starlink.ttools.plot2.config.BooleanConfigKey;
+import uk.ac.starlink.ttools.plot2.config.CombinationConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigException;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
@@ -99,6 +100,19 @@ public class PlaneSurfaceFactory
     public static final ConfigKey<Double> YCROWD_KEY =
         StyleKeys.createCrowdKey( new ConfigMeta( "ycrowd",
                                                   "Y Tick Crowding" ) );
+
+    /** Config key to select which axes navigation actions will operate on. */
+    public static final ConfigKey<boolean[]> NAVAXES_KEY =
+        new CombinationConfigKey( new ConfigMeta( "navaxes", "Pan/Zoom Axes" ),
+                                  new String[] { "X", "Y" } );
+
+    /** Config key to anchor X axis during zooms. */
+    public static final ConfigKey<Boolean> XANCHOR0_KEY =
+        createAnchor0Key( "X", false );
+
+    /** Config key to anchor Y axis during zooms. */
+    public static final ConfigKey<Boolean> YANCHOR0_KEY =
+        createAnchor0Key( "Y", false );
 
     public Surface createSurface( Rectangle plotBounds, Profile profile,
                                   PlaneAspect aspect ) {
@@ -190,11 +204,40 @@ public class PlaneSurfaceFactory
     }
 
     public ConfigKey[] getNavigatorKeys() {
-        return PlaneNavigator.getConfigKeys();
+        return new ConfigKey[] {
+            NAVAXES_KEY,
+            XANCHOR0_KEY,
+            YANCHOR0_KEY,
+            StyleKeys.ZOOM_FACTOR,
+        };
     }
 
     public Navigator<PlaneAspect> createNavigator( ConfigMap navConfig ) {
-        return PlaneNavigator.createNavigator( navConfig );
+        double zoom = navConfig.get( StyleKeys.ZOOM_FACTOR );
+        boolean[] navFlags = navConfig.get( NAVAXES_KEY );
+        boolean xnav = navFlags[ 0 ];
+        boolean ynav = navFlags[ 1 ];
+        double xAnchor = navConfig.get( XANCHOR0_KEY ) ? 0.0 : Double.NaN;
+        double yAnchor = navConfig.get( YANCHOR0_KEY ) ? 0.0 : Double.NaN;
+        return new PlaneNavigator( zoom, xnav, ynav, xnav, ynav,
+                                   xAnchor, yAnchor );
+    }
+
+    /**
+     * Creates a config key for determining whether one of the axes is
+     * to be anchored at a data value of zero.
+     * 
+     * @param  axname  axis name
+     * @param  dflt   anchor default value
+     * @return  config key
+     */
+    public static ConfigKey<Boolean> createAnchor0Key( String axname,
+                                                       boolean dflt ) {
+        String axl = axname.toLowerCase();
+        String axL = axname.toUpperCase();
+        ConfigMeta meta =
+            new ConfigMeta( axl + "anchor0", "Anchor " + axL + " axis" );
+        return new BooleanConfigKey( meta, dflt );
     }
 
     /**
