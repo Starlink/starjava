@@ -1897,7 +1897,29 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                     dataLinkButton.setForeground(Color.GRAY);
                     resultsPane.addTab( shortName, cutImage, scrollPane );
                 }
-                else resultsPane.addTab( shortName, scrollPane );
+                else if (getDataTable != null) { // if no dataLink services present, check if there are getData services
+                    
+                    if ( getDataFrame == null ) {
+                       //  getDataFrame=null;
+                         getDataFrame = new GetDataQueryFrame();
+                        // getDataFrame.setBandParams(lowerBandField.getText(), upperBandField.getText());
+                        
+                    } 
+                  
+                    getDataFrame.addService(shortName, getDataTable);                    
+  //                  getDataButton.setEnabled(true);
+  //                  getDataButton.setVisible(true);
+  //                  getDataButton.setForeground(Color.GRAY);
+                    dataLinkButton.setEnabled(true);
+                    dataLinkButton.setVisible(true);
+                    dataLinkButton.setForeground(Color.GRAY);
+                    resultsPane.addTab( shortName, cutImage, scrollPane );
+                }
+                else {
+                  //  dataLinkButton.setEnabled(false);
+                 //   dataLinkButton.setVisible(false);
+                    resultsPane.addTab( shortName, scrollPane );
+                }
                 starJTables.add( table );
 
                 //  Set widths of columns.
@@ -3006,7 +3028,39 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             }
             return;
         }
-     
+        */
+        if ( source.equals( dataLinkButton ) ) {
+            if (dataLinkFrame != null && dataLinkFrame.getParams() != null) {
+                if (dataLinkFrame.isVisible()) { // deactivate
+                    dataLinkFrame.setVisible(false);
+                    //getDataButton.set.setEnabled(false);
+                    deactivateDataLinkSupport();
+            
+                } else {
+                    dataLinkFrame.setVisible(true);
+                    // getDataButton.setEnabled(true);
+                    activateDataLinkSupport();
+               
+                }
+            } else if (getDataFrame != null && getDataFrame.getParams() != null) {
+                if (getDataFrame == null || getDataFrame.getParams() == null)
+                    return;
+                if (getDataFrame.isVisible()) { // deactivate
+                    getDataFrame.setVisible(false);
+                    //getDataButton.set.setEnabled(false);
+                   // deactivateGetDataSupport();
+                    deactivateDataLinkSupport();
+                
+                } else {
+                    getDataFrame.setVisible(true);
+                   // getDataButton.setEnabled(true);
+                   // activateGetDataSupport();
+                    activateDataLinkSupport();
+                   
+                }
+            }
+            return;
+        }
 
     }
     /**
