@@ -87,6 +87,9 @@ public class SSAQuery
     
     /** The StarTable formed from the getData Parameters of the query */
     private GetDataTable getDataTable = null;
+    
+    /** The DataLink input parameters  */
+    private DataLinkParams dataLinkParams = null;
 
     /**
      * Create an instance with the given base URL for an SSA service.
@@ -291,6 +294,23 @@ public class SSAQuery
     {
         return getDataTable;
     }
+    
+    /**
+     * Set the DataLink parameters
+     */
+    public void setDataLinkParams( DataLinkParams dlparams )
+    {
+        this.dataLinkParams = dlparams;
+    }
+
+    /**
+     * Get then getDataTable, if defined, if not return null.
+     */
+    public DataLinkParams getDataLinkParams()
+    {
+        return dataLinkParams;
+    }
+    
     /**
      * Get the constructed query as a URL. This should be used to contact the
      * server and the content downloaded as a VOTable (which should then be
@@ -301,6 +321,7 @@ public class SSAQuery
     {  
         return new URL(getQueryURLText());
     }
+    
     
     public String getQueryURLText() throws UnsupportedEncodingException
     {
