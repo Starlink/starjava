@@ -41,6 +41,7 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
@@ -197,7 +198,8 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
         //setSSAServerList( serverList );
     }
     
-  
+   
+   
 
     /**
      * Initialise the main part of the user interface.
@@ -1465,6 +1467,8 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
         protected ArrayList<String> getTags() {
             return (tags);
         }
+        
+      
         
         public String toString() {
            
