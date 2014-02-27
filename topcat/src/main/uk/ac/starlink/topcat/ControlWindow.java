@@ -268,7 +268,9 @@ public class ControlWindow extends AuxWindow
         info.addLine( "Columns", colsLabel_ );
         info.addLine( "Sort Order", new Component[] { sortSenseButton_,
                                                       sortSelector_ } );
+        info.addGap();
         info.addLine( "Row Subset", subsetSelector_ );
+        info.addGap();
         info.addLine( "Activation Action",
                       new Component[] { activatorButton_, rowSendButton_ } );
         activatorButton_.setText( "           " );
@@ -302,9 +304,9 @@ public class ControlWindow extends AuxWindow
         listScroller.setBorder( makeTitledBorder( "Table List" ) );
         infoScroller.setBorder( makeTitledBorder( "Current Table " +
                                                   "Properties" ) );
+        listPanel.setPreferredSize( new Dimension( 200, 200 ) );
         splitter.setLeftComponent( listPanel );
         splitter.setRightComponent( infoPanel );
-        splitter.setPreferredSize( new Dimension( 600, 250 ) );
         splitter.setDividerLocation( 192 + ( showListToolBar_ ? 32 : 0 ) );
         getMainArea().add( splitter );
 
@@ -2136,6 +2138,13 @@ public class ControlWindow extends AuxWindow
                 compBox.add( comps[ i ] );
             }
             addLine( name, compBox );
+        }
+
+        void addGap() {
+            c1.gridy++;
+            c2.gridy++;
+            addItem( Box.createVerticalStrut( 2 ),
+                     (GridBagConstraints) c2.clone() );
         }
 
         void addItem( Component comp, GridBagConstraints c ) {
