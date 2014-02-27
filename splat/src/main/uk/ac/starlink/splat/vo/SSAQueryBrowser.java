@@ -242,10 +242,15 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
     protected JRadioButton  customSearchButton;
 
     /** Display GET DATA  parameters and activation status */
-    protected JButton  getDataButton;
+//    protected JButton  getDataButton;
     
-    protected boolean getDataEnabled = false;
-
+//    protected boolean getDataEnabled = false;
+   
+    /** Display  DATA Link parameters and activation status */
+    protected JButton  dataLinkButton;
+    
+    protected boolean dataLinkEnabled = false;
+    
     /** Make the query to all known servers */
     protected JButton goButton = null;
     
@@ -356,6 +361,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
     static ProgressPanelFrame progressFrame = null;
 
     private GetDataQueryFrame getDataFrame = null;
+    private DataLinkQueryFrame dataLinkFrame = null;
 
 
     /**
@@ -937,9 +943,12 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         resultsPanel.add( resultsPane , gbc);
         resultsPane.addChangeListener(new ChangeListener() {
             public void stateChanged(ChangeEvent e) {
-                if (getDataFrame != null && getDataEnabled) {
-                    getDataFrame.setService(resultsPane.getTitleAt(resultsPane.getSelectedIndex()));
-                }
+                if (dataLinkFrame != null && dataLinkEnabled) {
+                    dataLinkFrame.setServer(resultsPane.getTitleAt(resultsPane.getSelectedIndex()));
+                } else 
+                    if (getDataFrame != null && dataLinkEnabled) {
+                        getDataFrame.setService(resultsPane.getTitleAt(resultsPane.getSelectedIndex()));
+                    }
             }
         });
         
@@ -1007,7 +1016,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
      //   controlPanel2.add( deselectAllButton );
         gbcontrol.gridx=5;
         controlPanel.add( deselectAllButton , gbcontrol);
-
+/*
         getDataButton = new JButton( "<html>GET<BR> DATA</html>" );
         getDataButton.addActionListener( this );
         getDataButton.setMargin(new Insets(1,10,1,10));  
@@ -1017,7 +1026,16 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
      //   controlPanel2.add( deselectAllButton );
         gbcontrol.gridx=6;
         controlPanel.add( getDataButton, gbcontrol );
-        
+ */     
+        dataLinkButton = new JButton( "<html>DataLink<BR>Services</html>" );
+        dataLinkButton.addActionListener( this );
+        dataLinkButton.setMargin(new Insets(1,10,1,10));  
+        dataLinkButton.setToolTipText ( "DataLink parameters" );
+        dataLinkButton.setEnabled(false);
+        dataLinkButton.setVisible(false);
+     //   controlPanel2.add( deselectAllButton );
+        gbcontrol.gridx=6;
+        controlPanel.add( dataLinkButton, gbcontrol );
         gbc.gridx=0;
         gbc.gridy=1;
         gbc.weighty=0;
@@ -1390,6 +1408,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         //  formats.
         StarTable starTable = null;
         GetDataTable getDataTable = null;
+        DataLinkParams dataLinkParams = null;
       
         URL queryURL = null;
 
@@ -1445,11 +1464,20 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             
             VOElement voe = DalResourceXMLFilter.parseDalResult(vofact, inSrc);
            
-            starTable = DalResourceXMLFilter.getDalResultTable( voe );
+        
             getDataTable = DalResourceXMLFilter.getDalGetDataTable( voe );
+            starTable = DalResourceXMLFilter.getDalResultTable( voe );
+            
             
             if (getDataTable != null) {
                 ssaQuery.setGetDataTable( getDataTable);
+
+            }
+            
+            // if the VOTable contains datalink service definitions, add to the SSAQuery.
+            dataLinkParams = DalResourceXMLFilter.getDalGetServiceElement(voe); //!!!!!!!!!!!!!!!!!
+            if (dataLinkParams != null) {
+                ssaQuery.setDataLinkParams( dataLinkParams );
 
             }
 
@@ -1558,6 +1586,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         StarJTable table = null;
         StarTable starTable = null;
         GetDataTable getDataTable = null;
+        DataLinkParams  dataLinkParams = null;
         String shortName = null;
      
         boolean hasParams = false;
@@ -1568,6 +1597,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             ssaQuery = (SSAQuery) next;
             starTable = ssaQuery.getStarTable();
             getDataTable = ssaQuery.getGetDataTable();
+            dataLinkParams = ssaQuery.getDataLinkParams(); // get the data link services information
             shortName = ssaQuery.getDescription();
             if ( starTable != null ) {
             String baseurl = ssaQuery.getBaseURL();
@@ -1602,8 +1632,31 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                 table = new StarJTable( starTable, true );
                 scrollPane = new JScrollPane( table );
               //  scrollPane.setPreferredSize(new Dimension(600,400));
-                if (getDataTable != null) {
-		  
+                
+                
+                
+                if (dataLinkParams != null) { // if datalink services are present, create a frame
+                    
+                    if ( dataLinkFrame == null ) {
+                       //  getDataFrame=null;
+                         dataLinkFrame = new DataLinkQueryFrame();
+                        // getDataFrame.setBandParams(lowerBandField.getText(), upperBandField.getText());
+                        
+                    } 
+                  
+                    dataLinkFrame.addServer(shortName, dataLinkParams);  // associate this datalink service information to the current server
+                    /*
+                    getDataButton.setEnabled(true);
+                    getDataButton.setVisible(true);
+                    getDataButton.setForeground(Color.GRAY);
+                    */
+                    dataLinkButton.setEnabled(true);
+                    dataLinkButton.setVisible(true);
+                    dataLinkButton.setForeground(Color.GRAY);
+                    resultsPane.addTab( shortName, cutImage, scrollPane );
+                }
+                else if (getDataTable != null) { // if no dataLink services present, check if there are getData services
+                    
                     if ( getDataFrame == null ) {
                        //  getDataFrame=null;
                          getDataFrame = new GetDataQueryFrame();
@@ -1612,12 +1665,19 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                     } 
                   
                     getDataFrame.addService(shortName, getDataTable);                    
-                    getDataButton.setEnabled(true);
-                    getDataButton.setVisible(true);
-                    getDataButton.setForeground(Color.GRAY);
+  //                  getDataButton.setEnabled(true);
+  //                  getDataButton.setVisible(true);
+  //                  getDataButton.setForeground(Color.GRAY);
+                    dataLinkButton.setEnabled(true);
+                    dataLinkButton.setVisible(true);
+                    dataLinkButton.setForeground(Color.GRAY);
                     resultsPane.addTab( shortName, cutImage, scrollPane );
                 }
-                else resultsPane.addTab( shortName, scrollPane );
+                else {
+                  //  dataLinkButton.setEnabled(false);
+                 //   dataLinkButton.setVisible(false);
+                    resultsPane.addTab( shortName, scrollPane );
+                }
                 starJTables.add( table );
 
                 //  Set widths of columns.
@@ -1742,11 +1802,24 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
     {
         int[] selection = null;
         
-       
+      
         HashMap< String, String > getDataParam = null;
-        if ( getDataFrame != null && getDataFrame.isVisible() ) 
+        
+        HashMap< String, String > dataLinkQueryParams = null;
+        String idSource = null;
+        String accessURL = null;
+        if ( dataLinkFrame != null && dataLinkFrame.isVisible() ) {
+            dataLinkQueryParams = dataLinkFrame.getParams();
+            idSource = dataLinkFrame.getIDSource().substring(1); // remove initial '#'.
+            accessURL = dataLinkFrame.getAccessURL();
+        }
+        else if ( getDataFrame != null && getDataFrame.isVisible() ) {
             getDataParam = getDataFrame.getParams();
-
+            idSource="PUBDid";
+        }
+        
+       
+        
         //  Check for a selection if required, otherwise we're using the given
         //  row.
         if ( selected && row == -1 ) {
@@ -1777,12 +1850,14 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             int fluxunitscol = -1;
             int fluxerrorcol = -1;
             int pubdidcol=-1;
+            int idsrccol=-1;
             int specstartcol=-1;
             int specstopcol=-1;
             ColumnInfo colInfo;
             String ucd;
             String utype;
             String getDataRequest="";
+            String dataLinkRequest="";
             
             for( int k = 0; k < ncol; k++ ) {
                 colInfo = starTable.getColumnInfo( k );
@@ -1851,11 +1926,31 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                 }
                 if (colInfo.getName().equals("ssa_pubDID"))
                     pubdidcol = k;
+                if (colInfo.getName().equals(idSource))
+                    idsrccol = k;
                 
             } // for
             
-            // if we have a pubDID col, check if the getData parameters are set.
-            if (pubdidcol != -1  && getDataParam != null )
+            if (idsrccol != -1  && dataLinkQueryParams != null ) { // check if datalink parameters are present
+                 
+                if ( ! dataLinkQueryParams.isEmpty() ) {                   
+                    for (String key : dataLinkQueryParams.keySet()) {
+                        String value = dataLinkQueryParams.get(key);
+                                if (value != null && value.length() > 0) {
+                                    try {//
+                                           
+                                            if (! key.equals("IDSource") && ! (key.equals("AccessURL"))) {
+                                                dataLinkRequest+="&"+key+"="+URLEncoder.encode(value, "UTF-8");
+                                            }
+                                       
+                                    } catch (UnsupportedEncodingException e) {
+                                        // TODO Auto-generated catch block
+                                        e.printStackTrace();
+                                    }                                     
+                                }
+                    }
+                }
+            } else if (pubdidcol != -1  && getDataParam != null ) { // if we have a pubDID col, check if the getData parameters are set.    
                 if ( ! getDataParam.isEmpty() ) {                   
                     for (String key : getDataParam.keySet()) {
                         String value = getDataParam.get(key);
@@ -1877,8 +1972,9 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                                 }
                     }
                 }
-            
-
+            }
+           
+        
             //  If we have a DATA_LINK column, gather the URLs it contains
             //  that are appropriate.
             if ( linkcol != -1 ) {
@@ -1967,10 +2063,22 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                                     props.setDataUnits( value );
                                 }
                             }
-                            if (pubdidcol != -1  && getDataParam != null) {
+                         
+                            if (idsrccol != -1  && dataLinkQueryParams != null) { //!!!!!
+                                
+                                if (! dataLinkQueryParams.isEmpty()) { 
+                                   props.setIdValue(rseq.getCell(idsrccol).toString());
+                                   props.setIdSource(idSource);
+                                   props.setDataLinkRequest(dataLinkRequest);
+                                   props.setServerURL(dataLinkQueryParams.get("AccessURL"));
+                                   String format = dataLinkQueryParams.get("FORMAT");
+                                   if (format != null && format != "")
+                                       props.setDataLinkFormat(format);
+                                }
+                            } else if (pubdidcol != -1  && getDataParam != null) {
                                
                                 if (! getDataParam.isEmpty()) { 
-                                   props.setPubdidValue(rseq.getCell(pubdidcol).toString());
+                                   props.setIdValue(rseq.getCell(pubdidcol).toString());
                                    props.setGetDataRequest(getDataRequest);
                                    props.setServerURL(starTable.getURL().toString());
                                    String format = getDataParam.get("FORMAT");
@@ -2045,7 +2153,9 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                                         props.setDataUnits( units[1] );
                                     }
                                 }
-                                if (pubdidcol != -1  && getDataParam != null) {
+                               /*
+                                *  if (pubdidcol != -1  && getDataParam != null) {
+                                
                                     if (! getDataParam.isEmpty()) { 
                                        props.setPubdidValue(rseq.getCell(pubdidcol).toString());
                                        props.setGetDataRequest(getDataRequest);
@@ -2055,7 +2165,31 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                                            props.setGetDataFormat(format);
                                        props.setShortName(props.getShortName() + " [" + getDataParam.get("BAND") + "]" );
                                     }
+                                }*/
+                                if (idsrccol != -1  && dataLinkQueryParams != null) {  // !!!!!
+                                    if (! dataLinkQueryParams.isEmpty()) { 
+                                        props.setIdValue(rseq.getCell(idsrccol).toString());
+                                        props.setIdSource(idSource);
+                                       props.setDataLinkRequest(dataLinkRequest);
+                                      // props.setServerURL(dataLinkQueryParam.get("AccessURL"));
+                                       props.setServerURL(accessURL);
+                                       String format = dataLinkQueryParams.get("FORMAT");
+                                       if (format != null && format != "")
+                                           props.setDataLinkFormat(format);
+                                      // props.setShortName(props.getShortName() + " [" + getDataParam.get("BAND") + "]" );
+                                    }
+                                } else  if (pubdidcol != -1  && getDataParam != null) {
+                                
+                                if (! getDataParam.isEmpty()) { 
+                                   props.setIdValue(rseq.getCell(pubdidcol).toString());
+                                   props.setGetDataRequest(getDataRequest);
+                                   props.setServerURL(starTable.getURL().toString());
+                                   String format = getDataParam.get("FORMAT");
+                                   if (format != "")
+                                       props.setGetDataFormat(format);
+                                   props.setShortName(props.getShortName() + " [" + getDataParam.get("BAND") + "]" );
                                 }
+                            }
                                 specList.add( props );
 
                                 //  Move to next selection.
@@ -2346,24 +2480,16 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
 
         if ( source.equals( goButton ) ) {
             {
-                deactivateGetDataSupport();
-                getDataButton.setVisible(false);
+               // deactivateGetDataSupport();
+               // getDataButton.setVisible(false);
+                deactivateDataLinkSupport(); //!!!!
+                dataLinkButton.setVisible(false);
                 doQuery();
                
             }        
             return;
         } 
-      /*  if ( source.equals( showQueryButton ) ) {
-            {
-                try {
-                    queryText.setText(queryLine.getQueryURLText()+ extendedQueryText);
-                } catch (UnsupportedEncodingException e1) {
-                    // TODO Auto-generated catch block
-                    e1.printStackTrace();
-                }
-            }        
-            return;
-        } */
+     
                 try {
                     queryText.setText(queryLine.getQueryURLText()+ extendedQueryText);
                 } catch (UnsupportedEncodingException e1) {
@@ -2597,7 +2723,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         if ( source.equals( deselectAllButton ) ) {
             deselectSpectra( true );
             return;
-        }
+        }/*
         if ( source.equals( getDataButton ) ) {
             if (getDataFrame == null || getDataFrame.getParams() == null)
                 return;
@@ -2614,14 +2740,46 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             }
             return;
         }
-     
+        */
+        if ( source.equals( dataLinkButton ) ) {
+            if (dataLinkFrame != null && dataLinkFrame.getParams() != null) {
+                if (dataLinkFrame.isVisible()) { // deactivate
+                    dataLinkFrame.setVisible(false);
+                    //getDataButton.set.setEnabled(false);
+                    deactivateDataLinkSupport();
+            
+                } else {
+                    dataLinkFrame.setVisible(true);
+                    // getDataButton.setEnabled(true);
+                    activateDataLinkSupport();
+               
+                }
+            } else if (getDataFrame != null && getDataFrame.getParams() != null) {
+                if (getDataFrame == null || getDataFrame.getParams() == null)
+                    return;
+                if (getDataFrame.isVisible()) { // deactivate
+                    getDataFrame.setVisible(false);
+                    //getDataButton.set.setEnabled(false);
+                   // deactivateGetDataSupport();
+                    deactivateDataLinkSupport();
+                
+                } else {
+                    getDataFrame.setVisible(true);
+                   // getDataButton.setEnabled(true);
+                   // activateGetDataSupport();
+                    activateDataLinkSupport();
+                   
+                }
+            }
+            return;
+        }
 
     }
     /**
      * ActivateGetDataSupport
      * deactivate all sites that do not support getData
      * activate getData queries on supported sites
-     */
+     *//*
     private void activateGetDataSupport() {
         
         getDataEnabled=true;
@@ -2647,17 +2805,73 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         if (selected < 0)
             selected=anyGDIndex;
         resultsPane.setSelectedIndex(selected);
-        getDataFrame.setService(resultsPane.getTitleAt(selected));
+        
+        //getDataFrame.setService(resultsPane.getTitleAt(selected));
+        dataLinkFrame.setService(resultsPane.getTitleAt(selected));
+            
+    }
+    */
+    /**
+     * ActivateDataLinkSupport
+     * deactivate all sites that do not support DataLink/getData
+     * activate DataLink/getData queries on supported sites
+     */
+    private void activateDataLinkSupport() {
+        
+        dataLinkEnabled=true;
+        int selected=-1;
+        int anyIndex = -1;
+        dataLinkButton.setForeground(Color.BLACK);
+        int nrTabs = resultsPane.getTabCount();
+        for(int i = 0; i < nrTabs; i++)
+        {
+           if (resultsPane.getIconAt(i) == null) {
+               resultsPane.setEnabledAt(i, false);
+           }
+           else {
+               if (resultsPane.getSelectedIndex() == i)
+                   selected = i;
+               anyIndex = i;
+              // resultsPane.setSelectedIndex(i);
+           }
+        }
+        
+        // if current selection is a getData service, keep it. If not,
+        // set selection to one getData service.
+        if (selected < 0)
+            selected=anyIndex;
+        resultsPane.setSelectedIndex(selected);
+        
+        //getDataFrame.setService(resultsPane.getTitleAt(selected));
+        if (dataLinkFrame.setServer(resultsPane.getTitleAt(selected)) == null)
+            getDataFrame.setService(resultsPane.getTitleAt(selected));
             
     }
     /**
      * DeactivateGetDataSupport
      * activate all sites, without getData support
      */
-    private void deactivateGetDataSupport() {
+  /*
+   *   private void deactivateGetDataSupport() {
+  
         
         getDataEnabled=false;
         getDataButton.setForeground(Color.GRAY);
+        int nrTabs = resultsPane.getTabCount();
+        for(int i = 0; i < nrTabs; i++)
+        {
+            resultsPane.setEnabledAt(i, true);      
+        }
+    }
+  */  
+    /**
+     * DeactivateDataLinkSupport
+     * activate all sites, without getData support
+     */
+    private void deactivateDataLinkSupport() {
+        
+        dataLinkEnabled=false;
+        dataLinkButton.setForeground(Color.GRAY);
         int nrTabs = resultsPane.getTabCount();
         for(int i = 0; i < nrTabs; i++)
         {
