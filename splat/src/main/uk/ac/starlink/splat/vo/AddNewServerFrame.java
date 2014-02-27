@@ -28,7 +28,10 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 
 //import uk.ac.starlink.util.gui.ErrorDialog;
+import uk.ac.starlink.table.DescribedValue;
+import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.vo.RegResource;
+import uk.ac.starlink.votable.VOStarTable;
 
 /**
  * Class AddNewServerFrame
@@ -57,6 +60,8 @@ implements ActionListener
     private JPanel centrePanel = null;
     private JPanel buttonsPanel = null;
 
+    private String type="";
+    
     /**
      * The server list to be updated
      */
@@ -66,6 +71,8 @@ implements ActionListener
     /**
      * Create an instance.
      */
+   
+    
     public AddNewServerFrame()
     {
         initUI();
@@ -74,6 +81,16 @@ implements ActionListener
         status=0;
         statusChange= new PropertyChangeSupport(this); 
     }
+    
+    public AddNewServerFrame( String type ) {
+        this.type = type;
+        initUI();
+        initMenus();
+        initFrame();
+        status=0;
+        statusChange= new PropertyChangeSupport(this); 
+    }
+   
 
     /**
      * Initialise the main part of the user interface.
@@ -97,7 +114,9 @@ implements ActionListener
      */
     private void initFrame()
     {
-        setTitle( "Add New SSAP Service" );
+        
+            setTitle( "Add New SSAP Service" );
+   
         setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
         setSize( new Dimension( 500, 200 ) );
         setVisible( true );
@@ -229,8 +248,7 @@ implements ActionListener
      */
     private void setResource()
     {
-        newResource = new SSAPRegResource(shortNameField.getText(), titleField.getText(), descriptionField.getText(), accessURLField.getText()); 
-
+            newResource = new SSAPRegResource(shortNameField.getText(), titleField.getText(), descriptionField.getText(), accessURLField.getText()); 
     }
 
     /**
@@ -273,7 +291,18 @@ implements ActionListener
     {
         return newResource;
     }
-
+    public String getShortName()
+    {
+        return newResource.getShortName();
+    }
+    public String getAccessURL()
+    {
+         return newResource.getCapabilities()[0].getAccessUrl();
+    }
+    public String getDescription()
+    {
+        return newResource.getCapabilities()[0].getDescription();
+    }
     /**
      *  Register new Property Change Listener
      */
