@@ -63,11 +63,7 @@ public class GetDataQueryFrame extends JFrame implements ActionListener {
     public void addService( String service, GetDataTable gdtable ) {
         GetDataTable gdt = services.get(service);
         if (gdt == null) {          
-            services.put(service, gdtable);
-           // paramPanel.removeAll();
-           // addToUI(service, gdtable);
-           // paramPanel.updateUI();
-           
+            services.put(service, gdtable);           
         }
    //     } else {
             // DO WHAT? Compare parameters?
