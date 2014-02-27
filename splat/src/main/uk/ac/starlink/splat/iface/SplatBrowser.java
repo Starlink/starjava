@@ -35,8 +35,10 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -86,15 +88,25 @@ import uk.ac.starlink.splat.util.SplatSOAPServer;
 import uk.ac.starlink.splat.util.MathUtils;
 import uk.ac.starlink.splat.util.Transmitter;
 import uk.ac.starlink.splat.util.Utilities;
+import uk.ac.starlink.util.DataSource;
+import uk.ac.starlink.util.URLDataSource;
 import uk.ac.starlink.util.gui.BasicFileChooser;
 import uk.ac.starlink.util.gui.BasicFileFilter;
 import uk.ac.starlink.util.gui.FileNameListCellRenderer;
 import uk.ac.starlink.util.gui.GridBagLayouter;
 import uk.ac.starlink.util.gui.ErrorDialog;
+import uk.ac.starlink.votable.VOTableBuilder;
 
+import uk.ac.starlink.splat.vo.DataLinkParams;
 import uk.ac.starlink.splat.vo.SSAQueryBrowser;
 import uk.ac.starlink.splat.vo.SSAServerList;
 import uk.ac.starlink.splat.vo.SSAPAuthenticator;
+
+import uk.ac.starlink.table.DescribedValue;
+import uk.ac.starlink.table.RowSequence;
+import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.StoragePolicy;
+import uk.ac.starlink.table.TableFormatException;
 
 /**
  * This is the main class for the SPLAT program. It creates the
@@ -245,6 +257,7 @@ public class SplatBrowser
      *  SSAP browser.
      */
     protected SSAQueryBrowser ssapBrowser = null;
+   
 
     /**
      *  Stack open or save chooser.
@@ -714,6 +727,9 @@ public class SplatBrowser
                                                    "Search SSAP servers" );
         fileMenu.add( ssapAction ).setMnemonic( KeyEvent.VK_P );
         toolBar.add( ssapAction );
+
+       
+   
 
         //  Add action to browse the local file system and look for tables
         //  etc. in sub-components.
@@ -1759,6 +1775,8 @@ public class SplatBrowser
         ssapBrowser.setVisible( true );
     }
 
+
+    
     /**
      * Open and display all the spectra listed in the newFiles array. Uses a
      * thread to load the files so that we do not block the UI (although the
@@ -1969,9 +1987,11 @@ public class SplatBrowser
      *
      *  @param props a container class for the spectrum properties, including
      *               the specification (i.e. file name etc.) of the spectrum
+     * @throws IOException 
+     * @throws TableFormatException 
      */
     public void tryAddSpectrum( SpectrumIO.Props props )
-        throws SplatException
+        throws SplatException, TableFormatException, IOException
     {
         if ( props.getType() == SpecDataFactory.SED ) {
             //  Could be a source of several spectra.
@@ -1989,8 +2009,18 @@ public class SplatBrowser
                 SpecData spectrum;
                 if ( specstr.contains("REQUEST=getData") && props.getGetDataFormat() != null )
                     spectrum = specDataFactory.get( props.getSpectrum(), props.getGetDataFormat() );
-                else
+                // if the access_url is a datalink, then we have to get first the Datalink VOTable to get the real access_url of the spectrum.
+                else { 
+                    if (props.getType() == SpecDataFactory.DATALINK) {
+                        DataLinkParams dlparams = new DataLinkParams(props.getSpectrum());
+                        props.setSpectrum(dlparams.getQueryAccessURL(0)); // get the accessURL for the first service read, in case there are more services !?!?!?!?!?!?!?!?!?!?!?
+                        if ( dlparams.getQueryContentType(0) == null || dlparams.getQueryContentType(0).isEmpty()) 
+                            props.setType(SpecDataFactory.GUESS);
+                        else 
+                            props.setType(SpecDataFactory.mimeToSPLATType(dlparams.getQueryContentType(0)));
+                    }
                     spectrum = specDataFactory.get( props.getSpectrum(), props.getType() );
+                }
                 addSpectrum( spectrum );
                 props.apply( spectrum );
             }
@@ -2084,6 +2114,7 @@ public class SplatBrowser
         }
         if ( moreSpectra != null ) {
             //  Abandon the current spectrum and use these instead.
+            colourAsLoaded=true;
             for ( int i = 0; i < moreSpectra.length; i++ ) {
                 applyRenderingDefaults( moreSpectra[i] );
                 globalList.add( moreSpectra[i] );
@@ -3020,6 +3051,7 @@ public class SplatBrowser
         public static final int PURGE_SPECTRA = 26;
         public static final int FITS_VIEWER = 27;
         public static final int EXIT = 28;
+  
 
         private int type = 0;
 
@@ -3205,8 +3237,7 @@ public class SplatBrowser
                    fitsSelectedSpectra();
                }
                break;
-
-
+               
                case EXIT: {
                    exitApplicationEvent();
                }
