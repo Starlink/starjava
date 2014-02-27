@@ -29,7 +29,11 @@ public class ExtractedSpecDataImpl
     extends MEMSpecDataImpl
 {
     private static int localCounter = 0;
-
+    private float w1 = 0; // first pixel
+    private float dw = 0; // interval
+    private float z = 0; // doppler correction
+    private float dtype = 0; // dispersion type
+    
     /**
      * Extract a line from a 2D image. The line lies along the dispersion axis
      * (defined by the SpecDims object) and is selected by an index along the
@@ -46,6 +50,64 @@ public class ExtractedSpecDataImpl
         this.parentImpl = parent.getSpecDataImpl();
         extract2D( parent, specDims, index );
         initMetaData( parent );
+    }
+    
+    /**
+     * Extract a line from a 2D echelle spectrum in IRAF format. 
+     * The line lies along the dispersion axis
+     * (defined by the SpecDims object) and is selected by an index along the
+     * non-dispersion axis.
+     *
+     * @param parent the SpecData to extract a line from.
+     * @param index the index of the line to extract.
+     */
+    public ExtractedSpecDataImpl( SpecData parent, SpecDims specDims,
+                                  int index, int dtype, double w1, double dw, double z )
+        throws SplatException
+    {
+        super( parent.getFullName() );
+        this.parentImpl = parent.getSpecDataImpl();
+        
+        if (dtype != 1 && dtype != 2) {
+            SplatException e = new SplatException("non linear functions not implemented yet");
+            throw (e);
+        }
+       
+    //  Add the coords and data.
+        double data[] = parent.getYData();
+        double coords[] = new double[data.length];
+        double errors[] = parent.getYDataErrors();
+       
+        for ( int i=0;i<data.length; i++) {
+            if ( dtype == 0) { // linear
+                coords[i] = (w1 + dw * i) / (1 + z);
+            } else {    // log-linear
+                coords[i] = Math.pow(10, (w1 + dw * i) / (1 + z));
+            }
+        }
+       
+        Arrays.fill( data, SpecData.BAD );
+    
+        EditableSpecData newspec = SpecDataFactory.getInstance().createEditable( parent.getShortName(), parent );  
+       // EditableSpecData newSpec = null;
+        try {
+            ASTJ astJ = new ASTJ( parent.getFrameSet() );
+           
+            FrameSet frameSet = ASTJ.get1DFrameSet( astJ.getRef(), 1 );
+            newspec.setSimpleUnitDataQuick( frameSet, coords,
+                                            parent.getCurrentDataUnits(), data,
+                                            errors );
+            parent.applyRenderingProperties( newspec );
+        }
+        catch ( Exception e ) {
+            e.printStackTrace();
+            newspec = null;
+        }
+        
+      //  newspec.setSimpleUnitDataQuick( parent.getFrameSet(), coords, parent.getDataUnits(),  data );
+        this.parentImpl = newspec.getSpecDataImpl();
+        extract2D( newspec, specDims, index );
+        initMetaData( newspec );
     }
 
     /**
@@ -93,7 +155,6 @@ public class ExtractedSpecDataImpl
         int selectaxis = specDims.getSelectAxis( false );
         int[] indices = new int[2];
         indices[dispax] = 0;
-        indices[selectaxis] = index;
 
         //  Extract the spectrum.
         int[] strides = specDims.getStrides( false );
