@@ -356,9 +356,13 @@ public class SpectrumIO
         protected String dataColumn;
         protected String coordColumn;
         protected String errorColumn;
-        protected String pubdidValue;
+        protected String idValue;
+        protected String idSource;
         protected String getDataRequest;
         protected String getDataFormat;
+        protected String dataLinkRequest;
+        protected String dataLinkFormat;
+
         protected String serverURL;
 
         public Props( String spectrum )
@@ -386,13 +390,13 @@ public class SpectrumIO
                 String errorColumn )
         {
             this( spectrum, type, shortName, dataUnits, coordUnits,
-                  dataColumn, coordColumn, null, null );
+                  dataColumn, coordColumn, null, null, null );
         }
         
         public Props( String spectrum, int type, String shortName,
                       String dataUnits, String coordUnits,
                       String dataColumn, String coordColumn,
-                      String errorColumn, String pubdidValue )
+                      String errorColumn, String idsrc, String idValue )
         {
             this.spectrum = spectrum;
             this.type = type;
@@ -404,7 +408,10 @@ public class SpectrumIO
             this.errorColumn = errorColumn;
             this.getDataRequest=null;
             this.getDataFormat=null; 
-            this.pubdidValue=pubdidValue;
+            this.dataLinkRequest=null;
+            this.dataLinkFormat=null; 
+            this.idValue=idValue;
+            this.idSource = idsrc;
             this.serverURL=null;
         }
 
@@ -413,23 +420,28 @@ public class SpectrumIO
             if (serverURL == null )
                 return spectrum;
             
-            if (pubdidValue != null && getDataRequest != null ) 
+    //        if (pubdidValue != null && getDataRequest != null ) 
+            if (idValue != null && dataLinkRequest != null && ! dataLinkRequest.isEmpty()) 
                 if ( serverURL.endsWith("?"))
-           //         try {
+                    try {
                         //return (serverURL+"REQUEST=getData"+URLEncoder.encode(getDataRequest+"&PUBDID="+pubdidValue, "UTF-8"));
-                        return (serverURL+"REQUEST=getData"+getDataRequest+"&PUBDID="+pubdidValue);
-             //       } catch (UnsupportedEncodingException e1) {
+                        return (serverURL+"ID="+URLEncoder.encode(idValue, "UTF-8")+dataLinkRequest);
+                       // return (serverURL+"ID="+idValue+);
+                    } catch (UnsupportedEncodingException e1) {
                         // TODO Auto-generated catch block
-                       // e1.printStackTrace();
-             //       }
+                        e1.printStackTrace();
+                    }
                 else
-              //      try {
-                       return (serverURL+"?REQUEST=getData"+getDataRequest+"&PUBDID="+pubdidValue);
+                    try {
+                 //      return (serverURL+"?REQUEST=getData"+getDataRequest+"&PUBDID="+pubdidValue);
+                     
+                        return (serverURL+ "?"+"ID="+URLEncoder.encode(idValue, "UTF-8")+dataLinkRequest);
+            
                      //     return (serverURL+"?REQUEST=getData"+URLEncoder.encode(getDataRequest+"&PUBDID="+pubdidValue, "UTF-8"));
-             //       } catch (UnsupportedEncodingException e) {
+                    } catch (UnsupportedEncodingException e) {
                         // TODO Auto-generated catch block
-                        //e.printStackTrace();
-           //         }
+                        e.printStackTrace();
+                    }
             
             return spectrum;
         }
@@ -523,18 +535,27 @@ public class SpectrumIO
             this.errorColumn = errorColumn;
         }
         
-        public String getPubdidValue()
+        public String getidValue()
         {
-            return pubdidValue;
+            return idValue;
         }
 
-        public void setPubdidValue( String pubdidValue )
+        public void setIdValue( String idValue )
         {
-            this.pubdidValue = pubdidValue;
+            this.idValue = idValue; //!!!
         }
         public String getGetDataRequest()
         {
             return getDataRequest;
+        }
+
+        public void setDataLinkRequest( String dataLinkRequest )
+        {
+            this.dataLinkRequest = dataLinkRequest;
+        }
+        public String getDataLinkRequest()
+        {
+            return dataLinkRequest;
         }
 
         public void setGetDataRequest( String getDataRequest )
@@ -636,6 +657,19 @@ public class SpectrumIO
                 }
             }
         }
+
+        public void setDataLinkFormat(String format) {
+            
+            dataLinkFormat = format;
+            
+        }
+
+        public void setIdSource(String idsrc) {
+            
+            idSource = idsrc;
+            
+        }
+
     }
 
     // Inner class for loading and saving Spectra.
