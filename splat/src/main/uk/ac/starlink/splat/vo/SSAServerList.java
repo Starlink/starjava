@@ -70,7 +70,11 @@ public class SSAServerList
     protected void addServer( SSAPRegResource server, boolean save )
     {
 
-        serverList.put( server.getShortName(), server );
+     
+        String shortname = server.getShortName();
+           if (shortname != null)
+               shortname = shortname.trim();
+        serverList.put( shortname, server );
         if ( save ) {
             try {
                 saveServers();
@@ -88,10 +92,16 @@ public class SSAServerList
      */
     public void removeServer( SSAPRegResource server )
     {
-        serverList.remove( server.getShortName() );
+        String shortname = server.getShortName();
+        if (shortname != null)
+              shortname = shortname.trim();
+        serverList.remove( shortname );
+      
     }
     public void removeServer( String shortName )
     {
+        if (shortName != null)
+           shortName = shortName.trim();
         serverList.remove( shortName );
     }
 
@@ -150,6 +160,8 @@ public class SSAServerList
      */
     public SSAPRegResource getResource(String shortname)
     {
+        if (shortname != null)
+           shortname = shortname.trim();
         return (SSAPRegResource) serverList.get(shortname);
     }
     
@@ -160,6 +172,8 @@ public class SSAServerList
      */
     public String getBaseURL(String shortname)
     {
+        if (shortname != null)
+            shortname = shortname.trim();
         SSAPRegResource res = (SSAPRegResource) serverList.get(shortname);
         SSAPRegCapability[] cap = res.getCapabilities();
         return cap[0].getAccessUrl();
@@ -362,6 +376,8 @@ public class SSAServerList
      * set selection tag
      */
      public void selectServer(String shortname) {
+         if (shortname != null)
+            shortname = shortname.trim();
          if (serverList.containsKey(shortname))
                  selectionList.put(shortname, true);
      }
@@ -369,6 +385,8 @@ public class SSAServerList
       * set selection tag
       */
       public void unselectServer(String shortname) {
+          if (shortname != null)
+              shortname = shortname.trim();
           if (serverList.containsKey(shortname))
                   selectionList.put(shortname, false);
       }
@@ -378,6 +396,8 @@ public class SSAServerList
        public boolean isServerSelected(String shortname) {
            if (shortname == null)
                return false; //this should not happen! 
+           else
+               shortname = shortname.trim();
            if (serverList.containsKey(shortname))
                    return selectionList.get(shortname);
            return false;
