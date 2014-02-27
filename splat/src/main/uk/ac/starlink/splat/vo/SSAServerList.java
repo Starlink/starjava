@@ -169,6 +169,8 @@ public class SSAServerList
      */
     public String getBaseURL(String shortname)
     {
+        if (shortname != null)
+            shortname = shortname.trim();
         SSAPRegResource res = (SSAPRegResource) serverList.get(shortname);
         SSAPRegCapability[] cap = res.getCapabilities();
         return cap[0].getAccessUrl();
