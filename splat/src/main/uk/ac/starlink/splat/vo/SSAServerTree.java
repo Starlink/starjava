@@ -40,6 +40,7 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenu;
@@ -229,7 +230,8 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
         //setSSAServerList( serverList );
     }
     
-  
+   
+   
 
     /**
      * Initialise the main part of the user interface.
@@ -388,10 +390,8 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
        src_theo.addItemListener(checkBoxlistener);
        treeRenderer.addSrc(src_theo.getText());
        src_inv = new JCheckBox("Invisible"); // so I can uncheck both theo/obs if I need
-       ButtonGroup group = new ButtonGroup();
-       group.add(src_obs);
-       group.add(src_theo);
-       group.add(src_inv);
+      
+       
        c.weightx=1;
        c.gridy = 0;
       
@@ -1202,6 +1202,9 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
      */
     protected void addNewTag()
     {
+        
+        boolean newTag = true;
+        
         // are there selected servers?
         int nrSelected=serverTree.getSelectionCount();
         if (nrSelected  == 0) {
@@ -1211,12 +1214,31 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
                     "No servers selected", JOptionPane.ERROR_MESSAGE );
             return;
         }
-      
+        
         String tagname = (String)JOptionPane.showInputDialog ( this,"Enter Tagname:\n");
         if (tagname == null || tagname.length() == 0) {
             return;
         }
-        
+        if ( tagsListModel.contains(tagname)) {
+          //Custom button text
+            Object[] options = {"Overwrite",
+                                "Add to existing tag",
+                                "Cancel"};
+            int n = JOptionPane.showOptionDialog(this,"The tag "+ tagname+ " exists already.\n",
+                " ",
+                JOptionPane.YES_NO_CANCEL_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                options,
+                options[2]);
+            
+            if (n == JOptionPane.YES_OPTION) 
+                removeTag(tagname); // remove the old tag, create it again            
+            else if ( n == JOptionPane.CANCEL_OPTION ) // add selected to existing tag
+                return;
+            else if (n == JOptionPane.NO_OPTION)
+                newTag = false; // the tags will be added to the existing tag
+        }
         
         DefaultTreeModel model = (DefaultTreeModel) serverTree.getModel();
         ServerTreeNode root = (ServerTreeNode)  model.getRoot();
@@ -1236,10 +1258,12 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
         }       
         
     //    JCheckBox tag = new JCheckBox(tagname);
-        tagsListModel.addElement(tagname);
-        tagsList.setSelectedValue(tagname, true);
        
-        treeRenderer.addTag(tagname);
+        tagsList.setSelectedValue(tagname, true);
+        if ( newTag ) {
+            tagsListModel.addElement(tagname);       
+            treeRenderer.addTag(tagname);
+        }
 
         this.repaint();      
 
@@ -1247,16 +1271,19 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
   
  
     /**
-     *  Add new tag to the server list
+     *  Remove tag
      */
+    
     protected void removeTag()
     {
-        // are there selected servers?
-      
-        
         String tagname = tagsList.getSelectedValue().toString();
-        int index = tagsList.getSelectedIndex();
-        tagsListModel.remove(tagsList.getSelectedIndex());
+        removeTag(tagname);
+    
+    }
+    protected void removeTag(String tagname) {
+        //
+        tagsListModel.removeElement(tagname);
+        //tagsListModel.remove(tagsList.getSelectedIndex());
         //tagsListModel.remove(tagsListModel.getindex);
         
         DefaultTreeModel model = (DefaultTreeModel) serverTree.getModel();
@@ -1276,7 +1303,7 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
             e.printStackTrace();
         }
         this.repaint();      
-        //to do save / reload user tags!!!!!!!!!!!!!!!!!!!       
+              
     }
     
     /**
@@ -1454,8 +1481,8 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
             
         }
         public void addTag(String tag, boolean save) {
-            tags.add(tag);
-           
+                tags.add(tag); 
+           // save: TO DO
         }
         
         private boolean containsTag(String tag) {
@@ -1481,6 +1508,8 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
         protected ArrayList<String> getTags() {
             return (tags);
         }
+        
+      
         
         public String toString() {
            
@@ -1623,7 +1652,7 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
                             c.setForeground(Color.BLACK);
                             serverList.selectServer(shortname);
                         } else {
-                            node.setSelected(false);               
+                            node.setSelected(false);                              
                             c.setForeground(Color.GRAY);
                             serverList.unselectServer(shortname);
                         }
@@ -1887,4 +1916,6 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
             updateUI();
         }
     }
+    
+    
 }
