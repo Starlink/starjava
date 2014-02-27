@@ -12,11 +12,6 @@ import uk.ac.starlink.ttools.plot2.NavAction;
 import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Surface;
-import uk.ac.starlink.ttools.plot2.config.CombinationConfigKey;
-import uk.ac.starlink.ttools.plot2.config.ConfigKey;
-import uk.ac.starlink.ttools.plot2.config.ConfigMap;
-import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
-import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 
 /**
  * Navigator for use with plane plot.
@@ -31,11 +26,8 @@ public class PlaneNavigator implements Navigator<PlaneAspect> {
     private final boolean yZoom_;
     private final boolean xPan_;
     private final boolean yPan_;
-
-    /** Config key to select which axes zoom will operate on. */
-    public static final ConfigKey<boolean[]> NAVAXES_KEY =
-        new CombinationConfigKey( new ConfigMeta( "navaxes", "Pan/Zoom Axes" ),
-                                  new String[] { "X", "Y" } );
+    private final double xAnchor_;
+    private final double yAnchor_;
 
     /**
      * Constructor.
@@ -45,14 +37,21 @@ public class PlaneNavigator implements Navigator<PlaneAspect> {
      * @param   yZoom   true iff wheel operation will zoom in Y direction
      * @param   xPan    true iff drag operation will pan in X direction
      * @param   yPan    true iff drag operation will pan in Y direction
+     * @param   xAnchor  data value to pin X coordinate at during zooms;
+     *                   NaN for no anchor
+     * @param   yAnchor  data value to pin Y coordinate at during zooms;
+     *                   NaN for no anchor
      */
     public PlaneNavigator( double zoomFactor, boolean xZoom, boolean yZoom,
-                           boolean xPan, boolean yPan ) {
+                           boolean xPan, boolean yPan,
+                           double xAnchor, double yAnchor ) {
         zoomFactor_ = zoomFactor;
         xZoom_ = xZoom;
         yZoom_ = yZoom;
         xPan_ = xPan;
         yPan_ = yPan;
+        xAnchor_ = xAnchor;
+        yAnchor_ = yAnchor;
     }
 
     public NavAction<PlaneAspect> drag( Surface surface, MouseEvent evt,
@@ -61,16 +60,19 @@ public class PlaneNavigator implements Navigator<PlaneAspect> {
         PlaneSurface psurf = (PlaneSurface) surface;
         Point point = evt.getPoint();
         if ( PlotUtil.isZoomDrag( evt ) ) {
+            int[] offs = getAnchorOffsets( psurf, origin );
+            Point g0 = new Point( origin.x + offs[ 0 ], origin.y + offs[ 1 ] );
+            Point gp = new Point( point.x + offs[ 0 ], point.y + offs[ 1 ] );
             double xf = useFlags[ 0 ]
-                      ? PlotUtil.toZoom( zoomFactor_, origin, point, false )
+                      ? PlotUtil.toZoom( zoomFactor_, g0, gp, false )
                       : 1;
             double yf = useFlags[ 1 ]
-                      ? PlotUtil.toZoom( zoomFactor_, origin, point, true )
+                      ? PlotUtil.toZoom( zoomFactor_, g0, gp, true )
                       : 1;
-            PlaneAspect aspect = psurf.zoom( origin, xf, yf );
+            PlaneAspect aspect = psurf.zoom( g0, xf, yf );
             Decoration dec =
                 NavDecorations
-               .createDragDecoration( origin, xf, yf,
+               .createDragDecoration( g0, xf, yf,
                                       useFlags[ 0 ], useFlags[ 1 ],
                                       surface.getPlotBounds() );
             return new NavAction<PlaneAspect>( aspect, dec );
@@ -84,15 +86,18 @@ public class PlaneNavigator implements Navigator<PlaneAspect> {
 
     public NavAction<PlaneAspect> wheel( Surface surface,
                                          MouseWheelEvent evt ) {
+        PlaneSurface psurf = (PlaneSurface) surface;
         Point pos = evt.getPoint();
         boolean[] useFlags = getAxisNavFlags( surface, pos, xZoom_, yZoom_ );
         double zfact = PlotUtil.toZoom( zoomFactor_, evt );
         double xf = useFlags[ 0 ] ? zfact : 1;
         double yf = useFlags[ 1 ] ? zfact : 1;
-        PlaneAspect aspect = ((PlaneSurface) surface).zoom( pos, xf, yf );
+        int[] offs = getAnchorOffsets( psurf, pos );
+        Point gp = new Point( pos.x + offs[ 0 ], pos.y + offs[ 1 ] );
+        PlaneAspect aspect = psurf.zoom( gp, xf, yf );
         Decoration dec =
             NavDecorations
-           .createWheelDecoration( pos, xf, yf, useFlags[ 0 ], useFlags[ 1 ],
+           .createWheelDecoration( gp, xf, yf, useFlags[ 0 ], useFlags[ 1 ],
                                    surface.getPlotBounds() );
         return new NavAction<PlaneAspect>( aspect, dec );
     }
@@ -132,6 +137,37 @@ public class PlaneNavigator implements Navigator<PlaneAspect> {
     }
 
     /**
+     * Calculates offsets to a reference point required to achieve
+     * anchoring of zoom operations at the X/Y anchor values set for this
+     * navigator.  If no anchor values are set, the offsets will be zero.
+     *
+     * @param  surface  current surface
+     * @param  refpos   reference graphics position on submitted surface
+     * @return  2-element array giving X,Y graphics coordinate offsets to
+     *          refpos for anchoring
+     */
+    private int[] getAnchorOffsets( PlaneSurface surface, Point refpos ) {
+        double[] d0 = surface
+                     .graphicsToData( surface.getPlotBounds().getLocation(),
+                                      null );
+        Point pc = new Point();
+        boolean[] logFlags = surface.getLogFlags();
+        int xoff = ! Double.isNaN( xAnchor_ ) &&
+                   ( xAnchor_ > 0 || ! logFlags[ 0 ] ) &&
+                   surface.dataToGraphics( new double[] { xAnchor_, d0[ 1 ] },
+                                           false, pc )
+                 ? pc.x - refpos.x
+                 : 0;
+        int yoff = ! Double.isNaN( yAnchor_ ) &&
+                   ( yAnchor_ > 0 || ! logFlags[ 1 ] ) &&
+                   surface.dataToGraphics( new double[] { d0[ 0 ], yAnchor_ },
+                                           false, pc )
+                 ? pc.y - refpos.y
+                 : 0;
+        return new int[] { xoff, yoff };
+    }
+
+    /**
      * Determines which axes navigation should be performed on.
      * Navigation may be active by default on zero or more axes,
      * and if the position is within the plot bounds these defaults
@@ -162,32 +198,5 @@ public class PlaneNavigator implements Navigator<PlaneAspect> {
         else {
             return new boolean[] { false, false };
         }
-    }
-
-    /**
-     * Returns the config keys for use with this navigator.
-     *
-     * @return  config keys
-     */
-    public static ConfigKey[] getConfigKeys() {
-        return new ConfigKey[] {
-            NAVAXES_KEY,
-            StyleKeys.ZOOM_FACTOR,
-        };
-    }
-
-    /**
-     * Creates a navigator instance from a config map.
-     * The keys defined by {@link #getConfigKeys} are used.
-     *
-     * @param   navConfig   configuration map
-     * @return   navigator
-     */
-    public static PlaneNavigator createNavigator( ConfigMap navConfig ) {
-        boolean[] navFlags = navConfig.get( NAVAXES_KEY );
-        boolean xnav = navFlags[ 0 ];
-        boolean ynav = navFlags[ 1 ];
-        double zoom = navConfig.get( StyleKeys.ZOOM_FACTOR );
-        return new PlaneNavigator( zoom, xnav, ynav, xnav, ynav );
     }
 }
