@@ -66,6 +66,8 @@ implements ActionListener, ItemListener
     private String[] waveBandValue;
     private String dataSourceValue="";
 
+    private String type="";
+    
     /**
      * The server list to be updated
      */
@@ -75,6 +77,8 @@ implements ActionListener, ItemListener
     /**
      * Create an instance.
      */
+   
+    
     public AddNewServerFrame()
     {
         initUI();
@@ -83,6 +87,16 @@ implements ActionListener, ItemListener
         status=0;
         statusChange= new PropertyChangeSupport(this); 
     }
+    
+    public AddNewServerFrame( String type ) {
+        this.type = type;
+        initUI();
+        initMenus();
+        initFrame();
+        status=0;
+        statusChange= new PropertyChangeSupport(this); 
+    }
+   
 
     public AddNewServerFrame( String type ) {
         this.type = type;
@@ -363,8 +377,7 @@ implements ActionListener, ItemListener
      */
     private void setResource()
     {
-        newResource = new SSAPRegResource(shortNameField.getText(), titleField.getText(), descriptionField.getText(), accessURLField.getText()); 
-
+            newResource = new SSAPRegResource(shortNameField.getText(), titleField.getText(), descriptionField.getText(), accessURLField.getText()); 
     }
 
     /**
@@ -407,7 +420,6 @@ implements ActionListener, ItemListener
     {
         return newResource;
     }
-
     public String getShortName()
     {
         return newResource.getShortName();
