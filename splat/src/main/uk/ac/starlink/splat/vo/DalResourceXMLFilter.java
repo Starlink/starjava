@@ -1,6 +1,7 @@
 package uk.ac.starlink.splat.vo;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.logging.Logger;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
@@ -54,6 +55,7 @@ public class DalResourceXMLFilter extends XMLFilterImpl {
     private String resultsPath_;
     private String getDataPath_;
     private String ignorePath_;
+    private String servicePath_;
 
 
     private static Logger logger_ = Logger.getLogger( "uk.ac.starlink.vo" );
@@ -97,8 +99,11 @@ public class DalResourceXMLFilter extends XMLFilterImpl {
         } else         
         if ( "TABLE".equals( voTagName ) && (resultsPath_ == null && getDataPath_ == null) ) {
             ignorePath_ = path_.toString();
-        }
-
+        } else
+        if ( "RESOURCE".equals( voTagName ) && "service".equals( atts.getValue( "type" ) ) ) {
+            servicePath_ = path_.toString();
+        } 
+        
         if ( ! ignore() ) {
             super.startElement( namespaceURI, localName, qName, atts );
         }
@@ -115,8 +120,9 @@ public class DalResourceXMLFilter extends XMLFilterImpl {
             resultsPath_ = null;
         } else if ( path.equals( getDataPath_ )) {
             getDataPath_ = null;
-        }
-        else if ( path.equals( ignorePath_ ) ) {
+        } else if (path.equals( servicePath_ )) {
+            servicePath_ = null;
+        } else if ( path.equals( ignorePath_ ) ) {
             ignorePath_ = null;
         }
 
@@ -202,7 +208,7 @@ public class DalResourceXMLFilter extends XMLFilterImpl {
     /**
      * Utility method which can return the single results table from a
      * DAL-type response.  This is the single table within the RESOURCE
-     * element marked with type="results", as described by the SIA and SSA
+     * element marked with type="getDataMeta", as described by the SIA and SSA
      * standards.
      * The QUERY_STATUS INFO element is checked; in case of ERROR, 
      * an exception is thrown.
@@ -245,6 +251,45 @@ public class DalResourceXMLFilter extends XMLFilterImpl {
         return new GetDataTable( (TableElement) tableNodes.item( 0 ) );
     }
 
+    /**
+     * Utility method which can return the single results table from a
+     * DAL-type response.  This is the single table within the RESOURCE
+     * element marked with type="getDataMeta", as described by the SIA and SSA
+     * standards.
+     * The QUERY_STATUS INFO element is checked; in case of ERROR, 
+     * an exception is thrown.
+     *
+     * @param   vofact  factory which can generate VOTable DOMs
+     * @param   inSrc   source of the SAX stream
+     * @return  result table, never null
+     * @throws  IOException  in case of error, including an ERROR-valued
+     *          QUERY_STATUS in the response, or no suitable table found
+     */
+    public static DataLinkParams getDalGetServiceElement( VOElement voEl )
+            throws IOException {
+
+       
+        if (voEl == null) {
+            // write error msg here
+            return null;
+        }
+      
+        ArrayList <VOElement>  serviceEl =
+                locateAllElements( voEl, "RESOURCE", "type", "service" );
+        if ( serviceEl == null || serviceEl.size() == 0) {
+            return null;    // don't complain, as the presence of datalink services is not mandatory
+        }
+        
+        DataLinkParams dlParams = new DataLinkParams();
+        
+        for (int i=0; i< serviceEl.size(); i++) {
+            VOElement voel = serviceEl.get(i);
+           // VOElement groupEl = locateElement( serviceEl.get(i), "GROUP", "name", "inputParams" );
+            dlParams.addService(voel);
+        }
+        return dlParams;
+    }
+    
     /**
      * Utility method which can return the single results table from a
      * DAL-type response.  This is the single table within the RESOURCE
@@ -356,4 +401,45 @@ public class DalResourceXMLFilter extends XMLFilterImpl {
         }
         return null;
     }
+
+/**
+ * Returns all element distinguished by a tag name, and the value of
+ * a given attribute.
+ * The immediate children are searched first, followed by all descendants.
+ * Null is returned if none is found.
+ *
+ * @param   parentEl  element within which element is sought
+ * @param   voTagName  unqualified tag name of sought element
+ * @param   attName  attribute name
+ * @param   attValue attribute value
+ * @return   element within parentEl with element name voTagName and
+ *           attribute attName=attValue
+ */
+private static ArrayList<VOElement> locateAllElements( VOElement parentEl,
+                                        String voTagName, String attName,
+                                        String attValue ) {
+
+/* Search immediate children. */
+ArrayList  <VOElement> elList = new ArrayList <VOElement>();
+VOElement[] children = parentEl.getChildrenByName( voTagName );
+for ( int ii = 0; ii < children.length; ii++ ) {
+    VOElement el = children[ ii ];
+    if ( attValue.equals( el.getAttribute( attName ) ) ) {
+        elList.add( el );
+    }
+}
+if (elList != null) {
+    return elList;
+}
+/* Failing that, search all descendants. */
+NodeList nodes = parentEl.getElementsByVOTagName( voTagName );
+int nNode = nodes.getLength();
+for ( int in = 0; in < nNode; in++ ) {
+    VOElement el = (VOElement) nodes.item( in );
+    if ( attValue.equals( el.getAttribute( attName ) ) ) {
+        elList.add( el );
+    }
+}
+return elList;
+}
 }
