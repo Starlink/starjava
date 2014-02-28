@@ -77,6 +77,7 @@ public class SkyAxisController
             StyleKeys.AXLABEL_COLOR,
             SkySurfaceFactory.CROWD_KEY,
             SkySurfaceFactory.AXISLABELLER_KEY,
+            StyleKeys.GRID_ANTIALIAS,
         } ) );
 
         /* Font specifier. */

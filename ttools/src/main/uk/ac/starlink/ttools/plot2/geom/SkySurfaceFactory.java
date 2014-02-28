@@ -101,7 +101,7 @@ public class SkySurfaceFactory
                                aspect.getOffsetX(), aspect.getOffsetY(),
                                p.viewSystem_, p.axisLabeller_,
                                p.grid_ ? p.gridColor_ : null, p.axlabelColor_,
-                               p.sex_, p.crowd_, p.captioner_ );
+                               p.sex_, p.crowd_, p.captioner_, p.antialias_ );
     }
 
     public ConfigKey[] getProfileKeys() {
@@ -115,6 +115,7 @@ public class SkySurfaceFactory
             CROWD_KEY,
             StyleKeys.GRID_COLOR,
             StyleKeys.AXLABEL_COLOR,
+            StyleKeys.GRID_ANTIALIAS,
         } ) );
         list.addAll( Arrays.asList( StyleKeys.getCaptionerKeys() ) );
         return list.toArray( new ConfigKey[ 0 ] );
@@ -130,9 +131,11 @@ public class SkySurfaceFactory
         double crowd = config.get( CROWD_KEY );
         Color gridColor = config.get( StyleKeys.GRID_COLOR );
         Color axlabelColor = config.get( StyleKeys.AXLABEL_COLOR );
+        boolean antialias = config.get( StyleKeys.GRID_ANTIALIAS );
         Captioner captioner = StyleKeys.createCaptioner( config );
         return new Profile( proj, reflect, viewSystem, grid, axLabeller,
-                            gridColor, axlabelColor, sex, crowd, captioner );
+                            gridColor, axlabelColor, sex, crowd, captioner,
+                            antialias );
     }
 
     public ConfigKey[] getAspectKeys() {
@@ -228,6 +231,7 @@ public class SkySurfaceFactory
         private final boolean sex_;
         private final double crowd_;
         private final Captioner captioner_;
+        private final boolean antialias_;
 
         /**
          * Constructor.
@@ -242,12 +246,13 @@ public class SkySurfaceFactory
          * @param  sex  whether to use sexagesimal coordinates
          * @param  crowd   tick mark crowding factor, 1 is normal
          * @param  captioner  text rendering object
+         * @param  antialias  whether to antialias grid lines and text
          */
         public Profile( Projection projection, boolean reflect,
                         SkySys viewSystem, boolean grid, 
                         SkyAxisLabeller axisLabeller, Color gridColor,
                         Color axlabelColor, boolean sex,
-                        double crowd, Captioner captioner ) {
+                        double crowd, Captioner captioner, boolean antialias ) {
             projection_ = projection;
             reflect_ = reflect;
             viewSystem_ = viewSystem;
@@ -258,6 +263,7 @@ public class SkySurfaceFactory
             sex_ = sex;
             crowd_ = crowd;
             captioner_ = captioner;
+            antialias_ = antialias;
         }
 
         /**

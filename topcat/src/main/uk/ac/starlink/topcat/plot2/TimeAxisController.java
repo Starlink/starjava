@@ -51,6 +51,7 @@ public class TimeAxisController
             StyleKeys.MINOR_TICKS,
             TimeSurfaceFactory.TCROWD_KEY,
             TimeSurfaceFactory.YCROWD_KEY,
+            StyleKeys.GRID_ANTIALIAS,
         } ) );
 
         /* Labels tab. */

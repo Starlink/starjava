@@ -6,6 +6,7 @@ import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.util.Arrays;
 import uk.ac.starlink.ttools.plot2.Axis;
 import uk.ac.starlink.ttools.plot2.BasicTicker;
@@ -39,6 +40,7 @@ public class TimeSurface implements Surface {
     private final Captioner captioner_;
     private final boolean grid_;
     private final TimeFormat tformat_;
+    private final boolean antialias_;
     private final Axis tAxis_;
     private final Axis yAxis_;
 
@@ -64,6 +66,7 @@ public class TimeSurface implements Surface {
      * @param  captioner  text renderer for axis labels etc
      * @param  grid   whether to draw grid lines
      * @param  tformat  time labelling format
+     * @param  antialias  whether to antialias grid label text
      */
     public TimeSurface( int gxlo, int gxhi, int gylo, int gyhi,
                         double dtlo, double dthi, double dylo, double dyhi,
@@ -71,7 +74,7 @@ public class TimeSurface implements Surface {
                         Tick[] tticks, Tick[] yticks,
                         String tlabel, String ylabel,
                         Captioner captioner, boolean grid,
-                        TimeFormat tformat ) {
+                        TimeFormat tformat, boolean antialias ) {
         gxlo_ = gxlo;
         gxhi_ = gxhi;
         gylo_ = gylo;
@@ -89,6 +92,7 @@ public class TimeSurface implements Surface {
         captioner_ = captioner;
         grid_ = grid;
         tformat_ = tformat;
+        antialias_ = antialias;
         tAxis_ = Axis.createAxis( gxlo_, gxhi_, dtlo_, dthi_, false, false );
         yAxis_ = Axis.createAxis( gylo_, gyhi_, dylo_, dyhi_, ylog_,
                                   yflip_ ^ INVERT_Y );
@@ -173,16 +177,19 @@ public class TimeSurface implements Surface {
     }
 
     public void paintForeground( Graphics g ) {
-        Graphics g2 = (Graphics2D) g;
+        Graphics2D g2 = (Graphics2D) g;
         Color color0 = g2.getColor();
+        RenderingHints hints0 = g2.getRenderingHints();
         g2.setColor( Color.BLACK );
-        createAxisAnnotation().drawLabels( g );
+        PlotUtil.setAntialias( g2, antialias_ );
+        createAxisAnnotation().drawLabels( g2 );
 
         /* Boundary. */
         g2.drawRect( gxlo_, gylo_, gxhi_ - gxlo_, gyhi_ - gylo_ );
 
         /* Restore. */
         g2.setColor( color0 );
+        g2.setRenderingHints( hints0 );
     }
 
     /**
@@ -275,6 +282,7 @@ public class TimeSurface implements Surface {
         code = 23 * code + captioner_.hashCode();
         code = 23 * code + ( grid_ ? 11 : 13 );
         code = 23 * code + tformat_.hashCode();
+        code = 23 * code + ( antialias_ ? 17 : 19 );
         return code;
     }
 
@@ -298,7 +306,8 @@ public class TimeSurface implements Surface {
                 && PlotUtil.equals( this.ylabel_, other.ylabel_ )
                 && this.captioner_.equals( other.captioner_ )
                 && this.grid_ == other.grid_
-                && this.tformat_.equals( other.tformat_ );
+                && this.tformat_.equals( other.tformat_ )
+                && this.antialias_ == other.antialias_;
         }
         else {
             return false;
@@ -324,6 +333,7 @@ public class TimeSurface implements Surface {
      * @param  ycrowd   crowding factor for tick marks on Y axis;
      *                  1 is normal
      * @param  minor   whether to paint minor tick marks on axes
+     * @param  antialias  whether to antialias grid label text
      * @return  new plot surface
      */
     public static TimeSurface createSurface( Rectangle plotBounds,
@@ -333,7 +343,8 @@ public class TimeSurface implements Surface {
                                              Captioner captioner, boolean grid,
                                              TimeFormat tformat,
                                              double tcrowd, double ycrowd,
-                                             boolean minor ) {
+                                             boolean minor,
+                                             boolean antialias ) {
         int gxlo = plotBounds.x;
         int gxhi = plotBounds.x + plotBounds.width;
         int gylo = plotBounds.y;
@@ -352,6 +363,6 @@ public class TimeSurface implements Surface {
                                   plotBounds.height, ycrowd );
         return new TimeSurface( gxlo, gxhi, gylo, gyhi, dtlo, dthi, dylo, dyhi,
                                 ylog, yflip, tticks, yticks, tlabel, ylabel,
-                                captioner, grid, tformat );
+                                captioner, grid, tformat, antialias );
     }
 }

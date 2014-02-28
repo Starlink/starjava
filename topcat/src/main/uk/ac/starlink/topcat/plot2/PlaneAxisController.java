@@ -56,6 +56,7 @@ public class PlaneAxisController
             StyleKeys.MINOR_TICKS,
             PlaneSurfaceFactory.XCROWD_KEY,
             PlaneSurfaceFactory.YCROWD_KEY,
+            StyleKeys.GRID_ANTIALIAS,
         } ) );
 
         /* Labels tab. */

@@ -122,7 +122,8 @@ public class PlaneSurfaceFactory
                               p.xlog_, p.ylog_, p.xflip_, p.yflip_,
                               p.xlabel_, p.ylabel_, p.captioner_,
                               p.xyfactor_, p.grid_, p.xcrowd_, p.ycrowd_,
-                              p.minor_, p.gridcolor_, p.axlabelcolor_ );
+                              p.minor_, p.gridcolor_, p.axlabelcolor_,
+                              p.antialias_ );
     }
 
     public ConfigKey[] getProfileKeys() {
@@ -141,6 +142,7 @@ public class PlaneSurfaceFactory
             StyleKeys.MINOR_TICKS,
             StyleKeys.GRID_COLOR,
             StyleKeys.AXLABEL_COLOR,
+            StyleKeys.GRID_ANTIALIAS,
         } ) );
         list.addAll( Arrays.asList( StyleKeys.getCaptionerKeys() ) );
         return list.toArray( new ConfigKey[ 0 ] );
@@ -160,10 +162,11 @@ public class PlaneSurfaceFactory
         boolean minor = config.get( StyleKeys.MINOR_TICKS );
         Color gridcolor = config.get( StyleKeys.GRID_COLOR );
         Color axlabelcolor = config.get( StyleKeys.AXLABEL_COLOR );
+        boolean antialias = config.get( StyleKeys.GRID_ANTIALIAS );
         Captioner captioner = StyleKeys.createCaptioner( config );
         return new Profile( xlog, ylog, xflip, yflip, xlabel, ylabel,
                             captioner, xyfactor, grid, xcrowd, ycrowd, minor,
-                            gridcolor, axlabelcolor );
+                            gridcolor, axlabelcolor, antialias );
     }
 
     public ConfigKey[] getAspectKeys() {
@@ -324,6 +327,7 @@ public class PlaneSurfaceFactory
         private final boolean minor_;
         private final Color gridcolor_;
         private final Color axlabelcolor_;
+        private final boolean antialias_;
 
         /**
          * Constructor.
@@ -346,13 +350,15 @@ public class PlaneSurfaceFactory
          * @param  minor   whether to paint minor tick marks on axes
          * @param  gridcolor  colour of grid lines, if plotted
          * @param  axlabelcolor  colour of axis labels
+         * @param  antialias   whether to antialias grid label text
          */
         public Profile( boolean xlog, boolean ylog,
                         boolean xflip, boolean yflip,
                         String xlabel, String ylabel, Captioner captioner,
                         double xyfactor, boolean grid,
                         double xcrowd, double ycrowd, boolean minor,
-                        Color gridcolor, Color axlabelcolor ) {
+                        Color gridcolor, Color axlabelcolor,
+                        boolean antialias ) {
             xlog_ = xlog;
             ylog_ = ylog;
             xflip_ = xflip;
@@ -367,6 +373,7 @@ public class PlaneSurfaceFactory
             minor_ = minor;
             gridcolor_ = gridcolor;
             axlabelcolor_ = axlabelcolor;
+            antialias_ = antialias;
         }
 
         /**
