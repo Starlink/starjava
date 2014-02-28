@@ -3331,8 +3331,9 @@ unless you are a tool developer you can probably ignore these.
     </p>
     <p>SAMP MTypes:
           <code>table.load.votable</code> or
-          <code>table.load.fits</code>;
-       PLASTIC Message IDs:
+          <code>table.load.fits</code>
+    </p>
+    <p>PLASTIC Message IDs:
           <code>ivo://votech.org/votable/load</code> or
           <code>ivo://votech.org/votable/loadFromURL</code>
     </p></dd>
@@ -3361,8 +3362,9 @@ unless you are a tool developer you can probably ignore these.
     listening applications as an alternative to adding the new subset to
     the table's subset list.
     </p>
-    <p>SAMP MType: <code>table.select.rowList</code>;
-       PLASTIC Message ID: <code>ivo://votech.org/votable/showObjects</code>
+    <p>SAMP MType: <code>table.select.rowList</code>
+    </p>
+    <p>PLASTIC Message ID: <code>ivo://votech.org/votable/showObjects</code>
     </p></dd>
 
 <dt>Transmit Row</dt>
@@ -3382,8 +3384,9 @@ unless you are a tool developer you can probably ignore these.
     window itself - the checkbox is just a convenience for a commonly-used
     option.
     </p>
-    <p>SAMP MType: <code>table.highlight.row</code>;
-       PLASTIC Message ID: <code>ivo://votech.org/votable/highlightObject</code>
+    <p>SAMP MType: <code>table.highlight.row</code>
+    </p>
+    <p>PLASTIC Message ID: <code>ivo://votech.org/votable/highlightObject</code>
     </p></dd>
 
 <dt>Transmit Coordinates</dt>
@@ -3398,8 +3401,9 @@ unless you are a tool developer you can probably ignore these.
     The table columns which correspond to Right Ascension and Declination
     must be selected for this to work.
     </p>
-    <p>SAMP MType: <code>coord.pointAt.sky</code>;
-       PLASTIC Message ID: <code>ivo://votech.org/sky/pointAtCoords</code>
+    <p>SAMP MType: <code>coord.pointAt.sky</code>
+    </p>
+    <p>PLASTIC Message ID: <code>ivo://votech.org/sky/pointAtCoords</code>
     </p></dd>
 
 <dt>Transmit Image</dt>
@@ -3418,8 +3422,9 @@ unless you are a tool developer you can probably ignore these.
     option allows you to identify a column which contains an image URL
     and to send it to a suitable image viewer or viewers.
     </p>
-    <p>SAMP MType: <code>image.load.fits</code>;
-       PLASTIC Message ID: <code>ivo://votech.org/fits/image/loadFromURL</code>
+    <p>SAMP MType: <code>image.load.fits</code>
+    </p>
+    <p>PLASTIC Message ID: <code>ivo://votech.org/fits/image/loadFromURL</code>
     </p></dd>
 
 <dt>Transmit Spectrum</dt>
@@ -3428,8 +3433,9 @@ unless you are a tool developer you can probably ignore these.
     option allows you to identify a column which contains a spectrum URL
     and to send it to a suitable spectrum viewer or viewers.
     </p>
-    <p>SAMP MType: <code>spectrum.load.ssa-generic</code>;
-       PLASTIC Message ID: <code>ivo://votech.org/spectrum/loadFromURL</code>
+    <p>SAMP MType: <code>spectrum.load.ssa-generic</code>
+    </p>
+    <p>PLASTIC Message ID: <code>ivo://votech.org/spectrum/loadFromURL</code>
     </p></dd>
 
 <dt>Transmit Resource List</dt>
@@ -3466,8 +3472,9 @@ unless you are a tool developer you can probably ignore these.
        <code>table.load.votable</code>,
        <code>table.load.fits</code>,
        <code>table.load.cdf</code> or
-       <code>table.load.stil</code>;
-       PLASTIC Message ID:
+       <code>table.load.stil</code>
+    </p>
+    <p>PLASTIC Message ID:
        <code>ivo://votech.org/votable/load</code> or
        <code>ivo://votech.org/votable/loadFromURL</code>
     </p>
@@ -3499,8 +3506,9 @@ unless you are a tool developer you can probably ignore these.
     Different options for handling exactly how a received row selection is
     treated may be made available in future versions.
     </p>
-    <p>SAMP MType: <code>table.select.rowList</code>;
-       PLASTIC Message ID: <code>ivo://votech.org/votable/showObjects</code>
+    <p>SAMP MType: <code>table.select.rowList</code>
+    </p>
+    <p>PLASTIC Message ID: <code>ivo://votech.org/votable/showObjects</code>
     </p></dd>
 
 <dt>Highlight Row</dt>
@@ -3512,8 +3520,9 @@ unless you are a tool developer you can probably ignore these.
     as well as performing any additional actions you have configured
     in the <ref id="ActivationQueryWindow">Activation Window</ref>.
     </p>
-    <p>SAMP MType: <code>table.highlight.row</code>;
-       PLASTIC Message ID: <code>ivo://votech.org/votable/highlightObject</code>
+    <p>SAMP MType: <code>table.highlight.row</code>
+    </p>
+    <p>PLASTIC Message ID: <code>ivo://votech.org/votable/highlightObject</code>
     </p></dd>
 
 <dt>Load Resource Identifiers</dt>
@@ -3536,6 +3545,22 @@ unless you are a tool developer you can probably ignore these.
                     <code>voresource.loadlist.ssap</code>
     </p></dd>
 
+<dt>Pull Table</dt>
+<dd><p>Allows clients to retrieve tables currently loaded into TOPCAT.
+    This MType has a mandatory parameter <code>format</code>
+    giving the (case-insensitive) table format name required for
+    the output table.
+    It also takes an optional integer-like parameter <code>id</code>,
+    giving the ID number (as shown in the Control Window table list)
+    of the table required.  If <code>id</code> is missing or non-positive,
+    the current table is used.
+    The returned response has an output parameter <code>url</code>
+    giving the URL of the <ref id="apparent">apparent</ref> table in question.
+    This MType is experimental and may be modified or withdrawn in
+    the future.
+    </p>
+    <p>SAMP MType: <code>table.get.stil</code>.
+    </p></dd>
 </dl>
 </p>
 
@@ -18395,6 +18420,7 @@ introduced since the last version:
             You can turn it off using the <label>Antialias</label> checkbox
             in the <label>Axes</label>-<label>Grid</label> tabs
             of the various plot windows.</li>
+        <li>New experimental SAMP message <code>table.get.stil</code>.</li>
         </ul>
         </p></dd>
 </dl>

@@ -98,6 +98,30 @@ public class TableSendActionManager extends IndividualCallActionManager
     }
 
     /**
+     * Obtains a (somewhat) persistent resource object via which
+     * a table can be made available to external processes.
+     *
+     * @param   table  table
+     * @param   writer   table serializer
+     * @return   servable resource
+     */
+    public static ServerResource
+            createTableResource( final StarTable table,
+                                 final StarTableWriter writer ) {
+        return new ServerResource() {
+            public long getContentLength() {
+                return -1L;
+            }
+            public String getContentType() {
+                return writer.getMimeType();
+            }
+            public void writeBody( OutputStream out ) throws IOException {
+                writer.writeStarTable( table, out );
+            }
+        };
+    }
+
+    /**
      * Returns a Sender object which can send a table to a given client.
      *
      * @param  client  target client
@@ -176,7 +200,8 @@ public class TableSendActionManager extends IndividualCallActionManager
                 throws IOException {
             String fname = "t" + ident + extension_;
             URL turl = TopcatServer.getInstance()
-                      .addResource( fname, createResource( table ) );
+                      .addResource( fname,
+                                    createTableResource( table, writer_ ) );
             Message msg = new Message( getMtype() );
             msg.addParam( "url", turl.toString() );
             msg.addParam( "table-id", sampId );
@@ -184,27 +209,6 @@ public class TableSendActionManager extends IndividualCallActionManager
                 msg.addParam( "name", name );
             }
             return msg;
-        }
-
-        /**
-         * Obtains a (somewhat) persistent resource object via which
-         * a table can be made available to external processes.
-         *
-         * @param   table  table
-         * @return   servable resource
-         */
-        private ServerResource createResource( final StarTable table ) {
-            return new ServerResource() {
-                public long getContentLength() {
-                    return -1L;
-                }
-                public String getContentType() {
-                    return writer_.getMimeType();
-                }
-                public void writeBody( OutputStream out ) throws IOException {
-                    writer_.writeStarTable( table, out );
-                }
-            };
         }
 
         public String toString() {
