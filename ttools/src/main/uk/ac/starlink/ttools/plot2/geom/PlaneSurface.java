@@ -6,6 +6,7 @@ import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.util.Arrays;
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.plot2.Axis;
@@ -43,6 +44,7 @@ public class PlaneSurface implements Surface {
     private final Captioner captioner_;
     private final Color gridcolor_;
     private final Color axlabelcolor_;
+    private final boolean antialias_;
     private final Axis xAxis_;
     private final Axis yAxis_;
 
@@ -68,6 +70,7 @@ public class PlaneSurface implements Surface {
      * @param  captioner  text renderer for axis labels etc, or null if absent
      * @param  gridcolor  colour of grid lines, or null if not plotted
      * @param  axlabelcolor  colour of axis labels
+     * @param  antialias   whether to antalias label text
      */
     public PlaneSurface( int gxlo, int gxhi, int gylo, int gyhi,
                          double dxlo, double dxhi, double dylo, double dyhi,
@@ -75,7 +78,8 @@ public class PlaneSurface implements Surface {
                          boolean xflip, boolean yflip,
                          Tick[] xticks, Tick[] yticks,
                          String xlabel, String ylabel, Captioner captioner,
-                         Color gridcolor, Color axlabelcolor ) {
+                         Color gridcolor, Color axlabelcolor,
+                         boolean antialias ) {
         gxlo_ = gxlo;
         gxhi_ = gxhi;
         gylo_ = gylo;
@@ -95,6 +99,7 @@ public class PlaneSurface implements Surface {
         captioner_ = captioner;
         gridcolor_ = gridcolor;
         axlabelcolor_ = axlabelcolor;
+        antialias_ = antialias;
         xAxis_ = Axis.createAxis( gxlo_, gxhi_, dxlo_, dxhi_, xlog_, xflip_ );
         yAxis_ = Axis.createAxis( gylo_, gyhi_, dylo_, dyhi_, ylog_,
                                   yflip_ ^ PlaneAxisAnnotation.INVERT_Y );
@@ -181,13 +186,16 @@ public class PlaneSurface implements Surface {
         if ( axlabelcolor_ != null ) {
             Graphics2D g2 = (Graphics2D) g;
             Color color0 = g2.getColor();
+            RenderingHints hints0 = g2.getRenderingHints();
             g2.setColor( axlabelcolor_ );
+            PlotUtil.setAntialias( g2, antialias_ );
             createAxisAnnotation().drawLabels( g );
 
             /* Boundary. */
             g2.drawRect( gxlo_, gylo_, gxhi_ - gxlo_, gyhi_ - gylo_ );
 
             /* Restore. */
+            g2.setRenderingHints( hints0 );
             g2.setColor( color0 );
         }
     }
@@ -312,7 +320,8 @@ public class PlaneSurface implements Surface {
                 && PlotUtil.equals( this.ylabel_, other.ylabel_ )
                 && this.captioner_.equals( other.captioner_ )
                 && PlotUtil.equals( this.gridcolor_, other.gridcolor_ )
-                && PlotUtil.equals( this.axlabelcolor_, other.axlabelcolor_ );
+                && PlotUtil.equals( this.axlabelcolor_, other.axlabelcolor_ )
+                && this.antialias_ == other.antialias_;
         }
         else {
             return false;
@@ -341,6 +350,7 @@ public class PlaneSurface implements Surface {
         code = 23 * code + captioner_.hashCode();
         code = 23 * code + PlotUtil.hashCode( gridcolor_ );
         code = 23 * code + PlotUtil.hashCode( axlabelcolor_ );
+        code = 23 * code + ( antialias_ ? 5 : 7 );
         return code;
     }
 
@@ -380,7 +390,8 @@ public class PlaneSurface implements Surface {
                                               double xyfactor, boolean grid,
                                               double xcrowd, double ycrowd,
                                               boolean minor, Color gridcolor,
-                                              Color axlabelcolor ) {
+                                              Color axlabelcolor,
+                                              boolean antialias ) {
         int gxlo = plotBounds.x;
         int gxhi = plotBounds.x + plotBounds.width;
         int gylo = plotBounds.y;
@@ -445,7 +456,7 @@ public class PlaneSurface implements Surface {
         return new PlaneSurface( gxlo, gxhi, gylo, gyhi, dxlo, dxhi, dylo, dyhi,
                                  xlog, ylog, xflip, yflip, xticks, yticks,
                                  xlabel, ylabel, captioner, gridcolor,
-                                 axlabelcolor );
+                                 axlabelcolor, antialias );
     }
 
     /**

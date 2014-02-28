@@ -214,7 +214,7 @@ public class CubeSurfaceFactory
                               new boolean[] { p.xflip_, p.yflip_, p.zflip_ },
                               new String[] { p.xlabel_, p.ylabel_, p.zlabel_ },
                               new double[] { p.xcrowd_, p.ycrowd_, p.zcrowd_ },
-                              p.captioner_, p.frame_, p.minor_ );
+                              p.captioner_, p.frame_, p.minor_, p.antialias_ );
     }
 
     public ConfigKey[] getProfileKeys() {
@@ -243,6 +243,7 @@ public class CubeSurfaceFactory
         list.addAll( Arrays.asList( new ConfigKey[] {
             FRAME_KEY, 
             StyleKeys.MINOR_TICKS,
+            StyleKeys.GRID_ANTIALIAS,
         } ) );
         list.addAll( Arrays.asList( StyleKeys.getCaptionerKeys() ) );
         return list.toArray( new ConfigKey[ 0 ] );
@@ -264,10 +265,12 @@ public class CubeSurfaceFactory
         Captioner captioner = StyleKeys.createCaptioner( config );
         boolean frame = config.get( FRAME_KEY );
         boolean minor = config.get( StyleKeys.MINOR_TICKS );
+        boolean antialias = config.get( StyleKeys.GRID_ANTIALIAS );
         return new Profile( xlog, ylog, zlog,
                             xflip, yflip, zflip,
                             xlabel, ylabel, zlabel,
-                            captioner, frame, xcrowd, ycrowd, zcrowd, minor );
+                            captioner, frame, xcrowd, ycrowd, zcrowd,
+                            minor, antialias );
     }
 
     public ConfigKey[] getAspectKeys() {
@@ -498,6 +501,7 @@ public class CubeSurfaceFactory
         private final double ycrowd_;
         private final double zcrowd_;
         private final boolean minor_;
+        private final boolean antialias_;
 
         /**
          * Constructor.
@@ -520,13 +524,14 @@ public class CubeSurfaceFactory
          * @param  zcrowd  crowding factor for tick marks on Z axis;
          *                 1 is normal
          * @param  minor   whether to paint minor tick marks on axes
+         * @param  antialias  whether to antialias grid lines and text
          */
         public Profile( boolean xlog, boolean ylog, boolean zlog,
                         boolean xflip, boolean yflip, boolean zflip,
                         String xlabel, String ylabel, String zlabel,
                         Captioner captioner, boolean frame,
                         double xcrowd, double ycrowd, double zcrowd,
-                        boolean minor ) {
+                        boolean minor, boolean antialias ) {
             xlog_ = xlog;
             ylog_ = ylog;
             zlog_ = zlog;
@@ -542,6 +547,7 @@ public class CubeSurfaceFactory
             ycrowd_ = ycrowd;
             zcrowd_ = zcrowd;
             minor_ = minor;
+            antialias_ = antialias;
         }
 
         /**

@@ -1,7 +1,9 @@
 package uk.ac.starlink.ttools.plot2;
 
+import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.RenderingHints;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.lang.reflect.Array;
@@ -25,6 +27,7 @@ import uk.ac.starlink.ttools.plot2.data.TupleSequence;
  */
 public class PlotUtil {
 
+    private static Boolean dfltAntialias_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.plot2" );
 
@@ -97,6 +100,40 @@ public class PlotUtil {
      */
     public static boolean storeFullPrecision() {
         return true;
+    }
+
+    /**
+     * Indicates whether antialiasing of text is turned on or off by
+     * default.  There are a few considerations here.  Text generally
+     * looks nicer antialiased, but it is noticeably slower to paint. 
+     * Furthermore, there is a serious bug in OSX Java text rendering
+     * (java 1.7+?) that means un-antialiased characters in non-horizontal
+     * strings are drawn in the wrong order or wrong places or something
+     * (text drawn vertically has the letters sdrawkcab, anyway);
+     * painting it with antialiasing turned on works round this for
+     * some reason.
+     *
+     * <p>So the current policy is to set the default true for OSX,
+     * and false for other platforms.
+     *
+     * @return   default antialiasing for potentially non-horizontal text
+     */
+    public synchronized static boolean getDefaultTextAntialiasing() {
+        if ( dfltAntialias_ == null ) {
+            String os;
+            try {
+                os = System.getProperty( "os.name" );
+            }
+            catch ( SecurityException e ) {
+                os = "?";
+            }
+            boolean isMac = os != null
+                         && os.toLowerCase().indexOf( "macos" ) >= 0;
+            dfltAntialias_ = Boolean.valueOf( isMac );
+            logger_.info( "Use default text antialias setting "
+                        + dfltAntialias_ + " (os.name=" + os + ")" );
+        }
+        return dfltAntialias_.booleanValue();
     }
 
     /**
@@ -435,4 +472,27 @@ public class PlotUtil {
         return fmt.format( value );
     }
 
+    /**
+     * Configures a graphics context with graphics and text antialiasing
+     * turned on or off.
+     * This convenience method is just provided because doing it directly
+     * requires a lot of typing.
+     *
+     * <p>To reset the graphics context to its original state after calling
+     * this method, restore its original <code>RenderingHints</code> object.
+     *
+     * @param   g   graphics context
+     * @param  antialias   whether to draw text and graphics antialised
+     */
+    public static void setAntialias( Graphics g, boolean antialias ) {
+        Graphics2D g2 = (Graphics2D) g;
+        g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING,
+                             antialias
+                                 ? RenderingHints.VALUE_ANTIALIAS_ON
+                                 : RenderingHints.VALUE_ANTIALIAS_OFF );
+        g2.setRenderingHint( RenderingHints.KEY_TEXT_ANTIALIASING,
+                             antialias
+                                 ? RenderingHints.VALUE_TEXT_ANTIALIAS_ON
+                                 : RenderingHints.VALUE_TEXT_ANTIALIAS_OFF );
+    }
 }

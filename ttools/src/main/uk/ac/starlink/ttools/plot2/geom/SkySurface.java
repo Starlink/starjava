@@ -8,6 +8,7 @@ import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.Shape;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Point2D;
@@ -46,6 +47,7 @@ public class SkySurface implements Surface {
     private final boolean sexagesimal_;
     private final double crowd_;
     private final Captioner captioner_;
+    private final boolean antialias_;
     private final double[] unrotmat_;
     private final Projection projection_;
     private final double[] rotmat_;
@@ -79,12 +81,13 @@ public class SkySurface implements Surface {
      * @param  sexagesimal  whether to use sexagesimal coordinates
      * @param  crowd   tick mark crowding factor, 1 is normal
      * @param  captioner  text rendering object
+     * @param  antialias  whether to antialias grid lines and text
      */
     public SkySurface( Rectangle plotBounds, Projection projection,
                        double[] rotmat, double zoom, double xoff, double yoff,
                        SkySys viewSystem, SkyAxisLabeller axLabeller,
                        Color gridColor, Color axlabelColor, boolean sexagesimal,
-                       double crowd, Captioner captioner ) {
+                       double crowd, Captioner captioner, boolean antialias ) {
         gxlo_ = plotBounds.x;
         gxhi_ = plotBounds.x + plotBounds.width;
         gylo_ = plotBounds.y;
@@ -95,6 +98,7 @@ public class SkySurface implements Surface {
         sexagesimal_ = sexagesimal;
         crowd_ = crowd;
         captioner_ = captioner;
+        antialias_ = antialias;
         projection_ = projection;
         rotmat_ = rotmat;
         zoom_ = zoom;
@@ -151,6 +155,7 @@ public class SkySurface implements Surface {
 
     public void paintBackground( Graphics g ) {
         Graphics2D g2 = (Graphics2D) g.create();
+        PlotUtil.setAntialias( g2, antialias_ );
         final Shape gShape;
         if ( skyFillsBounds_ ) {
             gShape = new Rectangle( getPlotBounds() );
@@ -172,15 +177,17 @@ public class SkySurface implements Surface {
     }
 
     public void paintForeground( Graphics g ) {
-        Color color0 = g.getColor();
-        Graphics2D g2 = (Graphics2D) g;
         GridLiner gl = gridColor_ != null || axlabelColor_ != null
                      ? createGridder()
                      : null;
+        if ( gl == null ) {
+            return;
+        }
+        Graphics2D g2 = (Graphics2D) g;
+        Color color0 = g.getColor();
+        RenderingHints hints0 = g2.getRenderingHints();
+        PlotUtil.setAntialias( g2, antialias_ );
         if ( gridColor_ != null ) {
-            if ( gl == null ) {
-                return;
-            }
             g2.setColor( gridColor_ );
             double[][][] lines = gl.getLines();
             String[] labels = gl.getLabels();
@@ -204,6 +211,7 @@ public class SkySurface implements Surface {
             axLabeller_.createAxisAnnotation( gl, captioner_ )
                        .drawLabels( g2 );
         }
+        g2.setRenderingHints( hints0 );
         g2.setColor( color0 );
     }
 
@@ -650,7 +658,8 @@ public class SkySurface implements Surface {
                 && PlotUtil.equals( this.axlabelColor_, other.axlabelColor_ )
                 && this.sexagesimal_ == other.sexagesimal_
                 && this.crowd_ == other.crowd_
-                && PlotUtil.equals( this.captioner_, other.captioner_ );
+                && PlotUtil.equals( this.captioner_, other.captioner_ )
+                && this.antialias_ == other.antialias_;
         }
         else {
             return false;
@@ -676,6 +685,7 @@ public class SkySurface implements Surface {
         code = 23 * code + ( sexagesimal_ ? 5 : 13 );
         code = 23 * code + Float.floatToIntBits( (float) crowd_ );
         code = 23 * code + PlotUtil.hashCode( captioner_ );
+        code = 23 * code + ( antialias_ ? 17 : 29 );
         return code;
     }
 

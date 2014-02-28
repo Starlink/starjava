@@ -18383,6 +18383,18 @@ introduced since the last version:
         <li>Rearranged plot2 window toolbars; buttons for adding and removing
             layer controls are now in the layer control panel not the
             main window toolbar.</li>
+        <li>Add antialiasing option for grid line and label drawing in
+            new plot windows.</li>
+        <li>Work around bug in MacOS text rendering in plots that painted
+            text in the wrong direction when not horizontal (e.g. letters
+            going backwards when running vertically).
+            The workaround involves defaulting to antialiased text when
+            drawing axis grids for MacOS.
+            As well as getting the text the right way round this does
+            look a bit nicer, but it is also perceptibly slower.
+            You can turn it off using the <label>Antialias</label> checkbox
+            in the <label>Axes</label>-<label>Grid</label> tabs
+            of the various plot windows.</li>
         </ul>
         </p></dd>
 </dl>

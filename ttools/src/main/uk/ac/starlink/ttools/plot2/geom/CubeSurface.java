@@ -7,6 +7,7 @@ import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.geom.AffineTransform;
@@ -54,6 +55,7 @@ public class CubeSurface implements Surface {
     private final String[] labels_;
     private final Captioner captioner_;
     private final boolean frame_;
+    private final boolean antialias_;
 
     private final double[] dummyZ_;
     private final double gScale_;
@@ -84,13 +86,14 @@ public class CubeSurface implements Surface {
      * @param  labels  3-element array of X,Y,Z axis label strings
      * @param  captioner  text renderer
      * @param  frame  whether to draw wire frame
+     * @param  antialias  whether to antialias grid lines and text
      */
     public CubeSurface( int gxlo, int gxhi, int gylo, int gyhi,
                         double[] dlos, double[] dhis,
                         boolean[] logFlags, boolean[] flipFlags,
                         double[] rotmat, double zoom, double xoff, double yoff,
                         Tick[][] ticks, String[] labels, Captioner captioner,
-                        boolean frame ) {
+                        boolean frame, boolean antialias ) {
         gxlo_ = gxlo;
         gxhi_ = gxhi;
         gylo_ = gylo;
@@ -107,6 +110,7 @@ public class CubeSurface implements Surface {
         labels_ = labels.clone();
         captioner_ = captioner;
         frame_ = frame;
+        antialias_ = antialias;
 
         /* Prepare precalculated values that will come in useful. */
         gScale_ = getPixelScale( gxhi - gxlo, gyhi - gylo );
@@ -379,30 +383,38 @@ public class CubeSurface implements Surface {
     }
 
     public void paintBackground( Graphics g ) {
-        Color color0 = g.getColor();
-        g.setColor( Color.WHITE );
-        g.fillRect( gxlo_, gylo_, gxhi_ - gxlo_, gyhi_ - gylo_ );
-        g.setColor( color0 );
+        Graphics2D g2 = (Graphics2D) g;
+        Color color0 = g2.getColor();
+        g2.setColor( Color.WHITE );
+        g2.fillRect( gxlo_, gylo_, gxhi_ - gxlo_, gyhi_ - gylo_ );
+        g2.setColor( color0 );
 
         /* Paint those parts of the wire frame that are known to fall behind
          * all the data points. */
         if ( frame_ ) {
-            Shape clip0 = g.getClip();
-            g.clipRect( gxlo_, gylo_, gxhi_ - gxlo_, gyhi_ - gylo_ );
-            plotFrame( g, false );
-            g.setClip( clip0 );
+            Shape clip0 = g2.getClip();
+            g2.clipRect( gxlo_, gylo_, gxhi_ - gxlo_, gyhi_ - gylo_ );
+            RenderingHints hints0 = g2.getRenderingHints();
+            PlotUtil.setAntialias( g2, antialias_ );
+            plotFrame( g2, false );
+            g2.setRenderingHints( hints0 );
+            g2.setClip( clip0 );
         }
     }
 
     public void paintForeground( Graphics g ) {
+        Graphics2D g2 = (Graphics2D) g;
 
         /* Paint those parts of the wire frame that are known to fall in
          * front of all the data points. */
         if ( frame_ ) {
-            Shape clip0 = g.getClip();
-            g.clipRect( gxlo_, gylo_, gxhi_ - gxlo_, gyhi_ - gylo_ );
-            plotFrame( g, true );
-            g.setClip( clip0 );
+            Shape clip0 = g2.getClip();
+            g2.clipRect( gxlo_, gylo_, gxhi_ - gxlo_, gyhi_ - gylo_ );
+            RenderingHints hints0 = g2.getRenderingHints();
+            PlotUtil.setAntialias( g2, antialias_ );
+            plotFrame( g2, true );
+            g2.setRenderingHints( hints0 );
+            g2.setClip( clip0 );
         }
     }
 
@@ -685,7 +697,8 @@ public class CubeSurface implements Surface {
                 && Arrays.deepEquals( this.ticks_, other.ticks_ )
                 && Arrays.equals( this.labels_, other.labels_ )
                 && this.captioner_.equals( other.captioner_ )
-                && this.frame_ == other.frame_;
+                && this.frame_ == other.frame_
+                && this.antialias_ == other.antialias_;
         }
         else {
             return false;
@@ -711,6 +724,7 @@ public class CubeSurface implements Surface {
         code = 23 * code + Arrays.hashCode( labels_ );
         code = 23 * code + captioner_.hashCode();
         code = 23 * code + ( frame_ ? 1 : 3 );
+        code = 23 * code + ( antialias_ ? 5 : 7 );
         return code;
     }
 
@@ -1021,6 +1035,7 @@ public class CubeSurface implements Surface {
      * @param  captioner  text renderer
      * @param  frame  whether to draw wire frame
      * @param  minor  whether to draw minor tickmarks
+     * @param  antialias  whether to antialias grid text and lines
      * @return  new plot surface
      */
     public static CubeSurface createSurface( Rectangle plotBounds,
@@ -1031,7 +1046,8 @@ public class CubeSurface implements Surface {
                                              double[] crowdFactors,
                                              Captioner captioner,
                                              boolean frame,
-                                             boolean minor ) {
+                                             boolean minor,
+                                             boolean antialias ) {
         int gxlo = plotBounds.x;
         int gxhi = plotBounds.x + plotBounds.width;
         int gylo = plotBounds.y;
@@ -1055,7 +1071,7 @@ public class CubeSurface implements Surface {
         double yoff = aspect.getOffsetY();
         return new CubeSurface( gxlo, gxhi, gylo, gyhi, dlos, dhis,
                                 logFlags, flipFlags, rotmat, zoom, xoff, yoff,
-                                ticks, labels, captioner, frame );
+                                ticks, labels, captioner, frame, antialias );
     }
 
     /**
