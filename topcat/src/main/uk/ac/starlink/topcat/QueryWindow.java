@@ -20,6 +20,8 @@ import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.UIManager;
 import javax.swing.border.Border;
+import javax.swing.event.AncestorEvent;
+import javax.swing.event.AncestorListener;
 import uk.ac.starlink.table.gui.LabelledComponentStack;
 
 /**
@@ -112,10 +114,28 @@ public abstract class QueryWindow extends AuxWindow {
         getMainArea().add( iconBox, BorderLayout.WEST );
         getMainArea().add( contentBox, BorderLayout.CENTER );
 
-        /* Fix it so that the components in the stack have the focus
-         * when the window is displayed. */
-        pack();
-        stack.requestFocusInWindow();
+        /* Fix it so that the first field in the stack has the focus
+         * when the window is displayed.  You have to jump through hoops
+         * to do this because requestFocusInWindow doesn't work before
+         * the component has been set visible. */
+        stack.addAncestorListener( new AncestorListener() {
+            public void ancestorAdded( AncestorEvent evt ) {
+
+                /* Request focus for the first field if there is one. */
+                Component[] fields = stack.getFields();
+                Component field0 = fields.length > 0 ? fields[ 0 ] : null;
+                if ( field0 != null ) {
+                    field0.requestFocusInWindow();
+                }
+
+                /* After the first time, the behaviour is no longer required. */
+                stack.removeAncestorListener( this );
+            }
+            public void ancestorMoved( AncestorEvent evt ) {
+            }
+            public void ancestorRemoved( AncestorEvent evt ) {
+            }
+        } );
     }
 
     /**
