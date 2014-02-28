@@ -201,7 +201,7 @@ public class SyntheticColumnQueryWindow extends QueryWindow {
      *
      * @param   clazz  forced expression type, or null
      */
-    public void setType( Class clazz ) {
+    public void setExpressionType( Class clazz ) {
         typeField.setSelectedItem( clazz );
     }
 
@@ -211,7 +211,7 @@ public class SyntheticColumnQueryWindow extends QueryWindow {
      *
      * @return  forced expression type, or null
      */
-    public Class getType() {
+    public Class getExpressionType() {
         return (Class) typeField.getSelectedItem();
     }
 
@@ -237,7 +237,7 @@ public class SyntheticColumnQueryWindow extends QueryWindow {
         String unit = getUnit();
         String expr = getExpression();
         String ucd = getUCD();
-        Class clazz = getType();
+        Class clazz = getExpressionType();
         DefaultValueInfo info = new DefaultValueInfo( name );
         if ( desc != null ) {
             info.setDescription( desc );
