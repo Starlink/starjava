@@ -420,6 +420,9 @@ public class TopcatSampControl {
                                      SsaMultiWindow.class ),
             new ResourceListHandler( "voresource.loadlist.tap",
                                      TapTableLoadDialog.class, null ),
+
+            /* Supply URL for a currently loaded table. */
+            TablePullHandler.createGenericTablePullHandler( "table.get.stil" ),
         };
     }
 
