@@ -61,8 +61,9 @@ public class TimeNavigator implements Navigator<TimeAspect> {
         boolean[] useFlags =
             PlaneNavigator.getAxisNavFlags( surface, origin, tPan_, yPan_ );
         TimeSurface tsurf = (TimeSurface) surface;
+        int ibutt = PlotUtil.getButtonDownIndex( evt );
         Point point = evt.getPoint();
-        if ( PlotUtil.isZoomDrag( evt ) ) {
+        if ( ibutt == 3 ) {
             double tf = useFlags[ 0 ]
                       ? PlotUtil.toZoom( zoomFactor_, origin, point, false )
                       : 1;

@@ -146,13 +146,9 @@ public abstract class NavigationListener<A>
 
     public void mouseReleased( MouseEvent evt ) {
 
-        /* Eliminate the drag decoration, if there is one. */
+        /* Eliminate any drag decoration. */
         if ( dragSurface_ != null ) {
-            NavAction navact =
-                getNavigator().drag( dragSurface_, evt, startPoint_ );
-            if ( navact != null && navact.getDecoration() != null ) {
-                updateDecoration( null, false );
-            }
+            updateDecoration( null, false );
         }
 
         /* Terminate any current drag gesture. */
@@ -161,8 +157,7 @@ public abstract class NavigationListener<A>
     }
 
     public void mouseClicked( MouseEvent evt ) {
-        int iButt = evt.getButton();
-        if ( iButt == MouseEvent.BUTTON3 ) {
+        if ( PlotUtil.getButtonChangedIndex( evt ) == 3 ) {
             Navigator<A> navigator = getNavigator();
             Surface surface = getSurface();
             if ( navigator != null && surface != null ) {

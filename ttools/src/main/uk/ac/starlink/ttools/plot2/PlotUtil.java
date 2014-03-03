@@ -4,6 +4,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.RenderingHints;
+import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.lang.reflect.Array;
@@ -314,23 +315,105 @@ public class PlotUtil {
     }
 
     /**
-     * Indicates whether a drag mouse gesture is to be interpreted as a zoom
-     * or pan.  Currently, pretty much any variation from a normal button-1
-     * drag counts to turn it into a zoom gesture (use of button 3 or any
-     * modifier key depressed).
+     * Determines which mouse button was changed at a given mouse event.
+     * It's not really clear across the landscape of different mouse types
+     * and different OSes what user gestures different mouse/keyboard gestures
+     * will generate.  We collect all the logic in this method, so if
+     * it turns out it's not working properly it can be adjusted easily.
      *
-     * @param  evt  mouse drag event
-     * @return  true for zoom, false for pan
+     * <p>This method will return an integer in the range 0-3 with the
+     * following meaning:
+     * <ul>
+     * <li>0: no button pressed</li>
+     * <li>1: left button pressed (normal primary button)</li>
+     * <li>2: center button pressed (least likely to be present)</li>
+     * <li>3: right button pressed (normal secondary button)</li>
+     * </ul>
+     * <p>The output of this method is the 'logical' value, so 2 may be
+     * returned to indicate simultaneous press of both buttons on
+     * a 2-button mouse if it's set up that way.
+     * If users have set up their mice strangely then a physical left
+     * click might not yield a value of 1 - that's their lookout.
+     *
+     * <p>This method is only intended for use when a single button is
+     * expected; multi-button gestures are not supported.
+     *
+     * <p>We follow the (conventional) usage where ctrl-click means
+     * right-click on a single button mouse, and we also currently use
+     * shift-click to mean center button.  These conventions may be
+     * noted in user documentation.
+     *
+     * @param   evt   mouse event
+     * @return   button indicator, 0-3
+     * @see   #getButtonDownIndex
      */
-    public static boolean isZoomDrag( MouseEvent evt ) {
-        int mods = evt.getModifiersEx();
-        int alteredMask = MouseEvent.BUTTON3_DOWN_MASK
-                        | MouseEvent.SHIFT_DOWN_MASK
-                        | MouseEvent.CTRL_DOWN_MASK
-                        | MouseEvent.META_DOWN_MASK
-                        | MouseEvent.ALT_DOWN_MASK
-                        | MouseEvent.ALT_GRAPH_DOWN_MASK;
-        return ( mods & alteredMask ) != 0;
+    public static int getButtonChangedIndex( MouseEvent evt ) {
+
+        /* There are SwingUtilities methods isLeftMouseButton etc that test
+         * against InputEvent.BUTTON1_MASK etc.  But those constants are
+         * deprecated (in favour of BUTTON1_DOWN_MASK etc) in the InputEvent
+         * class.  So avoid using those for now, and do it by hand.
+         * I don't know if evt.getButton already takes account of
+         * ctrl/shift conventions, but even if it does, the following code
+         * should be OK (as long as there is no attempt to make sense of
+         * gestures which use multiple logical buttons simultaneously). */
+
+        int iButt = evt.getButton();
+        int exmods = evt.getModifiersEx();
+        if ( iButt == MouseEvent.BUTTON3 ) {
+            return 3;
+        }
+        else if ( iButt == MouseEvent.BUTTON2 ) {
+            return 2;
+        }
+        else if ( iButt == MouseEvent.NOBUTTON ) {
+            return 0;
+        }
+        else {
+            assert iButt == MouseEvent.BUTTON1;
+            if ( ( exmods & InputEvent.CTRL_DOWN_MASK ) != 0 ) {
+                return 3;
+            }
+            else if ( ( exmods & InputEvent.SHIFT_DOWN_MASK ) != 0 ) {
+                return 2;
+            }
+            else {
+                return 1;
+            }
+        }
+    }
+
+    /**
+     * Determines which single button is depressed at a given mouse event.
+     * The output value and considerations are the same as for
+     * {@link #getButtonChangedIndex}.
+     *
+     * @param   evt   mouse event
+     * @return   button indicator, 0-3
+     * @see   #getButtonChangedIndex
+     */
+    public static int getButtonDownIndex( MouseEvent evt ) {
+        int exmods = evt.getModifiersEx();
+        if ( ( exmods & InputEvent.BUTTON3_DOWN_MASK ) != 0 ) {
+            return 3;
+        }
+        else if ( ( exmods & InputEvent.BUTTON2_DOWN_MASK ) != 0 ) {
+            return 2;
+        }
+        else if ( ( exmods & InputEvent.BUTTON1_DOWN_MASK ) != 0 ) {
+            if ( ( exmods & InputEvent.CTRL_DOWN_MASK ) != 0 ) {
+                return 3;
+            }
+            else if ( ( exmods & InputEvent.SHIFT_DOWN_MASK ) != 0 ) {
+                return 2;
+            }
+            else {
+                return 1;
+            }
+        }
+        else {
+            return 0;
+        }
     }
 
     /**

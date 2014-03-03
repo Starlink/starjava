@@ -54,13 +54,18 @@ public class CubeNavigator implements Navigator<CubeAspect> {
                                        Point origin ) {
         CubeSurface csurf = (CubeSurface) surface;
         Point pos = evt.getPoint();
-        if ( ( evt.getModifiersEx() & MouseEvent.BUTTON2_DOWN_MASK ) != 0 ) {
+        int ibutt = PlotUtil.getButtonDownIndex( evt );
+        if ( ibutt == 1 ) {
+            CubeAspect aspect = csurf.pan( origin, pos );
+            return new NavAction<CubeAspect>( aspect, null );
+        }
+        else if ( ibutt == 2 ) {
             CubeAspect aspect = csurf.pointPan( origin, pos );
             Decoration dec =
                 NavDecorations3D.create2dPanDecoration( csurf, pos );
             return new NavAction<CubeAspect>( aspect, dec );
         }
-        else if ( PlotUtil.isZoomDrag( evt ) ) {
+        else if ( ibutt == 3 ) {
             if ( axisFlags_ == null ) {
                 double xf = PlotUtil.toZoom( zoomFactor_, origin, pos, false );
                 double yf = PlotUtil.toZoom( zoomFactor_, origin, pos, true );
@@ -80,8 +85,8 @@ public class CubeNavigator implements Navigator<CubeAspect> {
             }
         }
         else {
-            CubeAspect aspect = csurf.pan( origin, pos );
-            return new NavAction<CubeAspect>( aspect, null );
+            assert false;
+            return null;
         }
     }
 
