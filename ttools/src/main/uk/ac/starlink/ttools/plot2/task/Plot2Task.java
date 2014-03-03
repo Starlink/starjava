@@ -122,7 +122,8 @@ public class Plot2Task implements Task {
      * Constructor.
      */
     public Plot2Task() {
-        typeParam_ = new ChoiceParameter<PlotType>( "type", new PlotType[] {
+        typeParam_ = new ChoiceParameter<PlotType>( "type", PlotType.class,
+                                                    new PlotType[] {
             PlanePlotType.getInstance(),
             SkyPlotType.getInstance(),
             CubePlotType.getInstance(),

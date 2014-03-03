@@ -91,7 +91,7 @@ public abstract class PaperTypeSelector {
      * @param   ptype  fixed paper type
      * @return   selector
      */
-    private static PaperTypeSelector
+    public static PaperTypeSelector
             createSingleSelector( final PaperType ptype ) {
         return new PaperTypeSelector() {
             public PaperType getVectorPaperType( LayerOpt[] opts ) {
