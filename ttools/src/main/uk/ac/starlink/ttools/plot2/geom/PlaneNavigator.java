@@ -59,7 +59,8 @@ public class PlaneNavigator implements Navigator<PlaneAspect> {
         boolean[] useFlags = getAxisNavFlags( surface, origin, xPan_, yPan_ );
         PlaneSurface psurf = (PlaneSurface) surface;
         Point point = evt.getPoint();
-        if ( PlotUtil.isZoomDrag( evt ) ) {
+        int ibutt = PlotUtil.getButtonDownIndex( evt );
+        if ( ibutt == 3 ) {
             int[] offs = getAnchorOffsets( psurf, origin );
             Point g0 = new Point( origin.x + offs[ 0 ], origin.y + offs[ 1 ] );
             Point gp = new Point( point.x + offs[ 0 ], point.y + offs[ 1 ] );

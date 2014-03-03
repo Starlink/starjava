@@ -38,7 +38,8 @@ public class SkyNavigator implements Navigator<SkyAspect> {
                                       Point origin ) {
         SkySurface ssurf = (SkySurface) surface;
         Point pos = evt.getPoint();
-        if ( PlotUtil.isZoomDrag( evt ) ) {
+        int ibutt = PlotUtil.getButtonDownIndex( evt );
+        if ( ibutt == 3 ) {
             double fact = PlotUtil.toZoom( zoomFactor_, origin, pos, null );
             SkyAspect aspect = ssurf.zoom( origin, fact );
             Decoration dec =

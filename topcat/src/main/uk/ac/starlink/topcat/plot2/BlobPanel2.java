@@ -21,6 +21,7 @@ import javax.swing.Action;
 import javax.swing.JComponent;
 import javax.swing.event.MouseInputListener;
 import uk.ac.starlink.topcat.ResourceIcon;
+import uk.ac.starlink.ttools.plot2.PlotUtil;
 
 /**
  * Component which allows the user to draw a blob using the mouse.
@@ -245,7 +246,7 @@ public abstract class BlobPanel2 extends JComponent {
         }
 
         public void mouseClicked( MouseEvent evt ) {
-            if ( evt.getButton() == MouseEvent.BUTTON3 ) {
+            if ( PlotUtil.getButtonChangedIndex( evt ) == 3 ) {
                 int nblob = blobs_.size();
                 if ( nblob > 0 ) {
                     blobs_.remove( nblob - 1 );
@@ -255,7 +256,7 @@ public abstract class BlobPanel2 extends JComponent {
         }
 
         public void mousePressed( MouseEvent evt ) {
-            if ( evt.getButton() == MouseEvent.BUTTON1 ) {
+            if ( PlotUtil.getButtonChangedIndex( evt ) == 1 ) {
                 Point p = evt.getPoint();
                 dragPath_ = new GeneralPath();
                 dragPath_.moveTo( p.x, p.y );
@@ -263,7 +264,7 @@ public abstract class BlobPanel2 extends JComponent {
         }
 
         public void mouseReleased( MouseEvent evt ) {
-            if ( evt.getButton() == MouseEvent.BUTTON1 ) {
+            if ( PlotUtil.getButtonChangedIndex( evt ) == 1 ) {
                 if ( dragPath_ != null ) {
                     blobs_.add( simplify( dragPath_ ) );
                     dragPath_ = null;

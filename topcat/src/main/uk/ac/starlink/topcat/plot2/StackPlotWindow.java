@@ -1219,12 +1219,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     private class IdentifyListener extends MouseAdapter {
         @Override
         public void mouseClicked( MouseEvent evt ) {
-            int iButt = evt.getButton();
-            if ( iButt == MouseEvent.BUTTON1 &&
-                 ! ( evt.isAltDown() ||
-                     evt.isControlDown() ||
-                     evt.isMetaDown() ||
-                     evt.isShiftDown() ) ) {
+            if ( PlotUtil.getButtonChangedIndex( evt ) == 1 ) {
                 identifyPoint( evt.getPoint() );
             }
         }
