@@ -197,7 +197,7 @@
 
 <docnumber>253</docnumber>
 
-<docdate>1 July 2013</docdate>
+<docdate>7 March 2014</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -2140,11 +2140,12 @@ or contact the author.
 
 <p>TOPCAT provides some facilities for positional crossmatches
 against tables which are exposed via Virtual Observatory web services
-(cone search, Simple Image Access and Simple Spectral Access).
-This works rather differently from the other functions described
+(Cone Search, Simple Image Access and Simple Spectral Access)
+and general SQL-like matching (TAP).
+These work rather differently from the other functions described
 in this section, which operate on local tables, though conceptually
 the result is similar.
-See <ref id="DalMultiPanel"/> for more details.
+See <ref id="vo"/> for more details.
 </p>
 
 </subsect>
@@ -3545,7 +3546,7 @@ unless you are a tool developer you can probably ignore these.
                     <code>voresource.loadlist.ssap</code>
     </p></dd>
 
-<dt>Pull Table</dt>
+<dt>Get Table</dt>
 <dd><p>Allows clients to retrieve tables currently loaded into TOPCAT.
     This MType has a mandatory parameter <code>format</code>
     giving the (case-insensitive) table format name required for
@@ -18312,40 +18313,118 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-    <dt>Next Version</dt>
+<dt>Version 4.1 (7 March 2014)</dt>
+<dd><p>In this version, the new plotting windows appear for the first
+    time in the main Control Window toolbar, and are no longer considered
+    experimental.  There have been many changes to their user interface
+    and functionality since the last release.
+    The old plotting windows are still available from the
+    Control Window <label>Graphics</label> menu, but are now considered
+    somewhat deprecated, and will not be developed or fixed further.
+    </p>
+    <p>
+    <dl>
+    <dt>Navigation changes to the new plotting windows:</dt>
     <dd><p>
         <ul>
-        <li>Array-valued per-column extra metadata items is now displayed
-            properly.</li>
-        <li>Moved text documenting <code>table.load.cdf</code> and 
-            <code>table.load.stil</code> SAMP MTypes from the transmit
-            section (wrong) to the receive section (right)
-            of this document.</li>
+        <li>In 2d plots, right-button drag (or ctrl-drag) does
+            a 2-d anisotropic zoom - you can stretch or squash the plot
+            in both directions.</li>
+        <li>In 3d plots, right-button drag (or ctrl-drag) does
+            a 2-d anisotropic zoom along the 2 axes most face-on.</li>
+        <li>In 3d plots, middle-button drag (or shift-drag) slides the
+            plot along the 2 axes most face-on.</li>
+        <li>In 2d plots, the pan/zoom actions (wheel, pan-drag, zoom-drag)
+            can be done outside the plot to affect just one axis.</li>
+        <li>Most navigation mouse actions now show visual feedback on
+            the screen.</li>
+        <li>A new tab <label>Navigation</label> is added to the Axis controls.
+            This lets you configure zoom/pan actions, for
+            instance selecting zoom factor and X/Y/XY zoom options
+            for when mouse wheel is used.</li>
+        <li>A hints panel is added below the plot showing current
+            mouse navigation actions.</li>
+        <li>Removed zoom in/out buttons in the toolbar of the layer
+            plot windows; there are better ways to zoom.</li>
+        </ul>
+        </p></dd>
+    <dt>Other changes to the new plotting windows:</dt>
+    <dd><p>
+        <ul>
+        <li>Histogram plot type added.  You can also add histograms to
+            a normal plane plot if you want to.</li>
+        <li>Layer plot windows now have a progress bar at the bottom
+            for loading data, and optionally for other potentially slow
+            operations like replotting, identifying a point,
+            turning blob-selected points into a subset etc.</li>
+        <li>For very large/slow plots, intermediate subsampled plots are
+            optionally displayed while panning/zooming to improve
+            responsiveness.</li>
+        <li>Toolbar buttons rearranged; the buttons for adding and removing
+            layer controls are now in the layer control panel not the
+            main plot window toolbar.</li>
+        <li>There is now an option to plot pairs of points.</li>
+        <li>When a pair crossmatch completes successfully,
+            you get the option to plot the results,
+            which shows you exactly how the located matches
+            relate to the input positions (pairs of points are plotted).</li>
+        <li>Text label plotting now has crowding configuration options:
+            according to configuration, text labels are only drawn if there
+            aren't too many close together.</li>
+        <li>New grid and label colour configuration options for plane and
+            sky plots.</li>
+        <li>More colour maps added.</li>
+        <li>Antialiasing option added for grid line and label drawing.</li>
+        <li>New auto transparency shading mode.</li>
+        <li>Add some padding around auto-ranged plot limits.</li>
+        <li>Changing table in a plot now tries to retain the coordinate values
+            if they still make sense.</li>
         <li>Axis tick labelling improved, including avoiding overlapping
-            tick labels in layer plots.</li>
-        <li>More <code>toString</code> overloads - now works for byte and
-            boolean values too.</li>
+            tick labels.</li>
+        <li>Sky plot re-ranging improved: new data set now re-ranges unless
+            lock button is set.</li>
+        <li>Clip selector added for density and aux colour maps,
+            which means you can now use just part of a colour map, giving
+            you much more control over colouring.</li>
+        <li>Sky plot position formatting now honours sexagesimal setting.</li>
+        <li>Some minor threading/performance improvements.</li>
+        <li>Experimental time plot type added.
+            This plot type is considered experimental and appears in the
+            Graphics menu but not currently on the main toolbar.
+            It can plot time series and spectrograms.  May be improved in
+            future versions.</li>
+        </ul>
+        </p></dd>
+    <dt>Other enhancements:</dt>
+    <dd><p>
+        <ul>
+        <li>A new experimental SAMP message <code>table.get.stil</code>
+            is supported, allowing SAMP clients to retrieve tables from
+            TOPCAT.</li>
+        <li>URL selector fields in Activation Action window are now
+            editable.</li>
+        <li>Add cuboid match algorithm to match windows.</li>
+        <li>The Exact matcher now considers scalar numeric values equal if
+            they have the same numeric value; they are no longer required
+            to have the same type.</li>
+        <li>Array-valued per-column metadata items are now displayed
+            properly.</li>
+        <li>The <code>toString</code> function now works for byte and
+            boolean values as well as other data types.</li>
         <li>Replace the (slightly dangerous, also undocumented)
             Apply Subset option in the table viewer window with a new
             Highlight Subset option.
             Also add a new Highlight Subset option in the Subsets window.</li>
-        <li>Add some more colour maps.</li>
-        <li>Add clip selector for density and aux colour maps.
-            This simple measure gives you a lot more control over what
-            colour maps to use.</li>
-        <li>Sky plot position formatting now honours sexagesimal setting.</li>
-        <li>Add new auto transparency shading mode to layer plots.</li>
-        <li>Fix bug when concatenating tables whose data cells
-            may have been edited by hand.</li>
-        <li>Fix service selection bug (NullPointerException)
-            in multi-SIA/SSA windows.</li>
-        <li>URL selector fields in Activation Action window are now
-            editable.</li>
-        <li>Fix bug which prevented access to long integer array elements
-            from expression language.</li>
-        <li>The Exact matcher now considers scalar numeric values equal if
-            they have the same numeric value; they are no longer required
-            to have the same type.</li>
+        <li>In the old-style histogram plot, exporting it now provides
+            cumulative counts if the visible histogram is currently
+            in cumulative mode.</li>
+        <li>Keyboard focus is more helpfully positioned by default in
+            some dialogue windows (it starts off in the first text field).</li>
+        </ul>
+        </p></dd>
+    <dt>Bugfixes etc:</dt>
+    <dd><p>
+        <ul>
         <li>Fix a registry access bug related to namespaces.
             It is now finally possible to query the STSci/NVO/VAO registry,
             as well as the AstroGrid and Euro-VO registries, from the
@@ -18353,63 +18432,6 @@ introduced since the last version:
             have not been working since mid-2010 as a consequence of bugs
             in (mostly) the TOPCAT client and (partially) the STSci
             registry service.</li>
-        <li>Substantial navigation improvements for new plot windows:
-            <!-- note the body of this document not yet updated accordingly. -->
-            <ul>
-            <li>Add <label>Navigation</label> tab to Axis controls in layer plot
-                windows.  This allows you to configure zoom/pan actions, for
-                instance selecting zoom factor and X/Y/XY zoom options
-                for when mouse wheel is used.</li>
-            <li>Pan/Zoom gestures now work outside the axes of
-                Time and Plane plots, applicable only
-                to the relevant coordinate.
-                This means you can do zooming in one direction only just by
-                moving the mouse and spinning the wheel.</li>
-            <li>Dragging the mouse with either the shift key depressed or using
-                the right-hand button now performs a (possibly anisotropic)
-                zoom rather than a pan operation.</li>
-            <li>Removed zoom in/out buttons in the toolbar of the layer
-                plot windows; there are better ways to zoom.</li>
-            <li>Exported histogram now contains cumulative counts if the
-                visible histogram is currently in cumulative mode.</li>
-            <li>2d pan/zoom navigation now works in 3d plots; the pair of
-                axes on which they operate is that defining the plane closest
-                to the plane of the screen.</li>
-            </ul></li>
-        <li>Layer plot windows now show progress bar as data is loaded.</li>
-        <li>Layer plot windows more responsive (subsampled intermediate
-            plots displayed during navigation round very large/slow plots).</li>
-        <li>Pair position plots are now provided.</li>
-        <li>When a pair match completes successfully, you get the option to
-            plot the results, which shows you exactly how the located matches
-            relate to the input positions.</li>
-        <li>Add layer plot histogram.</li>
-        <li>Fix bug in Statistics window so that Boolean columns correctly
-            report mean values (true/true+false proportion).</li>
-        <li>Fix TST input handler so TST files with fewer than 3 columns
-            can be read.</li>
-        <li>Fix point counting in layer plots.</li>
-        <li>Add some padding around auto-ranged plot limits.</li>
-        <li>Add grid and label colour configuration options to plane and
-            sky plots.</li>
-        <li>Add mouse help at bottom of plot windows.</li>
-        <li>Changing table in a plot now tries to retain the coordinate values
-            if they still make sense.</li>
-        <li>Add crowding config options to text plotter.</li>
-        <li>Add some more colour maps.</li>
-        <li>Improve re-ranging in sky plot; new data set now re-ranges unless
-            lock button is set.</li>
-        <li>Add cuboid match algorithm to match windows.</li>
-        <li>Plot windows available from the Control Window toolbar are now
-            the new-style ("layer") plots.  Old-style plots are still available,
-            but you have to go to the <label>Graphics</label> menu.</li>
-        <li>Rename the <label>File</label> menu in most windows to
-            <label>Window</label>, which is much more appropriate.</li>
-        <li>Rearranged plot2 window toolbars; buttons for adding and removing
-            layer controls are now in the layer control panel not the
-            main window toolbar.</li>
-        <li>Add antialiasing option for grid line and label drawing in
-            new plot windows.</li>
         <li>Work around bug in MacOS text rendering in plots that painted
             text in the wrong direction when not horizontal (e.g. letters
             going backwards when running vertically).
@@ -18417,13 +18439,38 @@ introduced since the last version:
             drawing axis grids for MacOS.
             As well as getting the text the right way round this does
             look a bit nicer, but it is also perceptibly slower.
-            You can turn it off using the <label>Antialias</label> checkbox
+            If speed is more important than correctness you can turn it off
+            using the <label>Antialias</label> checkbox
             in the <label>Axes</label>-<label>Grid</label> tabs
             of the various plot windows.</li>
-        <li>New experimental SAMP message <code>table.get.stil</code>.</li>
-        <li>Improve handling of LaTeX errors in axis labelling.</li>
+        <li>Rename the <label>File</label> menu in most windows to
+            <label>Window</label>, which is much more appropriate.</li>
+        <li>Fix bug when concatenating tables whose data cells
+            may have been edited by hand.</li>
+        <li>Fix service selection bug (NullPointerException)
+            in multi-SIA/SSA windows.</li>
+        <li>Fix bug which prevented access to long integer array elements
+            from expression language.</li>
+        <li>Fix bug in Statistics window so that Boolean columns correctly
+            report mean values (true/true+false proportion).</li>
+        <li>Fix TST input handler so TST files with fewer than 3 columns
+            can be read.</li>
+        <li>Upgrade JSAMP to version 1.3-4
+            (hub now supports web clients with <code>https</code> URLs).</li>
+        <li>Moved text documenting <code>table.load.cdf</code> and 
+            <code>table.load.stil</code> SAMP MTypes from the transmit
+            section (wrong) to the receive section (right)
+            of this document.</li>
+        <li>Minor improvements to CDF support.</li>
+        <li>Fix some plot threading issues.</li>
+        <li>The reported point count is improved in plots.</li>
+        <li>Better handling of OutOfMemoryErrors during plotting.</li>
+        <li>Better handling of LaTeX errors in axis labelling.</li>
         </ul>
         </p></dd>
+    </dl>
+    </p></dd>
+
 </dl>
 </p>
 

@@ -157,7 +157,7 @@ public abstract class MatchSpec extends JPanel {
         panel.add( txtBox, BorderLayout.CENTER );
 
         /* Prepare a button that just dismisses the dialogue. */
-        Action dismissAct = new AbstractAction( "Dismiss" ) {
+        Action dismissAct = new AbstractAction( "OK" ) {
             public void actionPerformed( ActionEvent evt ) {
                 dialog.dispose();
             }
