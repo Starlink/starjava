@@ -650,6 +650,15 @@ public class ResourceIcon implements Icon {
                  nameMap.put( name, icon );
             }
         }
+
+        /* Icons which are the result of calling toAddIcon on existing ones. */
+        nameMap.put( "ADD_PLOT_DATA", toAddIcon( PLOT_DATA ) );
+        nameMap.put( "ADD_PLOT_PAIR", toAddIcon( PLOT_PAIR ) );
+        nameMap.put( "ADD_PLOT_HISTO",
+                     toAddIcon( uk.ac.starlink.ttools.gui.ResourceIcon
+                                                         .PLOT_HISTO ) );
+                      
+           
         return nameMap;
     }
 
