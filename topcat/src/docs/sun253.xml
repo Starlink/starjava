@@ -106,6 +106,8 @@
   <!ENTITY FIG.StackPlotWindow '&figs;StackPlotWindow.gif'>
   <!ENTITY FIG.StackPlotWindow_float '&figs;StackPlotWindow_float.gif'>
   <!ENTITY FIG.StackPlotWindow_blob '&figs;StackPlotWindow_blob.gif'>
+  <!ENTITY FIG.ControlStack_fixed '&figs;ControlStack_fixed.gif'>
+  <!ENTITY FIG.form-style '&figs;form-style.gif'>
   <!ENTITY FIG.PlotExporter '&figs;PlotExporter.gif'>
   <!ENTITY FIG.LegendControl_style '&figs;LegendControl_style.gif'>
   <!ENTITY FIG.LegendControl_position '&figs;LegendControl_position.gif'>
@@ -119,9 +121,26 @@
            '&figs;FunctionLayerControl_style.gif'>
   <!ENTITY FIG.FunctionLayerControl_label
            '&figs;FunctionLayerControl_label.gif'>
+  <!ENTITY FIG.SpectrogramLayerControl '&figs;SpectrogramLayerControl.gif'>
+  <!ENTITY FIG.SpectrogramLayerControl_data
+           '&figs;SpectrogramLayerControl_data.gif'>
+  <!ENTITY FIG.SpectrogramLayerControl_style
+           '&figs;SpectrogramLayerControl_style.gif'>
   <!ENTITY FIG.GangLayerControl_position '&figs;GangLayerControl_position.gif'>
   <!ENTITY FIG.GangLayerControl_subsets '&figs;GangLayerControl_subsets.gif'>
   <!ENTITY FIG.GangLayerControl_form '&figs;GangLayerControl_form.gif'>
+  <!ENTITY FIG.GangLayerControl_pair_position
+           '&figs;GangLayerControl_pair_position.gif'>
+  <!ENTITY FIG.GangLayerControl_pair_subsets
+           '&figs;GangLayerControl_pair_subsets.gif'>
+  <!ENTITY FIG.GangLayerControl_pair_form
+           '&figs;GangLayerControl_pair_form.gif'>
+  <!ENTITY FIG.HistogramLayerControl_position
+           '&figs;HistogramLayerControl_position.gif'>
+  <!ENTITY FIG.HistogramLayerControl_subsets
+           '&figs;HistogramLayerControl_subsets.gif'>
+  <!ENTITY FIG.HistogramLayerControl_form
+           '&figs;HistogramLayerControl_form.gif'>
   <!ENTITY FIG.mode_flat '&figs;mode_flat.gif'>
   <!ENTITY FIG.mode_transparent '&figs;mode_transparent.gif'>
   <!ENTITY FIG.mode_auto '&figs;mode_auto.gif'>
@@ -135,36 +154,65 @@
   <!ENTITY FIG.form_line '&figs;form_line.gif'>
   <!ENTITY FIG.form_label '&figs;form_label.gif'>
   <!ENTITY FIG.form_contour '&figs;form_contour.gif'>
+  <!ENTITY FIG.form_marks2 '&figs;form_marks2.gif'>
+  <!ENTITY FIG.form_link2 '&figs;form_link2.gif'>
   <!ENTITY FIG.font_tab '&figs;font_tab.gif'>
+  <!ENTITY FIG.ConfigControl_histobars '&figs;ConfigControl_histobars.gif'>
   <!ENTITY FIG.PlaneAxisControl_coords '&figs;PlaneAxisControl_coords.gif'>
+  <!ENTITY FIG.PlaneAxisControl_navigation
+               '&figs;PlaneAxisControl_navigation.gif'>
   <!ENTITY FIG.PlaneAxisControl_range '&figs;PlaneAxisControl_range.gif'>
   <!ENTITY FIG.PlaneAxisControl_grid '&figs;PlaneAxisControl_grid.gif'>
   <!ENTITY FIG.PlaneAxisControl_labels '&figs;PlaneAxisControl_labels.gif'>
   <!ENTITY FIG.SkyAxisControl_projection '&figs;SkyAxisControl_projection.gif'>
+  <!ENTITY FIG.SkyAxisControl_navigation '&figs;SkyAxisControl_navigation.gif'>
   <!ENTITY FIG.SkyAxisControl_fov '&figs;SkyAxisControl_fov.gif'>
   <!ENTITY FIG.SkyAxisControl_grid '&figs;SkyAxisControl_grid.gif'>
   <!ENTITY FIG.CubeAxisControl_coords '&figs;CubeAxisControl_coords.gif'>
+  <!ENTITY FIG.CubeAxisControl_navigation
+           '&figs;CubeAxisControl_navigation.gif'>
   <!ENTITY FIG.CubeAxisControl_range '&figs;CubeAxisControl_range.gif'>
   <!ENTITY FIG.CubeAxisControl_view '&figs;CubeAxisControl_view.gif'>
   <!ENTITY FIG.CubeAxisControl_grid '&figs;CubeAxisControl_grid.gif'>
   <!ENTITY FIG.CubeAxisControl_labels '&figs;CubeAxisControl_labels.gif'>
+  <!ENTITY FIG.SphereAxisControl_navigation
+           '&figs;SphereAxisControl_navigation.gif'>
+  <!ENTITY FIG.SphereAxisControl_range '&figs;SphereAxisControl_range.gif'>
+  <!ENTITY FIG.SphereAxisControl_view '&figs;SphereAxisControl_view.gif'>
+  <!ENTITY FIG.SphereAxisControl_grid '&figs;SphereAxisControl_grid.gif'>
+  <!ENTITY FIG.TimeAxisControl_coords '&figs;TimeAxisControl_coords.gif'>
+  <!ENTITY FIG.TimeAxisControl_navigation
+           '&figs;TimeAxisControl_navigation.gif'>
+  <!ENTITY FIG.TimeAxisControl_range '&figs;TimeAxisControl_range.gif'>
+  <!ENTITY FIG.TimeAxisControl_grid '&figs;TimeAxisControl_grid.gif'>
+  <!ENTITY FIG.TimeAxisControl_labels '&figs;TimeAxisControl_labels.gif'>
+  <!ENTITY FIG.HistogramPlotWindow '&figs;HistogramPlotWindow.gif'>
   <!ENTITY FIG.PlanePlotWindow '&figs;PlanePlotWindow.gif'>
   <!ENTITY FIG.SkyPlotWindow '&figs;SkyPlotWindow.gif'>
   <!ENTITY FIG.CubePlotWindow '&figs;CubePlotWindow.gif'>
   <!ENTITY FIG.SpherePlotWindow '&figs;SpherePlotWindow.gif'>
-  <!ENTITY FIG.SphereAxisControl_range '&figs;SphereAxisControl_range.gif'>
+  <!ENTITY FIG.TimePlotWindow '&figs;TimePlotWindow.gif'>
 
   <!-- Define external URLs. -->
   <!ENTITY URL.VOTABLE "http://www.ivoa.net/Documents/latest/VOT.html">
   <!ENTITY URL.J2SE_DOCS "http://java.sun.com/j2se/1.5.0/docs/">
 
   <!-- Plot2 control references. -->
-  <!ENTITY CONTROL.data
+  <!ENTITY CONTROL.single
            '&IMG.PLOT_DATA;
-            <ref id="GangLayerControl">Table Layer Control</ref>'>
+            <ref id="GangLayerControl_single">Position Layer Control</ref>'>
+  <!ENTITY CONTROL.pair
+           '&IMG.PLOT_PAIR;
+            <ref id="GangLayerControl_pair">Pair Layer Control</ref>'>
   <!ENTITY CONTROL.function
            '&IMG.PLOT_FUNCTION;
-            <ref id="FunctionControl">Function Layer Control</ref>'>
+            <ref id="FunctionLayerControl">Function Layer Control</ref>'>
+  <!ENTITY CONTROL.histogram
+           '&IMG.PLOT_HISTO;
+            <ref id="HistogramLayerControl">Histogram Layer Control</ref>'>
+  <!ENTITY CONTROL.spectrogram
+           '&IMG.PLOT_SPECTRO;
+            <ref id="SpectrogramLayerControl">Spectrogram Layer Control</ref>'>
   <!ENTITY FORM.mark '&IMG.FORM_MARK; <ref id="form-mark">Mark</ref>'>
   <!ENTITY FORM.size '&IMG.FORM_SIZE; <ref id="form-size">Size</ref>'>
   <!ENTITY FORM.vector '&IMG.FORM_VECTOR; <ref id="form-vector">Vector</ref>'>
@@ -175,6 +223,8 @@
   <!ENTITY FORM.label '&IMG.PLOT_LABEL; <ref id="form-label">Text Label</ref>'>
   <!ENTITY FORM.contour '&IMG.PLOT_CONTOUR;
                         <ref id="form-contour">Contour</ref>'>
+  <!ENTITY FORM.marks2 '&IMG.FORM_MARKS2; <ref id="form-marks2">Marks</ref>'>
+  <!ENTITY FORM.link2 '&IMG.FORM_LINK2; <ref id="form-link2">Link</ref>'>
 ]>
 
 <sun>
@@ -6480,8 +6530,8 @@ More may be introduced in future releases.
 <subsubsect>
 <subhead><title>Differences From Old-Style Plot Windows</title></subhead>
 
-<p>A brief summary of improvements these windows offer over the old-style
-plot windows is:
+<p>A brief summary of improvements these windows offer over the 
+<ref id="GraphicsWindow">old-style</ref> plot windows is:
 <dl>
 
 <dt>New Sky Coordinate Plot</dt>
@@ -6533,7 +6583,9 @@ plot windows is:
 <dt>New plot shading modes</dt>
 <dd><p>Density colour coding for all plot types,
     with colour map either absolute or modifying dataset base colour.
-    This generally means that you can easily make quantitative sense of
+    The result is something that looks like a scatter plot at low
+    densities and a density plot for high densities, and
+    generally means that you can easily make quantitative sense of
     overcrowded regions of a scatter plot.
     Flat, transparent and aux colour coding still available as before.
     </p></dd>
@@ -6549,7 +6601,7 @@ plot windows is:
     </p></dd>
 
 <dt>Analytic function plotting in 2D</dt>
-<dd><p>Plot functions of X or Y coordinate using TOPCAT expression language.
+<dd><p>Plot functions of X or Y coordinate using algebraic expression language.
     </p></dd>
 
 <dt>Configurability</dt>
@@ -6579,7 +6631,8 @@ currently (v4.1) available in the new-style plots are:
 <li>plot titles</li>
 <li>histogram export as a table</li>
 </ul>
-The intention is to introduce these in a future release.
+The intention is to introduce some of all of these in a future release,
+possibly informed by user demand.
 </p>
 
 </subsubsect>
@@ -6592,14 +6645,16 @@ The intention is to introduce these in a future release.
 <figureimage src="&FIG.StackPlotWindow;"/>
 </figure>
 
-<p>Plot windows consist of two main parts: at the top is the
-plot itself, and at the bottom is the control panel.
+<p>Plot windows consist of two main parts:
+the plot itself (by default, at the top),
+and the control panel (by default, at the bottom).
 The control panel is where you configure what will be plotted.
 For a simple scatter plot it may just be a case of selecting what
 columns to plot against each other, but it can get quite detailed.
 If you want more screen space to play with, it can be helpful
 to float the control panel into a separate window using the
-<label>Float Controls</label> (&IMG.FLOAT;) toolbar button.
+<label>Float Controls</label> (&IMG.FLOAT;) toolbar button;
+you can find this button in both the main and the control panel toolbars.
 To unfloat the control panel, either just close the control panel window,
 or click the Float Controls toolbar button again.
 With floating controls, the window looks like the following figure.
@@ -6610,71 +6665,110 @@ With floating controls, the window looks like the following figure.
 <figureimage src="&FIG.StackPlotWindow_float;"/>
 </figure>
 
-<p>The control panel itself has two parts: a list on the left of
-currently active controls (represented by names and icons),
-and a panel on the right which shows the currently selected control.
+<p>The <label>control panel</label>
+itself has two main parts: a <label>control stack</label> on the left
+containing currently active controls (represented by names and icons),
+and a <label>detail panel</label>
+on the right which shows information about the currently selected control.
 Click on one of the control entries on the left to see its details
 on the right.
 Different controls have different detail panels, but in general each
 one will have multiple tabs for configuring different things.
 You can select these by clicking on the tab names.
-In general the best way to learn about the options is to click on
+A good way to learn about the options is to click on
 the different controls and their tabs to see what's available
-and experiment with the various options to see what happens to the plot.
+and experiment with the various options to see what happens to the plot,
+but all the panels and tabs are also explained in this manual.
+The control panel also has a toolbar at the top, used for
+adding and removing controls from the stack.
 </p>
 
-<p>The control list has two types of entry:
+<p>The <label>control list</label> has two types of entry:
 <dl>
 <dt>Fixed controls:</dt>
 <dd><p>These control the overall plot appearance.
     In the above figure, the fixed controls
     <label>Axes</label> (&IMG.AXIS_EDIT;) and
     <label>Legend</label> (&IMG.LEGEND;) are visible.
-    The different fixed controls are described in
+    </p>
+    <p>The different fixed controls are described in
     <ref id="plot2FixedControls"/>.
     </p></dd>
 <dt>Layer controls:</dt>
 <dd><p>These determine the actual data that will be plotted and what
-    graphical form it takes.
-    Layer controls can be added
-    (using the <label>Layers</label> menu or corresponding toolbar buttons),
-    removed
-    (using the <label>Remove Current Layer</label> (&IMG.DELETE;)
-    toolbar button),
-    and moved up and down
-    (by dragging with the grab handle (&IMG.UP_DOWN;).
-    Each one contributes a layer or layers to the plot.
-    Layers lower down the list are plotted later
-    (perhaps obscuring earlier ones), 
-    so you can drag them up and down until you have the layers you want on top.
-    The different layer controls are described in
+    graphical form it takes; each control contributes a layer or
+    layers to the plot.
+    To add a layer control, use the toolbar just above; each button
+    with a little green "+" adds a control of the corresponding type.
+    To remove a layer control, select it and use the
+    <label>Remove Current Layer</label> (&IMG.DELETE;) button in the
+    toolbar.  You can also use the <label>Layers</label> menu at the top
+    of the main window to add and remove layers.
+    </p>
+    <p>The checkbox beside each control determines whether it is currently
+    active; if unchecked, any plotting instructions is contains will be
+    ignored.
+    You can set them active or inactive by clicking on the checkboxes.
+    </p>
+    <p>You can also drag each control up or down by dragging with the
+    grab handle (&IMG.UP_DOWN;).  Layers lower down the list are plotted
+    later (perhaps obscuring earlier one), so you can drag them up and
+    down until you have the layers you want on top.
+    </p>
+    <p>The different layer controls are described in
     <ref id="plot2LayerControls"/>.
     </p></dd>
 </dl>
 </p>
 
-<p>The toolbar contains the following actions (repeated in the menus):
+<p>In the foot of the window, there are also four other small panels:
+<dl>
+<dt>Position Panel</dt>
+<dd><p>When the cursor is positioned over the plot itself, this reports
+    its position in data coordinates.  In some cases, such as 
+    3-d plots, this may not be possible, in which case it's blank.
+    </p></dd>
+<dt>Count Panel</dt>
+<dd><p>Displays the number of points currently plotted
+    and the total number of points represented by the plot.
+    The total (the second figure) is the number of positions in all
+    the plotted data sets, and the current number (the first figure)
+    excludes those in subsets not currently plotted and those outside
+    the bounds of the visible plot.
+    </p></dd>
+<dt>Navigation Help</dt>
+<dd><p>Shows some reminders for what different mouse gestures do.
+    Little icons are supposed to represent clicking and dragging different
+    mouse buttons and the mouse wheel.  Note the content changes according
+    to where the mouse is on the plot, since that affects navigation
+    behaviour.  Clicking on the &IMG.SMALL_CLOSE; button
+    will make this panel go away.
+    </p></dd>
+<dt>Progress Bar</dt>
+<dd><p>If something slow is happening
+    you may see a progress bar at the bottom of the screen while you wait.
+    Unless you are plotting several million points, you may not see this
+    at all.
+    For slow data loads, this will always be displayed.
+    For actions like actually drawing the plot and turning a blob into
+    a subset selection you can choose whether progress is shown using
+    the <label>Show Plot Progress</label> (&IMG.PROGRESS;)
+    button in the toolbar.  It's nice to know that something's going on,
+    but it can be distracting; displaying progress also slows the plot down
+    a bit.
+    </p></dd>
+</dl>
+</p>
+
+<p>The <label>main toolbar</label> at the top of the window
+contains the following actions (repeated in the menus):
 <dl>
 
 <dt>&IMG.FLOAT; Float Controls</dt>
-<dd><p>Display control panel in a floating window rather than at
+<dd><p>Puts the Control Panel into a floating window rather than at
     the bottom of the plot window, as described above.
-    </p></dd>
-
-<dt>&IMG.PLOT_DATA; Add Table Layer</dt>
-<dd><p>Add a new <ref id="GangLayerControl">table layer control</ref>
-    to the control stack.
-    </p></dd>
-
-<dt>&IMG.PLOT_FUNCTION; Add Function Layer <em>(plane plot only)</em></dt>
-<dd><p>Add a new <ref id="FunctionControl">function layer control</ref>
-    to the control stack.
-    Note this option is currently only available for the 
-    <ref id="PlanePlotWindow">Plane Plot</ref>.
-    </p></dd>
-
-<dt>&IMG.DELETE; Remove Current Layer</dt>
-<dd><p>Deletes the currently selected layer control from the control stack.
+    Once floating, the control panel can be joined back to the main window
+    by clicking this button again.
     </p></dd>
 
 <dt>&IMG.BLOB_SUBSET; Draw Subset Region</dt>
@@ -6705,7 +6799,8 @@ and experiment with the various options to see what happens to the plot.
 <dt>&IMG.RESIZE; Rescale</dt>
 <dd><p>Rescales the axes of the current plot so that it contains all
     the data points in the currently selected subsets.
-    By default the plot will be scaled like this, but it it may have changed
+    By default the plot will be initially scaled like this,
+    but it it may have changed
     because of changes in the subset selection or from zooming in or out.
     </p></dd>
 
@@ -6745,12 +6840,108 @@ and experiment with the various options to see what happens to the plot.
 </dl>
 </p>
 
+<p>The following subsections explain some other features common to
+all the plotting windows.
+</p>
+
+<subsubsubsect id="tableDataControl">
+<subhead><title>Table Data Layer Controls</title></subhead>
+
+<p>Most, but not all, of the available 
+<ref id="plot2LayerControls" plaintextref="yes">layer controls</ref>
+are concerned with plotting table data in some way or other.
+In general, these allow you to set up a way to generate a plot layer 
+(some generated graphics)
+from some selected columns of a given table with a chosen style.
+</p>
+
+<p>However, if you have more than one <ref id="subsets">Row Subset</ref>
+for a given table, a single control can be used to generate several
+layers, one for each subset.
+In most cases it makes sense to have the graphics generated by
+the different subsets configured similarly, but still visually
+distinguishable.
+</p>
+
+<p>These table layer controls generally have three tabs:
+<label>Position</label>, <label>Subsets</label> and <label>Form</label>.
+The Position tab is for specifying coordinates, and depends on the
+specific type of the plot and the layer control.
+The <label>Subsets</label> and <label>Form</label> control which
+row subsets are plotted and how they are displayed,
+and a description of how they are arranged follows below.
+</p>
+
+<figure>
+<caption><px>Subsets tab of a table data layer control</px></caption>
+<figureimage src="&FIG.GangLayerControl_subsets;"/>
+</figure>
+
+<p>The <label>Subsets</label> tab lists the defined Row Subsets for
+the table you have selected in the <label>Position</label> tab.
+The subset <label>All</label> is always present;
+others may or may not be depending on whether any have been defined.
+Note that actions you take in the plot (for instance selecting
+a new subset <ref id="plotSubsets">by region</ref>)
+can result in new entries being added to this list.
+</p>
+
+<p>The list on the left names the subsets with an activation checkbox
+and a grab handle; the panel on the right gives the detail for the
+currently selected subset.  Select a subset to see/change its detail
+by clicking on it.
+</p>
+
+<p>For each subset you can select:
+<ul>
+<li>Whether it is plotted (using the activation checkbox)</li>
+<li>The plotting sequence (by dragging it up and down using
+    its grab handle)</li>
+<li>The default plotting colour</li>
+<li>The label with which it is annotated in the legend (if visible)</li>
+<li>Whether it appears in the legend at all</li>
+</ul>
+Although you can select plotting colours in the <label>Form</label> tab as well,
+it's generally better to do it here since this changes the colour of
+all the forms plotted for a given subset, rather than one form at a time.
+</p>
+
+<figure>
+<caption><px>Style configuration in Form tab
+             of a table data layer control</px></caption>
+<figureimage src="&FIG.form-style;"/>
+</figure>
+
+<p>The <label>Form</label> tab allows you to select style information
+to determine the details of how the plot will look for each layer.
+The details differ greatly between layer control types, but they
+generally contain two sub-panels for defining the style details,
+<label>Global Style</label> and <label>Subset Styles</label>:
+<dl>
+<dt>Global Style</dt>
+<dd><p>Controls the style details for the chosen form, for instance
+    marker shape and size.  Options here affect all subsets,
+    though by default the colour is taken from the <label>Subsets</label> tab.
+    If you want to set the colour the same for all subsets, uncheck the
+    <label>By Subset</label> checkbox which will activate the
+    <label>Colour</label> selector.
+    </p></dd>
+<dt>Subset Styles</dt>
+<dd><p>If you want to have different subsets represented with different
+    styles, for instance different shapes for different subsets,
+    you can select a subset here and alter style details for
+    that subset only, overriding the Global settings above.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
 <subsubsubsect id="plot2-subsets">
 <subhead><title>Defining Subsets by Region</title></subhead>
 <!-- see section plotSubsets -->
 
-<p>The plot windows can be used to make new Row Subset selections
-in just the same way as for the old-style plots (<ref id="plotSubsets"/>).
+<p>The plot windows can be used to make new Row Subset selections.
 </p>
 
 <p>If you have panned, zoomed, set the axes manually or 
@@ -6804,7 +6995,7 @@ the new subset will be created and the points in it will be
 shown straight away on the plot using a new symbol.
 As usual, you can toggle whether the points in this subset are displayed
 using the <label>Subsets</label> tab in the
-<ref id="GangLayerControl">table layer control</ref>.
+<ref id="GangLayerControl_single">table layer control</ref>.
 </p>
 
 </subsubsubsect>
@@ -6875,6 +7066,77 @@ in one of the following graphics formats:
 </dl>
 </p>
 
+<p>Exporting to the pixel-based formats (GIF, JPEG, PNG) is fairly
+straightforward: each pixel on the screen appears as one pixel 
+in the output file.  PNG is generally recommended.
+GIF works well in most cases, but if there are
+more than 255 colours some of the colour resolution will be lost.
+JPEG can preserve a wide range of colours, but does not support
+transparency and is lossy, so close inspection of image features
+will reveal blurring.
+</p>
+
+<p>When exporting to Portable Document Format (PDF) or
+Encapsulated PostScript (EPS), which are vector graphics formats,
+there are a few things to consider:
+<dl>
+<dt>Positional Quantisation</dt>
+<dd><p>Some of the shading modes
+    (<ref id="mode-density">Density</ref>,
+     <ref id="mode-auto">Auto</ref>) are inherently pixellated,
+    and others
+    (<ref id="mode-flat">Flat</ref>,
+     <ref id="mode-aux">Aux</ref>) are not.
+    In the former case you will see
+    pixel boundaries for the plotted points rather than nice rounded
+    edges at high magnifications (though text and axes will always be
+    plotted nicely).
+    In both cases, at present the <em>positional</em>
+    resolution is the same as it would be on the screen, so if you
+    have a 400-pixel high plot for instance, there are only 400 possible
+    Y coordinates at which a marker can be plotted, which in general
+    is not obvious by looking at the output plot.
+    In future versions the positional resolution of non-pixellated modes
+    may be improved.
+    In either case, increasing the size of the plot on the screen
+    by resizing the window before performing an export to PDF or EPS
+    will reduce the effect of the positional quantisation.
+    Note it will also have the effect of making the text labels
+    proportionally smaller to the graphics, so you may want to
+    increase the font size too.
+    </p></dd>
+
+<dt>Transparency</dt>
+<dd><p>For technical reasons transparent markers cannot easily
+    be rendered when a plot is exported to PostScript.  In some cases
+    the plot is done using a bitmap in the PostScript output to permit
+    transparency and in some cases the points are just plotted opaque.
+    PDF does a bit better, but the compositing of transparent shapes is
+    sometimes a bit different on the screen and rendered to a PDF.
+    It's a good idea to check the output of screen exports by looking
+    at the produced file - if it doesn't look like it should do,
+    setting the <label>Force Bitmap</label> option will probably
+    make sure it does, though this will also pixellate the plotted symbols.
+    There is more discussion of this point in the subsections for
+    the various <ref id="ShapeMode">shading modes</ref>.
+    </p></dd>
+
+<dt>File Size</dt>
+<dd><p>In some cases (2D and 3D scatter plots with many thousands of points
+    or more)
+    output EPS files can get extremely large; the size scales
+    with the number of points drawn, currently with a factor of a few
+    hundred bytes per point.  In some cases you can work round this by
+    plotting some points as transparent so that the plot is rendered
+    as a bitmap (see the discussion of transparency above) which
+    scales as the number of pixels rather than the number of points.
+    The Gzipped EPS format helps somewhat (though can be slow);
+    PDF output is better still.  Even PDF files may be unmanageably large
+    for very many points however.
+    </p></dd>
+</dl>
+</p>
+
 </subsubsubsect>
 
 </subsubsect>
@@ -6882,18 +7144,33 @@ in one of the following graphics formats:
 <subsubsect id="plot2FixedControls">
 <subhead><title>Fixed Controls</title></subhead>
 
-<p>Fixed controls are those controls that appear first in the
-plot Control Panel and configure the overall appearance of the plot,
+<figure>
+<caption><px>Fixed controls in control panel stack</px></caption>
+<figureimage src="&FIG.ControlStack_fixed;"/>
+</figure>
+
+<p>Fixed controls are those controls that appear at the top of
+the stack in the control panel, and do not have a checkbox or
+a drag handle.
+They are used to configure the overall appearance of the plot,
 independent of any particular plot layer or data set.
+Those common to all plot types are described in the following subsections,
+though some plot types may also have their own.
 </p>
 
-<p>Each plot type has its own <label>Axes</label> control,
-specific to its own geometry.
-These are described under the relevant plot windows.
-</p>
+<subsubsubsect id="AxesControl">
+<subhead><title>Axes</title></subhead>
 
-<p>The other fixed controls are described in the following subsections.
+<p>The <label>Axes</label> control (&IMG.AXIS_EDIT;)
+has a number of tabs specific to the particular plot type.
+These tabs allow you to configure things like the axis ranges,
+linear/log axis scaling, axis labelling, grid drawing,
+details of the navigation controls and so on.
+The different plot types have axis controls that differ significantly
+from each other; the specific axis controls are described separately
+along with each plot type.
 </p>
+</subsubsubsect>
 
 <subsubsubsect id="LegendControl">
 <subhead><title>Legend</title></subhead>
@@ -6957,12 +7234,13 @@ the <label>Axes</label> selector.
 
 <p>The <label>Aux Axis</label> control (&IMG.COLORS;) is only
 visible when the <ref id="mode-aux" plaintextref="yes">Aux colour mode</ref>
-has been selected for one of the data layers.
+has been selected for one of the data layers;
+if no layer is using Aux shading, the control will not appear in the stack.
 It controls a single colour scale for points which
 are coloured by data value to represent an additional dimension in the data.
 </p>
 
-<p>This control has three following tabs.
+<p>When present, this control has three following tabs.
 </p>
 
 <figure>
@@ -6974,7 +7252,15 @@ are coloured by data value to represent an additional dimension in the data.
 It has the following options:
 <dl>
 <dt>Shader</dt>
-<dd><p>Select the colour map from a list of options.</p></dd>
+<dd><p>Select the colour map from a list of options.
+    </p></dd>
+<dt>Shade Clip</dt>
+<dd><p>Select a sub-range of the full colour map above.
+    By default the whole colour map is used, but if you want the range
+    of colours in the plot to be formed from only a part of the colour
+    band shown in the <label>Shader</label> control,
+    you can move the handles in from the end of this slider.
+    </p></dd>
 <dt>Shade Log</dt>
 <dd><p>Whether the aux scale should map linearly or logarithmically
     into the colour map.
@@ -7044,29 +7330,32 @@ the font from the <label>Axes</label> selector.
 <subsubsect id="plot2LayerControls">
 <subhead><title>Layer Controls</title></subhead>
 
-<p>The layer controls are controls that can be added, removed and
+<p>The layer controls are controls in the Control Stack
+that can be added, removed and
 moved around to determine what layers go to make up the contents of a plot.
 You can have zero, one or several of each.
 Which ones are available is dependent on which plot type you are using
-(for instance the Function control is only available for the Plane plot).
+(for instance the Spectrogram control is only available for the Time plot).
 Add instances of each control to the control stack by using the
-entries in the plot window <label>Layers</label> menu,
-or the corresponding toolbar button.
+appropriate button from the control panel toolbar (the one in the lower
+half of the window) or the corresponding item in the <label>Layers</label>
+menu.
 </p>
 
 <p>The available layer controls are described in the following subsections.
-At present there are only two of them, and one of those is
-only available for the Plane plot.
-More may become available in future releases.  
+More may be added in future releases.
 </p>
 
-<subsubsubsect id="GangLayerControl">
-<subhead><title>Table Layer Control</title></subhead>
+<subsubsubsect id="GangLayerControl_single">
+<subhead><title>Position Layer Control</title></subhead>
 
-<p>The <label>Table</label> layer control (&IMG.PLOT_DATA;)
+<p>The <label>Position</label> layer control (&IMG.PLOT_DATA;)
 is available for all the plot types.
-Use the <label>Layers</label> menu item or corresponding toolbar button to
-add an instance to the control stack.
+Most plots start off with one of these in the stack by default,
+and you can add a new instance by using the
+<label>Add Position Control</label> (&IMG.ADD_PLOT_DATA;) button
+in the control panel toolbar,
+or the corresponding item in the <label>Layers</label> menu.
 </p>
 
 <p>This is the control which is used for most of the data plotting in
@@ -7083,18 +7372,22 @@ and the <label>Form</label> tab provides many options for what graphics
 will be plotted based on the positions.
 </p>
 
-<p>The three tabs,
-<label>Position</label>, <label>Subsets</label> and <label>Form</label>,
+<p>This control is a Table Data control as described in
+<ref id="tableDataControl"/>.  That section explains the
+<label>Subsets</label> tab;
+the <label>Position</label> and <label>Form</label> tabs
 are described in more detail below.
 </p>
 
 <figure>
-<caption><px>Position tab of Table layer control</px></caption>
+<caption><px>Position tab of Position layer control,
+             for Plane plot</px></caption>
 <figureimage src="&FIG.GangLayerControl_position;"/>
 </figure>
 
-<p>In the <label>Position</label> tab you enter the base positions
-for each plotted point.  This generally means selecting a table and
+<p>In the <label>Position</label> tab you enter the base position
+coordinates for each plotted point.
+This generally means selecting a table and
 providing a value (table column or expression) for each
 positional coordinate.
 When you first open a plot window, TOPCAT gives you a table layer control
@@ -7103,58 +7396,30 @@ some reasonable values from the table (for instance the first few
 numeric columns).
 </p>
 
-<figure>
-<caption><px>Subsets tab of Table layer control</px></caption>
-<figureimage src="&FIG.GangLayerControl_subsets;"/>
-</figure>
-
-<p>The <label>Subsets</label> tab lists the defined Row Subsets for
-the table you have selected in the Position tab.
-The subset <label>All</label> is always present;
-others may or may not be depending on whether any have been defined.
-Note that actions you take in the plot (for instance selecting
-a new subset <ref id="plotSubsets">by region</ref>)
-can result in new entries being added to this list.
-</p>
-
-<p>The list on the left names the subsets with an activation checkbox
-and a grab handle; the panel on the right gives the detail for the
-currently selected subset.  Select a subset to see/change its detail
-by clicking on it.
-</p>
-
-<p>For each subset you can select:
-<ul>
-<li>Whether it is plotted (using the activation checkbox)</li>
-<li>The plotting sequence (by dragging it up and down using
-    its grab handle)</li>
-<li>The default plotting colour</li>
-<li>The label with which it is annotated in the legend (if visible)</li>
-<li>Whether it appears in the legend at all</li>
-</ul>
-Although you can select plotting colours in the Form tab as well,
-it's generally better to do it here since this changes the colour of
-all the forms plotted for a given subset, rather than one form at a time.
+<p>Note the details of the <label>Position</label> tab will be
+different for different plot types, for instance the Cube plot
+has a Z coordinate field alongside X and Y.
 </p>
 
 <figure>
-<caption><px>Form tab of Table layer control</px></caption>
+<caption><px>Form tab of Position layer control</px></caption>
 <figureimage src="&FIG.GangLayerControl_form;"/>
 </figure>
 
-<p>The <label>Form</label> tab lets you define how each data set is plotted.
-The list on the left gives a list of forms currently being plotted,
+<p>The <label>Form</label> tab lets you define how the specified
+data set is plotted.
+The stack on the left gives a list of forms currently being plotted,
 and the panel on the right shows the detailed configuration for the
 currently selected form.
 </p>
 
-<p>When first added, the list contains a single entry, <label>Mark</label>,
+<p>When first added, the stack contains a single entry, <label>Mark</label>,
 which plots a marker of a given fixed shape and size.
 The colour is by default determined by the setting in the Subsets tab.
 For a simple scatter plot, this is all that you need.
 However, there are a number of other forms that you can plot as well
 or instead of the simple markers - vectors, error bars, ellipses,
-contours, text markers etc.  You add a new form to the stack by
+contours, text labels etc.  You add a new form to the stack by
 clicking on one of the buttons in the toolbar in the tab.
 You can remove a form with the <label>Remove</label> (&IMG.DELETE;)
 button in the same toolbar.  You can also activate/deactivate them
@@ -7177,29 +7442,308 @@ forms have all the panels.
     for instance the size of error bars, you need to enter the
     column or expression here.  Each coordinate effectively adds
     another dimension to the plot.
-    Some forms, like Mark, do not require any additional coordinates.
+    Many forms, like Mark, do not require any additional coordinates.
     </p></dd>
-<dt>Global Style</dt>
-<dd><p>Controls the style details for the chosen form, for instance
-    marker shape and size.  Options here affect all subsets,
-    though by default the colour is taken from the <label>Subsets</label> tab.
-    </p></dd>
-<dt>Subset Styles</dt>
-<dd><p>If you want to have different subsets represented with different
-    styles, for instance different shapes for different subsets,
-    you can select a subset here and alter style details for
-    that subset only, overriding the Global settings above.
+<dt>Global/Subset Styles</dt>
+<dd><p>Controls the style details for the chosen form;
+    see <ref id="tableDataControl"/>.
     </p></dd>
 </dl>
 </p>
 
 </subsubsubsect>
 
-<subsubsubsect id="FunctionControl">
+<subsubsubsect id="GangLayerControl_pair">
+<subhead><title>Pair Position Layer Control</title></subhead>
+
+<p>The <label>Pair Position</label> layer control (&IMG.PLOT_PAIR;)
+allows you to plot symbols linking two positions in the plot space
+from the same table.
+You can add one of these controls to the stack by using the
+<label>Add Pair Control</label> (&IMG.ADD_PLOT_PAIR;) button
+in the control panel toolbar,
+or the corresponding item in the <label>Layers</label> menu.
+</p>
+
+<p>This control is particularly useful for visualising the results
+of a crossmatch, and it is used automatically by the
+<label>Plot Result</label> (&IMG.MATCHPLOT;) option offered by
+some of the <ref id="MatchWindow">Match Window</ref> results.
+If you want to plot pairs of points from different input tables,
+you first have to create a joined table by using one of the
+crossmatch functions.
+</p>
+
+<p>It works in a similar way to the
+<ref id="GangLayerControl_single">Single Position Layer Control</ref>,
+but the <label>Position</label> tab has fields for not one but two sets of
+coordinates to fill in.
+</p>
+
+<p>This control is a Table Data control as described in
+<ref id="tableDataControl"/>.  That section explains the
+<label>Subsets</label> tab;
+the <label>Position</label> and <label>Form</label> tabs
+are described in more detail below.
+</p>
+
+<figure>
+<caption><px>Position tab of Pair Position layer control,
+             for Sky plot</px></caption>
+<figureimage src="&FIG.GangLayerControl_pair_position;"/>
+</figure>
+
+<p>In the <label>Position</label> tab you enter the pair of position
+coordinates for each plotted pair.
+This generally means selecting a table and
+providing a value (table column or expression) for the first and
+second sets of positional coordinates.
+</p>
+
+<p>Note the details of the <label>Position</label> tab will be
+different for different plot types, for instance the Sky plot has
+<label>Lon1</label>, <label>Lat1</label>,
+<label>Lon2</label> and <label>Lat2</label>
+fields for the first and second longitude/latitude pairs,
+while a Plane plot has
+<label>X1</label>, <label>Y1</label>, <label>X2</label> and <label>Y2</label>.
+</p>
+
+<figure>
+<caption><px>Form tab of Pair Position layer control</px></caption>
+<figureimage src="&FIG.GangLayerControl_pair_form;"/>
+</figure>
+
+<p>The <label>Form</label> tab lets you define how the specified
+data set is plotted.
+The list on the left gives a list of forms currently being plotted,
+and the panel on the right shows the detailed configuration for the
+currently selected form.
+</p>
+
+<p>The available forms for a pair plot are currently
+<ref id="form-marks2">Marks</ref> (&IMG.FORM_MARKS2;)
+which draws the points at both ends of the pair, and
+<ref id="form-link2">Link</ref> (&IMG.FORM_LINK2;)
+which draws a line linking them.
+You can configure these, and select them on or off, separately.
+The detail panel for these forms are dependent on the form itself
+and are described in more detail in <ref id="ShapeForm"/>,
+but the detail panels are divided into these parts:
+<dl>
+<dt>Shading</dt>
+<dd><p>The shading mode controls how points are shaded based on their
+    chosen colour.  The various options are described in <ref id="ShapeMode"/>.
+    Depending on the mode there may be more settings to fill in here.
+    </p></dd>
+<dt>Global/Subset Styles</dt>
+<dd><p>Controls the style details for the chosen form;
+    see <ref id="tableDataControl"/>.
+    </p></dd>
+</dl>
+</p>
+
+
+</subsubsubsect>
+
+<subsubsubsect id="HistogramLayerControl">
+<subhead><title>Histogram Layer Control</title></subhead>
+
+<p>The <label>Histogram</label> layer control (&IMG.PLOT_HISTO;),
+allows you to plot a 1-dimensional histogram.
+It is the main control in the
+<ref id="HistogramPlotWindow">Histogram</ref> plot window,
+but is also available  in the <ref id="PlanePlotWindow">Plane</ref>
+plot window, so you can overplot a histogram on a scatter plot,
+if you can think of some reason to do that.
+The Histogram window starts off with one of these controls in the stack by
+default, but as usual you can add more by using the
+<label>Add Histogram Control</label> (&IMG.ADD_PLOT_HISTO;) button
+in the control panel toolbar,
+or the corresponding item in the <label>Layers</label> menu.
+</p>
+
+<p>Each instance of this control in the stack can plot a histogram
+of a particular quantity from a particular table.
+The value to be histogrammed, and optionally an associated weighting term,
+are defined in the <label>Positions</label> tab using column names
+or expressions.
+However, the control can generate multiple layers from these coordinates;
+the <label>Subsets</label> tab controls which subsets are plotted
+and how each one is identified,
+and the <label>Form</label> tab provides many options for what graphics
+will be plotted based on the positions.
+</p>
+
+<p>This control is a Table Data control as described in
+<ref id="tableDataControl"/>.  That section explains the
+<label>Subsets</label> tab;
+the <label>Position</label> and <label>Form</label> tabs
+are described in more detail below.
+</p>
+
+<figure>
+<caption><px>Position tab of Histogram layer control</px></caption>
+<figureimage src="&FIG.HistogramLayerControl_position;"/>
+</figure>
+
+<p>In the <label>Position</label> tab you enter the value of the
+<label>X</label> value, the one which is to be binned to generate
+the histogram.  This may be a table column name or an expression.
+You may also optionally fill in a column name or expression in
+the <label>Weight</label> field.  This weights the values as they
+are counted; each table row contributes a height value of the 
+weighting coordinate to the bin into which its X coordinate falls.
+If Weight is not filled in, a value of 1 is assumed.
+</p>
+
+<figure>
+<caption><px>Form tab of Histogram layer control</px></caption>
+<figureimage src="&FIG.HistogramLayerControl_form;"/>
+</figure>
+
+<p>The <label>Form</label> tab lets you define how the specified
+data set is plotted.  The <label>Global Style</label> and
+<label>Subset Style</label> sub-panels control shared and per-subset
+configration as described in <ref id="tableDataControl"/>.
+The specific configuration options are:
+<dl>
+<dt>Transparency</dt>
+<dd><p>How transparent the bars are.
+    </p></dd>
+<dt>Bar Form</dt>
+<dd><p>Type of histogram bars: filled, open, steps, spikes etc.
+    </p></dd>
+<dt>Thickness</dt>
+<dd><p>Controls line thickness where applicable.
+    This is only relevant for bar styles that draw a finite thickness
+    line, so has no effect for Filled bars.
+    </p></dd>
+<dt>Dash</dt>
+<dd><p>Controls the dash pattern of the line (solid, dots, dashes etc).
+    This is only relevant for bar styles that draw a finite thickness
+    line, so has no effect for Filled bars.
+    </p></dd>
+</dl>
+</p>
+
+<p>Histograms have some additional configuration items,
+as described in the <ref id="ConfigControl_histobars">Bars</ref>
+fixed control.
+When a histogram layer control is used in the
+<ref id="HistogramPlotWindow">Histogram window</ref>,
+those configuration items are found in the 
+<label>Bars</label> fixed control, where they control the settings
+for all the histogram layers in the plot.
+However, if you use a histogram layer in a
+<ref id="PlanePlotWindow">Plane</ref> plot,
+those items will appear as additional items in the <label>Form</label> tab
+and can be controlled separately for each histogram.
+</p>
+
+
+</subsubsubsect>
+
+<subsubsubsect id="SpectrogramLayerControl">
+<subhead><title>Spectrogram Layer Control</title></subhead>
+
+<p><em>This control is experimental.
+As currently implemented it lacks some important features.
+It may be improved or withdrawn in a future version.
+</em></p>
+
+<p>The <label>Spectrogram Layer Control</label> (&IMG.PLOT_SPECTRO;)
+plots a spectrum at successive (usually, but not necessarily,
+regularly-spaced) points in a time series.
+It is only available for the <em>experimental</em>
+<ref id="TimePlotWindow">Time Plot Window</ref>.
+</p>
+
+<figure>
+<caption><px>Time Plot window with a Spectrogram layer</px></caption>
+<figureimage src="&FIG.SpectrogramLayerControl;"/>
+</figure>
+
+<p>This control has two tabs, <label>Data</label> and <label>Style</label>,
+described below.
+</p>
+
+<figure>
+<caption><px>Spectrogram control Data tab</px></caption>
+<figureimage src="&FIG.SpectrogramLayerControl_data;"/>
+</figure>
+
+<p>The <label>Data</label> tab allows you to specify which values from
+a table will generate a spectrogram.
+It has the following fields:
+<dl>
+<dt>Table</dt>
+<dd><p>The table supplying the data.
+    </p></dd>
+<dt>Time</dt>
+<dd><p>A table column or expression giving the epoch coordinate at which
+    spectra are located.
+    This should normally be a time-typed column;
+    if it is simply of numeric type it will be interpreted as seconds
+    since 1 Jan 1970.
+    </p></dd>
+<dt>Spectrum</dt>
+<dd><p>An array-valued table column giving the spectral data.
+    </p></dd>
+<dt>TimeWidth</dt>
+<dd><p>A table column or expression (variable or constant) giving the
+    temporal coverage of a plotted spectrum.
+    If not filled in, it is assumed to be the most common
+    (median) difference between time points.
+    </p></dd>
+<dt>Row Subset</dt>
+<dd><p>The <ref id="subsets">subset</ref> for which the spectrum should
+    be plotted.  To plot multiple subsets (not usually useful with this
+    kind of plot) you would need multiple spectrogram layer controls
+    in the stack.
+    </p></dd>
+</dl>
+</p>
+
+<figure>
+<caption><px>Spectrogram control Style tab</px></caption>
+<figureimage src="&FIG.SpectrogramLayerControl_style;"/>
+</figure>
+
+<p>The <label>Style</label> allows you to configure the way the spectrogram
+is plotted.  It has the following fields:
+<dl>
+<dt>Shader</dt>
+<dd><p>Select the colour map from a list of options.
+    </p></dd>
+<dt>Shade Log</dt>
+<dd><p>Whether the aux scale should map linearly or logarithmically
+    into the colour map.
+    </p></dd>
+<dt>Shade Flip</dt>
+<dd><p>Whether the aux scale should map forwards or backwards
+    into the colour map.
+    </p></dd>
+<dt>Null Colour</dt>
+<dd><p>What colour should be used to represent spectral samples with a null
+    value.
+    If the associated <label>Hide</label> option is selected,
+    then those points will not appear in the plot at all (they will be
+    transparent).
+    </p></dd>
+</dl>
+</p>
+
+
+</subsubsubsect>
+
+<subsubsubsect id="FunctionLayerControl">
 <subhead><title>Function Layer Control</title></subhead>
 
 <p>The <label>Function</label> layer control (&IMG.PLOT_FUNCTION;)
-is only available for the Plane plot.
+is only available for the 
+<ref id="PlanePlotWindow">Plane</ref> and
+<ref id="HistogramPlotWindow">Histogram</ref> plots.
 Use the <label>Layers</label> menu item or corresponding toolbar button to
 add an instance to the control stack.
 </p>
@@ -7211,7 +7755,9 @@ add an instance to the control stack.
 <figureimage src="&FIG.FunctionLayerControl;"/>
 </figure>
 
-<p>This control has three tabs.
+<p>This control has three tabs,
+<label>Function</label>, <label>Style</label> and <label>Label</label>,
+described below.
 </p>
 
 <figure>
@@ -7460,7 +8006,8 @@ This scaling can be adjusted or turned off using the
 
 <p>The <label>Error Bars</label> form (&IMG.FORM_ERROR;)
 draws symmetric or asymmetric
-error bars in some or all of the dimensions of a Cartesian plot.
+error bars in some or all of the dimensions of a 1-, 2- or 3-dimensional
+Cartesian plot.
 The shape of the error "bars" is quite configurable, including
 (for 2- and 3-d errors) ellipses, rectangles etc, aligned with the axes
 (for rotated ellipses and rectangles,
@@ -7488,7 +8035,7 @@ see the <ref id="form-ellipse">Ellipse</ref> form).
     </p></dd>
 <dt>Error Bar</dt>
 <dd><p>Error bar shape from a list of options.
-    Exact appearence will also depend on the dimensionality of the supplied
+    Exact appearance will also depend on the dimensionality of the supplied
     errors.
     </p></dd>
 </dl>
@@ -7567,11 +8114,14 @@ scribble on the screen.
 
 <p>The configuration options are:
 <dl>
+<dt>Thickness</dt>
+<dd><p>Line thickness in pixels.
+    </p></dd>
 <dt>Dash</dt>
 <dd><p>Dash pattern.  The line is solid by default.
     </p></dd>
-<dt>Thickness</dt>
-<dd><p>Line thickness in pixels.
+<dt>Antialiasing</dt>
+<dd><p>If true, pixels are blurred to give the line a smoother appearance.
     </p></dd>
 </dl>
 </p>
@@ -7604,13 +8154,26 @@ draws a text label by each point position.
 <dd><p>Size of the font in points.
     </p></dd>
 <dt>Font Style</dt>
-<dd><p>Style of the font.
+<dd><p>Style of the font - standard, serif or monospaced.
     </p></dd>
 <dt>Font Weight</dt>
 <dd><p>Whether the font is plain, bold or italic.
     </p></dd>
 <dt>Anchor</dt>
 <dd><p>The position of the text relative to the data position.
+    </p></dd>
+<dt>Spacing Threshold</dt>
+<dt>Crowding Limit</dt>
+<dd><p>These two options control how closely spaced labels can be.
+    Labels which are too closely crowded together will simply not be shown,
+    since overplotting many labels together ends up with them being illegible.
+    The <label>Spacing Threshold</label> slider controls the smallest
+    area that a group of labels can have to themselves - if there are too
+    many in the same area, none will be drawn.  Sliding it left allows more
+    crowding and right allows less.  The <label>Crowding Limit</label>
+    controls the largest number of labels that can be in a group.
+    Setting it to 2 for instance is useful if you want to see pairs of
+    labels, even if the pair is close.
     </p></dd>
 </dl>
 </p>
@@ -7625,7 +8188,7 @@ draws a text label by each point position.
 <figureimage src="&FIG.form_contour;"/>
 </figure>
 
-<p>The <label>Contour</label> form (&IMG.PLOT_CONTOUR;) form
+<p>The <label>Contour</label> form (&IMG.PLOT_CONTOUR;)
 plots position density contours.
 These provide another way
 (alongside the <ref id="mode-auto">Auto</ref> and
@@ -7663,6 +8226,63 @@ so they don't look very beautiful in exported vector output formats
 </dl>
 </p>
 
+</subsubsubsect>
+
+<subsubsubsect id="form-marks2">
+<subhead><title>Pair Marks Form</title></subhead>
+
+<figure>
+<caption><px>Pair Mark form configuration panel</px></caption>
+<figureimage src="&FIG.form_marks2;"/>
+</figure>
+
+<p>The <label>Pair Mark</label> form (&IMG.FORM_MARKS2;)
+is available from the
+<ref id="GangLayerControl_pair">pair position layer control</ref>,
+and plots a marker of configurable
+shape and size at both points in a position pair.
+The same marker is used for both ends; if you want different points
+you can use two single <ref id="form-mark">Mark</ref> forms.
+</p>
+
+<p>Configuration options are:
+<dl>
+<dt>Shading Mode</dt>
+<dd><p>See <ref id="ShapeMode"/>.
+    </p></dd>
+<dt>Shape</dt>
+<dd><p>Marker shape from a list of options.
+    </p></dd>
+<dt>Size</dt>
+<dd><p>Marker size in pixels.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="form-link2">
+<subhead><title>Pair Link Form</title></subhead>
+
+<figure>
+<caption><px>Pair Link form configuration panel</px></caption>
+<figureimage src="&FIG.form_link2;"/>
+</figure>
+
+<p>The <label>Pair Link</label> form (&IMG.FORM_LINK2;)
+is available from the
+<ref id="GangLayerControl_pair">pair position layer control</ref>,
+and plots a line linking the two points in a position pair.
+</p>
+
+<p>Configuration options are:
+<dl>
+<dt>Shading Mode</dt>
+<dt>Shading Mode</dt>
+<dd><p>See <ref id="ShapeMode"/>.
+    </p></dd>
+</dl>
+</p>
 
 </subsubsubsect>
 
@@ -7827,11 +8447,12 @@ user-configurable options.  The options are:
     For a single-dataset plot, the absolute maps are best, but for
     multiple subsets it may be less confusing to use a relative one.
     </p></dd>
-<dt>Sub-range</dt>
-<dd><p>Adjusts the density range over which the colour
-    map is applied.  By default the colour map is scaled using limits
-    found from the data density in the plot (the most dense few pixels are
-    ignored), but you can restrict the range using this slider.
+<dt>Map Clip</dt>
+<dd><p>Select only a part of the colour map selected above.
+    By default the whole colour map is used, but if you want the range
+    of colours in the plot to be formed from only a part of the colour
+    band shown in the <label>Shader</label> control,
+    you can move the handles in from the end of this slider.
     </p></dd>
 <dt>Log</dt>
 <dd><p>Selects whether the colour map should be applied linearly or
@@ -7840,6 +8461,12 @@ user-configurable options.  The options are:
 <dt>Flip</dt>
 <dd><p>Selects whether the colour map should be applied forwards or
     backwards to the range of densities.
+    </p></dd>
+<dt>Sub-range</dt>
+<dd><p>Adjusts the density range over which the colour
+    map is applied.  By default the colour map is scaled using limits
+    found from the data density in the plot (the most dense few pixels are
+    ignored), but you can restrict the range using this slider.
     </p></dd>
 </dl>
 </p>
@@ -7907,7 +8534,111 @@ layers will be completely obscured.
 
 <subsubsect id="HistogramPlotWindow">
 <subhead><title>Histogram Plot Window</title></subhead>
-<p><em>Placeholder</em></p>
+
+<figure>
+<caption><px>Histogram Plot Window</px></caption>
+<figureimage src="&FIG.HistogramPlotWindow;"/>
+</figure>
+
+<p>The <label>Histogram Plot</label> (&IMG.PLOT2_HISTOGRAM;)
+plots 1-dimensional histograms.
+In many respects it is like the <ref id="PlanePlotWindow">Plane Plot</ref>,
+but it has an additional fixed control
+<ref id="ConfigControl_histobars">Bars</ref>
+and the scrolling works a bit differently.
+See the <ref id="StackPlotWindow" plaintextref="yes">Window Overview</ref>
+for features common to all plotting windows.
+</p>
+
+<p>Navigation controls:
+<dl>
+<dt>Panning</dt>
+<dd><p>Drag the plot around by holding down the left mouse button.
+    If you do it below the X axis you can drag just left/right.
+    </p></dd>
+<dt>Zooming</dt>
+<dd><p>The best way to zoom is by dragging with the right mouse button.
+    This allows you to stretch/squash the plot centered on the horizontal
+    position you start the drag from.  The X axis will stay at the bottom
+    of the screen.  You can also use the mouse wheel to zoom isotropically.
+    By default, the histogram bar widths will rescale to approximately the
+    same proportion of the plot width as you zoom in and out in the X
+    direction.
+    </p></dd>
+</dl>
+</p>
+
+<p>The Histogram Plot offers only the following plot controls:
+<ul>
+<li>&CONTROL.histogram;</li>
+<li>&CONTROL.function;</li>
+</ul>
+</p>
+
+<p>The <label>Axes control</label> (&IMG.AXIS_EDIT;)
+and <label>Bars control</label> (&IMG.HISTOBARS;)
+are described in the following subsections.
+</p>
+
+<subsubsubsect id="HistogramAxisControl">
+<subhead><title>Histogram Axes Control</title></subhead>
+
+<p>The Histogram Plot axis control is very similar to the
+Plane Plot axis control
+described in <ref id="PlaneAxisControl"/>.
+The only difference is in the <label>Navigation</label> tab.
+For the histogram, the <label>Anchor X Axis</label> option is
+set <label>on</label> by default, since you will usually want
+the Y=0 line to stay anchored to the bottom of the plot when zooming.
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="ConfigControl_histobars">
+<subhead><title>Bars Control</title></subhead>
+
+<p>The <label>Bars</label> control (&IMG.HISTOBARS;)
+for the histogram plot window
+configures the common placement and calculation of the bars for
+all the histogram layers displayed.
+It has the following fields:
+<dl>
+<dt>Bin Size</dt>
+<dd><p>A scale for the width of bins that are shown on the screen.
+    There are two ways to specify this.
+    If the left-hand radio button is selected, the adjacent slider will
+    adjust the bin size, which is also affected by the actual width of
+    the plotting window in pixels.  Slide the slider left to get narrower
+    bins or right to get wider ones.
+    If the right-hand radio button is selected, you can enter a numeric
+    value giving the actual width in data units of each bar
+    (for a logarithmic X axis this value is a factor).
+    </p></dd>
+<dt>Bin Phase</dt>
+<dd><p>Controls where the horizontal zero point for binning is set.
+    For instance if your bin size is 1, it controls whether bins
+    boundaries are at 0, 1, 2, ..  or 0.5, 1.5, 2.5, ... etc.
+    If the slider is at either end of the scale, there will be a bin
+    boundary at X=0 (linear X axis) or X=1 (logarithmic X axis).
+    </p></dd>
+<dt>Cumulative</dt>
+<dd><p>If true, the bars plotted are calculated cumulatively;
+    each bin includes the counts from all previous bins.
+    </p></dd>
+<dt>Normalized</dt>
+<dd><p>If true, the counts in each plotted histogram are normalised to
+    sum to a value of 1.
+    </p></dd>
+</dl>
+</p>
+
+<figure>
+<caption><px>Bars fixed control in Histogram Window</px></caption>
+<figureimage src="&FIG.ConfigControl_histobars;"/>
+</figure>
+
+</subsubsubsect>
+
 </subsubsect>
 
 <subsubsect id="PlanePlotWindow">
@@ -7952,7 +8683,7 @@ see the <label>Coords</label> tab of the
 
 <p>The Plane Plot offers the following plot controls:
 <ul>
-<li>&CONTROL.data;, with these form options:
+<li>&CONTROL.single;, with these form options:
     <ul>
     <li>&FORM.mark;</li>
     <li>&FORM.size;</li>
@@ -7962,8 +8693,13 @@ see the <label>Coords</label> tab of the
     <li>&FORM.line;</li>
     <li>&FORM.label;</li>
     <li>&FORM.contour;</li>
-    </ul>
-    </li>
+    </ul></li>
+<li>&CONTROL.pair;, with the following plot controls:
+    <ul>
+    <li>&FORM.marks2;</li>
+    <li>&FORM.link2;</li>
+    </ul></li>
+<li>&CONTROL.histogram;</li>
 <li>&CONTROL.function;</li>
 </ul>
 </p>
@@ -7976,11 +8712,11 @@ see the <label>Coords</label> tab of the
 <subhead><title>Plane Axes Control</title></subhead>
 
 <p>The <label>Axes</label> control (&IMG.AXIS_EDIT;) for the
-plane plot window has five tabs.
+plane plot window has six tabs.
 </p>
 
 <figure>
-<caption><px>Coords tab of plane axes control</px></caption>
+<caption><px>Coords tab of plane Axes control</px></caption>
 <figureimage src="&FIG.PlaneAxisControl_coords;"/>
 </figure>
 
@@ -8005,7 +8741,41 @@ It has the following options:
 </p>
 
 <figure>
-<caption><px>Range tab of plane axes control</px></caption>
+<caption><px>Navigation tab of plane Axes control</px></caption>
+<figureimage src="&FIG.PlaneAxisControl_navigation;"/>
+</figure>
+
+<p>The <label>Navigation</label> tab controls details of how the
+navigation works.
+It has the following options:
+<dl>
+<dt>Pan/Zoom Axes</dt>
+<dd><p>Normally, dragging with the left/right mouse buttons or using
+    the mouse wheel on the
+    main part of the plot will pan/zoom it in both X and Y directions.
+    By unchecking the X or Y checkbox here, you can prevent pan/zoom in
+    the corresponding direction, so if the Y box is unchecked,
+    pan/zoom will only affect the vertical direction
+    (note the same effect can be achieved by dragging to the left of the Y
+    axis).
+    </p></dd>
+<dt>Anchor X/Y axis</dt>
+<dd><p>Normally, zoom operations zoom around the position of the mouse
+    at the start of the wheel/drag gesture.
+    Checking these boxes fixes the X/Y reference coordinate for zooms to
+    be the Y=0 or X=0 lines.  This can be useful if you want the X or Y
+    axis to stay put (e.g. at the edge of the plot) during zoom actions.
+    </p></dd>
+<dt>Zoom Factor</dt>
+<dd><p>Controls the factor by which each zoom action zooms the plot.
+    Moving this slider to the left/right makes the mouse more/less sensitive
+    (one wheel click or dragging a fixed distance has more/less zoom effect).
+    </p></dd>
+</dl>
+</p>
+
+<figure>
+<caption><px>Range tab of plane Axes control</px></caption>
 <figureimage src="&FIG.PlaneAxisControl_range;"/>
 </figure>
 
@@ -8031,15 +8801,22 @@ in this tab, as does making any changes to it.
 </p>
 
 <figure>
-<caption><px>Grid tab of plane axes control</px></caption>
+<caption><px>Grid tab of plane Axes control</px></caption>
 <figureimage src="&FIG.PlaneAxisControl_grid;"/>
 </figure>
 
-<p>The <label>Grid</label> tab configures appearance of the axis grid.
+<p>The <label>Grid</label> tab configures the appearance of the axis grid.
+It has the following options:
 <dl>
 <dt>Draw Grid</dt>
 <dd><p>If true, grid lines will be drawn across the plot
     for every tick mark.
+    </p></dd>
+<dt>Grid Colour</dt>
+<dd><p>Selects the colour with which grid lines will be drawn.
+    </p></dd>
+<dt>Label Colour</dt>
+<dd><p>Selects the colour in which axis label text will be written.
     </p></dd>
 <dt>Minor Ticks</dt>
 <dd><p>If set, minor (unlabelled) tick marks will be drawn between the
@@ -8048,11 +8825,18 @@ in this tab, as does making any changes to it.
 <dt>X/Y Tick Crowding</dt>
 <dd><p>Use the slider to influence how many tick marks are draw on each axis.
     </p></dd>
+<dt>Antialiasing</dt>
+<dd><p>Controls whether grid lines and text will be drawn antialiased
+    (smoothed) or not.  Antialiased text generally looks nicer but can
+    be noticeably slower.  This option does not affect exported plots.
+    At time of writing, Macs often require this option selected otherwise
+    the writing can come out the wrong way round.
+    </p></dd>
 </dl>
 </p>
 
 <figure>
-<caption><px>Labels tab of plane axes control</px></caption>
+<caption><px>Labels tab of plane Axes control</px></caption>
 <figureimage src="&FIG.PlaneAxisControl_labels;"/>
 </figure>
 
@@ -8064,7 +8848,7 @@ text in to the <label>Label</label> fields.
 </p>
 
 <figure>
-<caption><px>Font tab of plane axes control</px></caption>
+<caption><px>Font tab</px></caption>
 <figureimage src="&FIG.font_tab;"/>
 </figure>
 
@@ -8152,7 +8936,7 @@ values as their default (both Equatorial) and no conversion will be done.
 
 <p>The sky plot offers the following plot controls:
 <ul>
-<li>&CONTROL.data;, with these form options:
+<li>&CONTROL.single;, with these form options:
     <ul>
     <li>&FORM.mark;</li>
     <li>&FORM.size;</li>
@@ -8160,8 +8944,12 @@ values as their default (both Equatorial) and no conversion will be done.
     <li>&FORM.ellipse;</li>
     <li>&FORM.label;</li>
     <li>&FORM.contour;</li>
-    </ul>
-    </li>
+    </ul></li>
+<li>&CONTROL.pair;, with the following plot controls:
+    <ul>
+    <li>&FORM.marks2;</li>
+    <li>&FORM.link2;</li>
+    </ul></li>
 </ul>
 </p>
 
@@ -8174,11 +8962,11 @@ is described in
 <subhead><title>Sky Axes Control</title></subhead>
 
 <p>The <label>Axes</label> control (&IMG.AXIS_EDIT;) for the
-sky plot window has four tabs.
+sky plot window has five tabs.
 </p>
 
 <figure>
-<caption><px>Projection tab of the sky axes control</px></caption>
+<caption><px>Projection tab of the sky Axes control</px></caption>
 <figureimage src="&FIG.SkyAxisControl_projection;"/>
 </figure>
 
@@ -8199,7 +8987,7 @@ coordinates are projected onto the screen.
     be viewed.  This interacts with the 
     <label>Data Sky System</label> selected in the 
     <label>Positions</label> tab of the 
-    <ref id="GangLayerControl">table layer control</ref>
+    <ref id="GangLayerControl_single">table layer control</ref>
     for data coordinates;
     supplied data points are projected from the data system to the view 
     system before being plotted.
@@ -8207,13 +8995,32 @@ coordinates are projected onto the screen.
     want to view in galactic coordinates, then select the
     Data Sky System as Equatorial and the View Sky System as Galactic.
     If the data and view systems are the same, it's OK to leave both
-    as their defaults, even if they're not equatorial.
+    as their defaults, even if they're not equatorial - the only
+    effect that the chosen Data and View sky systems has is from
+    the transformation between them.
     </p></dd>
 </dl>
 </p>
 
 <figure>
-<caption><px>Field Of View tab of the sky axes control</px></caption>
+<caption><px>Navigation tab of sky Axes control</px></caption>
+<figureimage src="&FIG.SkyAxisControl_navigation;"/>
+</figure>
+
+<p>The <label>Navigation</label> tab controls details of how the navigation
+works.
+It has the following option:
+<dl>
+<dt>Zoom Factor</dt>
+<dd><p>Controls the factor by which each zoom action zooms the plot.
+    Moving this slider to the left/right makes the mouse more/less sensitive
+    (one wheel click or dragging a fixed distance has more/less zoom effect).
+    </p></dd>
+</dl>
+</p>
+
+<figure>
+<caption><px>Field Of View tab of the sky Axes control</px></caption>
 <figureimage src="&FIG.SkyAxisControl_fov;"/>
 </figure>
 
@@ -8231,7 +9038,7 @@ normal pan/zoom operations will not affect the content of this panel.
     with its position.
     </p></dd>
 <dt>RA/Dec</dt>
-<dd><p>J2000 positions required field centre.
+<dd><p>J2000 positions of the required field centre.
     These values can either be filled in by the object name resolution
     as described above, or by hand.
     </p></dd>
@@ -8245,7 +9052,7 @@ normal pan/zoom operations will not affect the content of this panel.
 </p>
 
 <figure>
-<caption><px>Grid tab of the sky axes control</px></caption>
+<caption><px>Grid tab of the sky Axes control</px></caption>
 <figureimage src="&FIG.SkyAxisControl_grid;"/>
 </figure>
 
@@ -8259,6 +9066,12 @@ appear.
 <dd><p>If selected sky coordinate annotations of the grid will be in
     sexagesimal format, otherwise in decimal degrees.
     </p></dd>
+<dt>Grid Colour</dt>
+<dd><p>Selects the colour with which grid lines will be drawn.
+    </p></dd>
+<dt>Label Colour</dt>
+<dd><p>Selects the colour in which axis label text will be written.
+    </p></dd>
 <dt>Grid Crowding</dt>
 <dd><p>Use the slider to control how closely packed grid lines are
     on the axes.
@@ -8270,11 +9083,18 @@ appear.
     internally or externally to the plot region, or to remove numeric
     labels altogether.
     </p></dd>
+<dt>Antialiasing</dt>
+<dd><p>Controls whether grid lines and text will be drawn antialiased
+    (smoothed) or not.  Antialiased text generally looks nicer but can
+    be noticeably slower.  This option does not affect exported plots.
+    At time of writing, Macs often require this option selected otherwise
+    the writing can come out the wrong way round.
+    </p></dd>
 </dl>
 </p>
 
 <figure>
-<caption><px>Font tab of the sky axes control</px></caption>
+<caption><px>Font tab</px></caption>
 <figureimage src="&FIG.font_tab;"/>
 </figure>
 
@@ -8317,7 +9137,7 @@ for features common to all plotting windows.
 
 <p>The positional coordinates are
 <label>X</label>, <label>Y</label> and <label>Z</label>.
-To control the direction and linear/log scaling of the axes,
+To control the direction and linear/logarithmic scaling of the axes,
 see the <label>Coords</label> tab of the
 <ref id="CubeAxisControl">Axes</ref> control.
 </p>
@@ -8355,7 +9175,7 @@ see the <label>Coords</label> tab of the
 
 <p>The cube plot offers the following plot controls:
 <ul>
-<li>&CONTROL.data;, with these form options:
+<li>&CONTROL.single;, with these form options:
     <ul>
     <li>&FORM.mark;</li>
     <li>&FORM.size;</li>
@@ -8365,8 +9185,12 @@ see the <label>Coords</label> tab of the
     <li>&FORM.line;</li>
     <li>&FORM.label;</li>
     <li>&FORM.contour;</li>
-    </ul>
-    </li>
+    </ul></li>
+<li>&CONTROL.pair;, with the following plot controls:
+    <ul>
+    <li>&FORM.marks2;</li>
+    <li>&FORM.link2;</li>
+    </ul></li>
 </ul>
 Note that use of the
 <ref id="mode-auto">Auto</ref> and <ref id="mode-density">Density</ref>
@@ -8385,11 +9209,11 @@ extent with contours.  They work fine with a single dataset though.
 <subhead><title>Cube Axes Control</title></subhead>
 
 <p>The <label>Axes</label> control (&IMG.AXIS_EDIT;) for the
-cube plot window has six tabs.
+cube plot window has seven tabs.
 </p>
 
 <figure>
-<caption><px>Coords tab of the cube axes control</px></caption>
+<caption><px>Coords tab of the cube Axes control</px></caption>
 <figureimage src="&FIG.CubeAxisControl_coords;"/>
 </figure>
 
@@ -8408,7 +9232,34 @@ It has the following options:
 </p>
 
 <figure>
-<caption><px>Range tab of the cube axes control</px></caption>
+<caption><px>Navigation tab of the cube Axes control</px></caption>
+<figureimage src="&FIG.CubeAxisControl_navigation;"/>
+</figure>
+
+<p>The <label>Navigation</label> tab controls details of how the
+navigation works.
+It has the following options:
+<dl>
+<dt>Zoom Axes</dt>
+<dd><p>By default the <label>Auto</label> setting is in effect.
+    This means that the mouse wheel zooms around the center of the cube,
+    and right-button drag zooms in the two dimensions
+    most closely aligned with the plane of the screen, with the reference
+    position set by the initial position of the mouse.
+    If <label>Auto</label> is unset,
+    then all zoom operations are around the cube center,
+    and affect the axes indicated by the <label>X/Y/Z</label> checkboxes.
+    </p></dd>
+<dt>Zoom Factor</dt>
+<dd><p>Controls the factor by which each zoom action zooms the plot.
+    Moving this slider to the left/right makes the mouse more/less sensitive
+    (one wheel click or dragging a fixed distance has more/less zoom effect).
+    </p></dd>
+</dl>
+</p>
+
+<figure>
+<caption><px>Range tab of the cube Axes control</px></caption>
 <figureimage src="&FIG.CubeAxisControl_range;"/>
 </figure>
 
@@ -8434,11 +9285,11 @@ in this tab, as does making any changes to it.
 </p>
 
 <figure>
-<caption><px>View tab of the cube axes control</px></caption>
+<caption><px>View tab of the cube Axes control</px></caption>
 <figureimage src="&FIG.CubeAxisControl_view;"/>
 </figure>
 
-<p>The <label>View</label> tab can configure how the cube containng
+<p>The <label>View</label> tab can configure how the cube containing
 the data is viewed in the plot window, though it does not control
 the content of the cube.
 <dl>
@@ -8465,7 +9316,7 @@ the content of the cube.
 </p>
 
 <figure>
-<caption><px>Grid tab of the cube axes control</px></caption>
+<caption><px>Grid tab of the cube Axes control</px></caption>
 <figureimage src="&FIG.CubeAxisControl_grid;"/>
 </figure>
 
@@ -8482,11 +9333,18 @@ cube wire frame enclosing the data volume.
 <dt>X/Y/Z Tick Crowding</dt>
 <dd><p>Use the slider to influence how many tick marks are draw on each axis.
     </p></dd>
+<dt>Antialiasing</dt>
+<dd><p>Controls whether grid lines and text will be drawn antialiased
+    (smoothed) or not.  Antialiased text generally looks nicer but can
+    be noticeably slower.  This option does not affect exported plots.
+    At time of writing, Macs often require this option selected otherwise
+    the writing can come out the wrong way round.
+    </p></dd>
 </dl>
 </p>
 
 <figure>
-<caption><px>Labels tab of the cube axes control</px></caption>
+<caption><px>Labels tab of the cube Axes control</px></caption>
 <figureimage src="&FIG.CubeAxisControl_labels;"/>
 </figure>
 
@@ -8498,7 +9356,7 @@ text in to the <label>Label</label> fields.
 </p>
 
 <figure>
-<caption><px>Font tab of the cube axes control</px></caption>
+<caption><px>Font tab</px></caption>
 <figureimage src="&FIG.font_tab;"/>
 </figure>
 
@@ -8581,14 +9439,18 @@ for features common to all plotting windows.
 
 <p>The sphere plot offers the following plot controls:
 <ul>
-<li>&CONTROL.data;, with these form options:
+<li>&CONTROL.single;, with these form options:
     <ul>
     <li>&FORM.mark;</li>
     <li>&FORM.size;</li>
     <li>&FORM.label;</li>
     <li>&FORM.contour;</li>
-    </ul>
-    </li>
+    </ul></li>
+<li>&CONTROL.pair;, with the following plot controls:
+    <ul>
+    <li>&FORM.marks2;</li>
+    <li>&FORM.link2;</li>
+    </ul></li>
 </ul>
 Note that use of the
 <ref id="mode-auto">Auto</ref> and <ref id="mode-density">Density</ref>
@@ -8611,7 +9473,24 @@ sphere plot window has five tabs.
 </p>
 
 <figure>
-<caption><px>Range tab of the sphere axes control</px></caption>
+<caption><px></px></caption>
+<figureimage src="&FIG.SphereAxisControl_navigation;"/>
+</figure>
+
+<p>The <label>Navigation</label> tab controls details of how the navigation
+works.
+It has the following option:
+<dl>
+<dt>Zoom Factor</dt>
+<dd><p>Controls the factor by which each zoom action zooms the plot.
+    Moving this slider to the left/right makes the mouse more/less sensitive
+    (one wheel click or dragging a fixed distance has more/less zoom effect).
+    </p></dd>
+</dl>
+</p>
+
+<figure>
+<caption><px>Range tab of the sphere Axes control</px></caption>
 <figureimage src="&FIG.SphereAxisControl_range;"/>
 </figure>
 
@@ -8620,14 +9499,30 @@ the data range of the plot.  Making changes to this tab will reset
 the visible plot range, but not vice versa - zooming and panning
 in the usual way will not change the settings of this panel.
 Any values not filled in will be determined from the data.
+The fields are:
+<dl>
+<dt>Cube Edge Length</dt>
+<dd><p>Specifies the dimension along each side of the view cube in
+    data units.
+    </p></dd>
+<dt>X/Y/Z Center</dt>
+<dd><p>Gives the position of the center of the view cube in data
+    coordinates.
+    </p></dd>
+</dl>
+</p>
+
+<p>The <label>Clear</label> button resets all the fields.
+The <label>Submit</label> button updates the plot with the current values
+in this tab, as does making any changes to it.
 </p>
 
 <figure>
-<caption><px>View tab of the sphere axes control</px></caption>
-<figureimage src="&FIG.CubeAxisControl_view;"/>
+<caption><px>View tab of the sphere Axes control</px></caption>
+<figureimage src="&FIG.SphereAxisControl_view;"/>
 </figure>
 
-<p>The <label>View</label> tab can configure how the cube containng
+<p>The <label>View</label> tab can configure how the cube containing
 the data is viewed in the plot window, though it does not control
 the content of the cube.
 <dl>
@@ -8654,8 +9549,8 @@ the content of the cube.
 </p>
 
 <figure>
-<caption><px>Grid tab of the sphere axes control</px></caption>
-<figureimage src="&FIG.CubeAxisControl_grid;"/>
+<caption><px>Grid tab of the sphere Axes control</px></caption>
+<figureimage src="&FIG.SphereAxisControl_grid;"/>
 </figure>
 
 <p>The <label>Grid</label> tab configures the appearance of the
@@ -8668,26 +9563,21 @@ cube wire frame enclosing the data volume.
 <dd><p>If set, minor (unlabelled) tick marks will be drawn between the
     major (labelled) ones.
     </p></dd>
-<dt>X/Y/Z Tick Crowding</dt>
-<dd><p>Use the slider to influence how many tick marks are draw on each axis.
+<dt>Tick Crowding</dt>
+<dd><p>Use the slider to influence how many tick marks are draw on the axes.
+    </p></dd>
+<dt>Antialiasing</dt>
+<dd><p>Controls whether grid lines and text will be drawn antialiased
+    (smoothed) or not.  Antialiased text generally looks nicer but can
+    be noticeably slower.  This option does not affect exported plots.
+    At time of writing, Macs often require this option selected otherwise
+    the writing can come out the wrong way round.
     </p></dd>
 </dl>
 </p>
 
 <figure>
-<caption><px>Labels tab of the sphere axes control</px></caption>
-<figureimage src="&FIG.CubeAxisControl_labels;"/>
-</figure>
-
-<p>The <label>Labels</label> tab controls the text labels on the axes.
-If the <label>Auto</label> checkbox is set, the text will be taken
-from one of the data coordinates being plotted on that axis.
-To override those with your own axis labels, unset Auto and type
-text in to the <label>Label</label> fields.
-</p>
-
-<figure>
-<caption><px>Font tab of the cube axes control</px></caption>
+<caption><px>Font tab</px></caption>
 <figureimage src="&FIG.font_tab;"/>
 </figure>
 
@@ -8715,8 +9605,223 @@ It also affects some other things like the legend.
 </subsubsect>
 
 <subsubsect id="TimePlotWindow">
-<subhead><title>Histogram Plot Window</title></subhead>
-<p><em>Placeholder</em></p>
+<subhead><title>Time Plot Window</title></subhead>
+
+<p><em>This plot window is experimental.
+As currently implemented it lacks some important features.
+It may be improved or withdrawn in a future version.
+</em></p>
+
+<figure>
+<caption><px></px></caption>
+<figureimage src="&FIG.TimePlotWindow;"/>
+</figure>
+
+<p>The <label>Time Plot</label> (&IMG.PLOT2_TIME;)
+is intended for plotting time series data.
+The horizontal axis represents time, and can be labelled accordingly,
+and the window can display functions of time, scatter plots and spectrograms.
+In future versions it may be able to plot multiple time series plots
+stacked vertically using the same horizontal axis,
+but at present it doesn't do that.
+</p>
+
+<p><strong>Navigation controls</strong>:
+<dl>
+<dt>Horizontal pan/zoom</dt>
+<dd><p>By default you can pan left and right by dragging with the
+    left mouse button, and zoom horizontally with the mouse wheel
+    or by dragging with the right mouse button.
+    </p></dd>
+<dt>Vertical pan/zoom</dt>
+<dd><p>In a time plot you often don't want to pan/zoom up and down,
+    but if you do, you can position the mouse to the left of the
+    vertical axis and then pan up and down by dragging with the
+    left button, or zoom vertically with the mouse wheel or by
+    dragging with the right mouse button.
+    </p>
+    <p>By adjusting the settings in the <label>Navigation</label> tab
+    of the <ref id="TimeAxisControl">Axes Control</ref>
+    it's possible to fix it so that mouse buttons on the main part of the
+    plot pan/zoom in both directions, not just horizontally.
+    </p></dd>
+</dl>
+</p>
+
+<p>The Time Plot offers the following plot controls:
+<ul>
+<li>&CONTROL.single;, with these form options:
+    <ul>
+    <li>&FORM.line;</li>
+    <li>&FORM.mark;</li>
+    <li>&FORM.error; (vertical bars only)</li>
+    <li>&FORM.label;</li>
+    </ul>
+    </li>
+<li>&CONTROL.spectrogram;</li>
+<li>&CONTROL.function;</li>
+</ul>
+</p>
+
+<p>The <label>Axes</label> control (&IMG.AXIS_EDIT;) is described in
+<ref id="TimeAxisControl">the next subsection</ref>.
+</p>
+
+<subsubsubsect id="TimeAxisControl">
+<subhead><title>Time Axes Control</title></subhead>
+
+<p>The <label>Axes</label> (&IMG.AXIS_EDIT;) for the
+time plot window has six tabs.
+</p>
+
+<figure>
+<caption><px>Coords tab of time Axes control</px></caption>
+<figureimage src="&FIG.TimeAxisControl_coords;"/>
+</figure>
+
+<p>The <label>Coords</label> tab controls the vertical axis coordinates
+(you can't flip or rescale the time axis).
+It has the following options:
+<dl>
+<dt>Y Log</dt>
+<dd><p>If selected, vertical axis coordinates are logarithmic,
+    otherwise they are linear.
+    </p></dd>
+<dt>Y Flip</dt>
+<dd><p>If selected, vertical axis coordinate axes increase down rather
+    than up.
+    </p></dd>
+</dl>
+</p>
+
+<figure>
+<caption><px>Navigation tab of time Axes control</px></caption>
+<figureimage src="&FIG.TimeAxisControl_navigation;"/>
+</figure>
+
+<p>The <label>Navigation</label> tab controls details of how the
+navigation works.
+It has the following options:
+<dl>
+<dt>Pan/Zoom Axes</dt>
+<dd><p>By default, dragging with the mouse or using the mouse wheel
+    on the body of the plot
+    will pan or zoom in the horizontal (time) direction only,
+    which is usually what you want for a time series.
+    Using this control you can make it work in the vertical direction as well.
+    </p></dd>
+<dt>Zoom Factor</dt>
+<dd><p>Controls the factor by which each zoom action zooms the plot.
+    Moving this slider to the left/right makes the mouse more/less sensitive
+    (one wheel click or dragging a fixed distance has more/less zoom effect).
+    </p></dd>
+</dl>
+</p>
+
+<figure>
+<caption><px>Range tab of time Axes control</px></caption>
+<figureimage src="&FIG.TimeAxisControl_range;"/>
+</figure>
+
+<p>The <label>Range</label> tab provides manual configuration of the
+visible range of the plot.  Making changes to this tab will reset
+the visible plot range, but not vice versa - zooming and panning
+in the usual way will not change the settings of this panel.
+</p>
+
+<p>Filling in the <label>Minimum</label>/<label>Maximum</label>
+fields for either or both axes will
+constrain the corresponding range of the visible data.
+The limits corresponding to any of those fields that are left blank
+will initially be worked out from the data.
+The <label>Subrange</label> double-sliders restrict the ranges
+within the (explicit or automatic) min/max ranges.
+Note you can move both sliders at once by grabbing a position between the two.
+For the time axis, the range may be entered as an ISO-8601 date/time value.
+</p>
+
+<p>The <label>Clear</label> button resets all the fields.
+The <label>Submit</label> button updates the plot with the current values
+in this tab, as does making any changes to it.
+</p>
+
+<figure>
+<caption><px>Grid tab of time Axes control</px></caption>
+<figureimage src="&FIG.TimeAxisControl_grid;"/>
+</figure>
+
+<p>The <label>Grid</label> tab configures the appearance of the axis grid.
+It has the following options:
+<dl>
+<dt>Time Format</dt>
+<dd><p>Selects the representation for time/date in which the horizontal
+    axis is labelled.
+    Options are
+    ISO-8601,
+    decimal year,
+    Modified Julian Day,
+    and Unix (seconds since midnight on 1 Jan 1970).
+    </p></dd>
+<dt>Draw Grid</dt>
+<dd><p>If true, grid lines will be drawn across the plot
+    for every tick mark.
+    </p></dd>
+<dt>Minor Ticks</dt>
+<dd><p>If set, minor (unlabelled) tick marks will be drawn between the
+    major (labelled) ones.
+    </p></dd>
+<dt>Time/Y Tick Crowding</dt>
+<dd><p>Use the slider to influence how many tick marks are drawn on each axis.
+    </p></dd>
+<dt>Antialiasing</dt>
+<dd><p>Controls whether grid lines and text will be drawn antialiased
+    (smoothed) or not.  Antialiased text generally looks nicer but can
+    be noticeably slower.  This option does not affect exported plots.
+    At time of writing, Macs often require this option selected otherwise
+    the writing can come out the wrong way round.
+    </p></dd>
+</dl>
+</p>
+
+<figure>
+<caption><px>Labels tab of time Axes control</px></caption>
+<figureimage src="&FIG.TimeAxisControl_labels;"/>
+</figure>
+
+<p>The <label>Labels</label> tab controls the text label on the Y axis
+(the horizontal axis is not labelled).
+If the <label>Auto</label> checkbox is set, the text will be taken
+from one of the data coordinates being plotted on that axis.
+To override that with your own axis label, unset Auto and type
+text in to the <label>Y Label</label> field.
+</p>
+
+<figure>
+<caption><px>Font tab</px></caption>
+<figureimage src="&FIG.font_tab;"/>
+</figure>
+
+<p>The <label>Font</label> tab configures the font used for axis annotation.
+It also affects some other things like the legend.
+<dl>
+<dt>Text Syntax</dt>
+<dd><p>Whether to use plain text or LaTeX rules to make sense of the text
+    value.
+    </p></dd>
+<dt>Font Size</dt>
+<dd><p>Size of the font in points.
+    </p></dd>
+<dt>Font Style</dt>
+<dd><p>Style of the font.
+    </p></dd>
+<dt>Font Weight</dt>
+<dd><p>Whether the font is plain, bold or italic.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
 </subsubsect>
 
 </subsect>
@@ -18420,6 +19525,8 @@ introduced since the last version:
             using the <label>Antialias</label> checkbox
             in the <label>Axes</label>-<label>Grid</label> tabs
             of the various plot windows.</li>
+        <li>Withdraw <label>Labels</label> tab in the Sphere plot,
+            since it didn't do anything.</li>
         <li>Rename the <label>File</label> menu in most windows to
             <label>Window</label>, which is much more appropriate.</li>
         <li>Fix bug when concatenating tables whose data cells

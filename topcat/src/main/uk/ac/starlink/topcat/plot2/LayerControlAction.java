@@ -9,7 +9,6 @@ import uk.ac.starlink.topcat.TopcatListener;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.data.CoordGroup;
 import uk.ac.starlink.ttools.plot2.layer.FunctionPlotter;
-import uk.ac.starlink.ttools.plot2.layer.HistogramPlotter;
 import uk.ac.starlink.ttools.plot2.layer.SpectrogramPlotter;
 
 /**
