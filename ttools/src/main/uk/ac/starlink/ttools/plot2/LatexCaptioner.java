@@ -4,6 +4,8 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Insets;
 import java.awt.Rectangle;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.scilab.forge.jlatexmath.ParseException;
 import org.scilab.forge.jlatexmath.TeXConstants;
 import org.scilab.forge.jlatexmath.TeXFormula;
@@ -35,6 +37,8 @@ public class LatexCaptioner implements Captioner {
     public static final int TYPE_ROMAN = TeXFormula.ROMAN;
     public static final int TYPE_TYPEWRITER = TeXFormula.TYPEWRITER;
     
+    private final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.ttools.plot2" );
     static {
         // Avoids a warning.  Don't think it does anything useful unless
         // you're using FOP, but I'm not certain.
@@ -90,7 +94,9 @@ public class LatexCaptioner implements Captioner {
             ti = createTeXIcon( label, g.getColor() );
         }
         catch ( ParseException e ) {
-            getErrorCaptioner().drawCaption( getErrorText( e ), g );
+            getErrorCaptioner().drawCaption( getErrorText( label, e ), g );
+            logger_.log( Level.WARNING, "Bad LaTeX: \"" + label + "\" ("
+                       + e.getMessage() + ")", e );
             return;
         }
         Insets insets = ti.getInsets();
@@ -105,7 +111,7 @@ public class LatexCaptioner implements Captioner {
         }
         catch ( ParseException e ) {
             return getErrorCaptioner()
-                  .getCaptionBounds( getErrorText( e ) );
+                  .getCaptionBounds( getErrorText( label, e ) );
         }
         Insets insets = ti.getInsets();
         Rectangle bounds =
@@ -147,11 +153,12 @@ public class LatexCaptioner implements Captioner {
     /**
      * Text used as display in case of a LaTeX parse error.
      *
+     * @param  label  input label text
      * @param  err  latex parse error
      * @retrun   error message string
      */
-    private String getErrorText( ParseException err ) {
-        return "TeX Error: " + err.getMessage();
+    private String getErrorText( String label, ParseException err ) {
+        return "Bad TeX: " + label;
     }
 
     /**
