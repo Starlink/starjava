@@ -18421,6 +18421,7 @@ introduced since the last version:
             in the <label>Axes</label>-<label>Grid</label> tabs
             of the various plot windows.</li>
         <li>New experimental SAMP message <code>table.get.stil</code>.</li>
+        <li>Improve handling of LaTeX errors in axis labelling.</li>
         </ul>
         </p></dd>
 </dl>
