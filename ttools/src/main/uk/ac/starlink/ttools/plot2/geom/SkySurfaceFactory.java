@@ -117,7 +117,7 @@ public class SkySurfaceFactory
             StyleKeys.AXLABEL_COLOR,
             StyleKeys.GRID_ANTIALIAS,
         } ) );
-        list.addAll( Arrays.asList( StyleKeys.getCaptionerKeys() ) );
+        list.addAll( Arrays.asList( StyleKeys.CAPTIONER.getKeys() ) );
         return list.toArray( new ConfigKey[ 0 ] );
     }
 
@@ -132,7 +132,7 @@ public class SkySurfaceFactory
         Color gridColor = config.get( StyleKeys.GRID_COLOR );
         Color axlabelColor = config.get( StyleKeys.AXLABEL_COLOR );
         boolean antialias = config.get( StyleKeys.GRID_ANTIALIAS );
-        Captioner captioner = StyleKeys.createCaptioner( config );
+        Captioner captioner = StyleKeys.CAPTIONER.createValue( config );
         return new Profile( proj, reflect, viewSystem, grid, axLabeller,
                             gridColor, axlabelColor, sex, crowd, captioner,
                             antialias );

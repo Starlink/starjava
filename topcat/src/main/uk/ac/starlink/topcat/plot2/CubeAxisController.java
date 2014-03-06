@@ -146,7 +146,8 @@ public class CubeAxisController
 
         /* Font config tab. */
         mainControl.addSpecifierTab( "Font",
-                         new ConfigSpecifier( StyleKeys.getCaptionerKeys() ) );
+                                     new ConfigSpecifier( StyleKeys.CAPTIONER
+                                                         .getKeys() ) );
 
         assert assertHasKeys( surfFact.getProfileKeys() );
     }

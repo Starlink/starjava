@@ -144,7 +144,7 @@ public class PlaneSurfaceFactory
             StyleKeys.AXLABEL_COLOR,
             StyleKeys.GRID_ANTIALIAS,
         } ) );
-        list.addAll( Arrays.asList( StyleKeys.getCaptionerKeys() ) );
+        list.addAll( Arrays.asList( StyleKeys.CAPTIONER.getKeys() ) );
         return list.toArray( new ConfigKey[ 0 ] );
     }
 
@@ -163,7 +163,7 @@ public class PlaneSurfaceFactory
         Color gridcolor = config.get( StyleKeys.GRID_COLOR );
         Color axlabelcolor = config.get( StyleKeys.AXLABEL_COLOR );
         boolean antialias = config.get( StyleKeys.GRID_ANTIALIAS );
-        Captioner captioner = StyleKeys.createCaptioner( config );
+        Captioner captioner = StyleKeys.CAPTIONER.createValue( config );
         return new Profile( xlog, ylog, xflip, yflip, xlabel, ylabel,
                             captioner, xyfactor, grid, xcrowd, ycrowd, minor,
                             gridcolor, axlabelcolor, antialias );
