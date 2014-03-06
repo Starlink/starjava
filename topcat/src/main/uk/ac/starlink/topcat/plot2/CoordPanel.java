@@ -194,7 +194,7 @@ public class CoordPanel {
             /* Autopopulate only if none of the existing columns can be used.  
              * There are other possibilities, such as autopopulating those
              * columns which can't be re-used, but for now keep it simple. */
-            if ( ncuPopulated == 0 && ncuRequired > 0 ) {
+            if ( autoPopulate && ncuPopulated == 0 && ncuRequired > 0 ) {
                 autoPopulate();
             }
         }
