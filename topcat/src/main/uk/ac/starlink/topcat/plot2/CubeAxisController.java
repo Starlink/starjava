@@ -142,7 +142,9 @@ public class CubeAxisController
                                              .toArray( new ConfigKey[ 0 ] ) ) );
 
         /* Labels config tab. */
-        addLabelsTab();
+        if ( ! isIso ) {
+            addLabelsTab();
+        }
 
         /* Font config tab. */
         mainControl.addSpecifierTab( "Font",
