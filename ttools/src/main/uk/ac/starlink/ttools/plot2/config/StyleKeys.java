@@ -2,7 +2,6 @@ package uk.ac.starlink.ttools.plot2.config;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
-import java.awt.Font;
 import java.awt.Stroke;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -10,7 +9,6 @@ import java.util.List;
 import javax.swing.Icon;
 import javax.swing.JComboBox;
 import javax.swing.ListModel;
-import org.scilab.forge.jlatexmath.TeXFormula;
 import uk.ac.starlink.ttools.gui.ColorComboBox;
 import uk.ac.starlink.ttools.gui.DashComboBox;
 import uk.ac.starlink.ttools.gui.MarkStyleSelectors;
@@ -26,9 +24,6 @@ import uk.ac.starlink.ttools.plot.Shader;
 import uk.ac.starlink.ttools.plot.Shaders;
 import uk.ac.starlink.ttools.plot.Styles;
 import uk.ac.starlink.ttools.plot2.Anchor;
-import uk.ac.starlink.ttools.plot2.Captioner;
-import uk.ac.starlink.ttools.plot2.BasicCaptioner;
-import uk.ac.starlink.ttools.plot2.LatexCaptioner;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.layer.LevelMode;
@@ -162,37 +157,6 @@ public class StyleKeys {
                                          Anchor.W, Anchor.E, Anchor.N, Anchor.S,
                                      } );
 
-    /** Config key for defining how label text is to be understood.
-     *  @see  #createCaptioner */
-    private static final ConfigKey<TextSyntax> TEXT_SYNTAX =
-        new OptionConfigKey<TextSyntax>( new ConfigMeta( "syntax",
-                                                         "Text Syntax" ),
-                                         TextSyntax.class,
-                                         TextSyntax.values(),
-                                         TextSyntax.values()[ 0 ], true );
-
-    /** Config key for label font size.
-     *  @see  #createCaptioner */
-    private static final ConfigKey<Integer> FONT_SIZE =
-        IntegerConfigKey.createSpinnerKey( new ConfigMeta( "fontsize",
-                                                           "Font Size" ),
-                                           12, 2, 64 );
-
-    /** Config key for label font style.
-     *  @see  #createCaptioner */
-    private static final ConfigKey<FontType> FONT_TYPE =
-        new OptionConfigKey<FontType>( new ConfigMeta( "fontstyle",
-                                                       "Font Style" ),
-                                       FontType.class, FontType.values() );
-
-    /** Config key for label font weight.
-     *  @see  #createCaptioner */
-    private static final ConfigKey<FontWeight> FONT_WEIGHT =
-        new OptionConfigKey<FontWeight>( new ConfigMeta( "fontweight",
-                                                         "Font Weight" ),
-                                         FontWeight.class,
-                                         FontWeight.values() );
-
     /** Config key for scaling level mode. */ 
     public static final ConfigKey<LevelMode> LEVEL_MODE =
         new OptionConfigKey<LevelMode>( new ConfigMeta( "scaling", "Scaling" ),
@@ -323,43 +287,13 @@ public class StyleKeys {
        .createSliderKey( new ConfigMeta( "zoomfactor", "Zoom Factor" ),
                          1.2, 1, 2, true );
 
+    /** Config key set for axis and general captioner. */
+    public static final CaptionerKeySet CAPTIONER = new CaptionerKeySet();
+
     /**
      * Private constructor prevents instantiation.
      */
     private StyleKeys() {
-    }
-
-    /**
-     * Returns a list of config keys to use for configuring a captioner.
-     * Pass a map with values for these to the <code>createCaptioner</code>
-     * method.
-     *
-     * @return   captioner key list
-     * @see    #createCaptioner
-     */
-    public static ConfigKey[] getCaptionerKeys() {
-        return new ConfigKey[] {
-            TEXT_SYNTAX,
-            FONT_SIZE,
-            FONT_TYPE,
-            FONT_WEIGHT,
-        };
-    }
-
-    /**
-     * Obtains a captioner object based on a config map.
-     * The keys used are those returned by <code>getCaptionerKeys</code>.
-     *
-     * @param  config  config map
-     * @return  captioner
-     * @see    #getCaptionerKeys
-     */
-    public static Captioner createCaptioner( ConfigMap config ) {
-        TextSyntax syntax = config.get( TEXT_SYNTAX );
-        FontType type = config.get( FONT_TYPE );
-        FontWeight weight = config.get( FONT_WEIGHT );
-        int size = config.get( FONT_SIZE );
-        return syntax.createCaptioner( type, weight, size );
     }
 
     /**
@@ -678,83 +612,4 @@ public class StyleKeys {
             return new ComboBoxSpecifier<Shader>( comboBox );
         }
     };
-
-    /**
-     * Font type enum for use with captioner configuration.
-     */
-    private enum FontType {
-        SANSSERIF( "Standard",  "Dialog", TeXFormula.SANSSERIF ),
-        SERIF( "Serif", "Serif", TeXFormula.ROMAN ),
-        MONO( "Mono", "Monospaced", TeXFormula.TYPEWRITER );
-
-        private final String name_;
-        private final String awtName_;
-        private final int texType_;
-
-        FontType( String name, String awtName, int texType ) {
-            name_ = name;
-            awtName_ = awtName;
-            texType_ = texType;
-        }
-
-        public String toString() {
-            return name_;
-        }
-    }
-
-    /**
-     * Font weight enum for use with captioner configuration.
-     */
-    private enum FontWeight {
-        PLAIN( "Plain", Font.PLAIN, 0 ),
-        BOLD( "Bold", Font.BOLD, TeXFormula.BOLD ),
-        ITALIC( "Italic", Font.ITALIC, TeXFormula.ITALIC ),
-        BOLDITALIC( "Bold Italic", Font.BOLD | Font.ITALIC,
-                                   TeXFormula.BOLD | TeXFormula.ITALIC );
-
-        private final String name_;
-        private final int awtWeight_;
-        private final int texWeight_;
-
-        FontWeight( String name, int awtWeight, int texWeight ) {
-            name_ = name;
-            awtWeight_ = awtWeight;
-            texWeight_ = texWeight;
-        }
-
-        public String toString() {
-            return name_;
-        }
-    }
-
-    /**
-     * Text interpretation language enum for use with captioner configuration.
-     */
-    private enum TextSyntax {
-        PLAIN( "Plain" ) {
-            public Captioner createCaptioner( FontType type, FontWeight weight,
-                                              int size ) {
-                return new BasicCaptioner( new Font( type.awtName_,
-                                                     weight.awtWeight_,
-                                                     size ) );
-            }
-        },
-        LATEX( "LaTeX" ) {
-            public Captioner createCaptioner( FontType type, FontWeight weight,
-                                              int size ) {
-                return new LatexCaptioner( size,
-                                           type.texType_ | weight.texWeight_ );
-            }
-        };
-        private final String name_;
-        TextSyntax( String name ) {
-            name_ = name;
-        }
-        public abstract Captioner createCaptioner( FontType type,
-                                                   FontWeight weight,
-                                                   int size );
-        public String toString() {
-            return name_;
-        }
-    }
 }

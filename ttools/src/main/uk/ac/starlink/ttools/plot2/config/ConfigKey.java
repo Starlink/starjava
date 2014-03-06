@@ -6,6 +6,11 @@ package uk.ac.starlink.ttools.plot2.config;
  * this class has methods to allow a command-line or graphical interface
  * to be constructed for the corresponding values automatically.
  *
+ * <p>Note that this class does <em>not</em> sport the
+ * {@link uk.ac.starlink.ttools.plot2.Equality}
+ * annotation.  A ConfigKey is normally considered equal only to itself,
+ * not to other similarly-named ConfigKeys.
+ *
  * @author   Mark Taylor
  * @since    22 Feb 2013
  */

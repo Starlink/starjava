@@ -149,7 +149,7 @@ public class LegendControl extends TabberControl {
             }
             else {
                 Captioner captioner =
-                    StyleKeys.createCaptioner( configger_.getConfig() );
+                    StyleKeys.CAPTIONER.createValue( configger_.getConfig() );
                 boolean border = borderModel_.isSelected();
                 Color bgColor = opaqueModel_.isSelected() ? Color.WHITE : null;
                 return new LegendIcon( entries, captioner, border, bgColor );

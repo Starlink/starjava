@@ -22,6 +22,7 @@ import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PointCloud;
 import uk.ac.starlink.ttools.plot2.SubCloud;
 import uk.ac.starlink.ttools.plot2.Surface;
+import uk.ac.starlink.ttools.plot2.config.CaptionerKeySet;
 import uk.ac.starlink.ttools.plot2.config.ConfigException;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
@@ -69,6 +70,10 @@ public class LabelPlotter extends AbstractPlotter<LabelStyle> {
        .createSpinnerKey( new ConfigMeta( "crowdlimit", "Crowding Limit" ),
                           2, 1, MAX_CROWDLIMIT );
 
+    /** Config key set for configuring text font. */
+    public static final CaptionerKeySet CAPTIONER_KEYSET =
+        new CaptionerKeySet();
+
     /**
      * Constructor.
      */
@@ -78,7 +83,7 @@ public class LabelPlotter extends AbstractPlotter<LabelStyle> {
 
     public ConfigKey[] getStyleKeys() {
         List<ConfigKey> list = new ArrayList<ConfigKey>();
-        list.addAll( Arrays.asList( StyleKeys.getCaptionerKeys() ) );
+        list.addAll( Arrays.asList( CAPTIONER_KEYSET.getKeys() ) );
         list.addAll( Arrays.asList( new ConfigKey[] {
             StyleKeys.ANCHOR,
             StyleKeys.COLOR,
@@ -97,7 +102,7 @@ public class LabelPlotter extends AbstractPlotter<LabelStyle> {
         }
         byte crowdLimit = (byte) iclimit;
         assert crowdLimit == iclimit;
-        return new LabelStyle( StyleKeys.createCaptioner( config ),
+        return new LabelStyle( CAPTIONER_KEYSET.createValue( config ),
                                config.get( StyleKeys.ANCHOR ),
                                config.get( StyleKeys.COLOR ),
                                config.get( SPACING_KEY ), crowdLimit );

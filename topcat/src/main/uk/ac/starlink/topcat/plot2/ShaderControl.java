@@ -143,7 +143,7 @@ public class ShaderControl extends ConfigControl {
         final boolean flip = config.get( StyleKeys.SHADE_FLIP );
         final Color nullColor = config.get( StyleKeys.SHADE_NULL_COLOR );
         final Captioner captioner =
-            StyleKeys.createCaptioner( configger_.getConfig() );
+            StyleKeys.CAPTIONER.createValue( configger_.getConfig() );
         return new AxisFactory() {
             public ShadeAxis createShadeAxis( Range range ) {
                 if ( range == null ) {

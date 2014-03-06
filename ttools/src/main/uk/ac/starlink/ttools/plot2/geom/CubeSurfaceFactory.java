@@ -245,7 +245,7 @@ public class CubeSurfaceFactory
             StyleKeys.MINOR_TICKS,
             StyleKeys.GRID_ANTIALIAS,
         } ) );
-        list.addAll( Arrays.asList( StyleKeys.getCaptionerKeys() ) );
+        list.addAll( Arrays.asList( StyleKeys.CAPTIONER.getKeys() ) );
         return list.toArray( new ConfigKey[ 0 ] );
     }
 
@@ -262,7 +262,7 @@ public class CubeSurfaceFactory
         double xcrowd = config.get( isIso_ ? ISOCROWD_KEY : XCROWD_KEY );
         double ycrowd = config.get( isIso_ ? ISOCROWD_KEY : YCROWD_KEY );
         double zcrowd = config.get( isIso_ ? ISOCROWD_KEY : ZCROWD_KEY );
-        Captioner captioner = StyleKeys.createCaptioner( config );
+        Captioner captioner = StyleKeys.CAPTIONER.createValue( config );
         boolean frame = config.get( FRAME_KEY );
         boolean minor = config.get( StyleKeys.MINOR_TICKS );
         boolean antialias = config.get( StyleKeys.GRID_ANTIALIAS );

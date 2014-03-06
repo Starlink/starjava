@@ -117,7 +117,7 @@ public class TimeSurfaceFactory
             StyleKeys.MINOR_TICKS,
             StyleKeys.GRID_ANTIALIAS,
         } ) );
-        list.addAll( Arrays.asList( StyleKeys.getCaptionerKeys() ) );
+        list.addAll( Arrays.asList( StyleKeys.CAPTIONER.getKeys() ) );
         return list.toArray( new ConfigKey[ 0 ] );
     }
 
@@ -132,7 +132,7 @@ public class TimeSurfaceFactory
         TimeFormat tformat = config.get( TFORMAT_KEY );
         boolean minor = config.get( StyleKeys.MINOR_TICKS );
         boolean antialias = config.get( StyleKeys.GRID_ANTIALIAS );
-        Captioner captioner = StyleKeys.createCaptioner( config );
+        Captioner captioner = StyleKeys.CAPTIONER.createValue( config );
         return new Profile( ylog, yflip, tlabel, ylabel, captioner,
                             grid, tcrowd, ycrowd, tformat, minor, antialias );
     }
