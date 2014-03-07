@@ -105,6 +105,7 @@
   <!ENTITY FIG.BaSTITableLoadDialog '&figs;BaSTITableLoadDialog.gif'>
   <!ENTITY FIG.StackPlotWindow '&figs;StackPlotWindow.gif'>
   <!ENTITY FIG.StackPlotWindow_float '&figs;StackPlotWindow_float.gif'>
+  <!ENTITY FIG.NavigationHelpPanel '&figs;NavigationHelpPanel.gif'>
   <!ENTITY FIG.StackPlotWindow_blob '&figs;StackPlotWindow_blob.gif'>
   <!ENTITY FIG.ControlStack_fixed '&figs;ControlStack_fixed.gif'>
   <!ENTITY FIG.form-style '&figs;form-style.gif'>
@@ -225,6 +226,13 @@
                         <ref id="form-contour">Contour</ref>'>
   <!ENTITY FORM.marks2 '&IMG.FORM_MARKS2; <ref id="form-marks2">Marks</ref>'>
   <!ENTITY FORM.link2 '&IMG.FORM_LINK2; <ref id="form-link2">Link</ref>'>
+  <!ENTITY GESTURE.DRAG1 '&IMG.DRAG1; Left drag'>
+  <!ENTITY GESTURE.DRAG2 '&IMG.DRAG2; Center drag (SHIFT-drag)'>
+  <!ENTITY GESTURE.DRAG3 '&IMG.DRAG3; Right drag (CTRL-drag)'>
+  <!ENTITY GESTURE.CLICK1 '&IMG.CLICK1; Left click'>
+  <!ENTITY GESTURE.CLICK2 '&IMG.CLICK2; Center click (SHIFT-click)'>
+  <!ENTITY GESTURE.CLICK3 '&IMG.CLICK3; Right click (CTRL-click)'>
+  <!ENTITY GESTURE.WHEEL '&IMG.MOUSE_WHEEL; Wheel'>
 ]>
 
 <sun>
@@ -6646,9 +6654,10 @@ possibly informed by user demand.
 </figure>
 
 <p>Plot windows consist of two main parts:
-the plot itself (by default, at the top),
-and the control panel (by default, at the bottom).
-The control panel is where you configure what will be plotted.
+the <label>Plot Panel</label> containing the actual plotted graphics
+(by default, at the top),
+and the <label>Control Panel</label> (by default, at the bottom).
+The Control Panel is where you configure what will be plotted.
 For a simple scatter plot it may just be a case of selecting what
 columns to plot against each other, but it can get quite detailed.
 If you want more screen space to play with, it can be helpful
@@ -6741,7 +6750,8 @@ adding and removing controls from the stack.
     Little icons are supposed to represent clicking and dragging different
     mouse buttons and the mouse wheel.  Note the content changes according
     to where the mouse is on the plot, since that affects navigation
-    behaviour.  Clicking on the &IMG.SMALL_CLOSE; button
+    behaviour.  For more information see <ref id="plot2Navigation"/>.
+    Clicking on the &IMG.SMALL_CLOSE; button
     will make this panel go away.
     </p></dd>
 <dt>Progress Bar</dt>
@@ -6843,6 +6853,105 @@ contains the following actions (repeated in the menus):
 <p>The following subsections explain some other features common to
 all the plotting windows.
 </p>
+
+<subsubsubsect id="plot2Navigation">
+<subhead><title>Navigation</title></subhead>
+
+<p>All the plot windows are interactive, and you can navigate around
+them using the mouse buttons.  For most plot types the left and right
+buttons and the mouse wheel do something;
+in 3d plots the middle button is used as well.
+</p>
+
+<p>The details of what mouse actions do what depend on which plot
+window you are using, and they can also be configured to some extent
+using the <label>Navigation</label> tab in the <label>Axes</label>
+fixed control in the control stack.
+However, as a rule, the actions when used on the body of the plot are these:
+<dl>
+<dt>&IMG.DRAG1; Left drag</dt>
+<dd><p>Drags the plot around.  Where possible, the same plot position
+    stays under the cursor as you drag.  In 2d this pans the plot
+    left/right/up/down, and in 3d it rotates it.
+    </p></dd>
+<dt>&IMG.DRAG3; Right drag</dt>
+<dd><p>Stretch zoom.
+    Dragging up/down stretches/squashes the plot vertically, and
+    dragging left/right stretches/squashes it horizontally.
+    The zoom is centered on the position where you start the drag from,
+    so that data position stays in the same place on the screen.
+    In 3d, the zoom is along the two plot directions most closely
+    aligned with the plane of the screen.
+    </p></dd>
+<dt>&IMG.MOUSE_WHEEL; Mouse wheel</dt>
+<dd><p>Spinning the mouse wheel forwards/backwards will zoom in/out.
+    In 2d the zoom is around the current position of the mouse,
+    and in 3d it is (usually) around the center of the view cube.
+    </p></dd>
+<dt>&IMG.CLICK1; Left click</dt>
+<dd><p>Identifies a point.  If there is a plotted point near the cursor,
+    it will plot a marker on it and
+    <ref id="activation" plaintextref="yes">activate</ref> it.
+    If you click on an empty bit of the plot, any existing activated point
+    will be removed, otherwise nothing will happen.
+    </p></dd>
+</dl>
+In the 2d plot types, you can pan or zoom in just one direction
+by using the same actions outside of the plot itself.
+If you do a pan/zoom action to the left of the Y axis, it will pan/zoom
+only vertically, and if you do it below the X axis, it will do it only
+horizontally.
+</p>
+
+<p>Most of these actions give you some visual feedback on the screen,
+showing a rectangle or some arrows to give you a clue what you're doing.
+If you find that distracting, you can turn it off using the
+<label>Plot|Show Navigation Graphics</label> (&IMG.NAV_DEC;) menu item.
+</p>
+
+<figure>
+<caption><px>Navigation help panel at the bottom of plot windows</px></caption>
+<figureimage src="&FIG.NavigationHelpPanel;"/>
+</figure>
+
+<p>In each plot window there is a row at the bottom of the window
+giving hints on the currently available navigation actions.
+The little icons are each supposed to represent either a 
+<em>click</em> (&IMG.CLICK1;) or a <em>drag</em> (&IMG.DRAG1;)
+with one of the three buttons pressed,
+or a wheel spin (&IMG.MOUSE_WHEEL;),
+and are followed by a short description of what it will achieve.
+Note these hints change according to where the mouse is currently
+positioned on the screen.
+Moving the button over this panel will give you some help on the help.
+Clicking the &IMG.SMALL_CLOSE; button will make the line disappear,
+and you can bring it back with the <label>Window|Show Navigation Help</label>
+(&IMG.NAV_HELP;) menu item.
+The &IMG.SMALL_HELP; button will bring up a help window specific to
+the navigation in this window.
+</p>
+
+<p>If you are using a mouse with fewer than three buttons or no wheel,
+the following <strong>subsitute gestures</strong> can usually be used:
+<dl>
+<dt>&IMG.CLICK1; Left button</dt>
+<dd><p>If you only have one button, this is it.
+    </p></dd>
+<dt>&IMG.CLICK3; Right button</dt>
+<dd><p>If you only have one button, you can use it with the CTRL key.
+    </p></dd>
+<dt>&IMG.CLICK2; Middle button</dt>
+<dd><p>If you only have one button, you can use it with the SHIFT key.
+    If you have two buttons, sometimes pressing them both at once will work.
+    </p></dd>
+<dt>&IMG.MOUSE_WHEEL; Wheel</dt>
+<dd><p>Often a wheel action can be simulated on a trackpad by moving
+    two fingers together up or down.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
 
 <subsubsubsect id="tableDataControl">
 <subhead><title>Table Data Layer Controls</title></subhead>
@@ -8546,26 +8655,14 @@ In many respects it is like the <ref id="PlanePlotWindow">Plane Plot</ref>,
 but it has an additional fixed control
 <ref id="ConfigControl_histobars">Bars</ref>
 and the scrolling works a bit differently.
-See the <ref id="StackPlotWindow" plaintextref="yes">Window Overview</ref>
-for features common to all plotting windows.
 </p>
 
-<p>Navigation controls:
-<dl>
-<dt>Panning</dt>
-<dd><p>Drag the plot around by holding down the left mouse button.
-    If you do it below the X axis you can drag just left/right.
-    </p></dd>
-<dt>Zooming</dt>
-<dd><p>The best way to zoom is by dragging with the right mouse button.
-    This allows you to stretch/squash the plot centered on the horizontal
-    position you start the drag from.  The X axis will stay at the bottom
-    of the screen.  You can also use the mouse wheel to zoom isotropically.
-    By default, the histogram bar widths will rescale to approximately the
-    same proportion of the plot width as you zoom in and out in the X
-    direction.
-    </p></dd>
-</dl>
+<p>See the <ref id="StackPlotWindow" plaintextref="yes">Window Overview</ref>
+for features common to all plotting windows.
+The following subsections describe
+<ref id="histogramNavigation">navigation</ref>,
+<ref id="HistogramAxisControl">axis configuration</ref> and
+<ref id="ConfigControl_histobars">bar configuration</ref>.
 </p>
 
 <p>The Histogram Plot offers only the following plot controls:
@@ -8575,10 +8672,54 @@ for features common to all plotting windows.
 </ul>
 </p>
 
-<p>The <label>Axes control</label> (&IMG.AXIS_EDIT;)
-and <label>Bars control</label> (&IMG.HISTOBARS;)
-are described in the following subsections.
+<subsubsubsect id="histogramNavigation">
+<subhead><title>Histogram Navigation</title></subhead>
+
+<p>For general comments on plot navigation, see <ref id="plot2Navigation"/>.
+Additional configuration options are available in the <label>Navigation</label>
+tab of the <ref id="HistogramAxisControl">Axes control</ref>.
 </p>
+
+<p>The navigation actions for this window are:
+<dl>
+<dt>&GESTURE.DRAG1;</dt>
+<dd><p><em>Pan.</em>
+    On the body of the plot this moves it around up/down/left/right.
+    To move it only vertically, drag on the left of the Y axis.
+    To move it only horizontally, drag below the X axis.
+    You can configure dragging on the body of the plot to be only vertical
+    or horizontal by setting the <label>Pan/Zoom Axes</label> in the
+    <label>Navigation</label> axis configuration tab.
+    </p></dd>
+<dt>&GESTURE.DRAG3;</dt>
+<dd><p><em>Stretch zoom.</em>
+    On the body of the plot,
+    dragging up/down stretches/squashes the plot vertically, and
+    dragging left/right stretches/squashes it horizontally.
+    To zoom only vertically, drag on the left of the Y axis.
+    To zoom only horizontally, drag below the X axis.
+    </p>
+    <p>Zooming horizontally will normally adjust the width of the histogram
+    bars appropriately.
+    </p>
+    <p>Normally, the zoom will be centered horizontally at the mouse position
+    and vertically on the X axis, so the zoom will not move the bottom of
+    the histogram.  You can adjust that with the <label>Anchor X/Y Axis</label>
+    options in the <label>Navigation</label> axis configuration tab.
+    </p></dd>
+<dt>&GESTURE.WHEEL;</dt>
+<dd><p><em>Isotropic zoom.</em>
+    Spinning the mouse wheel forwards/backwards will zoom in/out
+    just like dragging with the right button up-and-right or down-and-left.
+    </p></dd>
+</dl>
+</p>
+
+<p>You can also manually fix the plot bounds using the <label>Range</label>
+tab of the <ref id="HistogramAxisControl">Axes control</ref>.
+</p>
+
+</subsubsubsect>
 
 <subsubsubsect id="HistogramAxisControl">
 <subhead><title>Histogram Axes Control</title></subhead>
@@ -8598,8 +8739,8 @@ the Y=0 line to stay anchored to the bottom of the plot when zooming.
 <subhead><title>Bars Control</title></subhead>
 
 <p>The <label>Bars</label> control (&IMG.HISTOBARS;)
-for the histogram plot window
-configures the common placement and calculation of the bars for
+is found in the control stack of the Histogram window.
+It configures the common placement and calculation of the bars for
 all the histogram layers displayed.
 It has the following fields:
 <dl>
@@ -8651,34 +8792,17 @@ It has the following fields:
 
 <p>The <label>Plane Plot</label> (&IMG.PLOT2_PLANE;)
 plots 2-dimensional Cartesian positions on a plane.
-See the <ref id="StackPlotWindow" plaintextref="yes">Window Overview</ref>
-for features common to all plotting windows.
-</p>
-
-<p>The positional coordinates are <label>X</label> and <label>Y</label>.
+The positional coordinates are <label>X</label> and <label>Y</label>.
 To control the direction and linear/log scaling of the axes,
 see the <label>Coords</label> tab of the
 <ref id="PlaneAxisControl">Axes</ref> control.
 </p>
 
-<p>Navigation controls:
-<dl>
-<dt>Panning</dt>
-<dd><p>Drag the plot around by holding down the left mouse button.
-    </p></dd>
-<dt>Zooming</dt>
-<dd><p>The best way to zoom is using the mouse wheel on the plot
-    (some machines with no wheel can simulate this with a
-    two-fingered slide on the mouse pad),
-    since this zooms around the current mouse position.
-    This zooming is isotropic - both axes zoom by the same factor.
-    </p>
-    <p>You can also change the zoom using the <label>Range</label> tab
-    in the <ref id="PlaneAxisControl">Axes</ref> control.
-    This lets you assign different
-    magnifications to the two axes.
-    </p></dd>
-</dl>
+<p>See the <ref id="StackPlotWindow" plaintextref="yes">Window Overview</ref>
+for features common to all plotting windows.
+The following subsections describe
+<ref id="planeNavigation">navigation</ref> and
+<ref id="PlaneAxisControl">axis configuration</ref>.
 </p>
 
 <p>The Plane Plot offers the following plot controls:
@@ -8704,9 +8828,54 @@ see the <label>Coords</label> tab of the
 </ul>
 </p>
 
-<p>The <label>Axes</label> control (&IMG.AXIS_EDIT;) is described in
-<ref id="PlaneAxisControl">the next subsection</ref>.
+<subsubsubsect id="planeNavigation">
+<subhead><title>Plane Navigation</title></subhead>
+
+<p>For general comments on plot navigation, see <ref id="plot2Navigation"/>.
+Additional configuration options are available in the <label>Navigation</label>
+tab of the <ref id="PlaneAxisControl">Axes control</ref>.
 </p>
+
+<p>The navigation actions for this window are:
+<dl>
+<dt>&GESTURE.DRAG1;</dt>
+<dd><p><em>Pan.</em>
+    On the body of the plot this moves it around up/down/left/right.
+    To move it only vertically, drag on the left of the Y axis.
+    To move it only horizontally, drag below the X axis.
+    You can configure dragging on the body of the plot to be only vertical
+    or horizontal by setting the <label>Pan/Zoom Axes</label> in the
+    <label>Navigation</label> axis configuration tab.
+    </p></dd>
+<dt>&GESTURE.DRAG3;</dt>
+<dd><p><em>Stretch zoom.</em>
+    On the body of the plot,
+    dragging up/down stretches/squashes the plot vertically, and
+    dragging left/right stretches/squashes it horizontally.
+    Zooming is around the mouse position at the start of the drag.
+    To zoom only vertically, drag on the left of the Y axis.
+    To zoom only horizontally, drag below the X axis.
+    </p></dd>
+<dt>&GESTURE.WHEEL;</dt>
+<dd><p><em>Isotropic zoom.</em>
+    Spinning the mouse wheel forwards/backwards will zoom in/out
+    around the mouse position,
+    just like dragging with the right button up-and-right or down-and-left.
+    </p></dd>
+<dt>&GESTURE.CLICK1;</dt>
+<dd><p><em>Select.</em>
+    If there is a plotted point near the cursor,
+    it will plot a marker on it and
+    <ref id="activation" plaintextref="yes">activate</ref> it.
+    </p></dd>
+</dl>
+</p>
+
+<p>You can also manually fix the plot bounds using the <label>Range</label>
+tab of the <ref id="PlaneAxisControl">Axes control</ref>.
+</p>
+
+</subsubsubsect>
 
 <subsubsubsect id="PlaneAxisControl">
 <subhead><title>Plane Axes Control</title></subhead>
@@ -8887,8 +9056,6 @@ It also affects some other things like the legend.
 plots longitude/latitude positions onto the celestial sphere.
 It can plot to a number of projections
 (currently Sin, Aitoff and Plate Carr&#x00e9;e).
-See the <ref id="StackPlotWindow" plaintextref="yes">Window Overview</ref>
-for features common to all plotting windows.
 </p>
 
 <p>The positional coordinates are
@@ -8906,32 +9073,11 @@ as the coordinates you are supplying, you can ignore leave these
 values as their default (both Equatorial) and no conversion will be done.
 </p>
 
-<p>Navigation controls:
-<dl>
-<dt>Panning</dt>
-<dd><p>The Sin projection is like the surface of a globe that can be
-    rotated by dragging it around, while the Aitoff and
-    Plate Car&#x00e9;e projections are like maps drawn on a
-    piece of paper which can be dragged around.
-    In all cases, drag by holding the left mouse button.
-    </p>
-    <p>Dragging will attempt to keep the same sky position under the
-    cursor.  This is usually possible, but in the Sin projection if the
-    mouse starts off on the sphere and moves off it, that can't happen,
-    so the panning can be jerky in that case.  This only happens at
-    low magnifications.
-    </p></dd>
-<dt>Zooming</dt>
-<dd><p>The best way to zoom is using the mouse wheel on the plot
-    (some machines with no wheel can simulate this with a
-    two-fingered slide on the mouse pad),
-    since this zooms around the current mouse position.
-    </p>
-    <p>In the Sin projection, the zoom will rotate the sphere as well as
-    increase its magnification, so that the cursor can stay on the same
-    sky position while north remains pointing upwards.
-    </p></dd>
-</dl>
+<p>See the <ref id="StackPlotWindow" plaintextref="yes">Window Overview</ref>
+for features common to all plotting windows.
+The following subsections describe
+<ref id="skyNavigation">navigation</ref> and
+<ref id="SkyAxisControl">axis configuration</ref>.
 </p>
 
 <p>The sky plot offers the following plot controls:
@@ -8953,10 +9099,54 @@ values as their default (both Equatorial) and no conversion will be done.
 </ul>
 </p>
 
-<p>The <label>Axes</label> control (&IMG.AXIS_EDIT;)
-is described in 
-<ref id="SkyAxisControl">the next subsection</ref>.
+<subsubsubsect id="skyNavigation">
+<subhead><title>Sky Navigation</title></subhead>
+
+<p>For general comments on plot navigation, see <ref id="plot2Navigation"/>.
+Additional configuration options are available in the <label>Navigation</label>
+tab of the <ref id="SkyAxisControl">Axes control</ref>.
 </p>
+
+<p>The navigation options for this window are:
+<dl>
+<dt>&GESTURE.DRAG1;</dt>
+<dd><p><em>Pan.</em>
+    In the Sin projection, this attempts to rotate the sphere, 
+    with north staying vertical on the screen, in such a way that the
+    same part of the sky stays under the cursor position.
+    At low magnifications this is sometimes not possible;
+    if the mouse starts on the sphere and ends up off it the navigation
+    will be jerky.
+    </p>
+    <p>The Aitoff and Plate Car&#x00e9;e projections act like a piece of
+    paper that can be dragged around in two dimensions in the usual way.
+    </p></dd>
+<dt>&GESTURE.WHEEL;</dt>
+<dd><p><em>Zoom.</em>
+    Spinning the mouse wheel forwards/backwards will zoom in/out around
+    the mouse position.  For this Sin projection this will also have the
+    effect of rotating the sphere to keep North vertical on the screen.
+    </p></dd>
+<dt>&GESTURE.DRAG3;</dt>
+<dd><p><em>Zoom.</em>
+    Dragging with the right mouse button up-and-right/down-and-left
+    has just the same effect as spinning the mouse button forwards/backwards.
+    </p></dd>
+<dt>&GESTURE.CLICK1;</dt>
+<dd><p><em>Select.</em>
+    If there is a plotted point near the cursor,
+    it will plot a marker on it and
+    <ref id="activation" plaintextref="yes">activate</ref> it.
+    </p></dd>
+</dl>
+</p>
+
+<p>You can also navigate to a known sky position by coordinates or
+object name using the <label>FOV</label>
+tab of the <ref id="SkyAxisControl">Axes control</ref>.
+</p>
+
+</subsubsubsect>
 
 <subsubsubsect id="SkyAxisControl">
 <subhead><title>Sky Axes Control</title></subhead>
@@ -9131,8 +9321,6 @@ It also affects some other things like the legend.
 
 <p>The <label>Cube Plot</label> (&IMG.PLOT2_CUBE;)
 plots 3-dimensional Cartesian positions in a 3-d space.
-See the <ref id="StackPlotWindow" plaintextref="yes">Window Overview</ref>
-for features common to all plotting windows.
 </p>
 
 <p>The positional coordinates are
@@ -9142,35 +9330,11 @@ see the <label>Coords</label> tab of the
 <ref id="CubeAxisControl">Axes</ref> control.
 </p>
 
-<p>Navigation controls:
-<dl>
-<dt>Panning</dt>
-<dd><p>Rotate the plot by holding down the left mouse button.
-    It's also possible to rotate by using the rotation sliders in the
-    <label>View</label> tab of the
-    <ref id="CubeAxisControl">Axes</ref> control.
-    </p>
-    <p>To <strong>re-centre</strong> the plot in the visible cube,
-    <strong>right-click</strong>
-    on the position you're interested in.
-    A screen position represents a line not a point, so there is a
-    degeneracy here; the new central position is actually the average
-    of data point positions near the mouse click.  The upshot is that
-    if you click on a point or clump of interest,
-    it should end up in the centre of the cube.
-    </p></dd>
-<dt>Zooming</dt>
-<dd><p>You can zoom using the mouse wheel.
-    This zooms the <em>data volume</em> in the visible cube
-    about its centre, so the cube wireframe axes stay in the same place
-    on the screen, but the axis annotations move.
-    </p>
-    <p>If you want to zoom in or out on the cube wireframe itself,
-    you can do it using the <label>Zoom Factor</label> slider in the
-    <label>View</label> tab of the <ref id="CubeAxisControl">Axes</ref>
-    control.
-    </p></dd>
-</dl>
+<p>See the <ref id="StackPlotWindow" plaintextref="yes">Window Overview</ref>
+for features common to all plotting windows.
+The following subsections describe
+<ref id="cubeNavigation">navigation</ref> and
+<ref id="CubeAxisControl">axis configuration</ref>.
 </p>
 
 <p>The cube plot offers the following plot controls:
@@ -9201,9 +9365,79 @@ at the "right" place in the 3-d space.  The same applies to a lesser
 extent with contours.  They work fine with a single dataset though.
 </p>
 
-<p>The <label>Axes</label> control (&IMG.AXIS_EDIT;) is described in
-<ref id="CubeAxisControl">the next subsection</ref>.
+<subsubsubsect id="cubeNavigation">
+<subhead><title>Cube Navigation</title></subhead>
+
+<p>For general comments on plot navigation, see <ref id="plot2Navigation"/>.
+Additional configuration options are available in the <label>Navigation</label>
+tab of the <ref id="CubeAxisControl">Axes control</ref>.
 </p>
+
+<p>Navigation in three dimensions with a two-dimensional screen and mouse
+is a bit of a challenge.  However, the actions listed below should make it
+fairly straightforward to navigate around points in 3d space to zoom in
+on the regions that you are interested in.
+<dl>
+<dt>&GESTURE.DRAG1;</dt>
+<dd><p><em>Rotate.</em>
+    Rotates the view cube about its center.
+    </p></dd>
+<dt>&GESTURE.WHEEL;</dt>
+<dd><p><em>Isotropic zoom.</em>
+    Spinning the mouse wheel forwards/backwards zooms the space in the
+    view cube in/out around the cube center.  The mouse position does not
+    affect it.
+    </p></dd>
+<dt>&GESTURE.DRAG3;</dt>
+<dd><p><em>2d stretch zoom.</em>
+    Dragging with the right button does a stretch zoom in the two dimensions
+    best aligned with the plane of the screen.
+    There is no movement in the third (mostly perpendicular to the screen)
+    direction.
+    The zoom is around a line defined by the position of the mouse at
+    the start of the zoom, pointing along the third dimension. 
+    You can stretch/squash in both directions by dragging the mouse
+    up/down/left/right - it's easier to try it than to explain it.
+    </p></dd>
+<dt>&GESTURE.DRAG2;</dt>
+<dd><p><em>2d pan.</em>
+    Dragging with the center button pans the 3d space in the two dimensions
+    best alighned with the plane of the screen.
+    There is no movement in the third (mostly perpendicular to the screen)
+    direction.
+    </p></dd>
+<dt>&GESTURE.CLICK1;</dt>
+<dd><p><em>Select.</em>
+    If there are plotted points near the cursor it will identify one,
+    plot a marker on it, and
+    <ref id="activation" plaintextref="yes">activate</ref> it.
+    </p>
+    <p>In 3d, it's not obvious which is the nearest point to a 2d cursor,
+    since a screen position represents a line not a point.
+    To break the degeneracy, the point used is the one nearest the 
+    center of mass of plotted points along the line of sight represented
+    by the cursor position.  The upshot of this is that if you click on
+    an isolated point, you'll pick that point, and if you click on a 
+    dense cluster, you'll get a point near the center (of mass) of that
+    cluster.
+    </p></dd>
+<dt>&GESTURE.CLICK3;</dt>
+<dd><p><em>Re-center.</em>
+    Right-clicking identifies a position in a similar way to the
+    left-click Select action, and then translates the plot so that point
+    is at the center of the view cube.  This means that clicking on a
+    cluster will put that cluster in the center of the cube.
+    If you click on an empty region, a position half way between front
+    and back of the cube at that X/Y position will be used.
+    </p></dd>
+</dl>
+</p>
+
+<p>You can also manually fix the plot bounds using the <label>Range</label>
+tab of the <ref id="CubeAxisControl">Axes control</ref>.
+</p>
+
+</subsubsubsect>
 
 <subsubsubsect id="CubeAxisControl">
 <subhead><title>Cube Axes Control</title></subhead>
@@ -9398,8 +9632,6 @@ the visible space is not necessarily centred on the coordinate origin,
 and the visible axes are Cartesian.
 In many respects this works like the
 <ref id="CubePlotWindow">Cube Plot Window</ref>
-See the <ref id="StackPlotWindow" plaintextref="yes">Window Overview</ref>
-for features common to all plotting windows.
 </p>
 
 <p>The positional coordinates are
@@ -9407,34 +9639,11 @@ for features common to all plotting windows.
 <label>Radius</label>.
 </p>
 
-<p>Navigation is like that for the <ref id="CubePlotWindow">Cube Plot</ref>:
-<dl>
-<dt>Panning</dt>
-<dd><p>Rotate the plot by holding the left mouse button.
-    It's also possible to rotate by using the rotation sliders in the
-    <label>View</label> tab of the
-    <ref id="CubeAxisControl">Axes</ref> control.
-    </p>
-    <p>To <strong>re-centre</strong> the plot in the visible cube,
-    <strong>right-click</strong>
-    on the position you're interested in.
-    A screen position represents a line not a point, so there is a
-    degeneracy here; the new central position is actually the average
-    of data point positions near the mouse click.  The upshot is that
-    if you click on a point or clump of interest, it should do what you want.
-    </p></dd>
-<dt>Zooming</dt>
-<dd><p>You can zoom using the mouse wheel.
-    This zooms the <em>data volume</em> in the visible cube
-    about its centre, so the cube wireframe axes stay in the same place
-    on the screen, but the axis annotations move.
-    </p>
-    <p>If you want to get zoom in or out on the cube wireframe itself,
-    you can do it using the <label>Zoom Factor</label> slider in the
-    <label>View</label> tab of the <ref id="CubeAxisControl">Axes</ref>
-    control.
-    </p></dd>
-</dl>
+<p>See the <ref id="StackPlotWindow" plaintextref="yes">Window Overview</ref>
+for features common to all plotting windows.
+The following subsections describe
+<ref id="sphereNavigation">navigation</ref> and
+<ref id="SphereAxisControl">axis configuration</ref>.
 </p>
 
 <p>The sphere plot offers the following plot controls:
@@ -9461,9 +9670,75 @@ at the "right" place in the 3-d space.  The same applies to a lesser
 extent with contours.  They work fine with a single dataset though.
 </p>
 
-<p>The <label>Axes</label> control (&IMG.AXIS_EDIT;) is described in
-<ref id="SphereAxisControl">the next subsection</ref>.
+<subsubsubsect id="sphereNavigation">
+<subhead><title>Sphere Navigation</title></subhead>
+
+<p>For general comments on plot navigation, see <ref id="plot2Navigation"/>.
+Additional configuration options are available in the <label>Navigation</label>
+tab of the <ref id="SphereAxisControl">Axes control</ref>.
 </p>
+
+<p>Navigation in three dimensions with a two-dimensional screen and mouse
+is a bit of a challenge.  However, the actions listed below should make it
+fairly straightforward to navigate around points in 3d space to zoom in
+on the regions that you are interested in.
+The actions are quite like for the <ref id="cubeNavigation">Cube Window</ref>,
+but all zooming is isotropic.
+<dl>
+<dt>&GESTURE.DRAG1;</dt>
+<dd><p><em>Rotate.</em>
+    Rotates the view cube about its center.
+    </p></dd>
+<dt>&GESTURE.WHEEL;</dt>
+<dd><p><em>Zoom.</em>
+    Spinning the mouse wheel forwards/backwards zooms the space in the
+    view cube in/out around the cube center.  The mouse position does not
+    affect it.
+    </p></dd>
+<dt>&GESTURE.DRAG3;</dt>
+<dd><p><em>Zoom.</em>
+    Zooming up-and-right/down-and-left does just the same as spinning the
+    mouse wheel forwards/backwards.
+    </p></dd>
+<dt>&GESTURE.DRAG2;</dt>
+<dd><p><em>2d pan.</em>
+    Dragging with the center button pans the 3d space in the two dimensions
+    best alighned with the plane of the screen.
+    There is no movement in the third (mostly perpendicular to the screen)
+    direction.
+    </p></dd>
+<dt>&GESTURE.CLICK1;</dt>
+<dd><p><em>Select.</em>
+    If there are plotted points near the cursor it will identify one,
+    plot a marker on it, and
+    <ref id="activation" plaintextref="yes">activate</ref> it.
+    </p>
+    <p>In 3d, it's not obvious which is the nearest point to a 2d cursor,
+    since a screen position represents a line not a point.
+    To break the degeneracy, the point used is the one nearest the 
+    center of mass of plotted points along the line of sight represented
+    by the cursor position.  The upshot of this is that if you click on
+    an isolated point, you'll pick that point, and if you click on a 
+    dense cluster, you'll get a point near the center (of mass) of that
+    cluster.
+    </p></dd>
+<dt>&GESTURE.CLICK3;</dt>
+<dd><p><em>Re-center.</em>
+    Right-clicking identifies a position in a similar way to the
+    left-click Select action, and then translates the plot so that point
+    is at the center of the view cube.  This means that clicking on a
+    cluster will put that cluster in the center of the cube.
+    If you click on an empty region, a position half way between front
+    and back of the cube at that X/Y position will be used.
+    </p></dd>
+</dl>
+</p>
+
+<p>You can also manually fix the plot bounds using the <label>Range</label>
+tab of the <ref id="SphereAxisControl">Axes control</ref>.
+</p>
+
+</subsubsubsect>
 
 <subsubsubsect id="SphereAxisControl">
 <subhead><title>Sphere Axes Control</title></subhead>
@@ -9619,33 +9894,20 @@ It may be improved or withdrawn in a future version.
 
 <p>The <label>Time Plot</label> (&IMG.PLOT2_TIME;)
 is intended for plotting time series data.
-The horizontal axis represents time, and can be labelled accordingly,
+</p>
+
+<p>The horizontal axis represents time, and can be labelled accordingly,
 and the window can display functions of time, scatter plots and spectrograms.
 In future versions it may be able to plot multiple time series plots
 stacked vertically using the same horizontal axis,
 but at present it doesn't do that.
 </p>
 
-<p><strong>Navigation controls</strong>:
-<dl>
-<dt>Horizontal pan/zoom</dt>
-<dd><p>By default you can pan left and right by dragging with the
-    left mouse button, and zoom horizontally with the mouse wheel
-    or by dragging with the right mouse button.
-    </p></dd>
-<dt>Vertical pan/zoom</dt>
-<dd><p>In a time plot you often don't want to pan/zoom up and down,
-    but if you do, you can position the mouse to the left of the
-    vertical axis and then pan up and down by dragging with the
-    left button, or zoom vertically with the mouse wheel or by
-    dragging with the right mouse button.
-    </p>
-    <p>By adjusting the settings in the <label>Navigation</label> tab
-    of the <ref id="TimeAxisControl">Axes Control</ref>
-    it's possible to fix it so that mouse buttons on the main part of the
-    plot pan/zoom in both directions, not just horizontally.
-    </p></dd>
-</dl>
+<p>See the <ref id="StackPlotWindow" plaintextref="yes">Window Overview</ref>
+for features common to all plotting windows.
+The following subsections describe
+<ref id="timeNavigation">navigation</ref> and
+<ref id="TimeAxisControl">axis configuration</ref>.
 </p>
 
 <p>The Time Plot offers the following plot controls:
@@ -9663,9 +9925,57 @@ but at present it doesn't do that.
 </ul>
 </p>
 
-<p>The <label>Axes</label> control (&IMG.AXIS_EDIT;) is described in
-<ref id="TimeAxisControl">the next subsection</ref>.
+<subsubsubsect id="timeNavigation">
+<subhead><title>Time Navigation</title></subhead>
+
+<p>For general comments on plot navigation, see <ref id="plot2Navigation"/>.
+Additional configuration options are available in the <label>Navigation</label>
+tab of the <ref id="TimeAxisControl">Axes control</ref>.
 </p>
+
+<p>The navigation actions for this window are:
+<dl>
+<dt>&GESTURE.DRAG1;</dt>
+<dd><p><em>Pan.</em>
+    On the body of the plot this usually moves it around left/right.
+    By default, vertical movement is inhibited since you don't normally
+    want it for a time plot.
+    To pan vertically, drag on the left of the Y axis.
+    It is also possible to configure panning on the body of the plot
+    to be in both directions using the <label>Pan/Zoom Axes</label>
+    in the <label>Navigation</label> axis configuration tab.
+    </p></dd>
+<dt>&GESTURE.DRAG3;</dt>
+<dd><p><em>Stretch zoom.</em>
+    On the body of the plot this usually stretches/squashes the plot
+    centered on the horizontal position of the mouse.
+    By default, vertical zooming is inhibited since you don't normally
+    want it for a time plot.
+    To zoom vertically, drag on the left of the Y axis. 
+    It is also possible to configure zooming on the body of the plot
+    to be in both directions using the <label>Pan/Zoom Axes</label>
+    in the <label>Navigation</label> axis configuration tab.
+    </p></dd>
+<dt>&GESTURE.WHEEL;</dt>
+<dd><p><em>Zoom.</em>
+    Spinning the mouse wheel forwards/backwards will zoom in/out
+    around the mouse position,
+    just like dragging with the right button up-and-right or down-and-left.
+    </p></dd>
+<dt>&GESTURE.CLICK1;</dt>
+<dd><p><em>Select.</em>
+    If there is a plotted point near the cursor,
+    it will plot a marker on it and
+    <ref id="activation" plaintextref="yes">activate</ref> it.
+    </p></dd>
+</dl>
+</p>
+
+<p>You can also manually fix the plot bounds using the <label>Range</label>
+tab of the <ref id="PlaneAxisControl">Axes control</ref>.
+</p>
+
+</subsubsubsect>
 
 <subsubsubsect id="TimeAxisControl">
 <subhead><title>Time Axes Control</title></subhead>
