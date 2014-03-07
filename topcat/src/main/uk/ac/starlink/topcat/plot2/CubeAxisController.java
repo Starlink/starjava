@@ -34,7 +34,9 @@ public class CubeAxisController
      * @param  stack   plot control stack
      */
     public CubeAxisController( boolean isIso, ControlStack stack ) {
-        super( new CubeSurfaceFactory( isIso ), createAxisLabelKeys(), stack );
+        super( new CubeSurfaceFactory( isIso ),
+               isIso ? "cubeNavigation" : "sphereNavigation",
+               createAxisLabelKeys(), stack );
         isIso_ = isIso;
         final SurfaceFactory<CubeSurfaceFactory.Profile,CubeAspect> surfFact =
             getSurfaceFactory();
