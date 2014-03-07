@@ -107,12 +107,12 @@ public class PlaneSurfaceFactory
                                   new String[] { "X", "Y" } );
 
     /** Config key to anchor X axis during zooms. */
-    public static final ConfigKey<Boolean> XANCHOR0_KEY =
-        createAnchor0Key( "X", false );
+    public static final ConfigKey<Boolean> XANCHOR_KEY =
+        createAxisAnchorKey( "X", false );
 
     /** Config key to anchor Y axis during zooms. */
-    public static final ConfigKey<Boolean> YANCHOR0_KEY =
-        createAnchor0Key( "Y", false );
+    public static final ConfigKey<Boolean> YANCHOR_KEY =
+        createAxisAnchorKey( "Y", false );
 
     public Surface createSurface( Rectangle plotBounds, Profile profile,
                                   PlaneAspect aspect ) {
@@ -209,8 +209,8 @@ public class PlaneSurfaceFactory
     public ConfigKey[] getNavigatorKeys() {
         return new ConfigKey[] {
             NAVAXES_KEY,
-            XANCHOR0_KEY,
-            YANCHOR0_KEY,
+            XANCHOR_KEY,
+            YANCHOR_KEY,
             StyleKeys.ZOOM_FACTOR,
         };
     }
@@ -220,8 +220,8 @@ public class PlaneSurfaceFactory
         boolean[] navFlags = navConfig.get( NAVAXES_KEY );
         boolean xnav = navFlags[ 0 ];
         boolean ynav = navFlags[ 1 ];
-        double xAnchor = navConfig.get( XANCHOR0_KEY ) ? 0.0 : Double.NaN;
-        double yAnchor = navConfig.get( YANCHOR0_KEY ) ? 0.0 : Double.NaN;
+        double xAnchor = navConfig.get( YANCHOR_KEY ) ? 0.0 : Double.NaN;
+        double yAnchor = navConfig.get( XANCHOR_KEY ) ? 0.0 : Double.NaN;
         return new PlaneNavigator( zoom, xnav, ynav, xnav, ynav,
                                    xAnchor, yAnchor );
     }
@@ -234,12 +234,12 @@ public class PlaneSurfaceFactory
      * @param  dflt   anchor default value
      * @return  config key
      */
-    public static ConfigKey<Boolean> createAnchor0Key( String axname,
-                                                       boolean dflt ) {
+    public static ConfigKey<Boolean> createAxisAnchorKey( String axname,
+                                                          boolean dflt ) {
         String axl = axname.toLowerCase();
         String axL = axname.toUpperCase();
         ConfigMeta meta =
-            new ConfigMeta( axl + "anchor0", "Anchor " + axL + " axis" );
+            new ConfigMeta( axl + "anchor", "Anchor " + axL + " axis" );
         return new BooleanConfigKey( meta, dflt );
     }
 
