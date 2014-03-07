@@ -193,6 +193,8 @@
   <!ENTITY FIG.CubePlotWindow '&figs;CubePlotWindow.gif'>
   <!ENTITY FIG.SpherePlotWindow '&figs;SpherePlotWindow.gif'>
   <!ENTITY FIG.TimePlotWindow '&figs;TimePlotWindow.gif'>
+  <!ENTITY FIG.plotmatch_dialog '&figs;plotmatch_dialog.gif'>
+  <!ENTITY FIG.SkyPlotWindow_plotmatch '&figs;SkyPlotWindow_plotmatch.gif'>
 
   <!-- Define external URLs. -->
   <!ENTITY URL.VOTABLE "http://www.ivoa.net/Documents/latest/VOT.html">
@@ -2142,6 +2144,50 @@ Results at or near this percolation threshold are
 (b) likely to take a long time to run.
 Some care should therefore be exercised when specifying match criteria
 in multi-object match contexts.
+</p>
+
+</subsect>
+
+<subsect id="matchPlot">
+<subhead><title>Plotting Match Results</title></subhead>
+
+<p>Having performed a crossmatch, it is very often a good idea
+to look at the results graphically.
+If you can plot the input catalogues, and the output catalogue,
+with an indication of which rows in the inputs have been joined
+together, you can rapidly get a good idea of the result of the
+match, and whether it did what you expected.
+This is especially true in the presence of crowded fields,
+tentative match criteria, or other circumstances under which the
+match might not go as expected.
+</p>
+
+<p>Since TOPCAT version 4.1, for most pair matches, you can do this
+automatically.
+When a suitable match completes, you may see a confirmation dialogue
+like this:
+</p>
+<figure>
+<caption><px>Pair plot completion confirmation dialogue</px></caption>
+<figureimage src="&FIG.plotmatch_dialog;"/>
+</figure>
+
+<p>If you click the <label>OK</label> button, it will simply dismiss
+the dialogue.
+However, if you click the <label>Plot Result</label> button, a new
+plot window will appear with all the points from the input catalogues
+and pair links (lines between the joined positions) for the joined rows.
+The result is something like this:
+</p>
+<figure>
+<caption><px>Output from crossmatch Plot Result</px></caption>
+<figureimage src="&FIG.SkyPlotWindow_plotmatch;"/>
+</figure>
+
+<p>It shows clearly which points have been joined.
+You can fiddle with the plot controls in the usual way
+to adjust the output (see <ref id="plot2"/>).
+It is also possible to set up such plots by hand.
 </p>
 
 </subsect>
