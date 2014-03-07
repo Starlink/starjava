@@ -174,17 +174,17 @@ public class HistogramAxisController
      */
     private static class HistogramSurfaceFactory extends PlaneSurfaceFactory {
         
-        private static final ConfigKey<Boolean> HIST_XANCHOR0_KEY =
-            createAnchor0Key( "X", false );
-        private static final ConfigKey<Boolean> HIST_YANCHOR0_KEY =
-            createAnchor0Key( "Y", true );
+        private static final ConfigKey<Boolean> HIST_XANCHOR_KEY =
+            createAxisAnchorKey( "X", true );
+        private static final ConfigKey<Boolean> HIST_YANCHOR_KEY =
+            createAxisAnchorKey( "Y", false );
 
         @Override
         public ConfigKey[] getNavigatorKeys() {
             return new ConfigKey[] {
                 NAVAXES_KEY,
-                HIST_XANCHOR0_KEY,
-                HIST_YANCHOR0_KEY,
+                HIST_XANCHOR_KEY,
+                HIST_YANCHOR_KEY,
                 StyleKeys.ZOOM_FACTOR,
             };
         }
@@ -195,10 +195,10 @@ public class HistogramAxisController
             boolean[] navFlags = navConfig.get( NAVAXES_KEY );
             boolean xnav = navFlags[ 0 ];
             boolean ynav = navFlags[ 1 ];
-            double xAnchor = navConfig.get( HIST_XANCHOR0_KEY ) ? 0.0
-                                                                : Double.NaN;
-            double yAnchor = navConfig.get( HIST_YANCHOR0_KEY ) ? 0.0
-                                                                : Double.NaN;
+            double xAnchor = navConfig.get( HIST_YANCHOR_KEY ) ? 0.0
+                                                               : Double.NaN;
+            double yAnchor = navConfig.get( HIST_XANCHOR_KEY ) ? 0.0
+                                                               : Double.NaN;
             return new PlaneNavigator( zoom, xnav, ynav, xnav, ynav,
                                        xAnchor, yAnchor );
         }
