@@ -245,6 +245,7 @@ public class ResourceIcon implements Icon {
         NAV_HELP = makeIcon( "navhelp.gif" ),
         NAV_DEC = makeIcon( "navdec1.gif" ),
         SMALL_CLOSE = makeIcon( "x9.gif" ),
+        SMALL_HELP = makeIcon( "q9.gif" ),
         ADD_CONTROL = makeIcon( "addlayer4.png" ),
 
         /* Datanode (hierarchy browser) icons. */

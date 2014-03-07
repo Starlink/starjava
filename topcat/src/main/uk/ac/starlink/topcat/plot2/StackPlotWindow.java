@@ -44,6 +44,7 @@ import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.topcat.AuxWindow;
 import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.ControlWindow;
+import uk.ac.starlink.topcat.HelpAction;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.SubsetConsumer;
 import uk.ac.starlink.topcat.ToggleButtonModel;
@@ -396,6 +397,13 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         statusLine.add( countLine );
         cpanel.add( statusLine );
 
+        /* Get action to provide plot-specific navigation help. */
+        String navHelpId = axisController_.getNavigatorHelpId();
+        Action navHelpAction =
+              navHelpId != null && HelpAction.helpIdExists( navHelpId )
+            ? new HelpAction( navHelpId, this )
+            : null;
+
         /* Place mouse hints panel at the bottom of the window, with
          * actions to hide it. */
         final JComponent navhelpHolder = Box.createVerticalBox();
@@ -418,13 +426,21 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                 navhelpHolder.revalidate();
             }
         } );
+        navPanel_.setAlignmentY( 0.5f );
         JButton hideNavButt = new JButton( null, ResourceIcon.SMALL_CLOSE );
         hideNavButt.setMargin( new Insets( 0, 0, 0, 0 ) );
         hideNavButt.setModel( navhelpModel );
         hideNavButt.setAlignmentY( 0.5f );
-        navPanel_.setAlignmentY( 0.5f );
         navhelpLine.add( hideNavButt );
         navhelpLine.add( Box.createHorizontalStrut( 5 ) );
+        if ( navHelpAction != null ) {
+            JButton helpNavButt = new JButton( null, ResourceIcon.SMALL_HELP );
+            helpNavButt.setMargin( new Insets( 0, 0, 0, 0 ) );
+            helpNavButt.addActionListener( navHelpAction );
+            helpNavButt.setAlignmentY( 0.5f );
+            navhelpLine.add( helpNavButt );
+            navhelpLine.add( Box.createHorizontalStrut( 5 ) );
+        }
         navhelpLine.add( navPanel_ );
         navhelpHolder.add( navhelpLine );
         cpanel.add( navhelpHolder );
