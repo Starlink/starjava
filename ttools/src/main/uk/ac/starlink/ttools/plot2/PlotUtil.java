@@ -129,7 +129,8 @@ public class PlotUtil {
                 os = "?";
             }
             boolean isMac = os != null
-                         && os.toLowerCase().indexOf( "macos" ) >= 0;
+                         && ( os.toLowerCase().indexOf( "macos" ) >= 0 ||
+                              os.toLowerCase().indexOf( "mac os" ) >= 0 );
             dfltAntialias_ = Boolean.valueOf( isMac );
             logger_.info( "Use default text antialias setting "
                         + dfltAntialias_ + " (os.name=" + os + ")" );

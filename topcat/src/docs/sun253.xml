@@ -17249,6 +17249,7 @@ Some of the notable contributers are these:
 <li>Simon Murphy (ANU)</li>
 <li>Francois Ochsenbein (CDS)</li>
 <li>Clive Page (Leicester)</li>
+<li>Menelaus Perdikeas (ESAC)</li>
 <li>Roy Platon (RAL)</li>
 <li>James Price (Bristol)</li>
 <li>Anita Richards (Jodrell Bank)</li>
@@ -19909,6 +19910,13 @@ introduced since the last version:
         </ul>
         </p></dd>
     </dl>
+    </p></dd>
+
+<dt>Next version</dt>
+<dd><p>
+    <ul>
+    <li>Set antialiasing on by default for OSX - get it right this time.</li>
+    </ul>
     </p></dd>
 
 </dl>
