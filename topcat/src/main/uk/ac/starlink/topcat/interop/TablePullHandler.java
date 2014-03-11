@@ -67,7 +67,7 @@ public abstract class TablePullHandler extends AbstractMessageHandler {
          * response value. */
         else {
             StarTable table = tcModel.getApparentStarTable();
-            String fname = "t" + index;
+            String fname = "t" + index + getSuffix( twriter );
             ServerResource resource =
                 TableSendActionManager.createTableResource( table, twriter );
             URL turl =
@@ -147,5 +147,24 @@ public abstract class TablePullHandler extends AbstractMessageHandler {
             }
             return null;
         }
+    }
+
+    /**
+     * Returns a plausible filename suffix for a table writer.
+     * This is really just intended for cosmetic purposes.
+     * The restult may be the empty string.
+     *
+     * @param   twriter  table writer
+     * @return  file suffix
+     */
+    private static String getSuffix( StarTableWriter twriter ) {
+        String fmtname = twriter.getFormatName();
+        if ( fmtname == null || fmtname.trim().length() == 0 ) {
+            return "";
+        }
+        int dashIndex = fmtname.indexOf( '-' );
+        String abbrev = dashIndex > 0 ? fmtname.substring( 0, dashIndex )
+                                      : fmtname;
+        return "." + abbrev.toLowerCase();
     }
 }
