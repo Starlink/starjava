@@ -1,6 +1,7 @@
 package uk.ac.starlink.ttools.plot2.geom;
 
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.util.LinkedHashMap;
@@ -63,24 +64,30 @@ public class TimeNavigator implements Navigator<TimeAspect> {
         TimeSurface tsurf = (TimeSurface) surface;
         int ibutt = PlotUtil.getButtonDownIndex( evt );
         Point point = evt.getPoint();
+        boolean tUse = useFlags[ 0 ];
+        boolean yUse = useFlags[ 1 ];
+        Rectangle plotBounds = surface.getPlotBounds();
         if ( ibutt == 3 ) {
-            double tf = useFlags[ 0 ]
+            double tf = tUse
                       ? PlotUtil.toZoom( zoomFactor_, origin, point, false )
                       : 1;
-            double yf = useFlags[ 1 ]
+            double yf = yUse
                       ? PlotUtil.toZoom( zoomFactor_, origin, point, true )
                       : 1;
             TimeAspect aspect = tsurf.zoom( origin, tf, yf );
             Decoration dec =
                 NavDecorations
-               .createDragDecoration( origin, tf, yf,
-                                      useFlags[ 0 ], useFlags[ 1 ],
-                                      surface.getPlotBounds() );
+               .createDragDecoration( origin, tf, yf, tUse, yUse, plotBounds );
             return new NavAction<TimeAspect>( aspect, dec );
         }
+        else if ( ibutt == 2 ) {
+            Decoration dec =
+                NavDecorations
+               .createBandDecoration( origin, point, tUse, yUse, plotBounds ); 
+            return new NavAction<TimeAspect>( null, dec );
+        }
         else {
-            TimeAspect aspect =
-                tsurf.pan( origin, point, useFlags[ 0 ], useFlags[ 1 ] );
+            TimeAspect aspect = tsurf.pan( origin, point, tUse, yUse );
             return new NavAction<TimeAspect>( aspect, null );
         }
     }
@@ -130,7 +137,8 @@ public class TimeNavigator implements Navigator<TimeAspect> {
         }
         Map<Gesture,String> map = new LinkedHashMap<Gesture,String>();
         map.put( Gesture.DRAG_1, "Pan " + freeTxt );
-        map.put( Gesture.DRAG_3, "Zoom " + freeTxt );
+        map.put( Gesture.DRAG_3, "Stretch " + freeTxt );
+        map.put( Gesture.DRAG_2, "Frame " + freeTxt );
         map.put( Gesture.WHEEL, "Zoom " + isoTxt );
         return map;
     }

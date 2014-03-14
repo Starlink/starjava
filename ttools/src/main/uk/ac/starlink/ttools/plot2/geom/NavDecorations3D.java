@@ -49,8 +49,8 @@ public class NavDecorations3D {
             factors[ i ] = useFlags[ i ] ? zoomFactor : 1;
         }
         return NavDecorations
-              .center( projectNorm( csurf, new double[ 3 ] ),
-                       new DragIcon3D( csurf, factors ) );
+              .center( new DragIcon3D( csurf, factors ),
+                       projectNorm( csurf, new double[ 3 ] ) );
     }
 
     /**
@@ -67,8 +67,8 @@ public class NavDecorations3D {
                                                           double zoomFactor,
                                                           boolean[] useFlags ) {
         return NavDecorations
-              .center( projectNorm( csurf, new double[ 3 ] ),
-                       new WheelIcon3D( csurf, zoomFactor, useFlags ) );
+              .center( new WheelIcon3D( csurf, zoomFactor, useFlags ),
+                       projectNorm( csurf, new double[ 3 ] ) );
     }
 
     /**
@@ -85,8 +85,7 @@ public class NavDecorations3D {
     public static Decoration create2dZoomDecoration( CubeSurface csurf,
                                                      Point pos,
                                                      double xf, double yf ) {
-        return NavDecorations
-              .center( pos, new DragIcon2D( csurf, xf, yf ) );
+        return NavDecorations.center( new DragIcon2D( csurf, xf, yf ), pos );
     }
 
     /**
@@ -99,7 +98,7 @@ public class NavDecorations3D {
      */
     public static Decoration create2dPanDecoration( CubeSurface csurf,
                                                     Point pos ) {
-        return NavDecorations.center( pos, new GrabIcon2D( csurf ) );
+        return NavDecorations.center( new GrabIcon2D( csurf ), pos );
     }
 
     /**
