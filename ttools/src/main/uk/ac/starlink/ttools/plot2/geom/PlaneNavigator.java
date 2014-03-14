@@ -60,6 +60,9 @@ public class PlaneNavigator implements Navigator<PlaneAspect> {
         PlaneSurface psurf = (PlaneSurface) surface;
         Point point = evt.getPoint();
         int ibutt = PlotUtil.getButtonDownIndex( evt );
+        boolean xUse = useFlags[ 0 ];
+        boolean yUse = useFlags[ 1 ];
+        Rectangle plotBounds = surface.getPlotBounds();
         if ( ibutt == 3 ) {
             int[] offs = getAnchorOffsets( psurf, origin );
             Point g0 = new Point( origin.x + offs[ 0 ], origin.y + offs[ 1 ] );
@@ -73,14 +76,17 @@ public class PlaneNavigator implements Navigator<PlaneAspect> {
             PlaneAspect aspect = psurf.zoom( g0, xf, yf );
             Decoration dec =
                 NavDecorations
-               .createDragDecoration( g0, xf, yf,
-                                      useFlags[ 0 ], useFlags[ 1 ],
-                                      surface.getPlotBounds() );
+               .createDragDecoration( g0, xf, yf, xUse, yUse, plotBounds );
             return new NavAction<PlaneAspect>( aspect, dec );
         }
+        else if ( ibutt == 2 ) {
+            Decoration dec =
+                NavDecorations
+               .createBandDecoration( origin, point, xUse, yUse, plotBounds );
+            return new NavAction<PlaneAspect>( null, dec );
+        }
         else {
-            PlaneAspect aspect =
-                psurf.pan( origin, point, useFlags[ 0 ], useFlags[ 1 ] );
+            PlaneAspect aspect = psurf.pan( origin, point, xUse, yUse );
             return new NavAction<PlaneAspect>( aspect, null );
         }
     }
@@ -132,7 +138,8 @@ public class PlaneNavigator implements Navigator<PlaneAspect> {
         }
         Map<Gesture,String> map = new LinkedHashMap<Gesture,String>();
         map.put( Gesture.DRAG_1, "Pan " + freeTxt );
-        map.put( Gesture.DRAG_3, "Zoom " + freeTxt );
+        map.put( Gesture.DRAG_3, "Stretch " + freeTxt );
+        map.put( Gesture.DRAG_2, "Frame" + freeTxt );
         map.put( Gesture.WHEEL, "Zoom " + isoTxt );
         return map;
     }
