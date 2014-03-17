@@ -81,7 +81,7 @@ public class SkySurface implements Surface {
      * @param  sexagesimal  whether to use sexagesimal coordinates
      * @param  crowd   tick mark crowding factor, 1 is normal
      * @param  captioner  text rendering object
-     * @param  antialias  whether to antialias grid lines and text
+     * @param  antialias  whether to antialias grid lines
      */
     public SkySurface( Rectangle plotBounds, Projection projection,
                        double[] rotmat, double zoom, double xoff, double yoff,
@@ -155,7 +155,9 @@ public class SkySurface implements Surface {
 
     public void paintBackground( Graphics g ) {
         Graphics2D g2 = (Graphics2D) g.create();
-        PlotUtil.setAntialias( g2, antialias_ );
+        g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING,
+                             antialias_ ? RenderingHints.VALUE_ANTIALIAS_ON
+                                        : RenderingHints.VALUE_ANTIALIAS_OFF );
         final Shape gShape;
         if ( skyFillsBounds_ ) {
             gShape = new Rectangle( getPlotBounds() );
@@ -185,8 +187,10 @@ public class SkySurface implements Surface {
         }
         Graphics2D g2 = (Graphics2D) g;
         Color color0 = g.getColor();
-        RenderingHints hints0 = g2.getRenderingHints();
-        PlotUtil.setAntialias( g2, antialias_ );
+        Object aa0 = g2.getRenderingHint( RenderingHints.KEY_ANTIALIASING );
+        g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING,
+                             antialias_ ? RenderingHints.VALUE_ANTIALIAS_ON
+                                        : RenderingHints.VALUE_ANTIALIAS_OFF );
         if ( gridColor_ != null ) {
             g2.setColor( gridColor_ );
             double[][][] lines = gl.getLines();
@@ -211,7 +215,7 @@ public class SkySurface implements Surface {
             axLabeller_.createAxisAnnotation( gl, captioner_ )
                        .drawLabels( g2 );
         }
-        g2.setRenderingHints( hints0 );
+        g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING, aa0 );
         g2.setColor( color0 );
     }
 

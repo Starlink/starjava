@@ -70,7 +70,6 @@ public class HistogramAxisController
             StyleKeys.MINOR_TICKS,
             PlaneSurfaceFactory.XCROWD_KEY,
             PlaneSurfaceFactory.YCROWD_KEY,
-            StyleKeys.GRID_ANTIALIAS,
         } ) );
 
         /* Labels tab. */

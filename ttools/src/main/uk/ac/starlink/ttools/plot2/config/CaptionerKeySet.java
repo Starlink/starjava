@@ -5,6 +5,7 @@ import org.scilab.forge.jlatexmath.TeXFormula;
 import uk.ac.starlink.ttools.plot2.BasicCaptioner;
 import uk.ac.starlink.ttools.plot2.Captioner;
 import uk.ac.starlink.ttools.plot2.LatexCaptioner;
+import uk.ac.starlink.ttools.plot2.PlotUtil;
 
 /**
  * ConfigKeySet for specifying a captioner.
@@ -26,11 +27,12 @@ public class CaptionerKeySet implements KeySet<Captioner> {
      */
     public CaptionerKeySet() {
         textSyntaxKey_ =
-            new OptionConfigKey<TextSyntax>( new ConfigMeta( "syntax",
-                                                             "Text Syntax" ),
-                                             TextSyntax.class,
-                                             TextSyntax.values(),
-                                             TextSyntax.values()[ 0 ], true );
+            new OptionConfigKey<TextSyntax>(
+                    new ConfigMeta( "syntax", "Text Syntax" ),
+                    TextSyntax.class, TextSyntax.values(),
+                    PlotUtil.getDefaultTextAntialiasing() ? TextSyntax.AAPLAIN
+                                                          : TextSyntax.PLAIN,
+                    true );
         fontSizeKey_ =
             IntegerConfigKey.createSpinnerKey( new ConfigMeta( "fontsize",
                                                                "Font Size" ),
@@ -120,7 +122,15 @@ public class CaptionerKeySet implements KeySet<Captioner> {
                                               int size ) {
                 return new BasicCaptioner( new Font( type.awtName_,
                                                      weight.awtWeight_,
-                                                     size ) );
+                                                     size ), false );
+            }
+        },
+        AAPLAIN( "Antialias" ) {
+            public Captioner createCaptioner( FontType type, FontWeight weight,
+                                              int size ) {
+                return new BasicCaptioner( new Font( type.awtName_,
+                                                     weight.awtWeight_,
+                                                     size ), true );
             }
         },
         LATEX( "LaTeX" ) {
@@ -134,6 +144,14 @@ public class CaptionerKeySet implements KeySet<Captioner> {
         TextSyntax( String name ) {
             name_ = name;
         }
+
+        /**
+         * Creates a captioner for this syntax.
+         *
+         * @param   type  font type
+         * @param   weight  font weight
+         * @param   size   font size
+         */
         public abstract Captioner createCaptioner( FontType type,
                                                    FontWeight weight,
                                                    int size );
