@@ -418,16 +418,16 @@ public class PlotUtil {
     /**
      * Determines a zoom factor from a mouse wheel event and a given
      * unit zoom factor.
-     * It just multiplies the given unit factor by the number of wheel clicks
-     * (and applies a sense adjustment).
+     * It just raises the given unit factor to the power of 
+     * the number of wheel rotations (and applies a sense adjustment).
      *
      * @param   unitFactor   positive zoom factor corresponding to a
      *                       single click
-     * @param   evt   mouse wheel event
+     * @param   wheelrot   mouse wheel rotation
      * @return   zoom factor
      */
-    public static double toZoom( double unitFactor, MouseWheelEvent evt ) {
-        return Math.pow( unitFactor, - evt.getWheelRotation() );
+    public static double toZoom( double unitFactor, int wheelrot ) {
+        return Math.pow( unitFactor, - wheelrot );
     }
 
     /**

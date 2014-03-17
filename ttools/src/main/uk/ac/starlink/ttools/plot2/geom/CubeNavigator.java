@@ -1,8 +1,6 @@
 package uk.ac.starlink.ttools.plot2.geom;
 
 import java.awt.Point;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseWheelEvent;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -50,11 +48,9 @@ public class CubeNavigator implements Navigator<CubeAspect> {
         axisFlags_ = axisFlags;
     }
 
-    public NavAction<CubeAspect> drag( Surface surface, MouseEvent evt,
+    public NavAction<CubeAspect> drag( Surface surface, Point pos, int ibutt,
                                        Point origin ) {
         CubeSurface csurf = (CubeSurface) surface;
-        Point pos = evt.getPoint();
-        int ibutt = PlotUtil.getButtonDownIndex( evt );
         if ( ibutt == 1 ) {
             CubeAspect aspect = csurf.pan( origin, pos );
             return new NavAction<CubeAspect>( aspect, null );
@@ -90,7 +86,8 @@ public class CubeNavigator implements Navigator<CubeAspect> {
         }
     }
 
-    public NavAction<CubeAspect> wheel( Surface surface, MouseWheelEvent evt ) {
+    public NavAction<CubeAspect> wheel( Surface surface, Point pos,
+                                        int wheelrot ) {
         final boolean xZoom;
         final boolean yZoom;
         final boolean zZoom;
@@ -98,7 +95,7 @@ public class CubeNavigator implements Navigator<CubeAspect> {
                            ? new boolean[] { true, true, true }
                            : axisFlags_;
         CubeSurface csurf = (CubeSurface) surface;
-        double fact = PlotUtil.toZoom( zoomFactor_, evt );
+        double fact = PlotUtil.toZoom( zoomFactor_, wheelrot );
         CubeAspect aspect = csurf.centerZoom( fact, useFlags );
         Decoration dec =
             NavDecorations3D
@@ -106,10 +103,9 @@ public class CubeNavigator implements Navigator<CubeAspect> {
         return new NavAction<CubeAspect>( aspect, dec );
     }
 
-    public NavAction<CubeAspect> click( Surface surface, MouseEvent evt,
+    public NavAction<CubeAspect> click( Surface surface, Point pos, int ibutt,
                                         Iterable<double[]> dposIt ) {
         CubeSurface csurf = (CubeSurface) surface;
-        Point pos = evt.getPoint();
         double[] dpos = surface.graphicsToData( pos, dposIt );
         if ( dpos == null ) {
             return null;

@@ -2,8 +2,6 @@ package uk.ac.starlink.ttools.plot2.geom;
 
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseWheelEvent;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import uk.ac.starlink.ttools.plot2.Decoration;
@@ -57,13 +55,11 @@ public class TimeNavigator implements Navigator<TimeAspect> {
         yPan_ = yPan;
     }
 
-    public NavAction<TimeAspect> drag( Surface surface, MouseEvent evt,
+    public NavAction<TimeAspect> drag( Surface surface, Point point, int ibutt,
                                        Point origin ) {
         boolean[] useFlags =
             PlaneNavigator.getAxisNavFlags( surface, origin, tPan_, yPan_ );
         TimeSurface tsurf = (TimeSurface) surface;
-        int ibutt = PlotUtil.getButtonDownIndex( evt );
-        Point point = evt.getPoint();
         boolean tUse = useFlags[ 0 ];
         boolean yUse = useFlags[ 1 ];
         Rectangle plotBounds = surface.getPlotBounds();
@@ -92,11 +88,11 @@ public class TimeNavigator implements Navigator<TimeAspect> {
         }
     }
 
-    public NavAction<TimeAspect> wheel( Surface surface, MouseWheelEvent evt ) {
-        Point pos = evt.getPoint();
+    public NavAction<TimeAspect> wheel( Surface surface, Point pos,
+                                        int wheelrot ) {
         boolean[] useFlags =
             PlaneNavigator.getAxisNavFlags( surface, pos, tZoom_, yZoom_ );
-        double zfact = PlotUtil.toZoom( zoomFactor_, evt );
+        double zfact = PlotUtil.toZoom( zoomFactor_, wheelrot );
         double tf = useFlags[ 0 ] ? zfact : 1;
         double yf = useFlags[ 1 ] ? zfact : 1;
         TimeAspect aspect = ((TimeSurface) surface).zoom( pos, tf, yf );
@@ -107,7 +103,7 @@ public class TimeNavigator implements Navigator<TimeAspect> {
         return new NavAction<TimeAspect>( aspect, dec );
     }
 
-    public NavAction<TimeAspect> click( Surface surface, MouseEvent evt,
+    public NavAction<TimeAspect> click( Surface surface, Point pos, int ibutt,
                                         Iterable<double[]> dposIt ) {
         return null;
     }

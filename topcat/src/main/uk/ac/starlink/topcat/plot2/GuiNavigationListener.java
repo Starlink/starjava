@@ -1,6 +1,6 @@
 package uk.ac.starlink.topcat.plot2;
 
-import java.awt.event.MouseEvent;
+import java.awt.Point;
 import javax.swing.SwingUtilities;
 import uk.ac.starlink.ttools.plot2.NavAction;
 import uk.ac.starlink.ttools.plot2.NavigationListener;
@@ -37,7 +37,7 @@ public abstract class GuiNavigationListener<A> extends NavigationListener<A> {
     @Override
     protected void handleClick( final Navigator<A> navigator,
                                 final Surface surface,
-                                final MouseEvent evt,
+                                final Point pos, final int ibutt,
                                 final Iterable<double[]> dposIt ) {
 
         /* The click operation *may* take time, if it is necessary to
@@ -47,7 +47,7 @@ public abstract class GuiNavigationListener<A> extends NavigationListener<A> {
         plotPanel_.submitPlotAnnotator( new Runnable() {
             public void run() {
                 NavAction<A> navact =
-                    navigator.click( surface, evt, dposIt );
+                    navigator.click( surface, pos, ibutt, dposIt );
                 updateDecoration( navact.getDecoration(), true );
                 final A aspect = navact == null ? null
                                                 : navact.getAspect();

@@ -2,8 +2,6 @@ package uk.ac.starlink.ttools.plot2.geom;
 
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseWheelEvent;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import uk.ac.starlink.ttools.plot2.Decoration;
@@ -54,12 +52,10 @@ public class PlaneNavigator implements Navigator<PlaneAspect> {
         yAnchor_ = yAnchor;
     }
 
-    public NavAction<PlaneAspect> drag( Surface surface, MouseEvent evt,
-                                        Point origin ) {
+    public NavAction<PlaneAspect> drag( Surface surface, Point point,
+                                        int ibutt, Point origin ) {
         boolean[] useFlags = getAxisNavFlags( surface, origin, xPan_, yPan_ );
         PlaneSurface psurf = (PlaneSurface) surface;
-        Point point = evt.getPoint();
-        int ibutt = PlotUtil.getButtonDownIndex( evt );
         boolean xUse = useFlags[ 0 ];
         boolean yUse = useFlags[ 1 ];
         Rectangle plotBounds = surface.getPlotBounds();
@@ -91,12 +87,11 @@ public class PlaneNavigator implements Navigator<PlaneAspect> {
         }
     }
 
-    public NavAction<PlaneAspect> wheel( Surface surface,
-                                         MouseWheelEvent evt ) {
+    public NavAction<PlaneAspect> wheel( Surface surface, Point pos,
+                                         int wheelrot ) {
         PlaneSurface psurf = (PlaneSurface) surface;
-        Point pos = evt.getPoint();
         boolean[] useFlags = getAxisNavFlags( surface, pos, xZoom_, yZoom_ );
-        double zfact = PlotUtil.toZoom( zoomFactor_, evt );
+        double zfact = PlotUtil.toZoom( zoomFactor_, wheelrot );
         double xf = useFlags[ 0 ] ? zfact : 1;
         double yf = useFlags[ 1 ] ? zfact : 1;
         int[] offs = getAnchorOffsets( psurf, pos );
@@ -109,7 +104,7 @@ public class PlaneNavigator implements Navigator<PlaneAspect> {
         return new NavAction<PlaneAspect>( aspect, dec );
     }
 
-    public NavAction<PlaneAspect> click( Surface surface, MouseEvent evt,
+    public NavAction<PlaneAspect> click( Surface surface, Point pos, int ibutt,
                                          Iterable<double[]> dposIt ) {
         return null;
     }

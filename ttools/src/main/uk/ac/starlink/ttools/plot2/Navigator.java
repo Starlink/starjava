@@ -28,13 +28,13 @@ public interface Navigator<A> {
      * to <code>evt.getPoint()</code>).
      *
      * @param   surface  initial plot surface
-     * @param   evt    mouse event associated with the final (at least, most
-     *                 recent) element of the drag gesture
+     * @param   pos    current mouse position
+     * @param   ibutton  logical mouse button index of drag
      * @param   origin   starting point of the drag gesture
      * @return  navigation action indicated by the gesture,
      *          or null for no change
      */
-    NavAction<A> drag( Surface surface, MouseEvent evt, Point origin );
+    NavAction<A> drag( Surface surface, Point pos, int ibutton, Point origin );
 
     /**
      * Mouse wheel gesture.
@@ -44,11 +44,12 @@ public interface Navigator<A> {
      * at the mouse position before and after the zoom.
      *
      * @param   surface  initial plot surface
-     * @param   evt    mouse event associated with the wheel gesture
+     * @param   pos     current mouse position
+     * @param   wheelrot   number of wheel rotation clicks
      * @return  navigation action indicated by the gesture,
      *          or null for no change
      */
-    NavAction<A> wheel( Surface surface, MouseWheelEvent evt );
+    NavAction<A> wheel( Surface surface, Point pos, int wheelrot );
 
     /**
      * Mouse click gesture.
@@ -71,14 +72,15 @@ public interface Navigator<A> {
      * not run slowly by iterating over the data points.
      *
      * @param   surface   initial plot surface
-     * @param   evt   mouse event associated with the click gesture
+     * @param   pos     current mouse position
+     * @param   ibutton  logical mouse button index
      * @param   dposIt  iterable over dataDimCount-element arrays
      *                  representing all the data space positions plotted,
      *                  or null
      * @return  navigation action indicated by the gesture,
      *          or null for no change
      */
-    NavAction<A> click( Surface surface, MouseEvent evt,
+    NavAction<A> click( Surface surface, Point pos, int ibutton,
                         Iterable<double[]> dposIt );
 
     /**
