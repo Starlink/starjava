@@ -100,7 +100,7 @@ public class TimeSurfaceFactory
               .createSurface( plotBounds, aspect,
                               p.ylog_, p.yflip_, p.tlabel_, p.ylabel_,
                               p.captioner_, p.grid_, p.tformat_,
-                              p.tcrowd_, p.ycrowd_, p.minor_, p.antialias_ );
+                              p.tcrowd_, p.ycrowd_, p.minor_ );
     }
 
     public ConfigKey[] getProfileKeys() {
@@ -115,7 +115,6 @@ public class TimeSurfaceFactory
             YCROWD_KEY,
             TFORMAT_KEY,
             StyleKeys.MINOR_TICKS,
-            StyleKeys.GRID_ANTIALIAS,
         } ) );
         list.addAll( Arrays.asList( StyleKeys.CAPTIONER.getKeys() ) );
         return list.toArray( new ConfigKey[ 0 ] );
@@ -131,10 +130,9 @@ public class TimeSurfaceFactory
         double ycrowd = config.get( YCROWD_KEY );
         TimeFormat tformat = config.get( TFORMAT_KEY );
         boolean minor = config.get( StyleKeys.MINOR_TICKS );
-        boolean antialias = config.get( StyleKeys.GRID_ANTIALIAS );
         Captioner captioner = StyleKeys.CAPTIONER.createValue( config );
         return new Profile( ylog, yflip, tlabel, ylabel, captioner,
-                            grid, tcrowd, ycrowd, tformat, minor, antialias );
+                            grid, tcrowd, ycrowd, tformat, minor );
     }
 
     public ConfigKey[] getAspectKeys() {
@@ -223,7 +221,6 @@ public class TimeSurfaceFactory
         private final double ycrowd_;
         private final TimeFormat tformat_;
         private final boolean minor_;
-        private final boolean antialias_;
 
         /**
          * Constructor.
@@ -240,12 +237,11 @@ public class TimeSurfaceFactory
          *                 1 is normal
          * @param  tformat time labelling format
          * @param  minor   whether to draw minor ticks
-         * @param  antialias  whether to antialias grid label text
          */
         public Profile( boolean ylog, boolean yflip,
                         String tlabel, String ylabel, Captioner captioner,
                         boolean grid, double tcrowd, double ycrowd,
-                        TimeFormat tformat, boolean minor, boolean antialias ) {
+                        TimeFormat tformat, boolean minor ) {
             ylog_ = ylog;
             yflip_ = yflip;
             tlabel_ = tlabel;
@@ -256,7 +252,6 @@ public class TimeSurfaceFactory
             ycrowd_ = ycrowd;
             tformat_ = tformat;
             minor_ = minor;
-            antialias_ = antialias;
         }
 
         /**

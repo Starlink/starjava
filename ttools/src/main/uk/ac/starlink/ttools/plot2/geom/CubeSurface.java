@@ -86,7 +86,7 @@ public class CubeSurface implements Surface {
      * @param  labels  3-element array of X,Y,Z axis label strings
      * @param  captioner  text renderer
      * @param  frame  whether to draw wire frame
-     * @param  antialias  whether to antialias grid lines and text
+     * @param  antialias  whether to antialias grid lines
      */
     public CubeSurface( int gxlo, int gxhi, int gylo, int gyhi,
                         double[] dlos, double[] dhis,
@@ -394,10 +394,13 @@ public class CubeSurface implements Surface {
         if ( frame_ ) {
             Shape clip0 = g2.getClip();
             g2.clipRect( gxlo_, gylo_, gxhi_ - gxlo_, gyhi_ - gylo_ );
-            RenderingHints hints0 = g2.getRenderingHints();
-            PlotUtil.setAntialias( g2, antialias_ );
+            Object aa0 = g2.getRenderingHint( RenderingHints.KEY_ANTIALIASING );
+            g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING,
+                                 antialias_
+                                     ? RenderingHints.VALUE_ANTIALIAS_ON
+                                     : RenderingHints.VALUE_ANTIALIAS_OFF );
             plotFrame( g2, false );
-            g2.setRenderingHints( hints0 );
+            g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING, aa0 );
             g2.setClip( clip0 );
         }
     }
@@ -410,10 +413,13 @@ public class CubeSurface implements Surface {
         if ( frame_ ) {
             Shape clip0 = g2.getClip();
             g2.clipRect( gxlo_, gylo_, gxhi_ - gxlo_, gyhi_ - gylo_ );
-            RenderingHints hints0 = g2.getRenderingHints();
-            PlotUtil.setAntialias( g2, antialias_ );
+            Object aa0 = g2.getRenderingHint( RenderingHints.KEY_ANTIALIASING );
+            g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING,
+                                 antialias_
+                                     ? RenderingHints.VALUE_ANTIALIAS_ON
+                                     : RenderingHints.VALUE_ANTIALIAS_OFF );
             plotFrame( g2, true );
-            g2.setRenderingHints( hints0 );
+            g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING, aa0 );
             g2.setClip( clip0 );
         }
     }
@@ -1035,7 +1041,7 @@ public class CubeSurface implements Surface {
      * @param  captioner  text renderer
      * @param  frame  whether to draw wire frame
      * @param  minor  whether to draw minor tickmarks
-     * @param  antialias  whether to antialias grid text and lines
+     * @param  antialias  whether to antialias grid lines
      * @return  new plot surface
      */
     public static CubeSurface createSurface( Rectangle plotBounds,

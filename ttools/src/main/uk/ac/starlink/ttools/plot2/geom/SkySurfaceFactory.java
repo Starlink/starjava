@@ -246,7 +246,7 @@ public class SkySurfaceFactory
          * @param  sex  whether to use sexagesimal coordinates
          * @param  crowd   tick mark crowding factor, 1 is normal
          * @param  captioner  text rendering object
-         * @param  antialias  whether to antialias grid lines and text
+         * @param  antialias  whether to antialias grid lines
          */
         public Profile( Projection projection, boolean reflect,
                         SkySys viewSystem, boolean grid, 

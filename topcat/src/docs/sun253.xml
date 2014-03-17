@@ -8302,8 +8302,14 @@ draws a text label by each point position.
     write on the plot.  Any data type (string or numeric) is permitted.
     </p></dd>
 <dt>Text Syntax</dt>
-<dd><p>Whether to use plain text or LaTeX rules to make sense of the text
-    value.
+<dd><p>How to turn the text into characters on the screen.
+    <label>Plain</label> and <label>Antialias</label> both take the
+    text at face value, but Antialias smooths the characters.
+    Antialiased text usually looks nicer, but can be perceptibly slower to plot.
+    At time of writing, on MacOS antialiased text seems to be required to
+    stop the writing coming out upside-down for non-horizontal text.
+    <label>LaTeX</label> interprets the text as LaTeX source code
+    and typesets it accordingly.
     </p></dd>
 <dt>Font Size</dt>
 <dd><p>Size of the font in points.
@@ -9040,13 +9046,6 @@ It has the following options:
 <dt>X/Y Tick Crowding</dt>
 <dd><p>Use the slider to influence how many tick marks are draw on each axis.
     </p></dd>
-<dt>Antialiasing</dt>
-<dd><p>Controls whether grid lines and text will be drawn antialiased
-    (smoothed) or not.  Antialiased text generally looks nicer but can
-    be noticeably slower.  This option does not affect exported plots.
-    At time of writing, Macs often require this option selected otherwise
-    the writing can come out the wrong way round.
-    </p></dd>
 </dl>
 </p>
 
@@ -9071,8 +9070,14 @@ text in to the <label>Label</label> fields.
 It also affects some other things like the legend.
 <dl>
 <dt>Text Syntax</dt>
-<dd><p>Whether to use plain text or LaTeX rules to make sense of the text
-    value.
+<dd><p>How to turn the text into characters on the screen.
+    <label>Plain</label> and <label>Antialias</label> both take the
+    text at face value, but Antialias smooths the characters.
+    Antialiased text usually looks nicer, but can be perceptibly slower to plot.
+    At time of writing, on MacOS antialiased text seems to be required to
+    stop the writing coming out upside-down for non-horizontal text.
+    <label>LaTeX</label> interprets the text as LaTeX source code
+    and typesets it accordingly.
     </p></dd>
 <dt>Font Size</dt>
 <dd><p>Size of the font in points.
@@ -9320,11 +9325,8 @@ appear.
     labels altogether.
     </p></dd>
 <dt>Antialiasing</dt>
-<dd><p>Controls whether grid lines and text will be drawn antialiased
-    (smoothed) or not.  Antialiased text generally looks nicer but can
-    be noticeably slower.  This option does not affect exported plots.
-    At time of writing, Macs often require this option selected otherwise
-    the writing can come out the wrong way round.
+<dd><p>Controls whether grid lines will be drawn antialiased
+    (smoothed) or not.  This option does not affect exported plots.
     </p></dd>
 </dl>
 </p>
@@ -9338,8 +9340,14 @@ appear.
 It also affects some other things like the legend.
 <dl>
 <dt>Text Syntax</dt>
-<dd><p>Whether to use plain text or LaTeX rules to make sense of the text
-    value.
+<dd><p>How to turn the text into characters on the screen.
+    <label>Plain</label> and <label>Antialias</label> both take the
+    text at face value, but Antialias smooths the characters.
+    Antialiased text usually looks nicer, but can be perceptibly slower to plot.
+    At time of writing, on MacOS antialiased text seems to be required to
+    stop the writing coming out upside-down for non-horizontal text.
+    <label>LaTeX</label> interprets the text as LaTeX source code
+    and typesets it accordingly.
     </p></dd>
 <dt>Font Size</dt>
 <dd><p>Size of the font in points.
@@ -9614,11 +9622,8 @@ cube wire frame enclosing the data volume.
 <dd><p>Use the slider to influence how many tick marks are draw on each axis.
     </p></dd>
 <dt>Antialiasing</dt>
-<dd><p>Controls whether grid lines and text will be drawn antialiased
-    (smoothed) or not.  Antialiased text generally looks nicer but can
-    be noticeably slower.  This option does not affect exported plots.
-    At time of writing, Macs often require this option selected otherwise
-    the writing can come out the wrong way round.
+<dd><p>Controls whether grid lines will be drawn antialiased
+    (smoothed) or not.  This option does not affect exported plots.
     </p></dd>
 </dl>
 </p>
@@ -9644,8 +9649,14 @@ text in to the <label>Label</label> fields.
 It also affects some other things like the legend.
 <dl>
 <dt>Text Syntax</dt>
-<dd><p>Whether to use plain text or LaTeX rules to make sense of the text
-    value.
+<dd><p>How to turn the text into characters on the screen.
+    <label>Plain</label> and <label>Antialias</label> both take the
+    text at face value, but Antialias smooths the characters.
+    Antialiased text usually looks nicer, but can be perceptibly slower to plot.
+    At time of writing, on MacOS antialiased text seems to be required to
+    stop the writing coming out upside-down for non-horizontal text.
+    <label>LaTeX</label> interprets the text as LaTeX source code
+    and typesets it accordingly.
     </p></dd>
 <dt>Font Size</dt>
 <dd><p>Size of the font in points.
@@ -9888,11 +9899,8 @@ cube wire frame enclosing the data volume.
 <dd><p>Use the slider to influence how many tick marks are draw on the axes.
     </p></dd>
 <dt>Antialiasing</dt>
-<dd><p>Controls whether grid lines and text will be drawn antialiased
-    (smoothed) or not.  Antialiased text generally looks nicer but can
-    be noticeably slower.  This option does not affect exported plots.
-    At time of writing, Macs often require this option selected otherwise
-    the writing can come out the wrong way round.
+<dd><p>Controls whether grid lines will be drawn antialiased
+    (smoothed) or not.  This option does not affect exported plots.
     </p></dd>
 </dl>
 </p>
@@ -9906,8 +9914,14 @@ cube wire frame enclosing the data volume.
 It also affects some other things like the legend.
 <dl>
 <dt>Text Syntax</dt>
-<dd><p>Whether to use plain text or LaTeX rules to make sense of the text
-    value.
+<dd><p>How to turn the text into characters on the screen.
+    <label>Plain</label> and <label>Antialias</label> both take the
+    text at face value, but Antialias smooths the characters.
+    Antialiased text usually looks nicer, but can be perceptibly slower to plot.
+    At time of writing, on MacOS antialiased text seems to be required to
+    stop the writing coming out upside-down for non-horizontal text.
+    <label>LaTeX</label> interprets the text as LaTeX source code
+    and typesets it accordingly.
     </p></dd>
 <dt>Font Size</dt>
 <dd><p>Size of the font in points.
@@ -10129,13 +10143,6 @@ It has the following options:
 <dt>Time/Y Tick Crowding</dt>
 <dd><p>Use the slider to influence how many tick marks are drawn on each axis.
     </p></dd>
-<dt>Antialiasing</dt>
-<dd><p>Controls whether grid lines and text will be drawn antialiased
-    (smoothed) or not.  Antialiased text generally looks nicer but can
-    be noticeably slower.  This option does not affect exported plots.
-    At time of writing, Macs often require this option selected otherwise
-    the writing can come out the wrong way round.
-    </p></dd>
 </dl>
 </p>
 
@@ -10161,8 +10168,14 @@ text in to the <label>Y Label</label> field.
 It also affects some other things like the legend.
 <dl>
 <dt>Text Syntax</dt>
-<dd><p>Whether to use plain text or LaTeX rules to make sense of the text
-    value.
+<dd><p>How to turn the text into characters on the screen.
+    <label>Plain</label> and <label>Antialias</label> both take the
+    text at face value, but Antialias smooths the characters.
+    Antialiased text usually looks nicer, but can be perceptibly slower to plot.
+    At time of writing, on MacOS antialiased text seems to be required to
+    stop the writing coming out upside-down for non-horizontal text.
+    <label>LaTeX</label> interprets the text as LaTeX source code
+    and typesets it accordingly.
     </p></dd>
 <dt>Font Size</dt>
 <dd><p>Size of the font in points.
@@ -17256,6 +17269,7 @@ Some of the notable contributers are these:
 <li>Aaron Robotham (Bristol)</li>
 <li>Yannick Roehlly (OAMP)</li>
 <li>Mike Read (ROE)</li>
+<li>Mattia Vaccari (Western Cape)</li>
 <li>Juande Sandander Vela (IAA-CSIC)</li>
 <li>Mike Watson (Leicester)</li>
 <li>Ivan Zolotukhin (SAI MSU)</li>
@@ -19916,6 +19930,12 @@ introduced since the last version:
 <dd><p>
     <ul>
     <li>Set antialiasing on by default for OSX - get it right this time.</li>
+    <li>Modify the way antialiasing is controlled.  The Grid antialiasing
+        option, where present, now just covers the actual grid lines.
+        Text antialiasing is now selected with a new "Antialias" option
+        in the (now possibly misnamed) "Text Syntax" item
+        in Font configuration.  This now affects the Aux axis and Legend
+        labelling as well as the grid labelling.</li>
     </ul>
     </p></dd>
 

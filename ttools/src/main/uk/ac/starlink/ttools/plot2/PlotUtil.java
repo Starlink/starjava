@@ -1,9 +1,7 @@
 package uk.ac.starlink.ttools.plot2;
 
-import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
-import java.awt.RenderingHints;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
@@ -554,29 +552,5 @@ public class PlotUtil {
         fmt.setMaximumFractionDigits( nFracDigits );
         fmt.setMinimumFractionDigits( nFracDigits );
         return fmt.format( value );
-    }
-
-    /**
-     * Configures a graphics context with graphics and text antialiasing
-     * turned on or off.
-     * This convenience method is just provided because doing it directly
-     * requires a lot of typing.
-     *
-     * <p>To reset the graphics context to its original state after calling
-     * this method, restore its original <code>RenderingHints</code> object.
-     *
-     * @param   g   graphics context
-     * @param  antialias   whether to draw text and graphics antialised
-     */
-    public static void setAntialias( Graphics g, boolean antialias ) {
-        Graphics2D g2 = (Graphics2D) g;
-        g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING,
-                             antialias
-                                 ? RenderingHints.VALUE_ANTIALIAS_ON
-                                 : RenderingHints.VALUE_ANTIALIAS_OFF );
-        g2.setRenderingHint( RenderingHints.KEY_TEXT_ANTIALIASING,
-                             antialias
-                                 ? RenderingHints.VALUE_TEXT_ANTIALIAS_ON
-                                 : RenderingHints.VALUE_TEXT_ANTIALIAS_OFF );
     }
 }

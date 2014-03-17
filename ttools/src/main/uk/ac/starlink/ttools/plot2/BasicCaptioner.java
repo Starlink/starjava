@@ -3,7 +3,9 @@ package uk.ac.starlink.ttools.plot2;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
 
@@ -16,13 +18,14 @@ import java.util.Arrays;
 public class BasicCaptioner implements Captioner {
 
     private final Font font_;
+    private final Boolean antialias_;
     private static Graphics dummyGraphics_;
 
     /**
      * Constructs a captioner that will use a default font.
      */
     public BasicCaptioner() {
-        this( null );
+        this( null, false );
     }
 
     /**
@@ -30,20 +33,28 @@ public class BasicCaptioner implements Captioner {
      *
      * @param   font  font
      */
-    public BasicCaptioner( Font font ) {
+    public BasicCaptioner( Font font, Boolean antialias ) {
         font_ = font;
+        antialias_ = antialias;
     }
 
     public void drawCaption( String label, Graphics g ) {
-        Font oldFont = null;
+        Graphics2D g2 = (Graphics2D) g;
+        Font font0 = g2.getFont();
+        Object aaHint0 =
+            g2.getRenderingHint( RenderingHints.KEY_TEXT_ANTIALIASING );
         if ( font_ != null ) {
-            oldFont = g.getFont();
-            g.setFont( font_ );
+            g2.setFont( font_ );
         }
-        g.drawString( label, 0, 0 );
-        if ( oldFont != null ) {
-            g.setFont( oldFont );
+        if ( antialias_ != null ) {
+            g2.setRenderingHint( RenderingHints.KEY_TEXT_ANTIALIASING,
+                                 antialias_.booleanValue()
+                               ? RenderingHints.VALUE_TEXT_ANTIALIAS_ON
+                               : RenderingHints.VALUE_TEXT_ANTIALIAS_OFF );
         }
+        g2.drawString( label, 0, 0 );
+        g2.setRenderingHint( RenderingHints.KEY_TEXT_ANTIALIASING, aaHint0 );
+        g2.setFont( font0 );
     }
 
     public Rectangle getCaptionBounds( String label ) {
@@ -94,8 +105,8 @@ public class BasicCaptioner implements Captioner {
     public boolean equals( Object o ) {
         if ( o instanceof BasicCaptioner ) {
             BasicCaptioner other = (BasicCaptioner) o;
-            return Arrays.equals( new Font[] { other.font_ },
-                                  new Font[] { this.font_ } );
+            return PlotUtil.equals( this.font_, other.font_ )
+                && PlotUtil.equals( this.antialias_, other.antialias_ );
         }
         else {
             return false;
@@ -104,6 +115,9 @@ public class BasicCaptioner implements Captioner {
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode( new Font[] { font_ } );
+        int code = 55921;
+        code = 23 * code + PlotUtil.hashCode( font_ );
+        code = 23 * code + PlotUtil.hashCode( antialias_ );
+        return code;
     }
 }

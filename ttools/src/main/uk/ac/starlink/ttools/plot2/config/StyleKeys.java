@@ -24,7 +24,6 @@ import uk.ac.starlink.ttools.plot.Shader;
 import uk.ac.starlink.ttools.plot.Shaders;
 import uk.ac.starlink.ttools.plot.Styles;
 import uk.ac.starlink.ttools.plot2.Anchor;
-import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.layer.LevelMode;
 import uk.ac.starlink.ttools.plottask.ColorParameter;
@@ -147,7 +146,7 @@ public class StyleKeys {
     /** Config key for axis grid antialiasing. */
     public static final ConfigKey<Boolean> GRID_ANTIALIAS =
         new BooleanConfigKey( new ConfigMeta( "gridaa", "Antialiasing" ),
-                              PlotUtil.getDefaultTextAntialiasing() );
+                              false );
 
     /** Config key for text anchor positioning. */
     public static final ConfigKey<Anchor> ANCHOR =
