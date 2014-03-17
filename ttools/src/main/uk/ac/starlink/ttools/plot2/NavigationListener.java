@@ -115,8 +115,10 @@ public abstract class NavigationListener<A>
         /* Arrange to display the relevant decoration if there is one. */
         Navigator<A> navigator = getNavigator();
         if ( navigator != null ) {
+            Point pos = evt.getPoint();
+            int ibutt = PlotUtil.getButtonDownIndex( evt );
             NavAction<A> drag0act =
-                navigator.drag( dragSurface_, evt, startPoint_ );
+                navigator.drag( dragSurface_, pos, ibutt, startPoint_ );
             Decoration dragDec = drag0act == null ? null
                                                   : drag0act.getDecoration();
             if ( dragDec != null ) {
@@ -131,8 +133,10 @@ public abstract class NavigationListener<A>
         if ( dragSurface_ != null ) {
             Navigator<A> navigator = getNavigator();
             if ( navigator != null ) {
+                Point pos = evt.getPoint();
+                int ibutt = PlotUtil.getButtonDownIndex( evt );
                 NavAction<A> navact =
-                    navigator.drag( dragSurface_, evt, startPoint_ );
+                    navigator.drag( dragSurface_, pos, ibutt, startPoint_ );
                 if ( navact != null ) {
                     updateDecoration( navact.getDecoration(), false );
                     A aspect = navact.getAspect();
@@ -157,11 +161,14 @@ public abstract class NavigationListener<A>
     }
 
     public void mouseClicked( MouseEvent evt ) {
-        if ( PlotUtil.getButtonChangedIndex( evt ) == 3 ) {
+        Point pos = evt.getPoint();
+        int ibutt = PlotUtil.getButtonChangedIndex( evt );
+        if ( ibutt == 3 ) {
             Navigator<A> navigator = getNavigator();
             Surface surface = getSurface();
             if ( navigator != null && surface != null ) {
-                handleClick( navigator, surface, evt, createDataPosIterable() );
+                handleClick( navigator, surface, pos, ibutt,
+                             createDataPosIterable() );
             }
         }
     }
@@ -176,13 +183,15 @@ public abstract class NavigationListener<A>
      *
      * @param   navigator   navigator
      * @param   surface  plot surface
-     * @param   evt  mouse event
+     * @param   pos   mouse position
+     * @param   ibutt  logical mouse button index
      * @param   dposIt  iterable over points if available
      */
     protected void handleClick( Navigator<A> navigator, Surface surface,
-                                MouseEvent evt, Iterable<double[]> dposIt ) {
+                                Point pos, int ibutt,
+                                Iterable<double[]> dposIt ) {
         NavAction<A> navact =
-            navigator.click( surface, evt, createDataPosIterable() );
+            navigator.click( surface, pos, ibutt, createDataPosIterable() );
         if ( navact != null ) {
             updateDecoration( navact.getDecoration(), true );
             A aspect = navact.getAspect();
@@ -196,7 +205,9 @@ public abstract class NavigationListener<A>
         Navigator<A> navigator = getNavigator();
         Surface surface = getSurface();
         if ( navigator != null && surface != null ) {
-            NavAction<A> navact = navigator.wheel( surface, evt );
+            Point pos = evt.getPoint();
+            int wheelrot = evt.getWheelRotation();
+            NavAction<A> navact = navigator.wheel( surface, pos, wheelrot );
             if ( navact != null ) {
                 updateDecoration( navact.getDecoration(), true );
                 A aspect = navact.getAspect();

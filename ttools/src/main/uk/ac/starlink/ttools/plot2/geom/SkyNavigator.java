@@ -2,8 +2,6 @@ package uk.ac.starlink.ttools.plot2.geom;
 
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseWheelEvent;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import uk.ac.starlink.ttools.plot2.Decoration;
@@ -35,12 +33,10 @@ public class SkyNavigator implements Navigator<SkyAspect> {
         zoomFactor_ = zoomFactor;
     }
 
-    public NavAction<SkyAspect> drag( Surface surface, MouseEvent evt,
+    public NavAction<SkyAspect> drag( Surface surface, Point pos, int ibutt,
                                       Point origin ) {
         SkySurface ssurf = (SkySurface) surface;
-        Point pos = evt.getPoint();
         Rectangle bounds = surface.getPlotBounds();
-        int ibutt = PlotUtil.getButtonDownIndex( evt );
         if ( ibutt == 3 ) {
             double fact = PlotUtil.toZoom( zoomFactor_, origin, pos, null );
             SkyAspect aspect = ssurf.zoom( origin, fact );
@@ -62,10 +58,10 @@ public class SkyNavigator implements Navigator<SkyAspect> {
         }
     }
 
-    public NavAction<SkyAspect> wheel( Surface surface, MouseWheelEvent evt ) {
+    public NavAction<SkyAspect> wheel( Surface surface, Point pos,
+                                       int wheelrot ) {
         SkySurface ssurf = (SkySurface) surface;
-        Point pos = evt.getPoint();
-        double fact = PlotUtil.toZoom( zoomFactor_, evt );
+        double fact = PlotUtil.toZoom( zoomFactor_, wheelrot );
         SkyAspect aspect = ssurf.zoom( pos, fact );
         Decoration dec =
             NavDecorations
@@ -74,7 +70,7 @@ public class SkyNavigator implements Navigator<SkyAspect> {
         return new NavAction<SkyAspect>( aspect, dec );
     }
 
-    public NavAction<SkyAspect> click( Surface surface, MouseEvent evt,
+    public NavAction<SkyAspect> click( Surface surface, Point pos, int ibutt,
                                        Iterable<double[]> dposIt ) {
         return null;
     }
