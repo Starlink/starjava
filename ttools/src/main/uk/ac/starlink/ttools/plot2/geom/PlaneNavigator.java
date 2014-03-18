@@ -87,6 +87,31 @@ public class PlaneNavigator implements Navigator<PlaneAspect> {
         }
     }
 
+    public NavAction<PlaneAspect> endDrag( Surface surface, Point pos,
+                                           int ibutt, Point origin ) {
+        if ( ibutt == 2 ) {
+            boolean[] useFlags =
+                getAxisNavFlags( surface, origin, xPan_, yPan_ );
+            PlaneSurface psurf = (PlaneSurface) surface;
+            boolean xUse = useFlags[ 0 ];
+            boolean yUse = useFlags[ 1 ];
+            Rectangle bounds = surface.getPlotBounds();
+            BandDecoration dec =
+                NavDecorations
+               .createBandDecoration( origin, pos, xUse, yUse, bounds );
+            if ( dec != null ) {
+                PlaneAspect aspect = psurf.reframe( dec.getTargetRectangle() );
+                return new NavAction<PlaneAspect>( aspect, null );
+            }
+            else {
+                return null;
+            }
+        }
+        else {
+            return null;
+        }
+    }
+
     public NavAction<PlaneAspect> wheel( Surface surface, Point pos,
                                          int wheelrot ) {
         PlaneSurface psurf = (PlaneSurface) surface;
@@ -134,7 +159,7 @@ public class PlaneNavigator implements Navigator<PlaneAspect> {
         Map<Gesture,String> map = new LinkedHashMap<Gesture,String>();
         map.put( Gesture.DRAG_1, "Pan " + freeTxt );
         map.put( Gesture.DRAG_3, "Stretch " + freeTxt );
-        map.put( Gesture.DRAG_2, "Frame" + freeTxt );
+        map.put( Gesture.DRAG_2, "Frame " + freeTxt );
         map.put( Gesture.WHEEL, "Zoom " + isoTxt );
         return map;
     }

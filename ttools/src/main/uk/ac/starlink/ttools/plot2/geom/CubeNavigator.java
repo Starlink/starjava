@@ -86,6 +86,11 @@ public class CubeNavigator implements Navigator<CubeAspect> {
         }
     }
 
+    public NavAction<CubeAspect> endDrag( Surface surface, Point pos,
+                                          int ibutt, Point origin ) {
+        return null;
+    }
+
     public NavAction<CubeAspect> wheel( Surface surface, Point pos,
                                         int wheelrot ) {
         final boolean xZoom;

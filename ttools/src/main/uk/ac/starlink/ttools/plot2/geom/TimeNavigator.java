@@ -88,6 +88,31 @@ public class TimeNavigator implements Navigator<TimeAspect> {
         }
     }
 
+    public NavAction<TimeAspect> endDrag( Surface surface, Point pos,
+                                          int ibutt, Point origin ) {
+        if ( ibutt == 2 ) {
+            boolean[] useFlags =
+                PlaneNavigator.getAxisNavFlags( surface, origin, tPan_, yPan_ );
+            TimeSurface tsurf = (TimeSurface) surface;
+            boolean tUse = useFlags[ 0 ];
+            boolean yUse = useFlags[ 1 ];
+            Rectangle plotBounds = surface.getPlotBounds();
+            BandDecoration dec =
+                NavDecorations
+               .createBandDecoration( origin, pos, tUse, yUse, plotBounds );
+            if ( dec != null ) {
+                TimeAspect aspect = tsurf.reframe( dec.getTargetRectangle() );
+                return new NavAction<TimeAspect>( aspect, null );
+            }
+            else {
+                return null;
+            }
+        }
+        else {
+            return null;
+        }
+    }
+
     public NavAction<TimeAspect> wheel( Surface surface, Point pos,
                                         int wheelrot ) {
         boolean[] useFlags =
