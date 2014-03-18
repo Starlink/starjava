@@ -280,6 +280,29 @@ public class PlaneSurface implements Surface {
     }
 
     /**
+     * Returns a plot aspect covering the data region which is currently
+     * covered by a given rectangle in graphics coordinates.
+     *
+     * @param   frame  rectangle in current graphics coordinates
+     *                 giving data space region of interest
+     */
+    PlaneAspect reframe( Rectangle frame ) {
+        Point gp1 = new Point( frame.x, frame.y );
+        Point gp2 = new Point( frame.x + frame.width, frame.y + frame.height );
+        double[] dpos1 = graphicsToData( gp1, null );
+        double[] dpos2 = graphicsToData( gp2, null );
+        double dx1 = dpos1[ 0 ];
+        double dy1 = dpos1[ 1 ];
+        double dx2 = dpos2[ 0 ];
+        double dy2 = dpos2[ 1 ];
+        double[] xlimits = dx1 <= dx2 ? new double[] { dx1, dx2 }
+                                      : new double[] { dx2, dx1 };
+        double[] ylimits = dy1 <= dy2 ? new double[] { dy1, dy2 }
+                                      : new double[] { dy2, dy1 };
+        return new PlaneAspect( xlimits, ylimits );
+    }
+
+    /**
      * Returns an axis annotation object for this surface.
      *
      * @return   axis annotation

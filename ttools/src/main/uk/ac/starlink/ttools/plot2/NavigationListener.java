@@ -150,9 +150,33 @@ public abstract class NavigationListener<A>
 
     public void mouseReleased( MouseEvent evt ) {
 
-        /* Eliminate any drag decoration. */
+        /* Handle the end of a drag action, if one is pending. */
         if ( dragSurface_ != null ) {
-            updateDecoration( null, false );
+
+            /* Pass on the endDrag action, if appropriate. */
+            Navigator<A> navigator = getNavigator();
+            final NavAction<A> navact;
+            if ( navigator != null ) {
+                Point pos = evt.getPoint();
+                int ibutt = PlotUtil.getButtonChangedIndex( evt );
+                navact =
+                    navigator.endDrag( dragSurface_, pos, ibutt, startPoint_ );
+            }
+            else {
+                navact = null;
+            }
+            Decoration dec = navact == null ? null : navact.getDecoration();
+
+            /* Eliminate any decorations associated with a current drag. */
+            updateDecoration( dec, false );
+
+            /* Update aspect if the endDrag produced a new one. */
+            if ( navact != null ) {
+                A aspect = navact.getAspect();
+                if ( aspect != null ) {
+                    setAspect( aspect );
+                }
+            }
         }
 
         /* Terminate any current drag gesture. */

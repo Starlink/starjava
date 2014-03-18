@@ -37,6 +37,20 @@ public interface Navigator<A> {
     NavAction<A> drag( Surface surface, Point pos, int ibutton, Point origin );
 
     /**
+     * Terminating drag gesture.  This method is invoked following a sequence
+     * of drags when the mouse button has been released.
+     *
+     * @param   surface   initial plot surface
+     * @param   pos     current mouse position
+     * @param   ibutton   logical mouse button index of terminated drag
+     * @param   origin   starting point of drag gesture
+     * @return  navigation action indicated by the gesture,
+     *          or null for no change
+     */
+    NavAction<A> endDrag( Surface surface, Point pos, int ibutton,
+                          Point origin );
+
+    /**
      * Mouse wheel gesture.
      *
      * <p>Wheel gestures usually indicate zooming, and in this case should

@@ -114,44 +114,53 @@ public class NavDecorations {
 
     /**
      * Returns a decoration appropriate for a 2d frame zoom.
+     * The returned object has a target rectangle associated with it,
+     * which makes sense for this kind of decoration.
      *
      * @param  p1  drag start point
      * @param  p2  drag (current) end point
      * @param  xuse  true if X zoom is in effect
      * @param  yuse  true if Y zoom is in effect
      * @param  bounds  plot region bounds
-     * @return   frame decoration
+     * @return   frame decoration with target rectangle
      */
-    public static Decoration createBandDecoration( Point p1, Point p2,
-                                                   boolean xuse, boolean yuse,
-                                                   Rectangle bounds ) {
+    public static BandDecoration createBandDecoration( Point p1, Point p2,
+                                                       boolean xuse,
+                                                       boolean yuse,
+                                                       Rectangle bounds ) {
         int dx = p2.x - p1.x;
         int dy = p2.y - p1.y;
         if ( xuse && yuse ) {
-            if ( dx >= 0 && dy >= 0 ) {
-                return new Decoration( new PlusBandZoomIcon2d( dx, dy ),
-                                       p1.x, p1.y );
+            if ( dx > 0 && dy > 0 ) {
+                return new PlusBandZoomIcon2d( dx, dy )
+                      .createBandDecoration( p1, bounds );
             }
             else if ( dx < 0 && dy <= 0 ||
                       dx <= 0 && dy < 0 ) {
-                return center( new MinusBandZoomIcon2d( BAND_SIZE, -dx, -dy ),
-                               p1 );
+                return new MinusBandZoomIcon2d( BAND_SIZE, -dx, -dy )
+                      .createBandDecoration( p1, bounds );
             }
             else {
                 return null;
             }
         }
-        else if ( xuse ) {
-            Icon icon = dx >= 0 ? new PlusBandZoomIcon1d( false, dx, bounds )
-                                : new MinusBandZoomIcon1d( BAND_SIZE, false,
-                                                           -dx, bounds );
-            return center1d( icon, false, p1, bounds );
+        else if ( xuse && dx != 0) {
+            // Interestingly, without the explicit BandIcon cast here,
+            // the code compiles without error (J2SE1.5 at least) but
+            // throws a NoSuchMethodError at runtime.
+            // That must be a JDK or JRE bug.
+            return ((BandIcon)
+                    ( dx > 0 ? new PlusBandZoomIcon1d( false, dx, bounds )
+                             : new MinusBandZoomIcon1d( BAND_SIZE,
+                                                        false, -dx, bounds ) ))
+                  .createBandDecoration( p1, bounds );
         }
-        else if ( yuse ) {
-            Icon icon = dy >= 0 ? new PlusBandZoomIcon1d( true, dy, bounds )
-                                : new MinusBandZoomIcon1d( BAND_SIZE, true,
-                                                           -dy, bounds );
-            return center1d( icon, true, p1, bounds );
+        else if ( yuse && dy != 0 ) {
+            return ((BandIcon)
+                    ( dy > 0 ? new PlusBandZoomIcon1d( true, dy, bounds )
+                             : new MinusBandZoomIcon1d( BAND_SIZE,
+                                                        true, -dy, bounds ) ))
+                  .createBandDecoration( p1, bounds );
         }
         else {
             return null;
@@ -228,6 +237,45 @@ public class NavDecorations {
         g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING,
                              RenderingHints.VALUE_ANTIALIAS_ON );
         return g2;
+    }
+
+    /**
+     * Calculates a target rectangle associated with a negative band zoom
+     * decoration.  Such decorations are visually characterised by an
+     * outer (movable) and an inner (fixed) rectangle; the amount by which
+     * the outer one is larger than the inner one determines how far the
+     * outward zoom is intended.
+     *
+     * @param   outer   outer (movable) rectangle
+     * @param   inner   inner (fixed) rectangle
+     * @param   bounds  plot boundary
+     * @return  target   rectangle giving requested bounds in the current
+     *                   graphics coordinates of the region of interest
+     */
+    private static Rectangle createMinusZoomTarget( Rectangle outer,
+                                                    Rectangle inner,
+                                                    Rectangle bounds ) {
+        int w = (int) ( bounds.width * outer.width * 1.0 / inner.width );
+        int h = (int) ( bounds.height * outer.height * 1.0 / inner.height );
+        int x = bounds.x + ( bounds.width - w ) / 2;
+        int y = bounds.y + ( bounds.height - h ) / 2;
+        return new Rectangle( x, y, w, h );
+    }
+
+    /**
+     * Defines an object that can create a BandDecoration on request.
+     */
+    private interface BandIcon {
+
+        /**
+         * Create a BandDecoration (decoration with associated target
+         * rectangle) for a given reference position and plot boundary.
+         *
+         * @param  origin  reference graphics position
+         * @param  bounds  plot bounds
+         * @return  decoration with associated target rectangle
+         */
+        BandDecoration createBandDecoration( Point origin, Rectangle bounds );
     }
 
     /**
@@ -369,6 +417,19 @@ public class NavDecorations {
             g2.setStroke( stroke0 );
         }
 
+        /**
+         * Returns a rectangle spanning the whole plot in the perpendicular
+         * direction with given lower and upper bounds in zoom direction.
+         *
+         * @param  clo  lower bound in zoom direction
+         * @param  chi  upper bound in zoom direction
+         * @return  span rectangle
+         */
+        Rectangle createSpanRectangle( int clo, int chi ) {
+            return isY_ ? new Rectangle( blo_, clo, bhi_ - blo_, chi - clo )
+                        : new Rectangle( clo, blo_, chi - clo, bhi_ - blo_ );
+        }
+
         @Override
         public int hashCode() {
             int code = 65552;
@@ -467,7 +528,8 @@ public class NavDecorations {
     /**
      * Icon representing a frame-type positive zoom in one dimension.
      */
-    private static class PlusBandZoomIcon1d extends ZoomIcon1d {
+    private static class PlusBandZoomIcon1d extends ZoomIcon1d
+                                            implements BandIcon {
 
         /**
          * Constructor.
@@ -484,12 +546,21 @@ public class NavDecorations {
             drawSpan( g, c0 );
             drawSpan( g, c0 + cTo_ );
         }
+
+        public BandDecoration createBandDecoration( Point origin,
+                                                    Rectangle bounds ) {
+            int c0 = isY_ ? origin.y : origin.x;
+            Rectangle target = createSpanRectangle( c0, c0 + cTo_ );
+            return isY_ ? new BandDecoration( this, blo_, c0 - cTo_, target )
+                        : new BandDecoration( this, c0 - cTo_, blo_, target );
+        }
     }
 
     /**
      * Icon representing a frame-type negative zoom in one dimension.
      */
-    private static class MinusBandZoomIcon1d extends ZoomIcon1d {
+    private static class MinusBandZoomIcon1d extends ZoomIcon1d
+                                             implements BandIcon {
 
         /**
          * Constructor.
@@ -509,6 +580,18 @@ public class NavDecorations {
             drawSpan( g, c0 + baseSize_ );
             drawSpan( g, c0 - cTo_ );
             drawSpan( g, c0 + cTo_ );
+        }
+
+        public BandDecoration createBandDecoration( Point origin,
+                                                    Rectangle bounds ) {
+            int c0 = isY_ ? origin.y : origin.x;
+            Rectangle outer = createSpanRectangle( c0 - cTo_, c0 + cTo_ );
+            Rectangle inner = createSpanRectangle( c0 - baseSize_,
+                                                   c0 + baseSize_ );
+            Rectangle target = createMinusZoomTarget( outer, inner, bounds );
+            int gx = origin.x - getIconWidth() / 2;
+            int gy = origin.y - getIconHeight() / 2;
+            return new BandDecoration( this, gx, gy, target );
         }
     }
 
@@ -670,7 +753,8 @@ public class NavDecorations {
     /**
      * Icon representing a frame-type positive zoom in two dimensions.
      */
-    private static class PlusBandZoomIcon2d extends ZoomIcon2d {
+    private static class PlusBandZoomIcon2d extends ZoomIcon2d
+                                            implements BandIcon {
 
         /**
          * Constructor.
@@ -685,12 +769,19 @@ public class NavDecorations {
         void doPainting( Graphics g, int xc, int yc ) {
             g.drawRect( xc - xTo_, yc - yTo_, xTo_, yTo_ );
         }
+
+        public BandDecoration createBandDecoration( Point origin,
+                                                    Rectangle bounds ) {
+            Rectangle target = new Rectangle( origin.x, origin.y, xTo_, yTo_ );
+            return new BandDecoration( this, origin.x, origin.y, target );
+        }
     }
 
     /**
      * Icon representing a frame-type negative zoom in two dimensions.
      */
-    private static class MinusBandZoomIcon2d extends ZoomIcon2d {
+    private static class MinusBandZoomIcon2d extends ZoomIcon2d
+                                             implements BandIcon {
 
         /**
          * Constructor.
@@ -707,6 +798,19 @@ public class NavDecorations {
             g.drawRect( xc - baseSize_, yc - baseSize_,
                         2 * baseSize_, 2 * baseSize_ );
             g.drawRect( xc - xTo_, yc - yTo_, 2 * xTo_, 2 * yTo_ );
+        }
+
+        public BandDecoration createBandDecoration( Point origin,
+                                                    Rectangle bounds ) {
+            Rectangle outer =
+                new Rectangle( origin.x - xTo_, origin.y - yTo_,
+                               2 * xTo_, 2 * yTo_ );
+            Rectangle inner =
+                new Rectangle( origin.x - baseSize_, origin.y - baseSize_,
+                               2 * baseSize_, 2 * baseSize_ );
+            Rectangle target = createMinusZoomTarget( outer, inner, bounds );
+            return new BandDecoration( this, origin.x - xTo_, origin.y - yTo_,
+                                       target );
         }
     }
 }

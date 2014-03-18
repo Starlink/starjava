@@ -643,6 +643,32 @@ public class SkySurface implements Surface {
              : createAspect( projection_, rotmat1, zoom1, xoff_, yoff_ );
     }
 
+    /**
+     * Returns a plot aspect giving the data region defined by a
+     * graphics position and zoom factor adjustment.
+     *
+     * @param  center   position in current graphics coordinates of the
+     *                  sky position requested as the new center
+     * @param  factor   zoom factor (from current)
+     * @return  reframed sky aspect
+     */
+    public SkyAspect reframe( Point center, double factor ) {
+        Point surfCenter = new Point( ( gxlo_ + gxhi_ ) / 2,
+                                      ( gylo_ + gyhi_ ) / 2 );
+        double zoom1 = zoom_ * factor;
+        Point2D.Double ppos0 = graphicsToProjected( center );
+        Point2D.Double ppos1 = graphicsToProjected( surfCenter );
+        double[] rotmat1 = projection_.projRotate( rotmat_, ppos0, ppos1 );
+        if ( rotmat1 != null ) {
+            return createAspect( projection_, rotmat1, zoom1, xoff_, yoff_ );
+        }
+        else {
+            double xoff1 = - ppos0.x * zoom1;
+            double yoff1 =   ppos0.y * zoom1;
+            return createAspect( projection_, rotmat_, zoom1, xoff1, yoff1 );
+        }
+    }
+
     @Override
     public boolean equals( Object o ) {
         if ( o instanceof SkySurface ) {

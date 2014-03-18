@@ -58,6 +58,34 @@ public class SkyNavigator implements Navigator<SkyAspect> {
         }
     }
 
+    public NavAction<SkyAspect> endDrag( Surface surface, Point pos,
+                                         int ibutt, Point origin ) {
+        if ( ibutt == 2 ) {
+            SkySurface ssurf = (SkySurface) surface;
+            Rectangle bounds = surface.getPlotBounds();
+            Point isoPos = toIsoPos( origin, pos, bounds );
+            BandDecoration dec =
+                NavDecorations
+               .createBandDecoration( origin, isoPos, true, true, bounds );
+            if ( dec != null ) {
+                Rectangle target = dec.getTargetRectangle();
+                Point cp = new Point( target.x + target.width / 2,
+                                      target.y + target.height / 2 );
+                double xf = bounds.width * 1.0 / target.width;
+                double yf = bounds.height * 1.0 / target.height;
+                double fact = 0.5 * ( xf + yf );
+                SkyAspect aspect = ssurf.reframe( cp, fact );
+                return new NavAction<SkyAspect>( aspect, null );
+            }
+            else {
+                return null;
+            }
+        }
+        else {
+            return null;
+        }
+    }
+
     public NavAction<SkyAspect> wheel( Surface surface, Point pos,
                                        int wheelrot ) {
         SkySurface ssurf = (SkySurface) surface;

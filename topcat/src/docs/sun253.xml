@@ -6929,6 +6929,14 @@ However, as a rule, the actions when used on the body of the plot are these:
     In 3d, the zoom is along the two plot directions most closely
     aligned with the plane of the screen.
     </p></dd>
+<dt>&IMG.DRAG2; Middle drag</dt>
+<dd><p>Frame zoom.
+    Dragging down-and-right drags out a frame;
+    when the button is released, the plot will be zoomed in
+    to cover area enclosed by the frame.
+    Dragging up-and-left does something like the opposite, you can zoom out
+    using a similar (though not quite the same) mechanism.
+    </p></dd>
 <dt>&IMG.MOUSE_WHEEL; Mouse wheel</dt>
 <dd><p>Spinning the mouse wheel forwards/backwards will zoom in/out.
     In 2d the zoom is around the current position of the mouse,
@@ -8908,6 +8916,16 @@ tab of the <ref id="PlaneAxisControl">Axes control</ref>.
     To zoom only vertically, drag on the left of the Y axis.
     To zoom only horizontally, drag below the X axis.
     </p></dd>
+<dt>&GESTURE.DRAG2;</dt>
+<dd><p><em>Frame zoom.</em>
+    On the body of the plot, dragging down-and-right drags out a frame;
+    when the button is released, the plot will be zoomed in
+    to cover the area enclosed by the frame.
+    Dragging up-and-left does something like the opposite, you can zoom out
+    using a similar (though not quite the same) mechanism.
+    To zoom in/out only vertically, drag down/up on the left of the Y axis.
+    To zoom in/out only vertically, drag right/left below the X axis.
+    </p></dd>
 <dt>&GESTURE.WHEEL;</dt>
 <dd><p><em>Isotropic zoom.</em>
     Spinning the mouse wheel forwards/backwards will zoom in/out
@@ -9179,9 +9197,17 @@ tab of the <ref id="SkyAxisControl">Axes control</ref>.
     effect of rotating the sphere to keep North vertical on the screen.
     </p></dd>
 <dt>&GESTURE.DRAG3;</dt>
-<dd><p><em>Zoom.</em>
+<dd><p><em>Stretch zoom.</em>
     Dragging with the right mouse button up-and-right/down-and-left
     has just the same effect as spinning the mouse button forwards/backwards.
+    </p></dd>
+<dt>&GESTURE.DRAG2;</dt>
+<dd><p><em>Frame zoom.</em>
+    Dragging with the middle button down or right drags out a frame;
+    when the button is released, the plot will be zoomed in
+    to cover (roughly) the area enclosed by the frame.
+    Dragging up or left does something like the opposite, you can zoom out
+    using a similar (though not quite the same) mechanism.
     </p></dd>
 <dt>&GESTURE.CLICK1;</dt>
 <dd><p><em>Select.</em>
@@ -10012,6 +10038,20 @@ tab of the <ref id="TimeAxisControl">Axes control</ref>.
     By default, vertical zooming is inhibited since you don't normally
     want it for a time plot.
     To zoom vertically, drag on the left of the Y axis. 
+    It is also possible to configure zooming on the body of the plot
+    to be in both directions using the <label>Pan/Zoom Axes</label>
+    in the <label>Navigation</label> axis configuration tab.
+    </p></dd>
+<dt>&GESTURE.DRAG2;</dt>
+<dd><p><em>Frame zoom.</em>
+    On the body of the plot, dragging right usually drags out a frame;
+    when the button is released, the plot will be zoomed in
+    to cover the area enclosed by the frame.
+    Dragging left does something like the opposite, you can zoom out
+    using a similar (though not quite the same) mechanism.
+    By default, vertical zooming is inhibited sine you don't normally
+    want it for a time plot.
+    To zoom in/out vertically, drag down/up on the left of the Y axis.
     It is also possible to configure zooming on the body of the plot
     to be in both directions using the <label>Pan/Zoom Axes</label>
     in the <label>Navigation</label> axis configuration tab.
@@ -19936,6 +19976,8 @@ introduced since the last version:
         in the (now possibly misnamed) "Text Syntax" item
         in Font configuration.  This now affects the Aux axis and Legend
         labelling as well as the grid labelling.</li>
+    <li>Add old-style frame zooming on new-style plots using middle button
+        (or shift) drag.</li>
     </ul>
     </p></dd>
 
