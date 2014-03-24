@@ -16,6 +16,12 @@ import javax.swing.ImageIcon;
  */
 public class ResourceIcon {
 
+    /**
+     * Sole class instance.
+     * This doesn't do anything but may be useful for referencing members.
+     */
+    public static final ResourceIcon REF = new ResourceIcon();
+
     public static final Icon
 
         /* MethodBrowser icons. */
