@@ -653,13 +653,22 @@ public class ResourceIcon implements Icon {
         }
 
         /* Icons which are the result of calling toAddIcon on existing ones. */
+        uk.ac.starlink.ttools.gui.ResourceIcon TTRI =
+            uk.ac.starlink.ttools.gui.ResourceIcon.REF;
         nameMap.put( "ADD_PLOT_DATA", toAddIcon( PLOT_DATA ) );
         nameMap.put( "ADD_PLOT_PAIR", toAddIcon( PLOT_PAIR ) );
-        nameMap.put( "ADD_PLOT_HISTO",
-                     toAddIcon( uk.ac.starlink.ttools.gui.ResourceIcon
-                                                         .PLOT_HISTO ) );
-                      
-           
+        nameMap.put( "ADD_PLOT_HISTO", toAddIcon( TTRI.PLOT_HISTO ) );
+        nameMap.put( "ADD_FORM_MARK", toAddIcon( TTRI.FORM_MARK ) );
+        nameMap.put( "ADD_FORM_SIZE", toAddIcon( TTRI.FORM_SIZE ) );
+        nameMap.put( "ADD_FORM_VECTOR", toAddIcon( TTRI.FORM_VECTOR ) );
+        nameMap.put( "ADD_FORM_ERROR", toAddIcon( TTRI.FORM_ERROR ) );
+        nameMap.put( "ADD_FORM_ELLIPSE", toAddIcon( TTRI.FORM_ELLIPSE ) );
+        nameMap.put( "ADD_PLOT_LINE", toAddIcon( TTRI.PLOT_LINE ) );
+        nameMap.put( "ADD_PLOT_LABEL", toAddIcon( TTRI.PLOT_LABEL ) );
+        nameMap.put( "ADD_PLOT_CONTOUR", toAddIcon( TTRI.PLOT_CONTOUR ) );
+        nameMap.put( "ADD_FORM_MARKS2", toAddIcon( TTRI.FORM_MARKS2 ) );
+        nameMap.put( "ADD_FORM_LINK2", toAddIcon( TTRI.FORM_LINK2 ) );
+
         return nameMap;
     }
 
