@@ -131,12 +131,11 @@ public class NavDecorations {
         int dx = p2.x - p1.x;
         int dy = p2.y - p1.y;
         if ( xuse && yuse ) {
-            if ( dx > 0 && dy > 0 ) {
+            if ( dx > 0 ) {
                 return new PlusBandZoomIcon2d( dx, dy )
                       .createBandDecoration( p1, bounds );
             }
-            else if ( dx < 0 && dy <= 0 ||
-                      dx <= 0 && dy < 0 ) {
+            else if ( dx < 0 ) {
                 return new MinusBandZoomIcon2d( BAND_SIZE, -dx, -dy )
                       .createBandDecoration( p1, bounds );
             }
@@ -157,9 +156,9 @@ public class NavDecorations {
         }
         else if ( yuse && dy != 0 ) {
             return ((BandIcon)
-                    ( dy > 0 ? new PlusBandZoomIcon1d( true, dy, bounds )
+                    ( dy < 0 ? new PlusBandZoomIcon1d( true, -dy, bounds )
                              : new MinusBandZoomIcon1d( BAND_SIZE,
-                                                        true, -dy, bounds ) ))
+                                                        true, dy, bounds ) ))
                   .createBandDecoration( p1, bounds );
         }
         else {
@@ -168,7 +167,7 @@ public class NavDecorations {
     }
 
     /**
-     * Utility function to center an symmetric icon at a point.
+     * Utility function to center a symmetric icon at a point.
      * The icon must correctly report its dimensions for this to work.
      *
      * @param   icon   icon
@@ -530,6 +529,7 @@ public class NavDecorations {
      */
     private static class PlusBandZoomIcon1d extends ZoomIcon1d
                                             implements BandIcon {
+        private final boolean invert_;
 
         /**
          * Constructor.
@@ -540,17 +540,20 @@ public class NavDecorations {
          */
         PlusBandZoomIcon1d( boolean isY, int dc, Rectangle bounds ) {
             super( 0, isY, dc, bounds );
+            invert_ = isY;
         }
 
         void doPainting( Graphics g, int c0 ) {
             drawSpan( g, c0 );
-            drawSpan( g, c0 + cTo_ );
+            drawSpan( g, invert_ ? c0 - cTo_ : c0 + cTo_ );
         }
 
         public BandDecoration createBandDecoration( Point origin,
                                                     Rectangle bounds ) {
             int c0 = isY_ ? origin.y : origin.x;
-            Rectangle target = createSpanRectangle( c0, c0 + cTo_ );
+            Rectangle target =
+               invert_ ? createSpanRectangle( c0 - cTo_, c0 )
+                       : createSpanRectangle( c0, c0 + cTo_ );
             return isY_ ? new BandDecoration( this, blo_, c0 - cTo_, target )
                         : new BandDecoration( this, c0 - cTo_, blo_, target );
         }
@@ -633,11 +636,11 @@ public class NavDecorations {
         }
 
         public int getIconWidth() {
-            return 2 * Math.max( baseSize_, xTo_ );
+            return 2 * Math.max( baseSize_, Math.abs( xTo_ ) );
         }
 
         public int getIconHeight() {
-            return 2 * Math.max( baseSize_, yTo_ );
+            return 2 * Math.max( baseSize_, Math.abs( yTo_ ) );
         }
 
         public void paintIcon( Component c, Graphics g, int x, int y ) {
@@ -767,7 +770,9 @@ public class NavDecorations {
         }
 
         void doPainting( Graphics g, int xc, int yc ) {
-            g.drawRect( xc - xTo_, yc - yTo_, xTo_, yTo_ );
+            g.drawRect( xTo_ >= 0 ? xc - xTo_ : xc + 2 * xTo_,
+                        yTo_ >= 0 ? yc - yTo_ : yc + 2 * yTo_,
+                        Math.abs( xTo_ ), Math.abs( yTo_ ) );
         }
 
         public BandDecoration createBandDecoration( Point origin,
@@ -791,25 +796,30 @@ public class NavDecorations {
          * @param  dy  drag extent in Y direction
          */
         MinusBandZoomIcon2d( int baseSize, int dx, int dy ) {
-            super( baseSize, baseSize + dx, baseSize + dy );
+            super( baseSize, baseSize + Math.abs( dx ),
+                             baseSize + Math.abs( dy ) );
         }
 
         void doPainting( Graphics g, int xc, int yc ) {
             g.drawRect( xc - baseSize_, yc - baseSize_,
                         2 * baseSize_, 2 * baseSize_ );
-            g.drawRect( xc - xTo_, yc - yTo_, 2 * xTo_, 2 * yTo_ );
+            g.drawRect( xc - Math.abs( xTo_ ), yc - Math.abs( yTo_ ),
+                        2 * Math.abs( xTo_ ), 2 * Math.abs( yTo_ ) );
         }
 
         public BandDecoration createBandDecoration( Point origin,
                                                     Rectangle bounds ) {
             Rectangle outer =
-                new Rectangle( origin.x - xTo_, origin.y - yTo_,
+                new Rectangle( origin.x - Math.abs( xTo_ ),
+                               origin.y - Math.abs( yTo_ ),
                                2 * xTo_, 2 * yTo_ );
             Rectangle inner =
                 new Rectangle( origin.x - baseSize_, origin.y - baseSize_,
                                2 * baseSize_, 2 * baseSize_ );
             Rectangle target = createMinusZoomTarget( outer, inner, bounds );
-            return new BandDecoration( this, origin.x - xTo_, origin.y - yTo_,
+            return new BandDecoration( this,
+                                       origin.x - Math.abs( xTo_ ),
+                                       origin.y - Math.abs( yTo_ ),
                                        target );
         }
     }
