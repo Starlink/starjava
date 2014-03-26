@@ -154,10 +154,13 @@ public class SkyNavigator implements Navigator<SkyAspect> {
         int h = plotBounds.height;
         int dx = point.x - origin.x;
         int dy = point.y - origin.y;
+        int sx = dx >= 0 ? +1 : -1;
+        int sy = dy >= 0 ? +1 : -1;
         double fx = dx * 1.0 / plotBounds.width;
         double fy = dy * 1.0 / plotBounds.height;
-        double f = Math.abs( fx ) >= Math.abs( fy ) ? fx : fy;
-        return new Point( (int) Math.round( origin.x + f * w ),
-                          (int) Math.round( origin.y + f * h ) );
+        double f = Math.abs( fx ) >= Math.abs( fy ) ? Math.abs( fx )
+                                                    : Math.abs( fy );
+        return new Point( (int) Math.round( origin.x + f * sx * w ),
+                          (int) Math.round( origin.y + f * sy * h ) );
     }
 }

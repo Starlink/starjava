@@ -6931,11 +6931,11 @@ However, as a rule, the actions when used on the body of the plot are these:
     </p></dd>
 <dt>&IMG.DRAG2; Middle drag</dt>
 <dd><p>Frame zoom.
-    Dragging down-and-right drags out a frame;
+    Dragging right-and-down or right-and-up drags out a frame;
     when the button is released, the plot will be zoomed in
     to cover area enclosed by the frame.
-    Dragging up-and-left does something like the opposite, you can zoom out
-    using a similar (though not quite the same) mechanism.
+    Dragging left (and up or down) does something like the opposite,
+    you can zoom out using a similar (though not quite the same) mechanism.
     </p></dd>
 <dt>&IMG.MOUSE_WHEEL; Mouse wheel</dt>
 <dd><p>Spinning the mouse wheel forwards/backwards will zoom in/out.
@@ -8918,13 +8918,14 @@ tab of the <ref id="PlaneAxisControl">Axes control</ref>.
     </p></dd>
 <dt>&GESTURE.DRAG2;</dt>
 <dd><p><em>Frame zoom.</em>
-    On the body of the plot, dragging down-and-right drags out a frame;
+    On the body of the plot, dragging right-and-down or right-and-up
+    drags out a frame;
     when the button is released, the plot will be zoomed in
     to cover the area enclosed by the frame.
-    Dragging up-and-left does something like the opposite, you can zoom out
-    using a similar (though not quite the same) mechanism.
-    To zoom in/out only vertically, drag down/up on the left of the Y axis.
-    To zoom in/out only vertically, drag right/left below the X axis.
+    Dragging left (and up or down) does something like the opposite,
+    you can zoom out using a similar (though not quite the same) mechanism.
+    To zoom in/out only horizontally, drag right/left below the X axis.
+    To zoom in/out only vertically, drag up/down on the left of the Y axis.
     </p></dd>
 <dt>&GESTURE.WHEEL;</dt>
 <dd><p><em>Isotropic zoom.</em>
@@ -9203,11 +9204,12 @@ tab of the <ref id="SkyAxisControl">Axes control</ref>.
     </p></dd>
 <dt>&GESTURE.DRAG2;</dt>
 <dd><p><em>Frame zoom.</em>
-    Dragging with the middle button down or right drags out a frame;
+    Dragging with the middle button to the right (and either up or down)
+    drags out a frame;
     when the button is released, the plot will be zoomed in
     to cover (roughly) the area enclosed by the frame.
-    Dragging up or left does something like the opposite, you can zoom out
-    using a similar (though not quite the same) mechanism.
+    Dragging left (and either up or down) does something like the opposite,
+    you can zoom out using a similar (though not quite the same) mechanism.
     </p></dd>
 <dt>&GESTURE.CLICK1;</dt>
 <dd><p><em>Select.</em>
@@ -10049,9 +10051,9 @@ tab of the <ref id="TimeAxisControl">Axes control</ref>.
     to cover the area enclosed by the frame.
     Dragging left does something like the opposite, you can zoom out
     using a similar (though not quite the same) mechanism.
-    By default, vertical zooming is inhibited sine you don't normally
+    By default, vertical zooming is inhibited since you don't normally
     want it for a time plot.
-    To zoom in/out vertically, drag down/up on the left of the Y axis.
+    To zoom in/out vertically, drag up/down on the left of the Y axis.
     It is also possible to configure zooming on the body of the plot
     to be in both directions using the <label>Pan/Zoom Axes</label>
     in the <label>Navigation</label> axis configuration tab.
