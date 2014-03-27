@@ -48,7 +48,8 @@ public class FormStylePanel extends JPanel {
     private final Configger plotConfigger_;
     private final Factory<Plotter> plotterFact_;
     private final SubsetConfigManager subManager_;
-    private final ConfigSpecifier globalSpecifier_;
+    private final TopcatModel tcModel_;
+    private final OptionalConfigSpecifier globalSpecifier_;
     private final ActionForwarder forwarder_;
     private final Map<RowSubset,ConfigMap> subsetConfigs_;
     private final JLabel iconLabel_;
@@ -74,6 +75,7 @@ public class FormStylePanel extends JPanel {
         plotConfigger_ = plotConfigger;
         plotterFact_ = plotterFact;
         subManager_ = subManager;
+        tcModel_ = tcModel;
         forwarder_ = new ActionForwarder();
 
         /* Set up specifier for global keys. */
@@ -199,6 +201,34 @@ public class FormStylePanel extends JPanel {
      */
     public void setGlobalConfig( ConfigMap config ) {
         globalSpecifier_.setSpecifiedValue( config );
+    }
+
+    /**
+     * Configures this panel with the current state of a supplied template.
+     *
+     * @param template  panel supplying required configuration
+     */
+    public void configureFrom( FormStylePanel template ) {
+
+        /* Copy global configuration. */
+        globalSpecifier_.configureFrom( template.globalSpecifier_ );
+
+        /* Copying subset configurations is more complicated, since they
+         * are keyed by RowSubset objects, which in general are unique
+         * within a given table.  Copy subset configurations if they
+         * match by subset name. */
+        Map<String,ConfigMap> rsNameConfigs = new HashMap<String,ConfigMap>();
+        for ( RowSubset rset : template.subsetConfigs_.keySet() ) {
+            rsNameConfigs.put( rset.getName(),
+                               template.subsetConfigs_.get( rset ) );
+        }
+        for ( Object rs : tcModel_.getSubsets() ) {
+            RowSubset rset = (RowSubset) rs;
+            ConfigMap config = rsNameConfigs.get( rset.getName() );
+            if ( config != null ) {
+                subsetConfigs_.put( rset, config );
+            }
+        }
     }
 
     /**

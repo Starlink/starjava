@@ -19980,6 +19980,8 @@ introduced since the last version:
         labelling as well as the grid labelling.</li>
     <li>Add old-style frame zooming on new-style plots using middle button
         (or shift) drag.</li>
+    <li>Form configuration options are now preserved, rather than reset,
+        when a new table is selected in one of the plot windows.</li>
     </ul>
     </p></dd>
 

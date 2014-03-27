@@ -129,9 +129,13 @@ public abstract class FormControl implements Control {
             klist.addAll( Arrays.asList( getConfigKeys() ) );
             klist.removeAll( baseConfigger_.getConfig().keySet() );
             ConfigKey[] keys = klist.toArray( new ConfigKey[ 0 ] );
-            stylePanel_ = new FormStylePanel( keys, baseConfigger_,
-                                              plotterFact, subManager,
-                                              tcModel );
+            FormStylePanel sp =
+                new FormStylePanel( keys, baseConfigger_, plotterFact,
+                                    subManager, tcModel );
+            if ( stylePanel_ != null ) {
+                sp.configureFrom( stylePanel_ );
+            }
+            stylePanel_ = sp;
             stylePanel_.addActionListener( forwarder_ );
             panel.add( stylePanel_, BorderLayout.CENTER );
         }
