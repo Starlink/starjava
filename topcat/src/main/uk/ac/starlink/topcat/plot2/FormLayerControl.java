@@ -5,9 +5,12 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.swing.Box;
 import javax.swing.DefaultListModel;
 import javax.swing.Icon;
@@ -328,15 +331,79 @@ public abstract class FormLayerControl
             fcs[ ifc ].setTable( tcModel_, subsetManager_ );
         }
 
-        /* Set up a sensible selection of at least one visible subset. */
-        subStack_.setSelectedSubsets( new RowSubset[ 0 ] );
+        /* If there is no new table, just clear the list of subsets
+         * and the set of selected subsets. */
         if ( tcModel_ == null ) {
+            subStack_.setSelectedSubsets( new RowSubset[ 0 ] );
             subListModel_.setBaseModel( new DefaultListModel() );
         }
+
+        /* Otherwise, configure the subset list to be as much like the
+         * old one as is reasonable.  Just leaving it the same won't work
+         * very well, since the RowSubset objects will (apart from ALL)
+         * be different between the old and new table, but if they have
+         * the same names we can try to copy the configuration. */
         else {
+
+            /* Store some things we need to know about the old configuration. */
+            Set<String> oldSelectedSubsetNames = new HashSet<String>();
+            RowSubset[] oldSelSubsets = subStack_.getSelectedSubsets();
+            for ( int i = 0; i < oldSelSubsets.length; i++ ) {
+                oldSelectedSubsetNames.add( oldSelSubsets[ i ].getName() );
+            }
+            Set<RowSubset> oldSubsets = new HashSet<RowSubset>();
+            for ( int i = 0; i < subListModel_.getSize(); i++ ) {
+                oldSubsets.add( (RowSubset) subListModel_.getElementAt( i ) );
+            }
+
+            /* Clear the selections while we do some manipulations so that
+             * no plots will result. */
+            subStack_.setSelectedSubsets( new RowSubset[ 0 ] );
+
+            /* Set up the subset stack with the subsets for the new table. */
             subListModel_.setBaseModel( tcModel_.getSubsets() );
-            RowSubset rset = tcModel_.getSelectedSubset();
-            subStack_.setSelectedSubsets( new RowSubset[] { rset } );
+
+            /* Work out if there are any subsets in the new table with
+             * names matching those selected in the old table. */
+            List<RowSubset> newSubsets = new ArrayList<RowSubset>();
+            for ( Object rs : tcModel_.getSubsets() ) {
+                RowSubset rset = (RowSubset) rs;
+                if ( oldSelectedSubsetNames.contains( rset.getName() ) ) {
+                    newSubsets.add( rset );
+                }
+            }
+
+            /* Decide which subsets will be selected for the new table.
+             * If at least one has the same name as one selected in the old
+             * table, use the same set of selected subset names as before.
+             * If there are none, or if there is exactly one and it's ALL,
+             * use just the new table's currently selected subset. */
+            RowSubset[] selSubsets =
+                  newSubsets.isEmpty() ||
+                  newSubsets.size() == 1 && newSubsets.get( 0 ) == RowSubset.ALL
+                ? new RowSubset[] { tcModel_.getSelectedSubset() }
+                : newSubsets.toArray( new RowSubset[ 0 ] );
+
+            /* Now set up the subset configuration manager so that any
+             * entries for subsets in the old table are transferred to
+             * entries for subsets in the new table with similar names. */
+            Map<String,Configger> subconMap = new HashMap<String,Configger>();
+            for ( RowSubset rset : oldSubsets ) {
+                if ( subsetManager_.hasConfigger( rset ) ) {
+                    subconMap.put( rset.getName(),
+                                   subsetManager_.getConfigger( rset ) );
+                }
+            }
+            for ( Object rs : tcModel_.getSubsets() ) {
+                RowSubset rset = (RowSubset) rs;
+                Configger configger = subconMap.get( rset.getName() );
+                if ( configger != null ) {
+                    subsetManager_.setConfig( rset, configger.getConfig() );
+                }
+            }
+
+            /* Initialise the selected subsets. */ 
+            subStack_.setSelectedSubsets( selSubsets );
         }
     }
 

@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import javax.swing.Box;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
@@ -62,7 +63,44 @@ public class OptionalConfigSpecifier extends ConfigSpecifier {
     }
 
     /**
-     * Specifier implementation with an associted override checkbox.
+     * Configures this specifier with the current state of a supplied template.
+     *
+     * @param  template  specifier supplying required configuration
+     */
+    public void configureFrom( OptionalConfigSpecifier template ) {
+        Set<ConfigKey<?>> allKeys =
+            new HashSet<ConfigKey<?>>( Arrays.asList( getConfigKeys() ) );
+        allKeys.retainAll( Arrays.asList( template.getConfigKeys() ) );
+        Set<ConfigKey<?>> optKeys = new HashSet<ConfigKey<?>>( optKeys_ );
+        optKeys.retainAll( template.optKeys_ );
+        for ( ConfigKey<?> key : allKeys ) {
+            copyConfig( template, key, optKeys.contains( key ) );
+        }
+    }
+
+    /**
+     * Copies the configuration for a given key from a template config
+     * specifier to this one.
+     *
+     * @param   template  template specifier
+     * @param   key   key whose value is to be updated
+     * @param   isOpt  true iff the specifier is known to be an OptSpecifier
+     *                 for both template and target
+     */
+    private <T> void copyConfig( OptionalConfigSpecifier template,
+                                 ConfigKey<T> key, boolean isOpt ) {
+        Specifier<T> targetKeySpecifier = getSpecifier( key );
+        Specifier<T> templateKeySpecifier = template.getSpecifier( key );
+        targetKeySpecifier
+            .setSpecifiedValue( templateKeySpecifier.getSpecifiedValue() );
+        if ( isOpt ) {
+            ((OptSpecifier) targetKeySpecifier)
+                .setActive( ((OptSpecifier) templateKeySpecifier).isActive() );
+        }
+    }
+
+    /**
+     * Specifier implementation with an associated override checkbox.
      */
     private static class OptSpecifier<T> extends SpecifierPanel<T> {
 
@@ -108,6 +146,17 @@ public class OptionalConfigSpecifier extends ConfigSpecifier {
          */
         public boolean isActive() {
             return ! checkBox_.isSelected();
+        }
+
+        /**
+         * Sets whether this specifier will yield its own value,
+         * as opposed to the override value.
+         *
+         * @param  isActive  true if this specifier's own value is to be used
+         */
+        public void setActive( boolean isActive ) {
+            checkBox_.setSelected( isActive );
+            updateStatus();
         }
 
         /**
