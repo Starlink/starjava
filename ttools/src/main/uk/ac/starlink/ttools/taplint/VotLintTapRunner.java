@@ -74,6 +74,25 @@ public abstract class VotLintTapRunner extends TapRunner {
     }
 
     /**
+     * Indicates if the given table, which must have been retrieved from
+     * this object's {@link #readResultVOTable} method, was marked as
+     * an overflow result.
+     *
+     * @param   table  TAP result table read by this object
+     * @return  true iff overflow
+     */
+    public boolean isOverflow( StarTable table ) {
+        DescribedValue ovParam =
+            table.getParameterByName( OVERFLOW_INFO.getName() );
+        if ( ovParam != null && ovParam.getValue() instanceof Boolean ) {
+            return ((Boolean) ovParam.getValue()).booleanValue();
+        }
+        else {
+            throw new IllegalArgumentException( "Not produced by me!" );
+        }
+    }
+
+    /**
      * Execute a TAP query and return a URL connection giving its result.
      *
      * @param  reporter  validation message destination
@@ -86,6 +105,22 @@ public abstract class VotLintTapRunner extends TapRunner {
 
     @Override
     protected StarTable executeQuery( Reporter reporter, TapQuery tq )
+            throws IOException, SAXException {
+        InputStream in = readResultInputStream( reporter, tq );
+        VODocument doc = readResultDocument( reporter, in );
+        return readResultVOTable( reporter, doc );
+    }
+
+    /**
+     * Returns an input stream which should containing the result VOTable
+     * from a TAP query, performing checks and making reports as appropriate
+     * on the way.
+     *
+     * @param  reporter  validation message destination
+     * @param  tq  query
+     * @return  result input stream
+     */
+    public InputStream readResultInputStream( Reporter reporter, TapQuery tq )
             throws IOException, SAXException {
         URLConnection conn = getResultConnection( reporter, tq );
         conn = TapQuery.followRedirects( conn );
@@ -140,51 +175,30 @@ public abstract class VotLintTapRunner extends TapRunner {
                            + " for " + conn.getURL() );
         }
 
-        InputStream in = null;
         try {
-            in = compression.decompress( conn.getInputStream() );
+            return compression.decompress( conn.getInputStream() );
         }
         catch ( IOException e ) {
             if ( conn instanceof HttpURLConnection ) {
-                in = ((HttpURLConnection) conn).getErrorStream();
+                InputStream err = ((HttpURLConnection) conn).getErrorStream();
+                if ( err != null ) {
+                    return err;
+                }
             }
-            if ( in == null ) {
-                throw e;
-            }
-        }
-        return readResultVOTable( reporter, in );
-    }
-
-    /**
-     * Indicates if the given table, which must have been retrieved from
-     * this object's {@link #readResultVOTable} method, was marked as
-     * an overflow result.
-     *
-     * @param   table  TAP result table read by this object
-     * @return  true iff overflow
-     */
-    public boolean isOverflow( StarTable table ) {
-        DescribedValue ovParam =
-            table.getParameterByName( OVERFLOW_INFO.getName() );
-        if ( ovParam != null && ovParam.getValue() instanceof Boolean ) {
-            return ((Boolean) ovParam.getValue()).booleanValue();
-        }
-        else {
-            throw new IllegalArgumentException( "Not produced by me!" );
+            throw e;
         }
     }
 
     /**
-     * Reads a TAP result VOTable from an input stream, checking it and
+     * Reads a TAP result VODocument from an input stream, checking it and
      * reporting messages as appropriate.
-     * The resulting table will have the {@link #OVERFLOW_INFO} parameter
-     * present and set/unset appropriately.
      *
      * @param  reporter  validation message destination
      * @param  baseIn  VOTable input stream
+     * @return VOTable-aware DOM
      */
-    protected StarTable readResultVOTable( Reporter reporter,
-                                           InputStream baseIn )
+    public VODocument readResultDocument( Reporter reporter,
+                                          InputStream baseIn )
             throws IOException, SAXException {
         final VOTableVersion version;
         BufferedInputStream in = new BufferedInputStream( baseIn );
@@ -250,41 +264,22 @@ public abstract class VotLintTapRunner extends TapRunner {
 
         /* Perform the parse and retrieve the resulting DOM. */
         parser.parse( new InputSource( in ) );
-        VODocument doc = domHandler.getDocument();
+        return domHandler.getDocument();
+    }
 
-        /* Check the top-level element. */
-        VOElement voEl = (VOElement) doc.getDocumentElement();
-        if ( ! "VOTABLE".equals( voEl.getVOTagName() ) ) {
-            String msg = new StringBuffer()
-               .append( "Top-level element of result document is " )
-               .append( voEl.getTagName() )
-               .append( " not VOTABLE" )
-               .toString();
-            throw new IOException( msg );
-        }
-
-        /* Attempt to find the results element. */
-        VOElement[] resourceEls = voEl.getChildrenByName( "RESOURCE" );
-        VOElement resultsEl = null;
-        for ( int ie = 0; ie < resourceEls.length; ie++ ) {
-            VOElement el = resourceEls[ ie ];
-            if ( "results".equals( el.getAttribute( "type" ) ) ) {
-                resultsEl = el;
-            }
-        }
-        if ( resultsEl == null ) {
-            if ( resourceEls.length == 1 ) {
-                resultsEl = resourceEls[ 0 ];
-                if ( doChecks_ ) {
-                    reporter.report( ReportType.ERROR, "RRES",
-                                     "TAP response document RESOURCE element "
-                                   + "is not marked type='results'" );
-                }
-            }
-            else {
-                throw new IOException( "No RESOURCE with type='results'" );
-            }
-        }
+    /**
+     * Reads a VOTable result from a DOM that has come from a TAP result
+     * document.
+     * The resulting table will have the {@link #OVERFLOW_INFO} parameter
+     * present and set/unset appropriately.
+     *
+     * @param  reporter  validation message destination
+     * @param  doc   VOTable-aware DOM
+     * @return  table result
+     */
+    private StarTable readResultVOTable( Reporter reporter, VODocument doc )
+            throws IOException {
+        VOElement resultsEl = getResultsResourceElement( reporter, doc );
 
         /* Look for preceding and possible trailing QUERY_STATUS INFOs
          * and the TABLE. */
@@ -416,6 +411,49 @@ public abstract class VotLintTapRunner extends TapRunner {
         table.setParameter( new DescribedValue( OVERFLOW_INFO,
                                                 Boolean.valueOf( overflow ) ) );
         return table;
+    }
+
+    /**
+     * Returns the RESOURCE element marked with type="results" from a given
+     * VODocument, or the best guess at it.
+     *
+     * @param  reporter   validation message destination
+     * @param  doc   TAP result DOM
+     */
+    public VOElement getResultsResourceElement( Reporter reporter,
+                                                VODocument doc )
+            throws IOException {
+
+        /* Check the top-level element. */
+        VOElement voEl = (VOElement) doc.getDocumentElement();
+        if ( ! "VOTABLE".equals( voEl.getVOTagName() ) ) {
+            String msg = new StringBuffer()
+               .append( "Top-level element of result document is " )
+               .append( voEl.getTagName() )
+               .append( " not VOTABLE" )
+               .toString();
+            throw new IOException( msg );
+        }
+
+        /* Attempt to find the results element. */
+        VOElement[] resourceEls = voEl.getChildrenByName( "RESOURCE" );
+        for ( int ie = 0; ie < resourceEls.length; ie++ ) {
+            VOElement el = resourceEls[ ie ];
+            if ( "results".equals( el.getAttribute( "type" ) ) ) {
+                return el;
+            }
+        }
+        if ( resourceEls.length == 1 ) {
+            if ( doChecks_ ) {
+                reporter.report( ReportType.ERROR, "RRES",
+                                 "TAP response document RESOURCE element "
+                               + "is not marked type='results'" );
+            }
+            return resourceEls[ 0 ];
+        }
+        else {
+            throw new IOException( "No RESOURCE with type='results'" );
+        }
     }
 
     /**
