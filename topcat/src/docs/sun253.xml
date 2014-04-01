@@ -143,6 +143,7 @@
   <!ENTITY FIG.HistogramLayerControl_form
            '&figs;HistogramLayerControl_form.gif'>
   <!ENTITY FIG.mode_flat '&figs;mode_flat.gif'>
+  <!ENTITY FIG.mode_translucent '&figs;mode_translucent.gif'>
   <!ENTITY FIG.mode_transparent '&figs;mode_transparent.gif'>
   <!ENTITY FIG.mode_auto '&figs;mode_auto.gif'>
   <!ENTITY FIG.mode_density '&figs;mode_density.gif'>
@@ -8502,6 +8503,43 @@ This mode works without problem for both bitmapped and vector output.
 
 </subsubsubsect>
 
+<subsubsubsect id="mode-translucent">
+<subhead><title>Translucent Mode</title></subhead>
+
+<figure>
+<caption><px>Translucent shading mode selection</px></caption>
+<figureimage src="&FIG.mode_translucent;"/>
+</figure>
+
+<p>The <label>Translucent</label> shading mode (&IMG.MODE_ALPHA;)
+colours shapes in a transparent version of the
+colour selected by their style.
+The degree of transparency is determined by how many points are
+currently being plotted on top of each other,
+and by the <label>Transparency Level</label> slider;
+as you slide further to the right, points get more transparent.
+Unlike <ref id="mode-transparent">transparent mode</ref>,
+the transparency varies according to the current point density,
+so you can usually leave the setting the same as you zoom 
+in and out.
+</p>
+
+<p><strong>Exporting:</strong>
+When the points are opaque, this mode works without problem for
+both bitmapped and vector output, but when the transparency is set
+there may be anomalies.
+Transparent points are rendered in PDF output, though the 
+transparency levels may not be exactly the same as on the screen.
+This can be fixed by using the <label>Force Bitmap</label> option
+in the <ref id="plot2-export" plaintextref="yes">Plot Export</ref> dialogue.
+For PostScript, transparent points are rendered as opaque.
+You can use <label>Force Bitmap</label> with PostScript which
+will get transparency right for this layer, but then any earlier
+layers will be completely obscured.
+</p>
+
+</subsubsubsect>
+
 <subsubsubsect id="mode-transparent">
 <subhead><title>Transparent Mode</title></subhead>
 
@@ -8521,6 +8559,9 @@ and as you slide further to the right,
 the points get more transparent.
 The higher the opaque limit, the more points have to be plotted
 on top of each other to reach colour that fully obscures the background.
+Unlike <ref id="mode-translucent">translucent mode</ref>,
+transparency of each colour is fixed by the opaque limit,
+rather than adjusting depending on the density of points currently plotted.
 </p>
 
 <p><strong>Exporting:</strong>
