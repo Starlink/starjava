@@ -1,6 +1,7 @@
 package uk.ac.starlink.ttools.taplint;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -9,15 +10,20 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import org.w3c.dom.Node;
+import org.xml.sax.SAXException;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
+import uk.ac.starlink.util.DOMUtils;
 import uk.ac.starlink.vo.AdqlSyntax;
 import uk.ac.starlink.vo.ColumnMeta;
 import uk.ac.starlink.vo.TableMeta;
 import uk.ac.starlink.vo.TapCapability;
 import uk.ac.starlink.vo.TapLanguage;
 import uk.ac.starlink.vo.TapQuery;
+import uk.ac.starlink.votable.VODocument;
+import uk.ac.starlink.votable.VOElement;
 import uk.ac.starlink.votable.VOStarTable;
 
 /**
@@ -76,6 +82,7 @@ public class QueryStage implements Stage {
             tmetas = tmList.toArray( new TableMeta[ 0 ] );
         }
         new Querier( reporter, serviceUrl, tmetas, adqlLangs ).run();
+        runDuffQuery( reporter, serviceUrl );
         tapRunner_.reportSummary( reporter );
     }
 
@@ -107,6 +114,95 @@ public class QueryStage implements Stage {
             adqlLangList.add( "ADQL" );
         }
         return adqlLangList.toArray( new String[ 0 ] );
+    }
+
+    /**
+     * Runs a query with an intentionally nonsensical query string,
+     * performing checks on whether the service issues error reports
+     * in the correct way.
+     *
+     * @param  reporter  validation message destination
+     * @param  serviceUrl   URL of TAP service
+     */
+    private void runDuffQuery( Reporter reporter, URL serviceUrl ) {
+        String duffAdql = "DUFF QUERY";
+        reporter.report( ReportType.INFO, "DUFF",
+                         "Submitting duff query: " + duffAdql );
+        VOElement resultsEl;
+        try {
+            TapQuery tq = new TapQuery( serviceUrl, duffAdql, null, null, -1 );
+            InputStream in = tapRunner_.readResultInputStream( reporter, tq );
+            VODocument doc = tapRunner_.readResultDocument( reporter, in );
+            resultsEl = tapRunner_.getResultsResourceElement( reporter, doc );
+        }
+        catch ( SAXException e ) {
+            reporter.report( ReportType.ERROR, "DFSF",
+                             "TAP result parse failed for \""
+                           + duffAdql + "\"", e );
+            return;
+        }
+        catch ( IOException e ) {
+            reporter.report( ReportType.ERROR, "DFIO",
+                             "TAP job failed for duff query", e );
+            return;
+        }
+        VOElement statusInfo = null;
+        for ( Node node = resultsEl.getFirstChild(); node != null;
+              node = node.getNextSibling() ) {
+            if ( node instanceof VOElement ) {
+                VOElement el = (VOElement) node;
+                String name = el.getVOTagName();
+                boolean isStatusInfo =
+                    "INFO".equals( name ) &&
+                    "QUERY_STATUS".equals( el.getAttribute( "name" ) );
+                boolean isTable =
+                    "TABLE".equals( name );
+                if ( isStatusInfo ) {
+                    if ( statusInfo != null ) {
+                        reporter.report( ReportType.ERROR, "EST1",
+                                         "Multiple INFOs with "
+                                       + "name='QUERY_STATUS'" );
+                    }
+                    statusInfo = el;
+                }
+                if ( isTable ) {
+                    reporter.report( ReportType.WARNING, "HSTB",
+                                     "Return from duff query contains TABLE" );
+                }
+            }
+        }
+        if ( statusInfo == null ) {
+            reporter.report( ReportType.ERROR, "DNST",
+                             "Missing <INFO name='QUERY_STATUS'> element "
+                           + "for duff query" );
+        }
+        else {
+            String status = statusInfo.getAttribute( "value" );
+            if ( "ERROR".equals( status ) ) {
+
+                /* Error (presumably parse error) reported as expected
+                 * for duff query. */
+                String err = DOMUtils.getTextContent( statusInfo );
+                if ( err == null || err.trim().length() == 0 ) {
+                    reporter.report( ReportType.WARNING, "NOMS",
+                                     "<INFO name='QUERY_STATUS' "
+                                   + "value='ERROR'> "
+                                   + "element has no message content" );
+                }
+            }
+            else if ( "OK".equals( status ) ) {
+                reporter.report( ReportType.WARNING, "DSUC",
+                                 "Service reports OK from duff query" );
+            }
+            else {
+                String msg = new StringBuffer()
+                    .append( "QUERY_STATUS INFO has unknown value " )
+                    .append( status )
+                    .append( " is not OK/ERROR" )
+                    .toString();
+                reporter.report( ReportType.ERROR, "DQUS", msg );
+            }
+        }
     }
 
     /**
