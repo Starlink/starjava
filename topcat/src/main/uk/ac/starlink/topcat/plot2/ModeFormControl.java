@@ -247,6 +247,8 @@ public class ModeFormControl extends FormControl {
             configSpecifier.addActionListener( forwarder );
             modeConfigHolder_.add( configSpecifier.getComponent() );
         }
+        modeCoordHolder_.repaint();
+        modeConfigHolder_.repaint();
         modeCoordHolder_.revalidate();
         modeConfigHolder_.revalidate();
     }
