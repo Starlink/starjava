@@ -20023,6 +20023,7 @@ introduced since the last version:
         (or shift) drag.</li>
     <li>Form configuration options are now preserved, rather than reset,
         when a new table is selected in one of the plot windows.</li>
+    <li>Fixed some bugs related to TAP table uploads.</li>
     </ul>
     </p></dd>
 
