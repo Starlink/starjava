@@ -475,13 +475,12 @@ public class UwsJob {
             String pName = entry.getKey();
             String pValue = entry.getValue();
             logger_.config( "POST " + pName + "=" + pValue );
-            writeHttpLine( hout, "--" + boundary );
+            writeBoundary( hout, boundary, false );
             writeHttpLine( hout, "Content-Type: text/plain; charset=" + UTF8 );
             writeHttpLine( hout, "Content-Disposition: form-data; "
                                + "name=\"" + pName + "\"" );
             writeHttpLine( hout, "" ); 
             hout.write( toTextPlain( pValue, UTF8 ) );
-            writeHttpLine( hout, "" );
         }
 
         /* Write stream parameters.  See RFC 2388. */
@@ -489,7 +488,7 @@ public class UwsJob {
             String pName = entry.getKey();
             HttpStreamParam pStreamer = entry.getValue();
             logger_.config( "POST " + pName + " (streamed data)" );
-            writeHttpLine( hout, "--" + boundary );
+            writeBoundary( hout, boundary, false );
             writeHttpLine( hout, "Content-Disposition: form-data"
                                + "; name=\"" + pName + "\"" 
                                + "; filename=\"" + pName + "\"" );
@@ -497,13 +496,13 @@ public class UwsJob {
                   pStreamer.getHttpHeaders().entrySet() ) {
                 writeHttpLine( hout,
                                header.getKey() + ": " + header.getValue() );
-                writeHttpLine( hout, "" ); 
             }
+            writeHttpLine( hout, "" ); 
             pStreamer.writeContent( hout );
         }
 
         /* Write trailing delimiter. */
-        writeHttpLine( hout, "--" + boundary + "--" );
+        writeBoundary( hout, boundary, true );
         hout.close();
         return hconn;
     }
@@ -614,6 +613,38 @@ public class UwsJob {
         buf[ leng + 0 ] = (byte) '\r';
         buf[ leng + 1 ] = (byte) '\n';
         out.write( buf );
+    }
+
+    /**
+     * Writes a multipart boundary given a delimiter string,
+     * in accordance with RFC2046 section 5.1.1.
+     * The required preceding CRLF and minus signs are included.
+     *
+     * @param  out  HTTP output stream
+     * @param  delim  basic boundary delimiter string (without --s)
+     * @param  isEnd  true iff the boundary marks the end of the multipart
+     *                document
+     */
+    private static void writeBoundary( OutputStream out, String delim,
+                                       boolean isEnd )
+            throws IOException {
+
+        /* Write the preceding CRLF.  This is considered part of the
+         * boundary delimiter itself. */
+        out.write( '\r' );
+        out.write( '\n' );
+
+        /* Prepare the boundary string itself. */
+        StringBuffer sbuf = new StringBuffer()
+            .append( "--" )
+            .append( delim );
+        if ( isEnd ) {
+            sbuf.append( "--" );
+        }
+        String line = sbuf.toString();
+
+        /* Write the boundary string with a trailing CRLF. */
+        writeHttpLine( out, line );
     }
 
     /**
