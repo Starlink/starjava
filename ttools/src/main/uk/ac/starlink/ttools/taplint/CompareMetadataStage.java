@@ -258,6 +258,16 @@ public class CompareMetadataStage implements Stage {
                dt1.equals( "INTEGER" ) ) && dt2.equals( "boolean" ) ) {
             return true;
         }
+
+        /* This one is a bit tricky.  It is debatable whether TAPType of
+         * "BOOLEAN" is even legal (yes according to VODataService 3.5.3,
+         * but no according to TAP sec 2.5 - this item is raised in the
+         * TAP Implementation Notes IVOA Note, sec 2.2.6).  But whether it
+         * is or not, it probably doesn't make sense to report the error
+         * here. */
+        if ( dt1.equals( "BOOLEAN" ) && dt2.equals( "boolean" ) ) {
+            return true;
+        }
         return false;
     }
 

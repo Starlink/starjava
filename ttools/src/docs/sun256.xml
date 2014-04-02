@@ -8541,6 +8541,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <li>Fixed some bugs related to TAP table uploads.
             In particular these could cause incorrect table upload error
             reports in <code>taplint</code>.</li>
+        <li>Avoid <code>taplint</code> MDQ stage data type mismatch error
+            report for BOOLEAN/boolean declared/returned data.</li>
         </ul>
         </p></dd>
 
