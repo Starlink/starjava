@@ -8,9 +8,10 @@ import uk.ac.starlink.table.Tables;
  * Defines how a set of matched rows from input tables 
  * ({@link RowLink} objects) are used to select rows for inclusion
  * in an output table which represents the result of the matching operation.
- * This is (I think) the type of the join in database terminology, though
+ * This corresponds to the type of the join in database terminology, though
  * the naming of the instances of this class do not follow that 
- * terminology (left outer join etc).
+ * terminology (left outer join etc), and the options here present a more
+ * complete set.
  *
  * <p>Instances of this class are available as public static members of it.
  * Currently, these instances should only be used with the results of
@@ -108,7 +109,7 @@ public abstract class JoinType {
     public static final JoinType _1AND2 = new JoinType( "1and2", "1 and 2" ) {
         public String getDescription() {
             return "An output row for each row represented in both " +
-                   "input tables";
+                   "input tables (INNER JOIN)";
         }
         public LinkSet processLinks( LinkSet links, int[] rowCounts ) {
             return links;
@@ -125,7 +126,7 @@ public abstract class JoinType {
     public static final JoinType _1OR2 = new JoinType( "1or2", "1 or 2" ) {
         public String getDescription() {
             return "An output row for each row represented in either or " +
-                   "both of the input tables";
+                   "both of the input tables (FULL OUTER JOIN)";
         }
         public LinkSet processLinks( LinkSet links, int[] rowCounts ) {
             BitSet[] present = new BitSet[ 2 ];
@@ -157,8 +158,14 @@ public abstract class JoinType {
             iTable_ = iTable;
         }
         public String getDescription() {
-            return "An output row for each matched or unmatched row in "
-                 + "table " + ( iTable_ + 1 );
+            return new StringBuffer()
+               .append( "An output row for each matched or unmatched row in " )
+               .append( "table " )
+               .append( iTable_ + 1 )
+               .append( " (" )
+               .append( iTable_ == 0 ? "LEFT" : "RIGHT" )
+               .append( " OUTER JOIN)" )
+               .toString();
         }
         public LinkSet processLinks( LinkSet links, int[] rowCounts ) {
             BitSet present = getInclusion( links, iTable_ );

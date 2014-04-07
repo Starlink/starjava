@@ -14567,6 +14567,7 @@ output rows result from a match in the input tables.
 <dd><p>The output table contains only rows which have an entry from 
     both of the input tables, so that every output row represents an
     actual matched pair.
+    This corresponds to an SQL <em>inner join</em>.
     </p></dd>
 
 <dt>All from 1</dt>
@@ -14574,10 +14575,12 @@ output rows result from a match in the input tables.
     <label>1 and 2</label>, but additionally the unmatched rows from
     the first table are present with the columns from the second
     table blank.
+    This corresponds to an SQL <em>left outer join</em>.
     </p></dd>
 
 <dt>All from 2</dt>
 <dd><p>As for <label>All from 1</label> but the other way round.
+    This corresponds to an SQL <em>right outer join</em>.
     </p></dd>
 
 <dt>1 or 2</dt>
@@ -14585,6 +14588,7 @@ output rows result from a match in the input tables.
     tables appears in the output.
     This is the union of rows from <label>All from 1</label> and
     <label>All from 2</label>.
+    This corresponds to an SQL <em>full outer join</em>.
     </p></dd>
 
 <dt>1 not 2</dt>
