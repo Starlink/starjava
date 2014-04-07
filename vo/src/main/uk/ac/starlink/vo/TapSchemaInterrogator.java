@@ -266,8 +266,8 @@ public class TapSchemaInterrogator {
      * @param  adql  query text
      * @return  query to execute
      */
-    protected TapQuery createTapQuery( String adql ) throws IOException {
-        return new TapQuery( serviceUrl_, adql, extraParams_, null, 0 );
+    protected TapQuery createTapQuery( String adql ) {
+        return new TapQuery( serviceUrl_, adql, extraParams_ );
     }
 
     /**
