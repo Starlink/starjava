@@ -510,15 +510,7 @@ public class ObsTapStage implements Stage {
          * @return   table result, or null
          */
         private TableData runQuery( String adql ) {
-            TapQuery tq;
-            try {
-                tq = new TapQuery( serviceUrl_, adql, null, null, 0 );
-            }
-            catch ( IOException e ) {
-                reporter_.report( ReportType.ERROR, "TQER",
-                                  "TAP job creation failed for " + adql, e );
-                return null;
-            }
+            TapQuery tq = new TapQuery( serviceUrl_, adql, null );
             StarTable table = tRunner_.getResultTable( reporter_, tq );
             if ( table == null ) {
                 return null;

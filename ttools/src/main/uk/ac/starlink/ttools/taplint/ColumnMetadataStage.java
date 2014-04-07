@@ -113,15 +113,7 @@ public class ColumnMetadataStage implements Stage {
             int ntop = 1;
             String tname = tmeta.getName();
             String adql = "SELECT TOP " + ntop + " * FROM " + tname;
-            TapQuery tq;
-            try {
-                tq = new TapQuery( serviceUrl_, adql, null, null, 0 );
-            }
-            catch ( IOException e ) {
-                reporter_.report( ReportType.ERROR, "TSER",
-                                  "TAP job creation failed for " + adql, e );
-                return;
-            }
+            TapQuery tq = new TapQuery( serviceUrl_, adql, null );
             StarTable result;
             try {
                 result = tRunner_.attemptGetResultTable( reporter_, tq );

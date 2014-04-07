@@ -57,7 +57,50 @@ public class TapQuery {
         Logger.getLogger( "uk.ac.starlink.vo" );
 
     /**
-     * Constructor.  May throw an IOException if the tables specified for
+     * Private constructor, performs common initialisation and
+     * invoked by public constructors.
+     *
+     * @param  serviceUrl  base service URL for TAP service
+     * @param  adql   text of ADQL query
+     * @param  extraParams  key->value map for optional parameters;
+     * @param  uploadLimit  maximum number of bytes that may be uploaded;
+     */
+    private TapQuery( URL serviceUrl, String adql,
+                      Map<String,String> extraParams, long uploadLimit ) {
+        serviceUrl_ = serviceUrl;
+        adql_ = adql;
+        uploadLimit_ = uploadLimit;
+
+        /* Prepare the parameter maps. */
+        stringMap_ = new LinkedHashMap<String,String>();
+        stringMap_.put( "REQUEST", "doQuery" );
+        stringMap_.put( "LANG", "ADQL" );
+        stringMap_.put( "QUERY", adql );
+        if ( extraParams != null ) {
+            stringMap_.putAll( extraParams );
+        }
+        streamMap_ = new LinkedHashMap<String,HttpStreamParam>();
+    }
+
+    /**
+     * Constructs a query with no uploaded tables.
+     *
+     * @param  serviceUrl  base service URL for TAP service
+     *                     (excluding "/[a]sync")
+     * @param  adql   text of ADQL query
+     * @param  extraParams  key->value map for optional parameters;
+     *                      if any of these match the names of standard
+     *                      parameters (upper case) the standard values will
+     *                      be overwritten, so use with care (may be null)
+     */
+    public TapQuery( URL serviceUrl, String adql,
+                     Map<String,String> extraParams ) {
+        this( serviceUrl, adql, extraParams, -1 );
+    }
+
+    /**
+     * Constructs a query with uploaded tables.
+     * May throw an IOException if the tables specified for
      * upload exceed the stated upload limit.
      *
      * @param  serviceUrl  base service URL for TAP service
@@ -72,27 +115,16 @@ public class TapQuery {
      * @param  uploadLimit  maximum number of bytes that may be uploaded;
      *                      if negative, no limit is applied,
      *                      ignored if <code>uploadMap</code> null or empty
+     * @throws   IOException   if upload tables exceed the upload limit
      */
     public TapQuery( URL serviceUrl, String adql,
                      Map<String,String> extraParams,
                      Map<String,StarTable> uploadMap, long uploadLimit )
             throws IOException {
-        serviceUrl_ = serviceUrl;
-        adql_ = adql;
-        uploadLimit_ = uploadLimit;
-
-        /* Prepare the map of string parameters. */
-        stringMap_ = new LinkedHashMap<String,String>();
-        stringMap_.put( "REQUEST", "doQuery" );
-        stringMap_.put( "LANG", "ADQL" );
-        stringMap_.put( "QUERY", adql );
-        if ( extraParams != null ) {
-            stringMap_.putAll( extraParams );
-        }
+        this( serviceUrl, adql, extraParams, uploadLimit );
 
         /* Prepare the map of streamed parameters, required for table uploads.
          * This also affects the string parameter map. */
-        streamMap_ = new LinkedHashMap<String,HttpStreamParam>();
         StringBuffer ubuf = new StringBuffer();
         if ( uploadMap != null ) {
             for ( Map.Entry<String,StarTable> upload : uploadMap.entrySet() ) {

@@ -130,7 +130,7 @@ public class QueryStage implements Stage {
                          "Submitting duff query: " + duffAdql );
         VOElement resultsEl;
         try {
-            TapQuery tq = new TapQuery( serviceUrl, duffAdql, null, null, -1 );
+            TapQuery tq = new TapQuery( serviceUrl, duffAdql, null );
             InputStream in = tapRunner_.readResultInputStream( reporter, tq );
             VODocument doc = tapRunner_.readResultDocument( reporter, in );
             resultsEl = tapRunner_.getResultsResourceElement( reporter, doc );
@@ -318,15 +318,10 @@ public class QueryStage implements Stage {
                     Map<String,String> extraParams =
                         new HashMap<String,String>();
                     extraParams.put( "LANG", lang );
-                    StarTable result;
-                    try {
-                        TapQuery tq = new TapQuery( serviceUrl_, vAdql,
-                                                    extraParams, null, 0 );
-                        result = tapRunner_.getResultTable( reporter_, tq );
-                    }
-                    catch ( IOException e ) {
-                        result = null;
-                    }
+                    TapQuery tq =
+                        new TapQuery( serviceUrl_, vAdql, extraParams );
+                    StarTable result =
+                        tapRunner_.getResultTable( reporter_, tq );
                     ( result == null ? failLangList
                                      : okLangList ).add( lang );
                 }
@@ -438,15 +433,7 @@ public class QueryStage implements Stage {
             if ( maxrec >= 0 ) {
                 extraParams.put( "MAXREC", Integer.toString( maxrec ) );
             }
-            TapQuery tq;
-            try {
-                tq = new TapQuery( serviceUrl_, adql, extraParams, null, 0 );
-            }
-            catch ( IOException e ) {
-                reporter_.report( ReportType.ERROR, "TSER",
-                                  "TAP job creation failed for " + adql, e );
-                return null;
-            }
+            TapQuery tq = new TapQuery( serviceUrl_, adql, extraParams );
             StarTable table = tapRunner_.getResultTable( reporter_, tq );
             if ( table != null ) {
                 int nrow = (int) table.getRowCount();

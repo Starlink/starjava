@@ -725,15 +725,9 @@ public class JobStage implements Stage {
          * @return   new job, or null if there was an error
          */
         private UwsJob createJob( String adql ) {
-            TapQuery tq;
             Map<String,String> paramMap = new LinkedHashMap<String,String>();
             paramMap.put( "RUNID", runId1_ );
-            try {
-                tq = new TapQuery( serviceUrl_, adql, paramMap, null, 0 );
-            }
-            catch ( IOException e ) {
-                throw new AssertionError( "no upload!" );
-            }
+            TapQuery tq = new TapQuery( serviceUrl_, adql, paramMap );
             UwsJob job;
             try {
                 job = UwsJob.createJob( tq.getServiceUrl() + "/async",
