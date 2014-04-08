@@ -14,13 +14,20 @@ import javax.swing.JPanel;
 import javax.swing.MutableComboBoxModel;
 
 /**
- * Component which allows the user to select a registry to interrogate
- * and a query string representing the query to be done.
+ * Component which allows the user to select a Registry Interface 1.0-style
+ * registry to interrogate and a query string representing the query
+ * to be done.
+ *
+ * <p>This is not very user-friendly or useful, and hence is somewhat
+ * deprecated.  A TAP query on a Relational Registry service (RegTAP)
+ * is usually a better way to acquire registry information.
  *
  * @author   Mark Taylor (Starlink)
  * @since    23 Dec 2004
+ * @see   <a href="http://www.ivoa.net/documents/RegistryInterface/20091104/"
+ *           >Registry Interface 1.0</a>
  */
-public class RegistryQueryPanel extends JPanel {
+public class Ri1RegistryQueryPanel extends JPanel {
 
     private RegistrySelector urlSelector_;
     private JComboBox querySelector_;
@@ -28,7 +35,7 @@ public class RegistryQueryPanel extends JPanel {
     /**
      * Constructor.
      */
-    public RegistryQueryPanel() {
+    public Ri1RegistryQueryPanel() {
         super( new BorderLayout() );
         JComponent qBox = Box.createVerticalBox();
         add( qBox, BorderLayout.CENTER );
@@ -97,7 +104,7 @@ public class RegistryQueryPanel extends JPanel {
                 ((MutableComboBoxModel) qModel).addElement( query );
             }
         }
-        return new RegistryQuery( regURL.toString(), query );
+        return new Ri1RegistryQuery( regURL.toString(), query );
     }
 
     public void setEnabled( boolean enabled ) {

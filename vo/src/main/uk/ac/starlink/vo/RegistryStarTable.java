@@ -172,8 +172,9 @@ public class RegistryStarTable extends ColumnStarTable {
     private static Record[] getRecords( RegistryQuery query )
             throws IOException {
         List recList = new ArrayList();
-        for ( Iterator it = query.getQueryIterator(); it.hasNext(); ) {
-            RegResource resource = (RegResource) it.next();
+        for ( Iterator<RegResource> it = query.getQueryIterator();
+              it.hasNext(); ) {
+            RegResource resource = it.next();
             RegCapabilityInterface[] caps = resource.getCapabilities();
             if ( caps.length == 0 ) {
                 recList.add( new Record( resource, EMPTY_CAPABILITY ) );

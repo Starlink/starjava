@@ -16,8 +16,9 @@ public class RegistryNetTest extends TestCase {
     public void testContents() throws Exception {
         final String ssaStdId = "ivo://ivoa.net/std/SSA";
         RegistryQuery query =
-            new RegistryQuery( RegistryQuery.AG_REG,
-                               "capability/@standardID = '" + ssaStdId + "'" );
+            new Ri1RegistryQuery( Ri1RegistryQuery.AG_REG,
+                                  "capability/@standardID = '"
+                                + ssaStdId + "'" );
         int nres = 0;
         int ncap = 0;
         for ( Iterator it = query.getQueryIterator(); it.hasNext(); ) {

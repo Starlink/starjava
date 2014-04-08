@@ -134,7 +134,6 @@ import uk.ac.starlink.util.gui.MemoryMonitor;
 import uk.ac.starlink.util.gui.StringPaster;
 import uk.ac.starlink.vo.ConeSearchDialog;
 import uk.ac.starlink.vo.DalTableLoadDialog;
-import uk.ac.starlink.vo.RegistryTableLoadDialog;
 import uk.ac.starlink.vo.SiapTableLoadDialog;
 import uk.ac.starlink.vo.SkyDalTableLoadDialog;
 import uk.ac.starlink.vo.SkyPositionEntry;

@@ -104,7 +104,6 @@ import uk.ac.starlink.util.gui.ProxySetupFrame;
 import uk.ac.starlink.vo.RegCapabilityInterface;
 import uk.ac.starlink.vo.RegResource;
 import uk.ac.starlink.vo.RegistryTable;
-import uk.ac.starlink.vo.RegistryTableLoadDialog;
 import uk.ac.starlink.vo.ResourceTableModel;
 import uk.ac.starlink.votable.ParamElement;
 import uk.ac.starlink.votable.VOElement;

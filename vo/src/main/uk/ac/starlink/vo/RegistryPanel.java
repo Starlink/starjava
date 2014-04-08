@@ -353,9 +353,9 @@ public class RegistryPanel extends JPanel {
             public void run() {
                 Throwable error = null;
                 try {
-                    for ( Iterator it = query.getQueryIterator();
+                    for ( Iterator<RegResource> it = query.getQueryIterator();
                           it.hasNext() && ! isInterrupted() ; ) {
-                        resourceList.add( (RegResource) it.next() );
+                        resourceList.add( it.next() );
                         progBar.setString( "Found " + resourceList.size() );
                     }
                     logger_.info( "Records found: " + resourceList.size() );

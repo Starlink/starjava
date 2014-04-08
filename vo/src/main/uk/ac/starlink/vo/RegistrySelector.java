@@ -57,7 +57,7 @@ public class RegistrySelector extends JPanel {
                 }
             }
         };
-        comboBox_.setModel( new DefaultComboBoxModel( RegistryQuery
+        comboBox_.setModel( new DefaultComboBoxModel( Ri1RegistryQuery
                                                      .REGISTRIES ) );
         comboBox_.setEditable( true );
         comboBox_.setSelectedIndex( 0 );
@@ -73,7 +73,7 @@ public class RegistrySelector extends JPanel {
                     public void run() {
                         try {
                             final String[] acurls =
-                                RegistryQuery.getSearchableRegistries( reg );
+                                Ri1RegistryQuery.getSearchableRegistries( reg );
                             SwingUtilities.invokeLater( new Runnable() {
                                 public void run() {
                                     updateAction_.setEnabled( true );
@@ -132,7 +132,7 @@ public class RegistrySelector extends JPanel {
      */
     private void updateSelector( String[] acurls ) {
         Vector vec = new Vector();
-        vec.addAll( Arrays.asList( RegistryQuery.REGISTRIES ) );
+        vec.addAll( Arrays.asList( Ri1RegistryQuery.REGISTRIES ) );
         vec.addAll( Arrays.asList( acurls ) );
         Dimension size = comboBox_.getPreferredSize();
         comboBox_.setModel( new DefaultComboBoxModel( vec ) );

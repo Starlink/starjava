@@ -158,7 +158,7 @@ public class KeywordServiceQueryFactory implements RegistryQueryFactory {
         }
         String adql = sbuf.toString();
         String url = new URL( (String) urlSelector_.getUrl() ).toString();
-        return new RegistryQuery( url, adql ); 
+        return new Ri1RegistryQuery( url, adql ); 
     }
 
     public RegistryQuery getIdListQuery( String[] ivoids )
@@ -183,7 +183,7 @@ public class KeywordServiceQueryFactory implements RegistryQueryFactory {
         sbuf.append( ")" );
         String adql = sbuf.toString();
         String url = new URL( (String) urlSelector_.getUrl() ).toString();
-        return new RegistryQuery( url, adql );
+        return new Ri1RegistryQuery( url, adql );
     }
 
     public JComponent getComponent() {
