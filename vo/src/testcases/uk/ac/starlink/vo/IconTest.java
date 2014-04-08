@@ -7,7 +7,7 @@ public class IconTest extends TestCase {
 
     public void testIcons() {
         assert24( new ConeSearchDialog().getIcon() );
-        assert24( new RegistryTableLoadDialog().getIcon() );
+        assert24( new Ri1RegistryTableLoadDialog().getIcon() );
         assert24( new SiapTableLoadDialog().getIcon() );
         assert24( new SsapTableLoadDialog().getIcon() );
     }

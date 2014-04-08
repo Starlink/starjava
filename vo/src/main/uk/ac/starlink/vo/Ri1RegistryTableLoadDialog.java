@@ -20,13 +20,19 @@ import uk.ac.starlink.table.gui.TableLoader;
  * a registry.  The user can choose which registry to use, and the text
  * of the query (WHERE clause) to make, and a StarTable is returned which
  * contains all the detail of the resources found.
- * 
+ *
+ * <p>This is not very user-friendly or useful, and hence is somewhat
+ * deprecated.  A TAP query on a Relational Registry service (RegTAP) 
+ * is usually a better way to acquire registry information.
+ *
  * @author   Mark Taylor (Starlink)
  * @since    23 Dec 2004
+ * @see   <a href="http://www.ivoa.net/documents/RegistryInterface/20091104/"
+ *           >Registry Interface 1.0</a>
  */
-public class RegistryTableLoadDialog extends AbstractTableLoadDialog {
+public class Ri1RegistryTableLoadDialog extends AbstractTableLoadDialog {
 
-    private RegistryQueryPanel rqPanel_;
+    private Ri1RegistryQueryPanel rqPanel_;
 
     /** List of preset queries available by default. */
     public static String[] defaultQueries_ = new String[] {
@@ -38,15 +44,17 @@ public class RegistryTableLoadDialog extends AbstractTableLoadDialog {
     /**
      * Constructor. 
      */
-    public RegistryTableLoadDialog() {
-        super( "Registry Query", 
-               "Imports a table describing the result of querying a registry" );
-        setIconUrl( RegistryTableLoadDialog.class
-                                           .getResource( "registry.gif" ) );
+    public Ri1RegistryTableLoadDialog() {
+        super( "RI1.0 Registry Query", 
+               "Imports a table describing the result of querying a registry"
+             + " using the RI1.0 interface"
+             + "; using RegTAP is usually a better idea." );
+        setIconUrl( Ri1RegistryTableLoadDialog.class
+                                              .getResource( "registry.gif" ) );
     }
 
     protected Component createQueryComponent() {
-        rqPanel_ = new RegistryQueryPanel();
+        rqPanel_ = new Ri1RegistryQueryPanel();
         rqPanel_.setPresetQueries( defaultQueries_ );
         return rqPanel_;
     }

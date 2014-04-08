@@ -41,7 +41,7 @@ import uk.ac.starlink.topcat.plot.SphereWindow;
 import uk.ac.starlink.ttools.plot.ErrorMode;
 import uk.ac.starlink.util.IconUtils;
 import uk.ac.starlink.vo.ConeSearchDialog;
-import uk.ac.starlink.vo.RegistryTableLoadDialog;
+import uk.ac.starlink.vo.Ri1RegistryTableLoadDialog;
 import uk.ac.starlink.vo.SiapTableLoadDialog;
 import uk.ac.starlink.vo.SsapTableLoadDialog;
 import uk.ac.starlink.vo.TapTableLoadDialog;
@@ -621,7 +621,7 @@ public class ResourceIcon implements Icon {
         nameMap.put( "TAP_DIALOG",
                      new TapTableLoadDialog().getIcon() );
         nameMap.put( "REGISTRY_DIALOG",
-                     new RegistryTableLoadDialog().getIcon() );
+                     new Ri1RegistryTableLoadDialog().getIcon() );
         nameMap.put( "HELP_TOC",
                      new ImageIcon( JHelp.class
                              .getResource( "plaf/basic/images/toc.gif" ) ) );

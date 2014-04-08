@@ -37,7 +37,7 @@ import uk.ac.starlink.table.gui.TableLoader;
 import uk.ac.starlink.topcat.contrib.basti.BaSTITableLoadDialog;
 import uk.ac.starlink.topcat.contrib.gavo.GavoTableLoadDialog;
 import uk.ac.starlink.topcat.vizier.VizierTableLoadDialog;
-import uk.ac.starlink.vo.RegistryTableLoadDialog;
+import uk.ac.starlink.vo.Ri1RegistryTableLoadDialog;
 import uk.ac.starlink.util.Loader;
 import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
@@ -73,7 +73,7 @@ public class LoadWindow extends AuxWindow {
         TopcatSiapTableLoadDialog.class.getName(),
         TopcatSsapTableLoadDialog.class.getName(),
         TopcatTapTableLoadDialog.class.getName(),
-        RegistryTableLoadDialog.class.getName(),
+        Ri1RegistryTableLoadDialog.class.getName(),
         VizierTableLoadDialog.class.getName(),
         GavoTableLoadDialog.class.getName(),
         BaSTITableLoadDialog.class.getName(),
@@ -153,7 +153,7 @@ public class LoadWindow extends AuxWindow {
 
         /* Add actions to toolbar. */
         List<Action> toolList = new ArrayList<Action>( actList_ );
-        toolList.remove( getDialogAction( RegistryTableLoadDialog.class ) );
+        toolList.remove( getDialogAction( Ri1RegistryTableLoadDialog.class ) );
         toolList.remove( getDialogAction( FileChooserTableLoadDialog.class ) );
         toolList.remove( getDialogAction( LocationTableLoadDialog.class ) );
         for ( Action act : toolList ) {

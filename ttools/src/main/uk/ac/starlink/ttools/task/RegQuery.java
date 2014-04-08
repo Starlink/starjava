@@ -13,7 +13,7 @@ import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.URLParameter;
 import uk.ac.starlink.util.Destination;
-import uk.ac.starlink.vo.RegistryQuery;
+import uk.ac.starlink.vo.Ri1RegistryQuery;
 import uk.ac.starlink.vo.RegistryStarTable;
 
 /**
@@ -71,15 +71,15 @@ public class RegQuery extends ConsumerTask {
 
         urlParam_ = new URLParameter( "regurl" );
         urlParam_.setPrompt( "URL of registry service" );
-        urlParam_.setDefault( RegistryQuery.AG_REG );
+        urlParam_.setDefault( Ri1RegistryQuery.AG_REG );
         urlParam_.setDescription( new String[] {
             "<p>The URL of a SOAP endpoint which provides",
             "a VOResource1.0 IVOA registry service.",
             "Some known suitable registry endpoints at time of writing are",
             "<ul>",
-            "<li><code>" + RegistryQuery.AG_REG + "</code></li>",
-            "<li><code>" + RegistryQuery.EUROVO_REG + "</code></li>",
-            "<li><code>" + RegistryQuery.NVO_REG + "</code></li>",
+            "<li><code>" + Ri1RegistryQuery.AG_REG + "</code></li>",
+            "<li><code>" + Ri1RegistryQuery.EUROVO_REG + "</code></li>",
+            "<li><code>" + Ri1RegistryQuery.NVO_REG + "</code></li>",
             "</ul>",
             "</p>",
         } );
@@ -117,8 +117,8 @@ public class RegQuery extends ConsumerTask {
                     if ( soapdest != null ) {
                         soapClient.setEchoStream( soapdest.createStream() );
                     }
-                    RegistryQuery query =
-                        new RegistryQuery( soapClient, qText );
+                    Ri1RegistryQuery query =
+                        new Ri1RegistryQuery( soapClient, qText );
                     return new RegistryStarTable( query );
                 }
                 catch ( Exception e ) {

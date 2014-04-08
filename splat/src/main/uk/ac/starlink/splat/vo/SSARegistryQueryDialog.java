@@ -21,7 +21,9 @@ import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.TableSequence;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.gui.TableLoader;
-import uk.ac.starlink.vo.RegistryTableLoadDialog;
+import uk.ac.starlink.vo.RegResource;
+//import uk.ac.starlink.vo.RegistryQuery;
+import uk.ac.starlink.vo.Ri1RegistryTableLoadDialog;
 
 /**
  * Dialog for performing a simple query on a registry for its SSAP servers.
@@ -34,7 +36,7 @@ import uk.ac.starlink.vo.RegistryTableLoadDialog;
  * @version $Id: SSARegistryQueryDialog.java 9052 2009-12-09 18:48:37Z mbt $
  */
 public class SSARegistryQueryDialog
-    extends RegistryTableLoadDialog
+    extends Ri1RegistryTableLoadDialog
 {
     private SSAPRegistryQueryPanel rqPanel_;
     private static Boolean available_;
