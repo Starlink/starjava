@@ -1,4 +1,4 @@
-package uk.ac.starlink.vo;
+package uk.ac.starlink.util.gui;
 
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
