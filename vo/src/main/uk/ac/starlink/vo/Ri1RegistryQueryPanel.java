@@ -41,7 +41,9 @@ public class Ri1RegistryQueryPanel extends JPanel {
         add( qBox, BorderLayout.CENTER );
 
         /* Registry URL selector. */
-        urlSelector_ = new RegistrySelector();
+        urlSelector_ =
+            new RegistrySelector(
+                new RegistrySelectorModel( RegistryProtocol.RI1 ) );
         qBox.add( urlSelector_ );
         qBox.add( Box.createVerticalStrut( 5 ) );
 

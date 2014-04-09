@@ -4,20 +4,20 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Vector;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ComboBoxEditor;
+import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.MutableComboBoxModel;
 import javax.swing.SwingUtilities;
 import javax.swing.text.JTextComponent;
 
@@ -34,13 +34,23 @@ public class RegistrySelector extends JPanel {
 
     private final JComboBox comboBox_;
     private final Action updateAction_;
+    private RegistrySelectorModel model_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
 
     /**
-     * Constructor.
+     * Constructs a registry selector with a new RI1 selection model.
      */
     public RegistrySelector() {
+        this( new RegistrySelectorModel( RegistryProtocol.RI1 ) );
+    }
+
+    /**
+     * Constructs a registry selector with a given selection model.
+     *
+     * @param  model  selection model
+     */
+    public RegistrySelector( RegistrySelectorModel model ) {
 
         /* Set up a selector box. */
         comboBox_ = new JComboBox() {
@@ -57,10 +67,7 @@ public class RegistrySelector extends JPanel {
                 }
             }
         };
-        comboBox_.setModel( new DefaultComboBoxModel( Ri1RegistryQuery
-                                                     .REGISTRIES ) );
         comboBox_.setEditable( true );
-        comboBox_.setSelectedIndex( 0 );
         comboBox_.setToolTipText( "Endpoint of VOResource 1.0"
                                 + " registry service" );
 
@@ -73,16 +80,23 @@ public class RegistrySelector extends JPanel {
                     public void run() {
                         try {
                             final String[] acurls =
-                                Ri1RegistryQuery.getSearchableRegistries( reg );
+                                model_.getProtocol()
+                                      .discoverRegistryUrls( reg );
                             SwingUtilities.invokeLater( new Runnable() {
                                 public void run() {
-                                    updateAction_.setEnabled( true );
                                     updateSelector( acurls );
                                 }
                             } );
                         }
                         catch ( IOException e ) {
                             logger_.warning( "Registry search failed: " + e );
+                        }
+                        finally {
+                            SwingUtilities.invokeLater( new Runnable() {
+                                public void run() {
+                                    updateAction_.setEnabled( true );
+                                }
+                            } );
                         }
                     }
                 }.start();
@@ -96,6 +110,30 @@ public class RegistrySelector extends JPanel {
         setLayout( new BoxLayout( this, BoxLayout.X_AXIS ) );
         add( new JLabel( "Registry: " ) );
         add( comboBox_ );
+
+        /* Install the model. */
+        setModel( model );
+    }
+
+    /**
+     * Sets the selection model for this selector.
+     *
+     * @param  model   new model
+     */
+    public void setModel( RegistrySelectorModel model ) {
+        model_ = model;
+        ComboBoxModel urlModel = model.getUrlSelectionModel();
+        comboBox_.setModel( urlModel );
+        updateAction_.setEnabled( urlModel instanceof MutableComboBoxModel );
+    }
+
+    /**
+     * Returns the selection model for this selector.
+     *
+     * @return  model
+     */
+    public RegistrySelectorModel getModel() {
+        return model_;
     }
 
     public void setEnabled( boolean enabled ) {
@@ -131,11 +169,12 @@ public class RegistrySelector extends JPanel {
      * @param  acurls  new access URLs
      */
     private void updateSelector( String[] acurls ) {
-        Vector vec = new Vector();
-        vec.addAll( Arrays.asList( Ri1RegistryQuery.REGISTRIES ) );
-        vec.addAll( Arrays.asList( acurls ) );
-        Dimension size = comboBox_.getPreferredSize();
-        comboBox_.setModel( new DefaultComboBoxModel( vec ) );
-        comboBox_.setPreferredSize( size );
+        ComboBoxModel model = comboBox_.getModel();
+        if ( model instanceof MutableComboBoxModel ) {
+            MutableComboBoxModel mmodel = (MutableComboBoxModel) model;
+            for ( int i = 0; i < acurls.length; i++ ) {
+                mmodel.addElement( acurls[ i ] );
+            }
+        }
     }
 }
