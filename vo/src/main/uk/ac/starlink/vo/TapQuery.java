@@ -18,12 +18,14 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathException;
 import javax.xml.xpath.XPathFactory;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import uk.ac.starlink.table.ByteStore;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
+import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.table.storage.DiscardByteStore;
 import uk.ac.starlink.table.storage.LimitByteStore;
 import uk.ac.starlink.util.DOMUtils;
@@ -191,10 +193,33 @@ public class TapQuery {
      * @return   result table
      */
     public StarTable executeSync( StoragePolicy storage ) throws IOException {
-        HttpURLConnection hconn =
-            UwsJob.postForm( new URL( serviceUrl_ + "/sync" ),
-                             stringMap_, streamMap_ );
-        return readResultVOTable( hconn, storage );
+        return readResultVOTable( createSyncConnection(), storage );
+    }
+
+    /**
+     * Executes this query synchronously and streams the resulting table
+     * to a table sink.
+     * If the result is a TAP error document, it will be presented as
+     * an exception thrown from this method.
+     * Overflow status of a successful result is provided by the return value.
+     *
+     * @param  sink  table destination
+     * @return   true iff the result was marked as overflowed
+     */
+    public boolean executeSync( TableSink sink )
+            throws IOException, SAXException {
+        return streamResultVOTable( createSyncConnection(), sink );
+    }
+
+    /**
+     * Opens a URL connection for the result of synchronously executing
+     * this query.
+     *
+     * @return   HTTP connection containing query result
+     */
+    public HttpURLConnection createSyncConnection() throws IOException {
+        return UwsJob.postForm( new URL( serviceUrl_ + "/sync" ),
+                                stringMap_, streamMap_ );
     }
 
     /**
@@ -475,6 +500,7 @@ public class TapQuery {
      *
      * @param   conn  connection to table resource
      * @param  storage  storage policy
+     * @return   table result of successful query
      */
     public static StarTable readResultVOTable( URLConnection conn,
                                                StoragePolicy storage )
@@ -555,6 +581,47 @@ public class TapQuery {
             }
             return new VOStarTable( tableEl );
         }
+    }
+
+    /**
+     * Streams a VOTable document which may represent a successful result
+     * or an error.
+     * If it represents an error (in accordance with the TAP rules for
+     * expressing this), an exception will be thrown.
+     * Overflow status of a successful result is provided by the return value.
+     *
+     * @param   conn  connection to table resource
+     * @param   sink   destination for table result of succesful query
+     * @return   true iff the result was marked as overflowed
+     */
+    public static boolean streamResultVOTable( URLConnection conn,
+                                               TableSink sink )
+            throws IOException, SAXException {
+
+        /* Follow 303 redirects as required. */
+        conn = followRedirects( conn );
+
+        /* Get an input stream representing the content of the resource.
+         * HttpURLConnection may provide this from the getInputStream or
+         * getErrorStream method, depending on the response code. */
+        InputStream in = null;
+        try { 
+            in = conn.getInputStream();
+        }
+        catch ( IOException e ) {
+            if ( conn instanceof HttpURLConnection ) {
+                in = ((HttpURLConnection) conn).getErrorStream();
+            }
+            if ( in == null ) {
+                throw e;
+            }
+        }
+
+        /* Parse the input stream as a VOTable and pass the result to
+         * the presented sink. */
+        boolean overflow =
+            DalResultStreamer.streamResultTable( new InputSource( in ), sink );
+        return overflow;
     }
 
     /**
