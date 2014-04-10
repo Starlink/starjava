@@ -36,9 +36,10 @@ public class Ri1RegistryTableLoadDialog extends AbstractTableLoadDialog {
 
     /** List of preset queries available by default. */
     public static String[] defaultQueries_ = new String[] {
-        Capability.CONE.getAdql(),
-        Capability.SIA.getAdql(),
-        Capability.SSA.getAdql(),
+        Ri1RegistryQuery.getAdqlWhere( Capability.CONE ),
+        Ri1RegistryQuery.getAdqlWhere( Capability.SIA ),
+        Ri1RegistryQuery.getAdqlWhere( Capability.SSA ),
+        Ri1RegistryQuery.getAdqlWhere( Capability.TAP ),
     };
 
     /**

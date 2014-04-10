@@ -59,7 +59,8 @@ public class ConeSearch {
     public ConeSearch( RegResource resource,
                        RegCapabilityInterface capability ) {
         this( capability.getAccessUrl() );
-        if ( ! Capability.CONE.isInstance( capability ) ) {
+        if ( ! RegistryProtocol.RI1.hasCapability( Capability.CONE,
+                                                   capability ) ) {
             logger_.warning( capability.getAccessUrl()
                            + " doesn't look like a cone search" );
         }

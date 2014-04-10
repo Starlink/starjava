@@ -16,6 +16,7 @@ import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.event.CaretEvent;
@@ -122,10 +123,11 @@ public abstract class DalTableLoadDialog
         /* Menus. */
         List<JMenu> menuList =
             new ArrayList<JMenu>( Arrays.asList( getMenus() ) );
-        RegistrySelector regsel = queryFactory_.getRegistrySelector();
         JMenu regMenu = new JMenu( "Registry" );
         regMenu.setMnemonic( KeyEvent.VK_R );
-        regMenu.add( regsel.getRegistryUpdateAction() );
+        for ( JMenuItem item : Arrays.asList( getRegistryMenuItems() ) ) {
+            regMenu.add( item );
+        }
         menuList.add( regMenu );
         setMenus( menuList.toArray( new JMenu[ 0 ] ) );
 
@@ -265,10 +267,12 @@ public abstract class DalTableLoadDialog
     }
 
     public RegCapabilityInterface[] getCapabilities( RegResource resource ) {
+        RegistryProtocol regProto =
+            getQueryFactory().getRegistrySelector().getModel().getProtocol();
         RegCapabilityInterface[] caps = super.getCapabilities( resource );
         List capList = new ArrayList();
         for ( int i = 0; i < caps.length; i++ ) {
-            if ( capability_.isInstance( caps[ i ] ) ) {
+            if ( regProto.hasCapability( capability_, caps[ i ] ) ) {
                 capList.add( caps[ i ] );
             }
         }

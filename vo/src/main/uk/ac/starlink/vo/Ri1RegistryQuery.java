@@ -207,6 +207,43 @@ public class Ri1RegistryQuery implements RegistryQuery {
     }
 
     /**
+     * Returns an ADQL 1.0 WHERE clause which can be used to search
+     * for capabilities of the given type in the registry.
+     * The WHERE token is not included
+     *
+     * @param  cap  standard capability
+     * @return  ADQL search query
+     */
+    public static String getAdqlWhere( Capability cap ) {
+        StringBuffer abuf = new StringBuffer();
+        int nterm = 0;
+        if ( abuf.length() > 0 ) {
+            abuf.append( " OR " );
+        }
+        abuf.append( "( capability/@standardID = '" )
+            .append( cap.getStandardId() )
+            .append( "' )" );
+        nterm++;
+
+        /* Some say that matching the xsiType is a good way to spot a
+         * capability.  Others disagree.  Since there doesn't currently
+         * seem to be any registry which works with this strategy but
+         * not without it, omit this test for now. */
+        //  if ( abuf.length() > 0 ) {
+        //      abuf.append( " OR " );
+        //  }
+        //  abuf.append( "( capability/@xsi:type LIKE '" )
+        //      .append( "%" )
+        //      .append( xsiTypeTail )
+        //      .append( "' )" );
+        //  nterm++;
+
+        /* Return the final ADQL search term. */
+        return nterm > 1 ? "( " + abuf.toString() + " )"
+                         : abuf.toString();
+    }
+
+    /**
      * Adapter from BasicResource to RegResource.
      */
     private static class BasicRegResource implements RegResource {
