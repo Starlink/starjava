@@ -6,7 +6,10 @@ import java.awt.event.ActionListener;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -29,7 +32,7 @@ public class KeywordServiceQueryFactory implements RegistryQueryFactory {
     private final RegistrySelector urlSelector_;
     private final JTextField keywordField_;
     private final JButton andButton_;
-    private final MatchField[] matchFields_;
+    private final Map<ResourceField,JCheckBox> fieldSelMap_;
     private boolean or_;
 
     /**
@@ -46,8 +49,8 @@ public class KeywordServiceQueryFactory implements RegistryQueryFactory {
                 urlSelector_.setEnabled( enabled );
                 keywordField_.setEnabled( enabled );
                 andButton_.setEnabled( enabled );
-                for ( int im = 0; im < matchFields_.length; im++ ) {
-                    matchFields_[ im ].button_.setEnabled( enabled );
+                for ( JCheckBox button : fieldSelMap_.values() ) {
+                    button.setEnabled( enabled );
                 }
             }
         };
@@ -96,26 +99,27 @@ public class KeywordServiceQueryFactory implements RegistryQueryFactory {
         keywordLine.add( andButton_ );
         queryPanel_.add( keywordLine );
 
-        /* Match field selectors.  See the VOResource schema
-         * (http://www.ivoa.net/Documents/latest/VOResource.html) for
-         * path definitions. */
-        matchFields_ = new MatchField[] {
-            new MatchField( "shortName", "Short Name", true ),
-            new MatchField( "title", "Title", true ),
-            new MatchField( "content/subject", "Subjects", true ),
-            new MatchField( "identifier", "ID", true ),
-            new MatchField( "curation/publisher", "Publisher", true ),
-            new MatchField( "content/description", "Description", false ),
-        };
+        /* Checkboxes for resource fields to match keywords against. */
+        fieldSelMap_ = new LinkedHashMap<ResourceField,JCheckBox>();
         JComponent matchLine = Box.createHorizontalBox();
         matchLine.add( new JLabel( "Match Fields: " ) );
-        for ( int im = 0; im < matchFields_.length; im++ ) {
-            if ( im > 0 ) {
-                matchLine.add( Box.createHorizontalStrut( 5 ) );
-            }
-            matchLine.add( matchFields_[ im ].button_ );
+        ResourceField[] fields = {
+            ResourceField.SHORTNAME,
+            ResourceField.TITLE,
+            ResourceField.SUBJECTS,
+            ResourceField.ID,
+            ResourceField.PUBLISHER,
+            ResourceField.DESCRIPTION,
+        };
+        for ( ResourceField rf : fields ) {
+            JCheckBox checkBox = new JCheckBox( rf.getLabel() );
+            checkBox.setSelected( rf != ResourceField.DESCRIPTION );
+            checkBox.setToolTipText( "Match keywords against VOResource \""
+                                   + rf.getXpath() + " field?" );
+            matchLine.add( Box.createHorizontalStrut( 5 ) );
+            matchLine.add( checkBox );
+            fieldSelMap_.put( rf, checkBox );
         }
-        matchLine.add( Box.createHorizontalGlue() );
         queryPanel_.add( matchLine );
     }
 
@@ -125,65 +129,22 @@ public class KeywordServiceQueryFactory implements RegistryQueryFactory {
         String[] keywords = ( keyText == null || keyText.trim().length() == 0 )
                           ? new String[ 0 ]
                           : keyText.trim().split( "\\s+" );
-        List<String> matchList = new ArrayList<String>();
-        for ( int im = 0; im < matchFields_.length; im++ ) {
-            MatchField mf = matchFields_[ im ];
-            if ( mf.button_.isSelected() ) {
-                matchList.add( mf.fieldPath_ );
+        List<ResourceField> rfList = new ArrayList<ResourceField>();
+        for ( ResourceField rf : fieldSelMap_.keySet() ) {
+            if ( fieldSelMap_.get( rf ).isSelected() ) {
+                rfList.add( rf );
             }
         }
-        String[] matchPaths = matchList.toArray( new String[ 0 ] );
-        StringBuffer sbuf = new StringBuffer();
-        sbuf.append( capability_.getAdql() );
-        if ( keywords.length > 0 ) {
-            sbuf.append( " and ( " );
-            for ( int iw = 0; iw < keywords.length; iw++ ) {
-                if ( iw > 0 ) {
-                    sbuf.append( conjunction );
-                }
-                sbuf.append( "(" );
-                for ( int ip = 0; ip < matchPaths.length; ip++ ) {
-                    if ( ip > 0 ) {
-                        sbuf.append( " or " );
-                    }
-                    sbuf.append( matchPaths[ ip ] )
-                        .append( " like " )
-                        .append( "'%" )
-                        .append( keywords[ iw ] )
-                        .append( "%'" );
-                }
-                sbuf.append( ")" );
-            }
-            sbuf.append( " )" );
-        }
-        String adql = sbuf.toString();
-        String url = new URL( (String) urlSelector_.getUrl() ).toString();
-        return new Ri1RegistryQuery( url, adql ); 
+        RegistryProtocol proto = urlSelector_.getModel().getProtocol();
+        ResourceField[] fields = rfList.toArray( new ResourceField[ 0 ] );
+        return proto.createKeywordQuery( keywords, fields, or_, capability_,
+                                         getUrl() );
     }
 
     public RegistryQuery getIdListQuery( String[] ivoids )
             throws MalformedURLException {
-        if ( ivoids == null || ivoids.length == 0 ) {
-            return null;
-        }
-        StringBuffer sbuf = new StringBuffer();
-        sbuf.append( "(" )
-            .append( capability_.getAdql() )
-            .append( ")" )
-            .append( " and " )
-            .append( "(" );
-        for ( int i = 0; i < ivoids.length; i++ ) {
-            if ( i > 0 ) {
-                sbuf.append( " or " );
-            }
-            sbuf.append( "identifier = '" )
-                .append( ivoids[ i ] )
-                .append( "'" );
-        }
-        sbuf.append( ")" );
-        String adql = sbuf.toString();
-        String url = new URL( (String) urlSelector_.getUrl() ).toString();
-        return new Ri1RegistryQuery( url, adql );
+        RegistryProtocol proto = urlSelector_.getModel().getProtocol();
+        return proto.createIdListQuery( ivoids, capability_, getUrl() );
     }
 
     public JComponent getComponent() {
@@ -203,27 +164,11 @@ public class KeywordServiceQueryFactory implements RegistryQueryFactory {
     }
 
     /**
-     * Takes care of selection of one path element to match by.
-     * Aggregates a checkbox button and some metadata.
+     * Returns the currently selected registry endpoint URL.
+     *
+     * @return   registry URL
      */
-    private static class MatchField {
-        final JCheckBox button_;
-        final String fieldPath_;
-        final String fieldLabel_;
-
-        /**
-         * Constructor.
-         *
-         * @param   xpath  string for matching against the VOResource schema
-         * @param   label  human-readable label for data element
-         * @param   on     initial selection status
-         */
-        MatchField( String path, String label, boolean on ) {
-            fieldPath_ = path;
-            fieldLabel_ = label;
-            button_ = new JCheckBox( label, on );
-            button_.setToolTipText( "Match keywords against \"" + path
-                                  + "\" field?" );
-        }
+    private URL getUrl() throws MalformedURLException {
+        return new URL( urlSelector_.getUrl() );
     }
 }

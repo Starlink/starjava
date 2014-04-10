@@ -25,6 +25,7 @@ import uk.ac.starlink.vo.KeywordServiceQueryFactory;
 import uk.ac.starlink.vo.RegCapabilityInterface;
 import uk.ac.starlink.vo.RegResource;
 import uk.ac.starlink.vo.RegistryPanel;
+import uk.ac.starlink.vo.RegistryProtocol;
 import uk.ac.starlink.vo.RegistryQuery;
 
 /**
@@ -57,14 +58,15 @@ public class DalMultiWindow extends AuxWindow {
         String servName = service.getName();
 
         /* Set up a registry query panel for selecting suitable services. */
-        queryFactory_ =
-            new KeywordServiceQueryFactory( capability );
+        queryFactory_ = new KeywordServiceQueryFactory( capability );
         regPanel_ = new RegistryPanel( queryFactory_, true ) {
             public RegCapabilityInterface[] getCapabilities( RegResource res ) {
+                RegistryProtocol regProto = queryFactory_.getRegistrySelector()
+                                           .getModel().getProtocol();
                 RegCapabilityInterface[] caps = super.getCapabilities( res );
                 List serviceCapList = new ArrayList();
                 for ( int ic = 0; ic < caps.length; ic++ ) {
-                    if ( capability.isInstance( caps[ ic ] ) ) {
+                    if ( regProto.hasCapability( capability, caps[ ic ] ) ) {
                         serviceCapList.add( caps[ ic ] );
                     }
                 }
