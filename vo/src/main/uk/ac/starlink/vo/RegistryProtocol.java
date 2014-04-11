@@ -2,6 +2,9 @@ package uk.ac.starlink.vo;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.logging.Logger;
 
 /**
  * Defines the details of a registry access protocol.
@@ -15,11 +18,17 @@ public abstract class RegistryProtocol {
     private final String fullName_;
     private final String[] dfltUrls_;
 
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.vo" );
+
     /** Protocol instance for Registry Interface 1.0. */
     public static final RegistryProtocol RI1 = new Ri1RegistryProtocol();
 
+    /** Protocol instance for Relational Registry 1.0. */
+    public static final RegistryProtocol REGTAP = new RegTapRegistryProtocol();
+
     /** Known protocols. */
-    public static final RegistryProtocol[] PROTOCOLS = { RI1 };
+    public static final RegistryProtocol[] PROTOCOLS = { REGTAP, RI1 };
 
     /**
      * Constructor.
@@ -82,12 +91,13 @@ public abstract class RegistryProtocol {
      * (b) in the <code>ivoids</code> list, and
      * (c) has the given capability
      * If <code>capability</code> is null, then restriction (c) does not apply.
+     * If the input list of IDs is null or empty, the return value will be null.
      *
      * @param  ivoids  ID values for the required resources
      * @param  capability  service capability type, or null
      * @param  regUrl   endpoint URL for a registry service implementing
      *                  this protocol
-     * @return  registry query
+     * @return  registry query, or null for empty ID list
      */
     public abstract RegistryQuery createIdListQuery( String[] ivoids,
                                                      Capability capability,
@@ -116,7 +126,9 @@ public abstract class RegistryProtocol {
 
     /**
      * Indicates whether a given RegCapabilityInterface object is an
-     * instance of this capability.
+     * instance of a given capability.  This is typically used to weed
+     * out RegCapabilityInterface objects returned from a query that
+     * might have returned some items different than those queried.
      *
      * <p>Really, the implementation of this ought not to be a function
      * of the registry protocol in use.  However, it's probably the case
@@ -223,9 +235,105 @@ public abstract class RegistryProtocol {
             String stdTypeTail = stdCap.getXsiTypeTail();
             String resId = resCap.getStandardId();
             String stdId = stdCap.getStandardId();
-            return stdId.equals( resId )
+            return ( stdId != null && stdId.equals( resId ) )
                 || ( resType != null && stdTypeTail != null
                                      && resType.endsWith( stdTypeTail ) );
         }
     };
+
+    /**
+     * RegistryProtocol implementation for Relational Registry.
+     */
+    private static class RegTapRegistryProtocol extends RegistryProtocol {
+
+        /**
+         * Constructor.
+         */
+        public RegTapRegistryProtocol() {
+            super( "RegTAP", "Relational Registry 1.0",
+                   RegTapRegistryQuery.REGISTRIES );
+        }
+
+        public String[] discoverRegistryUrls( String regUrl0 )
+                throws IOException {
+            return RegTapRegistryQuery.getSearchableRegistries( regUrl0 );
+        }
+
+        public RegistryQuery createIdListQuery( String[] ivoids,
+                                                Capability capability,
+                                                URL regUrl ) {
+            if ( ivoids == null || ivoids.length == 0 ) {
+                return null;
+            }
+            StringBuffer sbuf = new StringBuffer();
+            sbuf.append( "ivoid IN (" );
+            for ( int i = 0; i < ivoids.length; i++ ) {
+                if ( i > 0 ) {
+                    sbuf.append( ", " );
+                }
+                sbuf.append( "'" )
+                    .append( ivoids[ i ].toLowerCase() )
+                    .append( "'" );
+            }
+            sbuf.append( ")" );
+            String idsWhere = sbuf.toString();
+            return new RegTapRegistryQuery( regUrl.toString(),
+                                            capability.getStandardId()
+                                                      .toLowerCase(),
+                                            idsWhere );
+        }
+
+        public RegistryQuery createKeywordQuery( String[] keywords,
+                                                 ResourceField[] fields,
+                                                 boolean isOr,
+                                                 Capability capability,
+                                                 URL regUrl ) {
+            String conjunction = isOr ? " OR " : " AND ";
+            StringBuffer sbuf = new StringBuffer();
+            Set<String> failFields = new TreeSet<String>();
+            for ( int iw = 0; iw < keywords.length; iw++ ) {
+                String word = keywords[ iw ];
+                if ( iw > 0 ) {
+                    sbuf.append( conjunction );
+                }
+                sbuf.append( "(" );
+                boolean hasField = false;
+                for ( int ip = 0; ip < fields.length; ip++ ) {
+                    ResourceField field = fields[ ip ];
+                    String keyCond =
+                        RegTapRegistryQuery.getAdqlCondition( field, word );
+                    if ( keyCond != null ) {
+                        if ( hasField ) {
+                            sbuf.append( " OR " );
+                        }
+                        hasField = true;
+                        sbuf.append( keyCond );
+                    }
+                    else {
+                        failFields.add( field.getLabel() );
+                    }
+                }
+                if ( ! hasField ) {
+                    sbuf.append( "1=1" );
+                }
+                sbuf.append( ")" );
+            }
+            if ( ! failFields.isEmpty() ) {
+                logger_.warning( "Failed to set constraint for fields " 
+                               + failFields );
+            }
+            String keywordWhere = sbuf.toString();
+            return new RegTapRegistryQuery( regUrl.toString(),
+                                            capability.getStandardId()
+                                                      .toLowerCase(),
+                                            keywordWhere );
+        }
+
+        public boolean hasCapability( Capability stdCap,
+                                      RegCapabilityInterface resCap ) {
+            String resId = resCap.getStandardId();
+            String stdId = stdCap.getStandardId();
+            return stdId != null && stdId.equalsIgnoreCase( resId );
+        }
+    }
 }
