@@ -8543,6 +8543,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
             reports in <code>taplint</code>.</li>
         <li>Avoid <code>taplint</code> MDQ stage data type mismatch error
             report for BOOLEAN/boolean declared/returned data.</li>
+        <li><code>taplint</code> now takes steps to ensure that TAP_SCHEMA
+            column list query is not truncated.</li>
         </ul>
         </p></dd>
 

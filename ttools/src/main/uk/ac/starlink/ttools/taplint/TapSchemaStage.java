@@ -2,6 +2,7 @@ package uk.ac.starlink.ttools.taplint;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -9,6 +10,7 @@ import org.xml.sax.SAXException;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.vo.ColumnMeta;
 import uk.ac.starlink.vo.ForeignMeta;
 import uk.ac.starlink.vo.TableMeta;
@@ -46,8 +48,20 @@ public class TapSchemaStage extends TableMetadataStage {
 
     protected TableMeta[] readTableMetadata( Reporter reporter,
                                              URL serviceUrl ) {
+
+        /* Work out the MAXREC value to use for metadata queries.
+         * If this is not set, and the service default value is used,
+         * then metadata will be truncated when read from services
+         * with large column counts (or conceivably table counts etc).
+         * So we work out the row count of the largest metadata table
+         * and use that for the maxrec value for all metadata queries.
+         * There are other possibilities for doing this more carefully,
+         * for instance checking after each query that the table has
+         * not been truncated when read. */
+        int maxrec = getMetaMaxrec( reporter, serviceUrl, tapRunner_ ) + 10;
         TapSchemaInterrogator tsi =
-            new LintTapSchemaInterrogator( reporter, serviceUrl, tapRunner_ );
+            new LintTapSchemaInterrogator( reporter, serviceUrl, maxrec,
+                                           tapRunner_ );
         Map<String,List<ColumnMeta>> cMap;
         try {
             cMap = tsi.readColumns();
@@ -96,6 +110,88 @@ public class TapSchemaStage extends TableMetadataStage {
     }
 
     /**
+     * Returns the maximum record count that will be required
+     * to retrieve all the TAP_SCHEMA metadata items.
+     *
+     * @param  reporter    destination for validation messages
+     * @param  serviceUrl  TAP service URL
+     * @param  tapRunner   object to perform TAP queries
+     * @return   maximum record count required for metadata queries,
+     *           or 0 if it could not be determined
+     */
+    private int getMetaMaxrec( Reporter reporter, URL serviceUrl,
+                               TapRunner tapRunner ) {
+        String[] tnames = new String[] {
+            "TAP_SCHEMA.tables",
+            "TAP_SCHEMA.columns",
+            "TAP_SCHEMA.keys",
+            "TAP_SCHEMA.key_columns",
+        };
+        int maxrec = 0;
+        for ( String tname : Arrays.asList( tnames ) ) {
+            int nr = Math.max( maxrec, getRowCount( reporter, serviceUrl,
+                                                    tapRunner, tname ) );
+            if ( nr < 0 ) {
+                return 0;
+            }
+            else {
+                maxrec = Math.max( maxrec, nr );
+            }
+        }
+        return maxrec;
+    }
+
+    /**
+     * Returns the number of rows in a named TAP table.
+     *
+     * @param  reporter    destination for validation messages
+     * @param  serviceUrl  TAP service URL
+     * @param  tapRunner   object to perform TAP queries
+     * @param  tname       name of table in TAP db
+     * @return   number of rows counted, or -1 if some error
+     */
+    private int getRowCount( Reporter reporter, URL serviceUrl,
+                             TapRunner tapRunner, String tname ) {
+        String adql = "SELECT COUNT(*) FROM " + tname + " AS nr";
+        TapQuery tq = new TapQuery( serviceUrl, adql, null );
+        StarTable result = tapRunner.getResultTable( reporter, tq );
+        if ( result != null ) {
+            try {
+                result = Tables.randomTable( result );
+                if ( result.getColumnCount() == 1 &&
+                     result.getRowCount() == 1 ) {
+                    Object cell = result.getCell( 0, 0 );
+                    if ( cell instanceof Number ) {
+                        return ((Number) cell).intValue();
+                    }
+                    else {
+                        reporter.report( ReportType.ERROR, "NONM",
+                                         "Non-numeric return cell from "
+                                       + adql );
+                        return -1;
+                    }
+                }
+                else {
+                    reporter.report( ReportType.ERROR, "NO11",
+                                     "Expecting nrow=1, ncol=1, got"
+                                   + " nrow=" + result.getRowCount()
+                                   + " ncol=" + result.getColumnCount()
+                                   + " from " + adql );
+                    return -1;
+                }
+            }
+            catch ( IOException e ) {
+                reporter.report( ReportType.ERROR, "NRER",
+                                 "Error counting rows with " + adql, e );
+                return -1;
+            }
+        }
+        else {
+            return -1;
+        }
+    }
+
+    /**
      * Check that a map is empty, and report on any entries that are present.
      * The maps that this checks should be empty since their entries are
      * removed as their content is used by the metadata reading routines
@@ -104,7 +200,7 @@ public class TapSchemaStage extends TableMetadataStage {
      * @param   reporter   destination for validation messages
      * @param   map   map to check
      * @param   code  reporting code for unused entries
-     * @parma   stName   unqualified TAP_SCHEMA table name
+     * @param   stName   unqualified TAP_SCHEMA table name
      */
     private void checkEmpty( Reporter reporter, Map<?,?> map,
                              String code, String stName ) {
@@ -131,11 +227,12 @@ public class TapSchemaStage extends TableMetadataStage {
          *
          * @param  reporter  validation message destination
          * @param  serviceUrl  TAP service URL
+         * @param  maxrec     maximum record count (0 for default limit)
          * @param  tapRunner  object to perform TAP queries
          */
         public LintTapSchemaInterrogator( Reporter reporter, URL serviceUrl,
-                                          TapRunner tapRunner ) {
-            super( serviceUrl, 0 );
+                                          int maxrec, TapRunner tapRunner ) {
+            super( serviceUrl, maxrec );
             reporter_ = reporter;
             tapRunner_ = tapRunner;
         }
