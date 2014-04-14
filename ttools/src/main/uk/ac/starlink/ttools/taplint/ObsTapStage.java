@@ -60,14 +60,21 @@ public class ObsTapStage implements Stage {
     public void run( Reporter reporter, URL serviceUrl ) {
 
         /* Check prerequisites. */
+        boolean obsDeclared;
         TapCapability tcap = capHolder_.getCapability();
         if ( tcap != null ) {
-            if ( ! hasObscoreDm( reporter, tcap ) ) {
-                reporter.report( ReportType.FAILURE, "NODM",
+            if ( hasObscoreDm( reporter, tcap ) ) {
+                obsDeclared = true;
+            }
+            else {
+                reporter.report( ReportType.INFO, "NODM",
                                  "Table capabilities lists no DataModel "
-                               + OBSCORE_ID );
+                               + OBSCORE_ID + " - no ObsCore tests" );
                 return;
             }
+        }
+        else {
+            obsDeclared = false;
         }
         TableMeta[] tmetas = metaHolder_.getTableMetadata();
         if ( tmetas == null ) {
@@ -86,8 +93,18 @@ public class ObsTapStage implements Stage {
             }
         }
         if ( obsMeta == null ) {
-            reporter.report( ReportType.FAILURE, "NOTB",
-                             "No table with name " + OBSCORE_TNAME );
+            String missingMsg = "No table with name " + OBSCORE_TNAME;
+            if ( obsDeclared ) {
+                reporter.report( ReportType.FAILURE, "NOTB", missingMsg );
+            }
+            else {
+                reporter.report( ReportType.INFO, "OCCP",
+                                 missingMsg 
+                               + "; probably just means no ObsCore intended"
+                               + " but can't tell for sure"
+                               + " because no capabilities present"
+                               + " (earlier stages failed/skipped?)" );
+            }
             return;
         }
 
