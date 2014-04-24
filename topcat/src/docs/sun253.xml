@@ -20033,6 +20033,8 @@ introduced since the last version:
         (user documentation not yet updated).</li>
     <li>Update the endpoint for the NVO/VAO RI1.0 registry, on advice from
         Theresa Dower.</li>
+    <li>Upgraded Gregory Mantelet's ADQL library to version 1.2.
+        Better ADQL parsing.</li>
     </ul>
     </p></dd>
 

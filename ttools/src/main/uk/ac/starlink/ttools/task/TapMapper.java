@@ -146,7 +146,7 @@ public class TapMapper implements TableMapper {
         final URL serviceUrl = urlParam_.urlValue( env );
         final String adql = adqlParam_.stringValue( env );
         if ( parseParam_.booleanValue( env ) ) {
-            AdqlValidator validator = new AdqlValidator( null );
+            AdqlValidator validator = new AdqlValidator( null, true );
             try {
                 validator.validate( adql );
             }

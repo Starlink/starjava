@@ -6,6 +6,7 @@ import adql.db.DBTable;
 import adql.db.DefaultDBColumn;
 import adql.db.DefaultDBTable;
 import adql.parser.ADQLParser;
+import adql.parser.ADQLQueryFactory;
 import adql.parser.ParseException;
 import adql.parser.QueryChecker;
 import adql.parser.TokenMgrError;
@@ -14,6 +15,7 @@ import adql.query.ADQLObject;
 import adql.query.ADQLQuery;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 
 /**
  * Handles validation of ADQL queries.
@@ -32,9 +34,10 @@ public class AdqlValidator {
      * Constructor.
      *
      * @param  vtables  table metadata for database to be checked against
+     * @param  allowUdfs  whether unknown functions should cause a parse error
      */
-    public AdqlValidator( ValidatorTable[] vtables ) {
-        parser_ = new ADQLParser();
+    public AdqlValidator( ValidatorTable[] vtables, boolean allowUdfs ) {
+        parser_ = new ADQLParser( new ADQLQueryFactory( allowUdfs ) );
         parser_.setDebug( false );
         checker_ = vtables == null ? null
                                    : new DBChecker( toDBTables( vtables ) );
@@ -137,27 +140,42 @@ public class AdqlValidator {
             throws Throwable,
             java.io.IOException, org.xml.sax.SAXException {
         String usage = "\n   Usage: " + AdqlValidator.class.getName()
-                     + " [-meta <tmeta-url>] <query>\n";
+                     + " [-meta <tmeta-url>]"
+                     + " [-[no]udfs]"
+                     + " <query>"
+                     + "\n";
         TableMeta[] tmetas = null;
-        String query;
+        boolean allowUdfs = false;
         ArrayList<String> argList =
-            new ArrayList<String>( java.util.Arrays.asList( args ) );
-        try {
-            if ( argList.get( 0 ).startsWith( "-h" ) ) {
+        new ArrayList<String>( java.util.Arrays.asList( args ) );
+        for ( Iterator<String> it = argList.iterator(); it.hasNext(); ) {
+            String arg = it.next();
+            if ( arg.startsWith( "-h" ) ) {
                 System.out.println( usage );
                 return;
             }
-            if ( argList.get( 0 ).equals( "-meta" ) ) {
-                argList.remove( 0 );
-                String loc = argList.remove( 0 );
+            else if ( arg.equals( "-meta" ) && it.hasNext() ) {
+                it.remove();
+                String loc = it.next();
+                it.remove();
                 tmetas = TableSetSaxHandler
                         .readTableSet( new java.net.URL( loc ) );
             }
-            query = argList.remove( 0 );
+            else if ( arg.equals( "-udfs" ) ) {
+                it.remove();
+                allowUdfs = true;
+            }
+            else if ( arg.equals( "-noudfs" ) ) {
+                it.remove();
+                allowUdfs = false;
+            }
         }
-        catch ( RuntimeException e ) {
-            query = null;
+        if ( argList.size() != 1 ) {
+            System.err.println( usage );
+            System.exit( 1 );
+            return;
         }
+        String query = argList.remove( 0 );
         ValidatorTable[] vtables = null;
         if ( tmetas != null ) {
             vtables = new ValidatorTable[ tmetas.length ];
@@ -165,12 +183,7 @@ public class AdqlValidator {
                 vtables[ i ] = toValidatorTable( tmetas[ i ] );
             }
         }
-        if ( query == null || ! argList.isEmpty() ) {
-            System.err.println( usage );
-            System.exit( 1 );
-            return;
-        }
-        new AdqlValidator( vtables ).validate( query );
+        new AdqlValidator( vtables, allowUdfs ).validate( query );
     }
 
     /**
