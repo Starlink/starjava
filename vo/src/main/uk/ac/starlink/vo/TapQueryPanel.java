@@ -434,7 +434,7 @@ public class TapQueryPanel extends JPanel {
             vtList.toArray( new AdqlValidator.ValidatorTable[ 0 ] );
 
         /* Construct and return a validator. */
-        return new AdqlValidator( vtables );
+        return new AdqlValidator( vtables, true );
     }
 
     /**
@@ -575,12 +575,14 @@ public class TapQueryPanel extends JPanel {
         private Rectangle[] toRectangles( Throwable perr ) {
             List<Rectangle> rectList = new ArrayList<Rectangle>();
             if ( perr instanceof UnresolvedIdentifiersException ) {
-                for ( ParseException pe :
-                      (UnresolvedIdentifiersException) perr ) {
-                    Rectangle rect = toRectangle( pe );
-                    if ( rect != null ) {
-                        rectList.add( rect );
-                    }
+                UnresolvedIdentifiersException uerr =
+                   (UnresolvedIdentifiersException) perr;
+                Rectangle rect = toRectangle( uerr );
+                if ( rect != null ) {
+                    rectList.add( rect );
+                }
+                for ( ParseException pe : uerr ) {
+                    rectList.addAll( Arrays.asList( toRectangles( pe ) ) );
                 }
             }
             else if ( perr instanceof ParseException ) {
