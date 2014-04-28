@@ -1,0 +1,1317 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema targetNamespace="http://www.ivoa.net/xml/VODataService/v1.1" 
+           xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+           xmlns:vr="http://www.ivoa.net/xml/VOResource/v1.0" 
+           xmlns:vs="http://www.ivoa.net/xml/VODataService/v1.1" 
+           xmlns:stc="http://www.ivoa.net/xml/STC/stc-v1.30.xsd" 
+           xmlns:vm="http://www.ivoa.net/xml/VOMetadata/v0.1"
+           elementFormDefault="unqualified" attributeFormDefault="unqualified"
+           version="1.1pr2">
+
+   <xs:annotation>
+      <xs:appinfo>
+        <vm:schemaName>VODataService</vm:schemaName>
+        <vm:schemaPrefix>xs</vm:schemaPrefix>
+        <vm:targetPrefix>vs</vm:targetPrefix>
+      </xs:appinfo>
+      <xs:documentation>
+        An extension to the core resource metadata (VOResource) for 
+        describing data collections and services.
+      </xs:documentation>
+   </xs:annotation>
+
+   <xs:import namespace="http://www.ivoa.net/xml/VOResource/v1.0"
+              schemaLocation="http://www.ivoa.net/xml/VOResource/v1.0"/>
+   <xs:import namespace="http://www.ivoa.net/xml/STC/stc-v1.30.xsd"
+              schemaLocation="http://www.ivoa.net/xml/STC/stc-v1.30.xsd"/>
+
+   <xs:complexType name="DataCollection">
+      <xs:annotation>
+         <xs:documentation>
+           A logical grouping of data which, in general, is composed of one 
+           or more accessible datasets.  A collection can contain any
+           combination of images, spectra, catalogs, or other data.   
+         </xs:documentation>
+         <xs:documentation>
+           (A dataset is a collection of digitally-encoded data that 
+           is normally accessible as a single unit, e.g. a file.)
+         </xs:documentation>
+      </xs:annotation>
+
+      <xs:complexContent>
+         <xs:extension base="vr:Resource">
+            <xs:sequence>
+ 
+              <xs:element name="facility" type="vr:ResourceName" 
+                          minOccurs="0" maxOccurs="unbounded">
+                <xs:annotation>
+                   <xs:appinfo>
+                     <vm:dcterm>Subject</vm:dcterm>
+                   </xs:appinfo>
+                   <xs:documentation>
+                     the observatory or facility used to collect the data 
+                     contained or managed by this resource.  
+                   </xs:documentation>
+                </xs:annotation>
+              </xs:element>
+
+              <xs:element name="instrument" type="vr:ResourceName" 
+                          minOccurs="0" maxOccurs="unbounded">
+                <xs:annotation>
+                   <xs:appinfo>
+                     <vm:dcterm>Subject</vm:dcterm>
+                     <vm:dcterm>Subject.Instrument</vm:dcterm>
+                   </xs:appinfo>
+                   <xs:documentation>
+                     the Instrument used to collect the data contain or 
+                     managed by a resource.  
+                   </xs:documentation>
+                </xs:annotation>
+              </xs:element>
+
+              <xs:element name="rights" type="vr:Rights" 
+                          minOccurs="0" maxOccurs="unbounded">
+                 <xs:annotation>
+                    <xs:appinfo>
+                      <vm:dcterm>Rights</vm:dcterm>
+                    </xs:appinfo>           
+                    <xs:documentation>
+                      Information about rights held in and over the resource.
+                    </xs:documentation>
+                    <xs:documentation>
+                      This should be repeated for all Rights values that apply.
+                    </xs:documentation>
+                 </xs:annotation>
+              </xs:element>
+
+              <xs:element name="format" type="vs:Format" 
+                          minOccurs="0" maxOccurs="unbounded">
+                 <xs:annotation>
+                    <xs:documentation>
+                      The physical or digital manifestation of the information 
+                      supported by a resource.
+                    </xs:documentation>
+                    <xs:documentation>
+                      MIME types should be used for network-retrievable, digital
+                      data.  Non-MIME type values are used for media that cannot
+                      be retrieved over the network--e.g. CDROM, poster, slides,
+                      video cassette, etc.  
+                    </xs:documentation>
+                 </xs:annotation>
+              </xs:element>
+
+              <xs:element name="coverage" type="vs:Coverage" minOccurs="0">
+                <xs:annotation>
+                   <xs:documentation>
+                     Extent of the content of the resource over space, time, 
+                     and frequency.
+                   </xs:documentation>
+                </xs:annotation>
+              </xs:element>
+
+              <xs:element name="tableset" type="vs:TableSet" minOccurs="0">
+                 <xs:annotation>
+                   <xs:documentation>
+                     A description of the tables that are part of this
+                     collection. 
+                   </xs:documentation>
+                   <xs:documentation>
+                     Each schema name and each table name must be
+                     unique within this tableset.
+                   </xs:documentation>
+                 </xs:annotation>
+
+                 <xs:unique name="DataCollection-schemaName">
+                    <xs:selector xpath="schema" />
+                    <xs:field xpath="name" />
+                 </xs:unique>
+
+                 <xs:unique name="DataCollection-tableName">
+                    <xs:selector xpath="schema/table" />
+                    <xs:field xpath="name" />
+                 </xs:unique>
+              </xs:element>
+
+              <xs:element name="accessURL" type="vr:AccessURL" minOccurs="0">
+                 <xs:annotation>
+                   <xs:documentation>
+                     The URL that can be used to download the data contained in 
+                     this data collection.
+                   </xs:documentation>
+                 </xs:annotation>
+              </xs:element>
+
+            </xs:sequence>
+         </xs:extension>
+      </xs:complexContent>
+   </xs:complexType>
+
+   <xs:complexType name="Coverage">
+      <xs:annotation>
+         <xs:documentation>
+           A description of how a resource's contents or behavior maps
+           to the sky, to time, and to frequency space, including
+           coverage and resolution. 
+         </xs:documentation>
+      </xs:annotation>
+
+      <xs:sequence>
+
+         <xs:element ref="stc:STCResourceProfile" minOccurs="0">
+            <xs:annotation>
+               <xs:documentation>
+                 The STC description of the location of the resource's 
+                 data (or behavior on data) on the sky, in time, and in 
+                 frequency space, including resolution. 
+               </xs:documentation>
+               <xs:documentation>
+                 In general, this description should be approximate; a
+                 more precise description can be provided by the 
+                 footprint service.  
+               </xs:documentation>
+            </xs:annotation>
+         </xs:element>
+
+         <xs:element name="footprint" type="vs:ServiceReference" 
+                     minOccurs="0">
+            <xs:annotation>
+               <xs:documentation>
+                  a reference to a footprint service for retrieving 
+                  precise and up-to-date description of coverage.  
+               </xs:documentation>
+               <xs:documentation>
+                  the ivo-id attribute refers to a Service record
+                  that describes the Footprint capability.  That is,
+                  the record will have a capability element describing
+                  the service.  The resource refered to may be the 
+                  current one.  
+               </xs:documentation>
+            </xs:annotation>
+         </xs:element>
+
+         <xs:element name="waveband" type="vs:Waveband" 
+                     minOccurs="0" maxOccurs="unbounded">
+            <xs:annotation>
+               <xs:appinfo>
+                 <vm:dcterm>Coverage.Spectral</vm:dcterm>
+               </xs:appinfo>           
+               <xs:documentation>
+                  a named spectral region of the electro-magnetic spectrum 
+                  that the resource's spectral coverage overlaps with.
+               </xs:documentation>
+            </xs:annotation>
+         </xs:element>
+
+         <xs:element name="regionOfRegard" type="xs:float" minOccurs="0">
+            <xs:annotation>
+               <xs:appinfo>
+                 <vm:dcterm>Coverage.RegionOfRegard</vm:dcterm>
+               </xs:appinfo>           
+               <xs:documentation>
+                  a single numeric value representing the angle, given
+                  in decimal degrees, by which a positional query
+                  against this resource should be "blurred" in order
+                  to get an appropriate match. 
+               </xs:documentation>
+               <xs:documentation>
+                  In the case of image repositories, it might refer to
+                  a typical field-of-view size, or the primary beam
+                  size for radio aperture synthesis data.  In the case
+                  of object catalogs RoR should normally be the
+                  largest of the typical size of the objects, the
+                  astrometric errors in the positions, or the
+                  resolution of the data.  
+               </xs:documentation>
+            </xs:annotation>
+         </xs:element>
+
+      </xs:sequence>            
+   </xs:complexType>
+
+   <xs:complexType name="ServiceReference">
+      <xs:annotation>
+         <xs:documentation>
+           the service URL for a potentially registerd service.  That is,
+           if an IVOA identifier is also provided, then the service is 
+           described in a registry.
+         </xs:documentation>
+      </xs:annotation>
+
+      <xs:simpleContent>
+         <xs:extension base="xs:anyURI"> 
+
+            <xs:attribute name="ivo-id" type="vr:IdentifierURI">
+               <xs:annotation>
+                 <xs:documentation>
+                   The URI form of the IVOA identifier for the service 
+                   describing the capability refered to by this element.
+                 </xs:documentation>
+               </xs:annotation>
+            </xs:attribute>
+
+         </xs:extension>       
+      </xs:simpleContent>
+   </xs:complexType>   
+
+   <xs:simpleType name="Waveband">
+      <xs:restriction base="xs:token">
+         <xs:enumeration value="Radio">
+            <xs:annotation>
+               <xs:documentation>
+                 wavelength &gt;= 10 mm; frequency &lt;= 30 GHz.
+               </xs:documentation>
+            </xs:annotation>
+         </xs:enumeration>
+         <xs:enumeration value="Millimeter">
+            <xs:annotation>
+               <xs:documentation>
+                 0.1 mm &lt;= wavelength &lt;= 10 mm; 
+                 3000 GHz &gt;= frequency &gt;= 30 GHz.
+               </xs:documentation>
+            </xs:annotation>
+         </xs:enumeration>
+         <xs:enumeration value="Infrared">
+            <xs:annotation>
+               <xs:documentation>
+                 1 micron &lt;= wavelength &lt;= 100 micons 
+               </xs:documentation>
+            </xs:annotation>
+         </xs:enumeration>
+         <xs:enumeration value="Optical">
+            <xs:annotation>
+               <xs:documentation>
+                 0.3 microns &lt;= wavelength &lt;= 1 micon; 
+                 300 nm &lt;= wavelength &lt;= 1000 nm; 
+                 3000 Angstroms &lt;= wavelength &lt;= 10000 Angstroms
+               </xs:documentation>
+            </xs:annotation>
+         </xs:enumeration>
+         <xs:enumeration value="UV">
+            <xs:annotation>
+               <xs:documentation>
+                 0.1 microns &lt;= wavelength &lt;= 0.3 micon; 
+                 1000 nm &lt;= wavelength &lt;= 3000 nm; 
+                 1000 Angstroms &lt;= wavelength &lt;= 30000 Angstroms
+               </xs:documentation>
+            </xs:annotation>
+         </xs:enumeration>
+         <xs:enumeration value="EUV">
+            <xs:annotation>
+               <xs:documentation>
+                 100 Angstroms &lt;= wavelength &lt;= 1000 Angstroms; 
+                 12 eV &lt;= energy &lt;= 120 eV
+               </xs:documentation>
+            </xs:annotation>
+         </xs:enumeration>
+         <xs:enumeration value="X-ray">
+            <xs:annotation>
+               <xs:documentation>
+                 0.1 Angstroms &lt;= wavelength &lt;= 100 Angstroms; 
+                 0.12 keV &lt;= energy &lt;= 120 keV
+               </xs:documentation>
+            </xs:annotation>
+         </xs:enumeration>
+         <xs:enumeration value="Gamma-ray">
+            <xs:annotation>
+               <xs:documentation>
+                 energy &gt;= 120 keV
+               </xs:documentation>
+            </xs:annotation>
+         </xs:enumeration>
+      </xs:restriction>
+   </xs:simpleType>
+
+   <xs:complexType name="TableSet">
+      <xs:annotation>
+         <xs:documentation>
+           The set of tables hosted by a resource.
+         </xs:documentation>
+      </xs:annotation>
+
+      <xs:sequence>
+
+         <xs:element name="schema" type="vs:TableSchema" 
+                     minOccurs="1" maxOccurs="unbounded">
+            <xs:annotation>
+              <xs:documentation>
+                A named description of a set of logically related tables.
+              </xs:documentation>
+              <xs:documentation>
+                The name given by the "name" child element must
+                be unique within this TableSet instance.  If there is
+                only one schema in this set and/or there's no locally
+                appropriate name to provide, the name can be set to
+                "default".  
+              </xs:documentation>
+              <xs:documentation>
+                This aggregation does not need to map to an
+                actual database, catalog, or schema, though the
+                publisher may choose to aggregate along such
+                designations, or particular service protocol may
+                recommend it.  
+              </xs:documentation>
+            </xs:annotation>
+         </xs:element>
+
+      </xs:sequence>
+
+      <xs:anyAttribute namespace="##other" />
+   </xs:complexType>
+  
+   <xs:complexType name="TableSchema">
+      <xs:annotation>
+         <xs:documentation>
+           A detailed description of a logically-related set of tables
+         </xs:documentation>
+      </xs:annotation>
+
+      <xs:sequence>
+         <xs:element name="name" type="xs:token" minOccurs="1" maxOccurs="1">
+           <xs:annotation>
+             <xs:documentation>
+               A name for the set of tables.  
+             </xs:documentation>
+             <xs:documentation>
+               This is used to uniquely identify the table set among
+               several table sets.  If a title is not present, this
+               name can be used for display purposes.
+             </xs:documentation>
+             <xs:documentation>
+               If there is no appropriate logical name associated with
+               this set, the name should be explicitly set to
+               "default".  
+             </xs:documentation>
+           </xs:annotation>
+         </xs:element>
+          
+         <xs:element name="title" type="xs:token" minOccurs="0">
+            <xs:annotation>
+               <xs:documentation>
+                  a descriptive, human-interpretable name for the table set.
+               </xs:documentation>
+               <xs:documentation>
+                  This is used for display purposes.  There is no requirement
+                  regarding uniqueness.  It is useful when there are
+                  multiple schemas in the context (e.g. within a
+                  tableset; otherwise, the resource title could be
+                  used instead).
+               </xs:documentation>
+            </xs:annotation>
+         </xs:element>
+
+         <xs:element name="description" type="xs:token" 
+                     minOccurs="0" maxOccurs="1">
+           <xs:annotation>
+             <xs:documentation>
+               A free text description of the tableset that should
+               explain in general how all of the tables are related.
+             </xs:documentation>
+           </xs:annotation>
+         </xs:element>
+
+         <xs:element name="utype" type="xs:token" minOccurs="0">
+            <xs:annotation>
+               <xs:documentation>
+                  an identifier for a concept in a data model that
+                  the data in this schema as a whole represent.  
+               </xs:documentation>
+               <xs:documentation>
+                  The format defined in the VOTable standard is strongly
+                  recommended. 
+               </xs:documentation>
+            </xs:annotation>
+         </xs:element>
+
+         <xs:element name="table" type="vs:Table" 
+                     minOccurs="0" maxOccurs="unbounded">
+           <xs:annotation>
+             <xs:documentation>
+               A description of one of the tables that makes up the set.
+             </xs:documentation>
+             <xs:documentation>
+               The table names for the table should be unique.
+             </xs:documentation>
+           </xs:annotation>
+         </xs:element>
+
+      </xs:sequence>
+
+      <xs:anyAttribute namespace="##other" />
+   </xs:complexType>
+  
+   <xs:complexType name="Format">
+      <xs:simpleContent>
+         <xs:extension base="xs:token">
+           <xs:attribute name="isMIMEType" type="xs:boolean" default="false">
+             <xs:annotation>
+               <xs:documentation>
+                 if true, then the content is a MIME Type
+               </xs:documentation>
+             </xs:annotation>
+           </xs:attribute>
+         </xs:extension>
+      </xs:simpleContent>
+   </xs:complexType>
+
+   <xs:complexType name="DataService">
+      <xs:annotation>
+         <xs:documentation>
+           A service for accessing astronomical data
+         </xs:documentation>
+      </xs:annotation>
+
+      <xs:complexContent>
+         <xs:extension base="vr:Service">
+            <xs:sequence>
+              <xs:element name="facility" type="vr:ResourceName" 
+                          minOccurs="0" maxOccurs="unbounded">
+                <xs:annotation>
+                   <xs:appinfo>
+                     <vm:dcterm>Subject</vm:dcterm>
+                   </xs:appinfo>
+                   <xs:documentation>
+                     the observatory or facility used to collect the data 
+                     contained or managed by this resource.  
+                   </xs:documentation>
+                </xs:annotation>
+              </xs:element>
+
+              <xs:element name="instrument" type="vr:ResourceName" 
+                          minOccurs="0" maxOccurs="unbounded">
+                <xs:annotation>
+                   <xs:appinfo>
+                     <vm:dcterm>Subject</vm:dcterm>
+                     <vm:dcterm>Subject.Instrument</vm:dcterm>
+                   </xs:appinfo>
+                   <xs:documentation>
+                     the Instrument used to collect the data contain or 
+                     managed by a resource.  
+                   </xs:documentation>
+                </xs:annotation>
+              </xs:element>
+
+              <xs:element name="coverage" type="vs:Coverage" minOccurs="0">
+                <xs:annotation>
+                   <xs:documentation>
+                     Extent of the content of the resource over space, time, 
+                     and frequency.
+                   </xs:documentation>
+                </xs:annotation>
+              </xs:element>
+
+            </xs:sequence>
+         </xs:extension>
+      </xs:complexContent>
+   </xs:complexType>
+
+   <xs:complexType name="ParamHTTP">
+      <xs:annotation>
+        <xs:documentation>
+           A service invoked via an HTTP Query (either Get or Post)
+           with a set of arguments consisting of keyword name-value pairs.
+        </xs:documentation>
+        <xs:documentation>
+           Note that the URL for help with this service can be put into
+           the Service/ReferenceURL element.
+        </xs:documentation>
+      </xs:annotation>
+
+      <xs:complexContent>
+         <xs:extension base="vr:Interface">
+            <xs:sequence>
+               <xs:element name="queryType" type="vs:HTTPQueryType" 
+                           minOccurs="0" maxOccurs="2">
+                  <xs:annotation>
+                     <xs:documentation>
+                       The type of HTTP request, either GET or POST.
+                     </xs:documentation>
+                     <xs:documentation>
+                       The service may indicate support for both GET
+                       and POST by providing 2 queryType elements, one
+                       with GET and one with POST.
+                     </xs:documentation>
+                  </xs:annotation>
+               </xs:element>
+
+               <xs:element name="resultType" type="xs:token" 
+                           minOccurs="0" maxOccurs="1">
+                  <xs:annotation>
+                     <xs:documentation>
+                       The MIME type of a document returned in the HTTP response.
+                     </xs:documentation>
+                  </xs:annotation>
+               </xs:element>
+
+               <xs:element name="param" type="vs:InputParam" minOccurs="0" 
+                            maxOccurs="unbounded">
+                  <xs:annotation>
+                    <xs:documentation>
+                       a description of a input parameter that can be 
+                       provided as a name=value argument to the service.  
+                    </xs:documentation>
+                  </xs:annotation>
+               </xs:element>
+
+               <xs:element name="testQuery" type="xs:string" minOccurs="0" 
+                           maxOccurs="unbounded">
+                  <xs:annotation>
+                    <xs:documentation>
+                       an ampersand-delimited list of arguments that
+                       can be used to test this service interface; 
+                       when provided as the input to this interface,
+                       it will produce a legal, non-null response.
+                    </xs:documentation>
+                    <xs:documentation>
+                       When the interface supports GET, then the full 
+                       query URL is formed by the concatonation of the 
+                       base URL (given by the accessURL) and the value 
+                       given by this testQuery element.  
+                    </xs:documentation>
+                  </xs:annotation>
+               </xs:element>
+
+            </xs:sequence>
+         </xs:extension>
+      </xs:complexContent>
+   </xs:complexType>
+
+   <xs:simpleType name="HTTPQueryType">
+      <xs:annotation>
+         <xs:documentation>
+           The type of HTTP request, either GET or POST.
+         </xs:documentation>
+      </xs:annotation>
+      <xs:restriction base="xs:token">
+         <xs:enumeration value="GET"/>
+         <xs:enumeration value="POST"/>
+      </xs:restriction>
+   </xs:simpleType>
+
+   <xs:complexType name="CatalogService">
+      <xs:annotation>
+         <xs:documentation>
+            A service that interacts with with astronomical data
+            through one or more specified tables.
+         </xs:documentation>
+         <xs:documentation>
+            A table with sky coverage typically have columns that give
+            longitude-latitude positions in some coordinate system.  
+         </xs:documentation>
+      </xs:annotation>
+
+      <xs:complexContent>
+         <xs:extension base="vs:DataService">
+            <xs:sequence>
+               <xs:element name="tableset" type="vs:TableSet" minOccurs="0">
+                  <xs:annotation>
+                     <xs:documentation>
+                       A description of the tables that are accessible
+                       through this service.
+                     </xs:documentation>
+                     <xs:documentation>
+                       Each schema name and each table name must be
+                       unique within this tableset.
+                     </xs:documentation>
+                  </xs:annotation>
+
+                 <xs:unique name="CatalogService-schemaName">
+                    <xs:selector xpath="schema" />
+                    <xs:field xpath="name" />
+                 </xs:unique>
+
+                 <xs:unique name="CatalogService-tableName">
+                    <xs:selector xpath="schema/table" />
+                    <xs:field xpath="name" />
+                 </xs:unique>
+               </xs:element>
+            </xs:sequence>
+         </xs:extension>
+      </xs:complexContent>
+   </xs:complexType>
+
+   <xs:complexType name="Table">
+      <xs:sequence>
+         <xs:element name="name" type="xs:token" 
+                     minOccurs="1" maxOccurs="1">
+            <xs:annotation>
+               <xs:documentation>
+                  the fully qualified name of the table.  This name 
+                  should include all catalog or schema prefixes
+                  needed to sufficiently uniquely distinguish it in a
+                  query.  
+               </xs:documentation>
+               <xs:documentation>
+                  In general, the format of the qualified name may
+                  depend on the context; however, when the
+                  table is intended to be queryable via ADQL, then the
+                  catalog and schema qualifiers are delimited from the
+                  table name with dots (.).  
+               </xs:documentation>
+            </xs:annotation>
+         </xs:element>
+
+         <xs:element name="title" type="xs:token" minOccurs="0">
+            <xs:annotation>
+               <xs:documentation>
+                  a descriptive, human-interpretable name for the table.
+               </xs:documentation>
+               <xs:documentation>
+                  This is used for display purposes.  There is no requirement
+                  regarding uniqueness.  
+               </xs:documentation>
+            </xs:annotation>
+         </xs:element>
+
+         <xs:element name="description" type="xs:token" minOccurs="0">
+            <xs:annotation>
+               <xs:documentation>
+                  a free-text description of the table's contents
+               </xs:documentation>
+            </xs:annotation>
+         </xs:element>
+
+         <xs:element name="utype" type="xs:token" minOccurs="0">
+            <xs:annotation>
+               <xs:documentation>
+                  an identifier for a concept in a data model that
+                  the data in this table represent.  
+               </xs:documentation>
+               <xs:documentation>
+                  The format defined in the VOTable standard is highly
+                  recommended. 
+               </xs:documentation>
+            </xs:annotation>
+         </xs:element>
+
+         <xs:element name="column" type="vs:TableParam" 
+                     minOccurs="0" maxOccurs="unbounded">
+            <xs:annotation>
+               <xs:documentation>
+                  a description of a table column.
+               </xs:documentation>
+            </xs:annotation>
+         </xs:element>
+
+         <xs:element name="foreignKey" type="vs:ForeignKey"
+                     minOccurs="0" maxOccurs="unbounded" >
+            <xs:annotation>
+               <xs:documentation>
+                  a description of a foreign keys, one or more columns
+                  from the current table that can be used to join with 
+                  another table.  
+               </xs:documentation>
+            </xs:annotation>
+         </xs:element>
+
+      </xs:sequence>
+
+      <xs:attribute name="type" type="xs:string">
+         <xs:annotation>
+            <xs:documentation>
+               a name for the role this table plays.  Recognized
+               values include "output", indicating this table is output 
+               from a query; "base_table", indicating a table
+               whose records represent the main subjects of its
+               schema; and "view", indicating that the table represents
+               a useful combination or subset of other tables.  Other 
+               values are allowed.  
+            </xs:documentation>
+         </xs:annotation>
+      </xs:attribute>
+
+      <xs:anyAttribute namespace="##other" />
+   </xs:complexType>
+
+   <xs:complexType name="BaseParam">
+      <xs:annotation>
+         <xs:documentation>
+            a description of a parameter that places no restriction on 
+            the parameter's data type.
+         </xs:documentation>
+         <xs:documentation>
+            As the parameter's data type is usually important, schemas
+            normally employ a sub-class of this type (e.g. Param),
+            rather than this type directly.
+         </xs:documentation>
+      </xs:annotation>
+
+      <xs:sequence>
+         <xs:element name="name" type="xs:token" minOccurs="0">
+            <xs:annotation>
+               <xs:documentation>
+                  the name of the column
+               </xs:documentation>
+            </xs:annotation>
+         </xs:element>
+
+         <xs:element name="description" type="xs:token" minOccurs="0">
+            <xs:annotation>
+               <xs:documentation>
+                  a free-text description of the column's contents
+               </xs:documentation>
+            </xs:annotation>
+         </xs:element>
+
+         <xs:element name="unit" type="xs:token" minOccurs="0">
+            <xs:annotation>
+               <xs:documentation>
+                  the unit associated with all values in the column
+               </xs:documentation>
+            </xs:annotation>
+         </xs:element>
+
+         <xs:element name="ucd" type="xs:token" minOccurs="0">
+            <xs:annotation>
+               <xs:documentation>
+                  the name of a unified content descriptor that
+                  describes the scientific content of the parameter.  
+               </xs:documentation>
+               <xs:documentation>
+                  There are no requirements for compliance with any 
+                  particular UCD standard.  The format of the UCD can
+                  be used to distinguish between UCD1, UCD1+, and
+                  SIA-UCD.  See 
+                  http://www.ivoa.net/Documents/latest/UCDlist.html
+                  for the latest IVOA standard set.  
+               </xs:documentation>
+            </xs:annotation>
+         </xs:element>
+
+         <xs:element name="utype" type="xs:token" minOccurs="0">
+            <xs:annotation>
+               <xs:documentation>
+                  an identifier for a concept in a data model that
+                  the data in this schema represent.  
+               </xs:documentation>
+               <xs:documentation>
+                  The format defined in the VOTable standard is highly
+                  recommended. 
+               </xs:documentation>
+            </xs:annotation>
+         </xs:element>
+
+      </xs:sequence>
+
+      <xs:anyAttribute namespace="##other" />
+   </xs:complexType>
+
+   <xs:complexType name="TableParam">
+      <xs:annotation>
+         <xs:documentation>
+            a description of a table parameter having a fixed data type.
+         </xs:documentation>
+         <xs:documentation>
+            The allowed data type names match those supported by VOTable.
+         </xs:documentation>
+      </xs:annotation>
+
+      <xs:complexContent>
+         <xs:extension base="vs:BaseParam">
+            <xs:sequence>
+               <xs:element name="dataType" type="vs:TableDataType" 
+                           minOccurs="0">
+                  <xs:annotation>
+                     <xs:documentation>
+                        a type of data contained in the column
+                     </xs:documentation>
+                  </xs:annotation>
+               </xs:element>
+
+               <xs:element name="flag" type="xs:token" 
+                           minOccurs="0" maxOccurs="unbounded">
+                  <xs:annotation>
+                     <xs:documentation>
+                        a keyword representing traits of the column.  
+                        Recognized values include "indexed", "primary", and
+                        "nullable".  
+                     </xs:documentation>
+                     <xs:documentation>
+                        See the specification document for definitions 
+                        of recognized keywords.
+                     </xs:documentation>
+                  </xs:annotation>
+               </xs:element>
+            </xs:sequence>
+
+            <xs:attribute name="std" type="xs:boolean">
+               <xs:annotation>
+                  <xs:documentation>
+                     If true, the meaning and use of this parameter is
+                     reserved and defined by a standard model.  If false, 
+                     it represents a database-specific parameter 
+                     that effectively extends beyond the standard.  If
+                     not provided, then the value is unknown.
+                  </xs:documentation>
+               </xs:annotation>
+            </xs:attribute>
+         </xs:extension>
+      </xs:complexContent>
+   </xs:complexType>
+
+   <xs:complexType name="InputParam">
+      <xs:annotation>
+         <xs:documentation>
+            a description of a service or function parameter having a
+            fixed data type. 
+         </xs:documentation>
+         <xs:documentation>
+            The allowed data type names do not imply a size or precise
+            format.  This type is intended to be sufficient for describing
+            an input parameter to a simple REST service or a function 
+            written in a weakly-typed (e.g., scripting) language.
+         </xs:documentation>
+      </xs:annotation>
+
+      <xs:complexContent>
+         <xs:extension base="vs:BaseParam">
+            <xs:sequence>
+               <xs:element name="dataType" type="vs:SimpleDataType" 
+                           minOccurs="0">
+                  <xs:annotation>
+                     <xs:documentation>
+                        a type of data contained in the column
+                     </xs:documentation>
+                  </xs:annotation>
+               </xs:element>
+            </xs:sequence>
+
+            <xs:attribute name="use" type="vs:ParamUse" default="optional">
+               <xs:annotation>
+                  <xs:documentation>
+                     An indication of whether this parameter is
+                     required to be provided for the application
+                     or service to work properly.  
+                  </xs:documentation>
+                  <xs:documentation>
+                     Allowed values are "required" and "optional".
+                  </xs:documentation>
+               </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute name="std" type="xs:boolean" default="true">
+               <xs:annotation>
+                  <xs:documentation>
+                     If true, the meaning and behavior of this parameter is
+                     reserved and defined by a standard interface.  If
+                     false, it represents an implementation-specific
+                     parameter that effectively extends the behavior of the 
+                     service or application.  
+                  </xs:documentation>
+               </xs:annotation>
+            </xs:attribute>
+
+         </xs:extension>
+      </xs:complexContent>
+   </xs:complexType>
+
+   <xs:simpleType name="ParamUse">
+      <xs:restriction base="xs:string">
+         <xs:enumeration value="required">
+            <xs:annotation>
+               <xs:documentation>
+                  the parameter is required for the application or
+                  service to work properly.  
+               </xs:documentation>
+            </xs:annotation>
+         </xs:enumeration>
+         <xs:enumeration value="optional">
+            <xs:annotation>
+               <xs:documentation>
+                  the parameter is optional but supported by the application or
+                  service.
+               </xs:documentation>
+            </xs:annotation>
+         </xs:enumeration>
+         <xs:enumeration value="ignored">
+            <xs:annotation>
+               <xs:documentation>
+                  the parameter is not supported and thus is ignored by the 
+                  application or service.
+               </xs:documentation>
+            </xs:annotation>
+         </xs:enumeration>
+      </xs:restriction>
+   </xs:simpleType>
+
+   <xs:complexType name="DataType">
+      <xs:annotation>
+         <xs:documentation>
+            a type (in the computer language sense) associated with a 
+            parameter with an arbitrary name
+         </xs:documentation>
+         <xs:documentation>
+            This XML type is used as a parent for defining data types
+            with a restricted set of names.
+         </xs:documentation>
+      </xs:annotation>
+      <xs:simpleContent>
+        <xs:extension base="xs:token">
+            <xs:attribute name="arraysize" type="vs:ArrayShape" default="1">
+               <xs:annotation>
+                  <xs:documentation>
+                     the shape of the array that constitutes the value
+                  </xs:documentation>
+                  <xs:documentation>
+                     the default is "1"; i.e. the value is a scalar.
+                  </xs:documentation>
+               </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute name="delim" type="xs:string" default=" ">
+               <xs:annotation>
+                  <xs:documentation>
+                     the string that is used to delimit elements of an array
+                     value when arraysize is not "1".
+                  </xs:documentation>
+                  <xs:documentation>
+                     Unless specifically disallowed by the context, 
+                     applications should allow optional spaces to 
+                     appear in an actual data value before and after 
+                     the delimiter (e.g. "1, 5" when delim=",").
+                  </xs:documentation>
+                  <xs:documentation>
+                     the default is " "; i.e. the values are delimited 
+                     by spaces.  
+                  </xs:documentation>
+               </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute name="extendedType" type="xs:string">
+               <xs:annotation>
+                  <xs:documentation>
+                     The data value represented by this type can be
+                     interpreted as of a custom type identified by 
+                     the value of this attribute.
+                  </xs:documentation>
+                  <xs:documentation>
+                     If an application does not recognize this
+                     extendedType, it should attempt to handle value
+                     assuming the type given by the element's value.
+                     string is a recommended default type.
+                  </xs:documentation>
+                  <xs:documentation>
+                     This element may make use of the extendedSchema
+                     attribute and/or any arbitrary (qualified)
+                     attribute to refine the identification of the 
+                     type.
+                  </xs:documentation>
+               </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute name="extendedSchema" type="xs:anyURI">
+               <xs:annotation>
+                  <xs:documentation>
+                     An identifier for the schema that the value given
+                     by the extended attribute is drawn from.
+                  </xs:documentation>
+                  <xs:documentation>
+                     This attribute is normally ignored if the
+                     extendedType attribute is not present.
+                  </xs:documentation>
+               </xs:annotation>
+            </xs:attribute>
+
+            <xs:anyAttribute namespace="##other" />
+        </xs:extension>
+      </xs:simpleContent>
+   </xs:complexType>
+
+   <!--
+     -  this definition is taken from the VOTable arrayDEF type
+     -->
+   <xs:simpleType  name="ArrayShape">
+      <xs:annotation>
+         <xs:documentation>
+            An expression of a the shape of a multi-dimensional array
+            of the form LxNxM... where each value between gives the
+            integer length of the array along a dimension.  An
+            asterisk (*) as the last dimension of the shape indicates 
+            that the length of the last axis is variable or
+            undetermined. 
+         </xs:documentation>
+      </xs:annotation>
+
+     <xs:restriction base="xs:token">
+       <xs:pattern  value="([0-9]+x)*[0-9]*[*]?"/>
+     </xs:restriction>
+   </xs:simpleType>
+
+   <xs:complexType name="SimpleDataType">
+      <xs:annotation>
+         <xs:documentation>
+            a data type restricted to a small set of names which is 
+            imprecise as to the format of the individual values.
+         </xs:documentation>
+         <xs:documentation>
+            This set is intended for describing simple input parameters to 
+            a service or function.
+         </xs:documentation>
+      </xs:annotation>
+      <xs:simpleContent>
+        <xs:restriction base="vs:DataType">
+           <xs:enumeration value="integer"/>
+           <xs:enumeration value="real"/>
+           <xs:enumeration value="complex"/>
+           <xs:enumeration value="boolean"/>
+           <xs:enumeration value="char"/>
+           <xs:enumeration value="string"/>
+
+           <xs:attribute name="arraysize" type="vs:ArrayShape" default="1"/>
+           <xs:attribute name="delim" type="xs:string" default=" "/>
+           <xs:attribute name="extendedType" type="xs:string"/>
+           <xs:attribute name="extendedSchema" type="xs:anyURI"/>
+           <xs:anyAttribute namespace="##other" />
+        </xs:restriction>
+      </xs:simpleContent>
+   </xs:complexType>
+
+   <xs:complexType name="TableDataType" abstract="true">
+      <xs:annotation>
+         <xs:documentation>
+            an abstract parent for a class of data types that can be
+            used to specify the data type of a table column.
+         </xs:documentation>
+      </xs:annotation>
+      <xs:simpleContent>
+        <xs:extension base="vs:DataType"/>
+      </xs:simpleContent>
+   </xs:complexType>
+
+   <xs:complexType name="VOTableType">
+      <xs:annotation>
+         <xs:documentation>
+            a data type supported explicitly by the VOTable format
+         </xs:documentation>
+      </xs:annotation>
+      <xs:simpleContent>
+         <xs:restriction base="vs:TableDataType">
+           <xs:enumeration value="boolean"/>
+           <xs:enumeration value="bit"/>
+           <xs:enumeration value="unsignedByte"/>
+           <xs:enumeration value="short"/>
+           <xs:enumeration value="int"/>
+           <xs:enumeration value="long"/>
+           <xs:enumeration value="char"/>
+           <xs:enumeration value="unicodeChar"/>
+           <xs:enumeration value="float"/>
+           <xs:enumeration value="double"/>
+           <xs:enumeration value="floatComplex"/>
+           <xs:enumeration value="doubleComplex"/>
+
+           <xs:attribute name="arraysize" type="vs:ArrayShape" default="1"/>
+           <xs:attribute name="delim" type="xs:string" default=" "/>
+           <xs:attribute name="extendedType" type="xs:string"/>
+           <xs:attribute name="extendedSchema" type="xs:anyURI"/>
+           <xs:anyAttribute namespace="##other" />
+        </xs:restriction>
+      </xs:simpleContent>
+   </xs:complexType>
+
+   <xs:complexType name="TAPDataType" abstract="true">
+      <xs:annotation>
+         <xs:documentation>
+            an abstract parent for the specific data types supported 
+            by the Table Access Protocol.
+         </xs:documentation>
+      </xs:annotation>
+      <xs:simpleContent>
+         <xs:extension base="vs:TableDataType">
+           <xs:attribute name="size" type="xs:positiveInteger">
+              <xs:annotation>
+                 <xs:documentation>
+                    the length of the fixed-length value
+                 </xs:documentation>
+                 <xs:documentation>
+                    This corresponds to the size Column attribute in
+                    the TAP_SCHEMA and can be used with data types
+                    that are defined with a length (CHAR, BINARY).  
+                 </xs:documentation>
+              </xs:annotation>
+           </xs:attribute>
+         </xs:extension>
+      </xs:simpleContent>
+   </xs:complexType>
+
+   <xs:complexType name="TAPType">
+      <xs:annotation>
+         <xs:documentation>
+            a data type supported explicitly by the Table Access 
+            Protocol (v1.0).  
+         </xs:documentation>
+      </xs:annotation>
+      <xs:simpleContent>
+         <xs:restriction base="vs:TAPDataType">
+           <xs:enumeration value="BOOLEAN"/>
+           <xs:enumeration value="SMALLINT"/>
+           <xs:enumeration value="INTEGER"/>
+           <xs:enumeration value="BIGINT"/>
+           <xs:enumeration value="REAL"/>
+           <xs:enumeration value="DOUBLE"/>
+           <xs:enumeration value="TIMESTAMP"/>
+           <xs:enumeration value="CHAR"/>
+           <xs:enumeration value="VARCHAR"/>
+           <xs:enumeration value="BINARY"/>
+           <xs:enumeration value="VARBINARY"/>
+           <xs:enumeration value="POINT"/>
+           <xs:enumeration value="REGION"/>
+           <xs:enumeration value="CLOB"/>
+           <xs:enumeration value="BLOB"/>
+
+           <xs:attribute name="arraysize" type="vs:ArrayShape" default="1"/>
+           <xs:attribute name="delim" type="xs:string" default=" "/>
+           <xs:attribute name="extendedType" type="xs:string"/>
+           <xs:attribute name="extendedSchema" type="xs:anyURI"/>
+           <xs:attribute name="size" type="xs:positiveInteger"/>
+           <xs:anyAttribute namespace="##other" />
+        </xs:restriction>
+      </xs:simpleContent>
+   </xs:complexType>
+
+   <xs:complexType name="StandardSTC">
+      <xs:annotation>
+         <xs:documentation>
+           a description of standard space-time coordinate systems,
+           positions, and regions.
+         </xs:documentation>
+         <xs:documentation>
+           This resource provides a mechanism for registering standard 
+           coordinate systems which other resources may reference as
+           part of a coverage descripiton.  In particular, coverage
+           descriptions will refer to components of the STC
+           descriptions in this resource via an IVOA identifier.  It
+           is intended that an application consuming such coverage
+           descriptions be able to semantically interpret the
+           identifier without resolving it.  For this reason, once a
+           standard STC description is registered with this resource 
+           type, updating the description is strongly discouraged.  
+         </xs:documentation>
+      </xs:annotation>
+
+      <xs:complexContent>
+         <xs:extension base="vr:Resource">
+            <xs:sequence>
+               
+               <xs:element name="stcDefinitions" 
+                           type="stc:stcDescriptionType"
+                           minOccurs="1" maxOccurs="unbounded">
+                  <xs:annotation>
+                     <xs:documentation>
+                       An STC description of coordinate systems,
+                       positions, and/or regions
+                     </xs:documentation>
+                     <xs:documentation>
+                       Each system, position, and region description
+                       should have a an XML ID assigned to it.
+                     </xs:documentation>
+                     <xs:documentation>
+                       Because the STC schema sets 
+                       elementFormDefault="qualified", it is
+                       recommended that this element specify the STC 
+                       default namespace via an xmlns namespace.
+                     </xs:documentation>
+                  </xs:annotation>
+               </xs:element>
+
+            </xs:sequence>
+         </xs:extension>
+      </xs:complexContent>
+   </xs:complexType>
+
+   <xs:complexType name="ForeignKey">
+      <xs:annotation>
+         <xs:documentation>
+           A description of the mapping a foreign key--a set of 
+           columns from one table--to columns in another table.  
+         </xs:documentation>
+         <xs:documentation>
+           This definition that the foreign key is being described 
+           within the context of the table containing the key.  
+         </xs:documentation>
+      </xs:annotation>
+
+      <xs:sequence>
+
+         <xs:element name="targetTable" type="xs:token">
+           <xs:annotation>
+             <xs:documentation>
+               the fully-qualified name (including catalog and schema, as
+               applicable) of the table that can be joined with the 
+               table containing this foreign key.
+             </xs:documentation>
+           </xs:annotation>
+         </xs:element>
+
+         <xs:element name="fkColumn" type="vs:FKColumn" 
+                     minOccurs="1" maxOccurs="unbounded">
+           <xs:annotation>
+             <xs:documentation>
+               a pair of column names, one from this table and one
+               from the target table that should be used to join the
+               tables in a query.  
+             </xs:documentation>
+           </xs:annotation>
+         </xs:element>
+
+         <xs:element name="description" type="xs:token" minOccurs="0">
+            <xs:annotation>
+               <xs:documentation>
+                  a free-text description of what this key points to
+                  and what the relationship means.  
+               </xs:documentation>
+            </xs:annotation>
+         </xs:element>
+
+         <xs:element name="utype" type="xs:token" minOccurs="0">
+            <xs:annotation>
+               <xs:documentation>
+                  an identifier for a concept in a data model that
+                  the association enabled by this key represents.  
+               </xs:documentation>
+               <xs:documentation>
+                  The format defined in the VOTable standard is highly
+                  recommended. 
+               </xs:documentation>
+            </xs:annotation>
+         </xs:element>
+
+      </xs:sequence>
+   </xs:complexType>
+
+   <xs:complexType name="FKColumn">
+      <xs:annotation>
+         <xs:documentation>
+           A pair of columns that are used to join two tables.  
+         </xs:documentation>
+         <xs:documentation>
+           To do an inner join of data from the two tables, a query should 
+           include a constraint that sets the value from the first column equal
+           to the value in the second column.
+         </xs:documentation>
+         <xs:documentation>
+           This type assumes that it is used in the context of 
+           implied source (i.e., current) and target tables, as in
+           the ForeignKey type's fkColumn.
+         </xs:documentation>
+      </xs:annotation>
+
+      <xs:sequence>
+         <xs:element name="fromColumn" type="xs:token">
+           <xs:annotation>
+             <xs:documentation>
+               The unqualified name of the column from the current table.
+             </xs:documentation>
+           </xs:annotation>
+         </xs:element>
+
+         <xs:element name="targetColumn" type="xs:token">
+           <xs:annotation>
+             <xs:documentation>
+               The unqualified name of the column from the target table.
+             </xs:documentation>
+           </xs:annotation>
+         </xs:element>
+
+      </xs:sequence>
+   </xs:complexType>
+
+</xs:schema>

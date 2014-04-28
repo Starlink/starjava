@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--$Id: xlink.xsd,v 1.2 2006/03/01 21:55:31 arots Exp arots $-->
+<!-- Schema definition for Xlink for the SpaceTimeCoords -->
+<!--Change Log:
+$Log: xlink.xsd,v $
+Revision 1.2  2006/03/01 21:55:31  arots
+Fixed missing end-of-comment.
+
+Revision 1.1  2006/03/01 21:06:05  arots
+Initial revision
+ -->
+<xs:schema targetNamespace="http://www.w3.org/1999/xlink" 
+	xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+	xmlns:xlink="http://www.w3.org/1999/xlink" 
+	elementFormDefault="qualified" attributeFormDefault="qualified">
+  <xs:attribute name="type">
+    <xs:simpleType>
+      <xs:restriction base="xs:NMTOKEN">
+        <xs:enumeration value="simple"/>
+        <xs:enumeration value="extended"/>
+        <xs:enumeration value="locator"/>
+        <xs:enumeration value="arc"/>
+        <xs:enumeration value="resource"/>
+        <xs:enumeration value="title"/>
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:attribute>
+  <xs:attribute name="href" type="xs:anyURI"/>
+  <xs:attribute name="role" type="xs:anyURI"/>
+  <xs:attribute name="arcrole" type="xs:anyURI"/>
+  <xs:attribute name="title" type="xs:string"/>
+  <xs:attribute name="show">
+    <xs:simpleType>
+      <xs:restriction base="xs:NMTOKEN">
+        <xs:enumeration value="new"/>
+        <xs:enumeration value="replace"/>
+        <xs:enumeration value="embed"/>
+        <xs:enumeration value="other"/>
+        <xs:enumeration value="none"/>
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:attribute>
+  <xs:attribute name="label" type="xs:NMTOKEN"/>
+  <xs:attribute name="actuate">
+    <xs:simpleType>
+      <xs:restriction base="xs:NMTOKEN">
+        <xs:enumeration value="onLoad"/>
+        <xs:enumeration value="onRequest"/>
+        <xs:enumeration value="other"/>
+        <xs:enumeration value="none"/>
+      </xs:restriction>
+    </xs:simpleType>
+  </xs:attribute>
+  <xs:attribute name="from" type="xs:NMTOKEN"/>
+  <xs:attribute name="to" type="xs:NMTOKEN"/>
+</xs:schema>

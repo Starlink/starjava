@@ -1,0 +1,515 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema 
+xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+xmlns:vr="http://www.ivoa.net/xml/VOResource/v1.0" 
+xmlns:vm="http://www.ivoa.net/xml/VOMetadata/v0.1" 
+xmlns:tr="http://www.ivoa.net/xml/TAPRegExt/v1.0"
+version="1.0"
+targetNamespace="http://www.ivoa.net/xml/TAPRegExt/v1.0" 
+elementFormDefault="unqualified" 
+attributeFormDefault="unqualified" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <xs:annotation>
+    <xs:appinfo>
+      <vm:schemaName>TAPRegExt</vm:schemaName>
+      <vm:schemaPrefix>xs</vm:schemaPrefix>
+      <vm:targetPrefix>tr</vm:targetPrefix>
+    </xs:appinfo>
+    <xs:documentation>
+    A description of the capabilities metadata for TAP services.
+    </xs:documentation>
+  </xs:annotation>
+  <xs:import namespace="http://www.ivoa.net/xml/VOResource/v1.0" schemaLocation="http://www.ivoa.net/xml/VOResource/VOResource-v1.0.xsd"/>
+  <xs:complexType name="TAPCapRestriction" abstract="true">
+    <xs:annotation>
+      <xs:documentation>
+      An abstract capability that fixes the standardID to the
+      IVOA ID for the TAP standard.
+      </xs:documentation>
+      <xs:documentation>
+      See vr:Capability for documentation on inherited children.
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:restriction base="vr:Capability">
+        <xs:sequence>
+          <xs:element name="validationLevel" 
+            type="vr:Validation" minOccurs="0" 
+            maxOccurs="unbounded"/>
+          <xs:element name="description" type="xs:token" 
+            minOccurs="0"/>
+          <xs:element name="interface" type="vr:Interface" 
+            minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+        <xs:attribute name="standardID" type="vr:IdentifierURI" 
+          use="required" fixed="ivo://ivoa.net/std/TAP"/>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="TableAccess">
+    <xs:annotation>
+      <xs:documentation>
+      The capabilities of a TAP server.
+      </xs:documentation>
+      <xs:documentation>
+      The capabilities attempt to define most issues that the
+      TAP standard leaves to the implementors ("may", "should").
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="tr:TAPCapRestriction">
+        <xs:sequence>
+
+          <xs:element name="dataModel" type="tr:DataModelType"
+            minOccurs="0" maxOccurs="unbounded">
+            <xs:annotation>
+              <xs:documentation>
+              Identifier of IVOA-approved data model supported by the 
+              service.
+              </xs:documentation>
+            </xs:annotation>
+          </xs:element>
+
+          <xs:element name="language" type="tr:Language"
+            minOccurs="1" maxOccurs="unbounded">
+            <xs:annotation>
+              <xs:documentation>
+              Language supported by the service.
+              </xs:documentation>
+            </xs:annotation>
+          </xs:element>
+
+          <xs:element name="outputFormat" type="tr:OutputFormat"
+            minOccurs="1" maxOccurs="unbounded">
+            <xs:annotation>
+              <xs:documentation>
+                Output format supported by the service.
+              </xs:documentation>
+            </xs:annotation>
+          </xs:element>
+
+          <xs:element name="uploadMethod" type="tr:UploadMethod"
+            minOccurs="0" maxOccurs="unbounded">
+            <xs:annotation>
+              <xs:documentation>
+                Upload method supported by the service.
+              </xs:documentation>
+              <xs:documentation>
+                The absence of upload methods indicates
+                that the service does not support uploads
+                at all.
+              </xs:documentation>
+            </xs:annotation>
+          </xs:element>
+
+          <xs:element name="retentionPeriod" type="tr:TimeLimits"
+            minOccurs="0" maxOccurs="1">
+            <xs:annotation>
+              <xs:documentation>
+              Limits on the time between job creation and
+              destruction time.
+              </xs:documentation>
+            </xs:annotation>
+          </xs:element>
+
+          <xs:element name="executionDuration" type="tr:TimeLimits"
+            minOccurs="0" maxOccurs="1">
+            <xs:annotation>
+              <xs:documentation>
+              Limits on executionDuration.
+              </xs:documentation>
+            </xs:annotation>
+          </xs:element>
+
+          <xs:element name="outputLimit" type="tr:DataLimits"
+            minOccurs="0" maxOccurs="1">
+            <xs:annotation>
+              <xs:documentation>
+              Limits on the size of data returned.
+              </xs:documentation>
+            </xs:annotation>
+          </xs:element>
+
+          <xs:element name="uploadLimit" type="tr:DataLimits"
+            minOccurs="0" maxOccurs="1">
+            <xs:annotation>
+              <xs:documentation>
+              Limits on the size of uploaded data.
+              </xs:documentation>
+            </xs:annotation>
+          </xs:element>
+
+            
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="DataModelType">
+    <xs:annotation>
+      <xs:documentation>
+        An IVOA defined data model, identified by an IVORN 
+        intended for machine consumption and a short label
+        intended for human comsumption.
+      </xs:documentation>
+    </xs:annotation>
+
+    <xs:simpleContent>
+      <xs:extension base="xs:token"> 
+        <xs:attribute name="ivo-id" type="vr:IdentifierURI" use="required">
+          <xs:annotation>
+            <xs:documentation>
+            The IVORN of the data model.
+            </xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
+      </xs:extension>    
+    </xs:simpleContent>
+  </xs:complexType>  
+
+  <xs:complexType name="Language">
+    <xs:annotation>
+      <xs:documentation>
+      A query language supported by the service.
+      </xs:documentation>
+      <xs:documentation>
+      Each language element can describe one or more versions
+      of a language.  Either name alone or name-version can be
+      used as values for the server's LANG parameter.
+      </xs:documentation>
+    </xs:annotation>
+
+    <xs:sequence>
+      <xs:element name="name" type="xs:NCName">
+        <xs:annotation>
+          <xs:documentation>
+          The name of the language without a version suffix.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+
+			<xs:element name="version" type="tr:Version"
+	    	minOccurs="1" maxOccurs="unbounded">
+	    	<xs:annotation>
+	    		<xs:documentation>
+		    		A version of the language supported by the server.
+		    	</xs:documentation>
+	    	</xs:annotation>
+	    </xs:element>
+
+      <xs:element name="description" type="xs:token"
+        minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>
+          A short, human-readable description of the
+          query language.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+
+	   	<xs:element name="languageFeatures" type="tr:LanguageFeatureList" 
+	   			minOccurs="0" maxOccurs="unbounded">
+      	<xs:annotation>
+        	<xs:documentation>
+          	Optional features of the query language, grouped by
+          	feature type.
+        	</xs:documentation>
+        	<xs:documentation>
+        		This includes listing user defined functions, geometry support,
+        		or similar concepts.
+        	</xs:documentation>
+      	</xs:annotation>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>  
+
+  <xs:complexType name="Version">
+    <xs:annotation>
+      <xs:documentation>
+      One version of the language supported by the service.
+      </xs:documentation>
+      <xs:documentation>
+      If the service supports more than one version of the
+      language, include multiple version elements.
+      It is recommended that you use a version numbering
+      scheme like MAJOR.MINOR in such a way that sorting
+      by ascending character codes will leave the most
+      recent version at the bottom of the list.
+      </xs:documentation>
+    </xs:annotation>
+
+		<xs:simpleContent>
+			<xs:extension base="xs:token">
+				<xs:attribute name="ivo-id" type="xs:anyURI">
+  				<xs:annotation>
+    				<xs:documentation>
+    				An optional IVORN of the language.
+    				</xs:documentation>
+    				<xs:documentation>
+    					To more formally define a language supported by a service,
+    					a resource record for the language can be created, either
+    					centrally on the Registry of Registries or by other registry operators.  
+    					When such a record exists, the language element's ivo-id
+    					should point to it.
+    				</xs:documentation>
+  				</xs:annotation>
+				</xs:attribute>
+			</xs:extension>
+		</xs:simpleContent>
+  </xs:complexType>
+
+	<xs:complexType name="LanguageFeatureList">
+  	<xs:annotation>
+    	<xs:documentation>
+      	An enumeration of non-standard or non-mandatory features of 
+      	a specific type implemented by the language.
+    	</xs:documentation>
+    	<xs:documentation>
+    		A feature type is a language-dependent concept like 
+    		"user defined function", "geometry support", or possibly 
+    		"units supported".  A featureList gives all features of
+    		a given type applicable for the service.  Multiple featureLists
+    		are possible.
+
+      	All feature in a given list are of the same type.  This type
+      	is declared using the mandatory type attribute,
+      	the value of which will typically be an IVORN.
+      	To see values defined in TAPRegExt,
+				retrieve the ivo://ivoa.net/std/TAPRegExt
+      	resource record and look for keys starting with "features-".
+    	</xs:documentation>
+  	</xs:annotation>
+  	<xs:sequence>
+    	<xs:element name="feature" type="tr:LanguageFeature"
+       		minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>
+						A language feature of the type given by this
+						element's type attribute.
+					</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+  	</xs:sequence>
+  	<xs:attribute name="type" type="xs:anyURI" 
+	  		use="required">
+			<xs:annotation>
+				<xs:documentation>
+					The type of the features given here.
+				</xs:documentation>
+				<xs:documentation>
+					This is in general an IVORN.  TAPRegExt itself gives
+					IVORNs for defining user defined functions and geometry
+					support.
+				</xs:documentation>
+			</xs:annotation>
+  	</xs:attribute>
+	</xs:complexType>
+
+	<xs:complexType name="LanguageFeature">
+  	<xs:annotation>
+    	<xs:documentation>
+      	A non-standard or non-mandatory feature implemented
+      	by the language..
+    	</xs:documentation>
+  	</xs:annotation>
+  	<xs:sequence>
+    	<xs:element name="form" type="xs:token">
+      	<xs:annotation>
+        	<xs:documentation>
+          	Formal notation for the language feature.
+        	</xs:documentation>
+        	<xs:documentation>
+          	The syntax for the content of this element is defined by the
+          	type attribute of its parent language list.
+        	</xs:documentation>
+      	</xs:annotation>
+    	</xs:element>
+    	<xs:element name="description" type="xs:string" minOccurs="0">
+      	<xs:annotation>
+        	<xs:documentation>
+          	Human-readable freeform documentation for the language feature.
+        	</xs:documentation>
+      	</xs:annotation>
+    	</xs:element>
+  	</xs:sequence>
+	</xs:complexType>
+
+  <xs:complexType name="OutputFormat">
+    <xs:annotation>
+      <xs:documentation>
+      An output format supported by the service.
+      </xs:documentation>
+      <xs:documentation>
+      All TAP services must support VOTable output, preserving
+      the MIME type of the input.  Other output formats are
+      optional.
+
+      The primary identifier for an output format is the MIME
+      type.  If you want to register an output format, you must
+      use a MIME type (or make one up using the x- syntax), although
+      the concrete MIME syntax is not enforced by the schema.
+
+      For more detailed specification, an IVORN may be used.
+      </xs:documentation>
+    </xs:annotation>
+
+    <xs:sequence>
+      <xs:element name="mime" type="xs:token">
+        <xs:annotation>
+          <xs:documentation>
+          The MIME type of this format.
+          </xs:documentation>
+          <xs:documentation>
+          The format of this string is specified by RFC 2045.
+          The service has to accept this string as a 
+          value of the FORMAT parameter.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+
+      <xs:element name="alias" type="xs:token"
+        minOccurs="0" maxOccurs="unbounded">
+        <xs:annotation>
+          <xs:documentation>
+          Other values of FORMAT ("shorthands") that make the service return 
+          documents with the MIME type.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+        
+    </xs:sequence>
+  
+    <xs:attribute name="ivo-id" type="xs:anyURI">
+      <xs:annotation>
+        <xs:documentation>
+        An optional IVORN of the output format.
+        </xs:documentation>
+        <xs:documentation>
+        	When the MIME type does not uniquely define the
+        	format (or a generic MIME like application/octet-stream or
+        	text/plain is given), the IVORN can point to a key
+        	or StandardsRegExt document defining the format more
+        	precisely.  To see values defined in TAPRegExt,
+					retrieve the ivo://ivoa.net/std/TAPRegExt
+      		resource record and look for keys starting with "output-".
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+
+  </xs:complexType>  
+
+  <xs:complexType name="UploadMethod">
+    <xs:annotation>
+      <xs:documentation>
+      An upload method as defined by IVOA.
+      </xs:documentation>
+      <xs:documentation>
+      Upload methods are always identified by an IVORN.  
+      Descriptions can be obtained by dereferencing this
+      IVORN.  To see values defined in TAPRegExt,
+			retrieve the ivo://ivoa.net/std/TAPRegExt
+   		resource record and look for keys starting with "upload-".
+
+
+      You can register custom upload methods, but you must use the
+      standard IVORNs for the upload methods defined in the TAP
+      specification.
+      </xs:documentation>
+    </xs:annotation>
+
+    <xs:complexContent>
+      <xs:restriction base="xs:anyType">
+        <xs:attribute name="ivo-id" type="xs:anyURI">
+          <xs:annotation>
+            <xs:documentation>
+            The IVORN of the upload method.
+            </xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+
+
+  <xs:complexType name="TimeLimits">
+    <xs:annotation>
+      <xs:documentation>
+      Time-valued limits, all values given in seconds.
+      </xs:documentation>
+    </xs:annotation>
+
+    <xs:sequence>
+      <xs:element name="default" type="xs:integer"
+        minOccurs="0" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>
+          The value of this limit for newly-created jobs, given in seconds.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="hard" type="xs:integer"
+        minOccurs="0" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>
+          The value this limit cannot be raised above, given in seconds.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="DataLimits">
+    <xs:annotation>
+      <xs:documentation>
+      Limits on data sizes, given in rows or bytes.
+      </xs:documentation>
+    </xs:annotation>
+
+    <xs:sequence>
+      <xs:element name="default" type="tr:DataLimit"
+        minOccurs="0" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>
+          The value of this limit for newly-created jobs.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="hard" type="tr:DataLimit"
+        minOccurs="0" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>
+          The value this limit cannot be raised above.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="DataLimit">
+    <xs:annotation>
+      <xs:documentation>
+      A limit on some data size, either in rows or in bytes.
+      </xs:documentation>
+    </xs:annotation>
+
+    <xs:simpleContent>
+      <xs:extension base="xs:integer">
+        <xs:attribute name="unit" use="required">
+          <xs:annotation>
+            <xs:documentation>
+            The unit of the limit specified.
+            </xs:documentation>
+          </xs:annotation>
+          <xs:simpleType>
+            <xs:restriction base="xs:token">
+              <xs:enumeration value="byte"/>
+              <xs:enumeration value="row"/>
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:attribute>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+</xs:schema>  

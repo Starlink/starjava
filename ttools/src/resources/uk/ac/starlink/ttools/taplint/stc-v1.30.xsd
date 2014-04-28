@@ -1,0 +1,3649 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--$Id: stc.xsd,v 2.21 2007/11/23 16:02:58 arots Exp arots $-->
+<!-- Schema definition for the SpaceTimeCoords -->
+<!--Change Log:
+$Log: stc.xsd,v $
+Revision 2.21  2007/11/23 16:02:58  arots
+Extensive corrections of nillable and abstract attributes of global elements.
+All nillable elements are now not abstract and have the STCReference
+attribute group.
+Where referencing of whole substitution groups (through their head elements)
+makes sense, this has been extended to those head elements. This means that
+those head elements are not abstract anymore and some types had to have
+their abstract attribute revoled as well.
+That is regrettable, but I think we ended up with a more consistent system
+where the referencing is more functional, too.
+
+Revision 2.20  2007/11/13 20:52:59  arots
+Made position angle elements in size2Type and size3Type nillable.
+
+Revision 2.19  2007/10/11 18:29:41  arots
+Added Handedness attribute to a Frame's Flavor.
+Added support for identifying ID and IDREF attributes through ID_type and IDREF_type
+attributes; this helps applications like registry to identify those kinds of
+attributes without having to refer to the schema.
+Added GPS time scale.
+
+Revision 2.18  2007/06/15 14:03:43  arots
+Added Resolution, etc. substitution groups to support Characterisation.
+Completed orbital elements specification.
+
+Revision 2.17  2006/11/16 22:12:43  arots
+Added some missing frame_ids, e.g., in the Areas.
+
+Revision 2.16  2006/08/01 21:20:59  arots
+Made coordFrameType derive from stcBaseType.
+
+Revision 2.15  2006/07/28 14:02:27  arots
+Reworked the inheritance schemes for CoordSys, Coords, and CoordArea:
+mainly though extension.
+In general there is a generic type (for non-STC coordinates),
+a Pixel type that adds pisel coordinates to generic,
+and an Astro type that adds time, space, spectral, and redshift to generic.
+In addition, coordinate transformation specification is now fully
+integrated in the schema.
+
+Revision 2.14  2006/05/09 20:50:50  arots
+Added support for generic frames (frame_id, etc.)
+Added ucd attribute to the baseSTC attribute group.
+
+Revision 2.13  2006/04/28 20:57:30  arots
+Made elements nillable where necessary.
+
+Revision 2.11  2006/03/30 23:33:14  arots
+Fixed reference to Region in region operation types.
+
+Revision 2.10  2006/03/23 21:59:15  arots
+Removed STCCoordinate[List] and STCRegion[List] elements.
+Renamed the stc[Coordinate|Region][List]Type to STC[Coordinate|Region][List].
+Modeled STCCoordinate[List] type after STCRegion[List].
+All of this should make life easier for Tamas.
+
+Revision 2.8  2006/03/03 14:44:09  arots
+Repaired dropped parts of stcRegionType and stcRegionListType.
+
+Revision 2.7  2006/03/01 20:58:22  arots
+STC Version 1.30:
+Removed anonymous types, added application public types for regions,
+introduced universal referencing model using Xlink.
+
+Revision 2.6  2005/02/25 19:30:24  arots
+IVOA version 1.20:
+Distinguished LSRK and LSRD, LOCAL_GROUP_CENTER replaces SUPER_GALACTIC_CENTER
+Subtle changes to force validation by Xerces-J2: slight obfuscation
+Added TEB time scale, warning on use of ISOTime (> 0001-01-01 !)
+Added reference spheroid to GEO_D, changed GEO to GEO_C
+Added discussion of planetographic vs planetocentric systems,
+right- and left-handed systems
+Removed GEOGRAPHIC CoordFlavor (is really 3-D spherical); added POLAR
+
+Revision 2.5  2005/01/05 14:22:11  arots
+Release Verion 1.10
+Added Pixel Space; overhaul of inheritance and polymorphism
+
+Revision 2.4  2004/07/23 21:17:50  arots
+Modified ivoa schema locations; changed URN from nvo- to vo-
+
+Revision 2.3  2004/07/16 22:37:53  arots
+Release version v1.0.
+
+Revision 2.2  2004/07/07 16:16:22  arots
+Completed conversion to substitution groups.
+This version is ready for review.
+
+revision 2.1
+date: 2004/05/23 03:32:59;  author: arots;  state: Exp;  lines: +798 -1
+Fixed line breaks
+
+revision 2.0
+date: 2004/05/21 21:09:17;  author: arots;  state: Exp;  lines: +1 -679
+Reworking with substitution groups and generalized CoordSys & Coords.
+
+revision 1.10
+date: 2004/03/31 21:20:30;  author: arots;  state: Exp;  lines: +362 -218
+Proper units and improvements.
+
+Revision 1.9  2003/08/06 19:31:04  arots
+Added time reference direction to time frame.
+
+Revision 1.8  2003/05/15 10:04:23  arots
+Allow multiple intervals, add fill factor.
+
+Revision 1.7  2003/05/08 20:28:19  arots
+Added spectral coordinate.
+Fixed intervals.
+Rationalized coordinate frames.
+
+Revision 1.6  2003/05/02 18:46:43  arots
+Removed coord_sys_id attribute from time interval.
+
+Revision 1.5  2003/04/30 16:55:58  arots
+Added CoordSpec to Resource and Search - was needed.
+
+Revision 1.4  2003/04/30 13:27:12  arots
+Fixed up change log, changed schema locations.
+
+Revision 1.3  2003/04/29 21:04:37  arots
+Trivial.
+
+Revision 1.2  2003/04/29 20:56:40  arots
+Completed new astronTimeType and proper handling of units.
+
+Revision 1.1  2003/04/28 16:25:34  arots
+Initial revision
+-->
+<xs:schema xmlns="http://www.ivoa.net/xml/STC/stc-v1.30.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xlink="http://www.w3.org/1999/xlink" targetNamespace="http://www.ivoa.net/xml/STC/stc-v1.30.xsd" elementFormDefault="qualified">
+  <xs:import namespace="http://www.w3.org/1999/xlink" schemaLocation="http://www.ivoa.net/xml/Xlink/xlink.xsd"/>
+  <!-- CoordSystem -->
+  <!-- Reference frames -->
+  <xs:complexType name="coordFrameType">
+    <xs:annotation>
+      <xs:documentation>A CoordFrame has to have at least an Id</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="stcBaseType">
+        <xs:sequence>
+          <xs:element name="Name" type="xs:string" minOccurs="0"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="genericCoordFrameType">
+    <xs:complexContent>
+      <xs:extension base="coordFrameType">
+        <xs:sequence>
+          <xs:element ref="CoordRefFrame" minOccurs="0"/>
+          <xs:element ref="CoordRefPos" minOccurs="0"/>
+          <xs:element ref="CoordFlavor">
+            <xs:annotation>
+              <xs:documentation>Provides the coordinate definitions: number of axes, SPHERICAL, CARTESIAN, UNITSPHERE, POLAR, or HEALPIX, presence of velocities</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="coordRefFrameType">
+    <xs:annotation>
+      <xs:documentation>A generic CoordReferenceFrame</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="Name" type="xs:string" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute name="ref_frame_id" type="xs:IDREF"/>
+  </xs:complexType>
+  <xs:element name="CoordFrame" type="genericCoordFrameType" nillable="true">
+    <xs:annotation>
+      <xs:documentation>CoordFrame substitution group head element</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:simpleType name="coordEquinoxType">
+    <xs:annotation>
+      <xs:documentation>Coordinate equinox: B{year} or J{year} with at least one decimal; do not use in conjunction with ICRS</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[BJ]\-?\d?\d?\d?\d\d\d\d\.\d\d?\d?"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="spaceRefFrameType" abstract="true">
+    <xs:annotation>
+      <xs:documentation>Abstract space reference frame type</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="coordRefFrameType"/>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="icrsType">
+    <xs:annotation>
+      <xs:documentation>ICRS type: no equinox</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="spaceRefFrameType"/>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="fkType">
+    <xs:annotation>
+      <xs:documentation>FK[45] type: needs an equinox</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="spaceRefFrameType">
+        <xs:sequence>
+          <xs:element name="Equinox" type="coordEquinoxType" nillable="true"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="geodType">
+    <xs:annotation>
+      <xs:documentation>The Geodetic reference frame; semi-major axis and inverse flattening may be provided to define the reference spheroid; the default is the IAU 1976 reference spheroid</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="icrsType">
+        <xs:attribute name="radius" type="xs:double" use="optional" default="6378140"/>
+        <xs:attribute name="inv_flattening" type="xs:double" use="optional" default="298.257"/>
+        <xs:attribute name="unit" type="posUnitType" use="optional" default="m"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="sphericalRefFrameType">
+    <xs:annotation>
+      <xs:documentation>A custom space reference frame type defined through pole and X-axis directions</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="coordRefFrameType">
+        <xs:sequence>
+          <xs:annotation>
+            <xs:documentation>Define coordinate reference frame from scratch; pole and X-axis need to be defined in a known coordinate system</xs:documentation>
+          </xs:annotation>
+          <xs:element name="Frame" type="xs:string"/>
+          <xs:element name="Pole_Zaxis" type="astroCoordsType" nillable="true"/>
+          <xs:element name="Xaxis" type="astroCoordsType" nillable="true"/>
+        </xs:sequence>
+        <xs:attribute name="id" type="xs:ID" use="optional"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:simpleType name="projectionType">
+    <xs:annotation>
+      <xs:documentation>The spherical-to-cartesian or cartesian-to-cartesian projection to be used; c-to-c projections are marked as such, all others are to be interpreted as s-to-c</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="">
+        <xs:annotation>
+          <xs:documentation>Planar (i.e., linear cartesian-to-cartesian) projection</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="LOG">
+        <xs:annotation>
+          <xs:documentation>Linear-to-logarithmic cartesian-to-cartesian projection</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="TAN">
+        <xs:annotation>
+          <xs:documentation>Tangent plane projection</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="SIN">
+        <xs:annotation>
+          <xs:documentation>Sine projection</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="STG">
+        <xs:annotation>
+          <xs:documentation>Stereographic projection</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="ARC">
+        <xs:annotation>
+          <xs:documentation>Zenithal equidistant projection</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="ZEA">
+        <xs:annotation>
+          <xs:documentation>Zenithal equal-area projection</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="AIR">
+        <xs:annotation>
+          <xs:documentation>Airy projection</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="CEA">
+        <xs:annotation>
+          <xs:documentation>Cylindrical equal-area projection</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="CAR">
+        <xs:annotation>
+          <xs:documentation>Plate Carree projection</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="MER">
+        <xs:annotation>
+          <xs:documentation>Mercator projection</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="SFL">
+        <xs:annotation>
+          <xs:documentation>Sanson-Flamsteed projection</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="PAR">
+        <xs:annotation>
+          <xs:documentation>Parabolic projection</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="MOL">
+        <xs:annotation>
+          <xs:documentation>Mollweide projection</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="AIT">
+        <xs:annotation>
+          <xs:documentation>Hammer-Aitoff projection</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="COE">
+        <xs:annotation>
+          <xs:documentation>Conic equal-area projection</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="COD">
+        <xs:annotation>
+          <xs:documentation>Conic equidistant projection</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="COO">
+        <xs:annotation>
+          <xs:documentation>Conic orthomorphic projection</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="BON">
+        <xs:annotation>
+          <xs:documentation>Bonne equal-area projection</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="PCO">
+        <xs:annotation>
+          <xs:documentation>Polyconic projection</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="TSC">
+        <xs:annotation>
+          <xs:documentation>Tangential spherical cube projection</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="CSC">
+        <xs:annotation>
+          <xs:documentation>COBE quadrilateralized spherical cube projection</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="QSC">
+        <xs:annotation>
+          <xs:documentation>Quadrilateralized spherical cube projection</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="CTransform2" type="xs:anyType" abstract="true">
+    <xs:annotation>
+      <xs:documentation>Substitution group for a 2-D mapping</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Transform2" type="size2Type" substitutionGroup="CTransform2" nillable="true">
+    <xs:annotation>
+      <xs:documentation>size2Type mapping element: 2 doubles with optional position angle</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Transform2Matrix" type="double4Type" substitutionGroup="CTransform2" nillable="true">
+    <xs:annotation>
+      <xs:documentation>2x2 matrix mapping element</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="CTransform3" type="xs:anyType" abstract="true">
+    <xs:annotation>
+      <xs:documentation>Substitution group for a 3-D mapping</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Transform3" type="size3Type" substitutionGroup="CTransform3" nillable="true">
+    <xs:annotation>
+      <xs:documentation>size3Type mapping element: 3 doubles with optional position angle(s)</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Transform3Matrix" type="double9Type" substitutionGroup="CTransform3" nillable="true">
+    <xs:annotation>
+      <xs:documentation>3x3 matrix mapping element</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:complexType name="cart1DRefFrameType">
+    <xs:annotation>
+      <xs:documentation>A custom space reference frame type defined through a 2-D Cartesian mapping (rotate and scale)</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="coordRefFrameType">
+        <xs:sequence>
+          <xs:annotation>
+            <xs:documentation>Define coordinate reference frame from scratch;basically a 1-D scaling</xs:documentation>
+          </xs:annotation>
+          <xs:element name="Scale" type="double1Type" nillable="true"/>
+        </xs:sequence>
+        <xs:attribute name="id" type="xs:ID" use="optional"/>
+        <xs:attribute name="projection" type="projectionType" use="optional" default=""/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="cart2DRefFrameType">
+    <xs:annotation>
+      <xs:documentation>A custom space reference frame type defined through a 2-D Cartesian mapping (rotate and scale)</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="coordRefFrameType">
+        <xs:sequence>
+          <xs:annotation>
+            <xs:documentation>Define coordinate reference frame from scratch;basically a transformation from a known coordinate frame</xs:documentation>
+          </xs:annotation>
+          <xs:element ref="CTransform2"/>
+        </xs:sequence>
+        <xs:attribute name="id" type="xs:ID" use="optional"/>
+        <xs:attribute name="projection" type="projectionType" use="optional" default=""/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="cart3DRefFrameType">
+    <xs:annotation>
+      <xs:documentation>A custom space reference frame type defined through a 3-D Cartesian mapping (rotate and scale)</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="coordRefFrameType">
+        <xs:sequence>
+          <xs:annotation>
+            <xs:documentation>Define coordinate reference frame from scratch;basically a transformation from a known coordinate frame</xs:documentation>
+          </xs:annotation>
+          <xs:element ref="CTransform3"/>
+        </xs:sequence>
+        <xs:attribute name="id" type="xs:ID" use="optional"/>
+        <xs:attribute name="projection" type="projectionType" use="optional" default=""/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="SpaceRefFrame" type="coordRefFrameType" abstract="true">
+    <xs:annotation>
+      <xs:documentation>Head element for the Coordinate reference frame substitution group: optional equinox with either a standard reference system (ICRS, FK5, FK4) and optional standard pole (equatorial, ecliptic, galactic, etc.), or a custom frame with pole (positive Z-axis) and positive X-axis direction </xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="ICRS" type="icrsType" substitutionGroup="SpaceRefFrame">
+    <xs:annotation>
+      <xs:documentation>The ICRS reference frame</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="FK4" type="fkType" substitutionGroup="SpaceRefFrame">
+    <xs:annotation>
+      <xs:documentation>FK4; needs a Besselian epoch</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="FK5" type="fkType" substitutionGroup="SpaceRefFrame">
+    <xs:annotation>
+      <xs:documentation>FK5; needs a Julian epoch</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="ECLIPTIC" type="fkType" substitutionGroup="SpaceRefFrame">
+    <xs:annotation>
+      <xs:documentation>Ecliptic coordinates; needs an epoch</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="GALACTIC_I" type="icrsType" substitutionGroup="SpaceRefFrame">
+    <xs:annotation>
+      <xs:documentation>Galactic coordinates; first system</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="GALACTIC_II" type="icrsType" substitutionGroup="SpaceRefFrame">
+    <xs:annotation>
+      <xs:documentation>Galactic coordinates; second system</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="SUPER_GALACTIC" type="icrsType" substitutionGroup="SpaceRefFrame">
+    <xs:annotation>
+      <xs:documentation>SuperGalactic coordinates</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="AZ_EL" type="icrsType" substitutionGroup="SpaceRefFrame">
+    <xs:annotation>
+      <xs:documentation>Local Azimuth and Elevation coordinates</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="BODY" type="icrsType" substitutionGroup="SpaceRefFrame">
+    <xs:annotation>
+      <xs:documentation>Generic Body coordinates</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <!--Solar and earth-related coordinate frames; see Fraenz & Harper 2002, Plan & Sp Sci 50, 217 and Bill Thompson's solar FITS paper-->
+  <xs:element name="GEO_C" type="icrsType" substitutionGroup="SpaceRefFrame">
+    <xs:annotation>
+      <xs:documentation>The Geocentric (co-rotating) reference frame</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="GEO_D" type="geodType" substitutionGroup="SpaceRefFrame">
+    <xs:annotation>
+      <xs:documentation>The Geodetic reference frame; semi-major axis and inverse flattening may be provided to define the reference spheroid; the default is the IAU 1976 reference spheroid</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="MAG" type="icrsType" substitutionGroup="SpaceRefFrame">
+    <xs:annotation>
+      <xs:documentation>The Geomagnetic reference frame</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="GSE" type="icrsType" substitutionGroup="SpaceRefFrame">
+    <xs:annotation>
+      <xs:documentation>The Geocentric Solar Ecliptic reference frame</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="GSM" type="icrsType" substitutionGroup="SpaceRefFrame">
+    <xs:annotation>
+      <xs:documentation>The Geocentric Solar Magnetic reference frame</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="SM" type="icrsType" substitutionGroup="SpaceRefFrame">
+    <xs:annotation>
+      <xs:documentation>The Solar Magnetic reference frame</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="HGC" type="icrsType" substitutionGroup="SpaceRefFrame">
+    <xs:annotation>
+      <xs:documentation>The Heliographic (Carrington) reference frame</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="HGS" type="icrsType" substitutionGroup="SpaceRefFrame">
+    <xs:annotation>
+      <xs:documentation>The Heliographic (Stonyhurst) reference frame</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="HPC" type="icrsType" substitutionGroup="SpaceRefFrame">
+    <xs:annotation>
+      <xs:documentation>The Helio-projective Cartesian reference frame (2-D or 3-D)</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="HPR" type="icrsType" substitutionGroup="SpaceRefFrame">
+    <xs:annotation>
+      <xs:documentation>The Helio-projective Polar reference frame (2-D)</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="HEE" type="icrsType" substitutionGroup="SpaceRefFrame">
+    <xs:annotation>
+      <xs:documentation>The Heliocentric Earth Ecliptic reference frame</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="HEEQ" type="icrsType" substitutionGroup="SpaceRefFrame">
+    <xs:annotation>
+      <xs:documentation>The Heliocentric Earth Equatorial reference frame</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="HGI" type="icrsType" substitutionGroup="SpaceRefFrame">
+    <xs:annotation>
+      <xs:documentation>The Heliographic Inertial reference frame</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="HRTN" type="icrsType" substitutionGroup="SpaceRefFrame">
+    <xs:annotation>
+      <xs:documentation>The Heliocentric Radial-Tangential-Normal coordinates</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <!--Planetocentric (co-rotating) system coordinate frames; see Explanatory Supplement, Sec 7.4 or Fraenz & Harper 2002, Plan & Sp Sci 50, 217, Table 6-->
+  <xs:element name="MERCURY_C" type="icrsType" substitutionGroup="SpaceRefFrame">
+    <xs:annotation>
+      <xs:documentation>The planetocentric reference frame anchored on Mercury</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="VENUS_C" type="icrsType" substitutionGroup="SpaceRefFrame">
+    <xs:annotation>
+      <xs:documentation>The planetocentric reference frame anchored on Venus</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="LUNA_C" type="icrsType" substitutionGroup="SpaceRefFrame">
+    <xs:annotation>
+      <xs:documentation>The lunacentric reference frame anchored on the moon</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="MARS_C" type="icrsType" substitutionGroup="SpaceRefFrame">
+    <xs:annotation>
+      <xs:documentation>The planetocentric reference frame anchored on Mars</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="JUPITER_C_III" type="icrsType" substitutionGroup="SpaceRefFrame">
+    <xs:annotation>
+      <xs:documentation>The planetocentric reference frame anchored on Jupiter</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="SATURN_C_III" type="icrsType" substitutionGroup="SpaceRefFrame">
+    <xs:annotation>
+      <xs:documentation>The planetocentric reference frame anchored on Saturn</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="URANUS_C_III" type="icrsType" substitutionGroup="SpaceRefFrame">
+    <xs:annotation>
+      <xs:documentation>The planetocentric reference frame anchored on Uranus</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="NEPTUNE_C_III" type="icrsType" substitutionGroup="SpaceRefFrame">
+    <xs:annotation>
+      <xs:documentation>The planetocentric reference frame anchored on Neptune</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="PLUTO_C" type="icrsType" substitutionGroup="SpaceRefFrame">
+    <xs:annotation>
+      <xs:documentation>The planetocentric reference frame anchored on Pluto</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <!--Planetographic (co-rotating) system coordinate frames; see Explanatory Supplement, Sec 7.4 or Fraenz & Harper 2002, Plan & Sp Sci 50, 217, Table 6-->
+  <xs:element name="MERCURY_G" type="icrsType" substitutionGroup="SpaceRefFrame">
+    <xs:annotation>
+      <xs:documentation>The planetographic reference frame anchored on Mercury</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="VENUS_G" type="icrsType" substitutionGroup="SpaceRefFrame">
+    <xs:annotation>
+      <xs:documentation>The planetographic reference frame anchored on Venus</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="LUNA_G" type="icrsType" substitutionGroup="SpaceRefFrame">
+    <xs:annotation>
+      <xs:documentation>The lunagraphic reference frame anchored on the moon</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="MARS_G" type="icrsType" substitutionGroup="SpaceRefFrame">
+    <xs:annotation>
+      <xs:documentation>The planetographic reference frame anchored on Mars</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="JUPITER_G_III" type="icrsType" substitutionGroup="SpaceRefFrame">
+    <xs:annotation>
+      <xs:documentation>The planetographic reference frame anchored on Jupiter</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="SATURN_G_III" type="icrsType" substitutionGroup="SpaceRefFrame">
+    <xs:annotation>
+      <xs:documentation>The planetographic reference frame anchored on Saturn</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="URANUS_G_III" type="icrsType" substitutionGroup="SpaceRefFrame">
+    <xs:annotation>
+      <xs:documentation>The planetographic reference frame anchored on Uranus</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="NEPTUNE_G_III" type="icrsType" substitutionGroup="SpaceRefFrame">
+    <xs:annotation>
+      <xs:documentation>The planetographic reference frame anchored on Neptune</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="PLUTO_G" type="icrsType" substitutionGroup="SpaceRefFrame">
+    <xs:annotation>
+      <xs:documentation>The planetographic reference frame anchored on Pluto</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <!--Unknown space reference frame; the client is responsible for assigning a default-->
+  <xs:element name="UNKNOWNFrame" type="icrsType" substitutionGroup="SpaceRefFrame">
+    <xs:annotation>
+      <xs:documentation>Unknown space reference frame; the client is responsible for assigning a default</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <!--The Custom frame-->
+  <xs:element name="CustomSpaceRefFrame" type="coordRefFrameType" abstract="true">
+    <xs:annotation>
+      <xs:documentation>Head element for the custom coordinate reference frame substitution group</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="SphericalSpaceRefFrame" type="sphericalRefFrameType" substitutionGroup="CustomSpaceRefFrame">
+    <xs:annotation>
+      <xs:documentation>Coordinate reference frame: a custom pole (positive Z-axis) and positive X-axis direction </xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Cart1DSpaceRefFrame" type="cart1DRefFrameType" substitutionGroup="CustomSpaceRefFrame">
+    <xs:annotation>
+      <xs:documentation>Coordinate reference frame: 1-D scale</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Cart2DSpaceRefFrame" type="cart2DRefFrameType" substitutionGroup="CustomSpaceRefFrame">
+    <xs:annotation>
+      <xs:documentation>Coordinate reference frame: 2-D rotation and scale</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Cart3DSpaceRefFrame" type="cart3DRefFrameType" substitutionGroup="CustomSpaceRefFrame">
+    <xs:annotation>
+      <xs:documentation>Coordinate reference frame: 3-D rotation and scale</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="CoordRefFrame" type="coordRefFrameType" substitutionGroup="SpaceRefFrame">
+    <xs:annotation>
+      <xs:documentation>Head element for the custom coordinate reference frame substitution group</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="SphericalRefFrame" type="sphericalRefFrameType" substitutionGroup="CoordRefFrame">
+    <xs:annotation>
+      <xs:documentation>Coordinate reference frame: a custom pole (positive Z-axis) and positive X-axis direction </xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="ScalarRefFrame" type="cart1DRefFrameType" substitutionGroup="CoordRefFrame">
+    <xs:annotation>
+      <xs:documentation>Coordinate reference frame: 1-D scale</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Cart2DRefFrame" type="cart2DRefFrameType" substitutionGroup="CoordRefFrame">
+    <xs:annotation>
+      <xs:documentation>Coordinate reference frame: 2-D rotation and scale</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Cart3DRefFrame" type="cart3DRefFrameType" substitutionGroup="CoordRefFrame">
+    <xs:annotation>
+      <xs:documentation>Coordinate reference frame: 3-D rotation and scale</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:simpleType name="planetaryEphemType">
+    <xs:annotation>
+      <xs:documentation>If solar system positions are implied anywhere, the planetary ephemeris to be used needs to be provided - usually JPL-DE405 with ICRS and JPL-DE200 with FK5</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="JPL-DE200"/>
+      <xs:enumeration value="JPL-DE405"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="referencePositionType" abstract="true">
+    <xs:annotation>
+      <xs:documentation>Abstract type for reference positions</xs:documentation>
+    </xs:annotation>
+  </xs:complexType>
+  <xs:complexType name="stdRefPosType">
+    <xs:annotation>
+      <xs:documentation>Type for standard reference positions</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="referencePositionType">
+        <xs:sequence>
+          <xs:element name="PlanetaryEphem" type="planetaryEphemType" nillable="true" minOccurs="0"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="customRefPosType">
+    <xs:annotation>
+      <xs:documentation>Type for custom positions: specifies reference origin</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="referencePositionType">
+        <xs:sequence>
+          <xs:element ref="Coordinate"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="genericRefPosType">
+    <xs:annotation>
+      <xs:documentation>Type for custom positions: specifies reference origin</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="referencePositionType">
+        <xs:sequence>
+          <xs:element ref="GenCoordinate"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="ReferencePosition" type="referencePositionType" abstract="true">
+    <xs:annotation>
+      <xs:documentation>Head element from the ReferencePosition substitution group: either a "known place" such as geocenter or barycenter (RefPos), or a position defined in a known coordinate system (CoordOrigin)</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="TOPOCENTER" type="stdRefPosType" substitutionGroup="ReferencePosition">
+    <xs:annotation>
+      <xs:documentation>Location of the observer/telescope</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="BARYCENTER" type="stdRefPosType" substitutionGroup="ReferencePosition">
+    <xs:annotation>
+      <xs:documentation>Barycenter of the solar system</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="HELIOCENTER" type="stdRefPosType" substitutionGroup="ReferencePosition">
+    <xs:annotation>
+      <xs:documentation>Center of the sun</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="GEOCENTER" type="stdRefPosType" substitutionGroup="ReferencePosition">
+    <xs:annotation>
+      <xs:documentation>Center of the earth</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="LSR" type="stdRefPosType" substitutionGroup="ReferencePosition">
+    <xs:annotation>
+      <xs:documentation>(Kinematic) Local Standard of Rest (only used for Doppler velocities); equivalent to LSRK</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="LSRK" type="stdRefPosType" substitutionGroup="ReferencePosition">
+    <xs:annotation>
+      <xs:documentation>Kinematic Local Standard of Rest (only used for Doppler velocities); equivalent to LSR</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="LSRD" type="stdRefPosType" substitutionGroup="ReferencePosition">
+    <xs:annotation>
+      <xs:documentation>Dynamic Local Standard of Rest (only used for Doppler velocities)</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="GALACTIC_CENTER" type="stdRefPosType" substitutionGroup="ReferencePosition">
+    <xs:annotation>
+      <xs:documentation>Center of the Galaxy</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="LOCAL_GROUP_CENTER" type="stdRefPosType" substitutionGroup="ReferencePosition">
+    <xs:annotation>
+      <xs:documentation>Center of the Local Group</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="MOON" type="stdRefPosType" substitutionGroup="ReferencePosition">
+    <xs:annotation>
+      <xs:documentation>Center of the Moon</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="EMBARYCENTER" type="stdRefPosType" substitutionGroup="ReferencePosition">
+    <xs:annotation>
+      <xs:documentation>Barycenter of the Earth-Moon system</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="MERCURY" type="stdRefPosType" substitutionGroup="ReferencePosition">
+    <xs:annotation>
+      <xs:documentation>Center of Mercury</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="VENUS" type="stdRefPosType" substitutionGroup="ReferencePosition">
+    <xs:annotation>
+      <xs:documentation>Center of Venus</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="MARS" type="stdRefPosType" substitutionGroup="ReferencePosition">
+    <xs:annotation>
+      <xs:documentation>Center of Mars</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="JUPITER" type="stdRefPosType" substitutionGroup="ReferencePosition">
+    <xs:annotation>
+      <xs:documentation>Center of Jupiter</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="SATURN" type="stdRefPosType" substitutionGroup="ReferencePosition">
+    <xs:annotation>
+      <xs:documentation>Center of Saturn</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="URANUS" type="stdRefPosType" substitutionGroup="ReferencePosition">
+    <xs:annotation>
+      <xs:documentation>Center of Uranus</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="NEPTUNE" type="stdRefPosType" substitutionGroup="ReferencePosition">
+    <xs:annotation>
+      <xs:documentation>Center of Neptune</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="PLUTO" type="stdRefPosType" substitutionGroup="ReferencePosition">
+    <xs:annotation>
+      <xs:documentation>Center of Pluto</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="RELOCATABLE" type="stdRefPosType" substitutionGroup="ReferencePosition">
+    <xs:annotation>
+      <xs:documentation>A relocatable origin, especially useful for simulations</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="UNKNOWNRefPos" type="stdRefPosType" substitutionGroup="ReferencePosition">
+    <xs:annotation>
+      <xs:documentation>Unknown origin; the client is responsible for assigning a default</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="CoordRefPos" type="customRefPosType" substitutionGroup="ReferencePosition">
+    <xs:annotation>
+      <xs:documentation>Origin of the coordinate system, given as a position in another, known, coordinate system</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:complexType name="coordFlavorType">
+    <xs:annotation>
+      <xs:documentation>Provides the spatial coordinate definitions: number of axes, SPHERICAL, CARTESIAN, UNITSPHERE, POLAR, or HEALPIX, presence of velocities</xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="coord_naxes" default="2">
+      <xs:simpleType>
+        <xs:restriction base="xs:integer">
+          <xs:minInclusive value="1"/>
+          <xs:maxInclusive value="3"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="handedness" use="optional">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="left"/>
+          <xs:enumeration value="right"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+  <xs:complexType name="healpixType">
+    <xs:annotation>
+      <xs:documentation>2-D Healpix coordinates; defaults for H(4) and K(3)</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="coordFlavorType">
+        <xs:attribute name="healpix_H" type="xs:integer" default="4"/>
+        <xs:attribute name="healpix_K" type="xs:integer" default="3"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="CoordFlavor" type="coordFlavorType" abstract="true">
+    <xs:annotation>
+      <xs:documentation>Abstract head element for the CoordFlavor substitution group</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="SPHERICAL" type="coordFlavorType" substitutionGroup="CoordFlavor">
+    <xs:annotation>
+      <xs:documentation>Spherical 2-D (longitude, latitude) or 3-D (long, lat, radius/elevation) coordinates</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="CARTESIAN" type="coordFlavorType" substitutionGroup="CoordFlavor">
+    <xs:annotation>
+      <xs:documentation>Cartesian 1-, 2-, or 3-D coordinates</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="UNITSPHERE" type="coordFlavorType" substitutionGroup="CoordFlavor">
+    <xs:annotation>
+      <xs:documentation>3-D Unit sphere coordinates (direction cosines); in (long,lat), X is in the direction (0,0), Y (pi/2,0), Z (0,pi/2)</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="POLAR" type="coordFlavorType" substitutionGroup="CoordFlavor">
+    <xs:annotation>
+      <xs:documentation>2-D polar coordinates (radius, posangle)</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="CYLINDRICAL" type="coordFlavorType" substitutionGroup="CoordFlavor">
+    <xs:annotation>
+      <xs:documentation>3-D cylindrical coordinates (radius, posangle, z)</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="STRING" type="coordFlavorType" substitutionGroup="CoordFlavor">
+    <xs:annotation>
+      <xs:documentation>String coordinates (e.g., Stokes)</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="HEALPIX" type="healpixType" substitutionGroup="CoordFlavor">
+    <xs:annotation>
+      <xs:documentation>2-D Healpix coordinates; defaults for H(4) and K(3)</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:complexType name="pixelFrameType">
+    <xs:annotation>
+      <xs:documentation>A pixel coordinate frame (which may be 1-D, 2-D, or 3-D) consists of a coordinate frame, a reference position, a flavor, a reference pixel array and the order in which the pixel axes appear in the pixel array</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="genericCoordFrameType">
+        <xs:sequence>
+          <xs:element name="ReferencePixel" type="pixelType" nillable="true" minOccurs="0"/>
+        </xs:sequence>
+        <xs:attribute name="axis1_order" type="xs:integer" use="required"/>
+        <xs:attribute name="axis2_order" type="xs:integer"/>
+        <xs:attribute name="axis3_order" type="xs:integer"/>
+        <xs:attribute name="ref_frame_id" type="xs:IDREF"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="spaceFrameType">
+    <xs:annotation>
+      <xs:documentation>A spatial coordinate frame consists of a coordinate frame, a reference position, a flavor, and, optionally, an offset center</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="coordFrameType">
+        <xs:sequence>
+          <xs:element ref="SpaceRefFrame">
+            <xs:annotation>
+              <xs:documentation>Coordinate reference frame: optional equinox with either a standard reference system (ICRS, FK5, FK4) and optional standard pole (equatorial, ecliptic, galactic, etc.), or pole (positive Z-axis) and positive X-axis direction </xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element ref="ReferencePosition">
+            <xs:annotation>
+              <xs:documentation>Origin of the coordinate reference frame: either a "known place" such as geocenter or barycenter, or a position defined in a known coordinate system</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element name="OffsetCenter" type="coordValueType" minOccurs="0"/>
+          <xs:element ref="CoordFlavor">
+            <xs:annotation>
+              <xs:documentation>Provides the coordinate definitions: number of axes, SPHERICAL, CARTESIAN, UNITSPHERE, POLAR, or HEALPIX, presence of velocities</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="timeFrameType">
+    <xs:annotation>
+      <xs:documentation>The time reference frame consists of a timescale, a reference position, and optionally a reference direction (needed when transformations have been applied)</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="coordFrameType">
+        <xs:sequence>
+          <xs:element name="TimeScale" type="timeScaleType" default="TT" nillable="true">
+            <xs:annotation>
+              <xs:documentation>The time reference frame consists of a time scale, a time format, and a reference time, if needed</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element ref="ReferencePosition">
+            <xs:annotation>
+              <xs:documentation>Origin of the coordinate reference frame: either a "known place" such as geocenter or barycenter, or a position defined in a known coordinate system</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element name="TimeRefDirection" type="astroCoordsType" minOccurs="0">
+            <xs:annotation>
+              <xs:documentation>Some time transformations (e.g., change of RefPos) depend on an assumed directonal position of the source</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="spectralFrameType">
+    <xs:annotation>
+      <xs:documentation>Contains the spectral frame reference position</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="coordFrameType">
+        <xs:sequence>
+          <xs:element ref="ReferencePosition">
+            <xs:annotation>
+              <xs:documentation>The reference frame for the spectral scale; note presence of LSR</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:simpleType name="dopplerDefinitionType">
+    <xs:annotation>
+      <xs:documentation>The Doppler definition used: optical, radio, or pseudo-relativistic (i.e., how is a redshift converted to a velocity); the most common is optical, except when the reference is LSR (usually radio)</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="OPTICAL"/>
+      <xs:enumeration value="RADIO"/>
+      <xs:enumeration value="RELATIVISTIC"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="redshiftFrameType">
+    <xs:annotation>
+      <xs:documentation>Contains the Doppler definitions, including whether the values are velocity or redshift (value_type)</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="coordFrameType">
+        <xs:sequence>
+          <xs:element name="DopplerDefinition" type="dopplerDefinitionType" nillable="true">
+            <xs:annotation>
+              <xs:documentation>The Doppler definition used: optical, radio, or pseudo-relativistic (i.e., how is a redshift converted to a velocity); the most common is optical, except when the reference is LSR (usually radio)</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element ref="ReferencePosition">
+            <xs:annotation>
+              <xs:documentation>The reference frame for the Doppler velocities or redshfts; note presence of LSR</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+        </xs:sequence>
+        <xs:attribute name="value_type" use="optional" default="VELOCITY">
+          <xs:simpleType>
+            <xs:restriction base="xs:string">
+              <xs:enumeration value="VELOCITY"/>
+              <xs:enumeration value="REDSHIFT"/>
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:attribute>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--CoordSys definition-->
+  <xs:complexType name="coordSysType">
+    <xs:annotation>
+      <xs:documentation>Coordinate system definition: a collection of coordinate frames</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="stcBaseType">
+        <xs:annotation>
+          <xs:documentation>A CoordSys consists of at least one coordinate frames; unfortunately, schema inheritance and polymorphism doesn't allow us to specify this in the most genarl way</xs:documentation>
+        </xs:annotation>
+        <xs:sequence minOccurs="0" maxOccurs="unbounded">
+          <xs:element ref="CoordFrame" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="CoordSys" type="coordSysType" nillable="true">
+    <xs:annotation>
+      <xs:documentation>Head element (not abstract) of the CoordSys group</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <!-- AstroCoordSystem -->
+  <xs:element name="TimeFrame" type="timeFrameType" nillable="true">
+    <xs:annotation>
+      <xs:documentation>The time coordinate reference frame</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="SpaceFrame" type="spaceFrameType" nillable="true">
+    <xs:annotation>
+      <xs:documentation>The spatial coordinate reference frame</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="SpectralFrame" type="spectralFrameType" nillable="true">
+    <xs:annotation>
+      <xs:documentation>The reference frame for the spectral coordinate; note presence of LSR</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="RedshiftFrame" type="redshiftFrameType" nillable="true">
+    <xs:annotation>
+      <xs:documentation>Contains the Doppler definitions, including whether the values are velocity or redshift (value_type)</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="PixelCoordFrame" type="pixelFrameType" nillable="true">
+    <xs:annotation>
+      <xs:documentation>Element for pixel Coordinate Frames</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:complexType name="astroCoordSystemType">
+    <xs:annotation>
+      <xs:documentation>The astronomical coordinate system definition: spatial coordinate frame and reference position; time frame and reference position; the coordinate flavor; spectral frame and (optionally) Doppler frame; and the planetary ephemeris; an ID is required, since this is how coordinate elements are associated with their coordinate systems</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="coordSysType">
+        <xs:sequence>
+          <xs:element ref="TimeFrame" minOccurs="0"/>
+          <xs:element ref="SpaceFrame" minOccurs="0"/>
+          <xs:element ref="SpectralFrame" minOccurs="0"/>
+          <xs:element ref="RedshiftFrame" minOccurs="0"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="AstroCoordSystem" type="astroCoordSystemType" substitutionGroup="CoordSys" nillable="true">
+    <xs:annotation>
+      <xs:documentation>The coordinate system definition: spatial coordinate frame and reference position; time frame and reference position; the coordinate flavor; the spectral fromae and redshift/Doppler frame; and the planetary ephemeris; an ID is required, since this is how coordinate elements are associated with their coordinate systems</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <!--Pixel coordinate system-->
+  <xs:complexType name="pixelCoordSystemType">
+    <xs:annotation>
+      <xs:documentation>The pixel coordinate system definition</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="coordSysType">
+        <xs:sequence minOccurs="0" maxOccurs="unbounded">
+          <xs:element ref="PixelCoordFrame"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="PixelCoordSystem" type="pixelCoordSystemType" substitutionGroup="CoordSys" nillable="true">
+    <xs:annotation>
+      <xs:documentation>Pixel form of CoordSys</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <!--  ###################  Start of the former coords.xsd -->
+  <!-- Attribute types: units and time scale-->
+  <xs:simpleType name="unitType">
+    <xs:annotation>
+      <xs:documentation>Basic unit type</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string"/>
+  </xs:simpleType>
+  <xs:simpleType name="timeUnitType">
+    <xs:annotation>
+      <xs:documentation>Time units may be second (s), hour (h: 3600 s), day (d: 86400 s), Julian year (a, yr: 365.25 d), Julian century (cy: 36525 d), or empty (i.e., dimensionless) for ISO-8601 format</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="unitType">
+      <xs:enumeration value="s"/>
+      <xs:enumeration value="h"/>
+      <xs:enumeration value="d"/>
+      <xs:enumeration value="a"/>
+      <xs:enumeration value="yr"/>
+      <xs:enumeration value="cy"/>
+      <xs:enumeration value=""/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="posUnitType">
+    <xs:annotation>
+      <xs:documentation>Spatial coordinate units may be angular (degrees, radians, hours, arcmins, arcsecs), linear (meters, km, mm, AUs, parsecs, kpc, Mpc, lightyears), or empty (i.e., dimensionless).  The three-units strings are for special 3-D vectors where the components do not share the same unit; one may prefer to give each component its own unit, instead.</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="unitType">
+      <xs:enumeration value="deg"/>
+      <xs:enumeration value="deg deg m"/>
+      <xs:enumeration value="deg deg Mpc"/>
+      <xs:enumeration value="rad"/>
+      <xs:enumeration value="h"/>
+      <xs:enumeration value="arcmin"/>
+      <xs:enumeration value="arcsec"/>
+      <xs:enumeration value="m"/>
+      <xs:enumeration value="km"/>
+      <xs:enumeration value="mm"/>
+      <xs:enumeration value="AU"/>
+      <xs:enumeration value="pc"/>
+      <xs:enumeration value="kpc"/>
+      <xs:enumeration value="Mpc"/>
+      <xs:enumeration value="lyr"/>
+      <xs:enumeration value=""/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="angleUnitType">
+    <xs:annotation>
+      <xs:documentation>Angular coordinate units may be degrees, radians, hours, arcmins, arcsecs</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="unitType">
+      <xs:enumeration value="deg"/>
+      <xs:enumeration value="rad"/>
+      <xs:enumeration value="h"/>
+      <xs:enumeration value="arcmin"/>
+      <xs:enumeration value="arcsec"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="posAngleReferenceType">
+    <xs:annotation>
+      <xs:documentation>Position angles may be counted from North (through East), (positive) X (to positive Y), or (positive) Y (to positive X) axis</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="North"/>
+      <xs:enumeration value="X"/>
+      <xs:enumeration value="Y"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="velTimeUnitType">
+    <xs:annotation>
+      <xs:documentation>Velocity units are a posUnitType / velTimeType; the latter may be second, day, hour, year (a or yr), century, but not empty</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="unitType">
+      <xs:enumeration value="s"/>
+      <xs:enumeration value="h"/>
+      <xs:enumeration value="d"/>
+      <xs:enumeration value="a"/>
+      <xs:enumeration value="yr"/>
+      <xs:enumeration value="cy"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="spectralUnitType">
+    <xs:annotation>
+      <xs:documentation>Spectral units may be frequency (Hz, kHz, MHz, GHz), wavelength (meters, mm, micron, nm, Angstrom), or energy (eV, keV, MeV, GeV, TeV)</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="unitType">
+      <xs:enumeration value="Hz"/>
+      <xs:enumeration value="kHz"/>
+      <xs:enumeration value="MHz"/>
+      <xs:enumeration value="GHz"/>
+      <xs:enumeration value="m"/>
+      <xs:enumeration value="mm"/>
+      <xs:enumeration value="um"/>
+      <xs:enumeration value="nm"/>
+      <xs:enumeration value="Angstrom"/>
+      <xs:enumeration value="eV"/>
+      <xs:enumeration value="keV"/>
+      <xs:enumeration value="MeV"/>
+      <xs:enumeration value="GeV"/>
+      <xs:enumeration value="TeV"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="timeScaleType">
+    <xs:annotation>
+      <xs:documentation>The actual time scale used: TT, TAI, UTC, TDB, etc.</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="TT">
+        <xs:annotation>
+          <xs:documentation>Terrestrial Time; the basis for ephemerides</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="TDT">
+        <xs:annotation>
+          <xs:documentation>Obsolete synonym for TT</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="ET">
+        <xs:annotation>
+          <xs:documentation>Ephemeris Time; predecessor of, and continuous with, TT</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="TDB">
+        <xs:annotation>
+          <xs:documentation>Barycentric Dynamic Time:the independent variable in planetay ephemerides; time at the solar system barycenter synchronous with TT on an annual basis; sometimes called TEB</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="TEB">
+        <xs:annotation>
+          <xs:documentation>Barycentric Ephemeris Time: time at the solar system barycenter synchronous with TT on an annual basis; a deprecated synonym of TDB.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="TCG">
+        <xs:annotation>
+          <xs:documentation>Terrestrial Coordinate Time</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="TCB">
+        <xs:annotation>
+          <xs:documentation>Barycentric Coordinate Time; runs slower than TDB but is consistent with physical constants</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="TAI">
+        <xs:annotation>
+          <xs:documentation>International Atomic Time; runs 32.184 s behind TT</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="IAT">
+        <xs:annotation>
+          <xs:documentation>Synonym for TAI</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="UTC">
+        <xs:annotation>
+          <xs:documentation>Coordinated Universal Time; currently (2006) runs 33 leapseconds behind TAI</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="GPS">
+        <xs:annotation>
+          <xs:documentation>Global Positioning System's time scale; runs 19 s behind TAI, 51.184 s behind TT.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="LST">
+        <xs:annotation>
+          <xs:documentation>Local Siderial Time; only for ground-based observations; note that the second is shorter</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="GMST">
+        <xs:annotation>
+          <xs:documentation>Greenwich Mean Siderial Time; only for ground-based observations; note that the second is shorter</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="LOCAL">
+        <xs:annotation>
+          <xs:documentation>Only to be used for simulations in conjunction with a relocatable spatial frame</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="posAngleType">
+    <xs:annotation>
+      <xs:documentation>Position angles are doubles and include optionally a unit attribute (default deg) and a reference attribute (default X)</xs:documentation>
+    </xs:annotation>
+    <xs:simpleContent>
+      <xs:extension base="xs:double">
+        <xs:attribute name="unit" type="angleUnitType" default="deg"/>
+        <xs:attribute name="reference" type="posAngleReferenceType" default="X"/>
+        <xs:attributeGroup ref="STCReference"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:attributeGroup name="STCReference">
+    <xs:annotation>
+      <xs:documentation>These four attributes represent the standard IVOA referencing system: internal (within the document) referencing through "id" and "idref", external referencing through Xlink, using only "type=simple" and "href".</xs:documentation>
+      <xs:documentation>The attributes ID_type and IDREF_type allow the author to list attributes of type ID, respectively IDREF, enabling readers to identify these attributes without having to refer to the schema. This is important in cases where documents are concatenated (e.g., in registries), raising the potential for non-unique IDs. The value of these attributes is a string of comma-separated attribute names.</xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="id" type="xs:ID" use="optional"/>
+    <xs:attribute name="idref" type="xs:IDREF" use="optional"/>
+    <xs:attribute name="ucd" type="xs:string" use="optional"/>
+    <xs:attribute ref="xlink:type" use="optional" default="simple"/>
+    <xs:attribute ref="xlink:href" use="optional"/>
+    <xs:attribute name="ID_type" type="xs:string" use="optional"/>
+    <xs:attribute name="IDREF_type" type="xs:string" use="optional"/>
+  </xs:attributeGroup>
+  <xs:complexType name="stcBaseType" abstract="true">
+    <xs:annotation>
+      <xs:documentation>STC standard base type. Elements of derived types may contain real content, be a reference to another element in the document (idref), or be a reference to a distributed resource; the href is to be a standard IVOA identifier or a valid URL. Actuation is up to the client. At this time it is required to be of type simple. An id is optional; it allows referencing by other elements.</xs:documentation>
+    </xs:annotation>
+    <xs:attributeGroup ref="STCReference"/>
+  </xs:complexType>
+  <!--The definition of astronTimeType-->
+  <xs:element name="AbsoluteTime" type="xs:anyType" abstract="true">
+    <xs:annotation>
+      <xs:documentation>Substitution group for absoluteTimeType component of astronTimeType</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:complexType name="isoTimeType">
+    <xs:annotation>
+      <xs:documentation>ISO8601 time; note: only a limited subset of ISO 8601 is allowed: yyyy-mm-ddThh:mm:ss.sss...; unfortunately, XSchema does not allow hh, mm, or ss to be optional, ".ss" is.</xs:documentation>
+    </xs:annotation>
+    <xs:simpleContent>
+      <xs:extension base="xs:dateTime">
+        <xs:attributeGroup ref="STCReference"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="jdTimeType">
+    <xs:annotation>
+      <xs:documentation>A decimal type for JD and MJD, with optional referencing</xs:documentation>
+    </xs:annotation>
+    <xs:simpleContent>
+      <xs:extension base="xs:decimal">
+        <xs:attributeGroup ref="STCReference"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:simpleType name="relocatableOriginType">
+    <xs:restriction base="xs:string">
+      <xs:annotation>
+        <xs:documentation>A relocatable time origin for simulations</xs:documentation>
+      </xs:annotation>
+      <xs:enumeration value="RELOCATABLE"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="timeOffsetType">
+    <xs:annotation>
+      <xs:documentation>Actual elapsed time offset</xs:documentation>
+    </xs:annotation>
+    <xs:simpleContent>
+      <xs:extension base="xs:decimal">
+        <xs:attributeGroup ref="STCReference"/>
+        <xs:attribute name="unit" type="timeUnitType" use="optional" default="s"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:element name="ISOTime" type="isoTimeType" substitutionGroup="AbsoluteTime" nillable="true">
+    <xs:annotation>
+      <xs:documentation>ISO8601 time; note: only a limited subset of ISO 8601 is allowed: yyyy-mm-ddThh:mm:ss.sss...; only ".sss..." is optional</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="JDTime" type="jdTimeType" substitutionGroup="AbsoluteTime" nillable="true">
+    <xs:annotation>
+      <xs:documentation>JD time</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="MJDTime" type="jdTimeType" substitutionGroup="AbsoluteTime" nillable="true">
+    <xs:annotation>
+      <xs:documentation>MJD time (=JD - 2400000.5)</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="TimeOrigin" type="relocatableOriginType" substitutionGroup="AbsoluteTime">
+    <xs:annotation>
+      <xs:documentation>A relocatable time origin for simulations</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="TimeOffset" type="timeOffsetType" nillable="true">
+    <xs:annotation>
+      <xs:documentation>Actual elapsed time offset</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:complexType name="astronTimeType">
+    <xs:annotation>
+      <xs:documentation>astronTime is the generalized astronomical time type and consists of one, two, or three elements: optional TimeScale, optional relative time offset, and an absolute time (ISO8601 or a decimal JD or MJD; or it may be an IDREF to one of those three); TimeScale may be omitted only if the element is part of AstroCoords, referring to an AstroCoordSystem that specifies a TimeScale.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="Timescale" type="timeScaleType" nillable="true" minOccurs="0"/>
+      <xs:element ref="TimeOffset" minOccurs="0"/>
+      <xs:element ref="AbsoluteTime"/>
+    </xs:sequence>
+  </xs:complexType>
+  <!--Some specific vectors of doubles-->
+  <!--The original array type, abandoned for the time being (or forever):
+    <xs:simpleType name="doubleArrayType">
+      <xs:annotation>
+        <xs:documentation>For vector coordinates we need arrays of doubles</xs:documentation>
+      </xs:annotation>
+      <xs:list itemType="xs:double"/>
+    </xs:simpleType>
+  -->
+  <xs:complexType name="double1Type">
+    <xs:annotation>
+      <xs:documentation>A double with referencing and units attributes</xs:documentation>
+    </xs:annotation>
+    <xs:simpleContent>
+      <xs:extension base="xs:double">
+        <xs:attributeGroup ref="STCReference"/>
+        <xs:attribute name="time_unit" type="timeUnitType" use="optional"/>
+        <xs:attribute name="pos_unit" type="posUnitType" use="optional"/>
+        <xs:attribute name="pos_angle_unit" type="angleUnitType" use="optional"/>
+        <xs:attribute name="vel_time_unit" type="velTimeUnitType" use="optional"/>
+        <xs:attribute name="spectral_unit" type="spectralUnitType" use="optional"/>
+        <xs:attribute name="gen_unit" type="unitType" use="optional"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="double2Type">
+    <xs:annotation>
+      <xs:documentation>A vector of 2 doubles; components are now separated.</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="stcBaseType">
+        <xs:sequence>
+          <xs:element name="C1" type="double1Type" nillable="true"/>
+          <xs:element name="C2" type="double1Type" nillable="true"/>
+        </xs:sequence>
+        <xs:attribute name="unit" type="posUnitType" use="optional"/>
+        <xs:attribute name="vel_time_unit" type="velTimeUnitType" use="optional"/>
+        <xs:attribute name="gen_unit" type="unitType" use="optional"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="double3Type">
+    <xs:annotation>
+      <xs:documentation>A vector of 3 doubles with separated components</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="stcBaseType">
+        <xs:sequence>
+          <xs:element name="C1" type="double1Type" nillable="true"/>
+          <xs:element name="C2" type="double1Type" nillable="true"/>
+          <xs:element name="C3" type="double1Type" nillable="true"/>
+        </xs:sequence>
+        <xs:attribute name="unit" type="posUnitType" use="optional"/>
+        <xs:attribute name="vel_time_unit" type="velTimeUnitType" use="optional"/>
+        <xs:attribute name="gen_unit" type="unitType" use="optional"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="double4Type">
+    <xs:annotation>
+      <xs:documentation>A vector of 4 doubles (2x2 matrix)</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="stcBaseType">
+        <xs:sequence>
+          <xs:element name="M11" type="xs:double" nillable="true"/>
+          <xs:element name="M12" type="xs:double" nillable="true"/>
+          <xs:element name="M21" type="xs:double" nillable="true"/>
+          <xs:element name="M22" type="xs:double" nillable="true"/>
+        </xs:sequence>
+        <xs:attribute name="unit" type="posUnitType" use="optional"/>
+        <xs:attribute name="vel_time_unit" type="velTimeUnitType" use="optional"/>
+        <xs:attribute name="gen_unit" type="unitType" use="optional"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="double9Type">
+    <xs:annotation>
+      <xs:documentation>A vector of 9 doubles (3x3 matrix)</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="stcBaseType">
+        <xs:sequence>
+          <xs:element name="M11" type="xs:double" nillable="true"/>
+          <xs:element name="M12" type="xs:double" nillable="true"/>
+          <xs:element name="M13" type="xs:double" nillable="true"/>
+          <xs:element name="M21" type="xs:double" nillable="true"/>
+          <xs:element name="M22" type="xs:double" nillable="true"/>
+          <xs:element name="M23" type="xs:double" nillable="true"/>
+          <xs:element name="M31" type="xs:double" nillable="true"/>
+          <xs:element name="M32" type="xs:double" nillable="true"/>
+          <xs:element name="M33" type="xs:double" nillable="true"/>
+        </xs:sequence>
+        <xs:attribute name="unit" type="posUnitType" use="optional"/>
+        <xs:attribute name="vel_time_unit" type="velTimeUnitType" use="optional"/>
+        <xs:attribute name="gen_unit" type="unitType" use="optional"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="curve2Type">
+    <xs:annotation>
+      <xs:documentation>A curve in 2-D space, defined by its end points and a shape attribute (default: line or great circle)</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="stcBaseType">
+        <xs:sequence>
+          <xs:element name="P1" type="double2Type" nillable="true"/>
+          <xs:element name="P2" type="double2Type" nillable="true"/>
+        </xs:sequence>
+        <xs:attribute name="curve_shape" type="xs:string" use="optional" default="line"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="curve3Type">
+    <xs:annotation>
+      <xs:documentation>A curve in 3-D space, defined by its end points and a shape attribute (default: line or great circle)</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="stcBaseType">
+        <xs:sequence>
+          <xs:element name="P1" type="double3Type" nillable="true"/>
+          <xs:element name="P2" type="double3Type" nillable="true"/>
+        </xs:sequence>
+        <xs:attribute name="curve_shape" type="xs:string" use="optional" default="line"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--Substitution group for coordinate values-->
+  <xs:element name="CoordValue" type="xs:anyType" abstract="true">
+    <xs:annotation>
+      <xs:documentation>The head element for the CoordinateValue substitution group; this only exists for a few cases where only a value is needed (as in some Region elements)</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:complexType name="coordValueType">
+    <xs:annotation>
+      <xs:documentation>A type that just holds a 1-3D coordinate value; see comment in the CoordValue head element</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element ref="CoordValue"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="pixelType">
+    <xs:annotation>
+      <xs:documentation>A type that just holds a 1-3D pixel value</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element ref="Pixel"/>
+    </xs:sequence>
+  </xs:complexType>
+  <!--The abstract coorinate type element from which all others are derived-->
+  <xs:complexType name="coordinateType">
+    <xs:annotation>
+      <xs:documentation>Abstract coordinate type; a concrete Coordinate consists of a Value, Error, Resolution, Size, and PixSize</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="stcBaseType">
+        <xs:sequence>
+          <xs:element name="Name" type="xs:string" minOccurs="0"/>
+        </xs:sequence>
+        <xs:attribute name="frame_id" type="xs:IDREF" use="optional"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--The components for 1-D coordinates -->
+  <xs:element name="Value" type="double1Type" substitutionGroup="CoordValue" nillable="true">
+    <xs:annotation>
+      <xs:documentation>double</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="CError" type="xs:anyType" abstract="true">
+    <xs:annotation>
+      <xs:documentation>Substitution group for all types of errors</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Error" type="double1Type" substitutionGroup="CError" nillable="true">
+    <xs:annotation>
+      <xs:documentation>double</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="CResolution" type="xs:anyType" abstract="true">
+    <xs:annotation>
+      <xs:documentation>Substitution group for all types of resolutions</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Resolution" type="double1Type" substitutionGroup="CResolution" nillable="true">
+    <xs:annotation>
+      <xs:documentation>double</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="CSize" type="xs:anyType" abstract="true">
+    <xs:annotation>
+      <xs:documentation>Substitution group for all types of sizes</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Size" type="double1Type" substitutionGroup="CSize" nillable="true">
+    <xs:annotation>
+      <xs:documentation>double</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="CPixSize" type="xs:anyType" abstract="true">
+    <xs:annotation>
+      <xs:documentation>Substitution group for all types of pixel sizes</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="PixSize" type="double1Type" substitutionGroup="CPixSize" nillable="true">
+    <xs:annotation>
+      <xs:documentation>double</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <!--1-D coordinate types-->
+  <xs:complexType name="basicCoordinateType">
+    <xs:annotation>
+      <xs:documentation>Basic scalar coordinate type</xs:documentation>
+      <xs:documentation>Single Error, Resolution, Size, PixSize elements indicate definite values; pairs indicate ranges</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="coordinateType">
+        <xs:sequence>
+          <xs:element ref="Value" minOccurs="0"/>
+          <xs:element ref="Error" minOccurs="0" maxOccurs="2"/>
+          <xs:element ref="Resolution" minOccurs="0" maxOccurs="2"/>
+          <xs:element ref="Size" minOccurs="0" maxOccurs="2"/>
+          <xs:element ref="PixSize" minOccurs="0" maxOccurs="2"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="pixelVector1CoordinateType">
+    <xs:annotation>
+      <xs:documentation>Scalar pixel coordinate type</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="coordinateType">
+        <xs:sequence>
+          <xs:element ref="Value" minOccurs="0"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="timeCoordinateType">
+    <xs:annotation>
+      <xs:documentation>Time coordinate type; sibling of basicCoordinateType</xs:documentation>
+      <xs:documentation>Single Error, Resolution, Size, PixSize elements indicate definite values; pairs indicate ranges</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="coordinateType">
+        <xs:sequence>
+          <xs:element name="TimeInstant" type="astronTimeType" minOccurs="0"/>
+          <xs:element ref="Error" minOccurs="0" maxOccurs="2"/>
+          <xs:element ref="Resolution" minOccurs="0" maxOccurs="2"/>
+          <xs:element ref="Size" minOccurs="0" maxOccurs="2"/>
+          <xs:element ref="PixSize" minOccurs="0" maxOccurs="2"/>
+        </xs:sequence>
+        <xs:attribute name="coord_system_id" type="xs:IDREF" use="optional"/>
+        <xs:attribute name="unit" type="timeUnitType" use="optional" default="s"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--Component substitution groups for 2-D coordinates -->
+  <xs:complexType name="size2Type">
+    <xs:annotation>
+      <xs:documentation>Consists of a Size (2 doubles) and optional position angle element</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="double2Type">
+        <xs:sequence>
+          <xs:element name="PosAngle" type="posAngleType" nillable="true" minOccurs="0"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="CValue2" type="xs:anyType" abstract="true" substitutionGroup="CoordValue">
+    <xs:annotation>
+      <xs:documentation>Substitution group for a 2-D coordinate value</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Value2" type="double2Type" substitutionGroup="CValue2" nillable="true">
+    <xs:annotation>
+      <xs:documentation>double vector</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Curve2" type="curve2Type" substitutionGroup="CValue2" nillable="true">
+    <xs:annotation>
+      <xs:documentation>Curve in 2-D</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="CError2" type="xs:anyType" abstract="true" substitutionGroup="CError">
+    <xs:annotation>
+      <xs:documentation>Substitution group for a 2-D coordinate error</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Error2Radius" type="double1Type" substitutionGroup="CError2" nillable="true">
+    <xs:annotation>
+      <xs:documentation>double: radius of a 2-D error circle</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Error2" type="size2Type" substitutionGroup="CError2" nillable="true">
+    <xs:annotation>
+      <xs:documentation>size2Type Error element: 2 doubles with optional position angle</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Error2Matrix" type="double4Type" substitutionGroup="CError2" nillable="true">
+    <xs:annotation>
+      <xs:documentation>2x2 matrix Error element</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="CResolution2" type="xs:anyType" abstract="true" substitutionGroup="CResolution">
+    <xs:annotation>
+      <xs:documentation>Substitution group for a 2-D coordinate resolution</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Resolution2Radius" type="double1Type" substitutionGroup="CResolution2" nillable="true">
+    <xs:annotation>
+      <xs:documentation>double: radius of a 2-D circular resolution</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Resolution2" type="size2Type" substitutionGroup="CResolution2" nillable="true">
+    <xs:annotation>
+      <xs:documentation>size2Type Resolution element: 2 doubles with optional position angle</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Resolution2Matrix" type="double4Type" substitutionGroup="CResolution2" nillable="true">
+    <xs:annotation>
+      <xs:documentation>2x2 matrix Resolution element</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="CSize2" type="xs:anyType" abstract="true" substitutionGroup="CSize">
+    <xs:annotation>
+      <xs:documentation>Substitution group for a 2-D coordinate size</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Size2Radius" type="double1Type" substitutionGroup="CSize2" nillable="true">
+    <xs:annotation>
+      <xs:documentation>double: radius of a 2-D circle</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Size2" type="size2Type" substitutionGroup="CSize2" nillable="true">
+    <xs:annotation>
+      <xs:documentation>size2Type Size element: 2 doubles with optional position angle</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Size2Matrix" type="double4Type" substitutionGroup="CSize2" nillable="true">
+    <xs:annotation>
+      <xs:documentation>2x2 matrix Size element</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="CPixSize2" type="xs:anyType" abstract="true" substitutionGroup="CPixSize">
+    <xs:annotation>
+      <xs:documentation>Substitution group for a 2-D coordinate pixel size</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="PixSize2" type="size2Type" substitutionGroup="CPixSize2" nillable="true">
+    <xs:annotation>
+      <xs:documentation>size2Type PixSize element: 2 doubles with optional position angle</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="PixSize2Matrix" type="double4Type" substitutionGroup="CPixSize2" nillable="true">
+    <xs:annotation>
+      <xs:documentation>2x2 matrix PixSize element</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <!--2-D coordinate types-->
+  <xs:complexType name="vector2CoordinateType">
+    <xs:annotation>
+      <xs:documentation>2-D coordinate type</xs:documentation>
+      <xs:documentation>Single CError2, CResolution2, CSize2, CPixSize2 elements indicate definite values; pairs indicate ranges</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="coordinateType">
+        <xs:sequence>
+          <xs:element name="Name1" type="xs:string" minOccurs="0"/>
+          <xs:element name="Name2" type="xs:string" minOccurs="0"/>
+          <xs:element ref="CValue2" minOccurs="0"/>
+          <xs:element ref="CError2" minOccurs="0" maxOccurs="2"/>
+          <xs:element ref="CResolution2" minOccurs="0" maxOccurs="2"/>
+          <xs:element ref="CSize2" minOccurs="0" maxOccurs="2"/>
+          <xs:element ref="CPixSize2" minOccurs="0" maxOccurs="2"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="pixelVector2CoordinateType">
+    <xs:annotation>
+      <xs:documentation>2-D pixel coordinate type</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="coordinateType">
+        <xs:sequence>
+          <xs:element name="Name1" type="xs:string" minOccurs="0"/>
+          <xs:element name="Name2" type="xs:string" minOccurs="0"/>
+          <xs:element ref="Value2" minOccurs="0"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--Component substitution groups for 3-D coordinates -->
+  <xs:complexType name="size3Type">
+    <xs:annotation>
+      <xs:documentation>Consists of a Size (3 doubles) and optional position angle element</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="double3Type">
+        <xs:sequence>
+          <xs:element name="PosAngle1" type="posAngleType" nillable="true" minOccurs="0"/>
+          <xs:element name="PosAngle2" type="posAngleType" nillable="true" minOccurs="0"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="CValue3" type="xs:anyType" abstract="true" substitutionGroup="CoordValue">
+    <xs:annotation>
+      <xs:documentation>Substitution group for a 3-D coordinate value</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Value3" type="double3Type" substitutionGroup="CValue3" nillable="true">
+    <xs:annotation>
+      <xs:documentation>Vector of 3 doubles</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Curve3" type="curve3Type" substitutionGroup="CValue3" nillable="true">
+    <xs:annotation>
+      <xs:documentation>Curve in 3-D</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="CError3" type="xs:anyType" abstract="true" substitutionGroup="CError">
+    <xs:annotation>
+      <xs:documentation>Substitution group for a 3-D coordinate error</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Error3Radius" type="double1Type" substitutionGroup="CError3" nillable="true">
+    <xs:annotation>
+      <xs:documentation>double: radius of a 3-D error sphere</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Error3" type="size3Type" substitutionGroup="CError3" nillable="true">
+    <xs:annotation>
+      <xs:documentation>size3Type Error element: 3 doubles with optional position angle(s)</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Error3Matrix" type="double9Type" substitutionGroup="CError3" nillable="true">
+    <xs:annotation>
+      <xs:documentation>3x3 matrix Error element</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="CResolution3" type="xs:anyType" abstract="true" substitutionGroup="CResolution">
+    <xs:annotation>
+      <xs:documentation>Substitution group for a 3-D coordinate resolution</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Resolution3Radius" type="double1Type" substitutionGroup="CResolution3" nillable="true">
+    <xs:annotation>
+      <xs:documentation>double: radius of a 3-D spherical resolution</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Resolution3" type="size3Type" substitutionGroup="CResolution3" nillable="true">
+    <xs:annotation>
+      <xs:documentation>size3Type Resolution element: 3 doubles with optional position angle(s)</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Resolution3Matrix" type="double9Type" substitutionGroup="CResolution3" nillable="true">
+    <xs:annotation>
+      <xs:documentation>3x3 matrix Resoltuion element</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="CSize3" type="xs:anyType" abstract="true" substitutionGroup="CSize">
+    <xs:annotation>
+      <xs:documentation>Substitution group for a 3-D coordinate size</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Size3Radius" type="double1Type" substitutionGroup="CSize3" nillable="true">
+    <xs:annotation>
+      <xs:documentation>double: radius of a 3-D sphere</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Size3" type="size3Type" substitutionGroup="CSize3" nillable="true">
+    <xs:annotation>
+      <xs:documentation>size3Type Size element: 3 doubles with optional position angle(s)</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Size3Matrix" type="double9Type" substitutionGroup="CSize3" nillable="true">
+    <xs:annotation>
+      <xs:documentation>3x3 matrix Size element</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="CPixSize3" type="xs:anyType" abstract="true" substitutionGroup="CPixSize">
+    <xs:annotation>
+      <xs:documentation>Substitution group for a 3-D coordinate pixel size</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="PixSize3" type="size3Type" substitutionGroup="CPixSize3" nillable="true">
+    <xs:annotation>
+      <xs:documentation>size3Type PixSize element: 3 doubles with optional position angle(s)</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="PixSize3Matrix" type="double9Type" substitutionGroup="CPixSize3" nillable="true">
+    <xs:annotation>
+      <xs:documentation>3x3 matrix PixSize element</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <!--3-D coordinate types-->
+  <xs:complexType name="vector3CoordinateType">
+    <xs:annotation>
+      <xs:documentation>3-D coordinate type</xs:documentation>
+      <xs:documentation>Single CError3, CResolution3, CSize3, CPixSize3 elements indicate definite values; pairs indicate ranges</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="coordinateType">
+        <xs:sequence>
+          <xs:element name="Name1" type="xs:string" minOccurs="0"/>
+          <xs:element name="Name2" type="xs:string" minOccurs="0"/>
+          <xs:element name="Name3" type="xs:string" minOccurs="0"/>
+          <xs:element ref="CValue3" minOccurs="0"/>
+          <xs:element ref="CError3" minOccurs="0" maxOccurs="2"/>
+          <xs:element ref="CResolution3" minOccurs="0" maxOccurs="2"/>
+          <xs:element ref="CSize3" minOccurs="0" maxOccurs="2"/>
+          <xs:element ref="CPixSize3" minOccurs="0" maxOccurs="2"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="pixelVector3CoordinateType">
+    <xs:annotation>
+      <xs:documentation>3-D pixel coordinate type</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="coordinateType">
+        <xs:sequence>
+          <xs:element name="Name1" type="xs:string" minOccurs="0"/>
+          <xs:element name="Name2" type="xs:string" minOccurs="0"/>
+          <xs:element name="Name3" type="xs:string" minOccurs="0"/>
+          <xs:element ref="Value3" minOccurs="0"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <!-- Derived oordinate types-->
+  <xs:complexType name="stringCoordinateType">
+    <xs:annotation>
+      <xs:documentation>Generic string coordinate type</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="coordinateType">
+        <xs:sequence>
+          <xs:element name="Value" type="xs:string"/>
+        </xs:sequence>
+        <xs:attribute name="unit" type="unitType" use="optional"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="scalarCoordinateType">
+    <xs:annotation>
+      <xs:documentation>Generic scalar coordinate type: a basic scalar coordinate with units</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="basicCoordinateType">
+        <xs:attribute name="unit" type="unitType" use="optional"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="genVector2CoordinateType">
+    <xs:annotation>
+      <xs:documentation>Generic 2-D coordinate type</xs:documentation>
+      <xs:documentation>Single CError2, CResolution2, CSize2, CPixSize2 elements indicate definite values; pairs indicate ranges</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="vector2CoordinateType">
+        <xs:attribute name="unit" type="unitType" use="optional"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="genVector3CoordinateType">
+    <xs:annotation>
+      <xs:documentation>Generic 3-D coordinate type</xs:documentation>
+      <xs:documentation>Single CError3, CResolution3, CSize3, CPixSize3 elements indicate definite values; pairs indicate ranges</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="vector3CoordinateType">
+        <xs:attribute name="unit" type="unitType" use="optional"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="posVector1CoordinateType">
+    <xs:annotation>
+      <xs:documentation>Position scalar coordinate type; sibling of basicCoordinateType</xs:documentation>
+      <xs:documentation>Single Error, Resolution, Size, PixSize elements indicate definite values; pairs indicate ranges</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="basicCoordinateType">
+        <xs:attribute name="coord_system_id" type="xs:IDREF" use="optional"/>
+        <xs:attribute name="unit" type="posUnitType" use="optional"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="posVector2CoordinateType">
+    <xs:annotation>
+      <xs:documentation>Position 2-D coordinate type</xs:documentation>
+      <xs:documentation>Single CError2, CResolution2, CSize2, CPixSize2 elements indicate definite values; pairs indicate ranges</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="vector2CoordinateType">
+        <xs:attribute name="coord_system_id" type="xs:IDREF" use="optional"/>
+        <xs:attribute name="unit" type="posUnitType" use="optional"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="posVector3CoordinateType">
+    <xs:annotation>
+      <xs:documentation>Position 3-D coordinate type</xs:documentation>
+      <xs:documentation>Single CError3, CResolution3, CSize3, CPixSize3 elements indicate definite values; pairs indicate ranges</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="vector3CoordinateType">
+        <xs:attribute name="coord_system_id" type="xs:IDREF" use="optional"/>
+        <xs:attribute name="unit" type="posUnitType" use="optional"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="velVector1CoordinateType">
+    <xs:annotation>
+      <xs:documentation>Velocity scalar coordinate type; sibling of basicCoordinateType</xs:documentation>
+      <xs:documentation>Single Error, Resolution, Size, PixSize elements indicate definite values; pairs indicate ranges</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="posVector1CoordinateType">
+        <xs:attribute name="vel_time_unit" type="velTimeUnitType" use="optional"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="velVector2CoordinateType">
+    <xs:annotation>
+      <xs:documentation>Velocity 2-D coordinate type</xs:documentation>
+      <xs:documentation>Single CError2, CResolution2, CSize2, CPixSize2 elements indicate definite values; pairs indicate ranges</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="posVector2CoordinateType">
+        <xs:attribute name="vel_time_unit" type="velTimeUnitType" use="optional"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="velVector3CoordinateType">
+    <xs:annotation>
+      <xs:documentation>Velocity 3-D coordinate type</xs:documentation>
+      <xs:documentation>Single CError3, CResolution3, CSize3, CPixSize3 elements indicate definite values; pairs indicate ranges</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="posVector3CoordinateType">
+        <xs:attribute name="vel_time_unit" type="velTimeUnitType" use="optional"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="spectralCoordinateType">
+    <xs:annotation>
+      <xs:documentation>Spectral coordinate type</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="basicCoordinateType">
+        <xs:attribute name="coord_system_id" type="xs:IDREF" use="optional"/>
+        <xs:attribute name="unit" type="spectralUnitType" use="optional"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="redshiftCoordinateType">
+    <xs:annotation>
+      <xs:documentation>Redshift coordinate type</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="basicCoordinateType">
+        <xs:attribute name="coord_system_id" type="xs:IDREF" use="optional"/>
+        <xs:attribute name="unit" type="posUnitType" use="optional"/>
+        <xs:attribute name="vel_time_unit" type="velTimeUnitType" use="optional"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <!-- Coord Substitution Groups-->
+  <xs:element name="Coordinate" type="coordinateType" nillable="true">
+    <xs:annotation>
+      <xs:documentation>Head element of Coordinate substitution group</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="GenCoordinate" type="coordinateType" substitutionGroup="Coordinate" nillable="true">
+    <xs:annotation>
+      <xs:documentation>Head element of Generic coordinate substitution group</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="StringCoordinate" type="stringCoordinateType" substitutionGroup="GenCoordinate" nillable="true">
+    <xs:annotation>
+      <xs:documentation>Generic string coordinate element</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="ScalarCoordinate" type="scalarCoordinateType" substitutionGroup="GenCoordinate" nillable="true">
+    <xs:annotation>
+      <xs:documentation>Generic scalar coordinate element</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Vector2DCoordinate" type="genVector2CoordinateType" substitutionGroup="GenCoordinate" nillable="true">
+    <xs:annotation>
+      <xs:documentation>Generic 2-D coordinate element</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Vector3DCoordinate" type="genVector3CoordinateType" substitutionGroup="GenCoordinate" nillable="true">
+    <xs:annotation>
+      <xs:documentation>Generic 3-D coordinate element</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Pixel" type="coordinateType" substitutionGroup="Coordinate" nillable="true">
+    <xs:annotation>
+      <xs:documentation>Head element of Pixel coordinate substitution group</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Pixel1D" type="pixelVector1CoordinateType" substitutionGroup="Pixel" nillable="true">
+    <xs:annotation>
+      <xs:documentation>1-D Position coordinate</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Pixel2D" type="pixelVector2CoordinateType" substitutionGroup="Pixel" nillable="true">
+    <xs:annotation>
+      <xs:documentation>2-D Position coordinate</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Pixel3D" type="pixelVector3CoordinateType" substitutionGroup="Pixel" nillable="true">
+    <xs:annotation>
+      <xs:documentation>3-D Position coordinate</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Time" type="timeCoordinateType" nillable="true"/>
+  <xs:element name="Position" type="coordinateType" substitutionGroup="Coordinate" nillable="true">
+    <xs:annotation>
+      <xs:documentation>Head element of Position coordinate substitution group</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Position1D" type="posVector1CoordinateType" substitutionGroup="Position" nillable="true">
+    <xs:annotation>
+      <xs:documentation>1-D Position coordinate</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Position2D" type="posVector2CoordinateType" substitutionGroup="Position" nillable="true">
+    <xs:annotation>
+      <xs:documentation>2-D Position coordinate</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Position3D" type="posVector3CoordinateType" substitutionGroup="Position" nillable="true">
+    <xs:annotation>
+      <xs:documentation>3-D Position coordinate</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Velocity" type="coordinateType" substitutionGroup="Coordinate" nillable="true">
+    <xs:annotation>
+      <xs:documentation>Head element of Velocity coordinate substitution group</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Velocity1D" type="velVector1CoordinateType" substitutionGroup="Velocity" nillable="true">
+    <xs:annotation>
+      <xs:documentation>1-D Velocity coordinate</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Velocity2D" type="velVector2CoordinateType" substitutionGroup="Velocity" nillable="true">
+    <xs:annotation>
+      <xs:documentation>2-D Velocity coordinate</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Velocity3D" type="velVector3CoordinateType" substitutionGroup="Velocity" nillable="true">
+    <xs:annotation>
+      <xs:documentation>3-D Velocity coordinate</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Spectral" type="spectralCoordinateType" substitutionGroup="Coordinate" nillable="true">
+    <xs:annotation>
+      <xs:documentation>Spectral coordinate</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Redshift" type="redshiftCoordinateType" substitutionGroup="Coordinate" nillable="true">
+    <xs:annotation>
+      <xs:documentation>Redshift coordinate</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <!--FITS file type to hold coordinate values-->
+  <xs:complexType name="fitsType">
+    <xs:annotation>
+      <xs:documentation>Specifies a FITS file and optionally a specific HDU by HDU number or HDU name</xs:documentation>
+    </xs:annotation>
+    <xs:simpleContent>
+      <xs:extension base="xs:anyURI">
+        <xs:attribute name="hdu_num" type="xs:integer"/>
+        <xs:attribute name="hdu_name" type="xs:string"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="coordFITSColumnsType">
+    <xs:annotation>
+      <xs:documentation>Refers coordinate components to specific columns in the FITS file HDU</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="Name" type="xs:string" minOccurs="0"/>
+      <xs:element name="Value" type="xs:string" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>The column name for the coordinate value; comma-separated if multi-dimensional</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="Error" type="xs:string" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>The column name for the coordinate error; comma-separated if multi-dimensional</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="Resolution" type="xs:string" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>The column name for the coordinate resolution; comma-separated if multi-dimensional</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="Size" type="xs:string" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>The column name for the coordinate size; comma-separated if multi-dimensional</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="PixSize" type="xs:string" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>The column name for the coordinate pixel size; comma-separated if multi-dimensional</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="astroCoordsFileType">
+    <xs:annotation>
+      <xs:documentation>Coordinate references to a specific FITS file</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="coordinateType">
+        <xs:annotation>
+          <xs:documentation>Coordinate references to a specific FITS file</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+          <xs:element name="FITSFile" type="fitsType"/>
+          <xs:element name="FITSTime" type="coordFITSColumnsType" minOccurs="0"/>
+          <xs:element name="FITSPosition" type="coordFITSColumnsType" minOccurs="0"/>
+          <xs:element name="FITSVelocity" type="coordFITSColumnsType" minOccurs="0"/>
+          <xs:element name="FITSSpectral" type="coordFITSColumnsType" minOccurs="0"/>
+          <xs:element name="FITSRedshift" type="coordFITSColumnsType" minOccurs="0"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--Orbital elements-->
+  <xs:complexType name="orbitType">
+    <xs:annotation>
+      <xs:documentation>Orbit defined by six orbital elements and optional mean anomaly and period; note that the epoch of periapsis or of mean anomaly is provided by T, however, an coordinate epoch should be provided by paring this element with a time instant element</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="coordinateType">
+        <xs:sequence>
+          <xs:choice>
+            <xs:annotation>
+              <xs:documentation>This really is a choice: provide either a or q, but not both - and a only for closed orbits</xs:documentation>
+            </xs:annotation>
+            <xs:element name="a" nillable="true">
+              <xs:annotation>
+                <xs:documentation>Semi-major axis for elliptical (closed) orbits (1>e>=0) only; for parabolic or hyperbolic orbits us periapsis distance q</xs:documentation>
+              </xs:annotation>
+              <xs:complexType>
+                <xs:complexContent>
+                  <xs:extension base="double1Type">
+                    <xs:attribute name="unit" type="posUnitType" use="optional" default="AU"/>
+                  </xs:extension>
+                </xs:complexContent>
+              </xs:complexType>
+            </xs:element>
+            <xs:element name="q" nillable="true">
+              <xs:annotation>
+                <xs:documentation>Periapsis distance; required (instead of a) for open orbits (e>=1)</xs:documentation>
+              </xs:annotation>
+              <xs:complexType>
+                <xs:complexContent>
+                  <xs:extension base="double1Type">
+                    <xs:attribute name="unit" type="posUnitType" use="optional" default="AU"/>
+                  </xs:extension>
+                </xs:complexContent>
+              </xs:complexType>
+            </xs:element>
+          </xs:choice>
+          <xs:element name="e" type="double1Type" nillable="true">
+            <xs:annotation>
+              <xs:documentation>Eccentricity</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element name="i" nillable="true">
+            <xs:annotation>
+              <xs:documentation>Inclination</xs:documentation>
+            </xs:annotation>
+            <xs:complexType>
+              <xs:complexContent>
+                <xs:extension base="double1Type">
+                  <xs:attribute name="unit" type="posUnitType" use="optional" default="deg"/>
+                </xs:extension>
+              </xs:complexContent>
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="Node" nillable="true">
+            <xs:annotation>
+              <xs:documentation>Longitude of ascending node</xs:documentation>
+            </xs:annotation>
+            <xs:complexType>
+              <xs:complexContent>
+                <xs:extension base="double1Type">
+                  <xs:attribute name="unit" type="posUnitType" use="optional" default="deg"/>
+                </xs:extension>
+              </xs:complexContent>
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="Aop" nillable="true">
+            <xs:annotation>
+              <xs:documentation>Argument of periapsis</xs:documentation>
+            </xs:annotation>
+            <xs:complexType>
+              <xs:complexContent>
+                <xs:extension base="double1Type">
+                  <xs:attribute name="unit" type="posUnitType" use="optional" default="deg"/>
+                </xs:extension>
+              </xs:complexContent>
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="M" nillable="true" minOccurs="0">
+            <xs:annotation>
+              <xs:documentation>Mean anomaly at time T; if absent T will refer to pericenter</xs:documentation>
+            </xs:annotation>
+            <xs:complexType>
+              <xs:complexContent>
+                <xs:extension base="double1Type">
+                  <xs:attribute name="unit" type="posUnitType" use="optional" default="deg"/>
+                </xs:extension>
+              </xs:complexContent>
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="P" nillable="true" minOccurs="0">
+            <xs:annotation>
+              <xs:documentation>Orbital period (redundant); for closed orbits only</xs:documentation>
+            </xs:annotation>
+            <xs:complexType>
+              <xs:complexContent>
+                <xs:extension base="double1Type">
+                  <xs:attribute name="unit" type="timeUnitType" use="optional" default="d"/>
+                </xs:extension>
+              </xs:complexContent>
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="T" type="astronTimeType">
+            <xs:annotation>
+              <xs:documentation>Epoch of M (mean anomaly, if present) or of periapsis (if M is absent)</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <!-- Coords Types and instances-->
+  <xs:complexType name="coordsType">
+    <xs:annotation>
+      <xs:documentation>The generic coordsType</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="stcBaseType">
+        <xs:annotation>
+          <xs:documentation>A CoordSys consists of at least one coordinate frames; unfortunately, schema inheritance and polymorphism doesn't allow us to specify this in the most genarl way</xs:documentation>
+        </xs:annotation>
+        <xs:sequence minOccurs="0" maxOccurs="unbounded">
+          <xs:element ref="GenCoordinate"/>
+        </xs:sequence>
+        <xs:attribute name="coord_system_id" type="xs:IDREF" use="required"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="pixelCoordsType">
+    <xs:annotation>
+      <xs:documentation>The pixel coordinates type</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="coordsType">
+        <xs:sequence minOccurs="0" maxOccurs="unbounded">
+          <xs:element ref="Pixel"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="astroCoordsType">
+    <xs:annotation>
+      <xs:documentation>The astronomical (STC) coordsType</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="coordsType">
+        <xs:sequence>
+          <xs:element ref="Time" minOccurs="0"/>
+          <xs:element ref="Position" minOccurs="0"/>
+          <xs:element ref="Velocity" minOccurs="0"/>
+          <xs:element ref="Spectral" minOccurs="0"/>
+          <xs:element ref="Redshift" minOccurs="0"/>
+          <xs:element name="CoordFile" type="astroCoordsFileType" nillable="true" minOccurs="0">
+            <xs:annotation>
+              <xs:documentation>Some or all coordinate values may be given in  file</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element name="Orbit" type="orbitType" nillable="true" minOccurs="0">
+            <xs:annotation>
+              <xs:documentation>Orbit specified by orbital elements</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="Coords" type="coordsType" nillable="true">
+    <xs:annotation>
+      <xs:documentation>Head element of Coords group (not abstract)</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="AstroCoords" type="astroCoordsType" substitutionGroup="Coords" nillable="true">
+    <xs:annotation>
+      <xs:documentation>The coordinate element consists either of a coordinate file or a sequence of time element, spatial coordinate element, velocity element, and redshift element; the spatial and velocity elements may be scalar or vector; it needs to refer to a coordinate system</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="PixelCoords" type="pixelCoordsType" substitutionGroup="Coords" nillable="true">
+    <xs:annotation>
+      <xs:documentation>Contains pixel coordinates</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <!--  ###################  End of the former coords.xsd -->
+  <!--  ###################  Start of the former region.xsd -->
+  <!--Shape definitions; in 2-D: Allsky, Circle, Ellipse, Polygon, Box, and Sector are derived from Shape; Polygon includes also Vertex and SmallCircle; in 3-D: Halfspace, Convex, Convexhull -->
+  <xs:complexType name="regionAreaType">
+    <xs:annotation>
+      <xs:documentation>Element to hold the area of a Region, once calculated; the element holds the actual area, linearAreaUnit the linear units of the of the area (i.e., it should be squared to get the proper units of the area), and validArea indicates whether the area has been calculated properly.</xs:documentation>
+    </xs:annotation>
+    <xs:simpleContent>
+      <xs:extension base="xs:double">
+        <xs:attribute name="linearAreaUnit" type="posUnitType" use="required"/>
+        <xs:attribute name="validArea" type="xs:boolean" use="required"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="regionType">
+    <xs:annotation>
+      <xs:documentation>Abstract region type; a Region is a Shape or the result of a Region Operation involving one or more Regions</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="spatialIntervalType">
+        <xs:sequence>
+          <xs:element name="Area" type="regionAreaType" minOccurs="0"/>
+        </xs:sequence>
+        <xs:attribute name="note" type="xs:string" use="optional"/>
+        <xs:attribute name="coord_system_id" type="xs:IDREF" use="optional"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="shapeType">
+    <xs:annotation>
+      <xs:documentation>Shape is the abstract type that is the building block of regions; in real life it needs to be replaced by a concrete shape</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="regionType"/>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="allSkyType">
+    <xs:annotation>
+      <xs:documentation>AllSky type: just a shape without any child elements</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="shapeType"/>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="circleType">
+    <xs:annotation>
+      <xs:documentation>Circle shape: center and radius</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="shapeType">
+        <xs:sequence>
+          <xs:element name="Center" type="double2Type" nillable="true">
+            <xs:annotation>
+              <xs:documentation>The coordinates of the circle's center</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element name="Radius" type="double1Type" nillable="true">
+            <xs:annotation>
+              <xs:documentation>The radius of the circle</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="ellipseType">
+    <xs:annotation>
+      <xs:documentation>Ellipse shape: center, semi-major, semi-minor axis and position angle; in spherical coordinates defined as the shape cut out of the sphere by a cone with elliptical cross-section</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="shapeType">
+        <xs:sequence>
+          <xs:element name="Center" type="double2Type" nillable="true">
+            <xs:annotation>
+              <xs:documentation>The coordinates of the circle's center</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element name="SemiMajorAxis" type="double1Type" nillable="true">
+            <xs:annotation>
+              <xs:documentation>The radius of the circle</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element name="SemiMinorAxis" type="double1Type" nillable="true">
+            <xs:annotation>
+              <xs:documentation>Half the minor axis of the ellipse, in radius_unit</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element name="PosAngle" type="posAngleType" nillable="true">
+            <xs:annotation>
+              <xs:documentation>Position angle of major axis (Radius).</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <!-- smallCircleType is used in vertices to indicate that the polygon side associated with a vertex and its predecessor is to be a small circle rather than the default great circle -->
+  <xs:complexType name="smallCircleType">
+    <xs:annotation>
+      <xs:documentation>smallCircleType indicates in polygons that side is along small circle; with optional pole</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="Pole" type="double2Type" nillable="true" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="vertexType">
+    <xs:annotation>
+      <xs:documentation>Vertex is a position with optional SmallCircle element; the SmallCircle element indicates that the polygon side formed by that vertex and its predecessor vertex is a small circle, rather than a great circle; SmallCircle has no meaning in Cartesian coordinates</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="Position" type="double2Type" nillable="true"/>
+      <xs:element name="SmallCircle" type="smallCircleType" nillable="true" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="polygonType">
+    <xs:annotation>
+      <xs:documentation>Polygon: one or more vertices; counter-clockwise (as seen from "inside" or from "top") encircled area is enclosed; sides should span less than 180 deg in each coordinate if spherical; a polygon may not intersect itself</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="shapeType">
+        <xs:sequence>
+          <xs:element name="Vertex" type="vertexType" maxOccurs="unbounded">
+            <xs:annotation>
+              <xs:documentation>In order to form polygons, vertices are to be connected with straight line segments. In the case of spherical coordinates: greatcircle segments; if a smallCircle element si present, the vertex and its predecessor are to be connected with a smallcircle, by default in the CoordSys that is referenced; optionally, a pole may be specified (other than the CoordSys pole) that defines the smallcircle system</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="boxType">
+    <xs:annotation>
+      <xs:documentation>Box shape: a rectangle defined by its center and size on both dimensions; since it is a polygon, it is redundant, but simple rectangles with great circle sides are awkward to define in spherical coordinates</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="shapeType">
+        <xs:sequence>
+          <xs:element name="Center" type="double2Type" nillable="true">
+            <xs:annotation>
+              <xs:documentation>The coordinates of the box's center</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element name="Size" type="double2Type" nillable="true">
+            <xs:annotation>
+              <xs:documentation>The lengths of the box's sides</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="sectorType">
+    <xs:annotation>
+      <xs:documentation>A sector is the counter-clockwise area between two half-lines</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="shapeType">
+        <xs:sequence>
+          <xs:element name="Position" type="double2Type">
+            <xs:annotation>
+              <xs:documentation>The vertex position of the sector</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element name="PosAngle1" type="posAngleType">
+            <xs:annotation>
+              <xs:documentation>The area ccw from this position angle is included</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element name="PosAngle2" type="posAngleType">
+            <xs:annotation>
+              <xs:documentation>The area cw from this position angle is included</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:simpleType name="hsOffsetType">
+    <xs:restriction base="xs:double">
+      <xs:minInclusive value="-1.0"/>
+      <xs:maxInclusive value="1.0"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="halfspaceType">
+    <xs:annotation>
+      <xs:documentation>An area on the unit sphere defined by the intersection with a plane</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="Vector" type="double3Type" nillable="true">
+        <xs:annotation>
+          <xs:documentation>This needs to be a spherical coordinate vector; it is the unit vector that is normal to the plane that forms a constraint for a convex</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="Offset" type="hsOffsetType">
+        <xs:annotation>
+          <xs:documentation>The distance along the normal vector where the constraint plane intersects that vector; if positive, the spherical sector on the far side (seen from the center) is selected; if negative, the point of intersection is in the opposite direction of the vector, resulting in more than a hemisphere; the valid range is -1.0 to +1.0</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="convexType">
+    <xs:annotation>
+      <xs:documentation>A convex polygon defined by one or more Constraints</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="shapeType">
+        <xs:sequence>
+          <xs:element name="Halfspace" type="halfspaceType" maxOccurs="unbounded"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="convexHullType">
+    <xs:annotation>
+      <xs:documentation>A convex hull: the smallest convex polygon that contains all its points; in spherical coordinates all points have to be contained within a hemisphere</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="shapeType">
+        <xs:sequence>
+          <xs:element name="Point" type="double3Type" nillable="true" maxOccurs="unbounded"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--A generic sky indexing type-->
+  <xs:complexType name="skyIndexType" abstract="true">
+    <xs:annotation>
+      <xs:documentation>This is a hook for regions defined in sky indexing schemes</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="shapeType"/>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--Boolean operations on regions-->
+  <xs:complexType name="unionType">
+    <xs:annotation>
+      <xs:documentation>The union of two or more regions is a region</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="regionType">
+        <xs:sequence>
+          <xs:element ref="Region" minOccurs="2" maxOccurs="unbounded"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="intersectionType">
+    <xs:annotation>
+      <xs:documentation>The intersection of two or more regions is a region</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="regionType">
+        <xs:sequence>
+          <xs:element ref="Region" minOccurs="2" maxOccurs="unbounded"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="negationType">
+    <xs:annotation>
+      <xs:documentation>The negation of a region is a region</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="regionType">
+        <xs:sequence>
+          <xs:element ref="Region"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="diffType">
+    <xs:annotation>
+      <xs:documentation>The difference of two regions (Region1 minus Region2) is a region; it is equivalent to the intersection of Region1 with notRegion2</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="regionType">
+        <xs:sequence>
+          <xs:element ref="Region"/>
+          <xs:element ref="Region2"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <!-- Region itself; it's either a Shape or a the result of a Boolean operation-->
+  <xs:element name="Region" type="regionType" substitutionGroup="PositionInterval" nillable="true">
+    <xs:annotation>
+      <xs:documentation>Head element of the Region substitution group; a Region is a Shape or the result of a Region Operation on one or more Regions</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <!--The three operators (Intersection, Union, Negation) can be substituted for Region-->
+  <xs:element name="Intersection" type="intersectionType" substitutionGroup="Region" nillable="true">
+    <xs:annotation>
+      <xs:documentation>The intersection of two or more regions is a region</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Union" type="unionType" substitutionGroup="Region" nillable="true">
+    <xs:annotation>
+      <xs:documentation>The union of two or more regions is a region</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Negation" type="negationType" substitutionGroup="Region" nillable="true">
+    <xs:annotation>
+      <xs:documentation>The negation of a region is a region</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Difference" type="diffType" substitutionGroup="Region" nillable="true">
+    <xs:annotation>
+      <xs:documentation>The difference of two regions (Region1 minus Region2) is a region; it is equivalent to the intersection of Region1 with notRegion2</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <!--Here are element definitions so Circle, Ellipse, Polygon, and Sector can be substituted for Shape-->
+  <xs:element name="AllSky" type="allSkyType" substitutionGroup="Region" nillable="true">
+    <xs:annotation>
+      <xs:documentation>AllSky is just a convenience, meaning no bounds</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Circle" type="circleType" substitutionGroup="Region" nillable="true">
+    <xs:annotation>
+      <xs:documentation>The circle is defined by a center and a radius</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Ellipse" type="ellipseType" substitutionGroup="Region" nillable="true">
+    <xs:annotation>
+      <xs:documentation>Ellipse is an extension of the circle shape, with a minor axis radius and position angle</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Polygon" type="polygonType" substitutionGroup="Region" nillable="true">
+    <xs:annotation>
+      <xs:documentation>A polygon is a shape delineated by a list of vertices connected with lines, great circles, or small circles; the inside of the polygon is circumscribed counter-clockwise by the list of vertices; the polygon may be concave but not self-intersecting; the last vertex in the list is the predecessor of the first.  For celestial coordinates it is assumed that we are looking at the sphere from the inside, with Right Ascension increasing to the left. Sides should span less than 180 deg in each coordinate.</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Box" type="boxType" substitutionGroup="Region" nillable="true">
+    <xs:annotation>
+      <xs:documentation>A box is a rectangle; the midpoints of its sides are the endpoints of a cross centered on the center position with arms that extend half the size for each coordinate in both directions, and the sides are lines or great circles that intersect the cross at its end points at right angles; the arms of the cross are parallel to the coordinate axes at the center point.</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Sector" type="sectorType" substitutionGroup="Region" nillable="true">
+    <xs:annotation>
+      <xs:documentation>A sector selects the area between two half great circles or half lines meeting in a specified point</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Convex" type="convexType" substitutionGroup="Region" nillable="true">
+    <xs:annotation>
+      <xs:documentation>A convex is defined as the intersection of one or more half-plane constraints with the unit sphere; this may also be described as the union of one or more convex polygons bounded by one or more constraint planes</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="ConvexHull" type="convexHullType" substitutionGroup="Region" nillable="true">
+    <xs:annotation>
+      <xs:documentation>A convex hull is the convex polygon that contains all of the specified positions; the points have to be constrained to lie in one hemisphere</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="SkyIndex" type="skyIndexType" substitutionGroup="Region" nillable="true">
+    <xs:annotation>
+      <xs:documentation>A shape defined through a sky indexing scheme; this is really a substitution group for concrete implementations</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <!-- This is a substitution group for a second Region: Region2; it's either a Shape or a the result of a Boolean operation-->
+  <xs:element name="Region2" type="regionType" substitutionGroup="PositionInterval" nillable="true">
+    <xs:annotation>
+      <xs:documentation>Head element of the Region2 substitution group; a Region is a Shape or the result of a Region Operation on one or more Regions</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <!--The three operators (Intersection, Union, Negation) can be substituted for Region-->
+  <xs:element name="Intersection2" type="intersectionType" substitutionGroup="Region2" nillable="true">
+    <xs:annotation>
+      <xs:documentation>The intersection of two or more regions is a region</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Union2" type="unionType" substitutionGroup="Region2" nillable="true">
+    <xs:annotation>
+      <xs:documentation>The union of two or more regions is a region</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Negation2" type="negationType" substitutionGroup="Region2" nillable="true">
+    <xs:annotation>
+      <xs:documentation>The negation of a region is a region</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Difference2" type="diffType" substitutionGroup="Region2" nillable="true">
+    <xs:annotation>
+      <xs:documentation>The difference of two regions (Region1 minus Region2) is a region; it is equivalent to the intersection of Region1 with notRegion2</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <!--Here are element definitions so Circle, Ellipse, Polygon, and Sector can be substituted for Shape-->
+  <xs:element name="AllSky2" type="allSkyType" substitutionGroup="Region2" nillable="true">
+    <xs:annotation>
+      <xs:documentation>AllSky is just a convenience, meaning no bounds</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Circle2" type="circleType" substitutionGroup="Region2" nillable="true">
+    <xs:annotation>
+      <xs:documentation>The circle is defined by a center and a radius</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Ellipse2" type="ellipseType" substitutionGroup="Region2" nillable="true">
+    <xs:annotation>
+      <xs:documentation>Ellipse is an extension of the circle shape, with a minor axis radius and position angle</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Polygon2" type="polygonType" substitutionGroup="Region2" nillable="true">
+    <xs:annotation>
+      <xs:documentation>A polygon is a shape delineated by a list of vertices connected with lines, great circles, or small circles; the inside of the polygon is circumscribed counter-clockwise by the list of vertices; the polygon may be concave but not self-intersecting; the last vertex in the list is the predecessor of the first.  For celestial coordinates it is assumed that we are looking at the sphere from the inside, with Right Ascension increasing to the left. Sides should span less than 180 deg in each coordinate.</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Box2" type="boxType" substitutionGroup="Region2" nillable="true">
+    <xs:annotation>
+      <xs:documentation>A box is a rectangle; the midpoints of its sides are the endpoints of a cross centered on the center position with arms that extend half the size for each coordinate in both directions, and the sides are lines or great circles that intersect the cross at its end points at right angles; the arms of the cross are parallel to the coordinate axes at the center point.</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Sector2" type="sectorType" substitutionGroup="Region2" nillable="true">
+    <xs:annotation>
+      <xs:documentation>A sector selects the area between two half great circles or half lines meeting in a specified point</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Convex2" type="convexType" substitutionGroup="Region2" nillable="true">
+    <xs:annotation>
+      <xs:documentation>A convex is defined as the intersection of one or more half-plane constraints with the unit sphere; this may also be described as the union of one or more convex polygons bounded by one or more constraint planes</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="ConvexHull2" type="convexHullType" substitutionGroup="Region2" nillable="true">
+    <xs:annotation>
+      <xs:documentation>A convex hull is the convex polygon that contains all of the specified positions; the points have to be constrained to lie in one hemisphere</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="SkyIndex2" type="skyIndexType" substitutionGroup="Region2" nillable="true">
+    <xs:annotation>
+      <xs:documentation>A shape defined through a sky indexing scheme; this is really a substitution group for concrete implementations</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <!--  ###################  End of the former region.xsd -->
+  <!--Types for CoordArea-->
+  <xs:complexType name="coordIntervalType">
+    <xs:annotation>
+      <xs:documentation>Abstact coordinate interval type</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="stcBaseType">
+        <xs:attribute name="lo_include" type="xs:boolean" default="true">
+          <xs:annotation>
+            <xs:documentation>Limit to be included?</xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="hi_include" type="xs:boolean" default="true">
+          <xs:annotation>
+            <xs:documentation>Limit to be included?</xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="fill_factor" type="xs:float" use="optional" default="1.0">
+          <xs:annotation>
+            <xs:documentation>Fraction of interval that is occupied by data</xs:documentation>
+          </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="frame_id" type="xs:IDREF" use="optional"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="timeIntervalType">
+    <xs:annotation>
+      <xs:documentation>The time interval needs to contain a start time or a stop time or both; it needs to refer to a coordinate system; boundaries may or may not be inclusive</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="coordIntervalType">
+        <xs:sequence>
+          <xs:element name="StartTime" type="astronTimeType" nillable="true" minOccurs="0">
+            <xs:annotation>
+              <xs:documentation>astronTime may be expressed in ISO8601 or as a double relative to a reference time</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element name="StopTime" type="astronTimeType" nillable="true" minOccurs="0">
+            <xs:annotation>
+              <xs:documentation>astronTime may be expressed in ISO8601 or as a double relative to a reference time</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="coordScalarIntervalType">
+    <xs:annotation>
+      <xs:documentation>Scalar coordinate interval type</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="coordIntervalType">
+        <xs:sequence>
+          <xs:element name="LoLimit" type="double1Type" nillable="true" minOccurs="0">
+            <xs:annotation>
+              <xs:documentation>Lower bound of interval</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element name="HiLimit" type="double1Type" nillable="true" minOccurs="0">
+            <xs:annotation>
+              <xs:documentation>Upper bound of interval</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="coord2VecIntervalType">
+    <xs:annotation>
+      <xs:documentation>2-D coordinate interval type</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="coordIntervalType">
+        <xs:sequence>
+          <xs:element name="LoLimit2Vec" type="double2Type" nillable="true" minOccurs="0"/>
+          <xs:element name="HiLimit2Vec" type="double2Type" nillable="true" minOccurs="0"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="coord3VecIntervalType">
+    <xs:annotation>
+      <xs:documentation>3-D coordinate interval type</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="coordIntervalType">
+        <xs:sequence>
+          <xs:element name="LoLimit3Vec" type="double3Type" nillable="true" minOccurs="0"/>
+          <xs:element name="HiLimit3Vec" type="double3Type" nillable="true" minOccurs="0"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="uCoordScalarIntervalType">
+    <xs:annotation>
+      <xs:documentation>Scalar coordinate interval type with units and frame_id</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="coordIntervalType">
+        <xs:sequence>
+          <xs:element name="LoLimit" type="double1Type" nillable="true" minOccurs="0">
+            <xs:annotation>
+              <xs:documentation>Lower bound of interval</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element name="HiLimit" type="double1Type" nillable="true" minOccurs="0">
+            <xs:annotation>
+              <xs:documentation>Upper bound of interval</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+        </xs:sequence>
+        <xs:attribute name="unit" type="unitType" use="optional"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="uCoord2VecIntervalType">
+    <xs:annotation>
+      <xs:documentation>2-D coordinate interval type with units and frame_id</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="coordIntervalType">
+        <xs:sequence>
+          <xs:element name="LoLimit2Vec" type="double2Type" nillable="true" minOccurs="0"/>
+          <xs:element name="HiLimit2Vec" type="double2Type" nillable="true" minOccurs="0"/>
+        </xs:sequence>
+        <xs:attribute name="unit" type="unitType" use="optional"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="uCoord3VecIntervalType">
+    <xs:annotation>
+      <xs:documentation>3-D coordinate interval type with units and frame_id</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="coordIntervalType">
+        <xs:sequence>
+          <xs:element name="LoLimit3Vec" type="double3Type" nillable="true" minOccurs="0"/>
+          <xs:element name="HiLimit3Vec" type="double3Type" nillable="true" minOccurs="0"/>
+        </xs:sequence>
+        <xs:attribute name="unit" type="unitType" use="optional"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="spatialIntervalType" abstract="true">
+    <xs:annotation>
+      <xs:documentation>Abstract spatial interval type</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="coordIntervalType">
+        <xs:attribute name="epoch" type="xs:decimal" use="optional"/>
+        <xs:attribute name="unit" type="posUnitType" use="optional"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="posScalarIntervalType">
+    <xs:annotation>
+      <xs:documentation>Scalar coordinate interval type</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="spatialIntervalType">
+        <xs:sequence>
+          <xs:element name="LoLimit" type="double1Type" nillable="true" minOccurs="0">
+            <xs:annotation>
+              <xs:documentation>Lower bound of interval</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element name="HiLimit" type="double1Type" nillable="true" minOccurs="0">
+            <xs:annotation>
+              <xs:documentation>Upper bound of interval</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="pos2VecIntervalType">
+    <xs:annotation>
+      <xs:documentation>2-D coordinate interval type</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="spatialIntervalType">
+        <xs:sequence>
+          <xs:element name="LoLimit2Vec" type="double2Type" nillable="true" minOccurs="0"/>
+          <xs:element name="HiLimit2Vec" type="double2Type" nillable="true" minOccurs="0"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="pos3VecIntervalType">
+    <xs:annotation>
+      <xs:documentation>3-D coordinate interval type</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="spatialIntervalType">
+        <xs:sequence>
+          <xs:element name="LoLimit3Vec" type="double3Type" nillable="true" minOccurs="0"/>
+          <xs:element name="HiLimit3Vec" type="double3Type" nillable="true" minOccurs="0"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="velocityIntervalType" abstract="true">
+    <xs:annotation>
+      <xs:documentation>Contains a spatial velocity CoordInterval</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="spatialIntervalType">
+        <xs:attribute name="vel_time_unit" type="velTimeUnitType" use="required"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="velScalarIntervalType">
+    <xs:annotation>
+      <xs:documentation>Scalar coordinate interval type</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="velocityIntervalType">
+        <xs:sequence>
+          <xs:element name="LoLimit" type="double1Type" nillable="true" minOccurs="0">
+            <xs:annotation>
+              <xs:documentation>Lower bound of interval</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element name="HiLimit" type="double1Type" nillable="true" minOccurs="0">
+            <xs:annotation>
+              <xs:documentation>Upper bound of interval</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="vel2VecIntervalType">
+    <xs:annotation>
+      <xs:documentation>2-D coordinate interval type</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="velocityIntervalType">
+        <xs:sequence>
+          <xs:element name="LoLimit2Vec" type="double2Type" nillable="true" minOccurs="0"/>
+          <xs:element name="HiLimit2Vec" type="double2Type" nillable="true" minOccurs="0"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="vel3VecIntervalType">
+    <xs:annotation>
+      <xs:documentation>3-D coordinate interval type</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="velocityIntervalType">
+        <xs:sequence>
+          <xs:element name="LoLimit3Vec" type="double3Type" nillable="true" minOccurs="0"/>
+          <xs:element name="HiLimit3Vec" type="double3Type" nillable="true" minOccurs="0"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="CoordInterval" type="coordIntervalType" nillable="true">
+    <xs:annotation>
+      <xs:documentation>The 1-, 2-, or 3-D coordinate interval substitution group head element; such an element needs to contain a minimum or maximum scalar or vector value, or both; it needs to refer to a coordinate system; boundaries may or may not be inclusive; and it can have a fill factor</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="CoordScalarInterval" type="uCoordScalarIntervalType" substitutionGroup="CoordInterval" nillable="true">
+    <xs:annotation>
+      <xs:documentation>An interval in a scalar coordinate</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Coord2VecInterval" type="uCoord2VecIntervalType" substitutionGroup="CoordInterval" nillable="true">
+    <xs:annotation>
+      <xs:documentation>An interval ("box") in a 2-D coordinate pair</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Coord3VecInterval" type="uCoord3VecIntervalType" substitutionGroup="CoordInterval" nillable="true">
+    <xs:annotation>
+      <xs:documentation>An interval ("cube") in a 3-D coordinate triplet</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="PixelCoordInterval" type="coordIntervalType" nillable="true">
+    <xs:annotation>
+      <xs:documentation>The 1-, 2-, or 3-D pixel coordinate interval substitution group head element; such an element needs to contain a minimum or maximum scalar or vector value, or both; it needs to refer to a coordinate system; boundaries may or may not be inclusive; and it can have a fill factor</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="PixelCoordScalarInterval" type="coordScalarIntervalType" substitutionGroup="PixelCoordInterval" nillable="true">
+    <xs:annotation>
+      <xs:documentation>An interval in a scalar pixel coordinate</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="PixelCoord2VecInterval" type="coord2VecIntervalType" substitutionGroup="PixelCoordInterval" nillable="true">
+    <xs:annotation>
+      <xs:documentation>An interval ("box") in a 2-D pixel coordinate pair</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="PixelCoord3VecInterval" type="coord3VecIntervalType" substitutionGroup="PixelCoordInterval" nillable="true">
+    <xs:annotation>
+      <xs:documentation>An interval ("cube") in a 3-D pixel coordinate triplet</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="PositionInterval" type="coordIntervalType" nillable="true">
+    <xs:annotation>
+      <xs:documentation>The spatial (position) coordinate interval substitution group head element; such an element needs to contain a minimum or maximum scalar or vector value, or both; it needs to refer to a coordinate system; boundaries may or may not be inclusive; and it can have a fill factor</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="PositionScalarInterval" type="posScalarIntervalType" substitutionGroup="PositionInterval" nillable="true">
+    <xs:annotation>
+      <xs:documentation>An interval in a scalar coordinate</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Position2VecInterval" type="pos2VecIntervalType" substitutionGroup="PositionInterval" nillable="true">
+    <xs:annotation>
+      <xs:documentation>An interval ("box") in a 2-D coordinate pair</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Position3VecInterval" type="pos3VecIntervalType" substitutionGroup="PositionInterval" nillable="true">
+    <xs:annotation>
+      <xs:documentation>An interval ("cube") in a 3-D coordinate triplet</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="VelocityInterval" type="coordIntervalType" nillable="true">
+    <xs:annotation>
+      <xs:documentation>The spatial (velocity) coordinate interval substitution group head element; such an element needs to contain a minimum or maximum scalar or vector value, or both; it needs to refer to a coordinate system; boundaries may or may not be inclusive; and it can have a fill factor</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="VelocityScalarInterval" type="velScalarIntervalType" substitutionGroup="VelocityInterval" nillable="true">
+    <xs:annotation>
+      <xs:documentation>An interval in a scalar coordinate</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Velocity2VecInterval" type="vel2VecIntervalType" substitutionGroup="VelocityInterval" nillable="true">
+    <xs:annotation>
+      <xs:documentation>An interval ("box") in a 2-D coordinate pair</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="Velocity3VecInterval" type="vel3VecIntervalType" substitutionGroup="VelocityInterval" nillable="true">
+    <xs:annotation>
+      <xs:documentation>An interval ("cube") in a 3-D coordinate triplet</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:complexType name="sphereType">
+    <xs:annotation>
+      <xs:documentation>Defines a sphere.  A special kind of area is a circle or sphere (in two or three dimensions), defined by a center position and a radius; the radius requires a unit</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="spatialIntervalType">
+        <xs:sequence>
+          <xs:element name="Radius" type="double1Type" nillable="true"/>
+          <xs:element name="Center" type="double3Type" nillable="true"/>
+        </xs:sequence>
+        <xs:attribute name="radius_unit" type="posUnitType" use="optional" default="deg"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="velocitySphereType">
+    <xs:annotation>
+      <xs:documentation>Defines a velocity sphere</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="velocityIntervalType">
+        <xs:annotation>
+          <xs:documentation>A special kind of area is a circle or sphere (in two or three dimensions), defined by a center position and a radius; the radius requires a unit</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+          <xs:element name="Radius" type="double1Type" nillable="true"/>
+          <xs:element name="Center" type="double3Type" nillable="true"/>
+        </xs:sequence>
+        <xs:attribute name="radius_unit" type="posUnitType" use="optional" default="deg"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="regionFileType">
+    <xs:annotation>
+      <xs:documentation>Points to a Region file</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="spatialIntervalType">
+        <xs:sequence>
+          <xs:element name="File" type="xs:anyURI"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <!-- CoordArea -->
+  <xs:element name="Sphere" type="sphereType" substitutionGroup="PositionInterval" nillable="true">
+    <xs:annotation>
+      <xs:documentation>Defines a sphere (3-D) region for spatial coordinates; contains a center position and a radius</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="RegionFile" type="regionFileType" substitutionGroup="PositionInterval" nillable="true">
+    <xs:annotation>
+      <xs:documentation>A region as defined in a FITS region file</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="VelocitySphere" type="velocitySphereType" substitutionGroup="VelocityInterval" nillable="true">
+    <xs:annotation>
+      <xs:documentation>Defines a sphere (3-D) region for velocity coordinates; contains a center position and a radius</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:complexType name="spectralIntervalType">
+    <xs:annotation>
+      <xs:documentation>Contains a 1-D spectral interval</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="coordScalarIntervalType">
+        <xs:attribute name="unit" type="spectralUnitType" use="required"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="redshiftIntervalType">
+    <xs:annotation>
+      <xs:documentation>Contains a 1-D redshift interval; position and time units are required if redshifts are expressed as Doppler velocities</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="coordScalarIntervalType">
+        <xs:attribute name="unit" type="posUnitType" use="optional"/>
+        <xs:attribute name="vel_time_unit" type="velTimeUnitType" use="optional"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="coordAreaType">
+    <xs:annotation>
+      <xs:documentation>Generalized coordinate area type</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="stcBaseType">
+        <xs:sequence minOccurs="0" maxOccurs="unbounded">
+          <xs:element ref="CoordInterval"/>
+        </xs:sequence>
+        <xs:attribute name="coord_system_id" type="xs:IDREF" use="required"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="pixelCoordAreaType">
+    <xs:annotation>
+      <xs:documentation>Pixel area type</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="coordAreaType">
+        <xs:sequence minOccurs="0" maxOccurs="unbounded">
+          <xs:element ref="PixelCoordInterval"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="astroCoordAreaType">
+    <xs:annotation>
+      <xs:documentation>Astronomical area type</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="coordAreaType">
+        <xs:sequence>
+          <xs:element name="TimeInterval" type="timeIntervalType" nillable="true" minOccurs="0" maxOccurs="unbounded"/>
+          <xs:element ref="PositionInterval" minOccurs="0"/>
+          <xs:element ref="VelocityInterval" minOccurs="0" maxOccurs="unbounded"/>
+          <xs:element name="SpectralInterval" type="spectralIntervalType" nillable="true" minOccurs="0" maxOccurs="unbounded"/>
+          <xs:element name="RedshiftInterval" type="redshiftIntervalType" nillable="true" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="CoordArea" type="coordAreaType" nillable="true">
+    <xs:annotation>
+      <xs:documentation>General coordinate area description; head element but not abstract</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="AstroCoordArea" type="astroCoordAreaType" substitutionGroup="CoordArea" nillable="true">
+    <xs:annotation>
+      <xs:documentation>Astronomical coordinate volume</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="PixelCoordArea" type="pixelCoordAreaType" substitutionGroup="CoordArea" nillable="true">
+    <xs:annotation>
+      <xs:documentation>Pixel space bounds</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <!-- Toplevel: STCmetadata contains a choice of: ResourceProfile, SearchLocation, CatalogEntryLocation, and
+ObservationLocation plus ObservatoryLocation elements -->
+  <xs:complexType name="stcMetadataType">
+    <xs:annotation>
+      <xs:documentation>Abstract stcMetadata type</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="stcBaseType"/>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="stcDescriptionType">
+    <xs:annotation>
+      <xs:documentation>Generalized single stcMetadata type</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="stcMetadataType">
+        <xs:sequence>
+          <xs:element ref="CoordSys" minOccurs="0" maxOccurs="unbounded"/>
+          <xs:element ref="Coords" minOccurs="0" maxOccurs="unbounded"/>
+          <xs:element ref="CoordArea" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="astroSTCDescriptionType">
+    <xs:annotation>
+      <xs:documentation>Type for generic astronomical STC metadata, in particular Resource Profile, Search Location, Catalog Entry.</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:restriction base="stcDescriptionType">
+        <xs:sequence>
+          <xs:sequence minOccurs="0" maxOccurs="unbounded">
+            <xs:element ref="AstroCoordSystem">
+              <xs:annotation>
+                <xs:documentation>The coordinate system definition: spatial coordinate frame and reference position; time frame and reference position; the coordinate flavor; and the planetary ephemeris; an ID is required, since this is how coordinate elements are associated with their coordinate systems</xs:documentation>
+              </xs:annotation>
+            </xs:element>
+          </xs:sequence>
+          <xs:sequence minOccurs="0" maxOccurs="unbounded">
+            <xs:element ref="AstroCoords">
+              <xs:annotation>
+                <xs:documentation>AstroCoords contains information on time and spatial  locations, resolution, errors, and pixelsizes (if fixed); typical best numbers are expected</xs:documentation>
+              </xs:annotation>
+            </xs:element>
+          </xs:sequence>
+          <xs:sequence minOccurs="0" maxOccurs="unbounded">
+            <xs:element ref="AstroCoordArea">
+              <xs:annotation>
+                <xs:documentation>The coverage area of the data; the fill factor does not need to be 1.0</xs:documentation>
+              </xs:annotation>
+            </xs:element>
+          </xs:sequence>
+        </xs:sequence>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="obsDataLocationType">
+    <xs:annotation>
+      <xs:documentation>Type for observational STC metadata</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="stcMetadataType">
+        <xs:sequence>
+          <xs:annotation>
+            <xs:documentation>Describes the spatial and temporal volume covered by an observation</xs:documentation>
+          </xs:annotation>
+          <xs:element name="ObservatoryLocation" type="observatoryLocationType" nillable="true">
+            <xs:annotation>
+              <xs:documentation>Specifies the location of the observatory during the observation</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element name="ObservationLocation" type="astroSTCDescriptionType" nillable="true">
+            <xs:annotation>
+              <xs:documentation>Describes the spatial and temporal coverage of the observation</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element name="PixelSpace" type="pixelSpaceType" nillable="true" minOccurs="0">
+            <xs:annotation>
+              <xs:documentation>Defines the pixel coordinate system for pixelated data</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="observatoryLocationType">
+    <xs:annotation>
+      <xs:documentation>Type for an observatory location</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:restriction base="stcDescriptionType">
+        <xs:sequence>
+          <xs:sequence minOccurs="0" maxOccurs="unbounded">
+            <xs:element ref="AstroCoordSystem"/>
+          </xs:sequence>
+          <xs:sequence minOccurs="0" maxOccurs="unbounded">
+            <xs:element ref="AstroCoords"/>
+          </xs:sequence>
+        </xs:sequence>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="pixelSpaceType">
+    <xs:annotation>
+      <xs:documentation>Type to specify a pixel space</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:restriction base="stcDescriptionType">
+        <xs:sequence>
+          <xs:element ref="PixelCoordSystem"/>
+          <xs:sequence minOccurs="0" maxOccurs="unbounded">
+            <xs:element ref="PixelCoords"/>
+          </xs:sequence>
+          <xs:element ref="PixelCoordArea"/>
+        </xs:sequence>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="STCmetadata" type="stcMetadataType" nillable="true">
+    <xs:annotation>
+      <xs:documentation>Toplevel: Abstract STCmetadata contains a choice of: ResourceProfile, SearchLocation, CatalogEntryLocation, or ObservationLocation plus ObservatoryLocation elements</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="STCDescription" type="astroSTCDescriptionType" substitutionGroup="STCmetadata" nillable="true">
+    <xs:annotation>
+      <xs:documentation>A generic STC metadata description</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="STCResourceProfile" type="astroSTCDescriptionType" substitutionGroup="STCmetadata" nillable="true">
+    <xs:annotation>
+      <xs:documentation>Describes the spatial and temporal coverage of a resource</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="SearchLocation" type="astroSTCDescriptionType" substitutionGroup="STCmetadata" nillable="true">
+    <xs:annotation>
+      <xs:documentation>Defines the spatial and temporal coordinate space specified by a query</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="CatalogEntryLocation" type="astroSTCDescriptionType" substitutionGroup="STCmetadata" nillable="true">
+    <xs:annotation>
+      <xs:documentation>Describes the spatial and temporal coverage of a catalog (fragment) and contains the coordinates of the catalog entries; multiple coordinate systems are allowed</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="ObsDataLocation" type="obsDataLocationType" substitutionGroup="STCmetadata" nillable="true">
+    <xs:annotation>
+      <xs:documentation>Describes the coordinate system used in and coordinate space occupied by a particular observational dataset; it contains an observation location, an observatory location, and optionally a pixel coordinate system</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <!--Following are application level types and associated global elements.
+Using the complexTypes, one can insert a stand-alone STC structure in an document as follows.
+First, incorporated in a schema, declare the namespace and give the schema location:
+<xs:schema xmlns="http://www.ivoa.net/xml/VOEvent/v1.0"
+        xmlns:xs="http://www.w3.org/2001/XMLSchema"
+        xmlns:stc="http://www.ivoa.net/xml/STC/stc-v1.30.xsd"
+        targetNamespace="http://www.ivoa.net/xml/VOEvent/v1.0"
+        elementFormDefault="qualified">
+    <xs:import namespace="http://www.ivoa.net/xml/STC/stc-v1.30.xsd"
+           schemaLocation="http://hea-www.harvard.edu/~arots/nvometa/v1.30/stc-v1.30.xsd"/>
+Then include an STC element in the schema:
+    <xs:element name="WhereWhen">
+      <xs:complexType>
+        <xs:all>
+          <xs:element ref="ObsDataLocation" minOccurs="0"/>
+        </xs:all>
+      </xs:complexType>
+    </xs:element>
+</xs:schema>
+In an instance document:
+<?xml version="1.0" encoding="UTF-8"?>
+<VOEvent id="ivo://raptor.lanl/VOEvent#235649409" role="observation" version="1.0"
+      xmlns="http://www.ivoa.net/xml/VOEvent/v1.0"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  
+      xsi:schemaLocation="http://www.ivoa.net/xml/VOEvent/v1.0          
+      VOEvent-v1.0a.xsd">
+    
+    <WhereWhen>
+      <ObsDataLocation xmlns="http://www.ivoa.net/xml/STC/stc-v1.30.xsd"
+        xmlns:xlink="http://www.w3.org/1999/xlink"
+        xsi:schemaLocation=
+        "http://www.ivoa.net/xml/STC/stc-v1.30.xsd 
+        http://hea-www.harvard.edu/~arots/nvometa/v1.30/stc-v1.30.xsd">
+        <ObservatoryLocation id="KPNO" xlink:type="simple"
+          xlink:href="ivo://STClib/Observatories#KPNO"/>
+        <ObservationLocation>
+          <AstroCoordSystem id="FK5-UTC-TOPO" xlink:type="simple"
+            xlink:href="ivo://STClib/CoordSys#TT-ICRS-TOPO"/>
+          <AstroCoords coord_system_id="FK5-UTC-TOPO">
+            <Time unit="s">
+              <TimeInstant>
+                <ISOTime>2005-04-15T23:59:59</ISOTime>
+              </TimeInstant>
+              <Error>1.0</Error>
+            </Time>
+            <Position2D unit="deg">
+              <Value2> 
+                <C1>148.88821</C1>
+                <C2>69.06529</C2>
+              </Value2>
+              <Error2Radius>0.03</Error2Radius>
+            </Position2D>
+          </AstroCoords>
+        </ObservationLocation>
+      </ObsDataLocation>
+    </WhereWhen>
+</VOEvent>
+
+Or, alternatively, using a single STC type to generate a document:
+<?xml version="1.0" encoding="utf-8"?>
+    <MySTC xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.ivoa.net/xml/STC/stc-v1.30.xsd" 
+        xmlns:xlink="http://www.w3.org/1999/xlink" 
+        xsi:schemaLocation="http://www.ivoa.net/xml/STC/stc-v1.30.xsd stc-v1.30.xsd" 
+        xsi:type="stcXXXType">
+        ...
+    </MySTC>
+Using the global elements works pretty much in the same way.
+-->
+  <xs:complexType name="STCCoordinate">
+    <xs:annotation>
+      <xs:documentation>Type for STC Coordinate</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="stcMetadataType">
+        <xs:sequence>
+          <xs:element ref="AstroCoordSystem"/>
+          <xs:element ref="AstroCoords"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="STCCoordinateList">
+    <xs:annotation>
+      <xs:documentation>Type for STC Coordinate List</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="stcMetadataType">
+        <xs:sequence>
+          <xs:element ref="AstroCoordSystem"/>
+          <xs:element ref="AstroCoords" maxOccurs="unbounded"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="STCRegion">
+    <xs:annotation>
+      <xs:documentation>Type for STC Region</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="stcMetadataType">
+        <xs:sequence>
+          <xs:element ref="AstroCoordSystem"/>
+          <xs:element ref="Region"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="STCRegionList">
+    <xs:annotation>
+      <xs:documentation>Type for STC Region list</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="stcMetadataType">
+        <xs:sequence>
+          <xs:element ref="AstroCoordSystem"/>
+          <xs:element ref="Region" maxOccurs="unbounded"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+</xs:schema>
