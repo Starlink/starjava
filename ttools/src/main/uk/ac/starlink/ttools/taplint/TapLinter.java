@@ -40,45 +40,16 @@ public class TapLinter {
     private final ObsTapStage obstapStage_;
     private final TapSchemaMetadataHolder tapSchemaMetadata_;
 
-    private static final String XSDS = "http://www.ivoa.net/xml";
-    private static final URL VODATASERVICE_XSD =
-        toUrl( XSDS + "/VODataService/VODataService-v1.1.xsd" );
-    private static final URL AVAILABILITY_XSD =
-        TapLinter.class.getResource( "VOSIAvailability-v1.0.xsd" );
-
-    /* This schema is problematic.  At time of writing, the VOSICapabilities
-     * schema does not appear to be present on the IVOA web site:
-     *     http://www.ivoa.net/xml/VOSICapabilities-v1.0
-     * which it should be.  I'm not sure even that is sufficient, since
-     * the TAPRegExt-specific stuff needs schema pulled in from elsewhere;
-     * the validator does not seem to pull in additional referenced schemas,
-     * so non-monolithic ones don't work (missing names).
-     * For that reason (I think) using a local copy, which is what is
-     * done now, doesn't work either.
-     * I also tried using this:
-     *     http://www.ivoa.net/xml/TAPRegExt/v1.0
-     * but that doesn't have the capabilities stuff.
-     * Probably the right thing is to tell the validator explicitly where
-     * all the schemas are, perhaps using local copies.
-     * However, both navigating the tree of required schemas for each of
-     * the required validation steps, and working out how to configure the
-     * generic javax.xml.validation framework to use them correclty, are
-     * both complicated jobs.  Since it's only one, fairly unimportant
-     * XSD validation step (serious errors will likely get caught by the
-     * manual CAP validation), leave this for now - the corresponding
-     * stage (CPV) is currently turned off by default. */
-    private static final URL CAPABILITIES_XSD =
-        TapLinter.class.getResource( "VOSICapabilities-v1.0.xsd" );
-
     /**
      * Constructor.
      */
     public TapLinter() {
 
         /* Create all known validation stages. */
-        tmetaXsdStage_ = XsdStage
-                        .createXsdStage( VODATASERVICE_XSD, "/tables", false,
-                                         "table metadata" );
+        tmetaXsdStage_ =
+            XsdStage.createXsdStage( IvoaSchemaResolver.VODATASERVICE_URI,
+                                     "tableset", "/tables", false,
+                                     "table metadata" );
         tmetaStage_ = new TablesEndpointStage();
         tapSchemaStage_ =
             new TapSchemaStage( VotLintTapRunner.createGetSyncRunner( true ) );
@@ -96,13 +67,15 @@ public class TapLinter {
         } );
         cfTmetaStage_ = CompareMetadataStage
                        .createStage( tmetaStage_, tapSchemaStage_ );
-        tcapXsdStage_ = XsdStage
-                       .createXsdStage( CAPABILITIES_XSD, "/capabilities", true,
-                                        "capabilities" );
+        tcapXsdStage_ =
+            XsdStage.createXsdStage( IvoaSchemaResolver.CAPABILITIES_URI,
+                                     "capabilities", "/capabilities", true,
+                                     "capabilities" );
         tcapStage_ = new CapabilityStage();
-        availXsdStage_ = XsdStage
-                        .createXsdStage( AVAILABILITY_XSD, "/availability",
-                                         false, "availability" );
+        availXsdStage_ =
+            XsdStage.createXsdStage( IvoaSchemaResolver.AVAILABILITY_URI,
+                                     "availability", "/availability", false,
+                                     "availability" );
         getQueryStage_ =
             new QueryStage( VotLintTapRunner.createGetSyncRunner( true ),
                             metaHolder, tcapStage_ );
@@ -133,7 +106,7 @@ public class TapLinter {
         stageSet_.add( "TME", tmetaStage_, true );
         stageSet_.add( "TMS", tapSchemaStage_, true );
         stageSet_.add( "TMC", cfTmetaStage_, true );
-        stageSet_.add( "CPV", tcapXsdStage_, false );
+        stageSet_.add( "CPV", tcapXsdStage_, true );
         stageSet_.add( "CAP", tcapStage_, true );
         stageSet_.add( "AVV", availXsdStage_, true );
         stageSet_.add( "QGE", getQueryStage_, true );

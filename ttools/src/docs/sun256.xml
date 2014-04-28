@@ -8547,6 +8547,15 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
             column list query is not truncated.</li>
         <li><code>taplint</code> now flags absence of ObsCore table with
             I[nfo] not F[ailure] status.</li>
+        <li>Change the implementation of <code>taplint</code> stages which
+            perform validation against XSD schemas.
+            Schemas from external namespaces may now be imported and used.
+            The CPV stage, which was previously broken and disabled by default,
+            is now fixed and enabled by default.
+            Known/expected schemas are stored locally, and a warning is
+            reported if external ones are used.  Schema validation seems
+            remarkably complicated, so it's possible there are still errors
+            in this implementation - if you suspect so, please report it.</li>
         </ul>
         </p></dd>
 
