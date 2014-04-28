@@ -41,13 +41,14 @@ public class ReporterErrorHandler implements ErrorHandler {
      */
     public String getSummary() {
         return new StringBuffer()
-            .append( "warnings: " )
+            .append( "SAX report: " )
+            .append( "warnings " )
             .append( warningCount_ )
             .append( ", " )
-            .append( "errors: " )
+            .append( "errors " )
             .append( errorCount_ )
             .append( ", " )
-            .append( "fatal: " )
+            .append( "fatal " )
             .append( fatalCount_ )
             .toString();
     }

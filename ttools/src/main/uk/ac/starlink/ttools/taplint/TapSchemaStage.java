@@ -152,7 +152,7 @@ public class TapSchemaStage extends TableMetadataStage {
      */
     private int getRowCount( Reporter reporter, URL serviceUrl,
                              TapRunner tapRunner, String tname ) {
-        String adql = "SELECT COUNT(*) FROM " + tname + " AS nr";
+        String adql = "SELECT COUNT(*) AS nr FROM " + tname;
         TapQuery tq = new TapQuery( serviceUrl, adql, null );
         StarTable result = tapRunner.getResultTable( reporter, tq );
         if ( result != null ) {
