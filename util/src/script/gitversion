@@ -25,8 +25,8 @@
 sha=`git show -s --format=%h`
 
 # Get approximate date (no time, no timezone) of latest commit.
-# This is the author, not the committer date - I think that makes sense?
-date=`git show -s --format=%ai | sed 's/ .*//'`
+# This is the committer, not the author date.
+date=`git show -s --format=%ci | sed 's/ .*//'`
 
 # Work out if the current status is modified from the latest commit.
 if git status --porcelain | grep -q '^[MADRU ][MADRU ]'
