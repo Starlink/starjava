@@ -20028,6 +20028,8 @@ introduced since the last version:
     <li>Form configuration options are now preserved, rather than reset,
         when a new table is selected in one of the plot windows.</li>
     <li>Fixed some bugs related to TAP table uploads.</li>
+    <li>Use RegTAP as (default) alternative to RI1.0 for registry queries
+        (user documentation not yet updated).</li>
     </ul>
     </p></dd>
 
