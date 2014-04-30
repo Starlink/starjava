@@ -79,7 +79,7 @@ public class RegQuery extends ConsumerTask {
             "<ul>",
             "<li><code>" + Ri1RegistryQuery.AG_REG + "</code></li>",
             "<li><code>" + Ri1RegistryQuery.EUROVO_REG + "</code></li>",
-            "<li><code>" + Ri1RegistryQuery.NVO_REG + "</code></li>",
+            "<li><code>" + Ri1RegistryQuery.VAO_REG + "</code></li>",
             "</ul>",
             "</p>",
         } );
