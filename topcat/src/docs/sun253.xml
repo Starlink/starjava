@@ -20030,6 +20030,8 @@ introduced since the last version:
     <li>Fixed some bugs related to TAP table uploads.</li>
     <li>Use RegTAP as (default) alternative to RI1.0 for registry queries
         (user documentation not yet updated).</li>
+    <li>Update the endpoint for the NVO/VAO RI1.0 registry, on advice from
+        Theresa Dower.</li>
     </ul>
     </p></dd>
 

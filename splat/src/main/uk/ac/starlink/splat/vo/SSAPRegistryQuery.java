@@ -63,8 +63,8 @@ public class SSAPRegistryQuery {
     /** Endpoint for secondary AstroGrid registry. */
     public static final String AG_REG2;
 
-    /** Endpoint for NVO registry. */
-    public static final String NVO_REG;
+    /** Endpoint for VAO registry. */
+    public static final String VAO_REG;
 
     /** Endpoint for Euro-VO registry. */
     public static final String EUROVO_REG;
@@ -75,7 +75,7 @@ public class SSAPRegistryQuery {
                + "astrogrid-registry/services/RegistryQueryv1_0",
         AG_REG2 = "http://alt.registry.astrogrid.org/"
                + "astrogrid-registry/services/RegistryQueryv1_0",
-        NVO_REG = "http://nvo.stsci.edu/vor10/ristandardservice.asmx",
+        VAO_REG = "http://vao.stsci.edu/directory/ristandardservice.asmx",
         EUROVO_REG = "http://registry.euro-vo.org/services/RegistrySearch",
     };
 
