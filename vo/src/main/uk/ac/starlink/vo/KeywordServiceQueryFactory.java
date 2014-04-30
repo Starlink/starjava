@@ -14,9 +14,12 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
+import uk.ac.starlink.util.gui.RenderingComboBox;
+import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 /**
  * RegistryQueryFactory implementation which combines a fixed base query
@@ -29,7 +32,7 @@ public class KeywordServiceQueryFactory implements RegistryQueryFactory {
 
     private final Capability capability_;
     private final JComponent queryPanel_;
-    private final RegistrySelector urlSelector_;
+    private final RegistrySelector regSelector_;
     private final JTextField keywordField_;
     private final JButton andButton_;
     private final Map<ResourceField,JCheckBox> fieldSelMap_;
@@ -43,10 +46,42 @@ public class KeywordServiceQueryFactory implements RegistryQueryFactory {
      */
     public KeywordServiceQueryFactory( Capability capability ) {
         capability_ = capability;
+
+        /* Registry endpoint selector. */
+        regSelector_ = new RegistrySelector();
+
+        /* Registry protocol selector. */
+        final JComboBox protoSelector = new RenderingComboBox() {
+            protected String getRendererText( Object item ) {
+                return ((RegistrySelectorModel) item).getProtocol()
+                                                     .getShortName();
+            }
+        };
+        for ( RegistryProtocol proto :
+              Arrays.asList( RegistryProtocol.PROTOCOLS ) ) {
+            protoSelector.addItem( new RegistrySelectorModel( proto ) );
+        }
+        protoSelector.addActionListener( new ActionListener() {
+            public void actionPerformed( ActionEvent evt ) {
+                regSelector_.setModel( (RegistrySelectorModel)
+                                       protoSelector.getSelectedItem() );
+            }
+        } ); 
+        protoSelector.setToolTipText( "Registry access protocol" );
+        protoSelector.setSelectedItem( protoSelector.getItemAt( 0 ) );
+
+        /* Place registry selection components. */
+        JComponent urlLine = Box.createHorizontalBox();
+        urlLine.add( regSelector_ );
+        urlLine.add( Box.createHorizontalStrut( 5 ) );
+        urlLine.add( new ShrinkWrapper( protoSelector ) );
+
+        /* Prepare panel. */
         queryPanel_ = new Box( BoxLayout.Y_AXIS ) {
             public void setEnabled( boolean enabled ) {
                 super.setEnabled( enabled );
-                urlSelector_.setEnabled( enabled );
+                regSelector_.setEnabled( enabled );
+                protoSelector.setEnabled( enabled );
                 keywordField_.setEnabled( enabled );
                 andButton_.setEnabled( enabled );
                 for ( JCheckBox button : fieldSelMap_.values() ) {
@@ -54,11 +89,6 @@ public class KeywordServiceQueryFactory implements RegistryQueryFactory {
                 }
             }
         };
-
-        /* Registry endpoint selector. */
-        JComponent urlLine = Box.createHorizontalBox();
-        urlSelector_ = new RegistrySelector();
-        urlLine.add( urlSelector_ );
         queryPanel_.add( urlLine );
         queryPanel_.add( Box.createVerticalStrut( 5 ) );
 
@@ -135,7 +165,7 @@ public class KeywordServiceQueryFactory implements RegistryQueryFactory {
                 rfList.add( rf );
             }
         }
-        RegistryProtocol proto = urlSelector_.getModel().getProtocol();
+        RegistryProtocol proto = regSelector_.getModel().getProtocol();
         ResourceField[] fields = rfList.toArray( new ResourceField[ 0 ] );
         return proto.createKeywordQuery( keywords, fields, or_, capability_,
                                          getUrl() );
@@ -143,7 +173,7 @@ public class KeywordServiceQueryFactory implements RegistryQueryFactory {
 
     public RegistryQuery getIdListQuery( String[] ivoids )
             throws MalformedURLException {
-        RegistryProtocol proto = urlSelector_.getModel().getProtocol();
+        RegistryProtocol proto = regSelector_.getModel().getProtocol();
         return proto.createIdListQuery( ivoids, capability_, getUrl() );
     }
 
@@ -160,7 +190,7 @@ public class KeywordServiceQueryFactory implements RegistryQueryFactory {
     }
 
     public RegistrySelector getRegistrySelector() {
-        return urlSelector_;
+        return regSelector_;
     }
 
     /**
@@ -169,6 +199,6 @@ public class KeywordServiceQueryFactory implements RegistryQueryFactory {
      * @return   registry URL
      */
     private URL getUrl() throws MalformedURLException {
-        return new URL( urlSelector_.getUrl() );
+        return new URL( regSelector_.getUrl() );
     }
 }

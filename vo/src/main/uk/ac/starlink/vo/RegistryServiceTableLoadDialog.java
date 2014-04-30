@@ -7,23 +7,18 @@ import java.awt.Dimension;
 import java.awt.event.KeyEvent;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
-import javax.swing.ButtonGroup;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JMenuBar;
 import javax.swing.JPanel;
-import javax.swing.JRadioButtonMenuItem;
 import javax.swing.ListSelectionModel;
 import javax.swing.border.Border;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import uk.ac.starlink.table.gui.AbstractTableLoadDialog;
 
 /**
@@ -75,28 +70,6 @@ public abstract class RegistryServiceTableLoadDialog
         List<JMenuItem> menuItemList = new ArrayList<JMenuItem>();
         final RegistrySelector regSel = queryFactory.getRegistrySelector();
         menuItemList.add( new JMenuItem( regSel.getRegistryUpdateAction() ) );
-
-        /* Prepare menu items for changing registry protocol. */
-        ButtonGroup bgrp = new ButtonGroup();
-        for ( RegistryProtocol proto :
-              Arrays.asList( RegistryProtocol.PROTOCOLS ) ) {
-            final RegistrySelectorModel model =
-                new RegistrySelectorModel( proto );
-            final JRadioButtonMenuItem butt =
-                new JRadioButtonMenuItem( proto.getShortName() + " protocol" );
-            butt.setToolTipText( "Use " + proto.getFullName()
-                               + " as registry access protocol" );
-            butt.addChangeListener( new ChangeListener() {
-                public void stateChanged( ChangeEvent evt ) {
-                    if ( butt.isSelected() ) {
-                        regSel.setModel( model );
-                    }
-                }
-            } );
-            menuItemList.add( butt );
-            bgrp.add( butt );
-        }
-        bgrp.getElements().nextElement().setSelected( true );
         menuItems_ = menuItemList.toArray( new JMenuItem[ 0 ] );
     }
 
