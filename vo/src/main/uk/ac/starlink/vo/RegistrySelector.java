@@ -4,6 +4,10 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -170,10 +174,31 @@ public class RegistrySelector extends JPanel {
      */
     private void updateSelector( String[] acurls ) {
         ComboBoxModel model = comboBox_.getModel();
-        if ( model instanceof MutableComboBoxModel ) {
-            MutableComboBoxModel mmodel = (MutableComboBoxModel) model;
-            for ( int i = 0; i < acurls.length; i++ ) {
-                mmodel.addElement( acurls[ i ] );
+
+        /* Work out which entries need to be added (not already present). */
+        Set<String> values = new HashSet<String>();
+        for ( int i = 0; i < model.getSize(); i++ ) {
+            values.add( (String) model.getElementAt( i ) );
+        }
+        List<String> addUrls = new ArrayList<String>();
+        for ( int i = 0; i < acurls.length; i++ ) {
+            String acurl = acurls[ i ];
+            if ( values.add( acurl ) ) {
+                addUrls.add( acurl );
+            }
+        }
+
+        /* Add them. */
+        if ( addUrls.size() > 0 ) {
+            if ( model instanceof MutableComboBoxModel ) {
+                MutableComboBoxModel mmodel = (MutableComboBoxModel) model;
+                for ( String url : addUrls ) {
+                    mmodel.addElement( url );
+                }
+            }
+            else {
+                logger_.warning( "Can't add access URLs to immutable combo box"
+                               + " (" + addUrls.size() + " new URLs ignored)" );
             }
         }
     }
