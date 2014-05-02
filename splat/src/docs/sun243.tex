@@ -394,7 +394,7 @@ This is an important feature for supporting the heterogeneous data supplied
 in the Virtual Observatory.
 
 Finally, \SPLAT\ can interoperate with other VO enabled desktop tools using
-the PLASTIC protocol.
+the SAMP protocol.
 
 % Not advertising this yet. Maybe big changes ahead. Need to make all this
 % controlled from the command-line and produce macro replays and scripts.
@@ -834,7 +834,7 @@ in the following figure:
  lost. Data saved in a stack are compressed.
 
  The \menuitem{Interop} menu contains items for communicating with other
- PLASTIC- or SAMP-aware desktop applications. This is described in the
+ SAMP-aware desktop applications. This is described in the
  \htmlref{Tool interoperability}{interop} section
  \latex{(\S\ref{interop})}.
 
@@ -862,7 +862,6 @@ in the following figure:
 \item \labelitem{Control-d} Display selected spectra in plots.
 \item \labelitem{Control-i} Display selected spectra in same plot.
 \item \labelitem{Control-u} Re-colour all spectra.
-\item \labelitem{Control-p} Register with PLASTIC server.
 \item \labelitem{F1} Display help on \SPLAT.
 \item \labelitem{Shift-F1} Display help on window.
 \end{itemize}
@@ -3729,80 +3728,43 @@ Lorentz, Voigt). See the contents of this file for instructions on how to use
 it.
 
 \newpage
-\section{Tool interoperability\label{interop}\xlabel{interop}}
+\section{Using SAMP to exchange spectra\label{interop}\xlabel{interop}}
 
-\SPLAT\ can communicate with other desktop tools
-using one or other of two messaging protocols:
-\begin{itemize}
-\item \htmladdnormallinkfoot{SAMP}{http://www.ivoa.net/samp/}
-      (Simple Applications Messaging Protocol)
-\item \htmladdnormallinkfoot{PLASTIC}{http://plastic.sourceforge.net/}
-      (PLatform for AStronomical InterConnection)
-\end{itemize}
+\SPLAT\ can communicate with other desktop tools using 
+\htmladdnormallinkfoot{SAMP}{http://www.ivoa.net/samp/}
+(Simple Applications Messaging Protocol).
 
-The main job that can be done using the messaging is to exchange spectra.
-If another tool sends a spectrum to \SPLAT, it will appear in the
-global list as if it had just been loaded.  Conversely, \SPLAT\ can send
-a spectrum to another tool, which will probably respond in a similar way.
-To send from \SPLAT, select a spectrum in the global list,
-and then use the
-\menuitem{Broadcast spectrum} or
-\menuitem{Send spectrum to \ldots}
-options in the \menuitem{Interop} menu.
-The Broadcast option sends to all listening tools,
-while the Send option sends only to a single selected tool;
-you choose which one from the submenu on the right.
-Only tools which (claim they) know what to do with spectral data
-will be listed; if none of the currently-registered tools is
-prepared to accept spectra, the Send option will be unavailable.
+The main job that can be done using SAMP is to exchange spectra.  If another
+tool sends a spectrum to \SPLAT, it will appear in the global list as if it
+had just been loaded.  Conversely, \SPLAT\ can send a spectrum to another
+tool, which will probably respond in a similar way.  To send from \SPLAT,
+select a spectrum in the global list, and then use the \menuitem{Broadcast
+  spectrum} or \menuitem{Send spectrum to \ldots} options in the
+\menuitem{Interop} menu.  The Broadcast option sends to all listening tools,
+while the Send option sends only to a single selected tool; you choose which
+one from the submenu on the right.  Only tools which (claim they) know what to
+do with spectral data will be listed; if none of the currently-registered
+tools is prepared to accept spectra, the Send option will be unavailable.
 
 You can also send the results of an SSA query as a table from the
 \labelitem{Query VO for spectra} window.  Again, use the
 \menuitem{Broadcast} and \menuitem{Send} options from the
 \menuitem{Interop} menu to do this.
 
-SAMP and PLASTIC do much the same job as each other, and work in
-much the same way.  SAMP is an evolution of PLASTIC with a number
-of technical improvements, and so PLASTIC is somewhat deprecated
-in favour of SAMP.  At time of writing (April 2009) approximately
-the same number of tools speak the two protocols, but this balance
-is expected to shift towards SAMP over the next few months, and
-SAMP will come to replace PLASTIC across the astronomical toolbase.
-It is not necessary for users to understand the differences between
-the two, but in general a tool using SAMP can communicate with other
-tools using SAMP, and the same with PLASTIC, but in most cases
-interoperation between PLASTIC and SAMP tools will not work.
+The communication architecture of SAMP uses a central ``Hub'' process to pass
+messages between registered applications, so a hub must be running in order
+for the messaging to operate.  If a hub is running when \SPLAT\ starts, or if
+one starts up while \SPLAT\ is in operation, it will connect to it
+automatically.  Other tools have their own policies for connecting to the hub,
+but in general it is a good idea to start a hub first before starting up the
+tools which you want to talk to it.  A hub can be started from within \SPLAT\
+if required.  The \verb+--hub+ or \verb+--exthub+ command-line flags start an
+``internal'' or ``external'' hub respectively; the difference is that an
+internal hub will terminate when \SPLAT\ exits, while an external one
+continues running in its own process.  Alternatively, a hub can be started
+from within the GUI.
 
-The communication architecture of the two protocols is basically
-the same: all tools talk to a central ``Hub'' process which
-passes messages from one to another,
-so a hub must be running in order for the messaging to operate.
-If a hub is running when \SPLAT\ starts, or if one starts up while
-\SPLAT\ is in operation, it will connect to it automatically.
-Other tools have their own policies for connecting to the hub,
-but in general it is a good idea to start a hub first before starting
-up the tools which you want to talk to it.
-A hub can be started from within \SPLAT\ if required.
-The \verb+--hub+ or \verb+--exthub+ command-line flags start
-an ``internal'' or ``external'' hub respectively;
-the difference is that an internal hub will terminate when \SPLAT\ exits,
-while an external one continues running in its own process.
-Alternatively, a hub can be started from within the GUI as described
-in the SAMP and PLASTIC subsections below.
-
-\SPLAT\ can work in either SAMP or PLASTIC mode, but not both at once.
-It determines which mode to use at startup: if the command-line flag
-\verb+--interop samp+ or \verb+--interop plastic+ is supplied, the
-corresponding mode will be used;
-otherwise if a running SAMP or PLASTIC hub can be found, the corresponding
-mode is used; otherwise it defaults to SAMP.
-The GUI is slightly different between the two;
-the details are given in the following subsections.
-
-\newpage
-\subsection{SAMP}
-
-In SAMP mode, the \labelitem{SAMP control} button is visible in the
+The \labelitem{SAMP control} button is visible in the
 browser window toolbar.  Its appearance changes according to whether
 \SPLAT\ is currently registered: \inline{sampgo} or
 unregistered: \inline{samp}.
@@ -3829,24 +3791,6 @@ SAMP MTypes which \SPLAT\ knows about are:
 \item \hitext{table.load.votable}, \hitext{table.load.fits}:
       send SSA query results
 \end{itemize}
-
-\newpage
-\subsection{PLASTIC}
-
-In PLASTIC mode, all the communications controls are found within
-the browser window \menuitem{Interop} menu.
-Options are provided to register, unregister, start a hub,
-and display a window showing other registered applications.
-
-For those interested in the technical details, the domain-specific
-PLASTIC messages which \SPLAT\ knows about are:
-\begin{itemize}
-\item \hitext{ivo://votech.org/spectrum/loadFromURL}:
-      send and receive spectra
-\item \hitext{ivo://votech.org/votable/loadFromURL}:
-      send SSA query results
-\end{itemize}
-
 
 \newpage
 \section{Acknowledgements}
