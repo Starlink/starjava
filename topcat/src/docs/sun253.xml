@@ -2758,6 +2758,7 @@ The common ones are:
    <dl>
    <dt><code>&amp;</code> (and)</dt>
    <dt><code>|</code> (or)</dt>
+   <dt><code>^</code> (exclusive-or)</dt>
    <dt><code>&lt;&lt;</code> (left shift)</dt>
    <dt><code>&gt;&gt;</code> (right shift)</dt>
    <dt><code>&gt;&gt;&gt;</code> (logical right shift)</dt>
