@@ -114,9 +114,11 @@ implements ActionListener
      */
     private void initFrame()
     {
-        
+        if ( type.equals("OBSCORE")) {
+            setTitle( "Add New OBSCORE Service" );
+        } else {
             setTitle( "Add New SSAP Service" );
-   
+        }
         setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
         setSize( new Dimension( 500, 200 ) );
         setVisible( true );
