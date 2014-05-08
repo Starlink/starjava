@@ -69,6 +69,8 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
 
+//import org.astrogrid.acr.InvalidArgumentException;
+
 import uk.ac.starlink.ast.gui.ScientificFormat;
 import uk.ac.starlink.splat.data.EditableSpecData;
 import uk.ac.starlink.splat.data.NameParser;
@@ -76,6 +78,7 @@ import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataComp;
 import uk.ac.starlink.splat.data.SpecDataFactory;
 import uk.ac.starlink.splat.data.SpecList;
+import uk.ac.starlink.splat.iface.SpectrumIO.SourceType;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.plot.PlotControl;
 import uk.ac.starlink.splat.util.RemoteServer;
@@ -101,7 +104,7 @@ import uk.ac.starlink.splat.vo.DataLinkParams;
 import uk.ac.starlink.splat.vo.SSAQueryBrowser;
 import uk.ac.starlink.splat.vo.SSAServerList;
 import uk.ac.starlink.splat.vo.SSAPAuthenticator;
-
+import uk.ac.starlink.splat.vo.ObsCorePanel;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
@@ -258,6 +261,10 @@ public class SplatBrowser
      */
     protected SSAQueryBrowser ssapBrowser = null;
    
+    /**
+     * OBSCore browser.
+     */
+    protected ObsCorePanel obscorePanel = null; 
 
     /**
      *  Stack open or save chooser.
@@ -368,6 +375,12 @@ public class SplatBrowser
      * Whether to search spectra for a spectral coordinate system.
      */
     protected JCheckBoxMenuItem searchCoordsItem = null;
+
+    /**
+     * Whether to plot the spectra to the same window
+     */
+    protected JCheckBoxMenuItem plotSampSpectraToSameWindowItem = null;
+    protected boolean plotSampSpectraToSameWindow = false;
 
     /**
      * Controls communications for interoperability (PLASTIC/SAMP).
@@ -602,11 +615,17 @@ public class SplatBrowser
         specList.setSelectionMode(
             ListSelectionModel.MULTIPLE_INTERVAL_SELECTION );
 
-        //  Double click on item(s) to display new plots.
+        /* 
+         * Double click on item(s) to display new plots.
+         * Single click on item(s) to highlight them in plot windows
+         */
         specList.addMouseListener( new MouseAdapter() {
                 public void mouseClicked( MouseEvent e ) {
                     if ( e.getClickCount() >= 2 ) {
                         displaySelectedSpectra();
+                    }
+                    if ( e.getClickCount() == 1 ) {
+                        fireCurrentSpectrumChanged();
                     }
                 }
             });
@@ -630,6 +649,10 @@ public class SplatBrowser
         controlArea.setBorder( BorderFactory.createEmptyBorder( 4, 4, 4, 4 ) );
         controlScroller.getViewport().add( controlArea, null );
 
+        // showing spectra from SAMP in the same window
+        setPlotSampSpectraToSameWindow( true );
+
+        
         //  Set up split pane.
         splitPane.setOneTouchExpandable( true );
         setSplitOrientation( true );
@@ -729,7 +752,15 @@ public class SplatBrowser
         toolBar.add( ssapAction );
 
        
-   
+        // Add acion to go to use OBSCORE
+        ImageIcon obscoreImage =
+                new ImageIcon( ImageHolder.class.getResource( "obscore.gif" ) );
+        LocalAction obsCoreAction = new LocalAction( LocalAction.OBSCORE,
+                                                    "TEST Obscore TAP", 
+                                                     obscoreImage, 
+                                                     "Test " );
+        fileMenu.add(obsCoreAction);
+        toolBar.add( obsCoreAction );
 
         //  Add action to browse the local file system and look for tables
         //  etc. in sub-components.
@@ -1092,6 +1123,15 @@ public class SplatBrowser
             .setMnemonic( KeyEvent.VK_B );
         interopMenu.add( specTransmitter.createSendMenu() )
             .setMnemonic( KeyEvent.VK_T );
+        
+        
+        //  Add checkbox for opening the spectra from SAM to the same plot
+        interopMenu.addSeparator();
+        plotSampSpectraToSameWindowItem = new JCheckBoxMenuItem( "Same window for SAMP spectra" );
+        interopMenu.add( plotSampSpectraToSameWindowItem );
+        plotSampSpectraToSameWindowItem.setToolTipText( "Show spectra from SAMP in the same window" );
+        plotSampSpectraToSameWindowItem.addItemListener( this );
+ 
     }
 
     /**
@@ -1188,6 +1228,23 @@ public class SplatBrowser
         purgeBadDataLimits = purgeBadDataLimitsItem.isSelected();
         setPreference( "SplatBrowser_purgebaddatalimits", purgeBadDataLimits );
     }
+    
+    /**
+     * Set whether to show spectra from SAMP in the same window
+     */
+    protected void setPlotSampSpectraToSameWindow( boolean init )
+    {
+        if ( init ) {
+            // TODO: add this to the preferences?
+            boolean state = false;
+            plotSampSpectraToSameWindowItem.setSelected( state );
+        }
+        plotSampSpectraToSameWindow = plotSampSpectraToSameWindowItem.isSelected();
+        if (plotSampSpectraToSameWindow)
+            globalList.setLastPlotForSourceType(SourceType.SAMP, null);
+        setPreference( "SplatBrowser_plotsampspectratosamewindow", plotSampSpectraToSameWindow );
+    }
+
 
     /**
      * Set whether each spectrum should be searched for a spectral coordinate
@@ -1630,7 +1687,16 @@ public class SplatBrowser
             File file = stackChooser.getSelectedFile();
             if ( !file.exists() || ( file.exists() && file.canWrite() ) ) {
                 SpecList specList = SpecList.getInstance();
-                specList.writeStack( file.getPath() );
+                //SpecList.FileFormat fileFormat = SpecList.FileFormat.STK;
+                /*for (SpecList.FileFormat ff : SpecList.FileFormat.values()) {
+                    if (stackChooser.getFileFilter().getDescription().startsWith(ff.getDescription())) {
+                        fileFormat = ff;
+                        break;
+                    }
+                }*/
+                SpecList.FileFormat fileFormat = getFileFormat(stackChooser, SpecList.FileFormat.STK);
+               
+                specList.writeStack( fileFormat, file.getPath() );            
             }
             else {
                 JOptionPane.showMessageDialog
@@ -1652,7 +1718,8 @@ public class SplatBrowser
         if ( result == stackChooser.APPROVE_OPTION ) {
             File file = stackChooser.getSelectedFile();
             if ( file.exists() && file.canRead() ) {
-                readStack( file, stackOpenDisplayCheckBox.isSelected() );
+                SpecList.FileFormat fileFormat = getFileFormat(stackChooser, SpecList.FileFormat.STK, true);
+                readStack( file, fileFormat, stackOpenDisplayCheckBox.isSelected() );
             }
             else {
                 JOptionPane.showMessageDialog
@@ -1671,8 +1738,21 @@ public class SplatBrowser
      */
     public int readStack( File file, boolean display )
     {
+        return readStack(file, SpecList.FileFormat.STK, display);
+    }
+
+    /**
+     * Read and optionally display a file containing a stack of spectra.
+     *
+     * @param file containing serialized SpecList instance.
+     * @param fileFormat Format of input stack file
+     * @param display whether to display the new spectra in a new plot.
+     * @return the index of the plot created, -1 otherwise.
+     */
+    public int readStack( File file, SpecList.FileFormat fileFormat, boolean display )
+    {
         try {
-            return readStack( new FileInputStream( file ), display );
+            return readStack( new FileInputStream( file ), fileFormat, display, file.getPath() );
         }
         catch (Exception e) {
             logger.log( Level.SEVERE, e.getMessage(), e );
@@ -1690,9 +1770,36 @@ public class SplatBrowser
      */
     public int readStack( InputStream in, boolean display )
     {
+        return readStack(in, SpecList.FileFormat.STK, display, null);
+    }
+
+    /**
+     * Read and optionally display an InputStream that contains a stack of
+     * spectra.
+     *
+     * @param in stream with serialized SpecList instance.
+     * @param fileFormat Format of input stack file
+     * @param display whether to display the new spectra in a new plot.
+     * @return the index of the plot created, -1 otherwise.
+     */
+    public int readStack( InputStream in, SpecList.FileFormat fileFormat, boolean display, String sourcePath )
+    {
         int plotIndex = -1;
+
+        if (fileFormat == null)
+            return plotIndex;
+
         SpecList globalSpecList = SpecList.getInstance();
-        int nread = globalSpecList.readStack( in );
+        int nread = 0;
+
+        switch (fileFormat) {
+            case STK:
+                nread = globalSpecList.readStack( in );
+                break;
+            case FITS:
+                nread = globalSpecList.readStack(sourcePath, fileFormat, this);
+                break;
+        }
 
         //  If requested honour the display option.
         if ( ( nread > 0 ) && display ) {
@@ -1700,8 +1807,10 @@ public class SplatBrowser
             deSelectAllPlots();
             plotIndex = displayRange( count - nread, count - 1 );
         }
+
         return plotIndex;
     }
+
 
     /**
      * Initialise the stack file chooser to have the necessary filter.
@@ -1715,10 +1824,12 @@ public class SplatBrowser
         if ( stackChooser == null ) {
             stackChooser = new BasicFileChooser( false );
             stackChooser.setMultiSelectionEnabled( false );
-
-            BasicFileFilter stackFilter =
-                new BasicFileFilter( "stk", "Stack files" );
-            stackChooser.addChoosableFileFilter( stackFilter );
+            
+            for (SpecList.FileFormat ff : SpecList.FileFormat.values()) {
+                BasicFileFilter stackFilter =
+                    new BasicFileFilter( ff.getFileExtension(), ff.getDescription() );
+                stackChooser.addChoosableFileFilter( stackFilter );
+            }
 
             stackChooser.addChoosableFileFilter
                 ( stackChooser.getAcceptAllFileFilter() );
@@ -1775,6 +1886,23 @@ public class SplatBrowser
         ssapBrowser.setVisible( true );
     }
 
+    /**
+     * Open the OBSCORE window
+     */
+    public void showObscorePanel()
+    {
+        if ( obscorePanel == null ) {
+            try {
+                obscorePanel = new ObsCorePanel(this);
+            }
+            catch (Exception e) {
+                ErrorDialog.showError( this, e );
+                return;
+            }
+        }
+        obscorePanel.setVisible( true );
+
+    }
 
     
     /**
@@ -1956,8 +2084,12 @@ public class SplatBrowser
         else {           
                
             try {
-                SpecData spectrum = specDataFactory.get( name, usertype );
-                addSpectrum( spectrum );
+                List<SpecData> spectra = specDataFactory.getAll( name, usertype );
+                if (spectra != null) {
+                    for (SpecData spectrum : spectra) {
+                        addSpectrum( spectrum );
+                    }
+                }
             }
             catch (SEDSplatException e) {
                 if ( usertype == SpecDataFactory.FITS ) {
@@ -1997,8 +2129,12 @@ public class SplatBrowser
             //  Could be a source of several spectra.
             SpecData spectra[] =
                 specDataFactory.expandXMLSED( props.getSpectrum() );
+            String shortname=props.getShortName();
             for ( int i = 0; i < spectra.length; i++ ) {
+                String str = spectra[i].getShortName();
                 addSpectrum( spectra[i] );
+                if (str != null && str.startsWith("order"))
+                    props.setShortName(shortname+" ["+str+"]");
                 props.apply( spectra[i] );
             }
         }
@@ -2014,7 +2150,9 @@ public class SplatBrowser
                     if (props.getType() == SpecDataFactory.DATALINK) {
                         DataLinkParams dlparams = new DataLinkParams(props.getSpectrum());
                         props.setSpectrum(dlparams.getQueryAccessURL(0)); // get the accessURL for the first service read, in case there are more services !?!?!?!?!?!?!?!?!?!?!?
-                        if ( dlparams.getQueryContentType(0) == null || dlparams.getQueryContentType(0).isEmpty()) 
+                        if (props.getDataLinkFormat() != null ) // see if user has changed the output format
+                            props.setType(SpecDataFactory.mimeToSPLATType(props.getDataLinkFormat()));                 
+                        else if ( dlparams.getQueryContentType(0) == null || dlparams.getQueryContentType(0).isEmpty()) //if not, use contenttype
                             props.setType(SpecDataFactory.GUESS);
                         else 
                             props.setType(SpecDataFactory.mimeToSPLATType(dlparams.getQueryContentType(0)));
@@ -2050,8 +2188,10 @@ public class SplatBrowser
 
             }
             catch(SplatException sple) {
-                if (sple.getMessage().contains("No TABLE element found")) 
-                    return;
+                if (! sple.getMessage().contains("No TABLE element found")) 
+                    JOptionPane.showMessageDialog
+                    ( this, sple.getMessage(), "",
+                      JOptionPane.ERROR_MESSAGE );
             }
         }
     }
@@ -2065,7 +2205,21 @@ public class SplatBrowser
      *
      *  @return true if spectrum is added, false otherwise.
      */
-    public boolean addSpectrum( String name )
+    public boolean addSpectrum( String name ) {
+        return addSpectrum(name, SourceType.UNDEFINED);
+    }
+    
+    /**
+     * Add a new spectrum to the global list. This becomes the current
+     * spectrum.
+     *
+     *  @param name the name (i.e. file specification) of the spectrum
+     *              to add.
+     *  @param sourceType source type from which the spectra came from
+     *
+     *  @return true if spectrum is added, false otherwise.
+     */
+    public boolean addSpectrum( String name, SourceType sourceType )
     {
         
         try {
@@ -2088,7 +2242,17 @@ public class SplatBrowser
      *
      * @param spectrum the SpecData object.
      */
-    public void addSpectrum( SpecData spectrum )
+    public void addSpectrum( SpecData spectrum ) {
+        addSpectrum(spectrum, SourceType.UNDEFINED);
+    }
+    /**
+     * Add a new SpecData object to the global list. This becomes the
+     * current spectrum.
+     *
+     * @param spectrum the SpecData object.
+     * @param sourceType source type from which the spectra came from
+     */
+    public void addSpectrum( SpecData spectrum, SourceType sourceType )
     {
         //  Get the current top of SpecList.
         SpecList list = SpecList.getInstance();
@@ -2117,12 +2281,12 @@ public class SplatBrowser
             colourAsLoaded=true;
             for ( int i = 0; i < moreSpectra.length; i++ ) {
                 applyRenderingDefaults( moreSpectra[i] );
-                globalList.add( moreSpectra[i] );
+                globalList.add( moreSpectra[i], sourceType );
             }
         }
         else {
             applyRenderingDefaults( spectrum );
-            globalList.add( spectrum );
+            globalList.add( spectrum, sourceType );
         }
 
         //  Latest list entries becomes selected.
@@ -2169,6 +2333,8 @@ public class SplatBrowser
     {
         int plotIndex = -1;
 
+        boolean samePlotForSampSpectra = getPreference("SplatBrowser_plotsampspectratosamewindow", false);
+        
         int[] specIndices = getSelectedSpectra();
         if ( specIndices == null ) {
             return plotIndex;
@@ -2211,35 +2377,93 @@ public class SplatBrowser
             }
         }
         else {
-            SpecData spec = null;
-            spec = globalList.getSpectrum( specIndices[0] );
-            final PlotControlFrame plot = displaySpectrum( spec );
-            plotIndex = globalList.getPlotIndex( plot.getPlot() );
+            
+            List<SpecData> allSelectedSpectra = new ArrayList<SpecData>();
+            List<SpecData> sampSpectra = new ArrayList<SpecData>();
+            
+            for ( int i = 0; i < specIndices.length; i++ ) {
+                SpecData spectrum = globalList.getSpectrum( specIndices[i] );
+                SourceType sourceType = globalList.getSourceType(spectrum);
+
+                switch(sourceType) {
+                    case SAMP:
+                        if (samePlotForSampSpectra)
+                            sampSpectra.add(spectrum);
+                        else
+                            allSelectedSpectra.add(spectrum);
+                        break;
+                    default:
+                        allSelectedSpectra.add(spectrum);
+                }
+                
+            }
 
             //  Add all spectra in a single list for efficiency.
-            SpecData spectra[] = new SpecData[specIndices.length - 1];
+            /* SpecData spectra[] = new SpecData[specIndices.length - 1];
             for ( int i = 0; i < specIndices.length - 1; i++ ) {
                 spectra[i] = globalList.getSpectrum( specIndices[i+1] );
-            }
-
-            try {
-                globalList.addSpectra( plot.getPlot(), spectra );
-            }
-            catch (SplatException e) {
-                failed++;
-                lastException = e;
-            }
-            if ( fit && failed < specIndices.length ) {
-                //  Do fit to width and height after realisation.
-                Runnable later = new Runnable() {
-                        public void run()
-                        {
-                            if ( plot != null ) {
-                                plot.getPlot().fitToWidthAndHeight( true );
+            }*/
+            
+            if (allSelectedSpectra.size() > 0) {
+                SpecData spec = null;
+                //spec = globalList.getSpectrum( specIndices[0] );
+                spec = allSelectedSpectra.get(0);
+                final PlotControlFrame plot = displaySpectrum( spec );
+                plotIndex = globalList.getPlotIndex( plot.getPlot() );
+                
+                allSelectedSpectra.remove(0);
+                SpecData spectra[] = allSelectedSpectra.toArray(new SpecData[allSelectedSpectra.size()]);
+    
+                try {
+                    globalList.addSpectra( plot.getPlot(), spectra );
+                }
+                catch (SplatException e) {
+                    failed++;
+                    lastException = e;
+                }
+                if ( fit && failed < specIndices.length ) {
+                    //  Do fit to width and height after realisation.
+                    Runnable later = new Runnable() {
+                            public void run()
+                            {
+                                if ( plot != null ) {
+                                    plot.getPlot().fitToWidthAndHeight( true );
+                                }
                             }
-                        }
+                        };
+                    SwingUtilities.invokeLater( later );
+                }
+            }
+            
+            // show spectra from SAMP to the same plot
+            if (samePlotForSampSpectra && sampSpectra.size() > 0 && failed == 0) {
+                boolean firstSampSpectra = globalList.getLastPlotForSourceType(SourceType.SAMP) == null;
+                final PlotControl sampPlot = 
+                        firstSampSpectra
+                        ? displaySpectrum( sampSpectra.get(0) ).getPlot()
+                        : globalList.getLastPlotForSourceType(SourceType.SAMP);
+                
+                if (firstSampSpectra)
+                    sampSpectra.remove(0);
+                try {
+                    globalList.addSpectra( sampPlot, sampSpectra.toArray(new SpecData[sampSpectra.size()]) );
+                }
+                catch (SplatException e) {
+                    failed++;
+                    lastException = e;
+                }
+                if ( fit && failed < sampSpectra.size() ) {
+                    //  Do fit to width and height after realisation.
+                    Runnable later = new Runnable() {
+                            public void run()
+                            {
+                                if ( sampPlot != null ) {
+                                    sampPlot.fitToWidthAndHeight( true );
+                                }
+                            }
                     };
-                SwingUtilities.invokeLater( later );
+                    SwingUtilities.invokeLater( later );
+                }
             }
         }
         if ( lastException != null ) {
@@ -2378,7 +2602,21 @@ public class SplatBrowser
         }
         return id;
     }
-
+    
+    /**
+     * Sets the current spectrum in global spectra list
+     * (if just one spectrum is selected) and fires 
+     * 'current spectrum changed' event
+     */
+    protected void fireCurrentSpectrumChanged() {
+        int[] indexes = getSelectedSpectra();
+        if (indexes != null) {
+            if (indexes.length == 1) {
+                globalList.setCurrentSpectrum(indexes[0]);
+            }
+        }
+    }
+    
     /**
      * Make a report using an ErrorDialog for when loading a list
      * of spectra has failed for some reason.
@@ -3051,7 +3289,7 @@ public class SplatBrowser
         public static final int PURGE_SPECTRA = 26;
         public static final int FITS_VIEWER = 27;
         public static final int EXIT = 28;
-  
+        public static final int OBSCORE = 29;
 
         private int type = 0;
 
@@ -3238,6 +3476,11 @@ public class SplatBrowser
                }
                break;
                
+               case OBSCORE: {
+                   showObscorePanel();
+                   break;
+               }
+
                case EXIT: {
                    exitApplicationEvent();
                }
@@ -3270,6 +3513,9 @@ public class SplatBrowser
         }
         else if ( source.equals( searchCoordsItem ) ) {
             setSearchCoords( false );
+        }
+        else if ( source.equals( plotSampSpectraToSameWindowItem ) ) {
+            setPlotSampSpectraToSameWindow( false );
         }
     }
 
@@ -3310,5 +3556,72 @@ public class SplatBrowser
         {
             return key;
         }
+    }
+    
+    
+    /**
+     * Determines the selected FileFormat from FileChooser
+     * @param fileChooser BasicFileChooser containing the FileFilter
+     * @param defaultFileFormat FileFormat that will returned if the selected one cannot be determined
+     * @return Selected FileFormat
+     */
+    private SpecList.FileFormat getFileFormat(BasicFileChooser fileChooser, SpecList.FileFormat defaultFileFormat) {
+        SpecList.FileFormat fileFormat = defaultFileFormat;
+        for (SpecList.FileFormat ff : SpecList.FileFormat.values()) {
+            if (fileChooser.getFileFilter().getDescription().startsWith(ff.getDescription())) {
+                fileFormat = ff;
+                break;
+            }
+        }
+        
+        return fileFormat;
+    }
+    
+    /**
+     * Determines the selected FileFormat from FileChooser
+     * @param fileChooser BasicFileChooser containing the FileFilter
+     * @param defaultFileFormat FileFormat that will returned if the selected one cannot be determined
+     * @param useExtensionGuessing If FileFormat cannot be determined directly, try to determine it 
+     *      by guessing it based on selected File's extension
+     * @return Selected FileFormat
+     */
+    private SpecList.FileFormat getFileFormat(
+            BasicFileChooser fileChooser, 
+            SpecList.FileFormat defaultFileFormat, 
+            boolean useExtensionGuessing) {
+        
+        SpecList.FileFormat fileFormat = defaultFileFormat;
+        
+        SpecList.FileFormat detectedFileFormat = getFileFormat(fileChooser, null);
+        
+        if (detectedFileFormat == null && useExtensionGuessing) {
+            String fileName = fileChooser.getSelectedFile().getName();
+            String selectedFileExtension = "";
+            if (fileName != null) {
+                selectedFileExtension = fileName.substring(fileName.lastIndexOf(".") + 1);
+                if (selectedFileExtension != null) {
+                    selectedFileExtension = selectedFileExtension.trim().toLowerCase();
+                }
+            }
+            
+            for (SpecList.FileFormat ff : SpecList.FileFormat.values()) {
+                if (selectedFileExtension.equals(ff.getFileExtension().trim().toLowerCase())) {
+                    detectedFileFormat = ff;
+                    break;
+                }
+            }
+        }
+        
+        if (detectedFileFormat != null)
+            fileFormat = detectedFileFormat;
+        
+        for (SpecList.FileFormat ff : SpecList.FileFormat.values()) {
+            if (fileChooser.getFileFilter().getDescription().startsWith(ff.getDescription())) {
+                fileFormat = ff;
+                break;
+            }
+        }
+        
+        return fileFormat;
     }
 }
