@@ -32,10 +32,9 @@ public class GetDataTable {
     //private static Logger logger = Logger.getLogger( "uk.ac.starlink.splat.vo.GetDataParameters" );
 
 
-    public GetDataTable( TableElement votable/*, String service*/) {
+    public GetDataTable( TableElement votable ) {
      
-       // ArrayList<ParamElement> paramList; // list of parameters
-
+     
         paramList = new ArrayList<ParamElement>();
    
         VOElement[] voels = votable.getChildrenByName( "PARAM" );

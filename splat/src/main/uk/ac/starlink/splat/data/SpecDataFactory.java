@@ -115,6 +115,10 @@ public class SpecDataFactory
 
     /** VOTable SED source, XXX not yet a proper type */
     public final static int SED = 8;
+    
+    /** VOTable Datalink source */
+    public final static int DATALINK = 9;
+
 
     /**
      * Short descriptions of each type.
@@ -276,6 +280,7 @@ public class SpecDataFactory
                     }
                 }
                     break;
+                case DATALINK: 
                 case TABLE: {
                    impl = makeTableSpecDataImpl( specspec );
 
@@ -1203,7 +1208,11 @@ public class SpecDataFactory
                 results = collapseSpecData( specData, specDims );
             }
             else if ( method == EXTRACT )  {
-                results = extractSpecData( specData, specDims );
+                String testEchelle = specData.getProperty("WAT0_001");
+                if (! testEchelle.isEmpty() && testEchelle.contains("system=multispec")) {
+                    results = extractEchelleSpecData( specData, specDims );
+                } else 
+                    results = extractSpecData( specData, specDims );
             }
 
             //  Purge any spectra with BAD limits.
@@ -1330,6 +1339,101 @@ public class SpecDataFactory
         }
         return results;
     }
+    
+    /**
+     * Create a set of new 1D SpecData instances from IRAF Echelle FITS format by extracting each line of a
+     * 2D or 3D implementation along the dispersion axis and applying the defined parameters.
+     */
+    private SpecData[] extractEchelleSpecData( SpecData specData, SpecDims specDims )
+        throws SplatException
+    {
+        SpecData[] results = null;
+        int dispax = specDims.getDispAxis( true );
+        int[] dims = specDims.getSigDims();
+
+        if ( dims.length == 2 ) {
+            //  Simple 2D data.
+            if ( dispax == 1 ) {
+                results = new SpecData[dims[0]];
+            }
+            else {
+                results = new SpecData[dims[1]];
+            }
+
+            boolean moreinfo=true;
+           
+            ArrayList<String> specline = new ArrayList<String>();
+            String specParams = "";
+            int specindex=1;
+            for (int i=1; moreinfo ;i++) {
+                String property= "WAT2_"+ String.format("%03d", i); // think of a better algorithm!!!
+                String propline = specData.getProperty(property); // Problem: getProperty always removes tailing empty spaces
+                
+                logger.info("propline1 "+propline+"<\n");
+                if (! propline.isEmpty()) {      
+                    propline=specParams.concat(propline);
+                    logger.info("propline2 "+propline+"<\n");
+                    int specstart = propline.indexOf(" spec"+specindex);
+                    if (specstart != -1) {
+                        if (i > 1  ) { // do not do this at the first line
+                            specParams = propline.substring(0, specstart -1);
+                            specline.add(specParams);
+                        }
+                        specParams = propline.substring(specstart +1);
+                        specindex++;
+                    } else {
+                        specParams = propline;
+                    }
+
+                } else {
+                    moreinfo = false;
+                    if (specParams != null)
+                        specline.add(specParams);
+                }
+            }
+
+            logger.info("results "+results+ "count "+specline.size()+"\n");
+            for ( int i = 0; i < results.length; i++ ) {
+                
+                logger.info(specline.get(i)+"\n");
+                int ind1 = specline.get(i).indexOf('"'); 
+                if (ind1 < specline.get(i).length()-1)
+                    ind1+=1;
+            //    int ind2 = specline.get(i).indexOf('"', ind1)-1;
+                String sparamstr = specline.get(i).substring(ind1 );
+                String [] sparams = sparamstr.split(" ");
+                SpecDataImpl newImpl = null;
+                try {
+                    newImpl = new ExtractedSpecDataImpl( specData, specDims, i , Integer.parseInt(sparams[2]), 
+                                                    Double.parseDouble(sparams[3]), Double.parseDouble(sparams[4]), Double.parseDouble(sparams[6]));
+                    results[i] = new SpecData( newImpl );
+                } 
+                catch (Exception e) {
+                    logger.info(i+ "- " + e.getMessage());
+                    results[i]=null;
+                    e.printStackTrace();
+                }
+               
+            }
+        }
+        else {
+            int stepaxis = specDims.getSelectAxis( true );
+            int otheraxis = specDims.getFreeAxis( true );
+            int steplength = dims[stepaxis];
+            int otherlength = dims[otheraxis];
+
+            results = new SpecData[steplength*otherlength];
+            int count = 0;
+            for ( int j = 0; j < otherlength; j++ ) {
+                for ( int i = 0; i < steplength; i++ ) {
+                    SpecDataImpl newImpl =
+                            new ExtractedSpecDataImpl( specData, specDims, i, j );
+                    results[count++] = new SpecData( newImpl );
+                }
+            }
+        }
+        return results;
+    }
 
     /**
      * Process a SED (IVOA spectral data model) XML file and extract all the
@@ -1370,16 +1474,18 @@ public class SpecDataFactory
                     tagName = child[j].getTagName();
                     if ( "TABLE".equals( tagName ) ) {
                         utype = child[j].getAttribute( "utype" );
-                        if ( "sed:Segment".equals( utype ) ) {
+                        String sname = child[j].getAttribute("name");
+                     //   if ( "sed:Segment".equals( utype ) ) { // we try this also for multiple spectra in a VOTable which do not have this utype (i.E. echelle spectra)
                             try {
                                 table = new VOStarTable( (TableElement) child[j] );
                                 specData = new SpecData( new TableSpecDataImpl(table) );
+                                specData.setShortName(specData.getShortName() + " " + child[j].getAttribute("name"));
                                 specList.add( specData );
                             }
                             catch (Exception e) {
                                 throw new SplatException( e );
                             }
-                        }
+                    //    }
                     }
                 }
             }
@@ -1417,7 +1523,7 @@ public class SpecDataFactory
      * int constants defined in SpecDataFactory). Note we use the full MIME
      * types and the SSAP shorthand versions (fits, votable, xml).
      */
-    public int mimeToSPLATType( String type )
+    public static int mimeToSPLATType( String type )
     {
         int stype = SpecDataFactory.DEFAULT;
         String simpleType = type.toLowerCase();
@@ -1446,10 +1552,16 @@ public class SpecDataFactory
                   simpleType.equals( "text/xml;x-votable" ) ||
                   simpleType.startsWith( "text/x-votable+xml" ) ||
                   simpleType.equals( "xml" ) ) {
+            
+            // VOTABLE containing DataLink information
+            if (simpleType.contains("content=datalink"))
+                stype = SpecDataFactory.DATALINK;
+            else
             // VOTable spectrum, open as a table. Is really the SSAP native
             // XML representation so could an SED? In which case this might be
             // better as SpecDataFactory.SED, we'll see.
-            stype = SpecDataFactory.TABLE;
+               // stype = SpecDataFactory.TABLE;
+            stype = SpecDataFactory.SED;
         }
         else if ( simpleType.startsWith( "spectrum/votable" ) ||
                   simpleType.equals( "votable" ) ) {
