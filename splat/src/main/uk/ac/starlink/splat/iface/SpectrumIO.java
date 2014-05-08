@@ -52,6 +52,17 @@ public class SpectrumIO
     //  incomplete objects.
 
     /**
+     * Source types, from which the spectra may come from
+     */
+    // TODO: implement the source identification to remaining spectra's inputs 
+    public static enum SourceType {
+        UNDEFINED,
+        SAMP,
+        SSAP,
+        LOCAL
+    };
+    
+    /**
      * Private constructor so that only one instance can exist.
      */
     private SpectrumIO()
@@ -356,6 +367,7 @@ public class SpectrumIO
         protected String dataColumn;
         protected String coordColumn;
         protected String errorColumn;
+        protected SourceType sourceType;
         protected String idValue;
         protected String idSource;
         protected String getDataRequest;
@@ -389,14 +401,15 @@ public class SpectrumIO
                 String dataColumn, String coordColumn,
                 String errorColumn )
         {
+           
             this( spectrum, type, shortName, dataUnits, coordUnits,
-                  dataColumn, coordColumn, null, null, null );
+                  dataColumn, coordColumn, null, SourceType.UNDEFINED, null, null );
         }
         
         public Props( String spectrum, int type, String shortName,
                       String dataUnits, String coordUnits,
                       String dataColumn, String coordColumn,
-                      String errorColumn, String idsrc, String idValue )
+                      String errorColumn, SourceType sourceType, String idsrc, String idValue )
         {
             this.spectrum = spectrum;
             this.type = type;
@@ -406,6 +419,7 @@ public class SpectrumIO
             this.dataColumn = dataColumn;
             this.coordColumn = coordColumn;
             this.errorColumn = errorColumn;
+            this.sourceType = sourceType;
             this.getDataRequest=null;
             this.getDataFormat=null; 
             this.dataLinkRequest=null;
@@ -535,6 +549,14 @@ public class SpectrumIO
             this.errorColumn = errorColumn;
         }
         
+        public SourceType getSourceType() {
+            return sourceType;
+        }
+        
+        public void setSourceType(SourceType sourceType) {
+            this.sourceType = sourceType;
+        }
+
         public String getidValue()
         {
             return idValue;
@@ -661,6 +683,11 @@ public class SpectrumIO
         public void setDataLinkFormat(String format) {
             
             dataLinkFormat = format;
+            
+        }
+        public String getDataLinkFormat() {
+            
+            return dataLinkFormat;
             
         }
 
