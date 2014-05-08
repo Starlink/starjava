@@ -1,4 +1,38 @@
 1 Starlink SPLAT news.
+   3.10-4
+   ======
+
+   Changes: 
+   - Bug correction. DataLink parameters are now properly removed when
+     "Clear Parameters"button is pressed.
+   - Error messages correctios (e.g. if a table contains no data)
+   
+
+   3.10-3
+   ======
+
+   This version introduces new features contributed by David Andresic:
+	- visual selection of spectra 
+	- saving/restoring a stack of spectra using a standard multi-HDU 
+	FITS file
+
+   Several bug corrections from the last versioni has been corrected, 
+   as well as updates for conformity to the DATALINK standard.
+   
+
+   3.10-2
+   ======
+
+   Changes in this version:
+
+	- new feature: Search for spectra using ObsCore/Tap.
+   
+	- getData operation will not be supported anymore, instead the same
+	funcionality will be covered using DATALINK (change is transparent 
+	to the user)
+
+	-  Echelle Spectra: A new data model for chelle spectra has been 
+	introduced, making it possible to download only selected orders.
 
    3.11-0
    ======
