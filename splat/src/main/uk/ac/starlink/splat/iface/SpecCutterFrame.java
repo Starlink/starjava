@@ -17,6 +17,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -27,6 +28,7 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -95,6 +97,11 @@ public class SpecCutterFrame
     protected SpecData removedCurrentSpectrum = null;
 
     /**
+     * Spetrum selection table
+     */
+    protected SplatSpectraSelectionTable spectraSelectionTable = null;
+    
+    /**
      * Create an instance.
      */
     public SpecCutterFrame( PlotControl plot )
@@ -140,8 +147,20 @@ public class SpecCutterFrame
 
         //  Add the list of regions.
         rangeList = new XGraphicsRangesView( plot.getPlot(), rangeMenu );
-        contentPane.add( rangeList, BorderLayout.CENTER );
+        //contentPane.add( rangeList, BorderLayout.NORTH );
 
+        // spectra selection table (to get a list of spectra for cutting etc.)
+        JList spectraList = new JList(plot.getSpecDataComp().get());
+        spectraList.setSelectedValue(plot.getCurrentSpectrum(), true);
+        spectraSelectionTable = new SplatSpectraSelectionTable(spectraList);
+        //contentPane.add( spectraSelectionTable, BorderLayout.CENTER );
+        
+        JPanel tablesBar = new JPanel();
+        tablesBar.setLayout(new BoxLayout(tablesBar, BoxLayout.X_AXIS));
+        tablesBar.add(rangeList);
+        tablesBar.add(spectraSelectionTable);
+        contentPane.add(tablesBar, BorderLayout.CENTER);
+        
         //  Three action bars use BoxLayout and are placed at the south.
         JPanel actionBar = new JPanel( new BorderLayout() );
         JPanel actionBar12 = new JPanel( new BorderLayout() );
@@ -163,6 +182,8 @@ public class SpecCutterFrame
         //  Get icons.
         ImageIcon closeImage = new ImageIcon(
             ImageHolder.class.getResource( "close.gif" ) );
+        ImageIcon saveImage = new ImageIcon(
+                ImageHolder.class.getResource( "save.gif" ) );
         ImageIcon readImage = new ImageIcon(
             ImageHolder.class.getResource( "read.gif" ) );
         ImageIcon resetImage = new ImageIcon(
@@ -179,6 +200,10 @@ public class SpecCutterFrame
         fileMenu.setMnemonic( KeyEvent.VK_F );
         menuBar.add( fileMenu );
 
+        //  Add action to do write a list of ranges to disk file.
+        Action writeAction = rangeList.getWriteAction("Save ranges", saveImage);
+        fileMenu.add( writeAction );
+        
         //  Add action to do read a list of ranges from disk file.
         Action readAction = rangeList.getReadAction("Read ranges", readImage);
         fileMenu.add( readAction );
@@ -304,6 +329,7 @@ public class SpecCutterFrame
         //  Add the help menu.
         HelpFrame.createHelpMenu( "cutter-window", "Help on window",
                                   menuBar, null );
+
     }
 
     /**
@@ -313,7 +339,7 @@ public class SpecCutterFrame
     {
         setTitle( Utilities.getTitle( "Cut/Remove regions from a spectrum" ) );
         setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
-        setSize( new Dimension( 550, 400 ) );
+        setSize( new Dimension( 750, 500 ) );
         setVisible( true );
     }
 
@@ -325,23 +351,29 @@ public class SpecCutterFrame
      */
     public void cut( boolean selected )
     {
-        //  Extract all ranges and obtain current spectrum.
-        SpecData currentSpectrum = plot.getCurrentSpectrum();
-        if ( currentSpectrum == null ) {
-            return; // No spectrum available, so do nothing.
-        }
+        
+    	List<SpecData> selectedSpectra = spectraSelectionTable.getSelectedSpectra();
+    	
+    	 // No selected spectra, so nothing to do
+    	if (selectedSpectra.isEmpty())
+    		return;
+    	
+    	for (SpecData currentSpectrum : selectedSpectra) {
+    		//  Extract all ranges and obtain current spectrum.
+    		
+            double[] ranges = rangeList.getRanges( selected );
+            if ( ranges.length == 0 ) {
+                return; // No ranges, so nothing to do.
+            }
 
-        double[] ranges = rangeList.getRanges( selected );
-        if ( ranges.length == 0 ) {
-            return; // No ranges, so nothing to do.
-        }
+            //  Perform the cut operation and add the spectrum to the
+            //  global list.
+            SpecData newSpec =
+                specCutter.cutRanges( currentSpectrum, ranges );
 
-        //  Perform the cut operation and add the spectrum to the
-        //  global list.
-        SpecData newSpec =
-            specCutter.cutRanges( currentSpectrum, ranges );
-
-        display( newSpec, false );
+            display( newSpec, false );
+    	}
+    	
     }
 
     /**
@@ -352,23 +384,27 @@ public class SpecCutterFrame
      */
     public void remove( boolean selected )
     {
-        //  Extract all ranges and obtain current spectrum.
-        SpecData currentSpectrum = plot.getCurrentSpectrum();
-        if ( currentSpectrum == null ) {
-            return; // No spectrum available, so do nothing.
-        }
-
-        double[] ranges = rangeList.getRanges( selected );
-        if ( ranges.length == 0 ) {
-            return; // No ranges, so nothing to do.
-        }
-
-        //  Perform the cut operation and add the spectrum to the
-        //  global list.
-        SpecData newSpec =
-            specCutter.deleteRanges( currentSpectrum, ranges );
-
-        display( newSpec, false );
+    	List<SpecData> selectedSpectra = spectraSelectionTable.getSelectedSpectra();
+    	
+   	 	// No selected spectra, so nothing to do
+    	if (selectedSpectra.isEmpty())
+    		return;
+   	
+    	for (SpecData currentSpectrum : selectedSpectra) {
+	    	//  Extract all ranges and obtain current spectrum.
+	
+	        double[] ranges = rangeList.getRanges( selected );
+	        if ( ranges.length == 0 ) {
+	            return; // No ranges, so nothing to do.
+	        }
+	
+	        //  Perform the cut operation and add the spectrum to the
+	        //  global list.
+	        SpecData newSpec =
+	            specCutter.deleteRanges( currentSpectrum, ranges );
+	
+	        display( newSpec, false );
+    	}
     }
 
     /**
@@ -381,23 +417,27 @@ public class SpecCutterFrame
      */
     public void interpolate( boolean selected, boolean replace )
     {
-        //  Extract all ranges and obtain current spectrum.
-        SpecData currentSpectrum = plot.getCurrentSpectrum();
-        if ( currentSpectrum == null ) {
-            return; // No spectrum available, so do nothing.
-        }
-
-        double[] ranges = rangeList.getRanges( selected );
-        if ( ranges.length == 0 ) {
-            return; // No ranges, so nothing to do.
-        }
-
-        //  Perform the interpolation operation and add the spectrum to the
-        //  global list.
-        SpecData newSpec =
-            specCutter.interpRanges( currentSpectrum, ranges );
-
-        display( newSpec, replace );
+    	List<SpecData> selectedSpectra = spectraSelectionTable.getSelectedSpectra();
+    	
+    	// No selected spectra, so nothing to do
+    	if (selectedSpectra.isEmpty())
+   			return;
+   	
+   		for (SpecData currentSpectrum : selectedSpectra) {
+	    	//  Extract all ranges and obtain current spectrum.
+	
+	        double[] ranges = rangeList.getRanges( selected );
+	        if ( ranges.length == 0 ) {
+	            return; // No ranges, so nothing to do.
+	        }
+	
+	        //  Perform the interpolation operation and add the spectrum to the
+	        //  global list.
+	        SpecData newSpec =
+	            specCutter.interpRanges( currentSpectrum, ranges );
+	
+	        display( newSpec, replace );
+   		}
     }
 
     /**
