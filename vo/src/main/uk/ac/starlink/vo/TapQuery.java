@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -28,6 +29,7 @@ import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.table.storage.DiscardByteStore;
 import uk.ac.starlink.table.storage.LimitByteStore;
+import uk.ac.starlink.util.CountInputStream;
 import uk.ac.starlink.util.DOMUtils;
 import uk.ac.starlink.votable.DataFormat;
 import uk.ac.starlink.votable.TableElement;
@@ -506,24 +508,8 @@ public class TapQuery {
                                                StoragePolicy storage )
             throws IOException {
 
-        /* Follow 303 redirects as required. */
-        conn = followRedirects( conn );
-
-        /* Get an input stream representing the content of the resource.
-         * HttpURLConnection may provide this from the getInputStream or
-         * getErrorStream method, depending on the response code. */
-        InputStream in = null;
-        try { 
-            in = conn.getInputStream();
-        }
-        catch ( IOException e ) {
-            if ( conn instanceof HttpURLConnection ) {
-                in = ((HttpURLConnection) conn).getErrorStream();
-            }
-            if ( in == null ) {
-                throw e;
-            }
-        }
+        /* Get input stream. */
+        InputStream in = getVOTableStream( conn );
 
         /* Read the result as a VOTable DOM. */
         VOElement voEl;
@@ -597,6 +583,21 @@ public class TapQuery {
     public static boolean streamResultVOTable( URLConnection conn,
                                                TableSink sink )
             throws IOException, SAXException {
+        InputStream in = getVOTableStream( conn );
+        boolean overflow =
+            DalResultStreamer.streamResultTable( new InputSource( in ), sink );
+        return overflow;
+    }
+
+    /**
+     * Gets an input stream from a URL connection that should contain
+     * a VOTable.
+     *
+     * @param  conn  connection to result of TAP service call
+     * @return  stream containing a response table (error or result)
+     */
+    public static InputStream getVOTableStream( URLConnection conn )
+            throws IOException {
 
         /* Follow 303 redirects as required. */
         conn = followRedirects( conn );
@@ -617,11 +618,18 @@ public class TapQuery {
             }
         }
 
-        /* Parse the input stream as a VOTable and pass the result to
-         * the presented sink. */
-        boolean overflow =
-            DalResultStreamer.streamResultTable( new InputSource( in ), sink );
-        return overflow;
+        /* Log result size if required. */
+        final Level countLevel = Level.CONFIG;
+        if ( logger_.isLoggable( countLevel ) ) {
+            in = new CountInputStream( in ) {
+                @Override
+                public void close() throws IOException {
+                    logger_.log( countLevel, getReadCount() + " bytes read" );
+                    super.close();
+                }
+            };
+        }
+        return in;
     }
 
     /**
