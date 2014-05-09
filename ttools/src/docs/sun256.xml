@@ -8559,6 +8559,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
             in this implementation - if you suspect so, please report it.</li>
         <li>Upgraded Gregory Mantelet's ADQL library to version 1.2.
             Better ADQL parsing.</li>
+        <li>Added new graphics output format <code>png-transp</code>
+            to generate PNG files with transparent backgrounds.</li>
         </ul>
         </p></dd>
 

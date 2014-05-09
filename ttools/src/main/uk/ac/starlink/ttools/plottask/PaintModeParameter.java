@@ -45,14 +45,8 @@ public class PaintModeParameter extends ChoiceParameter {
             fmtbuf.append( "<li><code>" )
                   .append( exporter.getName() )
                   .append( "</code>: " )
-                  .append( exporter.getMimeType() );
-            String enc = exporter.getContentEncoding();
-            if ( enc != null ) {
-                fmtbuf.append( " (" )
-                      .append( enc )
-                      .append( ")" );
-            }
-            fmtbuf.append( " format</li>" )
+                  .append( exporter.getDescription() );
+            fmtbuf.append( "</li>" )
                   .append( "\n" );
         }
         fmtbuf.append( "</ul>\n" )
