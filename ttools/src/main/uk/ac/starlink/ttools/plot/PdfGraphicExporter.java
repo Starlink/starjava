@@ -73,7 +73,8 @@ public abstract class PdfGraphicExporter extends GraphicExporter {
      * Constructor.
      */
     protected PdfGraphicExporter() {
-        super( "pdf", "application/pdf", new String[] { "pdf" } );
+        super( "pdf", "application/pdf", "Portable Document Format",
+               new String[] { "pdf" } );
     }
 
     @Override

@@ -34,6 +34,7 @@ public abstract class GraphicExporter {
 
     private final String name_;
     private final String mimeType_;
+    private final String description_;
     private final String[] fileSuffixes_;
 
     private static final Logger logger_ =
@@ -44,13 +45,15 @@ public abstract class GraphicExporter {
      *
      * @param   name  exporter name (usually graphics format name)
      * @param   mimeType  MIME type for this exporter's output format
+     * @param   description  minimal description of format (may just be name)
      * @param   fileSuffixes  file suffixes which usually indicate the
      *          export format used by this instance (may be null)
      */
-    protected GraphicExporter( String name, String mimeType,
+    protected GraphicExporter( String name, String mimeType, String description,
                                String[] fileSuffixes ) {
         name_ = name;
         mimeType_ = mimeType;
+        description_ = description;
         fileSuffixes_ = fileSuffixes == null ? new String[ 0 ]
                                              : (String[]) fileSuffixes.clone();
     }
@@ -82,6 +85,16 @@ public abstract class GraphicExporter {
      */
     public String getMimeType() {
         return mimeType_;
+    }
+
+    /**
+     * Returns a minimal description of this exporter.
+     * This may just be the format's name if there's nothing else to say.
+     *
+     * @return  description
+     */
+    public String getDescription() {
+        return description_;
     }
 
     /**
@@ -137,19 +150,25 @@ public abstract class GraphicExporter {
 
     /** Exports to JPEG format. */
     public static final GraphicExporter JPEG =
-         new ImageIOExporter( "jpeg", "image/jpeg",
-                              new String[] { ".jpg", ".jpeg" }, false );
+         new ImageIOExporter( "jpeg", "image/jpeg", "JPEG",
+                              new String[] { ".jpg", ".jpeg" }, "jpeg", false );
 
-    /** Exports to PNG format. */
+    /** Exports to PNG format with a standard (currently opaque) background. */
     public static final GraphicExporter PNG =
-         new ImageIOExporter( "png", "image/png",
-                              new String[] { ".png" }, false );
+         new ImageIOExporter( "png", "image/png", "PNG",
+                              new String[] { ".png" }, "png", false );
+
+    /** Exports to PNG format with a transparent background. */
+    public static final GraphicExporter PNG_TRANSPARENT =
+         new ImageIOExporter( "png-transp", "image/png",
+                              "PNG with transparent background",
+                              null, "png", true );
 
     /**
      * Exports to GIF format.
      */
     public static final GraphicExporter GIF =
-            new GraphicExporter( "gif", "image/gif",
+            new GraphicExporter( "gif", "image/gif", "GIF",
                                  new String[] { ".gif", } ) {
 
         public void exportGraphic( Picture picture, OutputStream out )
@@ -227,6 +246,7 @@ public abstract class GraphicExporter {
     /** Exports to Encapsulated PostScript. */
     public static final GraphicExporter EPS =
             new GraphicExporter( "eps", "application/postscript",
+                                 "Encapsulated PostScript",
                                  new String[] { ".eps", ".ps", } ) {
         public void exportGraphic( Picture picture, OutputStream out )
                 throws IOException {
@@ -285,6 +305,7 @@ public abstract class GraphicExporter {
            getKnownExporters( PdfGraphicExporter pdfEx ) {
         List<GraphicExporter> list = new ArrayList<GraphicExporter>();
         list.add( GraphicExporter.PNG );
+        list.add( GraphicExporter.PNG_TRANSPARENT );
         list.add( GraphicExporter.GIF );
         list.add( GraphicExporter.JPEG );
         if ( pdfEx != null ) {
@@ -306,33 +327,36 @@ public abstract class GraphicExporter {
      * GraphicExporter implementation which uses the ImageIO framework.
      */
     private static class ImageIOExporter extends GraphicExporter {
-        private final String formatName_;
+        private final String iioName_;
         private final boolean transparentBg_;
         private final boolean isSupported_;
 
         /**
          * Constructor.
          *
-         * @param  formatName  ImageIO format name
+         * @param  name   exporter name
          * @param  mimeType  MIME type for this exporter's output format
+         * @param  description  minimal format description (may just be name)
+         * @param  fileSuffixes  file suffixes which usually indicate the
+         *         export format used by this instance (may be null)
+         * @param  iioName  ImageIO format name
          * @param  transparentBg  true to use a transparent background,
          *              only permissible if format supports transparency
-         * @param   fileSuffixes  file suffixes which usually indicate the
-         *          export format used by this instance (may be null)
          */
-        ImageIOExporter( String formatName, String mimeType, 
-                         String[] fileSuffixes, boolean transparentBg ) {
-            super( formatName, mimeType, fileSuffixes );
-            formatName_ = formatName;
+        ImageIOExporter( String name, String mimeType, String description,
+                         String[] fileSuffixes, String iioName,
+                         boolean transparentBg ) {
+            super( name, mimeType, description, fileSuffixes );
+            iioName_ = iioName;
             transparentBg_ = transparentBg;
             isSupported_ =
-                ImageIO.getImageWritersByFormatName( formatName ).hasNext();
+                ImageIO.getImageWritersByFormatName( iioName ).hasNext();
         }
 
         public void exportGraphic( Picture picture, OutputStream out )
                 throws IOException {
             if ( ! isSupported_ ) {
-                throw new IOException( "Graphics export to " + formatName_
+                throw new IOException( "Graphics export to " + iioName_
                                      + " not supported" );
             }
 
@@ -366,11 +390,11 @@ public abstract class GraphicExporter {
             picture.paintPicture( g2 );
 
             /* Export. */
-            boolean done = ImageIO.write( image, formatName_, out );
+            boolean done = ImageIO.write( image, iioName_, out );
             out.flush();
             g2.dispose();
             if ( ! done ) {
-                throw new IOException( "No handler for format " + formatName_ +
+                throw new IOException( "No handler for format " + iioName_ +
                                        " (surprising - thought there was)" );
             }
         }
@@ -389,6 +413,7 @@ public abstract class GraphicExporter {
          */
         GzipExporter( GraphicExporter baseExporter ) {
             super( baseExporter.getName() + "-gzip", baseExporter.getMimeType(),
+                   "Gzipped " + baseExporter.getDescription(),
                    appendGzipSuffix( baseExporter.getFileSuffixes() ) );
             baseExporter_ = baseExporter;
         }

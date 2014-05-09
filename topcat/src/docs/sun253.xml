@@ -7183,7 +7183,14 @@ in one of the following graphics formats:
 <dl>
 <dt>png</dt>
 <dd><p>
-    PNG bitmap.
+    PNG bitmap.  The background is opaque.
+    </p></dd>
+<dt>png-transp</dt>
+<dd><p>
+    PNG bitmap with a transparent background.
+    Background pixels that fall outside the plot surface itself
+    (for instance outside the axes for a Plane plot or outside the
+    celestial sphere for a Sky plot) are transparent.
     </p></dd>
 <dt>gif</dt>
 <dd><p>GIF bitmap; note the number of colours is limited to 256.
@@ -20035,6 +20042,8 @@ introduced since the last version:
         Theresa Dower.</li>
     <li>Upgraded Gregory Mantelet's ADQL library to version 1.2.
         Better ADQL parsing.</li>
+    <li>Added new graphics output format <code>png-transp</code>
+        to generate PNG files with transparent backgrounds.</li>
     </ul>
     </p></dd>
 
