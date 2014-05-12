@@ -26,8 +26,14 @@ import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+
+import nom.tam.fits.Header;
+import nom.tam.fits.HeaderCard;
 
 import uk.ac.starlink.splat.imagedata.NDFJ;
 import uk.ac.starlink.splat.util.SEDSplatException;
@@ -41,6 +47,12 @@ import uk.ac.starlink.datanode.nodes.DataNode;
 import uk.ac.starlink.fits.FitsTableBuilder;
 import uk.ac.starlink.ndx.Ndx;
 import uk.ac.starlink.splat.iface.LocalLineIDManager;
+import uk.ac.starlink.splat.imagedata.NDFJ;
+import uk.ac.starlink.splat.util.ConstrainedList;
+import uk.ac.starlink.splat.util.ConstrainedList.ConstraintType;
+import uk.ac.starlink.splat.util.SEDSplatException;
+import uk.ac.starlink.splat.util.SplatException;
+import uk.ac.starlink.splat.vo.SSAPAuthenticator;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.util.DataSource;
@@ -221,18 +233,45 @@ public class SpecDataFactory
      *  @param specspec the specification of the spectrum to be opened.
      *  @param type the type of the spectrum (one of types defined in
      *              this class).
-     *  @return the SpecData object created from the given
+     *  @return the first SpecData object created from the given
+     *          specification.
+     *  @exception SplatException thrown if specification does not
+     *             specify a spectrum that can be accessed.
+     */
+    public SpecData get( String specspec, int type ) 
+    		throws SplatException {
+    	List<SpecData> spectra = getAll(specspec, type);
+    	
+    	if (spectra != null && !spectra.isEmpty())
+    		return spectra.get(0);
+    	else
+    		return null;
+    }
+    
+    /**
+     *  Attempt to open a given specification as a known type. If this
+     *  fails then a SplatException will be thrown. Note that if the
+     *  type is DEFAULT then this is equivalent to calling
+     *  {@link #get(String)}.
+     *
+     *  @param specspec the specification of the spectrum to be opened.
+     *  @param type the type of the spectrum (one of types defined in
+     *              this class).
+     *  @return the List of SpecData objects created from the given
      *          specification.
      *  @exception SplatException thrown if specification does not
      *             specify a spectrum that can be accessed.
      */
 
-    public SpecData get( String specspec, int type )
+    public List<SpecData> getAll( String specspec, int type )
         throws SplatException
     {
-        //  Type established by file name rules.
+    	List<SpecData> specDataList = new ConstrainedList<SpecData>(ConstraintType.DENY_NULL_VALUES, LinkedList.class);
+    	//SpecData specData;
+
+    	//  Type established by file name rules.
         if ( type == DEFAULT ) {
-            return get( specspec );
+            return getAll( specspec );
           
         }
 
@@ -254,40 +293,49 @@ public class SpecDataFactory
         } 
 
         if ( type != GUESS ) {
-            SpecDataImpl impl = null;
+            //SpecDataImpl impl = null;
+        	boolean added = true;
+            List<SpecDataImpl> impls = new ConstrainedList<SpecDataImpl>(ConstraintType.DENY_NULL_VALUES, LinkedList.class);
             switch (type)
             {
                 case FITS: {
-                    impl = makeFITSSpecDataImpl( specspec );
+                	added = impls.addAll(makeFITSSpecDataImplList(specspec));
+                    //impl = makeFITSSpecDataImpl( specspec );
                 }
                     break;
                 case HDS: {
-                    impl = makeNDFSpecDataImpl( namer.getName() );
+                	added = impls.add(makeNDFSpecDataImpl( namer.getName() ));
+                    //impl = makeNDFSpecDataImpl( namer.getName() );
                 }
                     break;
                 case TEXT: {
-                    impl = new TXTSpecDataImpl( specspec );
+                	added = impls.add(new TXTSpecDataImpl( specspec ));
+                	//impl = new TXTSpecDataImpl( specspec );
                 }
                     break;
                 case HDX: {
                     //  HDX should download remote files as it needs to keep
                     //  the basename to locate other references.
                     if ( namer.isRemote() ) {
-                        impl = new NDXSpecDataImpl( namer.getURL() );
+                    	added = impls.add(new NDXSpecDataImpl( namer.getURL() ));
+                    	//impl = new NDXSpecDataImpl( namer.getURL() );
                     }
                     else {
-                        impl = new NDXSpecDataImpl( specspec );
+                    	added = impls.add(new NDXSpecDataImpl( specspec ));
+                    	//impl = new NDXSpecDataImpl( specspec );
                     }
                 }
                     break;
                 case DATALINK: 
                 case TABLE: {
-                   impl = makeTableSpecDataImpl( specspec );
+                	added = impls.add(makeTableSpecDataImpl( specspec ));
+                	//impl = makeTableSpecDataImpl( specspec );
 
                 }
                     break;
                 case IDS: {
-                    impl = new LineIDTXTSpecDataImpl( specspec );
+                	added = impls.add(new LineIDTXTSpecDataImpl( specspec ));
+                	//impl = new LineIDTXTSpecDataImpl( specspec );
                 }
                     break;
                 default: {
@@ -296,14 +344,22 @@ public class SpecDataFactory
                                               "type: " + type );
                 }
             }
-            if ( impl == null ) {
+            //if ( impl == null ) {
+            if ( !added ) {
                 throwReport( specspec, true, null );
             }
-            return makeSpecDataFromImpl( impl, isRemote, namer.getURL() );
+            
+            for (SpecDataImpl impl : impls) {
+            	specDataList.add(makeSpecDataFromImpl( impl, isRemote, namer.getURL() ));
+            }
+            
+            return specDataList;
         }
 
         //  Only get here for guessed spectra.
-        return makeGuessedSpecData( specspec, namer.getURL() );
+        //specDataList.add(makeGuessedSpecData( specspec, namer.getURL() ));
+        specDataList.addAll(makeGuessedSpecDataList(specspec, namer.getURL()));
+        return specDataList;
       }
     
     /**
@@ -321,9 +377,36 @@ public class SpecDataFactory
      *             specify a spectrum that can be accessed.
      */
     public SpecData get( String specspec )
+    		throws SplatException {
+    	
+    	List<SpecData> spectra = getAll(specspec);
+    	
+    	if (spectra != null && !spectra.isEmpty())
+    		return spectra.get(0);
+    	else
+    		return null;
+    }
+    /**
+     *  Check the format of the incoming specification and create an
+     *  instance of SpecData for it.
+     *
+     *  @param specspec the specification of the spectrum to be
+     *                  opened (i.e. file.fits, file.sdf,
+     *                  file.fits[2], file.more.ext_1 etc.).
+     *
+     *  @return the List of SpecData objects created from the given
+     *          specification.
+     *
+     *  @exception SplatException thrown if specification does not
+     *             specify a spectrum that can be accessed.
+     */
+    public List<SpecData> getAll( String specspec )
             throws SplatException
      {
-        SpecDataImpl impl = null;
+    	List<SpecData> specDataList = new ConstrainedList<SpecData>(ConstraintType.DENY_NULL_VALUES, LinkedList.class);
+    	List<SpecDataImpl> impls = new ConstrainedList<SpecDataImpl>(ConstraintType.DENY_NULL_VALUES, LinkedList.class);
+        
+    	//SpecDataImpl impl = null;
         boolean isRemote = false;
         String guessedType = null;
         URL specurl = null;
@@ -339,7 +422,8 @@ public class SpecDataFactory
             
             //  library. A local copy loses the basename context.
             if ( isRemote && namer.getFormat().equals( "XML" ) ) {
-                impl = makeXMLSpecDataImpl( specspec, true, specurl );
+                //impl = makeXMLSpecDataImpl( specspec, true, specurl );
+            	impls.add(makeXMLSpecDataImpl( specspec, true, specurl ));
             }
             else {
                 //  Remote plainer formats (FITS, NDF) need a local copy.
@@ -348,21 +432,35 @@ public class SpecDataFactory
                                            namer = new NameParser( p.ndfname() );                   
                 }
                 guessedType = namer.getFormat();
-                impl = makeLocalFileImpl( namer.getName(), namer.getFormat() );
+                //impl = makeLocalFileImpl( namer.getName(), namer.getFormat() );
+                impls.addAll(makeLocalFileImplList( namer.getName(), namer.getFormat() ));
             }
         }
         catch (SEDSplatException se) {
             throw se;
         }
         catch (Exception e ) {
-            impl = null;
+            //impl = null;
+        	impls.clear();
         }
 
         //  Try construct an intelligent report.
-        if ( impl == null ) {
+        //if ( impl == null ) {
+        if ( impls.isEmpty() ) {
             throwReport( specspec, false, guessedType );
         }
-        return makeSpecDataFromImpl( impl, isRemote, specurl );
+        
+    	for (SpecDataImpl impl : impls) {
+    		SpecData specData = makeSpecDataFromImpl( impl, isRemote, specurl );
+    		if (specData != null)
+            	specDataList.add(specData);
+    	}
+    
+    	/*SpecData specData = makeSpecDataFromImpl( impl, isRemote, specurl );
+        if (specData != null)
+        	specDataList.add(specData);*/
+        
+        return specDataList;
     }
 
 
@@ -385,11 +483,46 @@ public class SpecDataFactory
      *             
      *  @author Margarida Castro Neves (adapted for "strange" URL formats
      *          that cannot be easily guessed, like in getdata request.) 
+     *  @author David Andresic (adapted for multi-HDU FITS files)
      */
     public SpecData get( String specspec, String format )
             throws SplatException
      {
-        SpecDataImpl impl = null;
+    	List<SpecData> spectra = getAll(specspec, format);
+    	
+    	if (spectra != null && !spectra.isEmpty())
+    		return spectra.get(0);
+    	else
+    		return null;
+     }
+    
+    /**
+     *  Create a List of SpecData instances for the given format.
+     *
+     *  @param specspec the specification of the spectrum to be
+     *                  opened (i.e. file.fits, file.sdf,
+     *                  file.fits[2], file.more.ext_1 etc.).
+     *                  
+     * @param specspec the specification of the spectrum to be
+     *                  opened (i.e. file.fits, file.sdf,
+     *                  file.fits[2], file.more.ext_1 etc.).
+     *
+     *  @return the List of SpecData objects created from the given
+     *          specification.
+     *
+     *  @exception SplatException thrown if specification does not
+     *             specify a spectrum that can be accessed.
+     *             
+     *  @author Margarida Castro Neves (adapted for "strange" URL formats
+     *          that cannot be easily guessed, like in getdata request.) 
+     *  @author David Andresic (adapted for multi-HDU FITS files)
+     */
+    public List<SpecData> getAll( String specspec, String format )
+            throws SplatException
+     {
+        //SpecDataImpl impl = null;
+    	List<SpecDataImpl> impls = new ConstrainedList<SpecDataImpl>(ConstraintType.DENY_NULL_VALUES, LinkedList.class);
+    	List<SpecData> spectra = new LinkedList<SpecData>();
         boolean isRemote = false;
         String guessedType = null;
         URL specurl = null;
@@ -406,7 +539,8 @@ public class SpecDataFactory
             
             //  library. A local copy loses the basename context.
             if ( isRemote && format.equals( "XML" ) ) {
-                impl = makeXMLSpecDataImpl( specspec, true, specurl );
+                //impl = makeXMLSpecDataImpl( specspec, true, specurl );
+            	impls.add(makeXMLSpecDataImpl( specspec, true, specurl ));
                 ftype=HDX;
             }
             else {
@@ -423,7 +557,8 @@ public class SpecDataFactory
                     PathParser p = remoteToLocalFile( specurl, ftype  );
                                            namer = new NameParser( p.ndfname() );                   
                 }
-                impl = makeLocalFileImpl( namer.getName(), format );
+                //impl = makeLocalFileImpl( namer.getName(), format );
+                impls.addAll(makeLocalFileImplList( namer.getName(), format ));
             }
         }
         catch (SEDSplatException se) {
@@ -431,7 +566,8 @@ public class SpecDataFactory
             throw se;
         }
         catch (Exception e ) {
-            impl = null;
+            //impl = null;
+            impls.clear();
             if (e.getMessage().contains("No TABLE element found")) {
                 // if a VOTABLE with no TABLE is returned (for example, getData with wrong parameters)
                 // a report should not be given.
@@ -441,10 +577,14 @@ public class SpecDataFactory
         }
 
         //  Try construct an intelligent report.
-        if ( impl == null && ! notable ) {
+        if ( impls.isEmpty() && ! notable ) {
             throwReport( specspec, false, format);
         }
-        return makeSpecDataFromImpl( impl, isRemote, specurl );
+        for (SpecDataImpl impl : impls) {
+        	spectra.add(makeSpecDataFromImpl( impl, isRemote, specurl ));
+        }
+        //return makeSpecDataFromImpl( impl, isRemote, specurl );
+        return spectra;
     }
 
     /**
@@ -453,28 +593,48 @@ public class SpecDataFactory
     protected SpecDataImpl makeLocalFileImpl( String name, String format )
         throws SplatException
     {
-        SpecDataImpl impl = null;
+    	List<SpecDataImpl> impls = makeLocalFileImplList(name, format);
+    	
+    	if (impls != null && !impls.isEmpty())
+    		return impls.get(0);
+    	else
+    		return null;
+    }
+    
+    /**
+     * Make a List of SpecDataImpl for a known local file with the given format.
+     */
+    protected List<SpecDataImpl> makeLocalFileImplList( String name, String format )
+        throws SplatException
+    {
+    	List<SpecDataImpl> impls = new ConstrainedList<SpecDataImpl>(ConstraintType.DENY_NULL_VALUES, LinkedList.class);
+    	//SpecDataImpl impl = null;
         if ( format.equals( "NDF" ) ) {
-            impl = makeNDFSpecDataImpl( name );
+            //impl = makeNDFSpecDataImpl( name );
+        	impls.add(makeNDFSpecDataImpl( name ));
         }
         else if ( format.equals( "FITS" ) ) {
-            impl = makeFITSSpecDataImpl( name );
+            //impl = makeFITSSpecDataImpl( name );
+        	impls.addAll(makeFITSSpecDataImplList( name ));
         }
         else if ( format.equals( "TEXT" ) ) {
-            impl = new TXTSpecDataImpl( name );
+            //impl = new TXTSpecDataImpl( name );
+        	impls.add(new TXTSpecDataImpl( name ));
         }
         else if ( format.equals( "XML" ) ) {
-            impl = makeXMLSpecDataImpl( name, false, null );
+            //impl = makeXMLSpecDataImpl( name, false, null );
+        	impls.add(makeXMLSpecDataImpl( name, false, null ));
         }
         else if ( format.equals( "IDS" ) ) {
-            impl = new LineIDTXTSpecDataImpl( name );
+            //impl = new LineIDTXTSpecDataImpl( name );
+        	impls.add(new LineIDTXTSpecDataImpl( name ));
         }
         else {
             throw new SplatException
                 ( "Spectrum '" + name + "' has an unknown format" + 
                   " (guessed: " + format + " )" );
         }
-        return impl;
+        return impls;
     }
 
     /**
@@ -509,32 +669,73 @@ public class SpecDataFactory
     protected SpecDataImpl makeFITSSpecDataImpl( String specspec )
         throws SplatException
     {
-        SpecDataImpl impl = null;
-        impl = new FITSSpecDataImpl( specspec );
+    	List<SpecDataImpl> specDataImpls = makeFITSSpecDataImplList(specspec);
+    	
+    	if (specDataImpls != null && !specDataImpls.isEmpty())
+    		return specDataImpls.get(0);
+    	else
+    		return null;
+    }
+    
+    /**
+     * Make an implementation for an FITS file HDUs. This could be either a
+     * spectra or tables, so we need to find out first.
+     */
+    protected List<SpecDataImpl> makeFITSSpecDataImplList( String specspec )
+        throws SplatException
+    {
+    	List<SpecDataImpl> specDataImpls = new ConstrainedList<SpecDataImpl>(ConstraintType.DENY_NULL_VALUES, LinkedList.class);
+    	
+    	SpecDataImpl implGlobal = null;
+    	
+        implGlobal = new FITSSpecDataImpl( specspec );
+        
+        for (int i = 0; i < ((FITSSpecDataImpl)implGlobal).hdurefs.length; i++) {
 
-        // Table, if it is an table extension, or the data array size is 0
-        // (may be primary).
-        String exttype = impl.getProperty( "XTENSION" ).trim().toUpperCase();
-        int dims[] = impl.getDims();
-        if ( exttype.equals( "TABLE" ) || exttype.equals( "BINTABLE" ) ||
-             dims == null || dims[0] == 0 ) {
-            try {
-               // File specfile = new File (specspec); // MCN: trying to skip first HDU
-              //  DataSource datsrc = new FileDataSource( specfile , "1");
-                DataSource datsrc = new FileDataSource( specspec );
-                StarTable starTable = new FitsTableBuilder().makeStarTable( datsrc, true, storagePolicy );
-                impl = new TableSpecDataImpl( starTable, specspec, datsrc.getURL().toString() );
+        	SpecDataImpl impl = new FITSSpecDataImpl( specspec, i );
+            // Table, if it is an table extension, or the data array size is 0
+            // (may be primary).
+            String exttype = impl.getProperty( "XTENSION" ).trim().toUpperCase();
+            int dims[] = impl.getDims();
+            if ( exttype.equals( "TABLE" ) || exttype.equals( "BINTABLE" ) ||
+                 dims == null || dims[0] == 0 ) {
+                try {
+                   // File specfile = new File (specspec); // MCN: trying to skip first HDU
+                  //  DataSource datsrc = new FileDataSource( specfile , "1");
+                    DataSource datsrc = new FileDataSource( specspec );
+                    StarTable starTable = new FitsTableBuilder().makeStarTable( datsrc, true, storagePolicy );
+                    if ( starTable.getRowCount() == 0 )
+                        throw new Exception( "The TABLE is empty");
+                    impl = new TableSpecDataImpl( starTable, specspec, datsrc.getURL().toString(),
+                    		((FITSSpecDataImpl)impl).getFitsHeaders());
+                }
+                catch (SEDSplatException se) {
+                    se.setType(FITS);
+                    se.setSpec(specspec);
+                    throw se;
+                }
+                catch (Exception e) {
+                    if (e.getMessage().contains("TABLE is empty")) {
+                        impl=null;
+                        logger.info( e.getMessage() );
+                        throw new SplatException (e);
+                    }
+                    else throw new SplatException( "Failed to open FITS table", e );
+                }
             }
-            catch (SEDSplatException se) {
-                se.setType(FITS);
-                se.setSpec(specspec);
-                throw se;
-            }
-            catch (Exception e) {
-                throw new SplatException( "Failed to open FITS table", e );
-            }
-        }
-        return impl;
+            
+            /* add only if data array size is not 0 
+             * (we can do this since we loop over all
+             * found HDUs so any relevant, non-zero HDUs
+             * will be treated correctly)
+             */
+            if (dims == null || (dims !=null && dims[0] != 0))
+            	specDataImpls.add(impl);
+            else
+            	logger.info(String.format("Ignoring HDU #%d in '%s' (data array size 0)", i, impl.getFullName()));
+    	}
+        
+        return specDataImpls;
     }
 
     /**
@@ -571,15 +772,23 @@ public class SpecDataFactory
             StarTable starTable =
                 new VOTableBuilder().makeStarTable( datsrc, true,
                                                     storagePolicy );
+            if ( starTable.getRowCount() == 0 )
+                throw new Exception( "The TABLE is empty");
             if ( starTable != null ) {
                 return new TableSpecDataImpl( starTable );
             }
+            
         }
         catch (Exception e) {
             tableException = e;
             if (e.getMessage().contains("No TABLE element found")) {
                 impl=null;
                 logger.info( "VOTABLE returned no table" );
+                throw new SplatException (tableException);
+            }
+            if (e.getMessage().contains("TABLE is empty")) {
+                impl=null;
+                logger.info( e.getMessage() );
                 throw new SplatException (tableException);
             }
         }
@@ -1032,13 +1241,14 @@ public class SpecDataFactory
             throws SplatException
     {
         PathParser namer = null;
+       
         try {
             
             //  Contact the resource.
            
             
             URLConnection connection = url.openConnection();
-
+          
             //  Handle switching from HTTP to HTTPS, if a HTTP 30x redirect is
             //  returned, as Java doesn't do this by default (security issues
             //  when moving from secure to non-secure).
@@ -1047,7 +1257,8 @@ public class SpecDataFactory
                 
                
                 if ( code == HttpURLConnection.HTTP_MOVED_PERM ||
-                     code == HttpURLConnection.HTTP_MOVED_TEMP ) {
+                     code == HttpURLConnection.HTTP_MOVED_TEMP ||
+                     code == HttpURLConnection.HTTP_SEE_OTHER ) {
                     String newloc = connection.getHeaderField( "Location" );
                     URL newurl = new URL( newloc );
                     connection = newurl.openConnection();
@@ -1058,12 +1269,12 @@ public class SpecDataFactory
                     throw new SplatException( "Server returned " + ((HttpURLConnection)connection).getResponseMessage() + " " + 
                             " for the URL : " + url.toString()    );
                 }
-              
+                
             }
             connection.setConnectTimeout(10*1000); // 10 seconds
             connection.setReadTimeout(30*1000); // 30 seconds read timeout??? 
             InputStream is = connection.getInputStream();
-  
+          
             //  And read it into a local file. Use the existing file extension
             //  if available and we're not guessing the type.
             namer = new PathParser( url.toString() );
@@ -1098,15 +1309,18 @@ public class SpecDataFactory
                 break;
                 default: {
                     stype = namer.type();
+                    
                     if ( stype.equals( "" ) ) {
                         stype = ".tmp";
                     }
                 }
             }
+            
             TemporaryFileDataSource datsrc =
                 new TemporaryFileDataSource( is, url.toString(), "SPLAT",
                                              stype, null );
             String tmpFile = datsrc.getFile().getCanonicalPath();
+           
             namer.setPath( tmpFile );
             datsrc.close();
 
@@ -1209,7 +1423,7 @@ public class SpecDataFactory
                 results = collapseSpecData( specData, specDims );
             }
             else if ( method == EXTRACT )  {
-                String testEchelle = specData.getProperty("WAT0_001");
+                String testEchelle = specData.getProperty("WAT0_001"); // fits echele in IRAF format
                 if (! testEchelle.isEmpty() && testEchelle.contains("system=multispec")) {
                     results = extractEchelleSpecData( specData, specDims );
                 } else 
@@ -1365,10 +1579,12 @@ public class SpecDataFactory
            
             ArrayList<String> specline = new ArrayList<String>();
             String specParams = "";
-            int specindex=1;
+            int specindex=1; int linelength=0;
             for (int i=1; moreinfo ;i++) {
                 String property= "WAT2_"+ String.format("%03d", i); // think of a better algorithm!!!
-                String propline = specData.getProperty(property); // Problem: getProperty always removes tailing empty spaces
+                String propline = getEchelleProperty(specData, property, linelength); // Problem: getProperty always removes heading/tailing empty spaces
+                int newlength = propline.length();
+                linelength=newlength; // !!!HACK works only if fitst line has the right length
                 
                 logger.info("propline1 "+propline+"<\n");
                 if (! propline.isEmpty()) {      
@@ -1435,6 +1651,25 @@ public class SpecDataFactory
         }
         return results;
     }
+    
+  
+    protected String getEchelleProperty( SpecData specdata, String key, int linelength ) {
+        
+        Header hdrs=specdata.getHeaders();
+    
+        String scard = hdrs.findKey(key.toUpperCase());
+        HeaderCard card = hdrs.findCard(key.toUpperCase());
+       // HeaderCard card = new HeaderCard( scard );
+        String cardValue=card.getValue();  
+        int ind=cardValue.indexOf("\' ");
+      
+        String  test=card.toString(); 
+        if (scard.endsWith(" ")) 
+                cardValue+=" "; // add last space if it's found in scard
+        if ( linelength > cardValue.length() )
+            cardValue=" "+cardValue; // add first space if string is shorter
+        return cardValue;
+    }
 
     /**
      * Process a SED (IVOA spectral data model) XML file and extract all the
@@ -1455,7 +1690,8 @@ public class SpecDataFactory
             root = new VOElementFactory().makeVOElement( specspec );
         }
         catch (Exception e) {
-            throw new SplatException( "Failed to open SED VOTable", e );
+            throw new SplatException( "Failed to open VOTable"+e.getMessage(), e );
+            //throw new SplatException( "Failed to open SED VOTable"+e.getMessage(), e );
         }
 
         //  First element should be a RESOURCE.
@@ -1474,18 +1710,21 @@ public class SpecDataFactory
                 for ( int j = 0; j < child.length; j++ ) {
                     tagName = child[j].getTagName();
                     if ( "TABLE".equals( tagName ) ) {
-                        utype = child[j].getAttribute( "utype" );
-                        String sname = child[j].getAttribute("name");
-                     //   if ( "sed:Segment".equals( utype ) ) { // we try this also for multiple spectra in a VOTable which do not have this utype (i.E. echelle spectra)
-                            try {
-                                table = new VOStarTable( (TableElement) child[j] );
+                        utype = child[j].getAttribute( "utype" );                    
+                        //   if ( "sed:Segment".equals( utype ) ) { // we try this also for multiple spectra in a VOTable which do not have this utype (i.E. echelle spectra)
+                            
+                                try {
+                                    table = new VOStarTable( (TableElement) child[j] );
+                               
+                                if ( table.getRowCount() == 0 )
+                                    throw new SplatException( "The table is empty: "+specspec);
                                 specData = new SpecData( new TableSpecDataImpl(table) );
                                 specData.setShortName(specData.getShortName() + " " + child[j].getAttribute("name"));
                                 specList.add( specData );
-                            }
-                            catch (Exception e) {
-                                throw new SplatException( e );
-                            }
+                                } catch (IOException e) {
+                                    throw new SplatException(e);
+                                }
+                            
                     //    }
                     }
                 }
@@ -1559,10 +1798,10 @@ public class SpecDataFactory
                 stype = SpecDataFactory.DATALINK;
             else
             // VOTable spectrum, open as a table. Is really the SSAP native
-            // XML representation so could an SED? In which case this might be
+            // XML representation so could be a SED? In which case this might be
             // better as SpecDataFactory.SED, we'll see.
-               // stype = SpecDataFactory.TABLE;
-            stype = SpecDataFactory.SED;
+                //stype = SpecDataFactory.TABLE;
+                stype = SpecDataFactory.SED;
         }
         else if ( simpleType.startsWith( "spectrum/votable" ) ||
                   simpleType.equals( "votable" ) ) {
@@ -1581,7 +1820,22 @@ public class SpecDataFactory
     public SpecData makeGuessedSpecData( String specspec, URL url )
         throws SplatException
     {
-        SpecData specData = null;
+    	List<SpecData> specDataList = makeGuessedSpecDataList(specspec, url);
+    	
+    	if (specDataList != null && !specDataList.isEmpty())
+    		return specDataList.get(0);
+    	else
+    		return null;
+    }
+    
+    //
+    //  DataNode guessing.
+    //
+    public List<SpecData> makeGuessedSpecDataList( String specspec, URL url )
+        throws SplatException
+    {
+    	List<SpecData> specDataList = new LinkedList<SpecData>();
+    	//SpecData specData = null;
         if ( dataNodeFactory == null ) {
             dataNodeFactory = new DataNodeFactory();
             SplatDataNode.customiseFactory( dataNodeFactory );
@@ -1590,10 +1844,15 @@ public class SpecDataFactory
         try {
             DataNode node =
                 dataNodeFactory.makeDataNode( null, new File( specspec ) );
-            specData = SplatDataNode.makeSpecData( node );
-            if ( specData != null ) {
-                specData.setShortName( url.toString() );
+            List<SpecData> sdList = SplatDataNode.makeSpecDataList( node );
+            
+            for (SpecData specData : sdList) {
+            	if ( specData != null ) {
+                    specData.setShortName( url.toString() );
+                    specDataList.add(specData);
+                }
             }
+            
         }
         catch (SEDSplatException se ) {
             throw se;
@@ -1601,7 +1860,7 @@ public class SpecDataFactory
         catch (Exception e) {
             throw new SplatException( e );
         }
-        return specData;
+        return specDataList;
     }
 
     public void setAuthenticator(SSAPAuthenticator auth) {
