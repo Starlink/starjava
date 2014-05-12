@@ -215,7 +215,7 @@ public class TableColumnChooser
                                 result = k;
                             }
                             else {
-                                if ( ucd.indexOf( "meta.main" ) > 0 ) {
+                                if ( ucd != null && ucd.indexOf( "meta.main" ) > 0 ) {
                                     result = k;
                                 }
                             }
