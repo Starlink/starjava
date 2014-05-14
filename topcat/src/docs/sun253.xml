@@ -20044,6 +20044,8 @@ introduced since the last version:
         Better ADQL parsing.</li>
     <li>Added new graphics output format <code>png-transp</code>
         to generate PNG files with transparent backgrounds.</li>
+    <li>Fix out-by-one error in reporting of Row of min/max values
+        in Statistics window.</li>
     </ul>
     </p></dd>
 

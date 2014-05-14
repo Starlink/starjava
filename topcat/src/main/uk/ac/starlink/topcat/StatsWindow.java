@@ -576,7 +576,7 @@ public class StatsWindow extends AuxWindow {
                 int jcol = getModelIndexFromRow( irow );
                 if  ( lastCalc_ == null || jcol >= lastCalc_.ncol ) return null;
                 return lastCalc_.mins[ jcol ] != null
-                     ? new Long( lastCalc_.imins[ jcol ] )
+                     ? new Long( lastCalc_.imins[ jcol ] + 1 )
                      : null;
             }
         } );
@@ -601,7 +601,7 @@ public class StatsWindow extends AuxWindow {
                 int jcol = getModelIndexFromRow( irow );
                 if ( lastCalc_ == null || jcol >= lastCalc_.ncol ) return null;
                 return lastCalc_.maxs[ jcol ] != null
-                     ? new Long( lastCalc_.imaxs[ jcol ] )
+                     ? new Long( lastCalc_.imaxs[ jcol ] + 1 )
                      : null;
             }
         } );
