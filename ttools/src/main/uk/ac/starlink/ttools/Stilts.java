@@ -81,6 +81,7 @@ public class Stilts {
         taskFactory_ = new ObjectFactory( Task.class );
         String taskPkg = "uk.ac.starlink.ttools.task.";
         taskFactory_.register( "calc", taskPkg + "Calc" );
+        taskFactory_.register( "cdsskymatch", taskPkg + "CdsUploadSkyMatch" );
         taskFactory_.register( "coneskymatch", taskPkg + "MultiCone" );
         taskFactory_.register( "funcs", taskPkg + "ShowFunctions" );
         taskFactory_.register( "pixfoot", taskPkg + "PixFootprint" );
@@ -125,5 +126,4 @@ public class Stilts {
         modeFactory_.register( "plastic", modePkg + "PlasticMode" );
         modeFactory_.register( "tosql", modePkg + "JdbcMode" );
     }
-
 }
