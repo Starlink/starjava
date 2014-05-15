@@ -229,6 +229,7 @@ public class ResourceIcon implements Icon {
         SKETCH = makeIcon( "sketch1.gif" ),
         PROGRESS = makeIcon( "plot_prog.gif" ),
         MATCHPLOT = makeIcon( "matchplot2.gif" ),
+        CDSXMATCH = makeIcon( "xm3.png" ),
 
         /* Plot2 icons. */
         UP_DOWN = makeIcon( "updown8.gif" ),
