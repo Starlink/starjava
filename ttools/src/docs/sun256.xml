@@ -37,6 +37,7 @@
 
   <!-- Summary paragraphs containing usage for each commmand. -->
   <!ENTITY calc-summary SYSTEM 'calc-summary.xml'>
+  <!ENTITY cdsskymatch-summary SYSTEM 'cdsskymatch-summary.xml'>
   <!ENTITY coneskymatch-summary SYSTEM 'coneskymatch-summary.xml'>
   <!ENTITY funcs-summary SYSTEM 'funcs-summary.xml'>
   <!ENTITY pixfoot-summary SYSTEM 'pixfoot-summary.xml'>
@@ -222,6 +223,7 @@ same ground as the STIL and TOPCAT user documents
     </p></dd>
 <dt>Virtual Observatory access</dt>
 <dd><p>
+    <ref id="cdsskymatch"><code>cdsskymatch</code></ref>,
     <ref id="coneskymatch"><code>coneskymatch</code></ref>,
     <ref id="tapquery"><code>tapquery</code></ref>
     <ref id="tapresume"><code>tapresume</code></ref>
@@ -442,8 +444,9 @@ name of one of the tasks listed in <ref id="cmdUsage"/> - currently
 the available tasks are:
 <ul>
 <li><code>calc</code></li>
-<li><code>funcs</code></li>
+<li><code>cdsskymatch</code></li>
 <li><code>coneskymatch</code></li>
+<li><code>funcs</code></li>
 <li><code>pixfoot</code></li>
 <li><code>pixsample</code></li>
 <li><code>plot2d</code></li>
@@ -1819,6 +1822,7 @@ or Unix <code>compress</code> and the program will uncompress it on the fly.
            <ref id="plot2d"><code>plot2d</code></ref>,
            <ref id="plot3d"><code>plot3d</code></ref>,
            <ref id="plothist"><code>plothist</code></ref>,
+           <ref id="cdsskymatch"><code>cdsskymatch</code></ref>,
            <ref id="coneskymatch"><code>coneskymatch</code></ref>,
            <ref id="sqlskymatch"><code>sqlskymatch</code></ref>,
            <ref id="tapquery"><code>tapquery</code></ref>,
@@ -3945,6 +3949,9 @@ Detailed descriptions and examples for each command can be found in
     <li><ref id="tskymatch2" plaintextref="yes"><code>tskymatch2</code></ref>:
         &tskymatch2-purpose;
         </li>
+    <li><ref id="cdsskymatch" plaintextref="yes"><code>cdsskymatch</code></ref>:
+        &cdsskymatch-purpose;
+        </li>
     <li><ref id="coneskymatch"
              plaintextref="yes"><code>coneskymatch</code></ref>:
         &coneskymatch-purpose;
@@ -3999,6 +4006,9 @@ Detailed descriptions and examples for each command can be found in
 <dt>Virtual Observatory service access:</dt>
 <dd><p>
     <ul>
+    <li><ref id="cdsskymatch" plaintextref="yes"><code>cdsskymatch</code></ref>:
+        &cdsskymatch-purpose;
+        </li>
     <li><ref id="coneskymatch"
              plaintextref="yes"><code>coneskymatch</code></ref>:
         &coneskymatch-purpose;
@@ -4113,8 +4123,85 @@ stilts calc '&param.prefix;author' table=catalogue.xml
 
 </subsect>
 
+<subsect id="cdsskymatch" tocleaf="yes">
+<subhead><title><code>cdsskymatch</code>:
+                &cdsskymatch-purpose;</title></subhead>
+
+<p><code>cdsskymatch</code> uses the
+<webref url="http://cdsxmatch.u-strasbg.fr/">CDS X-Match service</webref>
+to join a local table to one of the tables hosted by the
+Centre de Donn&#x00e9;es astronomiques de Strasbourg.
+This includes all of the VizieR tables and the SIMBAD database.
+The service is very fast, and in most cases it is the best way to
+match a local table against a large external table hosted by a service.
+It is almost certainly much better than using
+<ref id="coneskymatch"><code>coneskymatch</code></ref>.
+</p>
+
+<p>The local table is uploaded to the X-Match service in chunks,
+and the matches for each chunk are retrieved in turn and eventually
+stitched together to form the final result.
+The tool only uploads sky position and an identifier for each row of
+the input table, but all columns of the input table are reinstated
+in the result for reference.
+</p>
+
+<p><em>Acknowledgement</em>: CDS note that if the use of the
+X-Match service is useful to your research, they would appreciate
+the following acknowledgement:
+<blockquote>
+<em>
+  "This research made use of the cross-match service provided by
+  CDS, Strasbourg."
+</em>
+</blockquote>
+</p>
+
+&cdsskymatch-summary;
+
+<subsubsect>
+<subhead><title>Examples</title></subhead>
+
+<p>Here are some examples of <code>cdsskymatch</code>:
+<dl>
+
+<dt><verbatim>
+stilts cdsskymatch cdstable=II/246/out find=all
+                   in=dr5qso.fits ra=RA dec=DEC sr=1 out=qso_2mass.fits
+</verbatim></dt>
+<dd><p>Matches a local catalogue <code>dr5qso.fits</code> against the
+    VizieR table <code>II/246/out</code> (the 2MASS Point Source Catalogue).
+    The search radius is 1 arcsecond, and all 2MASS sources within the
+    radius of each input source are returned.
+    </p></dd>
+
+<dt><verbatim>
+stilts cdsskymatch cdstable=simbad find=best
+                   in=sources.txt ifmt=ascii ra=RAJ2000 dec=DEJ2000 sr=8.5
+                   blocksize=1000 icmd=progress omode=topcat
+</verbatim></dt>
+<dd><p>This finds the closest object in the SIMBAD database within 8.5 arcsec
+    for each row of an input ASCII table.
+    Uploads are done in blocks of 1,000 rows at a time, and progress
+    is displayed on the console.  When the match is complete, the
+    result is sent directly to a running instance of TOPCAT.
+    </p></dd>
+
+</dl>
+</p>
+
+</subsubsect>
+
+</subsect>
+
 <subsect id="coneskymatch" tocleaf="yes">
-<subhead><title><code>coneskymatch</code>: &coneskymatch-purpose;</title></subhead>
+<subhead><title><code>coneskymatch</code>:
+                &coneskymatch-purpose;</title></subhead>
+
+<p><em>Note: in many cases, the
+<ref id="cdsskymatch"><code>cdsskymatch</code></ref>
+is a better alternative to this command.
+</em></p>
 
 <p><code>coneskymatch</code> is a utility which performs a 
 cone search-like
@@ -8561,6 +8648,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
             Better ADQL parsing.</li>
         <li>Added new graphics output format <code>png-transp</code>
             to generate PNG files with transparent backgrounds.</li>
+        <li>Add new command
+            <ref id="cdsskymatch"><code>cdsskymatch</code></ref>.</li>
         </ul>
         </p></dd>
 
