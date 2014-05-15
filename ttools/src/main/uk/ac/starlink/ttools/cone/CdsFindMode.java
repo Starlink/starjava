@@ -9,20 +9,21 @@ package uk.ac.starlink.ttools.cone;
 public enum CdsFindMode {
             
     /** All matches. */
-    ALL( "all", "All matches", "all", true ),
+    ALL( "all", "All matches", "all", true, false ),
 
     /** Best CDS table match for each uploaded table row. */
     BEST0( "best", "Best match in remote table for each local table row",
-           "best", true ),
+           "best", true, false ),
     
     /** Best uploaded match for each CDS table row. */
     BEST1( "best-remote", "Best match in local table for each remote table row",
-           "best", false );
+           "best", false, true );
         
     private final String name_;
     private final String summary_;
     private final String selectionValue_;
     private final boolean uploadFirst_;
+    private final boolean remoteUnique_;
     
     /**
      * Constructor.
@@ -31,13 +32,17 @@ public enum CdsFindMode {
      * @param  summary  mode summary
      * @param  selectionValue  value of service "selection" parameter
      * @param  uploadFirst  whether uploaded table is table 1
+     * @param  remoteUnique  whether match type requires each remote row to
+     *                       appear at most once in the result
      */
     CdsFindMode( String name, String summary,
-                 String selectionValue, boolean uploadFirst ) { 
+                 String selectionValue, boolean uploadFirst,
+                 boolean remoteUnique ) { 
         name_ = name;
         summary_ = summary;
         selectionValue_ = selectionValue;
         uploadFirst_ = uploadFirst;
+        remoteUnique_ = remoteUnique;
     }
 
     /**
@@ -80,6 +85,16 @@ public enum CdsFindMode {
      */
     public boolean isUploadFirst() {
         return uploadFirst_;
+    }
+
+    /**
+     * Indicates whether the nature of this match requires that each
+     * row from the remote table may appear at most once in the result.
+     *
+     * @return  true iff remote rows must appear &lt;=1 time in result
+     */
+    public boolean isRemoteUnique() {
+        return remoteUnique_;
     }
 
     @Override

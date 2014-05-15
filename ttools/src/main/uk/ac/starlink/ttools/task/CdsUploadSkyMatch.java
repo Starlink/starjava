@@ -113,6 +113,28 @@ public class CdsUploadSkyMatch extends SingleMapperTask {
         } );
         paramList.add( cdstableParam_ );
 
+        chunkParam_ = new IntegerParameter( "blocksize" );
+        chunkParam_.setPrompt( "Maximum number of rows per request" );
+        chunkParam_.setDescription( new String[] {
+            "<p>The CDS Xmatch service operates limits on",
+            "the maximum number of rows that can be uploaded and",
+            "the maximum number of rows that is returned as a result",
+            "from a single query.",
+            "In the case of large input tables,",
+            "they are broken down into smaller blocks,",
+            "and one request is sent to the external service for each block.",
+            "This parameter controls the number of rows in each block.",
+            "For an input table with fewer rows than this value,",
+            "the whole thing is done as a single request.",
+            "</p>",
+            "<p>At time of writing, the maximum upload size is 100Mb",
+            "(about 3Mrow; this does not depend on the width of your table),",
+            "and the maximum return size is 2Mrow.",
+            "</p>",
+        } );
+        chunkParam_.setMinimum( 1 );
+        chunkParam_.setDefault( Integer.toString( 10 * 1000 ) );
+
         findParam_ =
             new ChoiceParameter<CdsFindMode>( "find", CdsFindMode.class,
                                               CdsFindMode.values() );
@@ -135,31 +157,22 @@ public class CdsUploadSkyMatch extends SingleMapperTask {
             "Note only the <code>" + CdsFindMode.ALL + "</code> mode",
             "is symmetric between the two tables.",
             "</p>",
+            "<p><strong>Note also that there is a bug</strong> in",
+            "<code>" + CdsFindMode.BEST1 + "</code>",
+            "matching.",
+            "If the match is done in multiple blocks,",
+            "it's possible for a remote table row to appear matched against",
+            "one local table row per uploaded block,",
+            "rather than just once for the whole result.",
+            "If you're worried about that, set",
+            "<code>" + chunkParam_.getName(), "&gt;=</code>",
+            "<em>rowCount</em>.",
+            "This may be fixed in a future release.",
+            "</p>",
         } );
         findParam_.setDefaultOption( CdsFindMode.ALL );
-        paramList.add( findParam_ );
 
-        chunkParam_ = new IntegerParameter( "blocksize" );
-        chunkParam_.setPrompt( "Maximum number of rows per request" );
-        chunkParam_.setDescription( new String[] {
-            "<p>The CDS Xmatch service operates limits on",
-            "the maximum number of rows that can be uploaded and",
-            "the maximum number of rows that is returned as a result",
-            "from a single query.",
-            "In the case of large input tables,",
-            "they are broken down into smaller blocks,",
-            "and one request is sent to the external service for each block.",
-            "This parameter controls the number of rows in each block.",
-            "For an input table with fewer rows than this value,",
-            "the whole thing is done as a single request.",
-            "</p>",
-            "<p>At time of writing, the maximum upload size is 100Mb",
-            "(about 3Mrow; this does not depend on the width of your table),",
-            "and the maximum return size is 2Mrow.",
-            "</p>",
-        } );
-        chunkParam_.setMinimum( 1 );
-        chunkParam_.setDefault( Integer.toString( 10 * 1000 ) );
+        paramList.add( findParam_ );
         paramList.add( chunkParam_ );
 
         maxrecParam_ = new IntegerParameter( "maxrec" );
@@ -219,6 +232,7 @@ public class CdsUploadSkyMatch extends SingleMapperTask {
         final QuerySequenceFactory qsFact =
             new JELQuerySequenceFactory( raString, decString, "-1" );
         CdsFindMode findMode = findParam_.objectValue( env );
+        boolean remoteUnique = findMode.isRemoteUnique();
         int blocksize = chunkParam_.intValue( env );
         long maxrec = maxrecParam_.intValue( env );
         URL url = urlParam_.urlValue( env );
@@ -233,8 +247,8 @@ public class CdsUploadSkyMatch extends SingleMapperTask {
         final StoragePolicy storage =
             LineTableEnvironment.getStoragePolicy( env );
         final BlockUploader blocker =
-            new BlockUploader( umatcher, blocksize, maxrec,
-                               tableName, inFixAct, cdsFixAct );
+            new BlockUploader( umatcher, blocksize, maxrec, tableName,
+                               inFixAct, cdsFixAct, remoteUnique );
 
         /* Create and return an object which will produce the result. */
         return new TableProducer() {
