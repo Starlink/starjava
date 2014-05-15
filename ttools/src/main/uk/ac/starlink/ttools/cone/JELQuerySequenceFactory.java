@@ -7,6 +7,7 @@ import java.io.IOException;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.ttools.jel.JELUtils;
 import uk.ac.starlink.ttools.jel.SequentialJELRowReader;
+import uk.ac.starlink.ttools.task.SkyCoordParameter;
 
 /**
  * QuerySequenceFactory which uses JEL expressions for RA, Dec and SR.
@@ -25,8 +26,10 @@ public class JELQuerySequenceFactory implements QuerySequenceFactory {
      * The JEL expressions will be resolved using the column names of the
      * supplied table when the factory method is called.
      *
-     * @param  raExpr  JEL expression for right ascension in degrees
-     * @param  decExpr JEL expression for declination in degrees
+     * @param  raExpr  JEL expression for right ascension in degrees;
+     *                 if null a guess will be attempted
+     * @param  decExpr JEL expression for declination in degrees;
+     *                 if null a guess will be attempted
      * @param  srExpr  JEL expression for search radius in degrees
      */
     public JELQuerySequenceFactory( String raExpr, String decExpr,
@@ -38,14 +41,14 @@ public class JELQuerySequenceFactory implements QuerySequenceFactory {
 
     public ConeQueryRowSequence createQuerySequence( StarTable table )
             throws IOException {
-        return new JELQuerySequence( table );
+        return new JELQuerySequence( table, raString_, decString_, srString_ );
     }
 
     /**
      * ConeQueryRowSequence implementation which does the work for this class.
      */
-    private class JELQuerySequence extends SequentialJELRowReader
-                                   implements ConeQueryRowSequence {
+    private static class JELQuerySequence extends SequentialJELRowReader
+                                          implements ConeQueryRowSequence {
 
         private final Library lib_;
         private final CompiledExpression raExpr_;
@@ -56,13 +59,29 @@ public class JELQuerySequenceFactory implements QuerySequenceFactory {
          * Constructor.
          *
          * @param   table providing the context for JEL expression evaluation
+         * @param   raString   supplied string for RA expression, may be null
+         * @param   decString  supplied string for Dec expression, may be null
+         * @param   srString   supplied string for radius expression
          */
-        JELQuerySequence( StarTable table ) throws IOException {
+        JELQuerySequence( StarTable table, String raString, String decString,
+                          String srString ) throws IOException {
             super( table );
             lib_ = JELUtils.getLibrary( this );
-            raExpr_ = compileDouble( raString_ );
-            decExpr_ = compileDouble( decString_ );
-            srExpr_ = compileDouble( srString_ );
+            if ( raString == null || raString.trim().length() == 0 ) {
+                raString =
+                    SkyCoordParameter.guessRaDegreesExpression( table );
+            }
+            if ( decString == null || decString.trim().length() == 0 ) {
+                decString =
+                    SkyCoordParameter.guessDecDegreesExpression( table );
+            }
+            if ( raString == null || decString == null ) {
+                throw new IOException( "Failed to identify "
+                                     + "likely RA/Dec columns" );
+            }
+            raExpr_ = compileDouble( raString );
+            decExpr_ = compileDouble( decString );
+            srExpr_ = compileDouble( srString );
         }
 
         public double getRa() throws IOException {

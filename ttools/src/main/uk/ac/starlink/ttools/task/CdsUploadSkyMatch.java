@@ -51,35 +51,15 @@ public class CdsUploadSkyMatch extends SingleMapperTask {
         super( "Crossmatches table on sky position against VizieR/SIMBAD table",
                new ChoiceMode(), true, true );
         List<Parameter> paramList = new ArrayList<Parameter>();
-        final String system = "ICRS";
-        final String sysParen = " (" + system + ")";
-        final String inSys = " in the " + system + " coordinate system";
+        String system = "ICRS";
+        String inDescrip = "the input table";
 
-        raParam_ = new Parameter( "ra" );
-        raParam_.setUsage( "<expr>" );
-        raParam_.setPrompt( "Right Ascension expression in degrees"
-                          + sysParen );
-        raParam_.setDescription( new String[] {
-            "<p>Expression which evaluates to the right ascension in degrees"
-            + inSys,
-            "for the request at each row of the input table.",
-            "This will usually be the name or ID of a column in the",
-            "input table, or a function involving one.",
-            "</p>",
-        } );
+        raParam_ =
+            SkyCoordParameter.createRaParameter( "ra", system, inDescrip );
         paramList.add( raParam_ );
 
-        decParam_ = new Parameter( "dec" );
-        decParam_.setUsage( "<expr>" );
-        decParam_.setPrompt( "Declination expression in degrees" + sysParen );
-        decParam_.setDescription( new String[] {
-            "<p>Expression which evaluates to the declination in degrees"
-            + inSys,
-            "for the request at each row of the input table.",
-            "This will usually be the name or ID of a column in the",
-            "input table, or a function involving one.",
-            "</p>",
-        } );
+        decParam_ =
+            SkyCoordParameter.createDecParameter( "dec", system, inDescrip );
         paramList.add( decParam_ );
 
         srParam_ = new DoubleParameter( "sr" );
