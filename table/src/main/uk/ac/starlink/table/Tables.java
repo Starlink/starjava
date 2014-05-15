@@ -482,6 +482,62 @@ public class Tables {
     }
 
     /**
+     * Performs deduplication of column names for N lists of column metadata
+     * objects that will be combined to form a new table.
+     * The arguments are matched arrays; each list of column infos
+     * has a corresponding renaming policy.
+     * The ColumnInfo objects are renamed in place as required.
+     *
+     * @param  infoLists   array of N arrays of column metadata objects
+     * @param  fixActs     array of N policies for renaming columns
+     */
+    public static void fixColumns( ColumnInfo[][] infoLists,
+                                   JoinFixAction[] fixActs ) {
+
+        /* Check there is a 1:1 correspondence of infoLists and fix policies. */
+        int nt = infoLists.length;
+        if ( fixActs.length != nt ) {
+            throw new IllegalArgumentException();
+        }
+
+        /* Find the longest list of columns.  This is just used so that we
+         * can get a unique numeric index for any column iCol of table iTab. */
+        int maxNc = 0;
+        for ( int it = 0; it < nt; it++ ) {
+            maxNc = Math.max( infoLists[ it ].length, maxNc );
+        } 
+
+        /* Put all the infos into a single List. */
+        String[] names = new String[ maxNc * nt ];
+        for ( int it = 0; it < nt; it++ ) {
+            ColumnInfo[] infos = infoLists[ it ];
+            for ( int ic = 0; ic < infos.length; ic++ ) {
+                int ix = it * maxNc + ic;
+                names[ ix ] = infos[ ic ].getName();
+            }
+        }
+        List<String> nameList = new ArrayList<String>( Arrays.asList( names ) );
+
+        /* For each info, deduplicate its name as required in the context
+         * of all the others. */
+        for ( int it = 0; it < nt; it++ ) {
+            ColumnInfo[] infos = infoLists[ it ];
+            JoinFixAction fixAct = fixActs[ it ];
+            for ( int ic = 0; ic < infos.length; ic++ ) {
+                int ix = it * maxNc + ic;
+                String origName = nameList.remove( ix );
+                assert origName.equals( infos[ ic ].getName() );
+                String name = fixAct.getFixedName( origName, nameList );
+                nameList.add( ix, origName );
+                if ( ! name.equals( origName ) ) {
+                    nameList.add( name );
+                    infos[ ic ].setName( name );
+                }
+            }
+        }
+    }
+
+    /**
      * Implements assertion semantics.  This differs from the <tt>assert</tt>
      * Java 1.4 language element in that the assertion is always done,
      * it doesn't depend on the JVM running in assertions-enabled mode.
