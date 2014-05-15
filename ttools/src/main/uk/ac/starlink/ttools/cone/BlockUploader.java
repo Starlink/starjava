@@ -28,6 +28,7 @@ public class BlockUploader {
     private final String outName_;
     private final JoinFixAction uploadFixAct_;
     private final JoinFixAction remoteFixAct_;
+    private final boolean remoteUnique_;
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.task" );
@@ -41,16 +42,19 @@ public class BlockUploader {
      * @param   outName   name of output table
      * @param   uploadFixAct  name deduplication policy for upload table
      * @param   remoteFixAct  name deduplication policy for remote table
+     * @param   remoteUnique  true iff a requirement of the match is that
+     *                        each remote row appears only once in the result
      */
     public BlockUploader( UploadMatcher umatcher, int blocksize, long maxrec,
                           String outName, JoinFixAction uploadFixAct,
-                          JoinFixAction remoteFixAct ) {
+                          JoinFixAction remoteFixAct, boolean remoteUnique ) {
         umatcher_ = umatcher;
         blocksize_ = blocksize;
         maxrec_ = maxrec;
         outName_ = outName;
         uploadFixAct_ = uploadFixAct;
         remoteFixAct_ = remoteFixAct;
+        remoteUnique_ = remoteUnique;
         if ( blocksize <= 0 ) {
             throw new IllegalArgumentException( "Non-positive blocksize" );
         }
@@ -130,6 +134,24 @@ public class BlockUploader {
                            + " blocks" );
         }
         StarTable rawResult = rawResultStore.getStarTable();
+
+        /* There is a problem here for best-remote matching.
+         * If the intent is to find the local catalogue row that best
+         * matches each remote catalogue row, the same remote catalogue
+         * row may show up once per block, rather than just once per
+         * full match.  So in that case I ought to deduplicate the rows.
+         * This need not be very computationally intensive since there
+         * won't be many of them, but to identify which ones they are
+         * I need from each raw result row: (1) an identifier or some
+         * other way to tell that two rows are the same (full-row hash?)
+         * and (2) a way to determine the score (match distance)
+         * associated with that result row.  Either the remote catalogue
+         * RA/Dec or the angDist columns would do.
+         * If I had all that I could just add a deduplication step here. */
+        if ( remoteUnique_ && nblock > 1 ) {
+            logger_.warning( "Bug: a remote row may appear up to "
+                           + nblock + " times, not just once, in the result" );
+        }
 
         /* Deduplicate column names as required. */
         ColumnInfo[] rawCols = Tables.getColumnInfos( rawResult );
