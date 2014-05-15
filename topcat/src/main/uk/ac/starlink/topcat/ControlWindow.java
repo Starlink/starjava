@@ -110,6 +110,7 @@ import uk.ac.starlink.topcat.join.DalMultiWindow;
 import uk.ac.starlink.topcat.join.SiaMultiWindow;
 import uk.ac.starlink.topcat.join.SsaMultiWindow;
 import uk.ac.starlink.topcat.join.MatchWindow;
+import uk.ac.starlink.topcat.join.UploadMatchWindow;
 import uk.ac.starlink.topcat.plot.Cartesian3DWindow;
 import uk.ac.starlink.topcat.plot.DensityWindow;
 import uk.ac.starlink.topcat.plot.GraphicsWindow;
@@ -197,6 +198,7 @@ public class ControlWindow extends AuxWindow
     private ConeMultiWindow multiconeWindow_;
     private SiaMultiWindow multisiaWindow_;
     private SsaMultiWindow multissaWindow_;
+    private UploadMatchWindow upmatchWindow_;
     private ExtApp extApp_;
     private TopcatModel currentModel_;
 
@@ -224,6 +226,7 @@ public class ControlWindow extends AuxWindow
     private final Action multiconeAct_;
     private final Action multisiaAct_;
     private final Action multissaAct_;
+    private final Action upmatchAct_;
     private final Action logAct_;
     private final Action[] matchActs_;
     private final ShowAction[] showActs_;
@@ -362,11 +365,15 @@ public class ControlWindow extends AuxWindow
         multisiaAct_ =
             new ControlAction( "Multiple SIA", ResourceIcon.MULTISIA,
                                "Multiple Simple Image Access query"
-                             + "(one for each row of input table)" );
+                             + " (one for each row of input table)" );
         multissaAct_ =
             new ControlAction( "Multiple SSA", ResourceIcon.MULTISSA,
                                "Multiple Simple Spectral Access query"
-                             + "(one for each row of input table)" );
+                             + " (one for each row of input table)" );
+        upmatchAct_ =
+            new ControlAction( "Upload Crossmatch", ResourceIcon.CDSXMATCH,
+                               "Sky crossmatch using uploads"
+                             + " to an external service" );
         logAct_ = new ControlAction( "View Log", ResourceIcon.LOG,
                                      "Display the log of events" );
         readAct_.setEnabled( canRead_ );
@@ -645,6 +652,7 @@ public class ControlWindow extends AuxWindow
         JMenu joinMenu = new JMenu( "Joins" );
         joinMenu.setMnemonic( KeyEvent.VK_J );
         joinMenu.add( concatAct_ );
+        joinMenu.add( upmatchAct_ );
         joinMenu.add( multiconeAct_ );
         joinMenu.add( multisiaAct_ );
         joinMenu.add( multissaAct_ );
@@ -696,6 +704,7 @@ public class ControlWindow extends AuxWindow
                     voMenu.add( act );
                 }
                 voMenu.addSeparator();
+                voMenu.add( upmatchAct_ );
                 voMenu.add( multiconeAct_ );
                 voMenu.add( multisiaAct_ );
                 voMenu.add( multissaAct_ );
@@ -1064,6 +1073,18 @@ public class ControlWindow extends AuxWindow
     }
 
     /**
+     * Returns a dialog used for an upload match.
+     *
+     * @return   upload crossmatch window
+     */
+    public UploadMatchWindow getUploadMatchWindow() {
+        if ( upmatchWindow_ == null ) {
+            upmatchWindow_ = new UploadMatchWindow( this );
+        }
+        return upmatchWindow_;
+    }
+
+    /**
      * Returns the table factory used by this window.
      *
      * @return  table factory
@@ -1327,6 +1348,7 @@ public class ControlWindow extends AuxWindow
         multiconeAct_.setEnabled( hasTables );
         multisiaAct_.setEnabled( hasTables );
         multissaAct_.setEnabled( hasTables );
+        upmatchAct_.setEnabled( hasTables );
         for ( int i = 0; i < matchActs_.length; i++ ) {
             matchActs_[ i ].setEnabled( hasTables );
         }
@@ -1558,6 +1580,9 @@ public class ControlWindow extends AuxWindow
             }
             else if ( this == multissaAct_ ) {
                 getSsaMultiWindow().makeVisible();
+            }
+            else if ( this == upmatchAct_ ) {
+                getUploadMatchWindow().makeVisible();
             }
             else if ( this == logAct_ ) {
                 LogHandler.getInstance().showWindow( ControlWindow.this );
