@@ -25,6 +25,7 @@ import uk.ac.starlink.ttools.task.ChoiceMode;
 import uk.ac.starlink.ttools.task.JoinFixActionParameter;
 import uk.ac.starlink.ttools.task.LineTableEnvironment;
 import uk.ac.starlink.ttools.task.SingleMapperTask;
+import uk.ac.starlink.ttools.task.SkyCoordParameter;
 import uk.ac.starlink.ttools.task.TableProducer;
 
 /**
@@ -73,43 +74,14 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
         coner_ = coner;
         List paramList = new ArrayList();
         String system = coner.getSkySystem();
-        String sysParen;
-        String inSys;
-        if ( system == null || system.length() == 0 ) {
-            sysParen = "";
-            inSys = "";
-        }
-        else {
-            sysParen = " (" + system + ")";
-            inSys = " in the " + system + " coordinate system";
-        }
+        String inDescrip = "the input table";
     
-        raParam_ = new Parameter( "ra" );
-        raParam_.setUsage( "<expr>" );
-        raParam_.setPrompt( "Right Ascension expression in degrees"
-                          + sysParen );
-        raParam_.setDescription( new String[] {
-            "<p>Expression which evaluates to the right ascension in degrees"
-            + inSys,
-            "for the request at each row of the input table.",
-            "This will usually be the name or ID of a column in the",
-            "input table, or a function involving one.",
-            "</p>",
-        } );
+        raParam_ =
+            SkyCoordParameter.createRaParameter( "ra", system, inDescrip );
         paramList.add( raParam_ );
 
-        decParam_ = new Parameter( "dec" );
-        decParam_.setUsage( "<expr>" );
-        decParam_.setPrompt( "Declination expression in degrees"
-                           + sysParen );
-        decParam_.setDescription( new String[] {
-            "<p>Expression which evaluates to the declination in degrees"
-            + inSys,
-            "for the request at each row of the input table.",
-            "This will usually be the name or ID of a column in the",
-            "input table, or a function involving one.",
-            "</p>",
-        } );
+        decParam_ =
+            SkyCoordParameter.createDecParameter( "dec", system, inDescrip );
         paramList.add( decParam_ );
 
         srParam_ = new Parameter( "sr" );

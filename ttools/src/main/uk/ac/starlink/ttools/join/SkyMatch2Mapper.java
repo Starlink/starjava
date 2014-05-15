@@ -18,6 +18,7 @@ import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.func.CoordsRadians;
+import uk.ac.starlink.ttools.task.SkyCoordParameter;
 import uk.ac.starlink.ttools.task.TableMapper;
 import uk.ac.starlink.ttools.task.TableMapping;
 
@@ -44,38 +45,12 @@ public class SkyMatch2Mapper implements TableMapper {
         decParams_ = new Parameter[ 2 ];
         for ( int i = 0; i < 2; i++ ) {
             int i1 = i + 1;
-            Parameter raParam = new Parameter( "ra" + i1 );
-            Parameter decParam = new Parameter( "dec" + i1 );
-            raParam.setUsage( "<expr/degs>" );
-            decParam.setUsage( "<expr/degs>" );
-            raParam.setPrompt( "Expression for table " + i1
-                             + " right ascension in degrees" );
-            decParam.setPrompt( "Expression for table " + i1
-                              + " declination in degrees" );
-            raParam.setNullPermitted( true );
-            decParam.setNullPermitted( true );
-            raParam.setDescription( new String[] {
-                "<p>Value in degrees for the right ascension of positions in",
-                "table " + i1 + " to be matched.",
-                "This may simply be a column name, or it may be an",
-                "algebraic expression calculated from columns as explained",
-                "in <ref id='jel'/>.", 
-                "If left blank, an attempt is made to guess from UCDs,",
-                "column names and unit annotations what expression to use.",
-                "</p>",
-            } );
-            decParam.setDescription( new String[] {
-                "<p>Value in degrees for the declination of positions in",
-                "table " + i1 + " to be matched.",
-                "This may simply be a column name, or it may be an",
-                "algebraic expression calculated from columns as explained",
-                "in <ref id='jel'/>.", 
-                "If left blank, an attempt is made to guess from UCDs,",
-                "column names and unit annotations what expression to use.",
-                "</p>",
-            } );
-            raParams_[ i ] = raParam;
-            decParams_[ i ] = decParam;
+            raParams_[ i ] =
+                SkyCoordParameter
+               .createRaParameter( "ra" + i1, null, "table " + i1 );
+            decParams_[ i ] =
+                SkyCoordParameter
+               .createDecParameter( "dec" + i1, null, "table " + i1 );
         }
 
         errorParam_ = new DoubleParameter( "error" );

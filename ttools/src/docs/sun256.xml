@@ -8650,6 +8650,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
             to generate PNG files with transparent backgrounds.</li>
         <li>Add new command
             <ref id="cdsskymatch"><code>cdsskymatch</code></ref>.</li>
+        <li>Commands <code>coneskymatch</code>, <code>sqlskymatch</code>
+            and <code>pixfoot</code> will now guess RA/Dec columns
+            if relevant parameters are left blank.</li>
         </ul>
         </p></dd>
 

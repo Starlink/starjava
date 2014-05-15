@@ -20,6 +20,7 @@ import uk.ac.starlink.ttools.cone.ConeQueryRowSequence;
 import uk.ac.starlink.ttools.cone.JELQuerySequenceFactory;
 import uk.ac.starlink.ttools.cone.PixtoolsHealpix;
 import uk.ac.starlink.ttools.cone.QuerySequenceFactory;
+import uk.ac.starlink.ttools.task.SkyCoordParameter;
 import uk.ac.starlink.util.Destination;
 
 /**
@@ -57,29 +58,12 @@ public class MocMode implements ProcessingMode {
         } );
         orderParam_.setDefault( Integer.toString( 13 ) );
 
-        raParam_ = new Parameter( "ra" );
-        raParam_.setUsage( "<expr>" );
-        raParam_.setPrompt( "Right Ascension expression in degrees" );
-        raParam_.setDescription( new String[] {
-            "<p>Expression which evaluates to the right ascension in degrees",
-            "for the position at each row of the input table.",
-            "This will usually be the name or ID of a column in the",
-            "input table, or a function involving one,",
-            "as described in <ref id='jel'/>.",
-            "</p>",
-        } );
-
-        decParam_ = new Parameter( "dec" );
-        decParam_.setUsage( "<expr>" );
-        decParam_.setPrompt( "Declination expression in degrees" );
-        decParam_.setDescription( new String[] {
-            "<p>Expression which evaluates to the declination in degrees",
-            "for the position at each row of the input table.",
-            "This will usually be the name or ID of a column in the",
-            "input table, or a function involving one,",
-            "as described in <ref id='jel'/>.",
-            "</p>",
-        } );
+        String system = null;
+        String inDescrip = "the input table";
+        raParam_ =
+            SkyCoordParameter.createRaParameter( "ra", system, inDescrip );
+        decParam_ =
+            SkyCoordParameter.createDecParameter( "dec", system, inDescrip );
 
         radiusParam_ = new DoubleParameter( "radius" );
         radiusParam_.setUsage( "<expr>" );
