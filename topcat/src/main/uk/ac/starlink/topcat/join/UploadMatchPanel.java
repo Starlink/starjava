@@ -35,17 +35,16 @@ import uk.ac.starlink.table.storage.MonitorStoragePolicy;
 import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.ColumnSelector;
 import uk.ac.starlink.topcat.ControlWindow;
+import uk.ac.starlink.topcat.Scheduler;
 import uk.ac.starlink.topcat.TablesListComboBox;
 import uk.ac.starlink.topcat.TopcatModel;
-import uk.ac.starlink.topcat.TopcatUtils;
 import uk.ac.starlink.ttools.cone.BlockUploader;
 import uk.ac.starlink.ttools.cone.ConeQueryRowSequence;
-import uk.ac.starlink.ttools.cone.CdsFindMode;
 import uk.ac.starlink.ttools.cone.CdsUploadMatcher;
 import uk.ac.starlink.ttools.cone.QuerySequenceFactory;
+import uk.ac.starlink.ttools.cone.ServiceFindMode;
 import uk.ac.starlink.ttools.cone.UploadMatcher;
 import uk.ac.starlink.ttools.cone.WrapperQuerySequence;
-import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 import uk.ac.starlink.vo.DoubleValueField;
 
@@ -158,7 +157,7 @@ public class UploadMatchPanel extends JPanel {
 
         /* Service access parameters. */
         Box modeLine = Box.createHorizontalBox();
-        modeSelector_ = new JComboBox( CdsFindMode.values() );
+        modeSelector_ = new JComboBox( UploadFindMode.getInstances() );
         modeLine.add( new JLabel( "Find mode: " ) );
         modeLine.add( new ShrinkWrapper( modeSelector_ ) );
         modeLine.add( Box.createHorizontalGlue() );
@@ -301,7 +300,6 @@ public class UploadMatchPanel extends JPanel {
         if ( tcModel == null ) {
             throw new NullPointerException( "No table selected" );
         }
-        final StarTable inTable = tcModel.getApparentStarTable();
         int[] rowMap = tcModel.getViewModel().getRowMap();
         ColumnData raData = raSelector_.getColumnData();
         ColumnData decData = decSelector_.getColumnData();
@@ -337,8 +335,9 @@ public class UploadMatchPanel extends JPanel {
             blockField_.setText( "" );
             throw new IllegalArgumentException( "Bad blocksize" );
         }
-        CdsFindMode findMode = (CdsFindMode) modeSelector_.getSelectedItem();
-        boolean remoteUnique = findMode.isRemoteUnique();
+        UploadFindMode upMode =
+            (UploadFindMode) modeSelector_.getSelectedItem();
+        ServiceFindMode serviceMode = upMode.getServiceMode();
         long maxrec = MAXREC;
         String surl = CdsUploadMatcher.XMATCH_URL;
         final URL url;
@@ -353,19 +352,20 @@ public class UploadMatchPanel extends JPanel {
         QuerySequenceFactory qsFact =
             new DataQuerySequenceFactory( raData, decData, -1, rowMap );
         UploadMatcher umatcher =
-            new CdsUploadMatcher( url, cdsId, srDeg * 3600., findMode );
+            new CdsUploadMatcher( url, cdsId, srDeg * 3600., serviceMode );
         StoragePolicy storage =
             ControlWindow.getInstance().getTableFactory().getStoragePolicy();
         String outName = tcModel.getID() + "x" + cdsName;
         JoinFixAction inFixAct = JoinFixAction.NO_ACTION;
         JoinFixAction cdsFixAct =
             JoinFixAction.makeRenameDuplicatesAction( "_cds" );
+        boolean oneToOne = upMode.isOneToOne();
         BlockUploader blocker =
             new BlockUploader( umatcher, blocksize, maxrec, outName,
-                               inFixAct, cdsFixAct, remoteUnique );
+                               inFixAct, cdsFixAct, serviceMode, oneToOne );
 
         /* Create and return the match worker. */
-        return new MatchWorker( blocker, inTable, qsFact, storage );
+        return new MatchWorker( blocker, upMode, tcModel, qsFact, storage );
     }
 
     /**
@@ -457,9 +457,13 @@ public class UploadMatchPanel extends JPanel {
      */
     private class MatchWorker implements Runnable {
         private final BlockUploader blocker_;
-        private final StarTable inTable_;
+        private final UploadFindMode upMode_;
+        private final TopcatModel tcModel_;
         private final QuerySequenceFactory qsFact_;
         private final StoragePolicy storage_;
+        private final StarTable inTable_;
+        private final int[] rowMap_;
+        private final Scheduler scheduler_;
         private long inRow_;
         private long outRow_;
 
@@ -467,24 +471,34 @@ public class UploadMatchPanel extends JPanel {
          * Constructor.
          *
          * @param  blocker  block uploader
-         * @param  inTable  input table
+         * @param  upMode   match mode
+         * @param  tcModel  topcat model supplying input table
          * @param  qsFact   object for obtaining a sequence of positional
          *                  queries from the input table
          * @param  storage  policy for storing retrieved results
          */
-        MatchWorker( BlockUploader blocker, StarTable inTable,
-                     QuerySequenceFactory qsFact, StoragePolicy storage ) {
+        MatchWorker( BlockUploader blocker, UploadFindMode upMode,
+                     TopcatModel tcModel, QuerySequenceFactory qsFact,
+                     StoragePolicy storage ) {
             blocker_ = blocker;
-            inTable_ = inTable;
+            upMode_ = upMode;
+            tcModel_ = tcModel;
             qsFact_ = qsFact;
             storage_ = storage;
+            inTable_ = tcModel.getApparentStarTable();
+            rowMap_ = tcModel.getViewModel().getRowMap();
+            scheduler_ = new Scheduler( UploadMatchPanel.this ) {
+                public boolean isActive() {
+                    return MatchWorker.this.isActive();
+                }
+            };
         }
 
         public void run() {
 
             /* Initialise progress GUI. */
             final int nrow = (int) inTable_.getRowCount();
-            schedule( new Runnable() {
+            scheduler_.schedule( new Runnable() {
                 public void run() {
                     progBar_.setMinimum( 0 );
                     progBar_.setMaximum( nrow );
@@ -546,46 +560,14 @@ public class UploadMatchPanel extends JPanel {
             } );
 
             /* Run the match. */
-            final JComponent parent = UploadMatchPanel.this;
             try {
-                StarTable table =
-                    blocker_.runMatch( inTable_, progQsFact, progStorage );
-
-                /* On successful completion, do something with the result. */
-                if ( table.getRowCount() != 0 ) {
-                    addMatchedTable( table );
-                }
-                else {
-                    schedule( new Runnable() {
-                        public void run() {
-                            JOptionPane
-                           .showMessageDialog( parent, "No rows matched",
-                                               "Empty Match",
-                                               JOptionPane.ERROR_MESSAGE );
-                        }
-                    } );
-                }
+                upMode_.runMatch( blocker_, inTable_, progQsFact, progStorage,
+                                  scheduler_, tcModel_, rowMap_ );
             }
 
-            /* Cope with errors. */
-            catch ( final Exception e ) {
-                schedule( new Runnable() {
-                    public void run() {
-                        ErrorDialog
-                       .showError( parent, "Upload Match Error", e );
-                    }
-                } );
-            }
-            catch ( final OutOfMemoryError e ) {
-                schedule( new Runnable() {
-                    public void run() {
-                        TopcatUtils.memoryError( e );
-                    }
-                } );
-            }
-
-            /* In any case, deinstall this worker thread.  No further actions
-             * on its behalf will now affect the GUI (important, since another
+            /* When completed, successfully or otherwise, deinstall
+             * this worker thread.  No further actions on its behalf
+             * will now affect the GUI (important, since another
              * worker thread might take over). */
             finally {
                 SwingUtilities.invokeLater( new Runnable() {
@@ -593,7 +575,7 @@ public class UploadMatchPanel extends JPanel {
                         progTimer.stop();
                     }
                 } );
-                schedule( new Runnable() {
+                scheduler_.schedule( new Runnable() {
                     public void run() {
                         setActive( null );
                     }
@@ -611,51 +593,6 @@ public class UploadMatchPanel extends JPanel {
          */
         private boolean isActive() {
             return UploadMatchPanel.this.isActive( MatchWorker.this );
-        }
-
-        /**
-         * Loads a new table into the topcat application, if this worker
-         * is still active.
-         *
-         * @param  table  table to load
-         */
-        private void addMatchedTable( final StarTable table ) {
-            final ControlWindow controlWindow = ControlWindow.getInstance();
-            schedule( new Runnable() {
-                public void run() {
-                    TopcatModel outTcModel =
-                        controlWindow.addTable( table, table.getName(), true );
-                    String msg = "New table created by upload crossmatch: "
-                               + outTcModel + " ("
-                               + table.getRowCount() + " rows)";
-                    JOptionPane
-                   .showMessageDialog( UploadMatchPanel.this, msg,
-                                       "Upload Match Success",
-                                       JOptionPane.INFORMATION_MESSAGE );
-                }
-            } );
-        }
-
-        /**
-         * This method is used to schedule any operation performed by this
-         * match worker which must be done on the Event Dispatch Thread,
-         * and which should only be performed if this worker is still
-         * active (hasn't been cancelled).  If it has been cancelled,
-         * either at submission or execution time, the scheduled action
-         * will just be discarded.
-         *
-         * @param  runnable  action to run on the EDT if not cancelled
-         */
-        private void schedule( final Runnable runnable ) {
-            if ( isActive() ) {
-                SwingUtilities.invokeLater( new Runnable() {
-                    public void run() {
-                        if ( isActive() ) {
-                            runnable.run();
-                        }
-                    }
-                } );
-            }
         }
     }
 }

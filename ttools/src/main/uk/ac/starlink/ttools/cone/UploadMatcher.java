@@ -1,7 +1,7 @@
 package uk.ac.starlink.ttools.cone;
 
 import java.io.IOException;
-import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.TableSink;
 
 /**
@@ -28,13 +28,14 @@ public interface UploadMatcher {
      * uploaded and written as received) so that progress can be logged
      * properly.
      *
-     * <p>The result is written in an opaque format to the given
-     * <code>rawResultSink<code>
-     * (which will probably be a {@link uk.ac.starlink.table.RowStore}),
-     * using the supplied RowMapper to associate output rows with queries
-     * from the input query sequence.
-     * The table stored thus can then be turned into a result using
-     * {@link #createOutputTable createOutputTable}.
+     * <p>The result is written to the given <code>rawResultSink<code>
+     * (which will probably be a {@link uk.ac.starlink.table.RowStore}).
+     * To make sense of the table thus written, it is necessary to
+     * use the {@link RowMapper} supplied to this method and the
+     * {@link ColumnPlan} available from this object.
+     * The RowMapper associates result rows with queries from the input
+     * row sequence, and the ColumnPlan knows where the special and other
+     * columns are in the result table.
      *
      * @param  coneSeq  sequence of cone-like positional queries
      * @param  rawResultSink   destination for result rows obtained from
@@ -52,20 +53,15 @@ public interface UploadMatcher {
             throws IOException;
 
     /**
-     * Takes a table obtained by use of <code>streamRawResult</code>
-     * and joins it up with columns from an associated input table to
-     * produce a useful joined result.
+     * Returns an object that understands what columns are where in an
+     * output table generated from the raw result produced by this matcher.
      *
-     * @param  rawResult  table formed of rows from an earlier call to
-     *                    <code>streamRawResult</code>
-     * @param  uploadTable  a table from which the input positional queries
-     *                      were derived; it must have its rows in an order
-     *                      corresponding to the the sequence of cone queries
-     * @param  rowMapper    used to identify which uploadTable rows correspond
-     *                     to which rawResult rows
-     * @return    some kind of joined table composed of the rows of the
-     *            rawResult and uploadTable, and the columns of both
+     * @param  resultCols   columns in the raw result table written by
+     *                      this object's <code>streamRawResult</code> method
+     * @param  uploadCols   columns from the table that will be joined to
+     *                      the raw result to get the output table
+     * @return  column plan
      */
-    StarTable createOutputTable( StarTable rawResult, StarTable uploadTable,
-                                 RowMapper<?> rowMapper );
+    ColumnPlan getColumnPlan( ColumnInfo[] resultCols,
+                              ColumnInfo[] uploadCols );
 }

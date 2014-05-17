@@ -1,0 +1,225 @@
+package uk.ac.starlink.topcat.join;
+
+import javax.swing.JOptionPane;
+import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.StoragePolicy;
+import uk.ac.starlink.table.TableSink;
+import uk.ac.starlink.table.storage.MonitorStoragePolicy;
+import uk.ac.starlink.topcat.ControlWindow;
+import uk.ac.starlink.topcat.Scheduler;
+import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.ttools.cone.QuerySequenceFactory;
+import uk.ac.starlink.ttools.cone.ServiceFindMode;
+import uk.ac.starlink.ttools.cone.BlockUploader;
+
+/**
+ * Mode for upload crossmatches corresponding to the user options.
+ * This is related to the ServiceFindMode, but not in a 1:1 fashion.
+ *
+ * @author   Mark Taylor
+ * @since    6 Jun 2014
+ */
+public abstract class UploadFindMode {
+
+    private final String name_;
+    private final ServiceFindMode serviceMode_;
+    private final boolean oneToOne_;
+
+    /** All matches. */
+    public static final UploadFindMode ALL =
+        new AddTableMode( "All", ServiceFindMode.ALL, false );
+
+    /** Best match only. */
+    public static final UploadFindMode BEST =
+        new AddTableMode( "Best", ServiceFindMode.BEST, false );
+
+    /** Best match in local table for each remote row. */
+    public static final UploadFindMode BEST_REMOTE =
+        new AddTableMode( "Best Remote", ServiceFindMode.BEST_REMOTE, false );
+
+    /** One output row per local table row, best match or blank. */
+    public static final UploadFindMode EACH =
+        new AddTableMode( "Each", ServiceFindMode.BEST, true );
+
+    /** Useful instances of this class. */
+    private static final UploadFindMode[] INSTANCES = {
+        BEST, ALL, EACH, BEST_REMOTE,
+    };
+
+    /**
+     * Constructor.
+     *
+     * @param  name  mode name
+     * @param  serviceMode   ServiceFindMode intance underlying this fucntion
+     * @param  oneToOne   true iff output rows match 1:1 with input rows
+     */
+    private UploadFindMode( String name,
+                            ServiceFindMode serviceMode, boolean oneToOne ) {
+        name_ = name;
+        serviceMode_ = serviceMode;
+        oneToOne_ = oneToOne;
+        if ( oneToOne && ! serviceMode.supportsOneToOne() ) {
+            throw new IllegalArgumentException();
+        }
+    }
+
+    /**
+     * Returns the service mode associated with this user mode.
+     *
+     * @return   service mode
+     */
+    public ServiceFindMode getServiceMode() {
+        return serviceMode_;
+    }
+
+    /**
+     * Indicates whether this mode describes a match for which the count
+     * and sequence of the output table rows are in one to one correspondence
+     * with the input table rows.
+     *
+     * @return  true iff output rows match 1:1 with input rows
+     */
+    public boolean isOneToOne() {
+        return oneToOne_;
+    }
+
+    /**
+     * Performs an upload match and consumes the result in some appropriate
+     * way.
+     *
+     * @param  blocker  block uploader
+     * @param  inTable  input table, correspoinding to <code>qsFact</code>
+     * @param  qsFact   sequence of positional query specifications,
+     *                  with a row sequence corresponding to that of
+     *                  <code>inTable</code>
+     * @param  storage  storage policy for storing result table
+     * @param  scheduler   object for conditionally scheduling operations
+     *                     on the EDT
+     * @param  tcModel   topcat model from which the input data comes
+     * @param  rowMap    maps tcModel row indices to view indices
+     */
+    public abstract void runMatch( BlockUploader blocker, StarTable inTable,
+                                   QuerySequenceFactory qsFact,
+                                   StoragePolicy storage, Scheduler scheduler,
+                                   TopcatModel tcModel, int[] rowMap );
+
+    @Override
+    public String toString() {
+        return name_;
+    }
+
+    /**
+     * Returns an array of useful instances of this class.
+     *
+     * @return  instances
+     */
+    public static UploadFindMode[] getInstances() {
+        return INSTANCES.clone();
+    }
+
+    /**
+     * UploadFindMode subclass that loads the output table into the
+     * topcat application as a new table.
+     */
+    private static class AddTableMode extends UploadFindMode {
+
+        /**
+         * Constructor.
+         *
+         * @param  name  mode name
+         * @param  serviceMode   service upload mode
+         * @param  oneToOne   true iff output rows match 1:1 with input rows
+         */
+        AddTableMode( String name, ServiceFindMode serviceMode,
+                      boolean oneToOne ) {
+            super( name, serviceMode, oneToOne );
+        }
+
+        public void runMatch( BlockUploader blocker, StarTable inTable,
+                              QuerySequenceFactory qsFact,
+                              StoragePolicy storage, final Scheduler scheduler,
+                              TopcatModel tcModel, int[] rowMap ) {
+            CountSink countSink = new CountSink();
+            StoragePolicy countStorage =
+                new MonitorStoragePolicy( storage, countSink );
+            final StarTable outTable;
+            try {
+                outTable = blocker.runMatch( inTable, qsFact, countStorage );
+            }
+            catch ( Exception e ) {
+                scheduler.scheduleError( "Upload Match Error", e );
+                return;
+            }
+            catch ( OutOfMemoryError e ) {
+                scheduler.scheduleMemoryError( e );
+                return;
+            }
+            final long nMatch = countSink.getRowCount();
+            if ( nMatch == 0 ) {
+                scheduler.scheduleMessage( "No rows matched",
+                                           "Empty match",
+                                           JOptionPane.ERROR_MESSAGE );
+            }
+            else {
+                final ControlWindow controlWin = ControlWindow.getInstance();
+                scheduler.schedule( new Runnable() {
+                    public void run() {
+                        TopcatModel outTcModel =
+                            controlWin.addTable( outTable, outTable.getName(),
+                                                 true );
+                        StringBuffer sbuf = new StringBuffer()
+                            .append( "New table created by upload crossmatch" )
+                            .append( ": " )
+                            .append( outTcModel )
+                            .append( " (" );
+                        if ( isOneToOne() ) {
+                            sbuf.append( nMatch )
+                                .append( " matches" );
+                        }
+                        else {
+                            sbuf.append( outTable.getRowCount() )
+                                .append( " rows" );
+                        }
+                        sbuf.append( ")" );
+                        String msg = sbuf.toString();
+                        JOptionPane
+                       .showMessageDialog( scheduler.getParent(), msg,
+                                           "Upload Match Success",
+                                           JOptionPane.INFORMATION_MESSAGE );
+                    } 
+                } );
+            }
+        }
+    }
+
+    /**
+     * TableSink implementation that counts the number of rows written to it.
+     */
+    private static class CountSink implements TableSink {
+        private volatile long count_;
+        private volatile boolean ended_;
+
+        public void acceptMetadata( StarTable meta ) {
+            count_ = 0;
+            ended_ = false;
+        }
+
+        public void acceptRow( Object[] row ) {
+            count_++;
+        }
+
+        public void endRows() {
+            ended_ = true;
+        }
+
+        /**
+         * Returns the number of rows written to the completed table,
+         * or -1 if not completed.
+         *
+         * @return   final row count or -1
+         */
+        public long getRowCount() {
+            return ended_ ? count_ : -1;
+        }
+    }
+}
