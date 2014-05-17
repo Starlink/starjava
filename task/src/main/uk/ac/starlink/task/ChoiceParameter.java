@@ -1,6 +1,7 @@
 package uk.ac.starlink.task;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -19,7 +20,7 @@ public class ChoiceParameter<T> extends Parameter {
     private final Map<T,String> optionMap_;
     private T objectValue_;
     private boolean usageSet_;
-    private final Class clazz_;
+    private final Class<T> clazz_;
 
     /**
      * Constructs a ChoiceParameter with a given list of options
@@ -237,7 +238,17 @@ public class ChoiceParameter<T> extends Parameter {
      * @return   permitted options
      */
     public Object[] getOptions() {
-        return optionMap_.keySet().toArray( new Object[ 0 ] );
+        return getOptionValueList().toArray( new Object[ 0 ] );
+    }
+
+    /**
+     * Returns a collection of the option objects which may form the
+     * values of this parameter.
+     *
+     * @return  permitted options
+     */
+    public Collection<T> getOptionValueList() {
+        return optionMap_.keySet();
     }
 
     /**
