@@ -3,7 +3,6 @@ package uk.ac.starlink.ttools.task;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import uk.ac.starlink.table.JoinFixAction;
 import uk.ac.starlink.table.StarTable;
@@ -18,10 +17,10 @@ import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.URLParameter;
 import uk.ac.starlink.ttools.cone.BlockUploader;
-import uk.ac.starlink.ttools.cone.CdsFindMode;
 import uk.ac.starlink.ttools.cone.CdsUploadMatcher;
 import uk.ac.starlink.ttools.cone.JELQuerySequenceFactory;
 import uk.ac.starlink.ttools.cone.QuerySequenceFactory;
+import uk.ac.starlink.ttools.cone.ServiceFindMode;
 import uk.ac.starlink.ttools.cone.UploadMatcher;
 
 /**
@@ -36,7 +35,7 @@ public class CdsUploadSkyMatch extends SingleMapperTask {
     private final Parameter decParam_;
     private final DoubleParameter srParam_;
     private final Parameter cdstableParam_;
-    private final ChoiceParameter<CdsFindMode> findParam_;
+    private final ChoiceParameter<UserFindMode> findParam_;
     private final IntegerParameter chunkParam_;
     private final IntegerParameter maxrecParam_;
     private final URLParameter urlParam_;
@@ -116,16 +115,16 @@ public class CdsUploadSkyMatch extends SingleMapperTask {
         chunkParam_.setDefault( Integer.toString( 10 * 1000 ) );
 
         findParam_ =
-            new ChoiceParameter<CdsFindMode>( "find", CdsFindMode.class,
-                                              CdsFindMode.values() );
+            new ChoiceParameter<UserFindMode>( "find", UserFindMode.class,
+                                               UserFindMode.getInstances() );
         findParam_.setPrompt( "Which pair matches to include" );
         StringBuffer optBuf = new StringBuffer();
-        for ( CdsFindMode mode : Arrays.asList( CdsFindMode.values() ) ) {
+        for ( UserFindMode findMode : findParam_.getOptionValueList() ) {
             optBuf.append( "<li>" )
                   .append( "<code>" )
-                  .append( mode.getName() )
+                  .append( findMode.getName() )
                   .append( "</code>: " )
-                  .append( mode.getSummary() )
+                  .append( findMode.getSummary() )
                   .append( "</li>" )
                   .append( '\n' );
         }
@@ -134,11 +133,11 @@ public class CdsUploadSkyMatch extends SingleMapperTask {
             "<ul>",
             optBuf.toString(),
             "</ul>",
-            "Note only the <code>" + CdsFindMode.ALL + "</code> mode",
+            "Note only the <code>" + UserFindMode.ALL + "</code> mode",
             "is symmetric between the two tables.",
             "</p>",
             "<p><strong>Note also that there is a bug</strong> in",
-            "<code>" + CdsFindMode.BEST1 + "</code>",
+            "<code>" + UserFindMode.BEST_REMOTE + "</code>",
             "matching.",
             "If the match is done in multiple blocks,",
             "it's possible for a remote table row to appear matched against",
@@ -150,7 +149,7 @@ public class CdsUploadSkyMatch extends SingleMapperTask {
             "This may be fixed in a future release.",
             "</p>",
         } );
-        findParam_.setDefaultOption( CdsFindMode.ALL );
+        findParam_.setDefaultOption( UserFindMode.ALL );
 
         paramList.add( findParam_ );
         paramList.add( chunkParam_ );
@@ -211,13 +210,14 @@ public class CdsUploadSkyMatch extends SingleMapperTask {
         }
         final QuerySequenceFactory qsFact =
             new JELQuerySequenceFactory( raString, decString, "-1" );
-        CdsFindMode findMode = findParam_.objectValue( env );
-        boolean remoteUnique = findMode.isRemoteUnique();
+        UserFindMode userMode = findParam_.objectValue( env );
+        ServiceFindMode serviceMode = userMode.getServiceMode();
+        boolean oneToOne = userMode.isOneToOne();
         int blocksize = chunkParam_.intValue( env );
         long maxrec = maxrecParam_.intValue( env );
         URL url = urlParam_.urlValue( env );
         UploadMatcher umatcher =
-            new CdsUploadMatcher( url, cdsId, sr, findMode );
+            new CdsUploadMatcher( url, cdsId, sr, serviceMode );
         String tableName = "xmatch(" + cdsIdToTableName( cdsId ) + ")";
         JoinFixAction inFixAct =
             fixcolsParam_.getJoinFixAction( env, insuffixParam_ );
@@ -228,7 +228,7 @@ public class CdsUploadSkyMatch extends SingleMapperTask {
             LineTableEnvironment.getStoragePolicy( env );
         final BlockUploader blocker =
             new BlockUploader( umatcher, blocksize, maxrec, tableName,
-                               inFixAct, cdsFixAct, remoteUnique );
+                               inFixAct, cdsFixAct, serviceMode, oneToOne );
 
         /* Create and return an object which will produce the result. */
         return new TableProducer() {

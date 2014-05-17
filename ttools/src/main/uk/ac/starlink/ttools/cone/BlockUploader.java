@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.JoinFixAction;
+import uk.ac.starlink.table.RandomStarTable;
 import uk.ac.starlink.table.RowStore;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
@@ -28,7 +29,8 @@ public class BlockUploader {
     private final String outName_;
     private final JoinFixAction uploadFixAct_;
     private final JoinFixAction remoteFixAct_;
-    private final boolean remoteUnique_;
+    private final ServiceFindMode serviceMode_;
+    private final boolean oneToOne_;
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.task" );
@@ -42,19 +44,25 @@ public class BlockUploader {
      * @param   outName   name of output table
      * @param   uploadFixAct  name deduplication policy for upload table
      * @param   remoteFixAct  name deduplication policy for remote table
-     * @param   remoteUnique  true iff a requirement of the match is that
-     *                        each remote row appears only once in the result
+     * @param   serviceMode   upload match mode
+     * @param   oneToOne   true iff output rows match 1:1 with input rows
      */
     public BlockUploader( UploadMatcher umatcher, int blocksize, long maxrec,
                           String outName, JoinFixAction uploadFixAct,
-                          JoinFixAction remoteFixAct, boolean remoteUnique ) {
+                          JoinFixAction remoteFixAct,
+                          ServiceFindMode serviceMode, boolean oneToOne ) {
         umatcher_ = umatcher;
         blocksize_ = blocksize;
         maxrec_ = maxrec;
         outName_ = outName;
         uploadFixAct_ = uploadFixAct;
         remoteFixAct_ = remoteFixAct;
-        remoteUnique_ = remoteUnique;
+        serviceMode_ = serviceMode;
+        oneToOne_ = oneToOne;
+        if ( oneToOne_ && ! serviceMode.supportsOneToOne() ) {
+            throw new IllegalArgumentException( "Mode " + serviceMode
+                                              + " doesn't support 1:1" );
+        }
         if ( blocksize <= 0 ) {
             throw new IllegalArgumentException( "Non-positive blocksize" );
         }
@@ -113,7 +121,7 @@ public class BlockUploader {
              * That allows us to assemble an output raw result table that
              * has been built in blocks, but looks the same as if it
              * had been built by a single upload/match operation. */
-            RowMapper blockMapper =
+            RowMapper<?> blockMapper =
                 mapperFact.createOffsetMapper( iblock * blocksize_ );
             boolean over =
                 umatcher_.streamRawResult( blockSeq, blockSink, blockMapper,
@@ -148,7 +156,7 @@ public class BlockUploader {
          * associated with that result row.  Either the remote catalogue
          * RA/Dec or the angDist columns would do.
          * If I had all that I could just add a deduplication step here. */
-        if ( remoteUnique_ && nblock > 1 ) {
+        if ( serviceMode_.isRemoteUnique() && nblock > 1 ) {
             logger_.warning( "Bug: a remote row may appear up to "
                            + nblock + " times, not just once, in the result" );
         }
@@ -160,14 +168,159 @@ public class BlockUploader {
                            new JoinFixAction[] { remoteFixAct_,
                                                  uploadFixAct_ } );
 
-        /* Generate the actual output table from the raw result and the
-         * input table, and return it. */
-        StarTable outTable =
-            umatcher_.createOutputTable( new ColTable( rawResult, rawCols ),
-                                         new ColTable( inTable, inCols ),
-                                         mapperFact.createOffsetMapper( 0 ) );
+        /* Prepare objects that know what uploaded/result columns and rows
+         * go where. */
+        ColumnPlan cplan = umatcher_.getColumnPlan( rawCols, inCols );
+        RowMapper<?> rowMapper = mapperFact.createOffsetMapper( 0 );
+
+        /* Combine the result table with the upload table to get the
+         * final output. */
+        int icolId = cplan.getResultIdColumnIndex();
+        final StarTable outTable;
+
+        /* In the 1:1 case, the output table has exactly one row for each
+         * row of the input table.  Use a row index pairs array in
+         * which the upload row index goes from 1 to nrUp, and the
+         * result index is the index of the result row corresponding
+         * to that input row if there is one, or -1 otherwise. */
+        if ( oneToOne_ ) {
+            int nrRes = Tables.checkedLongToInt( rawResult.getRowCount() );
+            int nrUp = Tables.checkedLongToInt( inTable.getRowCount() );
+            IrowPair[] irPairs = new IrowPair[ nrUp ];
+            for ( int irUp = 0; irUp < nrUp; irUp++ ) {
+                irPairs[ irUp ] = new IrowPair( -1, irUp );
+            }
+            for ( int irRes = 0; irRes < nrRes; irRes++ ) {
+                Object idUp = rawResult.getCell( irRes, icolId );
+                long irUp = rowIdToIndex( rowMapper, idUp );
+                irPairs[ Tables.checkedLongToInt( irUp ) ]  =
+                    new IrowPair( irRes, irUp );
+            }
+            outTable =
+                new XmatchOutputTable( rawResult, inTable, cplan, irPairs );
+        }
+
+        /* In the non-1:1 case, the output table has one row for each
+         * row in the raw result of the match.  Use a row index pairs
+         * array in which the result index goes from 1 to nrRes, and the
+         * upload row index is the upload row index associated with it. */
+        else {
+            int nrRes = Tables.checkedLongToInt( rawResult.getRowCount() );
+            IrowPair[] irPairs = new IrowPair[ nrRes ];
+            for ( int ir = 0; ir < nrRes; ir++ ) {
+                Object idUp = rawResult.getCell( ir, icolId );
+                irPairs[ ir ] =
+                    new IrowPair( ir, rowIdToIndex( rowMapper, idUp ) );
+            }
+            outTable =
+                new XmatchOutputTable( rawResult, inTable, cplan, irPairs );
+        }
+
+        /* Return the output table. */
         outTable.setName( outName_ );
         return outTable;
+    }
+
+    /**
+     * Turns a rowId value into an index into the upload table.
+     *
+     * @param   rowMapper   row mapper object
+     * @param   id  row identifier object
+     * @return  upload table row index
+     */
+    private static <I> long rowIdToIndex( RowMapper<I> rowMapper, Object id ) {
+        return rowMapper.rowIdToIndex( rowMapper.getIdClass().cast( id ) );
+    }
+
+    /**
+     * Table which combines a raw result generated by {@link #streamRawResult}
+     * and an input table representing the uploaded data to give a
+     * joined output table.
+     */
+    private static class XmatchOutputTable extends RandomStarTable {
+        private final StarTable rawResult_;
+        private final StarTable uploadTable_;
+        private final ColumnPlan cplan_;
+        private final IrowPair[] irPairs_;
+        private final int ncol_;
+
+        /**
+         * Constructor.
+         *
+         * @param   rawResult  table generated by an earlier call to
+         *                     <code>streamRawResult</code>
+         * @param   uploadTable  table with rows corresponding to those
+         *                       which generated the input query sequence;
+         *                       this table must have random access
+         * @param   cplan      rule for working out how to get the columns
+         *                     in the output table from the rows in the
+         *                     upload and raw result tables
+         * @param   irPairs    list of row index pairs pointing to input
+         *                     table rows, one for each row of this
+         *                     output table
+         */
+        XmatchOutputTable( StarTable rawResult, StarTable uploadTable,
+                           ColumnPlan cplan, IrowPair[] irPairs ) {
+            rawResult_ = rawResult;
+            uploadTable_ = uploadTable;
+            cplan_ = cplan;
+            irPairs_ = irPairs;
+            ncol_ = cplan.getOutputColumnCount();
+            getParameters().addAll( rawResult.getParameters() );
+            if ( ! rawResult.isRandom() || ! uploadTable.isRandom() ) {
+                throw new IllegalArgumentException( "Non-random input table" );
+            }
+        }
+
+        public long getRowCount() {
+            return irPairs_.length;
+        }
+
+        public int getColumnCount() {
+            return ncol_;
+        }
+
+        public ColumnInfo getColumnInfo( int icol ) {
+            int loc = cplan_.getOutputColumnLocation( icol );
+            return loc >= 0 ? rawResult_.getColumnInfo( loc )
+                            : uploadTable_.getColumnInfo( -loc - 1 );
+        }
+
+        public Object getCell( long irow, int icol ) throws IOException {
+            int loc = cplan_.getOutputColumnLocation( icol );
+            IrowPair irPair = irPairs_[ Tables.checkedLongToInt( irow ) ];
+            if ( loc >= 0 ) {
+                long ir = irPair.irRes_;
+                return ir >= 0 ? rawResult_.getCell( ir, loc ) : null;
+            }
+            else {
+                long ir = irPair.irUp_;
+                return ir >= 0 ? uploadTable_.getCell( ir, -loc - 1 ) : null;
+            }
+        }
+
+        public Object[] getRow( long irow ) throws IOException {
+            IrowPair irPair = irPairs_[ Tables.checkedLongToInt( irow ) ];
+            long irRes = irPair.irRes_;
+            long irUp = irPair.irUp_;
+            Object[] resRow = irRes >= 0 ? rawResult_.getRow( irRes ) : null;
+            Object[] upRow = irUp >= 0 ? uploadTable_.getRow( irUp ) : null;
+            Object[] row = new Object[ ncol_ ];
+            for ( int icol = 0; icol < ncol_; icol++ ) {
+                int loc = cplan_.getOutputColumnLocation( icol );
+                if ( loc >= 0 ) {
+                    if ( resRow != null ) {
+                        row[ icol ] = resRow[ loc ];
+                    }
+                }
+                else {
+                    if ( upRow != null ) {
+                        row[ icol ] = upRow[ -loc - 1 ];
+                    }
+                }
+            }
+            return row;
+        }
     }
 
     /**
@@ -389,6 +542,27 @@ public class BlockUploader {
         }
         public Long rowIndexToId( long index ) {
             return new Long( index + index0_ );
+        }
+    }
+
+    /**
+     * Defines a pair of row indices: one for the raw result table,
+     * and one for the upload table.  These tie together rows from the
+     * two input tables that go to produce the output xmatch table.
+     */
+    private static class IrowPair {
+        final long irRes_;
+        final long irUp_;
+
+        /**
+         * Constructor.
+         *
+         * @param   irRes  row index in the raw result table
+         * @param   irUp   row index in the upload table
+         */
+        IrowPair( long irRes, long irUp ) {
+            irRes_ = irRes;
+            irUp_ = irUp;
         }
     }
 }
