@@ -28,6 +28,7 @@ import uk.ac.starlink.votable.TabularData;
 import uk.ac.starlink.votable.VOElement;
 import uk.ac.starlink.votable.VOElementFactory;
 import uk.ac.starlink.votable.VOTableBuilder;
+import uk.ac.starlink.votable.ValuesElement;
 
 /**
  * @author Margarida Castro Neves
@@ -41,6 +42,8 @@ public class DataLinkParams {
     private ParamElement request; // 
     private String accessURL; // the access URL for the service
     private String contentType; // 
+    private String format;
+
     HashMap <String,String> paramMap= new HashMap<String,String>(); 
     int queryIndex = -1;
    
@@ -57,6 +60,7 @@ public class DataLinkParams {
         request=null;
         accessURL=null;
         contentType=null;
+        format = null;
     }
     
     
@@ -71,6 +75,7 @@ public class DataLinkParams {
         request=null;
         accessURL=null;
         contentType=null;
+        format = ""; 
         service = new ArrayList<DataLinkService>();
         DataLinkService thisService = new DataLinkService();
 
@@ -88,9 +93,10 @@ public class DataLinkParams {
 
             //   String utype = colInfo.getUtype();
             String name = colInfo.getName();
-            if ( name != null )
-                thisService.addParam(name, (String) starTable.getCell(0, k));
-
+            if ( name != null && starTable.getCell(0, k)!= null) {
+                 
+                thisService.addParam(name, (String) starTable.getCell(0, k).toString());
+            }
             //  if ( utype != null ) {
             //     utype = utype.toLowerCase();
             //     if ( utype.endsWith( "datalink.accessurl" ) ) {
@@ -142,7 +148,7 @@ public class DataLinkParams {
             VOElement gel =  grpels[i];
             String name = gel.getAttribute("name");
            
-            if (name.equalsIgnoreCase("InputParams")) {
+            if (name.equalsIgnoreCase("input")) { // InputParams
                 grpel = gel;
             }
             i++;
@@ -156,10 +162,32 @@ public class DataLinkParams {
             for ( int j=0; j < size ; j++ ) {
                 ParamElement pel = (ParamElement) grpParams[j];
                 if ( pel.getAttribute("name").equals("ID")) {
-                    VOElement el = pel.getChildByName("LINK"); // link inside a group element
-                    if (el.getAttribute( "content-role").equals("ddl:id-source") )
-                        id_source = el.getAttribute("value"); 
-                    thisService.addParam("idSource", el.getAttribute("value"));
+                    id_source = pel.getAttribute("ref");
+                    if (id_source.startsWith("#") )
+                            id_source=id_source.substring(1);
+                    // LINK will not be used anymore
+                    // will be removed soon
+                  /*  if (id_source == null ) {
+                        VOElement el = pel.getChildByName("LINK"); // link inside a group element
+                        if (el.getAttribute( "content-role").equals("ddl:id-source") )
+                            id_source = el.getAttribute("value"); 
+                    }*/
+                    thisService.addParam("idSource", id_source );
+       /*         } else if ( pel.getAttribute("name").equals("FORMAT") ) { //choose best format
+                    ValuesElement values = (ValuesElement) pel.getChildByName("VALUES");
+                    String [] options = values.getOptions();
+                    format = "application/x-votable"; // default value
+                    for (i=0;i<options.length; i++) {
+                        if ( options[i].contains("application/x-votable")) {
+                           format=options[i];
+                        } else if ( format == null && options[i].contains("application/fits")) {
+                            format=options[i];
+                        }
+                    }
+                   
+                    thisService.addParam("FORMAT", format);
+                   // thisService.addParam("FORMAT", "application/x-votable");
+        */            
                 } else {
                     thisService.addGroupParam(pel);
                     queryIndex = j;
@@ -211,25 +239,51 @@ public class DataLinkParams {
     }
     */
     public String getQueryAccessURL(int queryIndex) {
-        if (queryIndex >= 0 && queryIndex < getServiceCount())
-            return service.get(queryIndex).getParam("accessURL");
-        else return null;
+        if (queryIndex >= 0 && queryIndex < getServiceCount()) {
+            String idsrc;
+            idsrc = service.get(queryIndex).getParam("access_url");//("accessURL");
+            if (idsrc != null) 
+                return idsrc;
+            idsrc = service.get(queryIndex).getParam("accessURL"); // temporary -- to b removed
+            if (idsrc != null) 
+                return idsrc;
+        }
+        return null;
             
     }
   
     public String getQueryContentType(int queryIndex) {
-        if (queryIndex >= 0 && queryIndex < getServiceCount())
-            return service.get(queryIndex).getParam("contentType");
-        else return null;
+        if (queryIndex >= 0 && queryIndex < getServiceCount()) {
+            String conttype = service.get(queryIndex).getParam("content_type"); //("contentType");
+            if (conttype != null) 
+                return conttype;
+            conttype = service.get(queryIndex).getParam("contentType");// temporary -- to b removed
+            if (conttype != null) 
+                return conttype;
+        }
+        return null;
         
     }
     
     public String  getQueryIdSource(int queryIndex) {   
-        if (queryIndex >= 0 && queryIndex < getServiceCount())
-            return service.get(queryIndex).getParam("idSource");
-        else return null;
+        if (queryIndex >= 0 && queryIndex < getServiceCount()) {
+            String idsrc= service.get(queryIndex).getParam("ID");  // ("idSource");
+            if (idsrc != null) 
+                return idsrc;
+            idsrc= service.get(queryIndex).getParam("idSource");  // temporary -- to b removed
+            if (idsrc != null) 
+                return idsrc;
+        }
+        return null;
     }
 
+    
+    public String  getQueryFormat(int queryIndex) {   
+        if (queryIndex >= 0 && queryIndex < getServiceCount()) {
+            return service.get(queryIndex).getQueryParam("FORMAT");
+        }
+        else return null;
+    }
  //   public ParamElement[]  getParams() {
  //       return (ParamElement[]) paramList.toArray( new ParamElement[ 0 ] );
  //   }
@@ -272,6 +326,16 @@ public class DataLinkParams {
         protected ParamElement [] getQueryParams() {
       
             return (ParamElement[]) groupParams.toArray(new ParamElement[]{});
+        }
+        
+        protected String getQueryParam( String paramName ) {
+             
+             for (int i=0;i<groupParams.size(); i++ ) {
+                 ParamElement pel = groupParams.get(i);
+                 if (pel.getName().equals(paramName))
+                     return pel.getValue();
+             }
+             return null;
         }
         
         protected String getParam(String name) {
