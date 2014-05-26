@@ -84,8 +84,8 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
     {
  // RESET dataLink panels
         
-        dataLinkPanel = null;
-        paramPanel = null;
+     //   dataLinkPanel = null;
+    //    paramPanel = null;
       //  dataLinkScroller  = null; 
         
         dataLinkParam.clear();
@@ -193,6 +193,16 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
                    if ( options != null && options.length > 0 ) {
                        optbox = new JComboBox(options);
                        optbox.addItem("");
+                       value="";
+                      /* if (paramName.equals("FORMAT")) { // choose best format for SPLAT as default
+                           for (i=0;i<options.length; i++) {
+                               if ( options[i].contains("application/x-votable")) {
+                                   value = options[i];
+                               } else if ( value == null && options[i].contains("application/fits")) {
+                                   value = options[i];
+                               }
+                           }
+                       } */
                        optbox.setSelectedItem(value);
                        optbox.setMaximumSize( optbox.getPreferredSize() );
 
@@ -217,9 +227,18 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
                        Dimension size=new Dimension(paramField.getPreferredSize().width, paramField.getPreferredSize().height+5);
                        paramField.setMinimumSize(size);
                        paramField.setMaximumSize(size);
+                     
+                       VOElement constraint = values.getChildByName("MIN"); 
+                       String min=constraint.getAttribute("value");
+                       constraint = values.getChildByName("MAX");
+                       String max=constraint.getAttribute("value"); 
+                       if (min != null || max != null)
+                           description = description + "  values: ["+min+".."+max+"]";
+                       paramField.setToolTipText(description);
+                       
                        inputPanel.add(paramField);
                        queryComponents.add(paramField);
-
+                       
                        /* JTextField minField = new JTextField(8);
                         JTextField maxField = new JTextField(8);
 
@@ -278,6 +297,9 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
         
         Component source = (Component) e.getSource();   
         
+        if (source.equals(clearButton))
+            dataLinkParam.clear();
+        
         for (int i = 0; i < queryComponents.size(); i++) 
         {      
                Component c = queryComponents.get(i);
@@ -288,7 +310,7 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
                        cb.setSelectedItem("");
                    } else /*if (source.equals(submitButton))*/ {
                       // if ( cb.getSelectedItem().toString().length() > 0)
-                           dataLinkParam.put(name, cb.getSelectedItem().toString());   
+                           dataLinkParam.put(name, cb.getSelectedItem().toString());
                    } 
                }
                if (c instanceof JTextField) {
@@ -314,6 +336,7 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
             return null;
         currentServer=server;
         dataLinkParam.clear();
+        queryComponents.clear();
         addToUI(server, servers.get(server));
         paramPanel.updateUI();
         dataLinkPanel.revalidate();
