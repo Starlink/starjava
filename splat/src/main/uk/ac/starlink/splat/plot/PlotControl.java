@@ -12,8 +12,6 @@
  */
 package uk.ac.starlink.splat.plot;
 
-import diva.canvas.event.LayerEvent;
-
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -28,7 +26,9 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.awt.geom.Rectangle2D;
-
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 
 import javax.print.attribute.PrintRequestAttributeSet;
@@ -81,6 +81,7 @@ import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.util.PrintUtilities;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.Utilities;
+import diva.canvas.event.LayerEvent;
 
 /**
  * A PlotControl object consists of a Plot inside a scrolled pane and various
@@ -143,6 +144,21 @@ public class PlotControl
      */
     protected JScrollPane scroller;
 
+    /**
+     * Contains a number of currently highlighting threads for a spectrum.
+     * The value is set at the first highlith of a spectrum, otherwise it's NULL.
+     */
+    protected static Map<SpecData, Integer> highlightingThreadsCounts = new HashMap<SpecData, Integer>();
+    
+    /**
+     * Contains the original spectra's colors while highlighting them
+     * (during this, the color is temporarily inverted, so it's essential
+     * to keep the original color reference for cases, when multiple plot windows
+     * are highlighting the same spectrum (concurrency access issues - this is
+     * moreless the universal solution for most cases))
+     */
+    protected static Map<SpecData, Integer> spectrasOriginalColors = new HashMap<SpecData, Integer>();
+    
     /**
      * Zoom factor controls and labels.
      */
@@ -777,7 +793,7 @@ public class PlotControl
             {
                 public void actionPerformed( ActionEvent e )
                 {
-                    zoomAboutTheCentre( -1, 0 );
+                	zoomAboutTheCentre( -1, 0 );
                 }
             };
         plot.addKeyBoardAction( KeyStroke.getKeyStroke( KeyEvent.VK_MINUS, 0 ),
@@ -789,7 +805,7 @@ public class PlotControl
             {
                 public void actionPerformed( ActionEvent e )
                 {
-                    zoomAboutTheCentre( 0, 1 );
+                	zoomAboutTheCentre( 0, 1 );
                 }
             };
         plot.addKeyBoardAction( KeyStroke.getKeyStroke( KeyEvent.VK_EQUALS,
@@ -860,7 +876,7 @@ public class PlotControl
      */
     public void zoomAboutTheCentre( int xIncrement, int yIncrement )
     {
-        double[] centre = getCentre();
+    	double[] centre = getCentre();
         zoomAbout( xIncrement, yIncrement, centre[0], centre[1] );
     }
 
@@ -1321,7 +1337,7 @@ public class PlotControl
     public void zoomAbout( int xIncrement, int yIncrement, double x,
                            double y )
     {
-        recordOrigin( x, y );
+    	recordOrigin( x, y );
 
         //  Scale the plot by the increment.
         float xs = Math.max( getXScale() + xIncrement, 1.0F );
@@ -1372,7 +1388,7 @@ public class PlotControl
             scaleScale( xs, ys );
         }
         else if ( region != null ) {
-            zoomAbout( 1, 1, region.getX(), region.getY() );
+        	zoomAbout( 1, 1, region.getX(), region.getY() );
         }
     }
 
@@ -1831,14 +1847,14 @@ public class PlotControl
     }
 
     /**
-     * React to a change in the global current spectrum. Do nothing this is
+     * React to a change in the global current spectrum. This is
      * not the same as the local current spectrum.
      *
      * @param e object describing the event.
      */
     public void spectrumCurrent( SpecChangedEvent e )
     {
-        // Do nothing.
+    	highlightCurrentSpectrum(e);
     }
 
 //
@@ -1862,11 +1878,15 @@ public class PlotControl
      */
     public void figureRemoved( FigureChangedEvent e )
     {
-        Rectangle2D region = (Rectangle2D)
+    	Rectangle2D region = (Rectangle2D)
             ( (DragRegion) e.getSource() ).getFinalShape();
         LayerEvent le = e.getLayerEvent();
+
         if ( le.getModifiers() == LayerEvent.BUTTON3_MASK ) {
-            zoomAbout( -1, -1, region.getX(), region.getY() );
+        	zoomAbout( -1, -1, region.getX(), region.getY() );
+        } 
+        else if (le.getModifiers() == LayerEvent.BUTTON1_MASK && le.getClickCount() == 1) {
+        	selectNearestSpectrum(le.getX(), le.getY());
         }
         else {
             zoomToRectangularRegion( region );
@@ -1952,4 +1972,249 @@ public class PlotControl
             ex.printStackTrace();
         }
     }
+    
+    /**
+     * Locates the spectrum in the plot window nearest to the position, 
+     * highlights it and selects it in spectra lists 
+     * 
+     * @param xpos The (graphical) X position
+     * @param ypos The (graphical) Y position
+     */
+    protected void selectNearestSpectrum(int xpos, int ypos) {
+    	List<SpecData> spectraList = java.util.Arrays.asList(spectra.get());
+    		
+    	SpecData nearestSpectrum = null;
+    	
+    	// locate the closest spectrum    		
+    	for (SpecData spectrum : spectraList) {
+    		 
+    		if (nearestSpectrum == null && (
+    				spectrum.getXGraphicsCoordinates()[0] <= xpos && 
+    				spectrum.getXGraphicsCoordinates()[spectrum.getXGraphicsCoordinates().length - 1] >= xpos)) {
+    			nearestSpectrum = spectrum;
+    			continue;
+    		}
+    		
+    		// only for spectra with coordinates
+    		if (spectrum.size() > 0 && nearestSpectrum != null) {
+
+    			// if the X value fits in the current spectrum's range
+    			if (spectrum.getXGraphicsCoordinates()[0] <= xpos && 
+    				spectrum.getXGraphicsCoordinates()[spectrum.getXGraphicsCoordinates().length - 1] >= xpos) {
+    				
+    				// now we can compare the Y values
+    				int oldNearestXIndex = binarySearchForClosestCoordinate(nearestSpectrum.getXGraphicsCoordinates(), xpos);
+    				int xIndex = binarySearchForClosestCoordinate(spectrum.getXGraphicsCoordinates(), xpos);
+
+    				if (Math.abs(ypos - spectrum.getYGraphicsCoordinates()[xIndex]) < Math.abs(ypos - nearestSpectrum.getYGraphicsCoordinates()[oldNearestXIndex]))
+    					nearestSpectrum = spectrum;
+    				
+    			}
+    		}
+    		
+    	}
+    	
+    	if (nearestSpectrum != null) {
+			// set the nearest spectrum as selected in the global list of spectra
+			//globalList.setCurrentSpectrum(globalList.getSpectrumIndex(nearestSpectrum));
+			
+			// set the nearest spectrum as selected in this.spectra
+    		nameList.setSelectedItem(nearestSpectrum);
+    		nameList.repaint();
+			
+			// highlight the nearest spectrum
+			
+
+		}
+    }
+    
+    /**
+     * Finds the closest coordinate in the array to the passed one
+     * 
+     * @param coordinates Array of (SORTED!) candidates
+     * @param coordinate Coordinate to locate
+     * @return Index of the nearest coordinate (or -1 if coordinates are null)
+     */
+    protected static int binarySearchForClosestCoordinate(double[] coordinates, double coordinate) {
+    	/* 
+    	 * Algorithm is based on binary search
+    	 * 
+    	 *  First, it's looking for the match with coordinate in
+    	 *  coordinates and gets at worst +/- one positions off
+    	 *  the final index. Then (if not matched) it takes 
+    	 *  coordinates on exactly one position left and right
+    	 *  from the detected index and compares, whether the coordinates
+    	 *  on these indexes are not closer than the current on
+    	 */
+    	
+    	int index = -1;
+    	
+    	if (coordinates != null) {
+    		
+    		// set the initial borders
+    		int left = 0;
+    		int right = coordinates.length - 1;
+    		
+    		// loop until the closest value candidate is found
+    		while (left <= right) {
+    			
+    			int i = (left + right) / 2;
+    			
+    			index = i;
+    			
+    			if (coordinate < coordinates[i])
+    				right = i - 1;
+    			else
+    				left = i + 1;
+    		}
+    	}
+    	
+    	/* 
+    	 * the detected value is not always the closest 
+    	 * one, it may be +/- one position off
+    	 */
+    	if (index >= 0) {
+    		double diff = Math.abs(coordinate - coordinates[index]);
+    		
+    		if (index > 0) {
+    			double lowerDiff = Math.abs(coordinate - coordinates[index - 1]); 
+    			if (lowerDiff < diff) {
+    				index = index - 1;
+    				diff = lowerDiff;
+    			}
+    		}
+    		
+    		if (index < coordinates.length - 1) {
+    			double higherDiff = Math.abs(coordinate - coordinates[index + 1]); 
+    			if (higherDiff < diff) {
+    				index = index + 1;
+    				diff = higherDiff;
+    			}
+    		}
+    	}
+    	
+    	return index;
+    }
+    
+    /**
+     * Highlights the current spectrum from global spectra list
+     * @param e
+     */
+    protected void highlightCurrentSpectrum(SpecChangedEvent e) {
+
+    	SpecData[] localSpectra = spectra.get();
+    	
+    	SpecData currentGlobalSpectrum = globalList.getSpectrum(e.getIndex());
+    	if (currentGlobalSpectrum != null) {
+	    	for (final SpecData localSpectrum : localSpectra) {
+	    		// if the currently selected spectrum is in this plot window
+	    		if (localSpectrum.equals(currentGlobalSpectrum)) {
+	    			
+	    			// new highlighting thread
+	    			Thread highlightingThread = new Thread() {
+	    			
+	    				private int repeats = 6;	// how many times change the line's color? Keep this even to end up with the original color
+	    				private int sleepMs = 150;	// interval between the line color's change
+	    				
+	    				Integer currentSpectrumLineColor = null;	// is set in run()
+	    				private int blinkStepColor = 0;
+	    				private Integer nextLineColor = blinkStepColor;
+	    				
+	    				@Override
+	    				public void run() {
+	    					super.run();
+	    					
+	    					synchronized(localSpectrum) {
+		    					
+	    						/*
+	    						 * register this highlighting thread by incrementing 
+	    						 * the number of highlighting threads for this spectrum
+	    						 */
+	    						if (!highlightingThreadsCounts.containsKey(localSpectrum))
+	    							highlightingThreadsCounts.put(localSpectrum, 0);
+	    						
+	    						highlightingThreadsCounts.put(localSpectrum, highlightingThreadsCounts.get(localSpectrum) + 1);
+	    						
+	    						/*
+	    						 * if this is a first highlighting thread for a spectrum 
+	    						 * at this moment (no other are currently running), create
+	    						 * a reference to spectrum's original color (other possibly coming
+	    						 * threads will use it instead of getting an inverted instead
+	    						 * - concurrency issue)
+	    						 */
+	    						if (!spectrasOriginalColors.containsKey(localSpectrum))
+	    							spectrasOriginalColors.put(localSpectrum, Integer.valueOf(localSpectrum.getLineColour()));
+	    						
+	    						currentSpectrumLineColor = spectrasOriginalColors.get(localSpectrum);
+	    						
+	    						blinkStepColor = Utilities.invertColor(currentSpectrumLineColor);
+		    					nextLineColor = blinkStepColor;
+	    						
+		    					for (; repeats > 0; repeats--) {
+		    						// change the line's color
+		    						redraw(nextLineColor);
+			    					
+			    					// sleep before next run
+			    					try {
+										sleep(sleepMs);
+									} catch (InterruptedException e) {
+										// set the default line color
+										redraw(currentSpectrumLineColor);
+									}
+		    					}
+		    					
+		    					/*
+		    					 * when done, unregister from highlighting threads for this spectrum
+		    					 * by decrementing its count and if no other thread is running for
+		    					 * this spectrum, remove the reference to the original color (may change
+		    					 * between the next highlighting round)
+		    					 */
+		    					highlightingThreadsCounts.put(localSpectrum, highlightingThreadsCounts.get(localSpectrum) - 1);
+		    					
+		    					if (highlightingThreadsCounts.get(localSpectrum).equals(0))
+		    						spectrasOriginalColors.remove(localSpectrum);
+		    					
+	    					}
+	    				}
+	    				
+	    				/**
+	    				 * "Redraws" the spectrum's line
+	    				 * @param lineColor New color
+	    				 */
+	    				private void redraw(int lineColor) {
+	    					// change spectrum's line color
+	    					localSpectrum.setLineColour(lineColor);
+	    					
+	    					nextLineColor = ((lineColor == blinkStepColor )
+	    							? currentSpectrumLineColor 
+	    							: blinkStepColor
+	    							);
+	    					// update the plot
+	    					try {
+	    						plot.staticUpdate();
+	    					} catch (SplatException ex) {
+	    						try {
+	    							plot.update(true);
+	    						} catch (SplatException ignored) {
+	    							// Do nothing, should be none-fatal.
+	    						}
+	    					}
+	    				}
+	    				
+	    				@Override
+	    				public void interrupt() {
+	    					// when interrupted, set the original line color
+	    					redraw(currentSpectrumLineColor);
+	    					
+	    					super.interrupt();
+	    				}
+	    			};
+	    			
+	    			// start the new highlighting thread
+	    			highlightingThread.start();
+	    		}
+	    	}
+    	}
+    }
 }
+
