@@ -43,6 +43,7 @@ import uk.ac.starlink.splat.data.SpecDataFactory;
 import uk.ac.starlink.splat.iface.SampFrame;
 import uk.ac.starlink.splat.iface.SpectrumIO;
 import uk.ac.starlink.splat.iface.SplatBrowser;
+import uk.ac.starlink.splat.iface.SpectrumIO.SourceType;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.vo.SSAQueryBrowser;
 
@@ -214,7 +215,7 @@ public class SampCommunicator
 
         SpectrumLoadHandler()
         {
-            subs = new Subscriptions();
+        	subs = new Subscriptions();
             subs.addMType( "spectrum.load.ssa-generic" );
             subs.addMType( "table.load.fits" );
             subs.addMType( "table.load.votable" );
@@ -223,7 +224,7 @@ public class SampCommunicator
 
         public Map getSubscriptions()
         {
-            return subs;
+        	return subs;
         }
 
         /**
@@ -233,7 +234,7 @@ public class SampCommunicator
         public void receiveNotification( HubConnection connection,
                                          String senderId, Message message )
         {
-            SpectrumIO.Props props = createProps( message );
+        	SpectrumIO.Props props = createProps( message );
             SpectrumIO.getInstance().setWatcher( this );
             loadSpectrum( props );
         }
@@ -245,7 +246,7 @@ public class SampCommunicator
         public void receiveCall( HubConnection connection, String senderId,
                                  String msgId, Message message )
         {
-            SpectrumIO.Props props = createProps( message );
+        	SpectrumIO.Props props = createProps( message );
             propsMap.put( props, new MsgInfo( connection, msgId ) );
             SpectrumIO.getInstance().setWatcher( this );
             loadSpectrum( props );
@@ -256,7 +257,7 @@ public class SampCommunicator
          */
         public void loadSucceeded( SpectrumIO.Props props )
         {
-            MsgInfo msginfo = (MsgInfo) propsMap.remove( props );
+        	MsgInfo msginfo = (MsgInfo) propsMap.remove( props );
             if ( msginfo != null ) {
                 Response response =
                     Response.createSuccessResponse( new HashMap() );
@@ -275,7 +276,7 @@ public class SampCommunicator
          */
         public void loadFailed( SpectrumIO.Props props, Throwable error )
         {
-            MsgInfo msginfo = (MsgInfo) propsMap.remove( props );
+        	MsgInfo msginfo = (MsgInfo) propsMap.remove( props );
             if ( msginfo != null ) {
                 ErrInfo errInfo = new ErrInfo( error );
                 errInfo.setErrortxt( "Spectrum load failed" );
@@ -317,6 +318,8 @@ public class SampCommunicator
             if ( ! msg.getMType().equals( "spectrum.load.ssa-generic" ) ) {
                 props.setType( SpecDataFactory.TABLE );
             }
+            
+            props.setSourceType(SourceType.SAMP);
             return props;
         }
 
@@ -329,7 +332,7 @@ public class SampCommunicator
         {
             //  Attempt to load the spectrum asynchronously on the 
             //  event dispatch thread.
-            SpectrumAdder specAdder = new SpectrumAdder( props );
+        	SpectrumAdder specAdder = new SpectrumAdder( props );
             SwingUtilities.invokeLater( specAdder );
         }
     }
