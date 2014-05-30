@@ -1002,8 +1002,11 @@
        </resources>
 
        <!-- Windows -->
-       <resources os="Windows">
+       <resources os="Windows" arch="x86">
           <nativelib href="x86/${name}_libs.jar"/>
+       </resources>
+       <resources os="Windows" arch="amd64">
+          <nativelib href="amd64/${name}_libs.jar"/>
        </resources>
 
        <!-- SUN Solaris -->
