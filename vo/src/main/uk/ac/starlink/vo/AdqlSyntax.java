@@ -21,9 +21,15 @@ public class AdqlSyntax extends SqlSyntax {
      * taken from the ADQL standard.
      */
     public static final String[] ADQL_RESERVED = new String[] {
+
+        // From ADQL 2.0 section 2.1.2:
         "ABS", "ACOS", "ASIN", "ATAN", "ATAN2", "CEILING", "COS", "DEGREES",
         "EXP", "FLOOR", "LOG", "LOG10", "MOD", "PI", "POWER", "RADIANS",
         "RAND", "ROUND", "SIN", "SQRT", "TAN", "TOP", "TRUNCATE",
+
+        // From ADQL 2.0 section 2.4.1:
+        "AREA", "BOX", "CENTROID", "CIRCLE", "CONTAINS", "COORD1", "COORD2",
+        "COORDSYS", "DISTANCE", "INTERSECTS", "POINT", "POLYGON", "REGION",
     };
     private static final AdqlSyntax instance_ = new AdqlSyntax();
 
