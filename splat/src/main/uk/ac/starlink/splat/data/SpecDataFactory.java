@@ -15,10 +15,12 @@
  */
 package uk.ac.starlink.splat.data;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.MalformedURLException;
@@ -29,8 +31,13 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+
+import com.sun.xml.internal.ws.encoding.ContentType;
+
+
 
 import nom.tam.fits.Header;
 import nom.tam.fits.HeaderCard;
@@ -1240,6 +1247,8 @@ public class SpecDataFactory
             throws SplatException
     {
         PathParser namer = null;
+        boolean compressed = false;
+        ContentType  mimetype = null;
        
         try {
             
@@ -1268,19 +1277,33 @@ public class SpecDataFactory
                     throw new SplatException( "Server returned " + ((HttpURLConnection)connection).getResponseMessage() + " " + 
                             " for the URL : " + url.toString()    );
                 }
+                compressed = ("gzip".equals(connection.getContentEncoding()));
+                mimetype = new ContentType(connection.getContentType());
                 
             }
             connection.setConnectTimeout(10*1000); // 10 seconds
             connection.setReadTimeout(30*1000); // 30 seconds read timeout??? 
             InputStream is = connection.getInputStream();
-          
+            if (compressed)
+                is = new GZIPInputStream(is);
             //  And read it into a local file. Use the existing file extension
             //  if available and we're not guessing the type.
             namer = new PathParser( url.toString() );
 
+            String stype = null;
+            
+            // parse mime type
+            if (mimetype.getSubType().contains("votable") || mimetype.getSubType().contains("xml")) {
+                type = HDX;
+            } else if (mimetype.getSubType().contains("fits") ) {
+                type = FITS;
+            } else if (mimetype.getPrimaryType().contains("text") && mimetype.getSubType().contains("plain") ) {
+                type = TEXT;
+            }
+            
             //  Create a temporary file. Use a file extension based on the
             //  type, if known.
-            String stype = null;
+           
             switch (type) {
                 case FITS: {
                     stype = ".fits";
@@ -1327,6 +1350,12 @@ public class SpecDataFactory
             //  server end this will probably result in the download of an
             //  HTML file, or a file starting with NULL.
             FileInputStream fis = new FileInputStream( tmpFile );
+         /*   BufferedReader br = new BufferedReader(new InputStreamReader(fis));
+             String line1 = null, line2=null;
+             line1 = br.readLine();
+             line2 = br.readLine(); 
+             br.close();*/
+            // char[] header = line1.toCharArray();
             byte[] header = new byte[4];
             fis.read( header );
             fis.close();
@@ -1346,6 +1375,10 @@ public class SpecDataFactory
                                           " by the URL : " + url.toString() +
                                           " as it is empty" );
             }
+            
+            // try to get file format from its first lines 
+            // if extension is not in pathname
+  
         }
         catch (Exception e) {
             throw new SplatException( e );
