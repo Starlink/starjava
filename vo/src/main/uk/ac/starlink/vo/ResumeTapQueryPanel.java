@@ -58,7 +58,7 @@ class ResumeTapQueryPanel extends JPanel {
         /* Set up components for the user to enter a URL corresponding
          * to a running TAP query. */
         urlField_ = new JTextField();
-        jobPanel_ = new UwsJobPanel();
+        jobPanel_ = new UwsJobPanel( true );
         Action clearAct = new AbstractAction( "Clear" ) {
             public void actionPerformed( ActionEvent evt ) {
                 setStatus( "" );
