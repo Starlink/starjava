@@ -603,6 +603,19 @@ public class VOTableWriter implements StarTableWriter, MultiStarTableWriter {
         return writeSchemaLocation;
     }
 
+    @Override
+    public String toString() {
+        StringBuffer sbuf = new StringBuffer();
+        sbuf.append( dataFormat.toString() );
+        if ( dataFormat != DataFormat.TABLEDATA ) {
+            sbuf.append( "," )
+                .append( inline ? "inline" : "href" );
+        }
+        sbuf.append( ",v" )
+            .append( version.getVersionNumber() );
+        return sbuf.toString();
+    }
+
     /**
      * Returns a list of votable writers with variant values of attributes.
      *

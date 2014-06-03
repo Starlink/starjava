@@ -119,11 +119,15 @@ public class TapQuery {
      * @param  uploadLimit  maximum number of bytes that may be uploaded;
      *                      if negative, no limit is applied,
      *                      ignored if <code>uploadMap</code> null or empty
+     * @param  vowriter   serializer for producing content of uploaded tables;
+     *                    ignored if <code>uploadMap</code> null or empty,
+     *                    if null a default value is used
      * @throws   IOException   if upload tables exceed the upload limit
      */
     public TapQuery( URL serviceUrl, String adql,
                      Map<String,String> extraParams,
-                     Map<String,StarTable> uploadMap, long uploadLimit )
+                     Map<String,StarTable> uploadMap,
+                     long uploadLimit, VOTableWriter vowriter )
             throws IOException {
         this( serviceUrl, adql, extraParams, uploadLimit );
 
@@ -131,6 +135,10 @@ public class TapQuery {
          * This also affects the string parameter map. */
         StringBuffer ubuf = new StringBuffer();
         if ( uploadMap != null ) {
+            if ( vowriter == null ) {
+                vowriter = new VOTableWriter( DataFormat.BINARY, true,
+                                              VOTableVersion.V12 );
+            }
             for ( Map.Entry<String,StarTable> upload : uploadMap.entrySet() ) {
                 String tname = upload.getKey();
                 String tlabel = toParamLabel( tname );
@@ -143,8 +151,10 @@ public class TapQuery {
                     .append( "param:" )
                     .append( tlabel );
                 HttpStreamParam streamParam =
-                    createUploadStreamParam( table, uploadLimit );
+                    createUploadStreamParam( table, uploadLimit, vowriter );
                 streamMap_.put( tlabel, streamParam );
+                logger_.info( "Preparing upload parameter " + tlabel
+                            + " using VOTable serializer " + vowriter );
             }
         }
         if ( ubuf.length() > 0 ) {
@@ -440,15 +450,15 @@ public class TapQuery {
      *
      * @param   table  table to upload
      * @param   uploadLimit  maximum number of bytes permitted; -1 if no limit
+     * @param   vowriter   serializer for producing content of uploaded tables
      * @return  stream parameter
      */
     private static HttpStreamParam
                    createUploadStreamParam( final StarTable table,
-                                            long uploadLimit )
+                                            long uploadLimit,
+                                            final VOTableWriter vowriter )
             throws IOException {
         final Map<String,String> headerMap = new LinkedHashMap<String,String>();
-        final VOTableWriter vowriter =
-            new VOTableWriter( DataFormat.BINARY, true, VOTableVersion.V12 );
         headerMap.put( "Content-Type", "application/x-votable+xml" );
         if ( uploadLimit < 0 ) {
             return new HttpStreamParam() {

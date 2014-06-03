@@ -245,7 +245,7 @@ public class TapMapper implements TableMapper {
             uploadMap.put( upNames[ iu ], inSpecs[ iu ].getWrappedTable() );
         }
         return new TapQuery( serviceUrl, adql, extraParams, uploadMap, 
-                             uploadLimit );
+                             uploadLimit, null );
     }
 
     /**

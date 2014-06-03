@@ -95,18 +95,42 @@ public class UploadStage implements Stage {
          * Runs the test.
          */
         public void run() {
-            String upName = "t1";
+            VOTableWriter[] vowriters = new VOTableWriter[] {
+                new VOTableWriter( DataFormat.TABLEDATA, true,
+                                   VOTableVersion.V12 ),
+                new VOTableWriter( DataFormat.BINARY, true,
+                                   VOTableVersion.V12 ),
+            };
             StarTable upTable = createUploadTable( 23 );
+            for ( int i = 0; i < vowriters.length; i++ ) {
+                runUploadQuery( upTable, vowriters[ i ] );
+            }
+        }
+
+        /**
+         * Performs one upload query.
+         *
+         * @param  upTable  table to upload
+         * @param  vowriter  VOTable serializer for uploaded table
+         */
+        private void runUploadQuery( StarTable upTable,
+                                     VOTableWriter vowriter ) {
+            String upName = "t1";
             String adql = "SELECT * FROM TAP_UPLOAD." + upName;
             Map<String,StarTable> upMap = new LinkedHashMap<String,StarTable>();
             upMap.put( upName, upTable );
             TapQuery tq;
             try {
-                tq = new TapQuery( serviceUrl_, adql, null, upMap, -1 );
+                tq = new TapQuery( serviceUrl_, adql, null, upMap,
+                                   -1, vowriter );
             }
             catch ( IOException e ) {
-                reporter_.report( ReportType.ERROR, "UPER",
-                                  "Upload error failed", e );
+                String msg = new StringBuffer()
+                    .append( "Upload failed" )
+                    .append( " using VOTable serializer " )
+                    .append( vowriter )
+                    .toString();
+                reporter_.report( ReportType.ERROR, "UPER", msg, e );
                 return;
             }
             StarTable resultTable = tRunner_.getResultTable( reporter_, tq );
@@ -123,7 +147,6 @@ public class UploadStage implements Stage {
             }
             compareTables( upTable, resultTable );
         }
-
 
         /**
          * Takes two tables and checks they have the same metadata and data.

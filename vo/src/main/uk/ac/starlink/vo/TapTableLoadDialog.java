@@ -326,7 +326,7 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
                     throws IOException {
                 TapQuery tq =
                     new TapQuery( serviceUrl, adql, extraParams, uploadMap,
-                                  byteUploadLimit );
+                                  byteUploadLimit, null );
                 if ( sync ) {
                     StarTable table =
                         tq.executeSync( tfact.getStoragePolicy() );
