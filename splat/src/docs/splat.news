@@ -1,4 +1,11 @@
 1 Starlink SPLAT news.
+
+   3.10-5
+   ======
+
+   - Splat checks now the http header Content-Type for determining the file format.
+     This solves the problem of error messages when file format not defined.
+
    3.10-4
    ======
 
