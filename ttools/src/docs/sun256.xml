@@ -8653,6 +8653,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <li>Commands <code>coneskymatch</code>, <code>sqlskymatch</code>
             and <code>pixfoot</code> will now guess RA/Dec columns
             if relevant parameters are left blank.</li>
+        <li>Add missing geometric reserved words to ADQL reserved word list.
+            This fixes some problems with column names like "DISTANCE" in
+            taplint tests.</li>
         </ul>
         </p></dd>
 
