@@ -20048,6 +20048,10 @@ introduced since the last version:
         in Statistics window.</li>
     <li>Add missing geometric reserved words to ADQL reserved word list.
         Has a slight effect on ADQL validation in TAP window.</li>
+    <li>Improve TAP window Running Jobs display.  The Job URL is now always
+        shown even when the other job details scroll off screen,
+        and the details scroll to the top not the bottom when a job is
+        selected or refreshed.</li>
     </ul>
     </p></dd>
 

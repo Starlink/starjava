@@ -5,6 +5,7 @@ import java.awt.Component;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Rectangle;
 import java.net.URL;
 import java.util.logging.Logger;
 import javax.swing.BorderFactory;
@@ -43,8 +44,10 @@ public class UwsJobPanel extends JPanel {
 
     /**
      * Constructor.
+     *
+     * @param  includeUrl   true to include the job URL field in the display
      */
-    public UwsJobPanel() {
+    public UwsJobPanel( boolean includeUrl ) {
         super( new BorderLayout() );
         JComponent main = Box.createVerticalBox();
         add( main, BorderLayout.NORTH );
@@ -62,7 +65,9 @@ public class UwsJobPanel extends JPanel {
         paramPanel_ = Box.createVerticalBox();
 
         Stack stack = new Stack();
-        stack.addItem( "URL", urlField_ );
+        if ( includeUrl ) {
+            stack.addItem( "URL", urlField_ );
+        }
         stack.addItem( "Phase", phaseField_ );
         stack.addItem( "Job ID", idField_ );
         stack.addItem( "Run ID", runField_ );
@@ -103,6 +108,18 @@ public class UwsJobPanel extends JPanel {
     }
 
     /**
+     * Override to a no-op.
+     *
+     * <p>I don't understand why, but if I don't do this, when the component
+     * is in a JScrollPane, every time it's refreshed (setJobInfo) it
+     * jerkily scrolls to the bottom of the panel.
+     * Possibly something to do with the hated GridBagLayout.
+     */
+    @Override
+    public void scrollRectToVisible( Rectangle rect ) {
+    }
+
+    /**
      * Ensures that the GUI is up to date.
      */
     public void updatePhase() {
@@ -113,7 +130,6 @@ public class UwsJobPanel extends JPanel {
         else {
             updateJobInfo( job_ );
         }
-        revalidate();
     }
 
     /**

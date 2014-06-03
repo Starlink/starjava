@@ -6,6 +6,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -20,10 +21,12 @@ import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.JTextField;
 import javax.swing.JToggleButton;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
@@ -41,6 +44,7 @@ public class UwsJobListPanel extends JPanel {
     private final DefaultListModel listModel_;
     private final JList jlist_;
     private final UwsJobPanel detail_;
+    private final JTextField urlField_;
     private final Action deleteAction_;
     private final Action abortAction_;
     private final JToggleButton.ToggleButtonModel delOnExitModel_;
@@ -61,13 +65,18 @@ public class UwsJobListPanel extends JPanel {
         jlist_.setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
         jlist_.setCellRenderer( new UwsJobCellRenderer() );
 
-        /* Set up detail panel. */
-        detail_ = new UwsJobPanel();
+        /* Job display components. */
+        detail_ = new UwsJobPanel( false );
+        urlField_ = new JTextField();
+        urlField_.setEditable( false );
 
         /* Fix it so the detail panel responds to selections in the list. */
         jlist_.addListSelectionListener( new ListSelectionListener() {
             public void valueChanged( ListSelectionEvent evt ) {
-                detail_.setJob( (UwsJob) jlist_.getSelectedValue() );
+                UwsJob job = (UwsJob) jlist_.getSelectedValue();
+                detail_.setJob( job );
+                urlField_.setText( job == null ? null
+                                               : job.getJobUrl().toString() );
                 updateActions();
             }
         } );
@@ -143,8 +152,14 @@ public class UwsJobListPanel extends JPanel {
             BorderFactory.createTitledBorder(
                 BorderFactory.createLineBorder( Color.BLACK ),
                 "Job List" ) );
+        JComponent urlLine = Box.createHorizontalBox();
+        urlLine.setBorder( BorderFactory.createEmptyBorder( 0, 0, 5, 0 ) );
+        urlLine.add( new JLabel( "URL: " ) );
+        urlLine.add( urlField_ );
+        controlLine.setBorder( BorderFactory.createEmptyBorder( 5, 0, 5, 0 ) );
         JPanel detailContainer = new JPanel( new BorderLayout() );
         detailContainer.add( new JScrollPane( detail_ ), BorderLayout.CENTER );
+        detailContainer.add( urlLine, BorderLayout.NORTH );
         detailContainer.add( controlLine, BorderLayout.SOUTH );
         detailContainer.setBorder(
             BorderFactory.createTitledBorder(
