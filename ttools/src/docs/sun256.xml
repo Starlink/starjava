@@ -4279,15 +4279,14 @@ form in STILTS v1.2 and v1.3.</em>
 
 <dt><verbatim>
 stilts coneskymatch serviceurl=http://archive.stsci.edu/hst/search.php \
-                    in=messier.xml ra=RA dec=DEC sr=0.05 \
-                    out=matches.xml
+                    in=messier.xml sr=0.05 out=matches.xml
 </verbatim></dt>
 <dd><p>This queries the HST cone search service from Space Telescope for
     records within .05 degrees of each Messier object contained in a 
-    local VOTable <code>messier.xml</code>.  The result is written to a
-    new VOTable, <code>matches.xml</code>.  The J2000 positions of each
-    record in the input file are held in columns named RA and
-    DEC respectively.
+    local VOTable <code>messier.xml</code>.
+    The sky positions in the input catalogue are guessed from the available
+    table metadata.
+    The result is written to a new VOTable, <code>matches.xml</code>.
     Since the <code>servicetype</code> parameter is not given, the 
     default (cone search) service type is assumed.
     </p></dd>
@@ -4304,6 +4303,8 @@ stilts coneskymatch
     instead of querying an HST cone search server for catalogue objects
     near the input table positions, it queries a 2MASS Simple Image Access
     (SIA) server for images.  
+    It also explicitly names the columns holding the J2000 positions of
+    reach record in the input catalogue as <code>RA</code> and <code>DEC</code>.
     The search radius parameter (<code>sr</code>) is not set here;
     for SIA queries the default search radius is zero, which has the
     special meaning of including any image which covers the requested position.
@@ -4483,22 +4484,23 @@ for MOC-related functions.
 <dl>
 
 <dt><verbatim>
-stilts pixfoot in=survey.vot ra=RA2000 dec=DEC2000
-               order=8 mocfmt=fits out=sfoot.fits
+stilts pixfoot in=survey.vot order=8 mocfmt=fits out=sfoot.fits
 </verbatim></dt>
 <dd><p>Generates an order-8 FITS MOC file from the point positions of
-    rows in the given VOTable.
+    rows in the given VOTable.  The columns representing sky position
+    are determined automatically (if possible)
+    by examining the metadata in the input table.
     </p></dd>
 
 <dt><verbatim>
 stilts pixfoot in='jdbc:mysql://localhost/astro1#SELECT * FROM first1'
-               icmd='addskycoords galactic icrs GLON GLAT RA DEC'
-               ra=RA dec=DEC radius=20./3600.
+               icmd='addskycoords galactic icrs GLON GLAT ALPHA DELTA'
+               ra=ALPHA dec=DELTA radius=20./3600.
                order=13 mocfmt=fits out=first.moc
 </verbatim></dt>
 <dd><p>Generates an order-13 FITS MOC file from positions in a table
     held in a database.  The positions in the original table are in
-    galactic coordinates, so have to be converted to ecliptic (ICRS) first.  
+    galactic coordinates, so have to be converted to equatorial (ICRS) first.  
     The map is formed in this case by surrounding each point by a
     disc of 20 arcsec.
     Note that JDBC database access will have to be set up as per
