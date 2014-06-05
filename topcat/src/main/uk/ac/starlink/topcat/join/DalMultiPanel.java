@@ -51,12 +51,12 @@ import uk.ac.starlink.topcat.ColumnSelectorModel;
 import uk.ac.starlink.topcat.ControlWindow;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.RowSubset;
+import uk.ac.starlink.topcat.Scheduler;
 import uk.ac.starlink.topcat.TablesListComboBox;
 import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatEvent;
 import uk.ac.starlink.topcat.TopcatListener;
 import uk.ac.starlink.topcat.TopcatModel;
-import uk.ac.starlink.topcat.TopcatUtils;
 import uk.ac.starlink.ttools.cone.ConeErrorPolicy;
 import uk.ac.starlink.ttools.cone.ConeMatcher;
 import uk.ac.starlink.ttools.cone.ConeQueryCoverage;
@@ -67,7 +67,6 @@ import uk.ac.starlink.ttools.cone.MocCoverage;
 import uk.ac.starlink.ttools.cone.ParallelResultRowSequence;
 import uk.ac.starlink.ttools.cone.QuerySequenceFactory;
 import uk.ac.starlink.ttools.task.TableProducer;
-import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 /**
@@ -893,6 +892,7 @@ public class DalMultiPanel extends JPanel {
         private final ResultHandler resultHandler_;
         private final TopcatModel inTcModel_;
         private final StarTable inTable_;
+        private final Scheduler scheduler_;
         private int inRow_;
         private int outRow_;
         private volatile Thread coneThread_;
@@ -915,6 +915,11 @@ public class DalMultiPanel extends JPanel {
             resultHandler_ = resultHandler;
             inTcModel_ = inTcModel;
             inTable_ = inTable;
+            scheduler_ = new Scheduler( DalMultiPanel.this ) {
+                public boolean isActive() {
+                    return DalMultiPanel.this.isActive( MatchWorker.this );
+                };
+            };
         }
 
         /**
@@ -932,7 +937,7 @@ public class DalMultiPanel extends JPanel {
 
             /* Initialise progress GUI. */
             final int nrow = (int) inTable_.getRowCount();
-            schedule( new Runnable() {
+            scheduler_.schedule( new Runnable() {
                 public void run() {
                     progBar_.setMinimum( 0 );
                     progBar_.setMaximum( nrow );
@@ -981,20 +986,11 @@ public class DalMultiPanel extends JPanel {
             /* In case of error in result acquisition or processing,
              * inform the user. */
             catch ( final Exception e ) {
-                schedule( new Runnable() {
-                    public void run() {
-                        ErrorDialog.showError( DalMultiPanel.this,
-                                               "Multi-" + service_.getName()
-                                             + " Error", e );
-                    }
-                } );
+                scheduler_.scheduleError( "Multi-" + service_.getName()
+                                        + " Error", e );
             }
             catch ( final OutOfMemoryError e ) {
-                schedule( new Runnable() {
-                    public void run() {
-                        TopcatUtils.memoryError( e );
-                    }
-                } );
+                scheduler_.scheduleMemoryError( e );
             }
 
             /* In any case, deinstall this worker thread.  No further actions
@@ -1002,7 +998,7 @@ public class DalMultiPanel extends JPanel {
              * worker thread might take over). */
             finally {
                 done_ = true;
-                schedule( new Runnable() {
+                scheduler_.schedule( new Runnable() {
                     public void run() {
                         setActive( null );
                     }
@@ -1034,30 +1030,13 @@ public class DalMultiPanel extends JPanel {
          * Updates the progress bar to display the current I/O row state.
          */
         private void updateProgress() {
-            schedule( new Runnable() {
+            scheduler_.schedule( new Runnable() {
                 public void run() {
                     progBar_.setValue( ( inRow_ + 1 ) );
                     progBar_.setString( ( inRow_ ) + " -> "
                                       + ( outRow_ ) );
                 }
             } );
-        }
-
-        /**
-         * Schedules a runnable to execute on the event dispatch thread,
-         * as long as this worker is still the active one.
-         * If this worker has been deinstalled, the event is discarded.
-         */
-        private void schedule( final Runnable runnable ) {
-            if ( isActive( MatchWorker.this ) ) {
-                SwingUtilities.invokeLater( new Runnable() {
-                    public void run() {
-                        if ( isActive( MatchWorker.this ) ) {
-                            runnable.run();
-                        }
-                    }
-                } );
-            }
         }
     }
 
@@ -1143,13 +1122,13 @@ public class DalMultiPanel extends JPanel {
         }
 
         /**
-         * Schedules a runnable on the event dispatch thread, which will
-         * execute only if this handler's match worker is still active.
+         * Returns a scheduler which will perform actions on the EDT
+         * only as long as this handler's match worker is still active.
          *
-         * @param  runnable  object to run
+         * @return  scheduler
          */
-        protected void schedule( Runnable runnable ) {
-            matchWorker_.schedule( runnable );
+        public Scheduler getScheduler() {
+            return matchWorker_.scheduler_;
         }
     }
 
@@ -1184,14 +1163,9 @@ public class DalMultiPanel extends JPanel {
 
             /* Either note that there are no results. */
             if ( nrow == 0 ) {
-                schedule( new Runnable() {
-                    public void run() {
-                        JOptionPane
-                       .showMessageDialog( parent_, "No matches were found",
-                                           "Empty Match",
-                                           JOptionPane.ERROR_MESSAGE );
-                    }
-                } );
+                getScheduler().scheduleMessage( "No matches were found",
+                                                "Empty Match",
+                                                JOptionPane.ERROR_MESSAGE );
             }
 
             /* Or invoke the method that does the work. */
@@ -1209,7 +1183,7 @@ public class DalMultiPanel extends JPanel {
          */
         protected void addTable( final String name, final StarTable table ) {
             final ControlWindow controlWindow = ControlWindow.getInstance();
-            schedule( new Runnable() {
+            getScheduler().schedule( new Runnable() {
                 public void run() {
                     TopcatModel outTcModel =
                         controlWindow.addTable( table, name, true );
@@ -1353,7 +1327,7 @@ public class DalMultiPanel extends JPanel {
                     finally {
                         rseq.close();
                     }
-                    schedule( new Runnable() {
+                    getScheduler().schedule( new Runnable() {
                         public void run() {
                             addSubset( parent, inTcModel, matchMask );
                         }
