@@ -4,13 +4,21 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.BitSet;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.swing.Box;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import uk.ac.starlink.ast.AstPackage;
@@ -516,5 +524,66 @@ public class TopcatUtils {
             longFormat_ = new DecimalFormat();
         }
         return longFormat_.format( num );
+    }
+
+    /**
+     * Using input from the user, adds a new (or reused) Row Subset
+     * to the given TopcatModel based on a given BitSet.
+     *
+     * @param  parent  parent component for dialogue
+     * @param  tcModel  topcat model
+     * @param  matchMask  mask for included rows
+     * @param  dfltName  default name for subset
+     * @param  msgLines  lines of text to appear in dialogue window
+     * @param  title   dialogue window title
+     */
+    public static void addSubset( JComponent parent, TopcatModel tcModel,
+                                  BitSet matchMask, String dfltName,
+                                  String[] msgLines, String title ) {
+        int nmatch = matchMask.cardinality();
+        Box nameLine = Box.createHorizontalBox();
+        JComboBox nameSelector =
+             tcModel.createNewSubsetNameSelector();
+        nameSelector.setSelectedItem( dfltName );
+        nameLine.add( new JLabel( "Subset name: " ) );
+        nameLine.add( nameSelector );
+        List<Object> msgList = new ArrayList<Object>();
+        msgList.addAll( Arrays.asList( msgLines ) );
+        msgList.add( nameLine );
+        int opt = JOptionPane
+                 .showOptionDialog( parent, msgList.toArray(), title,
+                                    JOptionPane.OK_CANCEL_OPTION,
+                                    JOptionPane.QUESTION_MESSAGE,
+                                    null, null, null );
+        String name = getSubsetName( nameSelector );
+        if ( opt == JOptionPane.OK_OPTION && name != null ) {
+            tcModel.addSubset( new BitsRowSubset( name, matchMask ) );
+        }
+    }
+
+    /**
+     * Returns the subset name corresponding to the currently
+     * selected value of a row subset selector box.
+     *
+     * @param rsetSelector  combo box returned by
+     *        TopcatModel.createNewSubsetNameSelector
+     * @return   subset name as string, or null
+     */
+    private static String getSubsetName( JComboBox rsetSelector ) {
+        Object item = rsetSelector.getSelectedItem();
+        if ( item == null ) {
+            return null;
+        }
+        else if ( item instanceof String ) {
+            String name = (String) item;
+            return name.trim().length() > 0 ? name : null;
+        }
+        else if ( item instanceof RowSubset ) {
+            return ((RowSubset) item).getName();
+        }
+        else {
+            assert false;
+            return item.toString();
+        }
     }
 }
