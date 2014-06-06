@@ -245,9 +245,7 @@ public class RegTapRegistryQuery implements RegistryQuery {
                 .append( "1=ivo_nocasematch(" )
                 .append( rrName )
                 .append( ", " )
-                .append( "'%" )
-                .append( keyword )
-                .append( "%'" )
+                .append( adqlCharLiteral( "%" + keyword + "%" ) )
                 .append( ")" )
                 .toString();
         }
@@ -257,9 +255,7 @@ public class RegTapRegistryQuery implements RegistryQuery {
                 .append( "1=ivo_hasword(" )
                 .append( rrName )
                 .append( ", " )
-                .append( "'" )
-                .append( keyword )
-                .append( "'" )
+                .append( adqlCharLiteral( keyword ) )
                 .append( ")" )
                 .toString();
         }
@@ -271,9 +267,7 @@ public class RegTapRegistryQuery implements RegistryQuery {
                 .append( "1=ivo_nocasematch(" )
                 .append( "role_name" )
                 .append( ", " )
-                .append( "'%" )
-                .append( keyword )
-                .append( "%'" )
+                .append( adqlCharLiteral( "%" + keyword + "%" ) )
                 .append( ")" )
                 .append( ")" )
                 .toString();
@@ -284,10 +278,8 @@ public class RegTapRegistryQuery implements RegistryQuery {
                 .append( "EXISTS (" )
                 .append( "SELECT 1 FROM rr.res_subject AS sub2" )
                 .append( " WHERE sub2.ivoid=res.ivoid" )
-                .append( " AND 1=ivo_nocasematch(sub2.res_subject," )
-                .append( " '%" )
-                .append( keyword )
-                .append( "%'" )
+                .append( " AND 1=ivo_nocasematch(sub2.res_subject, " )
+                .append( adqlCharLiteral( "%" + keyword + "%" ) )
                 .append( ")" )
                 .append( ")" )
                 .toString();
@@ -295,6 +287,18 @@ public class RegTapRegistryQuery implements RegistryQuery {
         else {
             return null;
         }
+    }
+
+    /**
+     * Quotes a string to make it suitable for insertion in ADQL text
+     * as a character literal.  Quote characters are doubled as per
+     * the ADQL BNF.  This should protect against injection errors.
+     *
+     * @param  txt  content of the character literal
+     * @return  quoted ADQL representing <code>txt</code>
+     */
+    private static String adqlCharLiteral( String txt ) {
+        return "'" + txt.replaceAll( "'", "''" ) + "'";
     }
 
     /**
