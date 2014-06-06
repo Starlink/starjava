@@ -44,19 +44,18 @@ import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.WrapperRowSequence;
 import uk.ac.starlink.table.WrapperStarTable;
 import uk.ac.starlink.topcat.BasicAction;
-import uk.ac.starlink.topcat.BitsRowSubset;
 import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
 import uk.ac.starlink.topcat.ColumnSelector;
 import uk.ac.starlink.topcat.ColumnSelectorModel;
 import uk.ac.starlink.topcat.ControlWindow;
 import uk.ac.starlink.topcat.ResourceIcon;
-import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.Scheduler;
 import uk.ac.starlink.topcat.TablesListComboBox;
 import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatEvent;
 import uk.ac.starlink.topcat.TopcatListener;
 import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.topcat.TopcatUtils;
 import uk.ac.starlink.ttools.cone.ConeErrorPolicy;
 import uk.ac.starlink.ttools.cone.ConeMatcher;
 import uk.ac.starlink.ttools.cone.ConeQueryCoverage;
@@ -1310,6 +1309,8 @@ public class DalMultiPanel extends JPanel {
             return new ResultHandler() {
                 public void processResult( StarTable streamTable )
                         throws IOException {
+
+                    /* Prepare mask containing matched rows. */
                     RowSequence rseq = streamTable.getRowSequence();
                     final BitSet matchMask = new BitSet();
                     try {
@@ -1327,75 +1328,24 @@ public class DalMultiPanel extends JPanel {
                     finally {
                         rseq.close();
                     }
-                    getScheduler().schedule( new Runnable() {
-                        public void run() {
-                            addSubset( parent, inTcModel, matchMask );
-                        }
-                    } );
-                }
 
-                /**
-                 * Using input from the user, adds a new (or reused) Row Subset
-                 * to the given TopcatModel based on a given BitSet.
-                 *
-                 * @param  parent   parent component
-                 * @param  tcModel   topcat model
-                 * @param  matchMask  mask for included rows
-                 */
-                public void addSubset( JComponent parent, TopcatModel tcModel,
-                                       BitSet matchMask ) {
+                    /* With user guidance, turn these into a subset. */
                     int nmatch = matchMask.cardinality();
-                    Box nameLine = Box.createHorizontalBox();
-                    JComboBox nameSelector =
-                         tcModel.createNewSubsetNameSelector();
-                    nameSelector.setSelectedItem( "multi"
-                                                + service_.getLabel() );
-                    nameLine.add( new JLabel( "Subset name: " ) );
-                    nameLine.add( nameSelector );
-                    Object msg = new Object[] {
+                    final String[] msgLines = new String[] {
                         "Multiple " + service_.getName() + " successful; " +
                         "matches found for " + nmatch + " rows.",
                         " ",
                         "Define new subset for matched rows",
-                        nameLine,
                     };
-                    int opt =
-                        JOptionPane.showOptionDialog(
-                             parent, msg,
-                             "Multi-" + service_.getName() + " Success",
-                             JOptionPane.OK_CANCEL_OPTION,
-                             JOptionPane.QUESTION_MESSAGE, null, null, null );
-                    String name = getSubsetName( nameSelector );
-                    if ( opt == JOptionPane.OK_OPTION && name != null ) {
-                        tcModel.addSubset( new BitsRowSubset( name,
-                                                              matchMask ) );
-                    }
-                }
-
-                /**
-                 * Returns the subset name corresponding to the currently
-                 * selected value of a row subset selector box.
-                 *
-                 * @param rsetSelector  combo box returned by
-                 *        TopcatModel.createNewSubsetNameSelector
-                 * @return   subset name as string, or null
-                 */
-                private String getSubsetName( JComboBox rsetSelector ) {
-                    Object item = rsetSelector.getSelectedItem();
-                    if ( item == null ) {
-                        return null;
-                    }
-                    else if ( item instanceof String ) {
-                        String name = (String) item;
-                        return name.trim().length() > 0 ? name : null;
-                    }
-                    else if ( item instanceof RowSubset ) {
-                        return ((RowSubset) item).getName();
-                    }
-                    else {
-                        assert false;
-                        return item.toString();
-                    }
+                    final String dfltName = "multi" + service_.getLabel();
+                    final String title =
+                        "Multi-" + service_.getName() + " Success";
+                    getScheduler().schedule( new Runnable() {
+                        public void run() {
+                            TopcatUtils.addSubset( parent, inTcModel, matchMask,
+                                                   dfltName, msgLines, title );
+                        }
+                    } );
                 }
             };
         }
