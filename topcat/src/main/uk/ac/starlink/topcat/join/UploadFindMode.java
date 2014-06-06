@@ -1,14 +1,25 @@
 package uk.ac.starlink.topcat.join;
 
+import java.io.IOException;
+import java.util.BitSet;
+import javax.swing.JComponent;
 import javax.swing.JOptionPane;
+import uk.ac.starlink.table.ColumnData;
+import uk.ac.starlink.table.ColumnStarTable;
+import uk.ac.starlink.table.DefaultValueInfo;
+import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableSink;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.storage.MonitorStoragePolicy;
 import uk.ac.starlink.topcat.ControlWindow;
 import uk.ac.starlink.topcat.Scheduler;
 import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.topcat.TopcatUtils;
+import uk.ac.starlink.ttools.cone.ColumnPlan;
 import uk.ac.starlink.ttools.cone.QuerySequenceFactory;
+import uk.ac.starlink.ttools.cone.RowMapper;
 import uk.ac.starlink.ttools.cone.ServiceFindMode;
 import uk.ac.starlink.ttools.cone.BlockUploader;
 
@@ -41,9 +52,13 @@ public abstract class UploadFindMode {
     public static final UploadFindMode EACH =
         new AddTableMode( "Each", ServiceFindMode.BEST, true );
 
+    /** Just adds a match subset to the table. */
+    public static final UploadFindMode ADD_SUBSET =
+        new AddSubsetMode( "Add Subset" );
+
     /** Useful instances of this class. */
     private static final UploadFindMode[] INSTANCES = {
-        BEST, ALL, EACH, BEST_REMOTE,
+        BEST, ALL, EACH, BEST_REMOTE, ADD_SUBSET,
     };
 
     /**
@@ -137,7 +152,7 @@ public abstract class UploadFindMode {
 
         public void runMatch( BlockUploader blocker, StarTable inTable,
                               QuerySequenceFactory qsFact,
-                              StoragePolicy storage, final Scheduler scheduler,
+                              StoragePolicy storage, Scheduler scheduler,
                               TopcatModel tcModel, int[] rowMap ) {
             CountSink countSink = new CountSink();
             StoragePolicy countStorage =
@@ -162,6 +177,7 @@ public abstract class UploadFindMode {
             }
             else {
                 final ControlWindow controlWin = ControlWindow.getInstance();
+                final JComponent parent = scheduler.getParent();
                 scheduler.schedule( new Runnable() {
                     public void run() {
                         TopcatModel outTcModel =
@@ -183,12 +199,121 @@ public abstract class UploadFindMode {
                         sbuf.append( ")" );
                         String msg = sbuf.toString();
                         JOptionPane
-                       .showMessageDialog( scheduler.getParent(), msg,
-                                           "Upload Match Success",
+                       .showMessageDialog( parent, msg, "Upload Match Success",
                                            JOptionPane.INFORMATION_MESSAGE );
                     } 
                 } );
             }
+        }
+    }
+
+    /**
+     * UploadFindMode subclass that adds a subset for matched rows to the
+     * topcat model.
+     */
+    private static class AddSubsetMode extends UploadFindMode {
+
+        /**
+         * Constructor.
+         *
+         * @param  name  mode name
+         */
+        AddSubsetMode( String name ) {
+            super( name, ServiceFindMode.BEST_SCORE, false );
+        }
+
+        public void runMatch( BlockUploader blocker, StarTable inTable,
+                              QuerySequenceFactory qsFact,
+                              StoragePolicy storage, Scheduler scheduler,
+                              final TopcatModel tcModel, int[] rowMap ) {
+
+            /* Prepare an input table containing just row indices. */
+            long nRow = inTable.getRowCount();
+            ColumnStarTable rowTable =
+                ColumnStarTable.makeTableWithRows( nRow );
+            ColumnData rowColumn =
+                    new ColumnData( new DefaultValueInfo( "INDEX", Long.class,
+                                                          null ) ) {
+                public Object readValue( long irow ) {
+                    return new Long( irow );
+                }
+            };
+            rowTable.addColumn( rowColumn );
+
+            /* Run a BEST match, counting the results. */
+            CountSink countSink = new CountSink();
+            StoragePolicy countStorage =
+                new MonitorStoragePolicy( storage, countSink );
+            final StarTable result;
+            try {
+                result = blocker.runMatch( rowTable, qsFact, countStorage );
+            }
+            catch ( Exception e ) {
+                scheduler.scheduleError( "Upload Match Error", e );
+                return;
+            }
+            catch ( OutOfMemoryError e ) {
+                scheduler.scheduleMemoryError( e );
+                return;
+            }
+            final long nMatch = countSink.getRowCount();
+
+            /* The result table has just two columns: input row index and
+             * match score.  The match score must be non-null, since this
+             * is a BEST match; ignore it and just set a flag true for each
+             * row referenced in the result. */
+            assert result.getColumnCount() == 2;
+            assert result.getColumnInfo( 0 ).getContentClass() == Long.class;
+            int icolIndex = 0;
+            int icolScore = 1;
+            int nrow =
+                Tables.checkedLongToInt( tcModel.getDataModel().getRowCount() );
+            final BitSet matchMask = new BitSet();
+            RowSequence rseq = null;
+            try {
+                rseq = result.getRowSequence();
+                while ( rseq.next() ) {
+                    long irow = ((Long) rseq.getCell( icolIndex )).longValue();
+                    assert ! Tables.isBlank( rseq.getCell( icolScore ) );
+                    if ( irow < Integer.MAX_VALUE ) {
+                        int jrow = rowMap == null ? (int) irow
+                                                  : rowMap[ (int) irow ];
+                        matchMask.set( jrow );
+                    }
+                }
+            }
+            catch ( IOException e ) {
+                scheduler.scheduleError( "Result Read Error", e );
+                return;
+            }
+            finally {
+                if ( rseq != null ) {
+                    try {
+                        rseq.close();
+                    }
+                    catch ( IOException e ) {
+                        // never mind
+                    }
+                }
+            }
+
+            /* Take the list of per-row flags and turn it into a subset
+             * under user control. */
+            final JComponent parent = scheduler.getParent();
+            final String dfltName = "xmatch";
+            final String title = "Upload Match Success";
+            final String[] msgLines = new String[] {
+                "Upload crossmatch successful; matches found for " +
+                nMatch + "/" + nRow + " rows.",
+                " ",
+                "Define new subset for matched rows:",
+            };
+            scheduler.schedule( new Runnable() {
+                public void run() {
+                    TopcatUtils.addSubset( parent, tcModel, matchMask,
+                                           dfltName, msgLines, title );
+                }
+            } );
         }
     }
 
