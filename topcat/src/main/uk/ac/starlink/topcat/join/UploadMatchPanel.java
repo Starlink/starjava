@@ -426,6 +426,9 @@ public class UploadMatchPanel extends JPanel {
                 public double getRadius() {
                     return srDeg_;
                 }
+                public long getIndex() {
+                    return irow_;
+                }
 
                 /**
                  * Gets a numeric value from a given column data object
@@ -511,11 +514,10 @@ public class UploadMatchPanel extends JPanel {
                         throws IOException {
                     return new WrapperQuerySequence(
                                        qsFact_.createQuerySequence( t ) ) {
-                        long irow = 0;
                         public boolean next() throws IOException {
                             boolean hasNext = isActive() && super.next();
                             if ( hasNext ) {
-                                inRow_ = ++irow;
+                                inRow_ = getIndex();
                             }
                             return hasNext;
                         }

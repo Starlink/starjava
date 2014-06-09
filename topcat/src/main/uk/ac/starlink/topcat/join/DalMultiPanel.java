@@ -864,6 +864,10 @@ public class DalMultiPanel extends JPanel {
                     return Math.toDegrees( getDoubleValue( srData_ ) );
                 }
 
+                public long getIndex() {
+                    return irow_;
+                }
+
                 private double getDoubleValue( ColumnData cdata )
                         throws IOException {
                     if ( cdata != null ) {

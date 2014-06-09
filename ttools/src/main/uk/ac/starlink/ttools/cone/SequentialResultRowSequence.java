@@ -116,4 +116,8 @@ public class SequentialResultRowSequence implements ConeResultRowSequence {
     public double getRadius() throws IOException {
         return querySeq_.getRadius();
     }
+
+    public long getIndex() throws IOException {
+        return querySeq_.getIndex();
+    }
 }

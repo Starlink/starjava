@@ -96,6 +96,10 @@ public class JELQuerySequenceFactory implements QuerySequenceFactory {
             return doEvaluateDouble( srExpr_ );
         }
 
+        public long getIndex() {
+            return getCurrentRow();
+        }
+
         /**
          * Compiles a JEL expression.
          *
