@@ -40,8 +40,9 @@ public interface UploadMatcher {
      * @param  coneSeq  sequence of cone-like positional queries
      * @param  rawResultSink   destination for result rows obtained from
      *                         the target matcher service
-     * @param  rowMapper   used to label rows; the first query is labelled
-     *                    with rowIndex=0 etc, the second with rowIndex=1 etc
+     * @param  rowMapper   used to label rows; queries are labelled with the
+     *                     value returned from the <code>getIndex</code>
+     *                     method of <code>coneSeq</code>
      * @param  maxrec     user-supplied limit on the maximum number of
      *                    output rows, though the service may truncate
      *                    the result; if &lt;0, no limit is requested
