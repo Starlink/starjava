@@ -99,11 +99,6 @@ public class BlockUploader {
 
         /* Work out how to do the blocking. */
         long nrow = inTable.getRowCount();
-        long nb = 1 + ( nrow - 1 ) / blocksize_;
-        int nblock = (int) nb;
-        if ( nblock != nb ) {
-            throw new IllegalArgumentException( "Too many blocks: " + nb );
-        }
         RowMapper rowMapper = nrow >= 0 && nrow < Integer.MAX_VALUE
                             ? new IntegerMapper()
                             : new LongMapper();
@@ -115,24 +110,25 @@ public class BlockUploader {
         int nOverflow = 0;
         long totOut = 0;
         boolean done = false;
-        for ( int iblock = 0;
-              iblock < nblock && ( maxrec_ < 0 || totOut < maxrec_ );
-              iblock++ ) {
+        int iblock = 0;
+        while ( ! done && ( maxrec_ < 0 || totOut < maxrec_ ) ) {
             BlockSequence blockSeq = new BlockSequence( coneSeq, blocksize_ );
             BlockSink blockSink = new BlockSink( rawResultStore, iblock == 0 );
             long nRemain = maxrec_ >= 0 ? maxrec_ - totOut : -1;
             boolean over =
                 umatcher_.streamRawResult( blockSeq, blockSink, rowMapper,
                                            nRemain );
-            int nIn = blockSeq.getCount();
+            int nIn = blockSeq.getProducedCount();
             long nOut = blockSink.getCount();
             done = blockSeq.isBaseDone();
             nOverflow += over ? 1 : 0;
-            logger_.info( "Match block " + ( iblock + 1 ) + "/" + nblock + ": "
+            logger_.info( "Match block " + ( iblock + 1 ) + ": "
                         + nIn + " uploaded, " + nOut + " received"
                         + ( over ? " (truncated)" : "" ) );
             totOut += nOut;
+            iblock++;
         };
+        int nblock = iblock;
         coneSeq.close();
         rawResultStore.endRows();
         if ( nOverflow > 0 ) {
@@ -351,34 +347,37 @@ public class BlockUploader {
      */
     private static class BlockSequence extends WrapperQuerySequence {
         private final int maxrow_;
-        private int nrow_;
+        private int nProduced_;
+        private int nConsumed_;
         private boolean baseDone_;
 
         /**
          * Constructor.
          *
          * @param  baseSeq  base query sequence
-         * @param  maxrec   maximum number of rows this sequence will dispense
+         * @param  maxrec   maximum number of rows this sequence will produce
          */
         BlockSequence( ConeQueryRowSequence baseSeq, int maxrow ) {
             super( baseSeq );
             maxrow_ = maxrow;
         }
+
         @Override
         public boolean next() throws IOException {
-            if ( nrow_ < maxrow_ ) {
+            while ( nProduced_ < maxrow_ ) {
                 if ( super.next() ) {
-                    nrow_++;
-                    return true;
+                    nConsumed_++;
+                    if ( isPossibleMatch() ) {
+                        nProduced_++;
+                        return true;
+                    }
                 }
                 else {
                     baseDone_ = true;
                     return false;
                 }
             }
-            else {
-                return false;
-            }
+            return false;
         }
         @Override
         public void close() throws IOException {
@@ -386,12 +385,21 @@ public class BlockUploader {
         }
 
         /**
-         * Returns the number of rows dispensed by this sequence.
+         * Returns number of rows read from the base sequence so far.
          *
-         * @return  row count
+         * @return  number of consumed rows
          */
-        public int getCount() {
-            return nrow_;
+        public int getConsumedCount() {
+            return nConsumed_;
+        }
+
+        /**
+         * Returns the number of rows dispensed by this sequence so far.
+         *
+         * @return  number of produced rows
+         */
+        public int getProducedCount() {
+            return nProduced_;
         }
 
         /**
@@ -401,6 +409,18 @@ public class BlockUploader {
          */
         public boolean isBaseDone() {
             return baseDone_;
+        }
+
+        /**
+         * Indicates whether the current row can possibly match a sky position.
+         *
+         * @return  true iff current position has coordinates
+         */
+        private boolean isPossibleMatch() throws IOException {
+            double ra = getRa();
+            double dec = getDec();
+            return ! Double.isNaN( ra )
+                && dec >= -90 && dec <= +90;
         }
     }
 
