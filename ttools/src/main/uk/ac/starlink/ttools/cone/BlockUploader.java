@@ -76,6 +76,10 @@ public class BlockUploader {
      * It would be possible to stream on input and output to some extent,
      * though each input chunk will still have to be random access.
      *
+     * <p>The row indices given by <code>ConeQueryRowSequence.getIndex</code>
+     * calls associated with the supplied <code>qsFact</code> object
+     * must correspond to the row indices in the supplied <code>inTable</code>.
+     *
      * @param  inTable  input table, must have random access
      * @param  qsFact   object to generate positional queries when applied
      *                  to a table
@@ -100,7 +104,9 @@ public class BlockUploader {
         if ( nblock != nb ) {
             throw new IllegalArgumentException( "Too many blocks: " + nb );
         }
-        OffsetMapperFactory mapperFact = new OffsetMapperFactory( nrow );
+        RowMapper rowMapper = nrow >= 0 && nrow < Integer.MAX_VALUE
+                            ? new IntegerMapper()
+                            : new LongMapper();
 
         /* Perform an upload/match operation for each block of rows.
          * Each block takes its input from the next lot of rows from the
@@ -115,16 +121,8 @@ public class BlockUploader {
             BlockSequence blockSeq = new BlockSequence( coneSeq, blocksize_ );
             BlockSink blockSink = new BlockSink( rawResultStore, iblock == 0 );
             long nRemain = maxrec_ >= 0 ? maxrec_ - totOut : -1;
-
-            /* Generate the raw result using an RowMapper which uses row
-             * indices offset by the starting row index of this block.
-             * That allows us to assemble an output raw result table that
-             * has been built in blocks, but looks the same as if it
-             * had been built by a single upload/match operation. */
-            RowMapper<?> blockMapper =
-                mapperFact.createOffsetMapper( iblock * blocksize_ );
             boolean over =
-                umatcher_.streamRawResult( blockSeq, blockSink, blockMapper,
+                umatcher_.streamRawResult( blockSeq, blockSink, rowMapper,
                                            nRemain );
             int nIn = blockSeq.getCount();
             long nOut = blockSink.getCount();
@@ -171,7 +169,6 @@ public class BlockUploader {
         /* Prepare objects that know what uploaded/result columns and rows
          * go where. */
         ColumnPlan cplan = umatcher_.getColumnPlan( rawCols, inCols );
-        RowMapper<?> rowMapper = mapperFact.createOffsetMapper( 0 );
 
         /* Combine the result table with the upload table to get the
          * final output. */
@@ -452,56 +449,17 @@ public class BlockUploader {
     }
 
     /**
-     * Produces RowMapper instances with row offsets.
-     */
-    private static class OffsetMapperFactory {
-        private final boolean useInt_;
-
-        /**
-         * Constructor.
-         *
-         * @param  nrow  maximum number of rows for which this mapper
-         *               will be used; may be negative if not known
-         */
-        OffsetMapperFactory( long nrow ) {
-            useInt_ = nrow >= 0 && nrow < Integer.MAX_VALUE;
-        }
-
-        /**
-         * Returns a mapper with a given row offset.
-         *
-         * @param  index0  row index of the first row the mapper will
-         *                 be used for
-         * @return  offset mapper
-         */
-        RowMapper<?> createOffsetMapper( long index0 ) {
-            return useInt_ ? new IntegerOffsetMapper( index0 + 1 )
-                           : new LongOffsetMapper( index0 + 1 );
-        }
-    }
-
-    /**
      * RowMapper that uses Integer objects as IDs.
      */
-    private static class IntegerOffsetMapper implements RowMapper<Integer> {
-        private final int index0_;
-
-        /**
-         * Constructor.
-         *
-         * @param  index0  row index offset
-         */
-        IntegerOffsetMapper( long index0 ) {
-            index0_ = toInt( index0 );
-        }
+    private static class IntegerMapper implements RowMapper<Integer> {
         public Class<Integer> getIdClass() {
             return Integer.class;
         }
         public long rowIdToIndex( Integer id ) {
-            return id.longValue() - index0_;
+            return id.longValue();
         }
         public Integer rowIndexToId( long index ) {
-            return new Integer( toInt( index + index0_ ) );
+            return new Integer( toInt( index ) );
         }
 
         /**
@@ -523,25 +481,15 @@ public class BlockUploader {
     /**
      * RowMapper that uses Long objects as IDs.
      */
-    private static class LongOffsetMapper implements RowMapper<Long> {
-        private final long index0_;
-
-        /**
-         * Constructor.
-         *
-         * @param  index0  row index offset
-         */
-        LongOffsetMapper( long index0 ) {
-            index0_ = index0;
-        }
+    private static class LongMapper implements RowMapper<Long> {
         public Class<Long> getIdClass() {
             return Long.class;
         }
         public long rowIdToIndex( Long id ) {
-            return id.longValue() - index0_;
+            return id.longValue();
         }
         public Long rowIndexToId( long index ) {
-            return new Long( index + index0_ );
+            return new Long( index );
         }
     }
 

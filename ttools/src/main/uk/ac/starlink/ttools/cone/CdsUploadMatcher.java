@@ -214,13 +214,12 @@ public class CdsUploadMatcher implements UploadMatcher {
             final ConeQueryRowSequence coneSeq = coneSeq_;
             coneSeq_ = null;
             return new RowSequence() {
-                private int irow_;
                 private Object[] row_;
                 public boolean next() throws IOException {
                     boolean hasNext = coneSeq.next();
                     row_ = hasNext
                          ? new Object[] {
-                               rowMapper_.rowIndexToId( irow_++ ),
+                               rowMapper_.rowIndexToId( coneSeq.getIndex() ),
                                new Double( coneSeq.getRa() ),
                                new Double( coneSeq.getDec() ),
                            }
