@@ -179,6 +179,10 @@ public class ParallelResultRowSequence implements ConeResultRowSequence {
         return getCurrentResult().radius_;
     }
 
+    public long getIndex() throws IOException {
+        return getCurrentResult().index_;
+    }
+
     public StarTable getConeResult() throws IOException {
         return getCurrentResult().table_;
     }

@@ -17,6 +17,7 @@ public class ColumnQueryRowSequence extends WrapperRowSequence
     private final int raCol_;
     private final int decCol_;
     private final int srCol_;
+    private long index_;
 
     /**
      * Constructor.
@@ -32,6 +33,7 @@ public class ColumnQueryRowSequence extends WrapperRowSequence
         raCol_ = raCol;
         decCol_ = decCol;
         srCol_ = srCol;
+        index_ = -1;
     }
 
     public double getRa() throws IOException {
@@ -44,6 +46,21 @@ public class ColumnQueryRowSequence extends WrapperRowSequence
 
     public double getRadius() throws IOException {
         return getDoubleCell( srCol_ );
+    }
+
+    public long getIndex() {
+        return index_;
+    }
+
+    @Override
+    public boolean next() throws IOException {
+        if ( super.next() ) {
+            ++index_;
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 
     /**

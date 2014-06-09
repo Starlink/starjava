@@ -35,4 +35,8 @@ public class WrapperQuerySequence extends WrapperRowSequence
     public double getRadius() throws IOException {
         return base_.getRadius();
     }
+
+    public long getIndex() throws IOException {
+        return base_.getIndex();
+    }
 }
