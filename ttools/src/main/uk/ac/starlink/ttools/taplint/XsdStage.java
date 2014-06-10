@@ -55,11 +55,11 @@ public abstract class XsdStage implements Stage {
             docUrl = new URL( durl );
         }
         catch ( MalformedURLException e ) {
-            reporter.report( ReportType.FAILURE, "XURL", "Bad document URL" );
+            reporter.report( FixedCode.F_XURL, "Bad document URL" );
             result_ = Result.FAILURE;
             return;
         }
-        reporter.report( ReportType.INFO, "VURL",
+        reporter.report( FixedCode.I_VURL,
                          "Validating " + docUrl + " as "
                        + topElName_ + " (" + topElNamespaceUri_ + ")" );
         result_ = validateDoc( reporter, docUrl );
@@ -94,8 +94,7 @@ public abstract class XsdStage implements Stage {
             return Result.NOT_FOUND;
         }
         catch ( IOException e ) {
-            reporter.report( ReportType.ERROR, "DCER",
-                             "Error reading document", e );
+            reporter.report( FixedCode.E_DCER, "Error reading document", e );
             return Result.FAILURE;
         }
 
@@ -122,8 +121,7 @@ public abstract class XsdStage implements Stage {
                  .newValidator();
         }
         catch ( SAXException e ) {
-            reporter.report( ReportType.FAILURE, "XVAL",
-                             "Can't prepare validator", e );
+            reporter.report( FixedCode.F_XVAL, "Can't prepare validator", e );
             return Result.FAILURE;
         }
 
@@ -182,7 +180,7 @@ public abstract class XsdStage implements Stage {
                    .append( "}" )
                    .append( topElName_ )
                    .toString();
-                reporter.report( ReportType.ERROR, "ELDF", msg );
+                reporter.report( FixedCode.E_ELDF, msg );
             }
 
             /* Check that the resolver was actually asked to resolve some
@@ -209,14 +207,14 @@ public abstract class XsdStage implements Stage {
                     .append( "; resolver not used??" )
                     .append( " (can happen for JRE version<=5)" )
                     .toString();
-                reporter.report( ReportType.WARNING, "ZRES", msg );
+                reporter.report( FixedCode.W_ZRES, msg );
             }
             return Result.SUCCESS;
         }
 
         /* IO error during parsing. */
         catch ( IOException e ) {
-            reporter.report( ReportType.ERROR, "IOER",
+            reporter.report( FixedCode.E_IOER,
                              "Error reading document to parse" );
             return Result.FAILURE;
         }
@@ -225,7 +223,7 @@ public abstract class XsdStage implements Stage {
          * a fatal parse error. */
         catch ( SAXException e ) {
             if ( errHandler.getFatalCount() == 0 ) {
-                reporter.report( ReportType.FAILURE, "SXER",
+                reporter.report( FixedCode.F_SXER,
                                  "Unexpected document parse error", e );
                 return Result.SUCCESS;
             }
@@ -235,8 +233,7 @@ public abstract class XsdStage implements Stage {
         /* Summarise results. */
         finally {
             reporter.summariseUnreportedMessages( reporter.getSectionCode() );
-            reporter.report( ReportType.SUMMARY, "VALI",
-                             errHandler.getSummary() );
+            reporter.report( FixedCode.S_VALI, errHandler.getSummary() );
         }
     }
 
@@ -272,12 +269,12 @@ public abstract class XsdStage implements Stage {
                 Result result = getResult();
                 if ( result == Result.NOT_FOUND ) {
                     if ( mandatory ) {
-                        reporter.report( ReportType.ERROR, "GONM",
+                        reporter.report( FixedCode.E_GONM,
                                          "Mandatory resource " + docUrlSuffix
                                        + " not present" );
                     }
                     else {
-                        reporter.report( ReportType.WARNING, "GONO",
+                        reporter.report( FixedCode.W_GONO,
                                          "Optional resource " + docUrlSuffix
                                        + " not present" );
                     }

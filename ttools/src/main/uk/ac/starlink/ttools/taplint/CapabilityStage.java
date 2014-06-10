@@ -66,7 +66,7 @@ public class CapabilityStage implements Stage, CapabilityHolder {
         }
         catch ( MalformedURLException e ) {
             capUrl = null;
-            reporter.report( ReportType.FAILURE, "CAIO",
+            reporter.report( FixedCode.F_CAIO,
                              "Bad URL " + serviceUrl + "?", e );
         }
         tcap_ = checkCapabilities( reporter, capUrl );
@@ -84,18 +84,18 @@ public class CapabilityStage implements Stage, CapabilityHolder {
         /* Attempt to read a TapCapability object from the URL.
          * If it can't be done, give up now. */
         final TapCapability tcap;
-        reporter.report( ReportType.INFO, "CURL",
+        reporter.report( FixedCode.I_CURL,
                          "Reading capability metadata from " + capUrl );
         try {
             tcap = TapCapability.readTapCapability( capUrl );
         }
         catch ( SAXException e ) {
-            reporter.report( ReportType.ERROR, "FLSX",
+            reporter.report( FixedCode.E_CPSX,
                              "Error parsing capabilities metadata", e );
             return null;
         }
         catch ( IOException e ) {
-            reporter.report( ReportType.ERROR, "FLIO",
+            reporter.report( FixedCode.E_CPIO,
                              "Error reading capabilities metadata", e );
             return null;
         }
@@ -109,15 +109,15 @@ public class CapabilityStage implements Stage, CapabilityHolder {
                      .parse( new BufferedInputStream( capUrl.openStream() ) );
         }
         catch ( IOException e ) {
-            reporter.report( ReportType.ERROR, "CAIO",
+            reporter.report( FixedCode.E_CAIO,
                              "Error reading capabilities from " + capUrl, e );
         }
         catch ( SAXException e ) {
-            reporter.report( ReportType.ERROR, "CAXM",
+            reporter.report( FixedCode.E_CAXM,
                              "Error parsing capabilities from " + capUrl, e );
         }
         catch ( ParserConfigurationException e ) {
-            reporter.report( ReportType.FAILURE, "CAPC",
+            reporter.report( FixedCode.F_CAPC,
                              "Error parsing capabilities XML from " + capUrl,
                              e );
         }
@@ -163,7 +163,7 @@ public class CapabilityStage implements Stage, CapabilityHolder {
             /* Check at least one language is present. */
             TapLanguage[] languages = tcap_.getLanguages();
             if ( languages.length == 0 ) {
-                reporter_.report( ReportType.ERROR, "NOQL",
+                reporter_.report( FixedCode.E_NOQL,
                                   "No query languages declared" );
                 return;
             }
@@ -187,7 +187,7 @@ public class CapabilityStage implements Stage, CapabilityHolder {
                                .append( langName )
                                .append( " has empty version string" )
                                .toString();
-                            reporter_.report( ReportType.WARNING, "LVAN", msg );
+                            reporter_.report( FixedCode.W_LVAN, msg );
                         }
                         String vid = lang.getVersionIds()[ iv ];
                         boolean isNumber2 = "2.0".equals( vname );
@@ -204,7 +204,7 @@ public class CapabilityStage implements Stage, CapabilityHolder {
                                .append( ADQL2_ID )
                                .append( "\"" )
                                .toString();
-                            reporter_.report( ReportType.WARNING, "A2MN", msg );
+                            reporter_.report( FixedCode.W_A2MN, msg );
                         }
                         else if ( isNumber2 && ! hasId2 ) {
                             String msg = new StringBuffer()
@@ -219,7 +219,7 @@ public class CapabilityStage implements Stage, CapabilityHolder {
                                .append( ADQL2_ID )
                                .append( "\"" )
                                .toString();
-                            reporter_.report( ReportType.WARNING, "A2MX", msg );
+                            reporter_.report( FixedCode.W_A2MX, msg );
                         }
                         else if ( ! isNumber2 && hasId2 ) {
                             String msg = new StringBuffer()
@@ -232,7 +232,7 @@ public class CapabilityStage implements Stage, CapabilityHolder {
                                .append( " not " )
                                .append( "ADQL-2.0" )
                                .toString();
-                            reporter_.report( ReportType.ERROR, "A2XI", msg );
+                            reporter_.report( FixedCode.E_A2XI, msg );
                         }
                     }
                 }
@@ -244,11 +244,11 @@ public class CapabilityStage implements Stage, CapabilityHolder {
 
             /* Report on presence of (required) ADQL 2. */
             if ( ! hasAdql ) {
-                reporter_.report( ReportType.ERROR, "ADQX",
+                reporter_.report( FixedCode.E_ADQX,
                                   "ADQL not declared as a query language" );
             }
             else if ( ! hasAdql2 ) {
-                reporter_.report( ReportType.WARNING, "AD2X",
+                reporter_.report( FixedCode.W_AD2X,
                                   "ADQL-2.0 not declared as a query language" );
             }
         }
@@ -283,7 +283,7 @@ public class CapabilityStage implements Stage, CapabilityHolder {
                        .append( "\" for language " )
                        .append( langName )
                        .toString();
-                    reporter_.report( ReportType.ERROR, "KEYX", msg );
+                    reporter_.report( FixedCode.E_KEYX, msg );
                 }
                 else {
                     String msg = new StringBuffer()
@@ -292,7 +292,7 @@ public class CapabilityStage implements Stage, CapabilityHolder {
                        .append( "\" for language " )
                        .append( langName )
                        .toString();
-                    reporter_.report( ReportType.WARNING, "CULF", msg );
+                    reporter_.report( FixedCode.W_CULF, msg );
                 }
             }
         }
@@ -321,7 +321,7 @@ public class CapabilityStage implements Stage, CapabilityHolder {
                        .append( "f(a T[, ...]) -> T)" )
                        .append( "\"" )
                        .toString();
-                    reporter_.report( ReportType.ERROR, "UDFE", msg );
+                    reporter_.report( FixedCode.E_UDFE, msg );
                 }
             }
         }
@@ -352,7 +352,7 @@ public class CapabilityStage implements Stage, CapabilityHolder {
                        .append( form )
                        .append( "\" unknown" )
                        .toString();
-                    reporter_.report( ReportType.ERROR, "GEOX", msg );
+                    reporter_.report( FixedCode.E_GEOX, msg );
                 }
             }
         }
@@ -378,7 +378,7 @@ public class CapabilityStage implements Stage, CapabilityHolder {
                            .append( frag )
                            .append( "\" for upload method" )
                            .toString();
-                        reporter_.report( ReportType.ERROR, "UPBD", msg );
+                        reporter_.report( FixedCode.E_UPBD, msg );
                     }
                 }
                 else {
@@ -387,7 +387,7 @@ public class CapabilityStage implements Stage, CapabilityHolder {
                        .append( upMethod )
                        .append( "\"" )
                        .toString();
-                    reporter_.report( ReportType.WARNING, "UPCS", msg );
+                    reporter_.report( FixedCode.W_UPCS, msg );
                 }
             }
             if ( upMethods.length > 0 ) {
@@ -401,7 +401,7 @@ public class CapabilityStage implements Stage, CapabilityHolder {
                            .append( ", though uploads are " )
                            .append( "apparently supported" )
                            .toString();
-                        reporter_.report( ReportType.ERROR, "MUPM", msg );
+                        reporter_.report( FixedCode.E_MUPM, msg );
                     }
                 }
             }
@@ -432,13 +432,13 @@ public class CapabilityStage implements Stage, CapabilityHolder {
         private void checkOutputFormats() {
             Element treEl = getCapabilityElement( "ivo://ivoa.net/std/TAP" );
             if ( treEl == null ) {
-                reporter_.report( ReportType.ERROR, "TCAP",
+                reporter_.report( FixedCode.E_TCAP,
                                   "No TAPRegExt capability element" );
                 return;
             }
             OutputFormat[] outFormats = readOutputFormats( treEl );
             if ( outFormats.length == 0 ) {
-                reporter_.report( ReportType.ERROR, "NOOF",
+                reporter_.report( FixedCode.E_NOOF,
                                   "No output formats defined" );
                 return;
             }
@@ -462,7 +462,7 @@ public class CapabilityStage implements Stage, CapabilityHolder {
                        .append( "\" for output format " )
                        .append( ofName )
                        .toString();
-                    reporter_.report( ReportType.ERROR, "BMIM", msg );
+                    reporter_.report( FixedCode.E_BMIM, msg );
                 }
                 String ivoid = of.ivoid_;
                 if ( ivoid != null && ivoid.startsWith( stdPrefix ) &&
@@ -474,7 +474,7 @@ public class CapabilityStage implements Stage, CapabilityHolder {
                        .append( " for output format " )
                        .append( ofName )
                        .toString();
-                    reporter_.report( ReportType.ERROR, "XOFK", msg );
+                    reporter_.report( FixedCode.E_XOFK, msg );
                 }
             }
         }

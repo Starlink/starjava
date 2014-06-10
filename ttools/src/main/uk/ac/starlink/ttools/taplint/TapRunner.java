@@ -51,12 +51,11 @@ public abstract class TapRunner {
             return attemptGetResultTable( reporter, tq );
         }
         catch ( IOException e ) {
-            reporter.report( ReportType.ERROR, "QERR", "TAP query failed", e );
+            reporter.report( FixedCode.E_QERR, "TAP query failed", e );
             return null;
         }
         catch ( SAXException e ) {
-            reporter.report( ReportType.ERROR, "QERX",
-                             "TAP query result parse failed",
+            reporter.report( FixedCode.E_QERX, "TAP query result parse failed",
                              e );
             return null;
         }
@@ -72,7 +71,7 @@ public abstract class TapRunner {
      */
     public StarTable attemptGetResultTable( Reporter reporter, TapQuery tq )
             throws IOException, SAXException {
-        reporter.report( ReportType.INFO, "QSUB",
+        reporter.report( FixedCode.I_QSUB,
                          "Submitting query: " + tq.getAdql() );
         nQuery_++;
         long start = System.currentTimeMillis();
@@ -107,7 +106,7 @@ public abstract class TapRunner {
             .append( "/" )
             .append( nQuery_ )
             .toString();
-        reporter.report( ReportType.SUMMARY, "QNUM", cmsg );
+        reporter.report( FixedCode.S_QNUM, cmsg );
         if ( nResult_ > 0 ) {
             double qtime = 0.001 * queryTime_ / nResult_;
             String fmt = "0.0";
@@ -122,7 +121,7 @@ public abstract class TapRunner {
                 .append( new DecimalFormat( fmt ).format( qtime ) )
                 .append( "s" )
                 .toString();
-            reporter.report( ReportType.SUMMARY, "QTIM", tmsg );
+            reporter.report( FixedCode.S_QTIM, tmsg );
         }
     }
 }

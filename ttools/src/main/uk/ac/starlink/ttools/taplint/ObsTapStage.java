@@ -67,7 +67,7 @@ public class ObsTapStage implements Stage {
                 obsDeclared = true;
             }
             else {
-                reporter.report( ReportType.INFO, "NODM",
+                reporter.report( FixedCode.I_NODM,
                                  "Table capabilities lists no DataModel "
                                + OBSCORE_ID + " - no ObsCore tests" );
                 return;
@@ -78,7 +78,7 @@ public class ObsTapStage implements Stage {
         }
         TableMeta[] tmetas = metaHolder_.getTableMetadata();
         if ( tmetas == null ) {
-            reporter.report( ReportType.FAILURE, "NOTM",
+            reporter.report( FixedCode.F_NOTM,
                              "No table metadata"
                            + " (earlier stages failed/skipped?)" );
             return;
@@ -95,10 +95,10 @@ public class ObsTapStage implements Stage {
         if ( obsMeta == null ) {
             String missingMsg = "No table with name " + OBSCORE_TNAME;
             if ( obsDeclared ) {
-                reporter.report( ReportType.FAILURE, "NOTB", missingMsg );
+                reporter.report( FixedCode.F_NOTB, missingMsg );
             }
             else {
-                reporter.report( ReportType.INFO, "OCCP",
+                reporter.report( FixedCode.I_OCCP,
                                  missingMsg 
                                + "; probably just means no ObsCore intended"
                                + " but can't tell for sure"
@@ -149,7 +149,7 @@ public class ObsTapStage implements Stage {
                .append( OBSCORE_ID )
                .append( " (known error in TAPRegExt 1.0 document)" )
                .toString();
-            reporter.report( ReportType.WARNING, "WODM", msg );
+            reporter.report( FixedCode.W_WODM, msg );
             return true;
         }
 
@@ -163,7 +163,7 @@ public class ObsTapStage implements Stage {
                        .append( " reported, should be " )
                        .append( OBSCORE_ID )
                        .toString();
-                    reporter.report( ReportType.WARNING, "IODM", msg );
+                    reporter.report( FixedCode.W_IODM, msg );
                     return true;
                 }
             }
@@ -220,7 +220,7 @@ public class ObsTapStage implements Stage {
                        .append( reqName )
                        .append( " is missing" )
                        .toString();
-                    reporter_.report( ReportType.ERROR, "MCOL", msg );
+                    reporter_.report( FixedCode.E_OCOL, msg );
                 }
             }
 
@@ -264,7 +264,7 @@ public class ObsTapStage implements Stage {
                .append( nother )
                .append( " custom" )
                .toString();
-            reporter_.report( ReportType.SUMMARY, "COLS", msg );
+            reporter_.report( FixedCode.S_COLS, msg );
             tRunner_.reportSummary( reporter_ );
         }
 
@@ -276,11 +276,11 @@ public class ObsTapStage implements Stage {
          */
         private void checkMetadata( ColumnMeta gotCol, ObsCol stdCol ) {
             String cname = gotCol.getName();
-            compareItem( cname, "Utype", "CUTP",
+            compareItem( cname, "Utype", FixedCode.E_CUTP,
                          stdCol.utype_, gotCol.getUtype(), false );
-            compareItem( cname, "UCD", "CUCD",
+            compareItem( cname, "UCD", FixedCode.E_CUCD,
                          stdCol.ucd_, gotCol.getUcd(), false );
-            compareItem( cname, "Unit", "CUNI",
+            compareItem( cname, "Unit", FixedCode.E_CUNI,
                          stdCol.unit_, gotCol.getUnit(), true );
             checkType( gotCol, stdCol );
         }
@@ -307,7 +307,7 @@ public class ObsTapStage implements Stage {
                    .append( " != " )
                    .append( stdType )
                    .toString();
-                reporter_.report( ReportType.WARNING, "TYPI", msg );
+                reporter_.report( FixedCode.W_TYPI, msg );
             }
             else {
                 String msg = new StringBuffer()
@@ -318,7 +318,7 @@ public class ObsTapStage implements Stage {
                    .append( " != " )
                    .append( stdType )
                    .toString();
-                reporter_.report( ReportType.ERROR, "TYPX", msg );
+                reporter_.report( FixedCode.E_TYPX, msg );
             }
         }
 
@@ -367,7 +367,7 @@ public class ObsTapStage implements Stage {
                    .append( "Illegal NULL(s) in ObsCore column " )
                    .append( cname )
                    .toString();
-                reporter_.report( ReportType.ERROR, "HNUL", msg );
+                reporter_.report( FixedCode.E_HNUL, msg );
             }
         }
 
@@ -404,7 +404,7 @@ public class ObsTapStage implements Stage {
                    .append( range[ 1 ] )
                    .append( "]" )
                    .toString();
-                reporter_.report( ReportType.ERROR, "RANG", msg );
+                reporter_.report( FixedCode.E_RANG, msg );
             }
         }
 
@@ -480,8 +480,7 @@ public class ObsTapStage implements Stage {
                         .append( opts[ io ] )
                         .append( '"' );
                 }
-                reporter_.report( hard ? ReportType.ERROR : ReportType.WARNING,
-                                  hard ? "ILOP" : "NSOP",
+                reporter_.report( hard ? FixedCode.E_ILOP : FixedCode.W_NSOP,
                                   mbuf.toString() );
             }
         }
@@ -497,7 +496,8 @@ public class ObsTapStage implements Stage {
          * @param  gotValue  actual value of metadata item
          * @param  isCaseSensitive  true iff value comparison is case-sensitive
          */
-        private void compareItem( String colName, String itemName, String code,
+        private void compareItem( String colName, String itemName,
+                                  ReportCode code,
                                   String obsValue, String gotValue,
                                   boolean isCaseSensitive ) {
             String vGot = String.valueOf( gotValue );
@@ -514,7 +514,7 @@ public class ObsTapStage implements Stage {
                     .append( " != " )
                     .append( obsValue )
                     .toString();
-                reporter_.report( ReportType.ERROR, code, msg );
+                reporter_.report( code, msg );
             }
         }
 
@@ -545,7 +545,7 @@ public class ObsTapStage implements Stage {
                 }
             }
             catch ( IOException e ) {
-                reporter_.report( ReportType.FAILURE, "TIOF",
+                reporter_.report( FixedCode.F_TIOF,
                                   "Error reading result table", e );
                 return null;
             }

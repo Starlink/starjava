@@ -58,7 +58,7 @@ public class UploadStage implements Stage {
         TapCapability tcap = capHolder_.getCapability();
         if ( tcap != null && ( tcap.getUploadMethods() == null ||
                                tcap.getUploadMethods().length == 0 ) ) {
-            reporter.report( ReportType.FAILURE, "NOUP",
+            reporter.report( FixedCode.F_NOUP,
                              "Table capabilities lists no upload methods - "
                            + "will not attempt upload tests" );
             return;
@@ -130,7 +130,7 @@ public class UploadStage implements Stage {
                     .append( " using VOTable serializer " )
                     .append( vowriter )
                     .toString();
-                reporter_.report( ReportType.ERROR, "UPER", msg, e );
+                reporter_.report( FixedCode.E_UPER, msg, e );
                 return;
             }
             StarTable resultTable = tRunner_.getResultTable( reporter_, tq );
@@ -142,7 +142,7 @@ public class UploadStage implements Stage {
                 resultTable = Tables.randomTable( resultTable );
             }
             catch ( IOException e ) {
-                reporter_.report( ReportType.FAILURE, "TRND",
+                reporter_.report( FixedCode.F_TRND,
                                   "Unexpected error randomising tables", e );
             }
             compareTables( upTable, resultTable );
@@ -168,7 +168,7 @@ public class UploadStage implements Stage {
                    .append( " != " )
                    .append( t1.getRowCount() )
                    .toString();
-                reporter_.report( ReportType.ERROR, "TMNR", msg );
+                reporter_.report( FixedCode.E_TMNR, msg );
             }
 
             /* Check column counts match. */
@@ -181,7 +181,7 @@ public class UploadStage implements Stage {
                    .append( " != " )
                    .append( t1.getColumnCount() )
                    .toString();
-                reporter_.report( ReportType.ERROR, "TMNC", msg );
+                reporter_.report( FixedCode.E_TMNC, msg );
             }
             else {
 
@@ -198,7 +198,7 @@ public class UploadStage implements Stage {
                            .append( " != " )
                            .append( name1 )
                            .toString();
-                        reporter_.report( ReportType.ERROR, "TMCN", msg );
+                        reporter_.report( FixedCode.E_TMCN, msg );
                     }
                     compareStringAuxMetadata( c1, c2,
                                               VOStarTable.DATATYPE_INFO );
@@ -229,13 +229,13 @@ public class UploadStage implements Stage {
                                .append( " != " )
                                .append( v1 )
                                .toString();
-                            reporter_.report( ReportType.ERROR, "TMCD", msg );
+                            reporter_.report( FixedCode.E_TMCD, msg );
                         }
                     }
                 }
             }
             catch ( IOException e ) {
-                reporter_.report( ReportType.FAILURE, "DTIO",
+                reporter_.report( FixedCode.F_DTIO,
                                   "Unexpected IO error reading table", e );
             }
         }
@@ -267,9 +267,11 @@ public class UploadStage implements Stage {
                    .append( " for column " )
                    .append( c1.getName() )
                    .toString();
-                String code = "TM" + metaInfo.getName().substring( 0, 2 )
-                                                       .toUpperCase();
-                reporter_.report( ReportType.WARNING, code, msg );
+                ReportCode code =
+                    new AdhocCode( ReportType.WARNING,
+                                   "TM" + metaInfo.getName().substring( 0, 2 )
+                                                            .toUpperCase() );
+                reporter_.report( code, msg );
             }
         }
     }

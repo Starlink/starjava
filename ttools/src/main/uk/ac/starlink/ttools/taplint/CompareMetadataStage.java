@@ -53,7 +53,7 @@ public class CompareMetadataStage implements Stage {
         TableMeta[] tmetas1 = metaHolder1_.getTableMetadata();
         TableMeta[] tmetas2 = metaHolder2_.getTableMetadata();
         if ( tmetas1 == null || tmetas2 == null ) {
-            reporter.report( ReportType.FAILURE, "NOTM",
+            reporter.report( FixedCode.F_NOTM,
                              "Don't have two metadata sets to compare"
                            + " (earlier stages failed/skipped?)" );
             return;
@@ -104,12 +104,15 @@ public class CompareMetadataStage implements Stage {
             ColumnMeta cm2 = cmMap2.get( cname );
             Checker checker =
                 new Checker( reporter, "Column", tableName + ":" + cname );
-            checker.checkDataTypes( "CTYP",
+            checker.checkDataTypes( FixedCode.W_CTYP,
                                     cm1.getDataType(), cm2.getDataType() );
-            checker.check( "UCD", "CUCD", cm1.getUcd(), cm2.getUcd() );
-            checker.check( "Utype", "CUTP", cm1.getUtype(), cm2.getUtype() );
-            checker.check( "Unit", "CUNI", cm1.getUnit(), cm2.getUnit() );
-            checker.check( "IsIndexed", "CIDX",
+            checker.check( "UCD", FixedCode.W_CUCD,
+                           cm1.getUcd(), cm2.getUcd() );
+            checker.check( "Utype", FixedCode.W_CUTP,
+                           cm1.getUtype(), cm2.getUtype() );
+            checker.check( "Unit", FixedCode.W_CUNI,
+                           cm1.getUnit(), cm2.getUnit() );
+            checker.check( "IsIndexed", FixedCode.W_CIDX,
                            cm1.isIndexed(), cm2.isIndexed() );
         }
     }
@@ -179,7 +182,8 @@ public class CompareMetadataStage implements Stage {
                .append( " but not in " )
                .append( srcDesc2_ )
                .toString();
-            reporter.report( ReportType.ERROR, "" + lchr + "M12", msg );
+            reporter.report( new AdhocCode( ReportType.ERROR,
+                                            "" + lchr + "M12" ), msg );
         }
         for ( String ex2 : extras2 ) {
             String msg = new StringBuffer()
@@ -192,7 +196,8 @@ public class CompareMetadataStage implements Stage {
                .append( " but not " )
                .append( srcDesc1_ )
                .toString();
-            reporter.report( ReportType.ERROR, "" + lchr + "M21", msg );
+            reporter.report( new AdhocCode( ReportType.ERROR,
+                                            "" + lchr + "M21" ), msg );
         }
 
         /* Calculate and return intersection set. */
@@ -357,7 +362,8 @@ public class CompareMetadataStage implements Stage {
          * @param    item1  first item
          * @param    item2  second item
          */
-        void check( String itemName, String code, Object item1, Object item2 ) {
+        void check( String itemName, ReportCode code,
+                    Object item1, Object item2 ) {
             if ( item1 == null && item2 == null ||
                  item1 != null && item1.equals( item2 ) ) {
                 // ok
@@ -380,7 +386,7 @@ public class CompareMetadataStage implements Stage {
                     .append( item2 )
                     .append( q2 )
                     .toString();
-                reporter_.report( ReportType.WARNING, code, msg );
+                reporter_.report( code, msg );
             }
         }
 
@@ -391,7 +397,7 @@ public class CompareMetadataStage implements Stage {
          * @param  dt1  first data type
          * @param  dt2  second data type
          */
-        void checkDataTypes( String code, String dt1, String dt2 ) {
+        void checkDataTypes( ReportCode code, String dt1, String dt2 ) {
             if ( ! compatibleDataTypes( dt1, dt2 ) ) {
                 String msg = new StringBuffer()
                     .append( "Incompatible datatypes for " )
@@ -403,7 +409,7 @@ public class CompareMetadataStage implements Stage {
                     .append( " vs. " )
                     .append( dt2 )
                     .toString();
-                reporter_.report( ReportType.WARNING, code, msg );
+                reporter_.report( code, msg );
             }
         }
     }

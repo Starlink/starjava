@@ -56,7 +56,7 @@ public class TapSchemaMetadataHolder implements MetadataHolder {
                 TableMeta[] tmetas =
                     TableSetSaxHandler.readTableSet( schemaTablesUrl );
                 if ( reporter_ != null ) {
-                    reporter_.report( ReportType.INFO, "SCHM",
+                    reporter_.report( FixedCode.I_SCHM,
                                       "Using standard TAP_SCHEMA tables for "
                                     + "metadata" );
                 }

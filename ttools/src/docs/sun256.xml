@@ -8658,6 +8658,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <li>Add missing geometric reserved words to ADQL reserved word list.
             This fixes some problems with column names like "DISTANCE" in
             taplint tests.</li>
+        <li>Rework taplint API to facilitate static acquisition of report
+            codes during programmatic use.  A few error codes have changed.</li>
         </ul>
         </p></dd>
 

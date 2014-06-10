@@ -52,7 +52,7 @@ public class ColumnMetadataStage implements Stage {
     public void run( Reporter reporter, URL serviceUrl ) {
         TableMeta[] tmetas = metaHolder_.getTableMetadata();
         if ( tmetas == null || tmetas.length == 0 ) {
-            reporter.report( ReportType.FAILURE, "NOTM",
+            reporter.report( FixedCode.F_NOTM,
                              "No table metadata available"
                            + " (earlier stages failed/skipped?)"
                            + " - will not run test queries" );
@@ -61,7 +61,7 @@ public class ColumnMetadataStage implements Stage {
         if ( maxTables_ > 0 && tmetas.length > maxTables_ ) {
             TableMeta[] tms = new TableMeta[ maxTables_ ];
             System.arraycopy( tmetas, 0, tms, 0, maxTables_ );
-            reporter.report( ReportType.INFO, "TMAX",
+            reporter.report( FixedCode.I_TMAX,
                              "Testing only " + maxTables_ + "/" + tmetas.length
                            + " tables" );
             tmetas = tms;
@@ -119,12 +119,12 @@ public class ColumnMetadataStage implements Stage {
                 result = tRunner_.attemptGetResultTable( reporter_, tq );
             }
             catch ( IOException e ) {
-                reporter_.report( ReportType.ERROR, "QERR",
+                reporter_.report( FixedCode.E_QERR,
                                   "Failed TAP query " + adql, e );
                 return;
             }
             catch ( SAXException e ) {
-                reporter_.report( ReportType.ERROR, "QERX",
+                reporter_.report( FixedCode.E_QERX,
                                   "Failed to parse result for TAP query "
                                 + adql, e );
                 return;
@@ -135,7 +135,7 @@ public class ColumnMetadataStage implements Stage {
                 result = Tables.randomTable( result );
             }
             catch ( IOException e ) {
-                reporter_.report( ReportType.ERROR, "VTIO",
+                reporter_.report( FixedCode.E_VTIO,
                                   "Error reading table result for " + adql, e );
                 return;
             }
@@ -149,7 +149,7 @@ public class ColumnMetadataStage implements Stage {
                    .append( " for " )
                    .append( adql )
                    .toString();
-                reporter_.report( ReportType.ERROR, "RRTO", msg );
+                reporter_.report( FixedCode.E_RRTO, msg );
             }
 
             /* Prepare name->column-metadata maps for both declared and
@@ -191,8 +191,7 @@ public class ColumnMetadataStage implements Stage {
                             sbuf.append( ", " );
                         }
                     }
-                    reporter_.report( ReportType.ERROR, "CLDR",
-                                      sbuf.toString() );
+                    reporter_.report( FixedCode.E_CLDR, sbuf.toString() );
                 }
             }
 
@@ -219,8 +218,7 @@ public class ColumnMetadataStage implements Stage {
                             sbuf.append( ", " );
                         }
                     }
-                    reporter_.report( ReportType.ERROR, "CLRD",
-                                      sbuf.toString() );
+                    reporter_.report( FixedCode.E_CLRD, sbuf.toString() );
                 }
             }
 
@@ -243,7 +241,7 @@ public class ColumnMetadataStage implements Stage {
                         .append( " != " )
                         .append( rName )
                         .toString();
-                    reporter_.report( ReportType.WARNING, "CCAS", msg );
+                    reporter_.report( FixedCode.W_CCAS, msg );
                 }
             }
 
@@ -268,7 +266,7 @@ public class ColumnMetadataStage implements Stage {
                         .append( rType )
                         .append( ")" )
                         .toString();
-                    reporter_.report( ReportType.ERROR, "CTYP", msg );
+                    reporter_.report( FixedCode.E_CTYP, msg );
                 }
             }
         }

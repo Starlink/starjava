@@ -127,47 +127,32 @@ public class Reporter {
     /**
      * Reports a message.
      *
-     * @param    type   message type
-     * @param    code   short, fixed-length (4-char?) message code which ought
-     *                  to identify which messages are essentially the same
-     *                  as each other (though may refer to different data etc)
+     * @param    code   report code; messages with the same code should
+     *                  identify essentially the same condition
      * @param    message  free-text message; it may be multi-line and/or
      *                    longish, but may in practice be truncated on output
      */
-    public void report( ReportType type, String code, String message ) {
-        report( type, code, message, null );
+    public void report( ReportCode code, String message ) {
+        report( code, message, null );
     }
 
     /**
      * Reports a message with an associated throwable.
      *
-     * @param    type   message type
-     * @param    code   short, fixed-length message code which ought
-     *                  to identify which messages are essentially the same
-     *                  as each other (though may refer to different data etc);
-     *                  preferably {@link #MCODE_LENGTH}-characters long
+     * @param    code   report code; messages with the same code should
+     *                  identify essentially the same condition
      * @param    message  free-text message; it may be multi-line and/or
      *                    longish, but may in practice be truncated on output
      * @param    err    throwable
      */
-    public void report( ReportType type, String code, String message,
-                        Throwable err ) {
+    public void report( ReportCode code, String message, Throwable err ) {
+        ReportType type = code.getType();
         if ( ! typeList_.contains( type ) ) {
             return;
         }
         if ( message == null || message.trim().length() == 0 ) {
             message = "?";
         }
-        if ( code == null || code.length() == 0 ) {
-            code = createCode( message );
-        }
-        if ( code.length() > MCODE_LENGTH ) {
-            code = code.substring( 0, MCODE_LENGTH );
-        }
-        if ( code.length() < MCODE_LENGTH ) {
-            code += repeatChar( 'X', MCODE_LENGTH - code.length() );
-        }
-        assert code.length() == MCODE_LENGTH;
         StringBuffer codeBuf = new StringBuffer();
         codeBuf.append( type.getChar() )
                .append( '-' );
@@ -175,7 +160,7 @@ public class Reporter {
             codeBuf.append( scode_ )
                    .append( '-' );
         }
-        codeBuf.append( code );
+        codeBuf.append( code.getLabel() );
         String ecode = codeBuf.toString();
         typeMap_.addItem( type );
         int count = codeMap_.addItem( ecode );
@@ -207,50 +192,10 @@ public class Reporter {
     }
 
     /**
-     * Provides a summary of any message types which were not reported.
-     *
-     * @param  code  message code for this summary
-     * @param  types  array of types to report on, or null for all types
-     */
-    public void summariseUnreportedTypes( String code, ReportType[] types ) {
-        if ( types == null ) {
-            types = typeMap_.keySet().toArray( new ReportType[ 0 ] );
-        }
-        StringBuffer sbuf = new StringBuffer();
-        for ( int it = 0; it < types.length; it++ ) {
-            ReportType type = types[ it ];
-            if ( it > 0 ) {
-                sbuf.append( ", " );
-            }
-            sbuf.append( type.toString() )
-                .append( ": " )
-                .append( typeMap_.getCount( type ) );
-        }
-        report( ReportType.SUMMARY, code, sbuf.toString() );
-    }
-
-    /**
      * Clears any memory of which messages have been reported.
      */
     public void clear() {
         codeMap_.clear();
-    }
-
-    /**
-     * Uses some hash function to generate a message code from text.
-     * Probably unique, but not guaranteed to be.
-     *
-     * @param  msg  message text
-     * @return   suitable message code
-     */
-    public String createCode( String msg ) {
-        int hash = msg.hashCode();
-        char[] chrs = new char[ MCODE_LENGTH ];
-        for ( int i = 0; i < MCODE_LENGTH; i++ ) {
-            chrs[ i ] = (char) ( 'A' + ( ( hash & 0x1f ) % ( 'Z' - 'A' ) ) );
-            hash >>= 5;
-        }
-        return new String( chrs );
     }
 
     /**
