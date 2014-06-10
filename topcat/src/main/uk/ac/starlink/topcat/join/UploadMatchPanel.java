@@ -1,6 +1,7 @@
 package uk.ac.starlink.topcat.join;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -38,6 +39,7 @@ import uk.ac.starlink.topcat.ControlWindow;
 import uk.ac.starlink.topcat.Scheduler;
 import uk.ac.starlink.topcat.TablesListComboBox;
 import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.topcat.TopcatUtils;
 import uk.ac.starlink.ttools.cone.BlockUploader;
 import uk.ac.starlink.ttools.cone.ConeQueryRowSequence;
 import uk.ac.starlink.ttools.cone.CdsUploadMatcher;
@@ -68,7 +70,7 @@ public class UploadMatchPanel extends JPanel {
     private final ColumnSelector raSelector_;
     private final ColumnSelector decSelector_;
     private final DoubleValueField srField_;
-    private final JTextField blockField_;
+    private final JComboBox blockSelector_;
     private final JComboBox modeSelector_;
     private final JComponent[] components_;
     private final Action startAction_;
@@ -77,6 +79,8 @@ public class UploadMatchPanel extends JPanel {
     private volatile MatchWorker matchWorker_;
 
     private static final long MAXREC = -1;
+    private static final int[] BLOCK_SIZES =
+        { 500000, 200000, 100000, 50000, 20000, 10000, 5000, 1000, 100 };
     private static final int DEFAULT_BLOCKSIZE = 10000;
     private static final ValueInfo SR_INFO =
         new DefaultValueInfo( "Radius", Double.class, "Search Radius" );
@@ -145,8 +149,11 @@ public class UploadMatchPanel extends JPanel {
         srField_ = DoubleValueField.makeSizeDegreesField( SR_INFO );
         Box srLine = Box.createHorizontalBox();
         srLine.add( srField_.getLabel() );
+        srLine.add( Box.createHorizontalStrut( 5 ) );
         srLine.add( srField_.getEntryField() );
-        srLine.add( srField_.getConverterSelector() );
+        srLine.add( Box.createHorizontalStrut( 5 ) );
+        srLine.add( new ShrinkWrapper( srField_.getConverterSelector() ) );
+        srLine.add( Box.createHorizontalGlue() );
         srField_.getConverterSelector().setSelectedIndex( 2 );
         srField_.getEntryField().setText( "1.0" );
         main.add( srLine );
@@ -155,22 +162,47 @@ public class UploadMatchPanel extends JPanel {
         cList.add( srField_.getLabel() );
         cList.add( srField_.getConverterSelector() );
 
+        /* Align some of the components for cosmetic reasons. */
+        TopcatUtils.alignComponents( new JComponent[] {
+            raSelector_.getLabel(),
+            decSelector_.getLabel(),
+            srField_.getLabel()
+        } );
+        TopcatUtils.alignComponents( new JComponent[] {
+            raSelector_.getColumnComponent(),
+            decSelector_.getColumnComponent(),
+            srField_.getEntryField(),
+        } );
+        TopcatUtils.alignComponents( new JComponent[] {
+            raSelector_.getUnitComponent(),
+            decSelector_.getUnitComponent(),
+            srField_.getConverterSelector(),
+        } );
+
         /* Service access parameters. */
         Box modeLine = Box.createHorizontalBox();
         modeSelector_ = new JComboBox( UploadFindMode.getInstances() );
-        modeLine.add( new JLabel( "Find mode: " ) );
+        JLabel modeLabel = new JLabel( "Find mode: " );
+        modeLine.add( modeLabel );
         modeLine.add( new ShrinkWrapper( modeSelector_ ) );
         modeLine.add( Box.createHorizontalGlue() );
+        cList.add( modeLabel );
         cList.add( modeSelector_ );
         main.add( modeLine );
         main.add( Box.createVerticalStrut( 5 ) );
         Box blockLine = Box.createHorizontalBox();
-        blockField_ = new JTextField( 10 );
-        blockField_.setText( Integer.toString( DEFAULT_BLOCKSIZE ) );
-        blockLine.add( new JLabel( "Block size: " ) );
-        blockLine.add( blockField_ );
+        blockSelector_ = new JComboBox();
+        for ( int i = 0; i < BLOCK_SIZES.length; i++ ) {
+            blockSelector_.addItem( Integer.toString( BLOCK_SIZES[ i ] ) );
+        }
+        blockSelector_.setSelectedItem( Integer.toString( DEFAULT_BLOCKSIZE ) );
+        blockSelector_.setEditable( true );
+        JLabel blockLabel = new JLabel( "Block size: " );
+        blockLine.add( blockLabel );
+        blockLine.add( blockSelector_ );
         blockLine.add( Box.createHorizontalGlue() );
-        cList.add( blockField_ );
+        cList.add( blockLabel );
+        cList.add( blockSelector_ );
         main.add( blockLine );
 
         /* Actions to start/stop match. */
@@ -326,14 +358,15 @@ public class UploadMatchPanel extends JPanel {
         }
 
         /* Get other search parameters. */
-        String bfTxt = blockField_.getText();
+        Object bf = blockSelector_.getSelectedItem();
+        String bfTxt = bf == null ? null : bf.toString();
         int blocksize;
         try {
             blocksize = Integer.parseInt( bfTxt );
         }
         catch ( NumberFormatException e ) {
-            blockField_.setText( "" );
-            throw new IllegalArgumentException( "Bad blocksize" );
+            blockSelector_.setSelectedItem( null );
+            throw new IllegalArgumentException( "Bad blocksize: " + bfTxt );
         }
         UploadFindMode upMode =
             (UploadFindMode) modeSelector_.getSelectedItem();
