@@ -209,6 +209,25 @@ public class ColumnSelector extends JComponent {
     }
 
     /**
+     * Returns the component displaying selection of the actual column or
+     * expression.
+     *
+     * @return   column selection component
+     */
+    public JComboBox getColumnComponent() {
+        return colComboBox_;
+    }
+
+    /**
+     * Returns the component displaying selection of the unit, if any.
+     *
+     * @return  converter selection component
+     */
+    public JComboBox getUnitComponent() {
+        return convComboBox_;
+    }
+
+    /**
      * Adds a listener for changes on the state of this component.
      *
      * @param   listener  listener to add

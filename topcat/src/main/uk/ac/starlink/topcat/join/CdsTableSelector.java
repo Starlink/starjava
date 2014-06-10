@@ -17,6 +17,7 @@ import javax.swing.JPanel;
  */
 public class CdsTableSelector extends JPanel {
 
+    private final JLabel label_;
     private final JComboBox nameSelector_;
 
     /**
@@ -29,7 +30,8 @@ public class CdsTableSelector extends JPanel {
         nameSelector_.setSelectedItem( null );
 
         setLayout( new BoxLayout( this, BoxLayout.X_AXIS ) );
-        add( new JLabel( "VizieR Table Name: " ) );
+        label_ = new JLabel( "VizieR Table Name: " );
+        add( label_ );
         add( nameSelector_ );
     }
 
@@ -41,4 +43,12 @@ public class CdsTableSelector extends JPanel {
     public String getTableName() {
         return (String) nameSelector_.getSelectedItem();
     }
+
+    @Override
+    public void setEnabled( boolean isEnabled ) {
+        super.setEnabled( isEnabled );
+        nameSelector_.setEnabled( isEnabled );
+        label_.setEnabled( isEnabled );
+    }
+
 }

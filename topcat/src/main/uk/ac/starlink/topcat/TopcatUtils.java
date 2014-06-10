@@ -1,5 +1,6 @@
 package uk.ac.starlink.topcat;
 
+import java.awt.Dimension;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -524,6 +525,26 @@ public class TopcatUtils {
             longFormat_ = new DecimalFormat();
         }
         return longFormat_.format( num );
+    }
+
+    /**
+     * Reshapes a set of components so that they all have the same
+     * preferred size (that of the largest one).
+     *
+     * @param   comps  components to align
+     */
+    public static void alignComponents( JComponent[] comps ) {
+        int maxw = 0;
+        int maxh = 0;
+        for ( int i = 0; i < comps.length; i++ ) {
+            Dimension prefSize = comps[ i ].getPreferredSize();
+            maxw = Math.max( maxw, prefSize.width );
+            maxh = Math.max( maxh, prefSize.height );
+        }
+        Dimension prefSize = new Dimension( maxw, maxh );
+        for ( int i = 0; i < comps.length; i++ ) {
+            comps[ i ].setPreferredSize( prefSize );
+        }
     }
 
     /**

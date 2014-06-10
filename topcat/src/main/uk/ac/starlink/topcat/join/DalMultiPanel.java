@@ -3,7 +3,6 @@ package uk.ac.starlink.topcat.join;
 import gnu.jel.CompilationException;
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
@@ -187,10 +186,11 @@ public class DalMultiPanel extends JPanel {
         cList.add( srSysLabel );
 
         /* Align the positional fields. */
-        alignLabels( new JLabel[] { raSelector_.getLabel(),
-                                    decSelector_.getLabel(),
-                                    srSelector_.getLabel(), } );
-        alignLabels( new JLabel[] { raSysLabel, decSysLabel, srSysLabel, } );
+        TopcatUtils.alignComponents( new JLabel[] { raSelector_.getLabel(),
+                                                    decSelector_.getLabel(),
+                                                    srSelector_.getLabel(), } );
+        TopcatUtils.alignComponents( new JLabel[] { raSysLabel, decSysLabel,
+                                                    srSysLabel, } );
 
         /* Custom service controls. */
         JComponent servicePanel = service_.getControlPanel();
@@ -718,26 +718,6 @@ public class DalMultiPanel extends JPanel {
                                  true, true, service_ ),
             new AddSubsetMode( "Add subset for matched rows", service_ ),
         };
-    }
-
-    /**
-     * Reshapes a set of components so that they all have the same
-     * preferred size (that of the largest one).
-     *
-     * @param   labels  labels to align
-     */
-    private static void alignLabels( JLabel[] labels ) {
-        int maxw = 0;
-        int maxh = 0;
-        for ( int i = 0; i < labels.length; i++ ) {
-            Dimension prefSize = labels[ i ].getPreferredSize();
-            maxw = Math.max( maxw, prefSize.width );
-            maxh = Math.max( maxh, prefSize.height );
-        }
-        Dimension prefSize = new Dimension( maxw, maxh );
-        for ( int i = 0; i < labels.length; i++ ) {
-            labels[ i ].setPreferredSize( prefSize );
-        }
     }
 
     /**
