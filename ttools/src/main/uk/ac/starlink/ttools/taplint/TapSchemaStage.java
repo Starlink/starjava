@@ -67,7 +67,7 @@ public class TapSchemaStage extends TableMetadataStage {
             cMap = tsi.readColumns();
         }
         catch ( IOException e ) {
-            reporter.report( ReportType.ERROR, "CLIO",
+            reporter.report( FixedCode.E_CLIO,
                              "Error reading TAP_SCHEMA.columns table", e );
             cMap = new HashMap<String,List<ColumnMeta>>();
         }
@@ -77,7 +77,7 @@ public class TapSchemaStage extends TableMetadataStage {
             lMap = tsi.readForeignLinks();
         }
         catch ( IOException e ) {
-            reporter.report( ReportType.ERROR, "FLIO",
+            reporter.report( FixedCode.E_KCIO,
                              "Error reading TAP_SCHEMA.key_columns table", e );
             lMap = new HashMap<String,List<ForeignMeta.Link>>();
         }
@@ -85,10 +85,10 @@ public class TapSchemaStage extends TableMetadataStage {
         Map<String,List<ForeignMeta>> fMap;
         try {
             fMap = tsi.readForeignKeys( lMap );
-            checkEmpty( reporter, lMap, "FLUN", "key_columns" );
+            checkEmpty( reporter, lMap, FixedCode.W_FLUN, "key_columns" );
         }
         catch ( IOException e ) {
-            reporter.report( ReportType.ERROR, "FKIO",
+            reporter.report( FixedCode.E_FKIO,
                              "Error reading TAP_SCHEMA.keys table", e );
             fMap = new HashMap<String,List<ForeignMeta>>();
         }
@@ -96,12 +96,12 @@ public class TapSchemaStage extends TableMetadataStage {
         List<TableMeta> tList;
         try {
             tList = tsi.readTables( cMap, fMap );
-            checkEmpty( reporter, cMap, "CLUN", "columns" );
-            checkEmpty( reporter, fMap, "FKUN", "keys" );
+            checkEmpty( reporter, cMap, FixedCode.W_CLUN, "columns" );
+            checkEmpty( reporter, fMap, FixedCode.W_FKUN, "keys" );
         }
         catch ( IOException e ) {
             tList = null;
-            reporter.report( ReportType.ERROR, "TBIO",
+            reporter.report( FixedCode.E_TBIO,
                              "Error reading TAP_SCHEMA.tables table", e );
         }
 
@@ -165,14 +165,14 @@ public class TapSchemaStage extends TableMetadataStage {
                         return ((Number) cell).intValue();
                     }
                     else {
-                        reporter.report( ReportType.ERROR, "NONM",
+                        reporter.report( FixedCode.E_NONM,
                                          "Non-numeric return cell from "
                                        + adql );
                         return -1;
                     }
                 }
                 else {
-                    reporter.report( ReportType.ERROR, "NO11",
+                    reporter.report( FixedCode.E_NO11,
                                      "Expecting nrow=1, ncol=1, got"
                                    + " nrow=" + result.getRowCount()
                                    + " ncol=" + result.getColumnCount()
@@ -181,7 +181,7 @@ public class TapSchemaStage extends TableMetadataStage {
                 }
             }
             catch ( IOException e ) {
-                reporter.report( ReportType.ERROR, "NRER",
+                reporter.report( FixedCode.E_NRER,
                                  "Error counting rows with " + adql, e );
                 return -1;
             }
@@ -203,9 +203,9 @@ public class TapSchemaStage extends TableMetadataStage {
      * @param   stName   unqualified TAP_SCHEMA table name
      */
     private void checkEmpty( Reporter reporter, Map<?,?> map,
-                             String code, String stName ) {
+                             ReportCode code, String stName ) {
         for ( Object key : map.keySet() ) {
-            reporter.report( ReportType.WARNING, code,
+            reporter.report( code,
                              "Unused entry in TAP_SCHEMA." + stName
                            + " table: " + key );
         }
@@ -244,7 +244,7 @@ public class TapSchemaStage extends TableMetadataStage {
                 checkColumnTypes();
             }
             catch ( IOException e ) {
-                reporter_.report( ReportType.ERROR, "CERR",
+                reporter_.report( FixedCode.E_CERR,
                                   "Error reading TAP_SCHEMA.columns data", e );
             }
             return cMap;
@@ -299,7 +299,7 @@ public class TapSchemaStage extends TableMetadataStage {
                        .append( " not " )
                        .append( colTypes[ ic ] )
                        .toString();
-                    reporter_.report( ReportType.ERROR, "CINT", msg );
+                    reporter_.report( FixedCode.E_CINT, msg );
                     colBools[ ic ] = false;
                 }
             }
@@ -321,8 +321,7 @@ public class TapSchemaStage extends TableMetadataStage {
                                    .append( " in TAP_SCHEMA.columns column " )
                                    .append( colNames[ ic ] )
                                    .toString();
-                                reporter_.report( ReportType.ERROR, "CLOG",
-                                                  msg );
+                                reporter_.report( FixedCode.E_CLOG, msg );
                             }
                         }
                     }

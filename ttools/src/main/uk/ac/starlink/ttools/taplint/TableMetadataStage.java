@@ -89,8 +89,7 @@ public abstract class TableMetadataStage implements Stage, MetadataHolder {
      */
     private void checkTables( Reporter reporter, TableMeta[] tmetas ) { 
         if ( tmetas == null ) {
-            reporter.report( ReportType.FAILURE, "GONE",
-                             "Table metadata absent" );
+            reporter.report( FixedCode.F_GONE, "Table metadata absent" );
             return;
         }
         int nTable = tmetas.length;
@@ -136,7 +135,7 @@ public abstract class TableMetadataStage implements Stage, MetadataHolder {
                        .append( " for foreign key in table " )
                        .append( tmeta )
                        .toString();
-                    reporter.report( ReportType.ERROR, "FKNT", msg );
+                    reporter.report( FixedCode.E_FKNT, msg );
                 }
                 else {
                     Map<String,ColumnMeta> targetCmap =
@@ -167,7 +166,7 @@ public abstract class TableMetadataStage implements Stage, MetadataHolder {
                                     .append( link.getTarget() )
                                     .append( ')' );
                             }
-                            reporter.report( ReportType.ERROR, "FKLK",
+                            reporter.report( FixedCode.E_FKLK,
                                              mbuf.toString() );
                         }
                         else {
@@ -185,8 +184,7 @@ public abstract class TableMetadataStage implements Stage, MetadataHolder {
                                     .append( " vs. " )
                                     .append( toType )
                                     .toString();
-                                reporter.report( ReportType.WARNING,
-                                                 "FTYP", msg );
+                                reporter.report( FixedCode.W_FTYP, msg );
                             }
                         }
                     }
@@ -197,15 +195,15 @@ public abstract class TableMetadataStage implements Stage, MetadataHolder {
             new HashSet<String>( flagMap.keySet() );
         otherFlagList.removeAll( Arrays.asList( knownColFlags_ ) );
         String[] otherFlags = otherFlagList.toArray( new String[ 0 ] );
-        reporter.report( ReportType.SUMMARY, "SUMM",
+        reporter.report( FixedCode.S_SUMM,
                          "Tables: " + nTable + ", "
                        + "Columns: " + nCol + ", "
                        + "Foreign Keys: " + nForeign );
-        reporter.report( ReportType.SUMMARY, "FLGS",
+        reporter.report( FixedCode.S_FLGS,
                          "Standard column flags: "
                        + summariseCounts( flagMap, knownColFlags_ ) );
         if ( reportOtherFlags_ ) {
-            reporter.report( ReportType.SUMMARY, "FLGO",
+            reporter.report( FixedCode.S_FLGO,
                              "Other column flags: "
                            + summariseCounts( flagMap, otherFlags ) );
         }
@@ -255,14 +253,16 @@ public abstract class TableMetadataStage implements Stage, MetadataHolder {
             V value = values[ iv ];
             String name = value.toString();
             if ( name == null || name.trim().length() == 0 ) {
-                reporter.report( ReportType.ERROR, "" + dChr + "BLA",
+                reporter.report( new AdhocCode( ReportType.ERROR,
+                                                "" + dChr + "BLA" ),
                                  "Blank name for " + dName + " #" + iv );
             }
             if ( ! map.containsKey( name ) ) {
                 map.put( name, value );
             }
             else {
-                reporter.report( ReportType.WARNING, "" + dChr + "DUP",
+                reporter.report( new AdhocCode( ReportType.WARNING,
+                                                "" + dChr + "DUP" ),
                                  "Duplicate " + dName + " \"" + name + "\"" );
             }
         }

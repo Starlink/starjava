@@ -65,7 +65,7 @@ public class QueryStage implements Stage {
                            ? null
                            : getAdqlLanguages( capHolder_ );
         if ( tmetas == null || tmetas.length == 0 ) {
-            reporter.report( ReportType.FAILURE, "NOTM",
+            reporter.report( FixedCode.F_NOTM,
                              "No table metadata available "
                            + "(earlier stages failed/skipped?) "
                            + "- will not run test queries" );
@@ -126,7 +126,7 @@ public class QueryStage implements Stage {
      */
     private void runDuffQuery( Reporter reporter, URL serviceUrl ) {
         String duffAdql = "DUFF QUERY";
-        reporter.report( ReportType.INFO, "DUFF",
+        reporter.report( FixedCode.I_DUFF,
                          "Submitting duff query: " + duffAdql );
         VOElement resultsEl;
         try {
@@ -136,13 +136,13 @@ public class QueryStage implements Stage {
             resultsEl = tapRunner_.getResultsResourceElement( reporter, doc );
         }
         catch ( SAXException e ) {
-            reporter.report( ReportType.ERROR, "DFSF",
+            reporter.report( FixedCode.E_DFSF,
                              "TAP result parse failed for \""
                            + duffAdql + "\"", e );
             return;
         }
         catch ( IOException e ) {
-            reporter.report( ReportType.ERROR, "DFIO",
+            reporter.report( FixedCode.E_DFIO,
                              "TAP job failed for duff query", e );
             return;
         }
@@ -159,20 +159,20 @@ public class QueryStage implements Stage {
                     "TABLE".equals( name );
                 if ( isStatusInfo ) {
                     if ( statusInfo != null ) {
-                        reporter.report( ReportType.ERROR, "EST1",
+                        reporter.report( FixedCode.E_EST1,
                                          "Multiple INFOs with "
                                        + "name='QUERY_STATUS'" );
                     }
                     statusInfo = el;
                 }
                 if ( isTable ) {
-                    reporter.report( ReportType.WARNING, "HSTB",
+                    reporter.report( FixedCode.W_HSTB,
                                      "Return from duff query contains TABLE" );
                 }
             }
         }
         if ( statusInfo == null ) {
-            reporter.report( ReportType.ERROR, "DNST",
+            reporter.report( FixedCode.E_DNST,
                              "Missing <INFO name='QUERY_STATUS'> element "
                            + "for duff query" );
         }
@@ -184,14 +184,14 @@ public class QueryStage implements Stage {
                  * for duff query. */
                 String err = DOMUtils.getTextContent( statusInfo );
                 if ( err == null || err.trim().length() == 0 ) {
-                    reporter.report( ReportType.WARNING, "NOMS",
+                    reporter.report( FixedCode.W_NOMS,
                                      "<INFO name='QUERY_STATUS' "
                                    + "value='ERROR'> "
                                    + "element has no message content" );
                 }
             }
             else if ( "OK".equals( status ) ) {
-                reporter.report( ReportType.WARNING, "DSUC",
+                reporter.report( FixedCode.W_DSUC,
                                  "Service reports OK from duff query" );
             }
             else {
@@ -200,7 +200,7 @@ public class QueryStage implements Stage {
                     .append( status )
                     .append( " is not OK/ERROR" )
                     .toString();
-                reporter.report( ReportType.ERROR, "DQUS", msg );
+                reporter.report( FixedCode.E_DQUS, msg );
             }
         }
     }
@@ -298,7 +298,7 @@ public class QueryStage implements Stage {
                     String msg = "Overflow not marked - no "
                                + "<INFO name='QUERY_STATUS' value='OVERFLOW'/> "
                                + "after TABLE";
-                    reporter_.report( ReportType.ERROR, "OVNO", msg );
+                    reporter_.report( FixedCode.E_OVNO, msg );
                 }
             }
 
@@ -333,7 +333,7 @@ public class QueryStage implements Stage {
                        .append( failLangList )
                        .append( " doesn't" )
                        .toString();
-                    reporter_.report( ReportType.ERROR, "LVER", msg );
+                    reporter_.report( FixedCode.E_LVER, msg );
                 }
             }
         }
@@ -447,7 +447,7 @@ public class QueryStage implements Stage {
                        .append( " for " )
                        .append( adql )
                        .toString();
-                    reporter_.report( ReportType.ERROR, "NREC", msg );
+                    reporter_.report( FixedCode.E_NREC, msg );
                 }
                 if ( maxrow >= 0 && nrow > maxrow ) {
                     String msg = new StringBuffer()
@@ -457,7 +457,7 @@ public class QueryStage implements Stage {
                        .append( " for " )
                        .append( adql )
                        .toString();
-                    reporter_.report( ReportType.ERROR, "NROW", msg );
+                    reporter_.report( FixedCode.E_NROW, msg );
                 }
                 checkMeta( adql, colSpecs, table );
             }
@@ -474,7 +474,7 @@ public class QueryStage implements Stage {
         private boolean checkHasColumns( TableMeta tmeta ) {
             boolean hasColumns = tmeta.getColumns().length > 0;
             if ( ! hasColumns ) {
-                reporter_.report( ReportType.FAILURE, "ZCOL",
+                reporter_.report( FixedCode.F_ZCOL,
                                   "No columns known for table "
                                 + tmeta.getName() );
        
@@ -504,7 +504,7 @@ public class QueryStage implements Stage {
                    .append( " for " )
                    .append( adql )
                    .toString();
-                reporter_.report( ReportType.ERROR, "NCOL", msg );
+                reporter_.report( FixedCode.E_MCOL, msg );
                 return;
             }
             int ncol = qCount;
@@ -528,7 +528,7 @@ public class QueryStage implements Stage {
                        .append( " for " )
                        .append( adql )
                        .toString();
-                    reporter_.report( ReportType.ERROR, "CNAM", msg );
+                    reporter_.report( FixedCode.E_CNAM, msg );
                 }
                 String columnId = rName.equalsIgnoreCase( qName )
                                 ? qName
@@ -552,7 +552,7 @@ public class QueryStage implements Stage {
                        .append( " for " )
                        .append( adql )
                        .toString();
-                    reporter_.report( ReportType.ERROR, "CTYP", msg );
+                    reporter_.report( FixedCode.E_QTYP, msg );
                 }
             }
         }

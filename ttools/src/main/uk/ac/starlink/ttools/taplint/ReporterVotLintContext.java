@@ -47,9 +47,10 @@ public class ReporterVotLintContext extends VotLintContext {
      * @param  msg   message text
      */
     private void report( ReportType type, String msg ) {
-        String code = "VO"
-                    + reporter_.createCode( type + ": " + msg )
-                     .substring( 0, 2 );
+        String label = "VO"
+                     + AdhocCode.createLabelChars( type + ": " + msg,
+                                                   AdhocCode.LABEL_LENGTH - 2 );
+        ReportCode code = new AdhocCode( type, label );
         int il = -1;
         int ic = -1;
         Locator locator = getLocator();
@@ -69,6 +70,6 @@ public class ReporterVotLintContext extends VotLintContext {
         }
         sbuf.append( ": " )
             .append( msg );
-        reporter_.report( type, code, sbuf.toString() );
+        reporter_.report( code, sbuf.toString() );
     }
 }

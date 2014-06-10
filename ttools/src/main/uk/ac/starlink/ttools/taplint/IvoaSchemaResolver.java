@@ -103,7 +103,7 @@ public class IvoaSchemaResolver implements LSResourceResolver {
             /* No local copy, return null to fall back to default resolution
              * behaviour, and warn that a non-standard schema is in use. */
             else {
-                reporter_.report( ReportType.WARNING, "UNSC",
+                reporter_.report( FixedCode.W_UNSC,
                                   "Schema from unknown namespace "
                                 + "during validation: " + namespaceURI );
                 return null;

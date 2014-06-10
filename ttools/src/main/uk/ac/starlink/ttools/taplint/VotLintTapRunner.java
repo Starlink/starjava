@@ -128,7 +128,7 @@ public abstract class VotLintTapRunner extends TapRunner {
         String ctype = conn.getContentType();
         if ( doChecks_ ) {
             if ( ctype == null || ctype.trim().length() == 0 ) {
-                reporter.report( ReportType.WARNING, "NOCT",
+                reporter.report( FixedCode.W_NOCT,
                                  "No Content-Type header for "
                                + conn.getURL() );
             }
@@ -145,7 +145,7 @@ public abstract class VotLintTapRunner extends TapRunner {
                    .append( conn.getURL() )
                    .append( ")" )
                    .toString();
-                reporter.report( ReportType.ERROR, "VOCT", msg );
+                reporter.report( FixedCode.E_VOCT, msg );
             }
         }
 
@@ -164,13 +164,13 @@ public abstract class VotLintTapRunner extends TapRunner {
             compression = Compression.COMPRESS;
         }
         else {
-            reporter.report( ReportType.WARNING, "CEUK",
+            reporter.report( FixedCode.W_CEUK,
                              "Unknown Content-Encoding " + cCoding 
                            + " for " + conn.getURL() );
             compression = Compression.NONE;
         }
         if ( doChecks_ && compression != Compression.NONE ) {
-            reporter.report( ReportType.WARNING, "CEZZ",
+            reporter.report( FixedCode.W_CEZZ,
                              "Compression with Content-Encoding " + cCoding
                            + " for " + conn.getURL() );
         }
@@ -205,7 +205,7 @@ public abstract class VotLintTapRunner extends TapRunner {
         String versionString = VersionDetector.getVersionString( in );
         if ( versionString == null ) {
             version = TAP_VOT_VERSION;
-            reporter.report( ReportType.INFO, "VVNL",
+            reporter.report( FixedCode.I_VVNL,
                              "Undeclared VOTable version; assuming v"
                            + version );
         }
@@ -217,14 +217,14 @@ public abstract class VotLintTapRunner extends TapRunner {
                 version = vmap.get( versionString );
                 if ( vlist.indexOf( version )
                      < vlist.indexOf( TAP_VOT_VERSION ) ) {
-                    reporter.report( ReportType.ERROR, "VVLO",
+                    reporter.report( FixedCode.E_VVLO,
                                      "Declared VOTable version " + versionString
                                    + "<" + TAP_VOT_VERSION );
                 }
             }
             else {
                 version = TAP_VOT_VERSION;
-                reporter.report( ReportType.INFO, "VVUN",
+                reporter.report( FixedCode.I_VVUN,
                                  "Unknown declared VOTable version '"
                                + versionString + "' - assuming v" + version );
             }
@@ -302,7 +302,7 @@ public abstract class VotLintTapRunner extends TapRunner {
                             preStatusInfo = el;
                         }
                         else if ( doChecks_ ) {
-                            reporter.report( ReportType.ERROR, "QST1",
+                            reporter.report( FixedCode.E_QST1,
                                              "Multiple pre-table INFOs with "
                                            + "name='QUERY_STATUS'" );
                         }
@@ -312,7 +312,7 @@ public abstract class VotLintTapRunner extends TapRunner {
                             postStatusInfo = el;
                         }
                         else if ( doChecks_ ) {
-                            reporter.report( ReportType.ERROR, "QST2",
+                            reporter.report( FixedCode.E_QST2,
                                              "Multiple post-table INFOs with "
                                            + "name='QUERY_STATUS'" );
                         }
@@ -323,7 +323,7 @@ public abstract class VotLintTapRunner extends TapRunner {
                         tableEl = (TableElement) el;
                     }
                     else {
-                        reporter.report( ReportType.ERROR, "TTOO",
+                        reporter.report( FixedCode.E_TTOO,
                                          "Multiple TABLEs in results "
                                        + "RESOURCE" );
                     }
@@ -334,7 +334,7 @@ public abstract class VotLintTapRunner extends TapRunner {
         /* Check pre-table status INFO. */
         if ( preStatusInfo == null ) {
             if ( doChecks_ ) {
-                reporter.report( ReportType.ERROR, "NOST",
+                reporter.report( FixedCode.E_NOST,
                                  "Missing <INFO name='QUERY_STATUS'> element "
                                + "before TABLE" );
             }
@@ -345,7 +345,7 @@ public abstract class VotLintTapRunner extends TapRunner {
                 String err = DOMUtils.getTextContent( preStatusInfo );
                 if ( err == null || err.trim().length() == 0 ) {
                     if ( doChecks_ ) {
-                        reporter.report( ReportType.WARNING, "NOER",
+                        reporter.report( FixedCode.W_NOMS,
                                          "<INFO name='QUERY_STATUS' "
                                        + "value='ERROR'> "
                                        + "element has no message content" );
@@ -365,7 +365,7 @@ public abstract class VotLintTapRunner extends TapRunner {
                         .append( preStatus )
                         .append( " is not OK/ERROR" )
                         .toString();
-                    reporter.report( ReportType.ERROR, "QST1", msg );
+                    reporter.report( FixedCode.E_DQUS, msg );
                 }
             }
         }
@@ -378,7 +378,7 @@ public abstract class VotLintTapRunner extends TapRunner {
                 String err = DOMUtils.getTextContent( postStatusInfo );
                 if ( err == null || err.trim().length() == 0 ) {
                     if ( doChecks_ ) {
-                        reporter.report( ReportType.WARNING, "NOER",
+                        reporter.report( FixedCode.W_NOMS,
                                          "<INFO name='QUERY_STATUS' "
                                        + "value='ERROR'> "
                                        + "element has no message content" );
@@ -398,7 +398,7 @@ public abstract class VotLintTapRunner extends TapRunner {
                         .append( postStatus )
                         .append( " is not ERROR/OVERFLOW" )
                         .toString();
-                    reporter.report( ReportType.ERROR, "QST2", msg );
+                    reporter.report( FixedCode.E_DQU2, msg );
                 }
             }
         }
@@ -445,7 +445,7 @@ public abstract class VotLintTapRunner extends TapRunner {
         }
         if ( resourceEls.length == 1 ) {
             if ( doChecks_ ) {
-                reporter.report( ReportType.ERROR, "RRES",
+                reporter.report( FixedCode.E_RRES,
                                  "TAP response document RESOURCE element "
                                + "is not marked type='results'" );
             }
@@ -471,7 +471,7 @@ public abstract class VotLintTapRunner extends TapRunner {
             return spfact.newSAXParser().getXMLReader();
         }
         catch ( ParserConfigurationException e ) {
-            reporter.report( ReportType.FAILURE, "PRSR",
+            reporter.report( FixedCode.F_CAPC,
                              "Trouble setting up XML parse", e );
             throw (SAXException) new SAXException( e.getMessage() )
                                 .initCause( e );
@@ -502,9 +502,9 @@ public abstract class VotLintTapRunner extends TapRunner {
         }
         catch ( SAXException e ) {
             parser.setEntityResolver( StarEntityResolver.getInstance() );
-            reporter.report( ReportType.FAILURE, "XENT",
+            reporter.report( FixedCode.F_XENT,
                              "Entity trouble - DTD validation may not be " +
-                              "done properly", e );
+                             "done properly", e );
         }
 
         /* Return. */
@@ -551,7 +551,7 @@ public abstract class VotLintTapRunner extends TapRunner {
                                     "utf-8" );
                     URL qurl = new URL( tq.getServiceUrl() + "/sync?" + ptxt );
                     if ( doChecks ) {
-                        reporter.report( ReportType.INFO, "QGET",
+                        reporter.report( FixedCode.I_QGET,
                                          "Query GET URL: " + qurl );
                     }
                     return qurl.openConnection();
@@ -586,7 +586,7 @@ public abstract class VotLintTapRunner extends TapRunner {
                                       tq.getStringParams(),
                                       tq.getStreamParams() );
                 URL jobUrl = uwsJob.getJobUrl();
-                reporter.report( ReportType.INFO, "QJOB",
+                reporter.report( FixedCode.I_QJOB,
                                  "Submitted query at " + jobUrl );
                 uwsJob.start();
                 String phase;
