@@ -51,7 +51,6 @@ public class RegTapRegistryQuery implements RegistryQuery {
     public static final String[] REGISTRIES = new String[] {
         GAVO_REG,
         AIP_REG,
-        INAF_REG,
     };
 
     /** Description of metadata item describing registry location. */
