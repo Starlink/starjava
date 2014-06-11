@@ -17327,6 +17327,7 @@ Some of the notable contributers are these:
 <li>Thomas Boch (CDS)</li>
 <li>Laurent Bourges (JMMC)</li>
 <li>Danny Boxhoorn (Kapteyn, Groningen)</li>
+<li>Igor Chilingarian (CfA)</li>
 <li>Malcolm Currie (Starlink, RAL)</li>
 <li>Clive Davenhall (Royal Observatory Edinburgh)</li>
 <li>Luke Davies (Bristol)</li>
@@ -20052,6 +20053,8 @@ introduced since the last version:
         shown even when the other job details scroll off screen,
         and the details scroll to the top not the bottom when a job is
         selected or refreshed.</li>
+    <li>No longer disable "View URL As ..." options in Activation window
+        when no suitable columns are present.</li>
     </ul>
     </p></dd>
 

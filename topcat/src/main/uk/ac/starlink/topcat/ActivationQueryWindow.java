@@ -124,7 +124,6 @@ public class ActivationQueryWindow extends QueryWindow {
 
             /* Place radio button. */
             JRadioButton butt = fact.button_;
-            butt.setEnabled( fact.isPossible() );
             buttGroup.add( butt );
             layer.setConstraints( butt, bc );
             mainBox.add( butt );
@@ -222,16 +221,6 @@ public class ActivationQueryWindow extends QueryWindow {
          */
         JComponent getQueryComponent() {
             return queryPanel_;
-        }
-
-        /**
-         * Whether this factory can possibly return an activator.
-         * This implementation returns true, but subclasses may override it.
-         *
-         * @return  whether this factory is any good
-         */
-        boolean isPossible() {
-            return true;
         }
 
         /**
@@ -583,10 +572,6 @@ public class ActivationQueryWindow extends QueryWindow {
             queryPanel_.setLayout( new BoxLayout( queryPanel_,
                                                   BoxLayout.Y_AXIS ) );
             queryPanel_.add( colBox );
-        }
-
-        boolean isPossible() {
-            return colSelector_.getItemCount() > 1;
         }
 
         Activator makeActivator() {
