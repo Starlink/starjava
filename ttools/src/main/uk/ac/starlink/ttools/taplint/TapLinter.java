@@ -3,6 +3,7 @@ package uk.ac.starlink.ttools.taplint;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -13,6 +14,7 @@ import java.util.Map;
 import java.util.Set;
 import uk.ac.starlink.task.Executable;
 import uk.ac.starlink.task.TaskException;
+import uk.ac.starlink.ttools.Stilts;
 import uk.ac.starlink.vo.TableMeta;
 
 /**
@@ -182,6 +184,9 @@ public class TapLinter {
          * requested stages. */
         return new Executable() {
             public void execute() {
+                for ( String line : Arrays.asList( getAnnouncements() ) ) {
+                    reporter.println( line );
+                }
                 reporter.start();
                 for ( int ic = 0; ic < codes.length; ic++ ) {
                     String code = codes[ ic ];
@@ -214,6 +219,46 @@ public class TapLinter {
                   new IllegalArgumentException( "Bad URL " + url )
                  .initCause( e );
         }
+    }
+
+    /**
+     * Returns a list of startup announcements with which the taplint
+     * application introduces itself.
+     *
+     * @return   announcement lines
+     */
+    private static String[] getAnnouncements() {
+
+        /* Version report. */
+        String versionLine = new StringBuffer()
+            .append( "This is STILTS taplint, " )
+            .append( Stilts.getVersion() )
+            .append( "/" )
+            .append( Stilts.getStarjavaRevision() )
+            .toString();
+
+        /* Count by report type of known FixedCode instances. */
+        Map<ReportType,int[]> codeMap = new LinkedHashMap<ReportType,int[]>();
+        for ( ReportType type : Arrays.asList( ReportType.values() ) ) {
+            codeMap.put( type, new int[ 1 ] );
+        }
+        for ( FixedCode code : Arrays.asList( FixedCode.values() ) ) {
+            codeMap.get( code.getType() )[ 0 ]++;
+        }
+        StringBuffer cbuf = new StringBuffer()
+            .append( "Static report types: " );
+        for ( Map.Entry<ReportType,int[]> entry : codeMap.entrySet() ) {
+            cbuf.append( entry.getKey() )
+                .append( "(" )
+                .append( entry.getValue()[ 0 ] )
+                .append( ")" )
+                .append( ", " );
+        }
+        cbuf.setLength( cbuf.length() - 2 );
+        String codesLine = cbuf.toString();
+
+        /* Return lines. */
+        return new String[] { versionLine, codesLine, };
     }
 
     /**

@@ -75,6 +75,15 @@ public class Stilts {
     }
 
     /**
+     * Returns the revision string for the starjava repository, if available.
+     *
+     * @return  revision string
+     */
+    public static String getStarjavaRevision() {
+        return IOUtils.getResourceContents( Stilts.class, "revision-string" );
+    }
+
+    /**
      * Initialises factories.
      */
     private static void init() {
