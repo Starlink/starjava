@@ -259,7 +259,7 @@ public class Reporter {
      *
      * @param   line  line to print
      */
-    private void println( String line ) {
+    public void println( String line ) {
         int leng = line.length();
         if ( leng > maxChar_ ) {
             String ellipsis = "...";

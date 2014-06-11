@@ -93,9 +93,7 @@ public class LineInvoker {
                         "STIL version "
                         + IOUtils.getResourceContents( StarTable.class,
                                                        "stil.version" ),
-                        "Starjava revision: "
-                        + IOUtils.getResourceContents( Stilts.class,
-                                                       "revision-string" ),
+                        "Starjava revision: " + Stilts.getStarjavaRevision(),
                         "JVM: " + InvokeUtils.getJavaVM(),
                         "",
                         "Author: Mark Taylor",
