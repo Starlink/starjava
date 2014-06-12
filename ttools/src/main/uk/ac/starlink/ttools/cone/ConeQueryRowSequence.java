@@ -5,7 +5,7 @@ import uk.ac.starlink.table.RowSequence;
 
 /**
  * RowSequence sub-interface which additionally defines methods for 
- * retrieving RA, Dec and search radius for each row.
+ * retrieving RA, Dec search radius and row index for each row.
  *
  * @author    Mark Taylor
  * @since     16 Oct 2007
