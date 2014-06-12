@@ -4,10 +4,13 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import uk.ac.starlink.table.JoinFixAction;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.task.BooleanParameter;
 import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.DoubleParameter;
 import uk.ac.starlink.task.Environment;
@@ -18,10 +21,13 @@ import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.URLParameter;
 import uk.ac.starlink.ttools.cone.BlockUploader;
 import uk.ac.starlink.ttools.cone.CdsUploadMatcher;
+import uk.ac.starlink.ttools.cone.Coverage;
+import uk.ac.starlink.ttools.cone.CoverageQuerySequenceFactory;
 import uk.ac.starlink.ttools.cone.JELQuerySequenceFactory;
 import uk.ac.starlink.ttools.cone.QuerySequenceFactory;
 import uk.ac.starlink.ttools.cone.ServiceFindMode;
 import uk.ac.starlink.ttools.cone.UploadMatcher;
+import uk.ac.starlink.ttools.cone.UrlMocCoverage;
 
 /**
  * Upload matcher that uses CDS's Xmatch service.
@@ -39,9 +45,12 @@ public class CdsUploadSkyMatch extends SingleMapperTask {
     private final IntegerParameter chunkParam_;
     private final IntegerParameter maxrecParam_;
     private final URLParameter urlParam_;
+    private final BooleanParameter usemocParam_;
     private final JoinFixActionParameter fixcolsParam_;
     private final Parameter insuffixParam_;
     private final Parameter cdssuffixParam_;
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.ttools.task" );
 
     /**
      * Constructor.
@@ -180,6 +189,17 @@ public class CdsUploadSkyMatch extends SingleMapperTask {
         urlParam_.setDefault( CdsUploadMatcher.XMATCH_URL );
         paramList.add( urlParam_ );
 
+        usemocParam_ = new BooleanParameter( "usemoc" );
+        usemocParam_.setPrompt( "Use VizieR MOC footprint?" );
+        usemocParam_.setDescription( new String[] {
+            "<p>If true, first acquire a MOC coverage map from CDS,",
+            "and use that to pre-filter rows before uploading them",
+            "for matching.",
+            "This should improve efficiency, but have no effect on the result.",
+            "</p>",
+        } );
+        usemocParam_.setDefault( Boolean.TRUE.toString() );
+
         fixcolsParam_ = new JoinFixActionParameter( "fixcols" );
         insuffixParam_ =
             fixcolsParam_.createSuffixParameter( "suffixin",
@@ -208,14 +228,19 @@ public class CdsUploadSkyMatch extends SingleMapperTask {
             throw new ParameterValueException( cdstableParam_,
                                                "Bad value " + cdsName );
         }
+        double srDeg = sr / 3600.;
         final QuerySequenceFactory qsFact =
-            new JELQuerySequenceFactory( raString, decString, "-1" );
+            new JELQuerySequenceFactory( raString, decString,
+                                         Double.toString( srDeg ) );
         UserFindMode userMode = findParam_.objectValue( env );
         ServiceFindMode serviceMode = userMode.getServiceMode();
         boolean oneToOne = userMode.isOneToOne();
         int blocksize = chunkParam_.intValue( env );
         long maxrec = maxrecParam_.intValue( env );
         URL url = urlParam_.urlValue( env );
+        final Coverage coverage = usemocParam_.booleanValue( env )
+                                ? UrlMocCoverage.getVizierMoc( cdsName, -1 )
+                                : null;
         UploadMatcher umatcher =
             new CdsUploadMatcher( url, cdsId, sr, serviceMode );
         String tableName = "xmatch(" + cdsIdToTableName( cdsId ) + ")";
@@ -234,7 +259,26 @@ public class CdsUploadSkyMatch extends SingleMapperTask {
         return new TableProducer() {
             public StarTable getTable() throws IOException, TaskException {
                 StarTable inTable = Tables.randomTable( inProd.getTable() );
-                return blocker.runMatch( inTable, qsFact, storage );
+                Coverage cov;
+                if ( coverage != null ) {
+                    try {
+                        coverage.initCoverage();
+                        cov = coverage;
+                    }
+                    catch ( IOException e ) {
+                        logger_.log( Level.WARNING,
+                                     "Failed to read coverage", e );
+                        cov = null;
+                    }
+                }
+                else {
+                    cov = null;
+                }
+                QuerySequenceFactory qsFact2 =
+                      cov == null
+                    ? qsFact
+                    : new CoverageQuerySequenceFactory( qsFact, cov );
+                return blocker.runMatch( inTable, qsFact2, storage );
             }
         };
     }

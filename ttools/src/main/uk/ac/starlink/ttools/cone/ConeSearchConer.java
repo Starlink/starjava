@@ -27,6 +27,7 @@ public class ConeSearchConer implements Coner {
     private final ChoiceParameter<ServiceType> serviceParam_;
     private final BooleanParameter believeemptyParam_;
     private final Parameter formatParam_;
+    private int nside_;
     private static final String BELIEVE_EMPTY_NAME = "emptyok";
     private static final String INCONSISTENT_EMPTY_ADVICE =
             BELIEVE_EMPTY_NAME + "=false";
@@ -35,6 +36,7 @@ public class ConeSearchConer implements Coner {
      * Constructor.
      */
     public ConeSearchConer() {
+        nside_ = -1;
         ServiceType[] serviceTypes = new ServiceType[] {
             new ConeServiceType(),
             new SiaServiceType(),
@@ -181,7 +183,17 @@ public class ConeSearchConer implements Coner {
     public Coverage getCoverage( Environment env ) throws TaskException {
         ServiceType serviceType = serviceParam_.objectValue( env );
         URL url = urlParam_.urlValue( env );
-        return serviceType.getCoverage( url );
+        return serviceType.getCoverage( url, nside_ );
+    }
+
+    /**
+     * Sets the NSIDE parameter for MOC coverage maps.
+     * Defaults to -1, which means no settting (up to service).
+     *
+     * @param  nside  HEALPix NSIDE parameter for MOCs
+     */
+    public void setNside( int nside ) {
+        nside_ = nside;
     }
 
     /**
@@ -249,9 +261,10 @@ public class ConeSearchConer implements Coner {
          * Returns a coverage footprint for use with the service specified.
          *
          * @param  url  cone search service URL
+         * @param  nside  MOC nside parameter
          * @return  coverage footprint, or null
          */
-        abstract Coverage getCoverage( URL url );
+        abstract Coverage getCoverage( URL url, int nside );
 
         public String toString() {
             return name_;
@@ -326,8 +339,8 @@ public class ConeSearchConer implements Coner {
             };
         }
 
-        public Coverage getCoverage( URL url ) {
-            return new MocServiceCoverage( url );
+        public Coverage getCoverage( URL url, int nside ) {
+            return UrlMocCoverage.getServiceMoc( url, nside );
         }
     }
 
@@ -385,7 +398,7 @@ public class ConeSearchConer implements Coner {
             };
         }
 
-        public Coverage getCoverage( URL url ) {
+        public Coverage getCoverage( URL url, int nside ) {
             return null;
         }
     }
@@ -445,7 +458,7 @@ public class ConeSearchConer implements Coner {
             };
         }
 
-        public Coverage getCoverage( URL url ) {
+        public Coverage getCoverage( URL url, int nside ) {
             return null;
         }
     } 
