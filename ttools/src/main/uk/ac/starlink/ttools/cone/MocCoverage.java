@@ -65,15 +65,33 @@ public abstract class MocCoverage implements Coverage {
         if ( knownResult != null ) {
             return knownResult.booleanValue();
         }
-        HealpixMoc overlapMoc;
+        int mocOrder = moc_.getMaxOrder();
         try {
-            overlapMoc = moc_.queryDisc( hpi_, alphaDeg, deltaDeg, radiusDeg );
+            long centerPixel = hpi_.ang2pix( mocOrder, alphaDeg, deltaDeg );
+            if ( moc_.isInTree( mocOrder, centerPixel ) ) {
+                return true;
+            }
+            if ( radiusDeg == 0 ) {
+                return false;
+            }
+            int discOrder =
+                Math.min( PixtoolsHealpix
+                         .nsideToOrder( PixtoolsHealpix.getInstance()
+                                       .sizeToNside( radiusDeg ) ),
+                          mocOrder );
+            long[] discPixels =
+                hpi_.queryDisc( discOrder, alphaDeg, deltaDeg, radiusDeg );
+            for ( int i = 0; i < discPixels.length; i++ ) {
+                if ( moc_.isInTree( discOrder, discPixels[ i ] ) ) {
+                    return true;
+                }
+            }
+            return false;
         }
         catch ( Exception e ) {
             logger_.log( Level.WARNING, "Unexpected MOC error - fail safe", e );
             return true;
         }
-        return overlapMoc.getSize() > 0;
     }
 
     /**
