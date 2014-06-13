@@ -6,6 +6,7 @@ import java.io.IOException;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.ttools.plot.BarStyle;
 import uk.ac.starlink.ttools.plot.MarkShape;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.BasicCaptioner;
@@ -13,16 +14,21 @@ import uk.ac.starlink.ttools.plot2.Captioner;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
+import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.ShadeAxis;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
+import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.DataStoreFactory;
 import uk.ac.starlink.ttools.plot2.data.SimpleDataStoreFactory;
 import uk.ac.starlink.ttools.plot2.geom.PlaneAspect;
+import uk.ac.starlink.ttools.plot2.geom.PlaneDataGeom;
 import uk.ac.starlink.ttools.plot2.geom.PlaneNavigator;
 import uk.ac.starlink.ttools.plot2.geom.PlanePlotType;
 import uk.ac.starlink.ttools.plot2.geom.PlaneSurfaceFactory;
+import uk.ac.starlink.ttools.plot2.layer.BinSizer;
+import uk.ac.starlink.ttools.plot2.layer.HistogramPlotter;
 import uk.ac.starlink.ttools.plot2.layer.MarkForm;
 import uk.ac.starlink.ttools.plot2.layer.Outliner;
 import uk.ac.starlink.ttools.plot2.layer.ShapeMode;
@@ -150,15 +156,49 @@ public class ApiPlanePlotter implements SinePlot.PlanePlotter {
         /* Prepare the graphical style of the scatter plot layer:
          * it's a scatter plot with single-position markers, plotted
          * in a single fixed colour. */
-        ShapePlotter plotter =
-            ShapePlotter.createFlat2dPlotter( MarkForm.SINGLE );
         MarkShape shape = MarkShape.OPEN_CIRCLE;
         int size = 2;
         Outliner outliner = MarkForm.createMarkOutliner( shape, size );
         Stamper stamper = new ShapeMode.FlatStamper( Color.RED );
         ShapeStyle style = new ShapeStyle( outliner, stamper );
 
-        /* Combine the data and style to generate a plot layer. */
+        /* Combine the data and style to generate a scatter plot layer. */
+        Plotter plotter = ShapePlotter.createFlat2dPlotter( MarkForm.SINGLE );
+        return plotter.createLayer( geom, dataSpec, style );
+    }
+
+    /**
+     * Returns a plot layer plotting the first column of a given table
+     * as a histogram.
+     *
+     * @param  geom  data geom
+     * @param  table  data table
+     * @return  new layer
+     */
+    private PlotLayer createHistogramLayer( DataGeom geom, StarTable table ) {
+
+        /* Prepare the data. */
+        DataSpec dataSpec =
+            new ColumnDataSpec( table, new Coord[] { PlaneDataGeom.X_COORD },
+                                new int[][] { { 1 } } );
+
+        /* Prepare the style. */
+        Color color = Color.BLUE;
+        BarStyle.Form barForm = BarStyle.FORM_OPEN;
+        BarStyle.Placement placement = BarStyle.PLACE_ADJACENT;
+        boolean cumulative = true;
+        boolean norm = true;
+        int thick = 1;
+        float[] dash = null;
+        BinSizer sizer = BinSizer.createCountBinSizer( 16, true );
+        double phase = 0;
+        HistogramPlotter.HistoStyle style =
+            new HistogramPlotter.HistoStyle( color, barForm, placement,
+                                             cumulative, norm, thick, dash,
+                                             sizer, phase );
+
+        /* Combine data and style to generate a histogram plot layer. */
+        Plotter plotter = new HistogramPlotter( PlaneDataGeom.X_COORD, false );
         return plotter.createLayer( geom, dataSpec, style );
     }
 }
