@@ -1,10 +1,15 @@
 package uk.ac.starlink.ttools.cone;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 import org.xml.sax.SAXException;
@@ -163,6 +168,75 @@ public class CdsUploadMatcher implements UploadMatcher {
         else {
             return "vizier:" + txt;
         }
+    }
+
+    /**
+     * Reads the list of VizieR table aliases that can be used with
+     * the Xmatch service.  This is expected to be a short list
+     * (a few tens of entries).
+     *
+     * @return alias list
+     */
+    public static String[] readAliases() throws IOException {
+        String url = XMATCH_URL + "/tables?action=getPrettyNames";
+        logger_.info( "Reading VizieR aliases from " + url );
+        List<String> aliasList = new ArrayList<String>();
+        BufferedReader rdr = getLineReader( url );
+        try {
+            for ( String line; ( line = rdr.readLine() ) != null; ) {
+                aliasList.add( line );
+            }
+        }
+        finally {
+            rdr.close();
+        }
+        String[] aliases = aliasList.toArray( new String[ 0 ] );
+        logger_.info( "Got " + aliases.length + " VizieR aliases" );
+        Arrays.sort( aliases );
+        return aliases;
+    }
+
+    /**
+     * Reads the list of VizieR table names that can be used with
+     * the Xmatch service.  This is expected to be several thousand
+     * entries long.
+     *
+     * @return  table name list
+     */
+    private static String[] readVizierNames() throws IOException {
+        String url = XMATCH_URL + "/tables?action=getVizieRTableNames";
+        logger_.info( "Reading VizieR table names from " + url );
+        List<String> nameList = new ArrayList<String>();
+        BufferedReader rdr = getLineReader( url );
+        try {
+            for ( String line; ( line = rdr.readLine() ) != null; ) {
+                String name = line.replaceAll( "[\\[\\]\",]", "" ).trim();
+                if ( name.length() > 0 ) {
+                    nameList.add( name );
+                }
+            }
+        }
+        finally {
+            rdr.close();
+        }
+        String[] names = nameList.toArray( new String[ 0 ] );
+        logger_.info( "Got " + names.length + "VizieR table names" );
+        Arrays.sort( names );
+        return names;
+    }
+
+    /**
+     * Returns a BufferedReader to read text lines from a URL,
+     * suitable for VizieR output.
+     *
+     * @param  urltxt  target URL
+     * @return  UTF8 reader
+     */
+    private static BufferedReader getLineReader( String urltxt )
+            throws IOException {
+        URL url = new URL( urltxt );
+        return new BufferedReader( new InputStreamReader( url.openStream(),
+                                                          "utf8" ) );
     }
 
     /**
