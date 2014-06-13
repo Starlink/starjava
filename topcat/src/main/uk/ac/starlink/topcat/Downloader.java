@@ -1,9 +1,22 @@
 package uk.ac.starlink.topcat;
 
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.Icon;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.SwingUtilities;
 
 /**
  * Manages downloading of data that only needs to be got once.
@@ -15,6 +28,8 @@ public abstract class Downloader<T> {
 
     private final Class<T> clazz_;
     private final String dataDescription_;
+    private final List<ActionListener> listenerList_;
+    private final Runnable changeRunnable_;
     private volatile boolean isComplete_;
     private volatile T data_;
 
@@ -31,6 +46,15 @@ public abstract class Downloader<T> {
     public Downloader( Class<T> clazz, String dataDescription ) {
         clazz_ = clazz;
         dataDescription_ = dataDescription;
+        listenerList_ = new ArrayList<ActionListener>();
+        changeRunnable_ = new Runnable() {
+            final ActionEvent evt = new ActionEvent( this, 0, "Changed" );
+            public void run() {
+                for ( ActionListener listener : listenerList_ ) {
+                    listener.actionPerformed( evt );
+                }
+            }
+        };
     }
 
     /**
@@ -70,6 +94,7 @@ public abstract class Downloader<T> {
     public synchronized void clearData() {
         isComplete_ = false;
         data_ = null;
+        informListeners();
     }
 
     /**
@@ -87,8 +112,82 @@ public abstract class Downloader<T> {
         else {
             data_ = readData();
             isComplete_ = true;
+            informListeners();
             return data_;
         }
+    }
+
+    /**
+     * Returns a little component that monitors status of this downloader.
+     * Currently, it is blank before the download has happened,
+     * then turns to green on success or red on failure.
+     */
+    public JComponent createMonitorComponent() {
+        final int size = 10;
+        Icon icon = new Icon() {
+            public int getIconWidth() {
+                return size;
+            }
+            public int getIconHeight() {
+                return size;
+            }
+            public void paintIcon( Component c, Graphics g, int x, int y ) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g = null;
+                g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING,
+                                     RenderingHints.VALUE_ANTIALIAS_ON );
+                Color fillColor = getStatusColor();
+                if ( fillColor != null ) {
+                    g2.setColor( fillColor );
+                    g2.fillOval( x + 1, y + 1, size - 2, size - 2 );
+                }
+                g2.setColor( Color.DARK_GRAY );
+                g2.drawOval( x + 1, y + 1, size - 2, size - 2 );
+                g2.setColor( Color.GRAY );
+                g2.drawOval( x + 2, y + 2, size - 4, size - 4 );
+            }
+            private Color getStatusColor() {
+                if ( isComplete() ) {
+                    return getData() == null ? Color.RED : Color.GREEN;
+                }
+                else {
+                    return null;
+                }
+            }
+        };
+        final JLabel label = new JLabel( icon );
+        addActionListener( new ActionListener() {
+            public void actionPerformed( ActionEvent evt ) {
+                label.repaint();
+            }
+        } );
+        return label;
+    }
+
+    /**
+     * Adds a listener that will be notified if the data acquisition status
+     * changes.
+     *
+     * @param  listener   listener
+     */
+    public void addActionListener( ActionListener listener ) {
+        listenerList_.add( listener );
+    }
+
+    /**
+     * Removes a previously added listener.
+     *
+     * @param  listener   listener
+     */
+    public void removeActionListener( ActionListener listener ) {
+        listenerList_.remove( listener );
+    }
+
+    /**
+     * Informs listeners if the status has changed.
+     */
+    private void informListeners() {
+        SwingUtilities.invokeLater( changeRunnable_ );
     }
 
     /**
