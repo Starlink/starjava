@@ -1,5 +1,6 @@
 package uk.ac.starlink.topcat.join;
 
+import java.awt.BorderLayout;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -36,7 +37,7 @@ public class CdsTableSelector extends JPanel {
      * Constructor.
      */
     public CdsTableSelector() {
-        setLayout( new BoxLayout( this, BoxLayout.Y_AXIS ) );
+        setLayout( new BorderLayout() );
 
         /* Add selector component. */
         nameSelector_ = new JComboBox();
@@ -68,8 +69,8 @@ public class CdsTableSelector extends JPanel {
         JComponent selectorLine = Box.createHorizontalBox();
         selectorLine.add( label_ );
         selectorLine.add( nameSelector_ );
-        selectorLine.add( Box.createHorizontalGlue() );
-        add( selectorLine );
+        selectorLine.add( Box.createHorizontalStrut( 5 ) );
+        selectorLine.add( aliasDownloader_.createMonitorComponent() );
         JComponent infoLine = Box.createHorizontalBox();
         JLabel infoLabel =
                 new JLabel( "Select alias or use VizieR ID like "
@@ -85,8 +86,11 @@ public class CdsTableSelector extends JPanel {
         infoLabel.setFont( font );
         infoLine.add( Box.createHorizontalGlue() );
         infoLine.add( infoLabel );
-        add( infoLine );
-        add( Box.createVerticalStrut( 5 ) );
+        JComponent main = Box.createVerticalBox();
+        add( main, BorderLayout.CENTER );
+        main.add( selectorLine );
+        main.add( infoLine );
+        main.add( Box.createVerticalStrut( 5 ) );
     }
 
     /**
@@ -111,8 +115,10 @@ public class CdsTableSelector extends JPanel {
      * @param  aliases  list of vizier table aliases
      */
     private void addAliases( String[] aliases ) {
-        for ( int i = 0; i < aliases.length; i++ ) {
-             nameSelector_.addItem( aliases[ i ] );
+        if ( aliases != null ) {
+            for ( int i = 0; i < aliases.length; i++ ) {
+                nameSelector_.addItem( aliases[ i ] );
+            }
         }
     }
 
