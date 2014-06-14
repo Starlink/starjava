@@ -1,7 +1,9 @@
 package uk.ac.starlink.ttools.cone;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.URL;
@@ -12,6 +14,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+import org.json.JSONObject;
+import org.json.JSONTokener;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.ColumnInfo;
@@ -20,6 +24,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.table.UnrepeatableSequenceException;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.util.CgiQuery;
 import uk.ac.starlink.vo.HttpStreamParam;
 import uk.ac.starlink.vo.TapQuery;
 import uk.ac.starlink.vo.UwsJob;
@@ -46,6 +51,7 @@ public class CdsUploadMatcher implements UploadMatcher {
     /** URL for the CDS Xmatch service. */
     public static final String XMATCH_URL =
         "http://cdsxmatch.u-strasbg.fr/xmatch/api/v1/sync";
+    public static final String SIMBAD_NAME = "SIMBAD";
 
     private static final String RA_NAME = "__UPLOAD_RA__";
     private static final String DEC_NAME = "__UPLOAD_DEC__";
@@ -162,8 +168,8 @@ public class CdsUploadMatcher implements UploadMatcher {
         if ( txt.length() == 0 ) {
             return null;
         }
-        else if ( txt.equalsIgnoreCase( "simbad" ) ) {
-            return "simbad";
+        else if ( txt.equalsIgnoreCase( SIMBAD_NAME ) ) {
+            return SIMBAD_NAME;
         }
         else {
             return "vizier:" + txt;
@@ -203,7 +209,7 @@ public class CdsUploadMatcher implements UploadMatcher {
      *
      * @return  table name list
      */
-    private static String[] readVizierNames() throws IOException {
+    public static String[] readVizierNames() throws IOException {
         String url = XMATCH_URL + "/tables?action=getVizieRTableNames";
         logger_.info( "Reading VizieR table names from " + url );
         List<String> nameList = new ArrayList<String>();
@@ -223,6 +229,120 @@ public class CdsUploadMatcher implements UploadMatcher {
         logger_.info( "Got " + names.length + "VizieR table names" );
         Arrays.sort( names );
         return names;
+    }
+
+    /**
+     * Reads basic table metadata for a given VizieR table.
+     *
+     * @param  vizName  vizier table name or ID
+     * @return   basic metadata object
+     */
+    public static VizierMeta readVizierMetadata( String vizName )
+            throws IOException {
+        CgiQuery query = new CgiQuery( XMATCH_URL + "/tables" );
+        query.addArgument( "action", "getInfo" );
+        query.addArgument( "tabName", vizName );
+        URL url = query.toURL();
+        logger_.info( "Reading " + vizName + " metadata from " + url );
+        InputStream in = new BufferedInputStream( url.openStream() );
+        JSONObject infoObj;
+        try {
+            JSONTokener jt = new JSONTokener( in );
+            Object next = jt.nextValue();
+            if ( next instanceof JSONObject ) {
+                return new VizierMeta( (JSONObject) next );
+            }
+            else {
+                throw new IOException( "Unexpected JSON object from " + url );
+            }
+        }
+        finally {
+            in.close();
+        }
+    }
+
+    /**
+     * Metadata provided for Vizier tables by the CDS Xmatch service.
+     */
+    public static class VizierMeta {
+        private final String name_;
+        private final String prettyName_;
+        private final Long rowCount_;
+        private final String desc_;
+
+        /**
+         * Constructs an instance from a JSON object.
+         *
+         * @param   jobj   vizier table info JSON object
+         */
+        private VizierMeta( JSONObject jobj ) {
+            name_ = jobj.optString( "name", null );
+            prettyName_ = jobj.optString( "prettyName", null );
+            desc_ = jobj.optString( "desc", null );
+            long nbrows = jobj.optLong( "nbrows", -1L );
+            rowCount_ = nbrows >=0 ? new Long( nbrows ) : null;
+        }
+
+        /**
+         * Returns the canonical VizieR table ID.
+         *
+         * @return  table name
+         */
+        public String getName() {
+            return name_;
+        }
+
+        /**
+         * Returns a table alias, if available.
+         *
+         * @return  table alias, or null
+         */
+        public String getPrettyName() {
+            return prettyName_;
+        }
+
+        /**
+         * Returns a table description.
+         *
+         * @return  table description
+         */
+        public String getDescription() {
+            return desc_;
+        }
+
+        /**
+         * Returns table row count.
+         *
+         * @return  row count, or null
+         */
+        public Long getRowCount() {
+            return rowCount_;
+        }
+
+        @Override
+        public String toString() {
+            StringBuffer sbuf = new StringBuffer();
+            if ( name_ != null ) {
+                sbuf.append( "name: " )
+                    .append( name_ );
+            }
+            if ( prettyName_ != null ) {
+                sbuf.append( "; " )
+                    .append( "prettyName: " )
+                    .append( prettyName_ );
+            }
+            if ( rowCount_ != null ) {
+                sbuf.append( "; " )
+                    .append( "rowCount: " )
+                    .append( rowCount_ );
+            }
+            if ( desc_ != null ) {
+                sbuf.append( "; " )
+                    .append( "desc: " )
+                    .append( desc_ );
+            }
+            return sbuf.toString();
+        }
     }
 
     /**

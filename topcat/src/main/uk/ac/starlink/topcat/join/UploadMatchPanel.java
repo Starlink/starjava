@@ -12,6 +12,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.Action;
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -33,6 +34,7 @@ import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.storage.MonitorStoragePolicy;
+import uk.ac.starlink.topcat.AuxWindow;
 import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.ColumnSelector;
 import uk.ac.starlink.topcat.ControlWindow;
@@ -101,12 +103,28 @@ public class UploadMatchPanel extends JPanel {
 
         /* Field for remote table. */
         cdsTableSelector_ = new CdsTableSelector();
-        Box remoteLine = Box.createHorizontalBox();
-        remoteLine.add( cdsTableSelector_ );
-        remoteLine.add( Box.createHorizontalGlue() );
-        main.add( remoteLine );
-        main.add( Box.createVerticalStrut( 5 ) );
+        cdsTableSelector_.setBorder(
+            BorderFactory.createCompoundBorder(
+                AuxWindow.makeTitledBorder( "Remote Table" ),
+                BorderFactory.createEmptyBorder( 5, 5, 5, 5 ) ) );
         cList.add( cdsTableSelector_ );
+
+        /* Containers for different input fields. */
+        JComponent localBox = Box.createVerticalBox();
+        JComponent paramBox = Box.createVerticalBox();
+        localBox.setBorder(
+            BorderFactory.createCompoundBorder(
+                AuxWindow.makeTitledBorder( "Local Table" ),
+                BorderFactory.createEmptyBorder( 5, 5, 5, 5 ) ) );
+        paramBox.setBorder(
+            BorderFactory.createCompoundBorder(
+                AuxWindow.makeTitledBorder( "Match Parameters" ),
+                BorderFactory.createEmptyBorder( 5, 5, 5, 5 ) ) );
+        main.add( cdsTableSelector_ );
+        main.add( Box.createVerticalStrut( 5 ) );
+        main.add( localBox );
+        main.add( Box.createVerticalStrut( 5 ) );
+        main.add( paramBox );
 
         /* Field for input table. */
         final JComboBox tableSelector = new TablesListComboBox();
@@ -122,8 +140,8 @@ public class UploadMatchPanel extends JPanel {
         tableLine.add( tableLabel );
         tableLine.add( new ShrinkWrapper( tableSelector ) );
         tableLine.add( Box.createHorizontalGlue() );
-        main.add( tableLine );
-        main.add( Box.createVerticalStrut( 5 ) );
+        localBox.add( tableLine );
+        localBox.add( Box.createVerticalStrut( 5 ) );
 
         /* Fields for position parameters. */
         raSelector_ = new ColumnSelector( Tables.RA_INFO, true );
@@ -132,8 +150,8 @@ public class UploadMatchPanel extends JPanel {
         JLabel raSysLabel = new JLabel( " (J2000)" );
         raLine.add( raSysLabel );
         raLine.add( Box.createHorizontalGlue() );
-        main.add( raLine );
-        main.add( Box.createVerticalStrut( 5 ) );
+        localBox.add( raLine );
+        localBox.add( Box.createVerticalStrut( 5 ) );
         cList.add( raSelector_ );
         cList.add( raSysLabel );
         decSelector_ = new ColumnSelector( Tables.DEC_INFO, true );
@@ -142,8 +160,8 @@ public class UploadMatchPanel extends JPanel {
         JLabel decSysLabel = new JLabel( " (J2000)" );
         decLine.add( decSysLabel );
         decLine.add( Box.createHorizontalGlue() );
-        main.add( decLine );
-        main.add( Box.createVerticalStrut( 5 ) );
+        localBox.add( decLine );
+        localBox.add( Box.createVerticalStrut( 5 ) );
         cList.add( decSelector_ );
         cList.add( decSysLabel );
         srField_ = DoubleValueField.makeSizeDegreesField( SR_INFO );
@@ -156,8 +174,8 @@ public class UploadMatchPanel extends JPanel {
         srLine.add( Box.createHorizontalGlue() );
         srField_.getConverterSelector().setSelectedIndex( 2 );
         srField_.getEntryField().setText( "1.0" );
-        main.add( srLine );
-        main.add( Box.createVerticalStrut( 5 ) );
+        paramBox.add( srLine );
+        paramBox.add( Box.createVerticalStrut( 5 ) );
         cList.add( srField_.getEntryField() );
         cList.add( srField_.getLabel() );
         cList.add( srField_.getConverterSelector() );
@@ -166,17 +184,14 @@ public class UploadMatchPanel extends JPanel {
         TopcatUtils.alignComponents( new JComponent[] {
             raSelector_.getLabel(),
             decSelector_.getLabel(),
-            srField_.getLabel()
         } );
         TopcatUtils.alignComponents( new JComponent[] {
             raSelector_.getColumnComponent(),
             decSelector_.getColumnComponent(),
-            srField_.getEntryField(),
         } );
         TopcatUtils.alignComponents( new JComponent[] {
             raSelector_.getUnitComponent(),
             decSelector_.getUnitComponent(),
-            srField_.getConverterSelector(),
         } );
 
         /* Service access parameters. */
@@ -188,8 +203,8 @@ public class UploadMatchPanel extends JPanel {
         modeLine.add( Box.createHorizontalGlue() );
         cList.add( modeLabel );
         cList.add( modeSelector_ );
-        main.add( modeLine );
-        main.add( Box.createVerticalStrut( 5 ) );
+        paramBox.add( modeLine );
+        paramBox.add( Box.createVerticalStrut( 5 ) );
         Box blockLine = Box.createHorizontalBox();
         blockSelector_ = new JComboBox();
         for ( int i = 0; i < BLOCK_SIZES.length; i++ ) {
@@ -203,7 +218,7 @@ public class UploadMatchPanel extends JPanel {
         blockLine.add( Box.createHorizontalGlue() );
         cList.add( blockLabel );
         cList.add( blockSelector_ );
-        main.add( blockLine );
+        paramBox.add( blockLine );
 
         /* Actions to start/stop match. */
         startAction_ = new BasicAction( "Go", null,
