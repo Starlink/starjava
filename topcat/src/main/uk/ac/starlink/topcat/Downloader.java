@@ -17,6 +17,7 @@ import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 
 /**
  * Manages downloading of data that only needs to be got once.
@@ -30,6 +31,7 @@ public abstract class Downloader<T> {
     private final String dataDescription_;
     private final List<ActionListener> listenerList_;
     private final Runnable changeRunnable_;
+    private final Timer timer_;
     private volatile IOException error_;
     private volatile boolean isStarted_;
     private volatile boolean isComplete_;
@@ -57,6 +59,14 @@ public abstract class Downloader<T> {
                 }
             }
         };
+        timer_  = new Timer( 20, new ActionListener() {
+            public void actionPerformed( ActionEvent evt ) {
+                for ( ActionListener listener : listenerList_ ) {
+                    listener.actionPerformed( evt );
+                }
+            }
+        } );
+        timer_.stop();
     }
 
     /**
@@ -115,9 +125,15 @@ public abstract class Downloader<T> {
         }
         else {
             isStarted_ = true;
-            data_ = readData();
-            isComplete_ = true;
-            informListeners();
+            try {
+                timer_.start();
+                data_ = readData();
+            }
+            finally {
+                timer_.stop();
+                isComplete_ = true;
+                informListeners();
+            }
             return data_;
         }
     }
@@ -129,6 +145,7 @@ public abstract class Downloader<T> {
      */
     public JComponent createMonitorComponent() {
         final int size = 10;
+        final int period = 1000;
         Icon icon = new Icon() {
             public int getIconWidth() {
                 return size;
@@ -137,23 +154,46 @@ public abstract class Downloader<T> {
                 return size;
             }
             public void paintIcon( Component c, Graphics g, int x, int y ) {
+                boolean isComplete = isComplete();
+                boolean isStarted = isStarted_;
                 Graphics2D g2 = (Graphics2D) g.create();
                 g = null;
                 g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING,
                                      RenderingHints.VALUE_ANTIALIAS_ON );
-                Color fillColor = getStatusColor();
+                final Color fillColor;
+                if ( isComplete ) { 
+                    fillColor = getData() == null ? Color.RED : Color.GREEN;
+                }
+                else if ( isStarted ) {
+                    fillColor = Color.ORANGE;
+                }
+                else {
+                    fillColor = null;
+                }
                 if ( fillColor != null ) {
                     g2.setColor( fillColor );
-                    g2.fillOval( x + 1, y + 1, size - 2, size - 2 );
+                    g2.fillOval( x + 2, y + 2, size - 4, size - 4 );
                 }
                 g2.setColor( Color.DARK_GRAY );
                 g2.drawOval( x + 1, y + 1, size - 2, size - 2 );
                 g2.setColor( Color.GRAY );
                 g2.drawOval( x + 2, y + 2, size - 4, size - 4 );
+                if ( isStarted && ! isComplete ) {
+                    double phase =
+                        ( System.currentTimeMillis() % period ) * 1.0 / period;
+                    int r =
+                        (int) ( ( Math.abs( phase - 0.5 ) ) * ( size - 2 ) );
+                    g2.setColor( Color.GRAY );
+                    g2.drawOval( x + size / 2 - r, y + size / 2 - r,
+                                 2 * r, 2 * r );
+                }
             }
             private Color getStatusColor() {
                 if ( isComplete() ) {
                     return getData() == null ? Color.RED : Color.GREEN;
+                }
+                else if ( isStarted_ ) {
+                    return Color.ORANGE;
                 }
                 else {
                     return null;

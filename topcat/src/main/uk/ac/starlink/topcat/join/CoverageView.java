@@ -114,8 +114,8 @@ public class CoverageView extends JComponent {
         super.paintComponent( g );
         Dimension size = getSize();
         Insets insets = getInsets();
-        int w = size.width - insets.left - insets.right;
-        int h = size.height - insets.top - insets.bottom;
+        int w = size.width - insets.left - insets.right - 1;
+        int h = size.height - insets.top - insets.bottom - 1;
         int x = insets.left;
         int y = insets.top;
         int wover = w - h * 2;
