@@ -1,6 +1,8 @@
 package uk.ac.starlink.topcat.join;
 
+import cds.moc.HealpixMoc;
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.IOException;
@@ -21,6 +23,9 @@ import uk.ac.starlink.topcat.Downloader;
 import uk.ac.starlink.topcat.TopcatUtils;
 import uk.ac.starlink.ttools.cone.CdsUploadMatcher;
 import uk.ac.starlink.ttools.cone.CdsUploadMatcher.VizierMeta;
+import uk.ac.starlink.ttools.cone.Coverage;
+import uk.ac.starlink.ttools.cone.MocCoverage;
+import uk.ac.starlink.ttools.cone.UrlMocCoverage;
 
 /**
  * Component that allows the user to select table names for use with
@@ -36,13 +41,18 @@ public class CdsTableSelector extends JPanel {
     private final JLabel selectorLabel_;
     private final JComboBox nameSelector_;
     private final VizierMetaDownloader metaDownloader_;
+    private final MocDownloader mocDownloader_;
     private final JTextField nameField_;
     private final JTextField aliasField_;
     private final JTextField descField_;
     private final JTextField nrowField_;
+    private final JTextField mocField_;
+    private final CoverageView mocView_;
     private final ExecutorService metaExecutor_;
+    private final ExecutorService mocExecutor_;
     private String tableName_;
     private Future<?> metaFuture_;
+    private Future<?> mocFuture_;
 
     private static final Downloader<String[]> aliasDownloader_ =
         createAliasDownloader();
@@ -94,29 +104,45 @@ public class CdsTableSelector extends JPanel {
         /* Table metadata. */
         LabelledComponentStack stack = new LabelledComponentStack();
         nameField_ = createMetaField();
-        stack.addLine( "ID", nameField_ );
         aliasField_ = createMetaField();
-        stack.addLine( "Alias", aliasField_ );
         descField_ = createMetaField();
-        stack.addLine( "Description", descField_ );
         nrowField_ = createMetaField();
-        stack.addLine( "Row Count", nrowField_ );
-        JComponent infoLine = Box.createHorizontalBox();
+
+        /* Coverage view. */
+        mocDownloader_ = new MocDownloader();
+        mocExecutor_ = Executors.newSingleThreadExecutor();
         metaDownloader_ = new VizierMetaDownloader();
         metaExecutor_ = Executors.newSingleThreadExecutor();
-        infoLine.add( stack );
-        infoLine.add( Box.createHorizontalStrut( 5 ) );
-        JComponent metaMonBox = Box.createVerticalBox();
-        metaMonBox.add( metaDownloader_.createMonitorComponent() );
-        metaMonBox.add( Box.createVerticalGlue() );
-        infoLine.add( metaMonBox );
+
+        mocField_ = createMetaField();
+        mocView_ = new CoverageView();
+        mocView_.setForeground( new Color( 0x0000ff ) );
+        mocView_.setBackground( new Color( 0xc0c0ff ) );
+
+        JComponent covBox = Box.createHorizontalBox();
+        covBox.add( mocField_ );
+        covBox.add( Box.createHorizontalStrut( 10 ) );
+        covBox.add( mocView_ );
+        covBox.add( Box.createHorizontalStrut( 10 ) );
+        covBox.add( mocDownloader_.createMonitorComponent() );
+        JComponent nameBox = Box.createHorizontalBox();
+        nameBox.add( nameField_ );
+        nameBox.add( Box.createHorizontalStrut( 10 ) );
+        nameBox.add( metaDownloader_.createMonitorComponent() );
+
+        stack.addLine( "Name", null, nameBox, true );
+        stack.addLine( "Alias", aliasField_ );
+        stack.addLine( "Description", descField_ );
+        stack.addLine( "Row Count", nrowField_ );
+        stack.addLine( "Coverage", null, covBox, true );
 
         /* Initialise and place components. */
         updateTableName();
         JComponent main = Box.createVerticalBox();
         add( main, BorderLayout.CENTER );
         main.add( selectorLine );
-        main.add( infoLine );
+        main.add( Box.createVerticalStrut( 5 ) );
+        main.add( stack );
         main.add( Box.createVerticalStrut( 5 ) );
     }
 
@@ -127,6 +153,16 @@ public class CdsTableSelector extends JPanel {
      */
     public String getTableName() {
         return tableName_;
+    }
+
+    /**
+     * Returns the coverage object for the currently selected table,
+     * if available.
+     *
+     * @return   coverage for current table
+     */
+    public MocCoverage getCoverage() {
+        return mocDownloader_.getData();
     }
 
     @Override
@@ -145,7 +181,15 @@ public class CdsTableSelector extends JPanel {
         String tableName = (String) nameSelector_.getSelectedItem();
         tableName_ = tableName;
         metaDownloader_.setTableName( tableName );
+        mocDownloader_.setTableName( tableName );
+
+        /* If the new table is non-null, update state with information
+         * that has to be downloaded from remote services.
+         * For each item, do the update synchronously if the data is
+         * known to be available immediately, otherwise asynchronously. */
         if ( tableName != null ) {
+
+            /* Update table metadata. */
             if ( metaDownloader_.isComplete() ) {
                 setMetadata( metaDownloader_.getData() );
             }
@@ -159,6 +203,26 @@ public class CdsTableSelector extends JPanel {
                         SwingUtilities.invokeLater( new Runnable() {
                             public void run() {
                                 setMetadata( meta );
+                            }
+                        } );
+                    }
+                } );
+            }
+
+            /* Update table coverage. */
+            if ( mocDownloader_.isComplete() ) {
+                setMoc( mocDownloader_.getData() );
+            }
+            else {
+                if ( mocFuture_ != null ) {
+                    mocFuture_.cancel( true );
+                }
+                mocFuture_ = mocExecutor_.submit( new Runnable() {
+                    public final void run() {
+                        final MocCoverage moc = mocDownloader_.waitForData();
+                        SwingUtilities.invokeLater( new Runnable() {
+                            public void run() {
+                                setMoc( moc );
                             }
                         } );
                     }
@@ -193,6 +257,28 @@ public class CdsTableSelector extends JPanel {
                       nrow == null
                           ? null
                           : TopcatUtils.formatLong( nrow.longValue() ) );
+    }
+
+    /**
+     * Updates the display to show a given coverage object.
+     *
+     * @param  coverage  coverage item to display
+     */
+    private void setMoc( MocCoverage coverage ) {
+        String txt = null;
+        if ( coverage != null ) {
+            HealpixMoc hmoc = coverage.getMoc();
+            if ( hmoc != null ) {
+                txt = new StringBuffer()
+                     .append( Float.toString( (float) hmoc.getCoverage() ) )
+                     .append( " (order " )
+                     .append( hmoc.getMaxOrder() )
+                     .append( ")" )
+                     .toString();
+            }
+        }
+        mocField_.setText( txt );
+        mocView_.setCoverage( coverage );
     }
 
     /**
@@ -275,6 +361,67 @@ public class CdsTableSelector extends JPanel {
                 clearData();
             }
             tableName_ = tableName;
+        }
+    }
+
+    /**
+     * Downloader for acquiring <b>initialised</b> MOC coverage objects.
+     */
+    private static class MocDownloader extends Downloader<MocCoverage> {
+
+        private String tableName_;
+        private MocCoverage moc_;
+
+        /**
+         * Constructor.
+         */
+        MocDownloader() {
+            super( MocCoverage.class, "VizieR MOC" );
+        }
+
+        /**
+         * Sets the table name or ID for which metadata is required.
+         * Resetting this value causes the downloader to be cleared.
+         *
+         * @param  vizier table name or ID
+         */
+        public void setTableName( String tableName ) {
+            if ( tableName == null || ! tableName.equals( tableName_ ) ) {
+                clearData();
+            }
+            moc_ = tableName == null
+                 ? null
+                 : UrlMocCoverage.getVizierMoc( tableName, -1 );
+            tableName_ = tableName;
+        }
+
+        @Override
+        public MocCoverage getData() {
+            Coverage.Amount amount = moc_ == null ? null : moc_.getAmount();
+            if ( amount != null && amount != Coverage.Amount.NO_DATA ) {
+                return moc_;
+            }
+            else {
+                return null; 
+            }
+        }
+
+        @Override
+        public boolean isComplete() {
+            return super.isComplete()
+                || ( moc_ != null && moc_.getAmount() != null );
+        }
+
+        public MocCoverage attemptReadData() throws IOException {
+            if ( moc_ != null ) {
+                moc_.initCoverage();
+            }
+            if ( moc_ == null || moc_.getAmount() == Coverage.Amount.NO_DATA ) {
+                throw new IOException( "No MOC available" );
+            }
+            else {
+                return moc_;
+            }
         }
     }
 }
