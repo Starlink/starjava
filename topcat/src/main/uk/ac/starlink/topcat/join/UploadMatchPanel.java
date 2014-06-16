@@ -133,11 +133,9 @@ public class UploadMatchPanel extends JPanel {
                 setInputTable( (TopcatModel) tableSelector.getSelectedItem() );
             }
         } );
-        JLabel tableLabel = new JLabel( "Input Table: " );
-        cList.add( tableLabel );
         cList.add( tableSelector );
         Box tableLine = Box.createHorizontalBox();
-        tableLine.add( tableLabel );
+        tableLine.add( new JLabel( "Input Table: " ) );
         tableLine.add( new ShrinkWrapper( tableSelector ) );
         tableLine.add( Box.createHorizontalGlue() );
         localBox.add( tableLine );
@@ -147,23 +145,19 @@ public class UploadMatchPanel extends JPanel {
         raSelector_ = new ColumnSelector( Tables.RA_INFO, true );
         Box raLine = Box.createHorizontalBox();
         raLine.add( raSelector_ );
-        JLabel raSysLabel = new JLabel( " (J2000)" );
-        raLine.add( raSysLabel );
+        raLine.add( new JLabel( " (J2000)" ) );
         raLine.add( Box.createHorizontalGlue() );
         localBox.add( raLine );
         localBox.add( Box.createVerticalStrut( 5 ) );
         cList.add( raSelector_ );
-        cList.add( raSysLabel );
         decSelector_ = new ColumnSelector( Tables.DEC_INFO, true );
         Box decLine = Box.createHorizontalBox();
         decLine.add( decSelector_ );
-        JLabel decSysLabel = new JLabel( " (J2000)" );
-        decLine.add( decSysLabel );
+        decLine.add( new JLabel( " (J2000)" ) );
         decLine.add( Box.createHorizontalGlue() );
         localBox.add( decLine );
         localBox.add( Box.createVerticalStrut( 5 ) );
         cList.add( decSelector_ );
-        cList.add( decSysLabel );
         TopcatUtils.alignComponents( new JComponent[] {
             raSelector_.getLabel(),
             decSelector_.getLabel(),
@@ -191,17 +185,14 @@ public class UploadMatchPanel extends JPanel {
         paramBox.add( srLine );
         paramBox.add( Box.createVerticalStrut( 5 ) );
         cList.add( srField_.getEntryField() );
-        cList.add( srField_.getLabel() );
         cList.add( srField_.getConverterSelector() );
 
         /* Find mode selector. */
         Box modeLine = Box.createHorizontalBox();
         modeSelector_ = new JComboBox( UploadFindMode.getInstances() );
-        JLabel modeLabel = new JLabel( "Find mode: " );
-        modeLine.add( modeLabel );
+        modeLine.add( new JLabel( "Find mode: " ) );
         modeLine.add( new ShrinkWrapper( modeSelector_ ) );
         modeLine.add( Box.createHorizontalGlue() );
-        cList.add( modeLabel );
         cList.add( modeSelector_ );
         paramBox.add( modeLine );
         paramBox.add( Box.createVerticalStrut( 5 ) );
@@ -210,11 +201,9 @@ public class UploadMatchPanel extends JPanel {
         Box fixLine = Box.createHorizontalBox();
         fixSelector_ = new JoinFixSelector();
         fixSelector_.getSuffixField().setText( "_x" );
-        JLabel fixLabel = new JLabel( "Rename columns: " );
-        fixLine.add( fixLabel );
+        fixLine.add( new JLabel( "Rename columns: " ) );
         fixLine.add( fixSelector_ );
         fixLine.add( Box.createHorizontalGlue() );
-        cList.add( fixLabel );
         cList.add( fixSelector_ );
         paramBox.add( fixLine );
         paramBox.add( Box.createVerticalStrut( 5 ) );
@@ -227,13 +216,11 @@ public class UploadMatchPanel extends JPanel {
         }
         blockSelector_.setSelectedItem( Integer.toString( DEFAULT_BLOCKSIZE ) );
         blockSelector_.setEditable( true );
-        JLabel blockLabel = new JLabel( "Block size: " );
-        blockLine.add( blockLabel );
+        blockLine.add( new JLabel( "Block size: " ) );
         blockLine.add( new ShrinkWrapper( blockSelector_ ) );
         blockLine.add( Box.createHorizontalStrut( 5 ) );
         blockLine.add( new ComboBoxBumper( blockSelector_ ) );
         blockLine.add( Box.createHorizontalGlue() );
-        cList.add( blockLabel );
         cList.add( blockSelector_ );
         paramBox.add( blockLine );
 
