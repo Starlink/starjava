@@ -38,17 +38,22 @@ import uk.ac.starlink.topcat.AuxWindow;
 import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.ColumnSelector;
 import uk.ac.starlink.topcat.ControlWindow;
+import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.Scheduler;
 import uk.ac.starlink.topcat.TablesListComboBox;
+import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.TopcatUtils;
 import uk.ac.starlink.ttools.cone.BlockUploader;
 import uk.ac.starlink.ttools.cone.ConeQueryRowSequence;
+import uk.ac.starlink.ttools.cone.Coverage;
+import uk.ac.starlink.ttools.cone.CoverageQuerySequenceFactory;
 import uk.ac.starlink.ttools.cone.CdsUploadMatcher;
 import uk.ac.starlink.ttools.cone.QuerySequenceFactory;
 import uk.ac.starlink.ttools.cone.ServiceFindMode;
 import uk.ac.starlink.ttools.cone.UploadMatcher;
 import uk.ac.starlink.ttools.cone.WrapperQuerySequence;
+import uk.ac.starlink.util.gui.ComboBoxBumper;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 import uk.ac.starlink.vo.DoubleValueField;
 
@@ -77,6 +82,7 @@ public class UploadMatchPanel extends JPanel {
     private final JComponent[] components_;
     private final Action startAction_;
     private final Action stopAction_;
+    private final ToggleButtonModel coverageModel_;
     private TopcatModel tcModel_;
     private volatile MatchWorker matchWorker_;
 
@@ -214,7 +220,9 @@ public class UploadMatchPanel extends JPanel {
         blockSelector_.setEditable( true );
         JLabel blockLabel = new JLabel( "Block size: " );
         blockLine.add( blockLabel );
-        blockLine.add( blockSelector_ );
+        blockLine.add( new ShrinkWrapper( blockSelector_ ) );
+        blockLine.add( Box.createHorizontalStrut( 5 ) );
+        blockLine.add( new ComboBoxBumper( blockSelector_ ) );
         blockLine.add( Box.createHorizontalGlue() );
         cList.add( blockLabel );
         cList.add( blockSelector_ );
@@ -234,6 +242,15 @@ public class UploadMatchPanel extends JPanel {
                 setActive( null );
             }
         };
+
+        /* Configure coverage display toggle. */
+        coverageModel_ =
+            new ToggleButtonModel( "Use Service Coverage",
+                                   ResourceIcon.FOOTPRINT,
+                                   "Use service coverage information (MOCs) "
+                                 + "where available to avoid unnecessary "
+                                 + "queries" );
+        coverageModel_.setSelected( true );
 
         /* Initialise enabledness of controls etc. */
         components_ = cList.toArray( new JComponent[ 0 ] );
@@ -256,6 +273,16 @@ public class UploadMatchPanel extends JPanel {
      */
     public Action getStopAction() {
         return stopAction_;
+    }
+
+    /**
+     * Returns a toggle model which controls whether coverage icons
+     * are displayed in this panel.
+     *
+     * @return   coverage display model
+     */
+    public ToggleButtonModel getCoverageModel() {
+        return coverageModel_;
     }
 
     /**
@@ -371,6 +398,7 @@ public class UploadMatchPanel extends JPanel {
             throw new IllegalArgumentException( "Bad remote table name \""
                                               + cdsName + "\"" );
         }
+        Coverage serviceCoverage = cdsTableSelector_.getCoverage();
 
         /* Get other search parameters. */
         Object bf = blockSelector_.getSelectedItem();
@@ -398,7 +426,11 @@ public class UploadMatchPanel extends JPanel {
 
         /* Prepare objects to do the match. */
         QuerySequenceFactory qsFact =
-            new DataQuerySequenceFactory( raData, decData, -1, rowMap );
+            new DataQuerySequenceFactory( raData, decData, srDeg, rowMap );
+        if ( serviceCoverage != null && coverageModel_.isSelected() ) {
+            qsFact = new CoverageQuerySequenceFactory( qsFact,
+                                                       serviceCoverage );
+        }
         UploadMatcher umatcher =
             new CdsUploadMatcher( url, cdsId, srDeg * 3600., serviceMode );
         StoragePolicy storage =

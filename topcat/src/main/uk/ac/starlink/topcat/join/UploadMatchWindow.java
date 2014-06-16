@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JMenu;
 import uk.ac.starlink.topcat.AuxWindow;
 
 /**
@@ -28,6 +29,13 @@ public class UploadMatchWindow extends AuxWindow {
         JComponent controls = getControlPanel();
         controls.add( new JButton( matchPanel.getStartAction() ) );
         controls.add( new JButton( matchPanel.getStopAction() ) );
+
+        getToolBar().add( matchPanel.getCoverageModel().createToolbarButton() );
+        getToolBar().addSeparator();
+        JMenu searchMenu = new JMenu( "Search" );
+        searchMenu.add( matchPanel.getCoverageModel().createMenuItem() );
+        getJMenuBar().add( searchMenu );
+
         addHelp( "UploadMatchWindow" );
     }
 }
