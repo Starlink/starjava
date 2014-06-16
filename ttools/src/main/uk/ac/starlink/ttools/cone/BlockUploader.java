@@ -155,16 +155,16 @@ public class BlockUploader {
                            + nblock + " times, not just once, in the result" );
         }
 
-        /* Deduplicate column names as required. */
+        /* Prepare objects that know what uploaded/result columns and rows
+         * go where. */
         ColumnInfo[] rawCols = Tables.getColumnInfos( rawResult );
         ColumnInfo[] inCols = Tables.getColumnInfos( inTable );
+        ColumnPlan cplan = umatcher_.getColumnPlan( rawCols, inCols );
+
+        /* Deduplicate column names as required. */
         Tables.fixColumns( new ColumnInfo[][] { rawCols, inCols },
                            new JoinFixAction[] { remoteFixAct_,
                                                  uploadFixAct_ } );
-
-        /* Prepare objects that know what uploaded/result columns and rows
-         * go where. */
-        ColumnPlan cplan = umatcher_.getColumnPlan( rawCols, inCols );
 
         /* Combine the result table with the upload table to get the
          * final output. */

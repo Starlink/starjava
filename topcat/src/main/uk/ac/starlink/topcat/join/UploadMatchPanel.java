@@ -65,13 +65,6 @@ import uk.ac.starlink.vo.DoubleValueField;
  */
 public class UploadMatchPanel extends JPanel {
 
-    /* Implementation of this class follows DalMultiPanel.
-     * Some of the additional functionality in that class (MOCs?) should
-     * perhaps be added here in due course.
-     * This class does not currently make use of the java.util.concurrent
-     * Executor framework; it looks old-school, but I'm not sure that
-     * use of Executors would improve either robustness or comprehensility. */
-
     private final JProgressBar progBar_;
     private final CdsTableSelector cdsTableSelector_;
     private final ColumnSelector raSelector_;
@@ -79,6 +72,7 @@ public class UploadMatchPanel extends JPanel {
     private final DoubleValueField srField_;
     private final JComboBox blockSelector_;
     private final JComboBox modeSelector_;
+    private final JoinFixSelector fixSelector_;
     private final JComponent[] components_;
     private final Action startAction_;
     private final Action stopAction_;
@@ -88,7 +82,7 @@ public class UploadMatchPanel extends JPanel {
 
     private static final long MAXREC = -1;
     private static final int[] BLOCK_SIZES =
-        { 500000, 200000, 100000, 50000, 20000, 10000, 5000, 1000, 100 };
+        { 100, 1000, 5000, 10000, 20000, 50000, 100000, 200000, 500000, };
     private static final int DEFAULT_BLOCKSIZE = 10000;
     private static final ValueInfo SR_INFO =
         new DefaultValueInfo( "Radius", Double.class, "Search Radius" );
@@ -149,7 +143,7 @@ public class UploadMatchPanel extends JPanel {
         localBox.add( tableLine );
         localBox.add( Box.createVerticalStrut( 5 ) );
 
-        /* Fields for position parameters. */
+        /* Fields for sky position parameters. */
         raSelector_ = new ColumnSelector( Tables.RA_INFO, true );
         Box raLine = Box.createHorizontalBox();
         raLine.add( raSelector_ );
@@ -170,6 +164,20 @@ public class UploadMatchPanel extends JPanel {
         localBox.add( Box.createVerticalStrut( 5 ) );
         cList.add( decSelector_ );
         cList.add( decSysLabel );
+        TopcatUtils.alignComponents( new JComponent[] {
+            raSelector_.getLabel(),
+            decSelector_.getLabel(),
+        } );
+        TopcatUtils.alignComponents( new JComponent[] {
+            raSelector_.getColumnComponent(),
+            decSelector_.getColumnComponent(),
+        } );
+        TopcatUtils.alignComponents( new JComponent[] {
+            raSelector_.getUnitComponent(),
+            decSelector_.getUnitComponent(),
+        } );
+
+        /* Search radius field. */
         srField_ = DoubleValueField.makeSizeDegreesField( SR_INFO );
         Box srLine = Box.createHorizontalBox();
         srLine.add( srField_.getLabel() );
@@ -186,21 +194,7 @@ public class UploadMatchPanel extends JPanel {
         cList.add( srField_.getLabel() );
         cList.add( srField_.getConverterSelector() );
 
-        /* Align some of the components for cosmetic reasons. */
-        TopcatUtils.alignComponents( new JComponent[] {
-            raSelector_.getLabel(),
-            decSelector_.getLabel(),
-        } );
-        TopcatUtils.alignComponents( new JComponent[] {
-            raSelector_.getColumnComponent(),
-            decSelector_.getColumnComponent(),
-        } );
-        TopcatUtils.alignComponents( new JComponent[] {
-            raSelector_.getUnitComponent(),
-            decSelector_.getUnitComponent(),
-        } );
-
-        /* Service access parameters. */
+        /* Find mode selector. */
         Box modeLine = Box.createHorizontalBox();
         modeSelector_ = new JComboBox( UploadFindMode.getInstances() );
         JLabel modeLabel = new JLabel( "Find mode: " );
@@ -211,6 +205,21 @@ public class UploadMatchPanel extends JPanel {
         cList.add( modeSelector_ );
         paramBox.add( modeLine );
         paramBox.add( Box.createVerticalStrut( 5 ) );
+
+        /* Column deduplication selector. */
+        Box fixLine = Box.createHorizontalBox();
+        fixSelector_ = new JoinFixSelector();
+        fixSelector_.getSuffixField().setText( "_x" );
+        JLabel fixLabel = new JLabel( "Rename columns: " );
+        fixLine.add( fixLabel );
+        fixLine.add( fixSelector_ );
+        fixLine.add( Box.createHorizontalGlue() );
+        cList.add( fixLabel );
+        cList.add( fixSelector_ );
+        paramBox.add( fixLine );
+        paramBox.add( Box.createVerticalStrut( 5 ) );
+
+        /* Block size selector. */
         Box blockLine = Box.createHorizontalBox();
         blockSelector_ = new JComboBox();
         for ( int i = 0; i < BLOCK_SIZES.length; i++ ) {
@@ -437,8 +446,7 @@ public class UploadMatchPanel extends JPanel {
             ControlWindow.getInstance().getTableFactory().getStoragePolicy();
         String outName = tcModel.getID() + "x" + cdsName;
         JoinFixAction inFixAct = JoinFixAction.NO_ACTION;
-        JoinFixAction cdsFixAct =
-            JoinFixAction.makeRenameDuplicatesAction( "_cds" );
+        JoinFixAction cdsFixAct = fixSelector_.getJoinFixAction();
         boolean oneToOne = upMode.isOneToOne();
         BlockUploader blocker =
             new BlockUploader( umatcher, blocksize, maxrec, outName,
