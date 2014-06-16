@@ -38,7 +38,6 @@ import uk.ac.starlink.ttools.cone.UrlMocCoverage;
  */
 public class CdsTableSelector extends JPanel {
 
-    private final JLabel selectorLabel_;
     private final JComboBox nameSelector_;
     private final VizierMetaDownloader metaDownloader_;
     private final MocDownloader mocDownloader_;
@@ -92,11 +91,10 @@ public class CdsTableSelector extends JPanel {
                 updateTableName();
             }
         } );
-        selectorLabel_ = new JLabel( "VizieR Table ID/Alias: " );
 
         /* Selector line. */
         JComponent selectorLine = Box.createHorizontalBox();
-        selectorLine.add( selectorLabel_ );
+        selectorLine.add( new JLabel( "VizieR Table ID/Alias: " ) );
         selectorLine.add( nameSelector_ );
         selectorLine.add( Box.createHorizontalStrut( 5 ) );
         selectorLine.add( aliasDownloader_.createMonitorComponent() );
@@ -169,7 +167,6 @@ public class CdsTableSelector extends JPanel {
     public void setEnabled( boolean isEnabled ) {
         super.setEnabled( isEnabled );
         nameSelector_.setEnabled( isEnabled );
-        selectorLabel_.setEnabled( isEnabled );
     }
 
     /**
