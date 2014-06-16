@@ -30,6 +30,8 @@ public abstract class Downloader<T> {
     private final String dataDescription_;
     private final List<ActionListener> listenerList_;
     private final Runnable changeRunnable_;
+    private volatile IOException error_;
+    private volatile boolean isStarted_;
     private volatile boolean isComplete_;
     private volatile T data_;
 
@@ -92,8 +94,10 @@ public abstract class Downloader<T> {
      * had been made.
      */
     public synchronized void clearData() {
+        isStarted_ = false;
         isComplete_ = false;
         data_ = null;
+        error_ = null;
         informListeners();
     }
 
@@ -106,10 +110,11 @@ public abstract class Downloader<T> {
      * @return   data or null on failure
      */
     public synchronized T waitForData() {
-        if ( isComplete_ ) {
+        if ( isComplete() ) {
             return data_;
         }
         else {
+            isStarted_ = true;
             data_ = readData();
             isComplete_ = true;
             informListeners();
@@ -158,6 +163,7 @@ public abstract class Downloader<T> {
         final JLabel label = new JLabel( icon );
         addActionListener( new ActionListener() {
             public void actionPerformed( ActionEvent evt ) {
+                label.setToolTipText( getStatus() );
                 label.repaint();
             }
         } );
@@ -200,9 +206,41 @@ public abstract class Downloader<T> {
             return attemptReadData();
         }
         catch ( IOException e ) {
+            error_ = e;
             logger_.log( Level.WARNING, "Failed to read " + dataDescription_,
                          e );
             return null;
         }
+    }
+
+    /**
+     * Returns a short status string, suitable for use in a tooltip.
+     *
+     * @return  status of this downloader
+     */
+    private String getStatus() {
+        StringBuffer sbuf = new StringBuffer();
+        sbuf.append( dataDescription_ )
+            .append( " download: " );
+        if ( isComplete_ ) {
+            if ( getData() == null ) {
+                sbuf.append( "failed" );
+                if ( error_ != null ) {
+                    sbuf.append( " (" )
+                        .append( error_ )
+                        .append( ")" );
+                }
+            }
+            else {
+                sbuf.append( "success" );
+            }
+        }
+        else if ( isStarted_ ) {
+            sbuf.append( "running" );
+        }
+        else {
+            sbuf.append( "inactive" );
+        }
+        return sbuf.toString();
     }
 }
