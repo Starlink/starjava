@@ -13,15 +13,15 @@ import uk.ac.starlink.topcat.AuxWindow;
  * @author   Mark Taylor
  * @since    14 May 2014
  */
-public class UploadMatchWindow extends AuxWindow {
+public class CdsUploadMatchWindow extends AuxWindow {
 
     /**
      * Constructor.
      *
      * @param  parent  parent window
      */
-    public UploadMatchWindow( Component parent ) {
-        super( "Upload Match", parent );
+    public CdsUploadMatchWindow( Component parent ) {
+        super( "CDS Upload X-Match", parent );
         JComponent main = getMainArea();
         UploadMatchPanel matchPanel =
             new UploadMatchPanel( placeProgressBar() );
@@ -36,6 +36,6 @@ public class UploadMatchWindow extends AuxWindow {
         searchMenu.add( matchPanel.getCoverageModel().createMenuItem() );
         getJMenuBar().add( searchMenu );
 
-        addHelp( "UploadMatchWindow" );
+        addHelp( "CdsUploadMatchWindow" );
     }
 }
