@@ -142,7 +142,8 @@
 
   <!-- File types that should not be passed through a filterchain when
    !   copying -->
-  <property name="unfiltered.files" value="**/*.gif,**/*.jpg,**/*.ico"/>
+  <property name="unfiltered.files"
+            value="**/*.gif,**/*.png,**/*.jpg,**/*.ico"/>
 
   <!-- Directories to receive the various build components -->
   <property name="build.dir" value="${basedir}/build"/>

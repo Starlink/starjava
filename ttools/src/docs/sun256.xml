@@ -4135,7 +4135,8 @@ This includes all of the VizieR tables and the SIMBAD database.
 The service is very fast, and in most cases it is the best way to
 match a local table against a large external table hosted by a service.
 It is almost certainly much better than using
-<ref id="coneskymatch"><code>coneskymatch</code></ref>.
+<ref id="coneskymatch"><code>coneskymatch</code></ref>,
+though it is less flexible than <ref id="tapquery">TAP</ref>.
 </p>
 
 <p>The local table is uploaded to the X-Match service in chunks,
@@ -4144,6 +4145,12 @@ stitched together to form the final result.
 The tool only uploads sky position and an identifier for each row of
 the input table, but all columns of the input table are reinstated
 in the result for reference.
+</p>
+
+<p>The remote table in most cases contains only a subset of the
+the columns in the relevant VizieR table, including the most useful ones.
+The service currently provides no straightforward way to acquire columns which
+are not returned by default.
 </p>
 
 <p><em>Acknowledgement</em>: CDS note that if the use of the
@@ -4198,9 +4205,11 @@ stilts cdsskymatch cdstable=simbad find=best
 <subhead><title><code>coneskymatch</code>:
                 &coneskymatch-purpose;</title></subhead>
 
-<p><em>Note: in many cases, the
-<ref id="cdsskymatch"><code>cdsskymatch</code></ref>
-is a better alternative to this command.
+<p><em>Note: this command is very inefficient for large tables,
+and in most cases
+<ref id="cdsskymatch"><code>cdsskymatch</code></ref> or
+<ref id="tapquery"><code>tapquery</code></ref>
+provide better alternatives.
 </em></p>
 
 <p><code>coneskymatch</code> is a utility which performs a 

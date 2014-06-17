@@ -196,6 +196,7 @@
   <!ENTITY FIG.TimePlotWindow '&figs;TimePlotWindow.gif'>
   <!ENTITY FIG.plotmatch_dialog '&figs;plotmatch_dialog.gif'>
   <!ENTITY FIG.SkyPlotWindow_plotmatch '&figs;SkyPlotWindow_plotmatch.gif'>
+  <!ENTITY FIG.CdsUploadMatchWindow '&figs;CdsUploadMatchWindow.gif'>
 
   <!-- Define external URLs. -->
   <!ENTITY URL.VOTABLE "http://www.ivoa.net/Documents/latest/VOT.html">
@@ -594,6 +595,7 @@ have made:
     of the tables being operated on.
     The same applies to the join-like functionality provided by 
     table uploads in the <ref id="TapTableLoadDialog">TAP window</ref>,
+    <ref id="CdsUploadMatchWindow">CDS Upload X-Match window</ref>
     and the <ref id="DalMultiPanel">multiple positional search</ref>
     (Cone, SIA, SSA) windows.
     </p></dd>
@@ -2245,7 +2247,7 @@ or contact the author.
 <subsect>
 <subhead><title>Matching against a Remote Table</title></subhead>
 
-<p>TOPCAT provides some facilities for positional crossmatches
+<p>TOPCAT provides a number of facilities for positional crossmatches
 against tables which are exposed via Virtual Observatory web services
 (Cone Search, Simple Image Access and Simple Spectral Access)
 and general SQL-like matching (TAP).
@@ -2253,6 +2255,22 @@ These work rather differently from the other functions described
 in this section, which operate on local tables, though conceptually
 the result is similar.
 See <ref id="vo"/> for more details.
+</p>
+
+<p>It also provides access to the X-Match service provided by the CDS,
+as described in <ref id="CdsUploadMatchWindow"/>, which allows fast matching
+against any VizieR table or SIMBAD.
+</p>
+
+<p>In many cases the CDS Upload X-Match window is the easiest, fastest and
+best way to match against remote tables.  TAP is more flexible, but
+has a somewhat steeper learning curve, and may not be as fast or
+scalable for large local tables.  The multi-SIA and multi-SSA
+windows may be useful for performing per-row searches of modest size
+against remote image or spectral archives.
+The multi-cone window is (since version 4.2)
+present mostly for historical reasons, and is not usually a good choice,
+since it is much less efficient than TAP or CDS X-Match.
 </p>
 
 </subsect>
@@ -5583,6 +5601,16 @@ Items available from this menu and not the toolbar are:
 <p>The <label>Joins</label> menu contains actions for various types of
 table join.  The items provided additional to those on the toolbar are:
 <dl>
+
+<dt>&IMG.CDSXMATCH; CDS Upload X-Match</dt>
+<dd><p>Displays the
+    <ref id="CdsUploadMatchWindow">CDS Upload X-Match Window</ref>
+    window which uses the
+    <webref url="http://cdsxmatch.u-strasbg.fr/xmatch"
+            >X-Match service</webref>
+    provided by the Centre de Donn&#x00e9;es astronomiques de Strasbourg
+    to allow fast matching local tables with any VizieR tables or SIMBAD.
+    </p></dd>
 
 <dt>&IMG.MULTISIA; Multiple SIA</dt>
 <dd><p>Displays the <ref id="SiaMultiWindow">Multiple SIA Window</ref>
@@ -14026,7 +14054,9 @@ rows either between two or more local tables or within a single table.
 This topic is discussed in more detail in <ref id="join"/>.
 Windows for other kinds of joins are described elsewhere:
 concatenation in <ref id="ConcatWindow"/> and matching with 
-remote tables via VO services in <ref id="vo-windows"/>.
+remote tables via VO services in <ref id="vo-windows"/>
+and against VizieR and SIMBAD via the CDS X-Match service in
+<ref id="CdsUploadMatchWindow"/>.
 </p>
 
 <p>The <ref id="match-windows-common">next subsection</ref>
@@ -14983,6 +15013,17 @@ The positional query windows also contain either a
 and the TAP window contains its own custom panel,
 to define the actual query or queries to submit to the selected service.
 The windows themselves are described in the following subsections.
+</p>
+
+<p>TOPCAT also provides access to two important services provided by
+the CDS (Centre de Donn&#x00e9;es astronomiques de Strasbourg):
+the
+<ref id="VizierTableLoadDialog">VizieR Catalogue Service Query</ref> and
+<ref id="CdsUploadMatchWindow">CDS X-Match Upload Window</ref>.
+These are not strictly speaking Virtual Observatory services,
+but since they provide access to the comprehensive VizieR archive
+of astronomical tables they can provide similar or superior
+functionality to their VO counterparts, so it's worth being aware of them.
 </p>
 
 <subsubsect id="vo-windows-common">
@@ -16211,6 +16252,189 @@ further or to pick up the completed result.
 
 <subsect>
 <subhead><title>Other Windows</title></subhead>
+
+<subsubsect id="CdsUploadMatchWindow">
+<subhead><title>CDS Upload X-Match Window</title></subhead>
+
+<figure>
+<caption><px>CDS Upload X-Match Window</px></caption>
+<figureimage src="&FIG.CdsUploadMatchWindow;"/>
+</figure>
+
+<p>The CDS Upload X-Match Window allows you to join a local table
+with any table provided by the 
+<webref url="http://vizier.u-strasbg.fr/">VizieR</webref>
+database of astronomical tables or with
+<webref url="http://simbad.u-strasbg.fr/">SIMBAD</webref>.
+You can access the window from the main
+<ref id="ControlWindow">Control Window</ref> using the
+<label>CDS Upload Match</label> button (&IMG.CDSXMATCH;)
+in the toolbar, or the <label>Joins</label> or <label>VO</label> menus.
+This window is an interface to the
+<webref url="http://cdsxmatch.u-strasbg.fr/">CDS X-Match service</webref>
+provided by the Centre de Donn&#x00e9;es astronomiques de Strasbourg
+(<webref url="http://cds.u-strasbg.fr">CDS</webref>).
+The service is very fast, and in most cases it is the best way to
+match a local table against a large external table hosted by a service.
+In particular, it is almost certainly much better than using
+the <ref id="ConeMultiWindow">Multi-Cone</ref> window,
+though it's less flexible than <ref id="TapTableLoadDialog">TAP</ref>.
+</p>
+
+<p>The local table is uploaded to the X-Match service in blocks,
+and the matches for each block are retrieved in turn and eventually
+stitched together to form the final result.
+The tool only uploads sky position and an identifier for each row of
+the input table, but all columns of the input table are reinstated
+in the result for reference.  These details are mostly transparent
+when using the service, though it may help to understand how the progress
+bar moves.
+</p>
+
+<p>The window has three panels, described below.
+</p>
+
+<p>The <label>Remote Table</label> panel allows you to select the
+CDS table against which to match.
+The table must be entered by name in the <label>VizieR Table ID/Alias</label>
+field, and may be in one of the following forms:
+<ul>
+<li>"SIMBAD", to indicate the 
+    <webref url="http://simbad.u-strasbg.fr/simbad/">SIMBAD database</webref>
+    of known astronomical objects.
+    </li>
+<li>A VizieR table identifier, for instance "II/246/out".
+    <em>Note</em> these must name the table not just the catalogue
+    (which may contain several tables), so for instance "II/246" will not work.
+    No help is currently provided in this window to search for these IDs,
+    but you can use the VizieR web page to look for them:
+    <webref url="http://vizier.u-strasbg.fr/viz-bin/VizieR"/>.
+    </li>
+<li>A VizieR table alias, for instance "2mass".
+    A few tens of these are defined for the largest
+    and most-used tables in VizieR, and these can be selected by clicking
+    on the selection box.
+    </li>
+</ul>
+</p>
+
+<p>When a table name has been entered, additional information
+(Name, Alias, Description and Row Count)
+will be downloaded from CDS and displayed in the lower part of the
+Remote Table panel.  If something shows up here, it is a good indication
+that you have a legal table name, though occasionally this metadata
+is not available.
+</p>
+
+<p>Sky coverage information is also displayed, including the proportion
+of the sky covered by the table and a graphical indication of the
+covered regions on the sky.
+</p>
+
+<p>The <label>Local Table</label> panel allows you to indicate the
+local table (the one loaded into TOPCAT) that you want to match.
+You must select the required table and indicate its Right Ascension
+and Declination columns.
+</p>
+
+<p>The <label>Match Parameters</label> panel supplies the other information
+about how the match will operate:
+<dl>
+<dt>Radius</dt>
+<dd><p>The maximum distance between a local table and remote table position
+    to count as a match.  There is a maximum enforced on this value by
+    the CDS X-Match service, currently 2 arcminutes.
+    </p></dd>
+<dt>Find mode</dt>
+<dd><p>Determines in what form the result is generated and used.
+    The following options are available:
+    <dl>
+    <dt>Best</dt>
+    <dd><p>Load a new table with one row for each local row that matches
+        a remote row, giving the closest match.  Unmatched local rows
+        are not included.
+        </p></dd>
+    <dt>All</dt>
+    <dd><p>Load a new table with one row for each remote row that matches
+        a local row.  The match is symmetric between local and remote tables.
+        </p></dd>
+    <dt>Each</dt>
+    <dd><p>Load a new table with the same number of rows as the local table,
+        in the same order.  The best remote match, if any, appears alongside
+        the local row, but if there is no match the remote columns are blank.
+        </p></dd>
+    <dt>Best Remote</dt>
+    <dd><p>Load a new table with one row for each remote table row that
+        matches the local table.
+        <em>Note</em> there is currently a bug in this mode;
+        if the match is done in N blocks then a remote row may appear 
+        up to N times rather than just one.  This may be fixed in
+        a future release, but to avoid it you can make sure that the
+        <label>Block size</label> is greater than the row count.
+        </p></dd>
+    <dt>Add Subset</dt>
+    <dd><p>No new table is loaded,
+        but a new <ref id="subsets">Row Subset</ref> is added to the
+        local table indicating which rows had at least one match to the
+        remote table.
+        </p></dd>
+    </dl>
+    </p></dd>
+    <dt>Rename columns</dt>
+    <dd><p>If columns from two input tables are combined, it's possible
+        that some may share the same name.  Multiple columns in a table
+        with the same name can cause confusion, so this selector allows
+        you to determine whether and how such name clashes are dealt with.
+        Columns from the remote table can be renamed by appending a
+        specified suffix, either always or only in case of duplicate names.
+        </p></dd>
+    <dt>Block size</dt>
+    <dd><p>The number of rows uploaded to the X-Match service at a time.
+        This should not affect the result; it may affect performance,
+        though probably not very much.
+        </p></dd>
+</dl>
+</p>
+
+<p>When all the fields have been filled in, hit the <label>Go</label>
+button and the match will start; progress will be logged in the progress
+bar at the bottom of the window.  To stop the match before it has
+completed, hit the <label>Stop</label> button.
+</p>
+
+<p>The remote table in most cases contains only a subset of the
+the columns in the relevant VizieR table, including the most useful ones.
+The service currently provides no straightforward way to acquire columns
+which are not returned by default.
+</p>
+
+<p>The following item is available in the toolbar and <label>Search</label>
+menu:
+<dl>
+<dt>&IMG.FOOTPRINT; Use Service Coverage</dt>
+<dd><p>If this option is selected, then the sky coverage of the
+    service is used to pre-filter local table rows.
+    In this case those rows that fall outside the coverage area of
+    the remote table are not uploaded for matching, since it is
+    known that they will not match.  This option should therefore
+    not affect the result, but improve performance, and as such
+    should generally be turned on (the default).
+    </p></dd>
+</dl>
+</p>
+
+<p><strong>Acknowledgement</strong>: CDS note that if the use of the
+X-Match service is useful to your research, they would appreciate
+the following acknowledgement:
+<blockquote>
+<em>
+  "This research made use of the cross-match service provided by
+  CDS, Strasbourg."
+</em>
+</blockquote>
+</p>
+
+</subsubsect>
 
 <subsubsect id="ConcatWindow">
 <subhead><title>Concatenation Window</title></subhead>
@@ -20072,9 +20296,9 @@ introduced since the last version:
         selected or refreshed.</li>
     <li>No longer disable "View URL As ..." options in Activation window
         when no suitable columns are present.</li>
-    <li>Add experimental CDS X-Match upload window.</li>
     <li>Registry search panels now display resource count at the bottom of
         the resource list.</li>
+    <li>Add CDS X-Match Upload Window.</li>
     </ul>
     </p></dd>
 
