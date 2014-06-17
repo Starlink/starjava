@@ -5426,10 +5426,12 @@ functions.  They are grouped as follows:
         rows which match between them.
         </p></dd>
 
-    <dt>&IMG.MULTICONE;
-        <ref id="ConeMultiWindow">Multiple Cone Search</ref></dt>
-    <dd><p>Displays a window which permits a positional crossmatch between
-        a local table and a remote table exposed via a VO Cone Search service.
+    <dt>&IMG.CDSXMATCH;
+        <ref id="CdsUploadMatchWindow">CDS Upload X-Match</ref></dt>
+    <dd><p>Displays a dialog window which uses the X-Match
+        provided by the Centre de Donn&#x00e9;es astronomiques de Strasbourg
+        to allow fast matching local tables with any tables in the remote
+        VizieR or SIMBAD databases.
         </p></dd>
 
     <dt>&IMG.CONCAT; <ref id="ConcatWindow">Concatenation Window</ref></dt>
@@ -5602,14 +5604,12 @@ Items available from this menu and not the toolbar are:
 table join.  The items provided additional to those on the toolbar are:
 <dl>
 
-<dt>&IMG.CDSXMATCH; CDS Upload X-Match</dt>
+<dt>&IMG.MULTICONE; Multiple Cone Search</dt>
 <dd><p>Displays the
-    <ref id="CdsUploadMatchWindow">CDS Upload X-Match Window</ref>
-    window which uses the
-    <webref url="http://cdsxmatch.u-strasbg.fr/xmatch"
-            >X-Match service</webref>
-    provided by the Centre de Donn&#x00e9;es astronomiques de Strasbourg
-    to allow fast matching local tables with any VizieR tables or SIMBAD.
+    <ref id="ConeMultiWindow">Multiple Cone Search Window</ref>
+    which allows you to crossmatch a local table
+    with a remote catalogue exposed via the Cone Search protocol.
+    Note this is somewhat deprecated in favour of TAP or CDS X-Match Upload.
     </p></dd>
 
 <dt>&IMG.MULTISIA; Multiple SIA</dt>
@@ -20298,7 +20298,9 @@ introduced since the last version:
         when no suitable columns are present.</li>
     <li>Registry search panels now display resource count at the bottom of
         the resource list.</li>
-    <li>Add CDS X-Match Upload Window.</li>
+    <li>Add CDS X-Match Upload Window.  The button for this replaces the
+        MultiCone button in the main Control Window toolbar.
+        MultiCone is now for most purposes deprecated.</li>
     </ul>
     </p></dd>
 
