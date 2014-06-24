@@ -1,4 +1,4 @@
-package uk.ac.starlink.topcat;
+package uk.ac.starlink.util.gui;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -38,7 +38,7 @@ public abstract class Downloader<T> {
     private volatile T data_;
 
     private static final Logger logger_ =
-        Logger.getLogger( "uk.ac.starlink.topcat" );
+        Logger.getLogger( "uk.ac.starlink.util.gui" );
 
     /**
      * Constructor.
