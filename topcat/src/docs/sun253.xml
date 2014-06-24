@@ -2315,8 +2315,8 @@ to advertise that it has certain datasets available for access.
 
 <p>Several registries exist; they tend to be maintained by different
 regional VO organisations.  At the time of writing, there are 
-registries maintained for public access by (remnants of) the UK's AstroGrid, 
-the USA's NVO/VAO, and ESA, amongst others.
+registries maintained for public access by GAVO, ESA, STScI
+and (remnants of) the UK's AstroGrid, amongst others.
 Particular projects may also maintain their own registries with
 limited holdings for internal use.
 The main public access registries talk to each other to synchronize 
@@ -2326,7 +2326,7 @@ to each other, and it shouldn't matter too much which one you use.
 In practice, there are some differences of format and content
 between them, so one may work better than another for you or may
 contain a record that you need.
-In most cases though, using the default registry (currently the AstroGrid one)
+In most cases though, using the default registry (currently the GAVO one)
 will probably do what you want it to.
 </p>
 
@@ -15015,21 +15015,33 @@ for services matching your constraints.
 This consists of the following parts:
 <dl>
 <dt>Registry</dt>
-<dd><p>This contains the URL for the registry that will be queried for
+<dd><p>This determines the registry that will be queried for
     suitable data services.  You can select from the available options,
     or enter a URL corresponding to some other registry service that 
-    you know about.  The default is the AstroGrid registry, which at 
-    time of writing usually works quite well, but other registries may
+    you know about.  The default is currently the GAVO registry, which at 
+    time of writing usually works pretty well, but other registries may
     have somewhat different data holdings.  Some registries don't work
     very well, so you may have trouble if you use other ones.
-    The <label>Update Registry List</label> item in the 
+    </p>
+    <p>To the right of this box is a selector that allows you to choose
+    between two registry protocol options: <label>RegTAP</label> and
+    <label>RI1.0</label>, corresponding to the IVOA
+    <webref url="http://www.ivoa.net/documents/RegTAP/index.html"
+            >Relational Registry</webref> and
+    <webref url="http://www.ivoa.net/documents/RegistryInterface/"
+            >Registry Interface 1.0</webref>
+    standards respectively.
+    At the time of writing (June 2014), RI1.0
+    is being phased out, and RegTAP is recommended.  It is in any case
+    considerably faster and more reliable than RI1.0.
+    Unless you are a registry enthusiast, sticking to RegTAP is recommended.
+    </p>
+    <p>The <label>Update Registry List</label> item in the 
     <label>Registry</label> menu queries the currently selected registry
-    for other registries, and adds more entries to the selector box.
-    Although this ought to work, it seems that records representing
-    registries themselves are often misconfigured, 
-    so most of the reulting items at
-    the time of writing fail for one reason or another.  But if you're
-    a registry enthusiast, feel free to experiment with it.
+    for other registries, and adds more entries to the selector box
+    as appropriate;
+    the little round indicator between the URL and protocol selectors
+    indicates progress of this query.
     </p></dd>
 <dt>Keywords</dt>
 <dd><p>Fill this in with keywords appropriate to the services you want to
@@ -15085,8 +15097,9 @@ to make another selection of registry entries.
 </p>
 
 <p>When the query completes, a table of matching entries is displayed
-below the Submit button.
-This contains one row for each matching entry, i.e. each service of
+below the Submit button.  The number of resources found is displayed
+at the bottom, labelled <label>Resource Count</label>.
+The table contains one row for each matching entry, i.e. each service of
 the appropriate type that you can submit your data query to.
 The columns in the table give a short name, title, description and
 some other information about each service.
@@ -20037,8 +20050,12 @@ introduced since the last version:
     <li>Form configuration options are now preserved, rather than reset,
         when a new table is selected in one of the plot windows.</li>
     <li>Fixed some bugs related to TAP table uploads.</li>
-    <li>Use RegTAP as (default) alternative to RI1.0 for registry queries
-        (user documentation not yet updated).</li>
+    <li>Use RegTAP as (default) alternative to RI1.0 for registry queries.
+        A registry protocol selector now appears on registry query windows
+        to allow to switch between the two if required.
+        RegTAP is generally much more reliable and requires much less
+        bandwidth than the old arrangement.
+        The number of resources located is also now displayed.</li>
     <li>Update the endpoint for the NVO/VAO RI1.0 registry, on advice from
         Theresa Dower.</li>
     <li>Upgraded Gregory Mantelet's ADQL library to version 1.2.
