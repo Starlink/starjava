@@ -19,13 +19,13 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import uk.ac.starlink.table.gui.LabelledComponentStack;
-import uk.ac.starlink.topcat.Downloader;
 import uk.ac.starlink.topcat.TopcatUtils;
 import uk.ac.starlink.ttools.cone.CdsUploadMatcher;
 import uk.ac.starlink.ttools.cone.CdsUploadMatcher.VizierMeta;
 import uk.ac.starlink.ttools.cone.Coverage;
 import uk.ac.starlink.ttools.cone.MocCoverage;
 import uk.ac.starlink.ttools.cone.UrlMocCoverage;
+import uk.ac.starlink.util.gui.Downloader;
 
 /**
  * Component that allows the user to select table names for use with
