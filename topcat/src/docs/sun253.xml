@@ -20056,6 +20056,8 @@ introduced since the last version:
     <li>No longer disable "View URL As ..." options in Activation window
         when no suitable columns are present.</li>
     <li>Add experimental CDS X-Match upload window.</li>
+    <li>Registry search panels now display resource count at the bottom of
+        the resource list.</li>
     </ul>
     </p></dd>
 
