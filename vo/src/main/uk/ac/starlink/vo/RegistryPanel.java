@@ -60,6 +60,7 @@ public class RegistryPanel extends JPanel {
     private final CapabilityTableModel capTableModel_;
     private final RegistryQueryFactory queryFactory_;
     private final JComponent controlBox_;
+    private final JLabel countLabel_;
     private final List<ActionListener> listenerList_;
     private Thread queryWorker_;
     private JComponent workingPanel_;
@@ -194,6 +195,12 @@ public class RegistryPanel extends JPanel {
             resScroller_.setBorder( BorderFactory.createEtchedBorder() );
             add( resScroller_, BorderLayout.CENTER );
         }
+        Box countLine = Box.createHorizontalBox();
+        countLabel_ = new JLabel();
+        countLine.add( new JLabel( "Resource Count: " ) );
+        countLine.add( countLabel_ );
+        countLine.add( Box.createHorizontalGlue() );
+        add( countLine, BorderLayout.SOUTH );
     }
 
     /**
@@ -346,6 +353,7 @@ public class RegistryPanel extends JPanel {
         /* Begin an asynchronous query on the registry. */
         final JProgressBar progBar = setWorking( workingMessage );
         progBar.setString( "Found 0" );
+        countLabel_.setText( null );
         Thread worker = new Thread( "Registry query" ) {
             List resourceList = new ArrayList();
             String errmsg;
@@ -375,6 +383,7 @@ public class RegistryPanel extends JPanel {
                         progBar.setIndeterminate( false );
                         boolean visible = RegistryPanel.this.isShowing();
                         if ( queryWorker_ == wk ) {
+                            final String countTxt;
                             if ( errmsg != null ) {
                                 if ( visible ) {
                                     JOptionPane
@@ -387,6 +396,7 @@ public class RegistryPanel extends JPanel {
                                     logger_.warning( "Registry query failed: "
                                                    + errmsg );
                                 }
+                                countTxt = null;
                             }
                             else if ( error1 != null ) {
                                 if ( visible ) {
@@ -398,6 +408,7 @@ public class RegistryPanel extends JPanel {
                                     logger_.warning( "Registry query failed: "
                                                    + error1 );
                                 }
+                                countTxt = null;
                             }
                             else {
                                 RegResource[] resources =
@@ -405,8 +416,10 @@ public class RegistryPanel extends JPanel {
                                     resourceList
                                    .toArray( new RegResource[ 0 ] );
                                 regTable_.setData( resources );
+                                countTxt = Integer.toString( resources.length );
                                 gotData( resources );
                             }
+                            countLabel_.setText( countTxt );
                             setWorking( null );
                         }
                     }
