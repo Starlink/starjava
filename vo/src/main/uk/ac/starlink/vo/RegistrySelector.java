@@ -3,6 +3,8 @@ package uk.ac.starlink.vo;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -24,6 +26,7 @@ import javax.swing.JPanel;
 import javax.swing.MutableComboBoxModel;
 import javax.swing.SwingUtilities;
 import javax.swing.text.JTextComponent;
+import uk.ac.starlink.util.gui.Downloader;
 
 /**
  * Component for selecting a registry service.
@@ -38,6 +41,7 @@ public class RegistrySelector extends JPanel {
 
     private final JComboBox comboBox_;
     private final Action updateAction_;
+    private final EndpointDownloader endpointDownloader_;
     private RegistrySelectorModel model_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
@@ -74,34 +78,34 @@ public class RegistrySelector extends JPanel {
         comboBox_.setEditable( true );
         comboBox_.setToolTipText( "Endpoint of VOResource 1.0"
                                 + " registry service" );
+        comboBox_.addItemListener( new ItemListener() {
+            public void itemStateChanged( ItemEvent evt ) {
+                endpointDownloader_.setQuery( getRegKey() );
+            }
+        } );
+
+        /* Set up an item for downloading other registry endpoints. */
+        endpointDownloader_ = new EndpointDownloader();
 
         /* Set up an action to update the selector box contents. */
         updateAction_ = new AbstractAction( "Update Registry List" ) {
             public void actionPerformed( ActionEvent evt ) {
-                final String reg = (String) comboBox_.getSelectedItem();
+                final RegKey regKey = getRegKey();
+                endpointDownloader_.setQuery( regKey );
                 updateAction_.setEnabled( false );
                 new Thread( "Registry search" ) {
                     public void run() {
-                        try {
-                            final String[] acurls =
-                                model_.getProtocol()
-                                      .discoverRegistryUrls( reg );
-                            SwingUtilities.invokeLater( new Runnable() {
-                                public void run() {
+                        final String[] acurls =
+                            endpointDownloader_.waitForData();
+                        SwingUtilities.invokeLater( new Runnable() {
+                            public void run() {
+                                updateAction_.setEnabled( true );
+                                if ( model_.getProtocol() == regKey.proto_ &&
+                                     acurls != null ) {
                                     updateSelector( acurls );
                                 }
-                            } );
-                        }
-                        catch ( IOException e ) {
-                            logger_.warning( "Registry search failed: " + e );
-                        }
-                        finally {
-                            SwingUtilities.invokeLater( new Runnable() {
-                                public void run() {
-                                    updateAction_.setEnabled( true );
-                                }
-                            } );
-                        }
+                            }
+                        } );
                     }
                 }.start();
             }
@@ -114,6 +118,8 @@ public class RegistrySelector extends JPanel {
         setLayout( new BoxLayout( this, BoxLayout.X_AXIS ) );
         add( new JLabel( "Registry: " ) );
         add( comboBox_ );
+        add( Box.createHorizontalStrut( 5 ) );
+        add( endpointDownloader_.createMonitorComponent() );
 
         /* Install the model. */
         setModel( model );
@@ -129,6 +135,7 @@ public class RegistrySelector extends JPanel {
         ComboBoxModel urlModel = model.getUrlSelectionModel();
         comboBox_.setModel( urlModel );
         updateAction_.setEnabled( urlModel instanceof MutableComboBoxModel );
+        endpointDownloader_.setQuery( getRegKey() );
     }
 
     /**
@@ -167,6 +174,17 @@ public class RegistrySelector extends JPanel {
     }
 
     /**
+     * Returns an object indicating which registry is currently selected.
+     * 
+     * @return  registry identifier
+     */
+    private RegKey getRegKey() {
+        RegistryProtocol proto = model_.getProtocol();
+        String reg = (String) comboBox_.getSelectedItem();
+        return new RegKey( proto, reg );
+    }
+
+    /**
      * Adds new access URLs to the combo box.  Must be called from the
      * event dispatch thread.
      *
@@ -200,6 +218,76 @@ public class RegistrySelector extends JPanel {
                 logger_.warning( "Can't add access URLs to immutable combo box"
                                + " (" + addUrls.size() + " new URLs ignored)" );
             }
+        }
+    }
+
+    /**
+     * Downloader implementation for downloading registry endpoint URLs.
+     */
+    private static class EndpointDownloader extends Downloader<String[]> {
+        private RegKey key_;
+
+        /**
+         * Constructor.
+         */
+        EndpointDownloader() {
+            super( String[].class, "Registry service URLs" );
+        }
+
+        /**
+         * Sets the configuration for which to query registry endpoints.
+         *
+         * @param  key  registry identification object
+         */
+        public void setQuery( RegKey key ) {
+            clearData();
+            key_ = key;
+        }
+
+        public String[] attemptReadData() throws IOException {
+            return key_.proto_.discoverRegistryUrls( key_.reg_ );
+        }
+    }
+
+    /**
+     * Aggregates RegistryProtocol and a URL endpoint to specify a
+     * registry access.
+     */
+    private static class RegKey {
+        final RegistryProtocol proto_;
+        final String reg_;
+
+        /**
+         * Constructor.
+         *
+         * @param  proto  registry access protocol
+         * @param  reg   registry endpoint URL
+         */
+        RegKey( RegistryProtocol proto, String reg ) {
+            proto_ = proto;
+            reg_ = reg;
+        }
+
+        @Override
+        public int hashCode() {
+            return proto_.hashCode() * 5001 + reg_.hashCode();
+        }
+
+        @Override
+        public boolean equals( Object o ) {
+            if ( o instanceof RegKey ) {
+                RegKey other = (RegKey) o;
+                return this.proto_.equals( other.proto_ )
+                    && this.reg_.equals( other.reg_ );
+            }
+            else {
+                return false;
+            }
+        }
+
+        @Override
+        public String toString() {
+            return proto_ + "-" + reg_;
         }
     }
 }
