@@ -1,7 +1,6 @@
 package uk.ac.starlink.ttools.example;
 
 import java.awt.Color;
-import java.awt.Dimension;
 import java.io.IOException;
 import javax.swing.Icon;
 import javax.swing.JComponent;
@@ -38,7 +37,6 @@ import uk.ac.starlink.ttools.plot2.layer.Stamper;
 import uk.ac.starlink.ttools.plot2.paper.Compositor;
 import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
 import uk.ac.starlink.ttools.plot2.task.ColumnDataSpec;
-import uk.ac.starlink.ttools.plot2.task.PlotDisplay;
 
 /**
  * PlanePlotter implementation that sets up a plot explicitly.
@@ -56,6 +54,33 @@ public class ApiPlanePlotter implements SinePlot.PlanePlotter {
     public JComponent createPlotComponent( StarTable table,
                                            boolean dataMayChange )
             throws InterruptedException, IOException {
+
+        /* Prepare an object which knows how to draw the plot from the table. */
+        PlotGenerator<PlaneSurfaceFactory.Profile,PlaneAspect> plotGen =
+            createPlotGenerator( table );
+
+        /* Set up a Navigator which determines what mouse gestures are
+         * available to the user for plot pan/zoom etc. */
+        Navigator<PlaneAspect> navigator = createPlaneNavigator();
+
+        /* Configure data access. */
+        boolean surfaceAuxRange = false;
+        boolean caching = ! dataMayChange;
+
+        /* Finally construct and return the component. */
+        return plotGen.createPlotDisplay( navigator, surfaceAuxRange, caching );
+    }
+
+    /**
+     * Constructs a PlotGenerator that contains the details of the plot
+     * to be done.  This method does the work for specifying the plot.
+     *
+     * @param  table  input data
+     * @return   plot based on the first two columns of the table
+     */
+    private PlotGenerator<PlaneSurfaceFactory.Profile,PlaneAspect>
+            createPlotGenerator( StarTable table )
+            throws IOException, InterruptedException {
 
         /* It's a 2d plot. */
         PlanePlotType plotType = PlanePlotType.getInstance();
@@ -91,27 +116,11 @@ public class ApiPlanePlotter implements SinePlot.PlanePlotter {
         double[] ylimits = new double[] { -1.2, 1.2 };
         PlaneAspect aspect = new PlaneAspect( xlimits, ylimits );
 
-        /* Set up a Navigator which determines what mouse gestures are
-         * available to the user for plot pan/zoom etc.  Note that
-         * anisotropic pan/zoom are available with wheel/drag gestures
-         * outside the plot axes. */
-        double zoomFactor = StyleKeys.ZOOM_FACTOR.getDefaultValue();
-        boolean xZoom = true;
-        boolean yZoom = true;
-        boolean xPan = true;
-        boolean yPan = true;
-        double xAnchor = Double.NaN;
-        double yAnchor = Double.NaN;
-        Navigator<PlaneAspect> navigator =
-            new PlaneNavigator( zoomFactor,
-                                xZoom, yZoom, xPan, yPan, xAnchor, yAnchor );
-
         /* We will not use optional decorations for this plot. */
         Icon legend = null;
         float[] legPos = null;
         ShadeAxis shadeAxis = null;
         Range shadeFixRange = null;
-        boolean surfaceAuxRange = false;
 
         /* Prepare the list of plot layers; in this case there is only one. */
         PlotLayer[] layers = { createScatterLayer( geom, table), };
@@ -124,18 +133,47 @@ public class ApiPlanePlotter implements SinePlot.PlanePlotter {
         }
         DataStoreFactory storeFact = new SimpleDataStoreFactory();
         DataStore dataStore = storeFact.readDataStore( dataSpecs, null );
-        boolean caching = ! dataMayChange;
 
-        /* Finally construct, size and return the plot component. */
+        /* Rendering details. */
         Compositor compositor = Compositor.SATURATION;
         PaperTypeSelector ptSel = plotType.getPaperTypeSelector();
-        JComponent comp =
-            new PlotDisplay<PlaneSurfaceFactory.Profile,PlaneAspect>
-                           ( layers, surfFact, profile, aspect, legend, legPos,
-                             shadeAxis, shadeFixRange, ptSel, compositor,
-                             dataStore, surfaceAuxRange, navigator, caching );
-        comp.setPreferredSize( new Dimension( 500, 400 ) );
-        return comp;
+
+        /* Dimensions. */
+        int xpix = 500;
+        int ypix = 400;
+
+        /* Construct and return the plot generator. */
+        return new PlotGenerator( layers, surfFact, profile, aspect,
+                                  legend, legPos, shadeAxis, shadeFixRange,
+                                  ptSel, compositor, dataStore, xpix, ypix );
+    }
+
+    /**
+     * Constructs and returns a navigator for interpreting user mouse
+     * gestures to move around the plot.  Note that anisotropic pan/zoom
+     * are available with wheel/drag gestures outside the plot axes.
+     *
+     * @return  navigator object suitable for a 2d plot
+     */
+    private Navigator<PlaneAspect> createPlaneNavigator() {
+
+        /* This sets the zoom factor to its standard default value,
+         * as retrieved from the ZOOM_FACTOR configuration option
+         * (currently equal to 1.2).  You could just write a literal
+         * value in here instead, but this idiom is sometimes useful
+         * (not just for Navigator construction) if you want to use the
+         * standard library value for one of the configuration options. */
+        double zoomFactor = StyleKeys.ZOOM_FACTOR.getDefaultValue();
+
+        /* Set the other options explicitly. */
+        boolean xZoom = true;
+        boolean yZoom = true;
+        boolean xPan = true;
+        boolean yPan = true;
+        double xAnchor = Double.NaN;
+        double yAnchor = Double.NaN;
+        return new PlaneNavigator( zoomFactor,
+                                   xZoom, yZoom, xPan, yPan, xAnchor, yAnchor );
     }
 
     /**
