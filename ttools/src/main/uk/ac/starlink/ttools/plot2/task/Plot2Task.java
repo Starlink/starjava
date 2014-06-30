@@ -593,9 +593,9 @@ public class Plot2Task implements Task {
                 return store;
             }
 
-            public JComponent createPlotComponent( DataStore dataStore,
-                                                   boolean navigable,
-                                                   boolean caching ) {
+            public PlotDisplay createPlotComponent( DataStore dataStore,
+                                                    boolean navigable,
+                                                    boolean caching ) {
                 PlotDisplay panel =
                     PlotDisplay
                    .createPlotDisplay( layers, surfFact, surfConfig,
