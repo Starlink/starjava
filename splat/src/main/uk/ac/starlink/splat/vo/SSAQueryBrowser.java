@@ -1915,11 +1915,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                     dataLinkButton.setForeground(Color.GRAY);
                     resultsPane.addTab( shortName, cutImage, scrollPane );
                 }
-                else {
-                  //  dataLinkButton.setEnabled(false);
-                 //   dataLinkButton.setVisible(false);
-                    resultsPane.addTab( shortName, scrollPane );
-                }
+                else resultsPane.addTab( shortName, scrollPane );
                 starJTables.add( table );
 
                 //  Set widths of columns.
@@ -3040,6 +3036,10 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                     dataLinkFrame.setVisible(true);
                     // getDataButton.setEnabled(true);
                     activateDataLinkSupport();
+                    if (resultsPane.isEnabledAt(resultsPane.getSelectedIndex()))
+                        dataLinkFrame.setVisible(true);
+                    // getDataButton.setEnabled(true);
+                  
                
                 }
             } else if (getDataFrame != null && getDataFrame.getParams() != null) {
@@ -3058,7 +3058,8 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                     activateDataLinkSupport();
                    
                 }
-            }
+            } 
+                
             return;
         }
 
