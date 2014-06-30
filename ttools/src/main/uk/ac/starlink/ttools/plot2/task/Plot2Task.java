@@ -541,7 +541,8 @@ public class Plot2Task implements Task {
             throws TaskException {
 
         /* What kind of plot? */
-        final PlotType plotType = typeParam_.objectValue( env );
+        PlotType plotType = typeParam_.objectValue( env );
+        final PaperTypeSelector ptsel = plotType.getPaperTypeSelector();
 
         /* Set up generic configuration. */
         final int xpix = xpixParam_.intValue( env );
@@ -597,23 +598,20 @@ public class Plot2Task implements Task {
                                                    boolean caching ) {
                 PlotDisplay panel =
                     PlotDisplay
-                   .createPlotDisplay( plotType, layers, surfFact,
-                                       surfConfig, legend, legpos,
-                                       shadeAxis, shadeFixRange,
-                                       dataStore, surfaceAuxRange,
-                                       navigable, compositor, caching );
+                   .createPlotDisplay( layers, surfFact, surfConfig,
+                                       legend, legpos, shadeAxis, shadeFixRange,
+                                       ptsel, compositor, dataStore,
+                                       surfaceAuxRange, navigable, caching );
                 panel.setPreferredSize( new Dimension( xpix, ypix ) );
                 return panel;
             }
 
             public Icon createPlotIcon( DataStore dataStore ) {
-                PaperTypeSelector ptsel = plotType.getPaperTypeSelector();
                 return Plot2Task
                       .createPlotIcon( layers, surfFact, surfConfig,
-                                       legend, legpos,
-                                       shadeAxis, shadeFixRange, dataStore,
-                                       xpix, ypix, insets,
-                                       ptsel, compositor, forceBitmap );
+                                       legend, legpos, shadeAxis, shadeFixRange,
+                                       ptsel, compositor, dataStore,
+                                       xpix, ypix, insets, forceBitmap );
             }
         };
     }
@@ -951,14 +949,14 @@ public class Plot2Task implements Task {
      * @param  shadeAxis  shader axis, or null if not required
      * @param  shadeFixRange  fixed shader range,
      *                        or null for auto-range where required
+     * @param  ptsel   paper type selector
+     * @param  compositor   compositor for pixel composition
      * @param  dataStore   data storage object
      * @param  xpix    horizontal size of icon in pixels
      * @param  ypix    vertical size of icon in pixels
      * @param  insets  may supply the inset space to be used for
      *                 axis decoration etc; if null, this will be worked out
      *                 automatically
-     * @param  ptsel   paper type selector
-     * @param  compositor   compositor for pixel composition
      * @param  forceBitmap   true to force bitmap output of vector graphics,
      *                       false to use default behaviour
      * @return  icon  icon for plotting
@@ -969,10 +967,10 @@ public class Plot2Task implements Task {
                                              Icon legend, float[] legPos,
                                              ShadeAxis shadeAxis,
                                              Range shadeFixRange,
-                                             DataStore dataStore,
-                                             int xpix, int ypix, Insets insets,
                                              PaperTypeSelector ptsel,
                                              Compositor compositor,
+                                             DataStore dataStore,
+                                             int xpix, int ypix, Insets insets,
                                              boolean forceBitmap ) {
         P profile = surfFact.createProfile( config );
         long t0 = System.currentTimeMillis();

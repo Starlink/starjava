@@ -20,7 +20,6 @@ import uk.ac.starlink.ttools.plot2.NavigationListener;
 import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotPlacement;
-import uk.ac.starlink.ttools.plot2.PlotType;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.PointCloud;
 import uk.ac.starlink.ttools.plot2.ShadeAxis;
@@ -48,7 +47,6 @@ import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
  */
 public class PlotDisplay<P,A> extends JComponent {
 
-    private final PlotType plotType_;
     private final PlotLayer[] layers_;
     private final DataStore dataStore_;
     private final SurfaceFactory<P,A> surfFact_;
@@ -57,6 +55,7 @@ public class PlotDisplay<P,A> extends JComponent {
     private final float[] legPos_;
     private final ShadeAxis shadeAxis_;
     private final Range shadeFixRange_;
+    private final PaperTypeSelector ptSel_;
     private final boolean surfaceAuxRange_;
     private final Compositor compositor_;
     private final boolean caching_;
@@ -73,7 +72,6 @@ public class PlotDisplay<P,A> extends JComponent {
     /**
      * Constructor.
      *
-     * @param  plotType  type of plot
      * @param  layers   layers constituting plot content
      * @param  surfFact   surface factory
      * @param  profile   surface profile
@@ -85,23 +83,23 @@ public class PlotDisplay<P,A> extends JComponent {
      * @param  shadeAxis  shader axis, or null if not required
      * @param  shadeFixRange  fixed shader range,
      *                        or null for auto-range where required
+     * @param  ptSel    paper type selector
+     * @param  compositor  compositor for pixel composition
      * @param  dataStore   data storage object
      * @param surfaceAuxRange  determines whether aux ranges are recalculated
      *                         when the surface changes
      * @param  navigator  user gesture navigation controller,
      *                    or null for a non-interactive plot
-     * @param  compositor  compositor for pixel composition
      * @param  caching   if true, plot image will be cached where applicable,
      *                   if false it will be regenerated from the data
      *                   on every repaint
      */
-    public PlotDisplay( PlotType plotType, PlotLayer[] layers,
-                        SurfaceFactory<P,A> surfFact, P profile, A aspect,
-                        Icon legend, float[] legPos, ShadeAxis shadeAxis,
-                        Range shadeFixRange, DataStore dataStore,
-                        boolean surfaceAuxRange, final Navigator<A> navigator,
-                        Compositor compositor, boolean caching ) {
-        plotType_ = plotType;
+    public PlotDisplay( PlotLayer[] layers, SurfaceFactory<P,A> surfFact,
+                        P profile, A aspect, Icon legend, float[] legPos,
+                        ShadeAxis shadeAxis, Range shadeFixRange,
+                        PaperTypeSelector ptSel, Compositor compositor,
+                        DataStore dataStore, boolean surfaceAuxRange,
+                        final Navigator<A> navigator, boolean caching ) {
         layers_ = layers;
         surfFact_ = surfFact;
         profile_ = profile;
@@ -110,9 +108,10 @@ public class PlotDisplay<P,A> extends JComponent {
         legPos_ = legPos;
         shadeAxis_ = shadeAxis;
         shadeFixRange_ = shadeFixRange;
+        ptSel_ = ptSel;
+        compositor_ = compositor;
         dataStore_ = dataStore;
         surfaceAuxRange_ = surfaceAuxRange;
-        compositor_ = compositor;
         caching_ = caching;
 
         /* Add mouse listeners if required. */
@@ -198,8 +197,8 @@ public class PlotDisplay<P,A> extends JComponent {
 
             /* Get rendering implementation. */
             LayerOpt[] opts = PaperTypeSelector.getOpts( layers_ );
-            PaperType paperType = plotType_.getPaperTypeSelector()
-                                 .getPixelPaperType( opts, compositor_, this );
+            PaperType paperType =
+                ptSel_.getPixelPaperType( opts, compositor_, this );
 
             /* Perform the plot to a possibly cached image. */
             long start = System.currentTimeMillis();
@@ -259,7 +258,6 @@ public class PlotDisplay<P,A> extends JComponent {
      * This will perform ranging from data if it is required;
      * in that case, it may take time to execute.
      *
-     * @param  plotType  type of plot
      * @param  layers   layers constituting plot content
      * @param  surfFact   surface factory
      * @param  config   map containing surface profile, initial aspect
@@ -271,11 +269,12 @@ public class PlotDisplay<P,A> extends JComponent {
      * @param  shadeAxis  shader axis, or null if not required
      * @param  shadeFixRange  fixed shader range,
      *                        or null for auto-range where required
+     * @param  ptSel    paper type selector
+     * @param  compositor  compositor for pixel composition
      * @param  dataStore   data storage object
      * @param surfaceAuxRange  determines whether aux ranges are recalculated
      *                         when the surface changes
      * @param  navigable true for an interactive plot
-     * @param  compositor  compositor for pixel composition
      * @param  caching   if true, plot image will be cached where applicable,
      *                   if false it will be regenerated from the data
      *                   on every repaint
@@ -283,13 +282,12 @@ public class PlotDisplay<P,A> extends JComponent {
      */
     @Slow
     public static <P,A> PlotDisplay
-            createPlotDisplay( PlotType plotType, PlotLayer[] layers,
-                               SurfaceFactory<P,A> surfFact, ConfigMap config,
-                               Icon legend, float[] legPos,
+            createPlotDisplay( PlotLayer[] layers, SurfaceFactory<P,A> surfFact,
+                               ConfigMap config, Icon legend, float[] legPos,
                                ShadeAxis shadeAxis, Range shadeFixRange,
+                               PaperTypeSelector ptSel, Compositor compositor,
                                DataStore dataStore, boolean surfaceAuxRange,
-                               boolean navigable, Compositor compositor,
-                               boolean caching ) {
+                               boolean navigable, boolean caching ) {
         P profile = surfFact.createProfile( config );
 
         /* Read ranges from data if necessary. */
@@ -307,10 +305,10 @@ public class PlotDisplay<P,A> extends JComponent {
                                            : null;
      
         /* Create and return the component. */
-        return new PlotDisplay<P,A>( plotType, layers, surfFact, profile,
-                                     aspect, legend, legPos, shadeAxis,
-                                     shadeFixRange, dataStore, surfaceAuxRange,
-                                     navigator, compositor, caching );
+        return new PlotDisplay<P,A>( layers, surfFact, profile, aspect,
+                                     legend, legPos, shadeAxis, shadeFixRange,
+                                     ptSel, compositor, dataStore,
+                                     surfaceAuxRange, navigator, caching );
     }
 
     /**
