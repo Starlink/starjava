@@ -35,7 +35,7 @@ public class CubeAxisController
      */
     public CubeAxisController( boolean isIso, ControlStack stack ) {
         super( new CubeSurfaceFactory( isIso ),
-               isIso ? "cubeNavigation" : "sphereNavigation",
+               isIso ? "sphereNavigation" : "cubeNavigation",
                createAxisLabelKeys(), stack );
         isIso_ = isIso;
         final SurfaceFactory<CubeSurfaceFactory.Profile,CubeAspect> surfFact =

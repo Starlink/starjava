@@ -20301,6 +20301,7 @@ introduced since the last version:
     <li>Add CDS X-Match Upload Window.  The button for this replaces the
         MultiCone button in the main Control Window toolbar.
         MultiCone is now for most purposes deprecated.</li>
+    <li>Fixed bug reversing cube and sphere navigation help buttons.</li>
     </ul>
     </p></dd>
 
