@@ -112,21 +112,27 @@ public class BlockUploader {
         boolean done = false;
         int iblock = 0;
         while ( ! done && ( maxrec_ < 0 || totOut < maxrec_ ) ) {
-            BlockSequence blockSeq = new BlockSequence( coneSeq, blocksize_ );
-            BlockSink blockSink = new BlockSink( rawResultStore, iblock == 0 );
-            long nRemain = maxrec_ >= 0 ? maxrec_ - totOut : -1;
-            boolean over =
-                umatcher_.streamRawResult( blockSeq, blockSink, rowMapper,
-                                           nRemain );
-            int nIn = blockSeq.getProducedCount();
-            long nOut = blockSink.getCount();
-            done = blockSeq.isBaseDone();
-            nOverflow += over ? 1 : 0;
-            logger_.info( "Match block " + ( iblock + 1 ) + ": "
-                        + nIn + " uploaded, " + nOut + " received"
-                        + ( over ? " (truncated)" : "" ) );
-            totOut += nOut;
-            iblock++;
+            PreviewBlockSequence blockSeq =
+                new PreviewBlockSequence( coneSeq, blocksize_ );
+            if ( blockSeq.hasNext() ) {
+                BlockSink blockSink =
+                    new BlockSink( rawResultStore, iblock == 0 );
+                long nRemain = maxrec_ >= 0 ? maxrec_ - totOut : -1;
+                boolean over =
+                    umatcher_.streamRawResult( blockSeq, blockSink, rowMapper,
+                                               nRemain );
+                int nIn = blockSeq.getProducedCount();
+                long nOut = blockSink.getCount();
+                nOverflow += over ? 1 : 0;
+                logger_.info( "Match block " + ( iblock + 1 ) + ": "
+                            + nIn + " uploaded, " + nOut + " received"
+                            + ( over ? " (truncated)" : "" ) );
+                totOut += nOut;
+                iblock++;
+            }
+            else {
+                done = true;
+            }
         };
         int nblock = iblock;
         coneSeq.close();
@@ -340,6 +346,59 @@ public class BlockUploader {
     }
 
     /**
+     * Wraps a BlockSequence implementation to provide a method "hasNext",
+     * which can tell before next is called what it will return.
+     * This is useful so that an empty sequence can be identified before
+     * it is passed to the rest of the upload machinery.
+     * Use with caution: read the contract carefully.
+     */
+    private static class PreviewBlockSequence extends BlockSequence {
+        private Boolean hasNext_;
+
+        /**
+         * Constructor.
+         *
+         * @param  baseSeq  base query sequence
+         * @param  maxrec   maximum number of rows this sequence will produce
+         */
+        PreviewBlockSequence( ConeQueryRowSequence baseSeq, int maxrow ) {
+            super( baseSeq, maxrow );
+        }
+
+        @Override public final boolean next() throws IOException {
+            readyNext();
+            boolean hasNext = hasNext_.booleanValue();
+            hasNext_ = null;
+            return hasNext;
+        }
+
+        /**
+         * Returns the value of the next call to <code>next</code>.
+         *
+         * <p><bf>Note</bf>: this has the effect of advancing the underlying
+         * sequence, so no data access should be performed between
+         * <code>hasNext</code> and <code>next</code> calls.
+         *
+         * @return  value of the next invocation of <code>next</code>
+         */
+        public boolean hasNext() throws IOException {
+            readyNext();
+            return hasNext_.booleanValue();
+        }
+
+        /**
+         * Attempts to advance this sequence to the next row to find
+         * out whether there is one, but without calling this object's
+         * <code>next</code> method.
+         */
+        private void readyNext() throws IOException {
+            if ( hasNext_ == null ) {
+                hasNext_ = Boolean.valueOf( super.next() );
+            }
+        }
+    }
+
+    /**
      * ConeQueryRowSequence implementation that wraps an existing one
      * but returns only a limited number of its rows.
      * If maxrec rows are dispensed, subsequent calls to <code>next</code>
@@ -349,7 +408,6 @@ public class BlockUploader {
         private final int maxrow_;
         private int nProduced_;
         private int nConsumed_;
-        private boolean baseDone_;
 
         /**
          * Constructor.
@@ -364,21 +422,16 @@ public class BlockUploader {
 
         @Override
         public boolean next() throws IOException {
-            while ( nProduced_ < maxrow_ ) {
-                if ( super.next() ) {
-                    nConsumed_++;
-                    if ( isPossibleMatch() ) {
-                        nProduced_++;
-                        return true;
-                    }
-                }
-                else {
-                    baseDone_ = true;
-                    return false;
+            while ( nProduced_ < maxrow_ && super.next() ) {
+                nConsumed_++;
+                if ( isPossibleMatch() ) {
+                    nProduced_++;
+                    return true;
                 }
             }
             return false;
         }
+
         @Override
         public void close() throws IOException {
             // no action
@@ -400,15 +453,6 @@ public class BlockUploader {
          */
         public int getProducedCount() {
             return nProduced_;
-        }
-
-        /**
-         * Indicates whether the base sequence is known to have terminated.
-         *
-         * @return  true iff base sequence has no more rows
-         */
-        public boolean isBaseDone() {
-            return baseDone_;
         }
 
         /**
