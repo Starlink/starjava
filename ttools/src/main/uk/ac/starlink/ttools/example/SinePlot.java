@@ -43,25 +43,16 @@ public class SinePlot {
     /**
      * Constructor.
      *
-     * @param  isEnv  true to set up the plot using a MapEnvironment,
-     *                false to do it using the detailed API
-     * @param  count  number of point to plot
+     * @param  planePlotter  object that does the plot
+     * @param  count  number of points to plot
      */
-    public SinePlot( boolean isEnv, int count ) throws Exception {
-
-        /* Prepare an object which turns a table into a JComponent.
-         * There are two choices, one which uses the MapEnvironment
-         * and the other which uses the low-level API.  Both produce
-         * just the same plot, it's a matter of taste which API you
-         * prefer.  All the action (things you're likely to want to
-         * use as a template for your own plots) is in the implementation
-         * of these classes. */
-        planePlotter_ = isEnv ? new EnvPlanePlotter() : new ApiPlanePlotter();
+    public SinePlot( PlanePlotter planePlotter, int count ) throws Exception {
+        planePlotter_ = planePlotter;
+        count_ = count;
 
         /* Set up a table containing data to plot, backed by a double[] array
          * for each column.  Changing the values in these arrays in place
          * will change the content of the tables. */
-        count_ = count;
         xs_ = new double[ count ];
         ys_ = new double[ count ];
         ColumnStarTable table = ColumnStarTable.makeTableWithRows( count );
@@ -73,6 +64,13 @@ public class SinePlot {
         updateTableData();
     }
 
+    /**
+     * Constructs a plot and posts it to the screen.
+     *
+     * @param   updateMillis  if positive, gives an interval in millisecnds
+     *                        at which the plot should be refreshed;
+     *                        if non-positive, the data is considered static
+     */
     public void run( int updateMillis ) throws Exception {
 
         /* Determine whether we are going to be doing an animated plot
@@ -137,9 +135,9 @@ public class SinePlot {
          * It's always safe to set it true, but if the data is static,
          * setting it false will give better performance.
          *
+         * @param   table  table to plot
          * @param   dataMayChange  true if the table data may change during
          *                         the lifetime of the plot
-         * @param   table  table to plot
          */
         JComponent createPlotComponent( StarTable table, boolean dataMayChange )
             throws Exception;
@@ -155,14 +153,14 @@ public class SinePlot {
              .append( "\n      " )
              .append( SinePlot.class.getName().replaceFirst( ".*\\.", "" ) )
              .append( " [-[no]move]" )
-             .append( " [-[no]env]" )
+             .append( " [-api/-env]" )
              .append( " [-count npoint]" )
              .append( " [-verbose [-verbose]]" )
              .append( "\n" )
              .toString();
         List<String> argList = new ArrayList<String>( Arrays.asList( args ) );
         boolean move = true;
-        boolean env = false;
+        boolean isApi = true;
         int count = 1000;
         int verbLevel = 0;
         for ( Iterator<String> it = argList.iterator(); it.hasNext(); ) {
@@ -175,13 +173,13 @@ public class SinePlot {
                 it.remove();
                 move = false;
             }
+            else if ( arg.equals( "-api" ) ) {
+                it.remove();
+                isApi = true;
+            }
             else if ( arg.equals( "-env" ) ) {
                 it.remove();
-                env = true;
-            }
-            else if ( arg.equals( "-noenv" ) ) {
-                it.remove();
-                env = false;
+                isApi = false;
             }
             else if ( arg.equals( "-count" ) ) {
                 it.remove();
@@ -202,11 +200,23 @@ public class SinePlot {
             System.err.println( usage );
             System.exit( 1 );
         }
+        int updateMillis = move ? 100 : -1;
+
+        /* Configure logging level as requested by -verbose flags. */
         Logger.getLogger( "uk.ac.starlink.ttools" )
               .setLevel( new Level[] { Level.WARNING,
                                        Level.INFO,
                                        Level.CONFIG }[ verbLevel ] );
-        int updateMillis = move ? 100 : -1;
-        new SinePlot( env, count ).run( updateMillis );
+
+        /* Prepare an object which turns a table into a JComponent.
+         * There are two choices, one which uses the MapEnvironment
+         * and the other which uses the low-level API.  Both produce
+         * just the same plot, it's a matter of taste which API you
+         * prefer.  All the action (things you're likely to want to
+         * use as a template for your own plots) is in the implementation
+         * of these classes. */
+        PlanePlotter planePlotter = isApi ? new ApiPlanePlotter()
+                                          : new EnvPlanePlotter();
+        new SinePlot( planePlotter, count ).run( updateMillis );
     }
 }
