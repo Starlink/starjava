@@ -176,69 +176,151 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
     private static final Rectangle defaultWindowLocation =
             new Rectangle( 0, 0, 800, 600 );
 
-    /** The object holding the list of servers that we should use for SSA
-     *  queries. */
+    /**
+     * The object holding the list of servers that we should use for SSA queries.
+     * @uml.property  name="serverList"
+     * @uml.associationEnd  multiplicity="(1 1)"
+     */
     private SSAServerList serverList = null;
 
-    /** The instance of SPLAT we're associated with. */
+    /**
+     * The instance of SPLAT we're associated with.
+     * @uml.property  name="browser"
+     * @uml.associationEnd  multiplicity="(1 1)" inverse="ssapBrowser:uk.ac.starlink.splat.iface.SplatBrowser"
+     */
     private SplatBrowser browser = null;
 
-    /** The SpecDataFactory.*/
+    /**
+     * The SpecDataFactory.
+     * @uml.property  name="specDataFactory"
+     * @uml.associationEnd  multiplicity="(1 1)"
+     */
     private SpecDataFactory specDataFactory = SpecDataFactory.getInstance();
 
-    /** File chooser used for saving and restoring queries. */
+    /**
+     * File chooser used for saving and restoring queries.
+     * @uml.property  name="fileChooser"
+     * @uml.associationEnd  
+     */
     protected BasicFileChooser fileChooser = null;
 
-    /** Content pane of frame */
+    /**
+     * Content pane of frame
+     * @uml.property  name="contentPane"
+     * @uml.associationEnd  
+     */
     protected JPanel contentPane = null;
 
-    /** Centre panel */
+    /**
+     * Centre panel
+     * @uml.property  name="centrePanel"
+     * @uml.associationEnd  multiplicity="(1 1)"
+     */
     protected JPanel centrePanel = null;
+    /**
+     * @uml.property  name="gbcentre"
+     */
     protected GridBagConstraints gbcentre;
 
 
-    /** Servers panel */
+    /**
+     * Servers panel
+     * @uml.property  name="leftPanel"
+     * @uml.associationEnd  multiplicity="(1 1)"
+     */
     protected JPanel leftPanel = null;
   
     
     
-    /** Query panel */
+    /**
+     * Query panel
+     * @uml.property  name="queryPanel"
+     * @uml.associationEnd  
+     */
     protected JPanel queryPanel = null;
 
-    /** Basic Query panel */
+    /**
+     * Basic Query panel
+     * @uml.property  name="basicQueryPanel"
+     * @uml.associationEnd  
+     */
     protected JPanel basicQueryPanel = null;
 
-    /** Customized Query panel */
+    /**
+     * Customized Query panel
+     * @uml.property  name="customQueryPanel"
+     * @uml.associationEnd  
+     */
     protected JPanel customQueryPanel = null;
 
-    /** Object name */
+    /**
+     * Object name
+     * @uml.property  name="nameField"
+     * @uml.associationEnd  
+     */
     protected JTextField nameField = null;
 
-    /** Resolve object name button */
+    /**
+     * Resolve object name button
+     * @uml.property  name="nameLookup"
+     * @uml.associationEnd  
+     */
     protected JButton nameLookup = null;
 
-    /** Download and display selected spectra */
+    /**
+     * Download and display selected spectra
+     * @uml.property  name="displaySelectedButton"
+     * @uml.associationEnd  
+     */
     protected JButton displaySelectedButton = null;
 
-    /** Download and display all spectra */
+    /**
+     * Download and display all spectra
+     * @uml.property  name="displayAllButton"
+     * @uml.associationEnd  
+     */
     protected JButton displayAllButton = null;
 
-    /** Download selected spectra */
+    /**
+     * Download selected spectra
+     * @uml.property  name="downloadSelectedButton"
+     * @uml.associationEnd  
+     */
     protected JButton downloadSelectedButton = null;
 
-    /** Download all spectra */
+    /**
+     * Download all spectra
+     * @uml.property  name="downloadAllButton"
+     * @uml.associationEnd  
+     */
     protected JButton downloadAllButton = null;
 
-    /** Deselect spectra in visible table */
+    /**
+     * Deselect spectra in visible table
+     * @uml.property  name="deselectVisibleButton"
+     * @uml.associationEnd  
+     */
     protected JButton deselectVisibleButton = null;
 
-    /** Deselect all spectra in all tables */
+    /**
+     * Deselect all spectra in all tables
+     * @uml.property  name="deselectAllButton"
+     * @uml.associationEnd  
+     */
     protected JButton deselectAllButton = null;
 
-    /** Display basic search parameters */
+    /**
+     * Display basic search parameters
+     * @uml.property  name="basicSearchButton"
+     * @uml.associationEnd  readOnly="true"
+     */
     protected JRadioButton  basicSearchButton;
 
-    /** Display extended search parameters */
+    /**
+     * Display extended search parameters
+     * @uml.property  name="customSearchButton"
+     * @uml.associationEnd  readOnly="true"
+     */
     protected JRadioButton  customSearchButton;
 
     /** Display GET DATA  parameters and activation status */
@@ -246,85 +328,195 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
     
 //    protected boolean getDataEnabled = false;
    
-    /** Display  DATA Link parameters and activation status */
+    /**
+     * Display  DATA Link parameters and activation status
+     * @uml.property  name="dataLinkButton"
+     * @uml.associationEnd  
+     */
     protected JButton  dataLinkButton;
     
+    /**
+     * @uml.property  name="dataLinkEnabled"
+     */
     protected boolean dataLinkEnabled = false;
     
-    /** Make the query to all known servers */
+    /**
+     * Make the query to all known servers
+     * @uml.property  name="goButton"
+     * @uml.associationEnd  
+     */
     protected JButton goButton = null;
     
-    /** update/display query string */
+    /**
+     * update/display query string
+     * @uml.property  name="showQueryButton"
+     * @uml.associationEnd  
+     */
     JButton showQueryButton = null;
 
-    /** Allows user to customize search parameters */
+    /**
+     * Allows user to customize search parameters
+     * @uml.property  name="customButton"
+     * @uml.associationEnd  
+     */
     protected JButton customButton = null;
 
-    /** Central RA */
+    /**
+     * Central RA
+     * @uml.property  name="raField"
+     * @uml.associationEnd  
+     */
     protected JTextField raField = null;
 
-    /** Central Dec */
+    /**
+     * Central Dec
+     * @uml.property  name="decField"
+     * @uml.associationEnd  
+     */
     protected JTextField decField = null;
 
-    /** Region radius */
+    /**
+     * Region radius
+     * @uml.property  name="radiusField"
+     * @uml.associationEnd  
+     */
     protected JTextField radiusField = null;
 
-    /** Lower limit for BAND */
+    /**
+     * Lower limit for BAND
+     * @uml.property  name="lowerBandField"
+     * @uml.associationEnd  
+     */
     protected JTextField lowerBandField = null;
 
-    /** Upper limits for BAND */
+    /**
+     * Upper limits for BAND
+     * @uml.property  name="upperBandField"
+     * @uml.associationEnd  
+     */
     protected JTextField upperBandField = null;
 
-    /** Lower limit for TIME */
+    /**
+     * Lower limit for TIME
+     * @uml.property  name="lowerTimeField"
+     * @uml.associationEnd  
+     */
     protected JTextField lowerTimeField = null;
 
-    /** Upper limits for TIME */
+    /**
+     * Upper limits for TIME
+     * @uml.property  name="upperTimeField"
+     * @uml.associationEnd  
+     */
     protected JTextField upperTimeField = null;
 
-    /** The query text */
+    /**
+     * The query text
+     * @uml.property  name="queryText"
+     * @uml.associationEnd  
+     */
     protected JTextArea queryText = null;
     
-    /** The extended query text */
+    /**
+     * The extended query text
+     * @uml.property  name="extendedQueryText"
+     */
     protected String extendedQueryText = null;
     
 
-    /** ButtonGroup for the format selection */
+    /**
+     * ButtonGroup for the format selection
+     * @uml.property  name="formatGroup"
+     * @uml.associationEnd  
+     */
     protected ButtonGroup formatGroup = null;
+    /**
+     * @uml.property  name="formatList"
+     * @uml.associationEnd  
+     */
     protected JComboBox formatList = null;
 
-    /** ButtonGroup for the FLUXCALIB selection */
+    /**
+     * ButtonGroup for the FLUXCALIB selection
+     * @uml.property  name="fluxCalibGroup"
+     * @uml.associationEnd  
+     */
     protected ButtonGroup fluxCalibGroup = null;
+    /**
+     * @uml.property  name="flcalibList"
+     * @uml.associationEnd  
+     */
     protected JComboBox flcalibList = null;
     
 
-    /** ButtonGroup for the WAVECALIB selection */
+    /**
+     * ButtonGroup for the WAVECALIB selection
+     * @uml.property  name="waveCalibGroup"
+     * @uml.associationEnd  
+     */
     protected ButtonGroup waveCalibGroup = null;
+    /**
+     * @uml.property  name="wlcalibList"
+     * @uml.associationEnd  
+     */
     protected JComboBox wlcalibList = null;
 
-    /** Tabbed pane showing the query results tables */
+    /**
+     * Tabbed pane showing the query results tables
+     * @uml.property  name="resultsPane"
+     * @uml.associationEnd  
+     */
     protected JTabbedPane resultsPane = null;
 
-    /** The list of StarJTables in use */
+    /**
+     * The list of StarJTables in use
+     * @uml.property  name="starJTables"
+     * @uml.associationEnd  multiplicity="(0 -1)" elementType="uk.ac.starlink.table.gui.StarJTable"
+     */
     protected ArrayList<StarJTable> starJTables = null;
 
-    /** NED name resolver catalogue */
+    /**
+     * NED name resolver catalogue
+     * @uml.property  name="nedCatalogue"
+     * @uml.associationEnd  
+     */
     protected SkycatCatalog nedCatalogue = null;
 
-    /** SIMBAD name resolver catalogue */
+    /**
+     * SIMBAD name resolver catalogue
+     * @uml.property  name="simbadCatalogue"
+     * @uml.associationEnd  
+     */
     protected SkycatCatalog simbadCatalogue = null;
 
-    /** The current name resolver, if using Skycat method */
+    /**
+     * The current name resolver, if using Skycat method
+     * @uml.property  name="resolverCatalogue"
+     * @uml.associationEnd  
+     */
     protected SkycatCatalog resolverCatalogue = null;
 
-    /** The proxy server dialog */
+    /**
+     * The proxy server dialog
+     * @uml.property  name="proxyWindow"
+     * @uml.associationEnd  
+     */
     protected ProxySetupFrame proxyWindow = null;
 
     /** The SSA servers window */
    // protected SSAServerFrame serverWindow = null;
 
-    /** The Button for adding optional parameters to the query */
+    /**
+     * The Button for adding optional parameters to the query
+     * @uml.property  name="addParamButton"
+     * @uml.associationEnd  
+     */
     protected JButton addParamButton = null;
-    /** The Button for removing optional parameters from the optional parameters list */
+    /**
+     * The Button for removing optional parameters from the optional parameters list
+     * @uml.property  name="removeParamButton"
+     * @uml.associationEnd  
+     */
     protected JButton removeParamButton = null;
     
     /** The list of all input parameters read from the servers */
@@ -337,6 +529,10 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
     }
 
     /* The Query text that will be displayed */
+    /**
+     * @uml.property  name="queryLine"
+     * @uml.associationEnd  
+     */
     private SSAQuery queryLine;
     
     /** The list of all input parameters read from the servers as a hash map */
@@ -352,15 +548,33 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
     /** two way mapping servers-metadata parameters **/
     private static ServerParamRelation serverParam;
     
-    /** the serverlist as a tree **/
+    /**
+     * the serverlist as a tree
+     * @uml.property  name="tree"
+     * @uml.associationEnd  
+     */
     private SSAServerTree tree;
     
+    /**
+     * @uml.property  name="isLookup"
+     */
     private boolean isLookup = false;
+    /**
+     * @uml.property  name="getDataSelection"
+     */
     private boolean getDataSelection = false;
    
     static ProgressPanelFrame progressFrame = null;
 
+    /**
+     * @uml.property  name="getDataFrame"
+     * @uml.associationEnd  
+     */
     private GetDataQueryFrame getDataFrame = null;
+    /**
+     * @uml.property  name="dataLinkFrame"
+     * @uml.associationEnd  
+     */
     private DataLinkQueryFrame dataLinkFrame = null;
 
     /**
@@ -941,13 +1155,24 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
 //        resultsPane.setPreferredSize(new (600,310));
         resultsPanel.add( resultsPane , gbc);
         resultsPane.addChangeListener(new ChangeListener() {
-            public void stateChanged(ChangeEvent e) {
-                if (dataLinkFrame != null && dataLinkEnabled) {
-                    dataLinkFrame.setServer(resultsPane.getTitleAt(resultsPane.getSelectedIndex()));
-                } else 
-                    if (getDataFrame != null && dataLinkEnabled) {
-                        getDataFrame.setService(resultsPane.getTitleAt(resultsPane.getSelectedIndex()));
+            public void stateChanged(ChangeEvent e) {//XXXXX
+                if ( dataLinkEnabled ) {
+                   if (resultsPane.getIconAt(resultsPane.getSelectedIndex())!=null) { // it's a datalink service
+
+                        if (dataLinkFrame != null && dataLinkEnabled) {
+                            dataLinkFrame.setServer(resultsPane.getTitleAt(resultsPane.getSelectedIndex()));
+                            dataLinkFrame.setVisible(true);
+                        } else 
+
+                            if (getDataFrame != null && dataLinkEnabled) {
+                                getDataFrame.setService(resultsPane.getTitleAt(resultsPane.getSelectedIndex()));
+                            } 
+
+                    } else {
+                        dataLinkFrame=null;
+                        getDataFrame=null;
                     }
+                }
             }
         });
         
@@ -1260,7 +1485,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                 radius = Double.parseDouble( radiusText );
             }
             catch (NumberFormatException e) {
-                ErrorDialog.showError( this, "Cannot understand radius value", e );
+                ErrorDialog.showError( this, "Radius input error", e );
                 return;
             }
         }
@@ -1272,7 +1497,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         try {
             queryLine.setPosition(ra, dec);
         } catch (NumberFormatException e) {
-            ErrorDialog.showError( this, "Cannot understand this value", e );
+            ErrorDialog.showError( this, "Position input error", e );
             return;
         }
         queryLine.setRadius( radius );
@@ -1654,7 +1879,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                     dataLinkButton.setForeground(Color.GRAY);
                     resultsPane.addTab( shortName, cutImage, scrollPane );
                 }
-                else if (getDataTable != null) { // if no dataLink services present, check if there are getData services
+                else if (getDataTable != null) {
                     
                     if ( getDataFrame == null ) {
                        //  getDataFrame=null;
@@ -1672,11 +1897,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                     dataLinkButton.setForeground(Color.GRAY);
                     resultsPane.addTab( shortName, cutImage, scrollPane );
                 }
-                else {
-                  //  dataLinkButton.setEnabled(false);
-                 //   dataLinkButton.setVisible(false);
-                    resultsPane.addTab( shortName, scrollPane );
-                }
+                else resultsPane.addTab( shortName, scrollPane );
                 starJTables.add( table );
 
                 //  Set widths of columns.
@@ -1809,7 +2030,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         String accessURL = null;
         if ( dataLinkFrame != null && dataLinkFrame.isVisible() ) {
             dataLinkQueryParams = dataLinkFrame.getParams();
-            idSource = dataLinkFrame.getIDSource().substring(1); // remove initial '#'.
+            idSource = dataLinkFrame.getIDSource(); 
             accessURL = dataLinkFrame.getAccessURL();
         }
         else if ( getDataFrame != null && getDataFrame.isVisible() ) {
@@ -2071,8 +2292,10 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                                    props.setDataLinkRequest(dataLinkRequest);
                                    props.setServerURL(dataLinkQueryParams.get("AccessURL"));
                                    String format = dataLinkQueryParams.get("FORMAT");
-                                   if (format != null && format != "")
+                                   if (format != null && format != "") {
                                        props.setDataLinkFormat(format);
+                                       props.setType(specDataFactory.mimeToSPLATType( format ));
+                                   }
                                 }
                             } else if (pubdidcol != -1  && getDataParam != null) {
                                
@@ -2173,9 +2396,11 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                                       // props.setServerURL(dataLinkQueryParam.get("AccessURL"));
                                        props.setServerURL(accessURL);
                                        String format = dataLinkQueryParams.get("FORMAT");
-                                       if (format != null && format != "")
+                                       if (format != null && format != "") {
                                            props.setDataLinkFormat(format);
+                                           props.setType(specDataFactory.mimeToSPLATType( format ) );
                                       // props.setShortName(props.getShortName() + " [" + getDataParam.get("BAND") + "]" );
+                                       }
                                     }
                                 } else  if (pubdidcol != -1  && getDataParam != null) {
                                 
@@ -2739,9 +2964,11 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                     deactivateDataLinkSupport();
             
                 } else {
-                    dataLinkFrame.setVisible(true);
-                    // getDataButton.setEnabled(true);
                     activateDataLinkSupport();
+                    if (resultsPane.isEnabledAt(resultsPane.getSelectedIndex()))
+                        dataLinkFrame.setVisible(true);
+                    // getDataButton.setEnabled(true);
+                  
                
                 }
             } else if (getDataFrame != null && getDataFrame.getParams() != null) {
@@ -2760,7 +2987,8 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                     activateDataLinkSupport();
                    
                 }
-            }
+            } 
+                
             return;
         }
 
@@ -2807,30 +3035,31 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
      * activate DataLink/getData queries on supported sites
      */
     private void activateDataLinkSupport() {
-        
+       
         dataLinkEnabled=true;
         int selected=-1;
-        int anyIndex = -1;
+        //int anyIndex = -1;
         dataLinkButton.setForeground(Color.BLACK);
         int nrTabs = resultsPane.getTabCount();
         for(int i = 0; i < nrTabs; i++)
         {
-           if (resultsPane.getIconAt(i) == null) {
+           if (resultsPane.getIconAt(i) == null) { // no datalink service
                resultsPane.setEnabledAt(i, false);
            }
            else {
                if (resultsPane.getSelectedIndex() == i)
                    selected = i;
-               anyIndex = i;
+              
+              // anyIndex = i;
               // resultsPane.setSelectedIndex(i);
            }
         }
         
-        // if current selection is a getData service, keep it. If not,
-        // set selection to one getData service.
+        // if current selection is not a DataLink service do nothing
         if (selected < 0)
-            selected=anyIndex;
-        resultsPane.setSelectedIndex(selected);
+            return;
+            //selected=anyIndex;
+            //resultsPane.setSelectedIndex(selected);
         
         //getDataFrame.setService(resultsPane.getTitleAt(selected));
         if (dataLinkFrame.setServer(resultsPane.getTitleAt(selected)) == null)
@@ -2992,19 +3221,28 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
     } // customParameters
 
     /**
-     *  Metadata Query worker class
-     *  makes the query, adds resulting metadata to the queue, notify the metadata process worker 
-     *  
-     * @author mm
-     *
+     * Metadata Query worker class makes the query, adds resulting metadata to the queue, notify the metadata process worker 
+     * @author  mm
      */
 
     class MetadataQueryWorker extends SwingWorker 
     {
         URL queryURL=null;
+        /**
+         * @uml.property  name="server"
+         * @uml.associationEnd  
+         */
         SSAPRegResource server=null;
         ParamElement [] metadata = null;
+        /**
+         * @uml.property  name="workQueue"
+         * @uml.associationEnd  
+         */
         WorkQueue workQueue=null;
+        /**
+         * @uml.property  name="progressPanel"
+         * @uml.associationEnd  
+         */
         ProgressPanel progressPanel = null;
 
         /**
@@ -3090,15 +3328,16 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
     };
 
     /**
-     *  Metadata Process worker class
-     *  makes the query, adds resulting metadata to the queue, notify the metadata process worker 
-     *  
-     * @author Margarida Castro Neves
-     *
+     * Metadata Process worker class makes the query, adds resulting metadata to the queue, notify the metadata process worker 
+     * @author  Margarida Castro Neves
      */
 
     class MetadataProcessWorker extends SwingWorker 
     {
+        /**
+         * @uml.property  name="workQueue"
+         * @uml.associationEnd  
+         */
         WorkQueue workQueue=null;
 
         public MetadataProcessWorker( WorkQueue queue) {          
@@ -3130,13 +3369,16 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
 
 
     /**
-     * queue that receives information from the QueryWorker threads
-     * and process them
+     * queue that receives information from the QueryWorker threads and process them
      */
     class WorkQueue {
         LinkedList<Object> queue = new LinkedList<Object>();
         int workedItems = 0;
         int maxItems=0;
+        /**
+         * @uml.property  name="server"
+         * @uml.associationEnd  
+         */
         SSAPRegResource server;
 
         public WorkQueue( int total ) {
@@ -3162,9 +3404,17 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             return (data);
         }
         
+        /**
+         * @param server
+         * @uml.property  name="server"
+         */
         public void setServer( SSAPRegResource server ) {
             this.server=server;
         }
+        /**
+         * @return
+         * @uml.property  name="server"
+         */
         public SSAPRegResource getServer(  ) {
             return this.server;
         }
@@ -3339,25 +3589,39 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
 
  
     /**
-     * A Metadata input parameter class, to contain the parameter element and the number of servers that
-     * accept this parameter
+     * A Metadata input parameter class, to contain the parameter element and the number of servers that accept this parameter
      */
 
     public class MetadataInputParameter
     {
         ParamElement param;
         String paramName = null;
+        /**
+         * @uml.property  name="description"
+         */
         String description = null;
+        /**
+         * @uml.property  name="unit"
+         */
         String unit = null;
+        /**
+         * @uml.property  name="value"
+         */
         String value = null;
         String nullValue = null;
         String[] options;
         //ValuesElement values = null;
+        /**
+         * @uml.property  name="datatype"
+         */
         String datatype = null;
         String min=null;    
         String max=null;
 
 
+        /**
+         * @uml.property  name="counter"
+         */
         int counter;
 
         MetadataInputParameter(ParamElement param) {
@@ -3387,21 +3651,41 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
     		}
              */	    		
         }
+        /**
+         * @return
+         * @uml.property  name="counter"
+         */
         protected int getCounter() {
             return counter;
         }
         protected String getName() {
             return paramName;
         }
+        /**
+         * @return
+         * @uml.property  name="value"
+         */
         protected String getValue() {
             return value;
         }
+        /**
+         * @return
+         * @uml.property  name="description"
+         */
         protected String getDescription() {
             return description;
         }
+        /**
+         * @return
+         * @uml.property  name="datatype"
+         */
         protected String getDatatype() {
             return datatype;
         }
+        /**
+         * @return
+         * @uml.property  name="unit"
+         */
         protected String getUnit() {
             return unit;
         }
@@ -3427,7 +3711,12 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
     }
 
     public void insertUpdate(DocumentEvent de) {
-        
+        changeUpdate(de);
+    }
+    public void removeUpdate(DocumentEvent de) {
+        changeUpdate(de);
+    }
+    private void changeUpdate(DocumentEvent de) {
         //get the owner of this document
         Object owner = de.getDocument().getProperty("owner");
         if(owner != null){
@@ -3443,20 +3732,29 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                         radius = Double.parseDouble( radiusText );
                     }
                     catch (NumberFormatException e1) {
-                        ErrorDialog.showError( this, "Cannot understand radius value", e1);                         
+                        radiusField.setForeground(Color.red);
+                        //ErrorDialog.showError( this, "Cannot understand radius value", e1);                         
                         return;
                     }
+                    radiusField.setForeground(Color.black);
                 }
                 queryLine.setRadius(radius);
             }
             if (owner == raField || owner == decField ) {
-                if (raField.getText().length() > 0 && decField.getText().length() > 0 )
+                if (raField.getText().length() > 0 && decField.getText().length() > 0 ) {
                     try {
                             queryLine.setPosition(raField.getText(), decField.getText());
                     } catch (NumberFormatException nfe) {
-                        ErrorDialog.showError( this, "Invalid coordinate format", nfe);
+                       // if (owner == raField )
+                            raField.setForeground(Color.red);
+                     //   else 
+                            decField.setForeground(Color.red);
+                       // ErrorDialog.showError( this, "Invalid coordinate format", nfe);
                         return;
                     }
+                    raField.setForeground(Color.black);
+                    decField.setForeground(Color.black);
+                }
             }
            
             if (owner == upperBandField || owner == lowerBandField ) {
@@ -3474,7 +3772,9 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         
     }
 
-    public void removeUpdate(DocumentEvent de) {
+    /*     public void removeUpdate(DocumentEvent de) {
+        
+        
         Object owner = de.getDocument().getProperty("owner");
         
         if(owner != null){
@@ -3485,6 +3785,9 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                 queryLine.setPosition(0, 0);
                 raField.setText("");
                 decField.setText("");
+            } 
+            if (owner == radiusField) {
+                
             }
             if (owner == raField || owner == decField ) {
                  if  (! isLookup ) {
@@ -3494,17 +3797,25 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                     nameField.setForeground(Color.black);
                 }
             
-                if (raField.getText().length() > 0 && decField.getText().length() > 0 )
+                if (raField.getText().length() > 0 && decField.getText().length() > 0 ) {
                     try {
                             queryLine.setPosition(raField.getText(), decField.getText());
                     } catch (NumberFormatException nfe) {
-                        ErrorDialog.showError( this, "Invalid coordinate format", nfe);
+                     //   if (owner == raField ) 
+                            raField.setForeground(Color.red);
+                     //   else 
+                            decField.setForeground(Color.red);
+                        //ErrorDialog.showError( this, "Invalid coordinate format", nfe);
                         return;
                     }
+                    raField.setForeground(Color.black);
+                    decField.setForeground(Color.black);
                 //nameField.setText("");
+                }               
             }
         }
         updateQueryText();
         
     }
+ */   
 }
