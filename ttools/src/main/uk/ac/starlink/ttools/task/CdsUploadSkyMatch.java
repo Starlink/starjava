@@ -199,6 +199,7 @@ public class CdsUploadSkyMatch extends SingleMapperTask {
             "</p>",
         } );
         usemocParam_.setDefault( Boolean.TRUE.toString() );
+        paramList.add( usemocParam_ );
 
         fixcolsParam_ = new JoinFixActionParameter( "fixcols" );
         insuffixParam_ =

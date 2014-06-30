@@ -51,7 +51,7 @@ public class CdsUploadMatcher implements UploadMatcher {
     /** URL for the CDS Xmatch service. */
     public static final String XMATCH_URL =
         "http://cdsxmatch.u-strasbg.fr/xmatch/api/v1/sync";
-    public static final String SIMBAD_NAME = "SIMBAD";
+    public static final String SIMBAD_NAME = "simbad";
 
     private static final String RA_NAME = "__UPLOAD_RA__";
     private static final String DEC_NAME = "__UPLOAD_DEC__";

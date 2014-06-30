@@ -16299,7 +16299,7 @@ CDS table against which to match.
 The table must be entered by name in the <label>VizieR Table ID/Alias</label>
 field, and may be in one of the following forms:
 <ul>
-<li>"SIMBAD", to indicate the 
+<li>"simbad", to indicate the 
     <webref url="http://simbad.u-strasbg.fr/simbad/">SIMBAD database</webref>
     of known astronomical objects.
     </li>
