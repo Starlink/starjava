@@ -36,6 +36,7 @@ import uk.ac.starlink.ttools.plot2.layer.ShapePlotter;
 import uk.ac.starlink.ttools.plot2.layer.ShapeStyle;
 import uk.ac.starlink.ttools.plot2.layer.Stamper;
 import uk.ac.starlink.ttools.plot2.paper.Compositor;
+import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
 import uk.ac.starlink.ttools.plot2.task.ColumnDataSpec;
 import uk.ac.starlink.ttools.plot2.task.PlotDisplay;
 
@@ -127,12 +128,12 @@ public class ApiPlanePlotter implements SinePlot.PlanePlotter {
 
         /* Finally construct, size and return the plot component. */
         Compositor compositor = Compositor.SATURATION;
+        PaperTypeSelector ptSel = plotType.getPaperTypeSelector();
         JComponent comp =
             new PlotDisplay<PlaneSurfaceFactory.Profile,PlaneAspect>
-                           ( plotType, layers, surfFact, profile, aspect,
-                             legend, legPos, shadeAxis, shadeFixRange,
-                             dataStore, surfaceAuxRange, navigator,
-                             compositor, caching );
+                           ( layers, surfFact, profile, aspect, legend, legPos,
+                             shadeAxis, shadeFixRange, ptSel, compositor,
+                             dataStore, surfaceAuxRange, navigator, caching );
         comp.setPreferredSize( new Dimension( 500, 400 ) );
         return comp;
     }
