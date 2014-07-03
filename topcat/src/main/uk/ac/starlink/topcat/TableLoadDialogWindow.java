@@ -46,6 +46,7 @@ public class TableLoadDialogWindow extends AuxWindow {
             new ToggleButtonModel( "Stay Open", ResourceIcon.KEEP_OPEN,
                                    "Keep window open even after " +
                                    "successful load" );
+        stayOpenModel_.setSelected( isPinnedDflt( tld ) );
         getToolBar().add( stayOpenModel_.createToolbarButton() );
         getToolBar().addSeparator();
         JMenu windowMenu = getWindowMenu();
@@ -126,5 +127,18 @@ public class TableLoadDialogWindow extends AuxWindow {
 
         /* Perform asynchronous table loading. */
         controlWin.runLoading( loader, loadClient, tld_.getIcon() );
+    }
+
+    /**
+     * Determines whether the window associated with a given load dialogue
+     * should be pinned open by default.
+     *
+     * @param  tld  load dialogue
+     * @return   if false, window will disappear when a load is complete;
+     *           if true, it will stay posted
+     */
+    private static boolean isPinnedDflt( TableLoadDialog tld ) {
+        String cname = tld.getClass().getName();
+        return cname.endsWith( "TapTableLoadDialog" );
     }
 }
