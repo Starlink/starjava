@@ -16323,9 +16323,9 @@ field, and may be in one of the following forms:
 <p>When a table name has been entered, additional information
 (Name, Alias, Description and Row Count)
 will be downloaded from CDS and displayed in the lower part of the
-Remote Table panel.  If something shows up here, it is a good indication
-that you have a legal table name, though occasionally this metadata
-is not available.
+Remote Table panel.  If nothing shows up here, then the table name
+is not legal for the X-Match service, and the <label>Go</label> button
+will be disabled.
 </p>
 
 <p>Sky coverage information is also displayed, including the proportion
@@ -16402,6 +16402,8 @@ about how the match will operate:
 button and the match will start; progress will be logged in the progress
 bar at the bottom of the window.  To stop the match before it has
 completed, hit the <label>Stop</label> button.
+Note that the <label>Go</label> button is only enabled when a legal
+table name has been entered at the top.
 </p>
 
 <p>The remote table in most cases contains only a subset of the

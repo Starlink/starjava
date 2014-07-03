@@ -54,6 +54,7 @@ import uk.ac.starlink.ttools.cone.ServiceFindMode;
 import uk.ac.starlink.ttools.cone.UploadMatcher;
 import uk.ac.starlink.ttools.cone.WrapperQuerySequence;
 import uk.ac.starlink.util.gui.ComboBoxBumper;
+import uk.ac.starlink.util.gui.Downloader;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 import uk.ac.starlink.vo.DoubleValueField;
 
@@ -77,6 +78,7 @@ public class UploadMatchPanel extends JPanel {
     private final Action startAction_;
     private final Action stopAction_;
     private final ToggleButtonModel coverageModel_;
+    private final Downloader<CdsUploadMatcher.VizierMeta> metaDownloader_;
     private TopcatModel tcModel_;
     private volatile MatchWorker matchWorker_;
 
@@ -108,6 +110,16 @@ public class UploadMatchPanel extends JPanel {
                 AuxWindow.makeTitledBorder( "Remote Table" ),
                 BorderFactory.createEmptyBorder( 5, 5, 5, 5 ) ) );
         cList.add( cdsTableSelector_ );
+
+        /* Make sure the Start button is only enabled when there is metadata
+         * for the table.  This should be an indicator of whether a legal
+         * table name is selected. */
+        metaDownloader_ = cdsTableSelector_.getMetadataDownloader();
+        metaDownloader_.addActionListener( new ActionListener() {
+            public void actionPerformed( ActionEvent evt ) {
+                updateState();
+            }
+        } );
 
         /* Containers for different input fields. */
         JComponent localBox = Box.createVerticalBox();
@@ -344,7 +356,8 @@ public class UploadMatchPanel extends JPanel {
      */
     private void updateState() {
         boolean isActive = matchWorker_ != null;
-        startAction_.setEnabled( ! isActive );
+        boolean hasMeta = metaDownloader_.getData() != null;
+        startAction_.setEnabled( ! isActive && hasMeta );
         stopAction_.setEnabled( isActive );
         for ( int i = 0; i < components_.length; i++ ) {
             components_[ i ].setEnabled( ! isActive );
