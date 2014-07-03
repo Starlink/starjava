@@ -255,7 +255,7 @@
 
 <docnumber>253</docnumber>
 
-<docdate>7 March 2014</docdate>
+<docdate>4 July 2014</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -16284,7 +16284,7 @@ You can access the window from the main
 <ref id="ControlWindow">Control Window</ref> using the
 <label>CDS Upload Match</label> button (&IMG.CDSXMATCH;)
 in the toolbar, or the <label>Joins</label> or <label>VO</label> menus.
-This window is an interface to the
+This window is an interface to the excellent
 <webref url="http://cdsxmatch.u-strasbg.fr/">CDS X-Match service</webref>
 provided by the Centre de Donn&#x00e9;es astronomiques de Strasbourg
 (<webref url="http://cds.u-strasbg.fr">CDS</webref>).
@@ -17612,6 +17612,7 @@ Some of the notable contributers are these:
 <li>JJ Kavelaars (NRC)</li>
 <li>Gerard Lemson (MPE Garching)</li>
 <li>Bob Mann (Royal Observatory Edinburgh)</li>
+<li>Gr&#x00e9;gory Mantelet (ARI)</li>
 <li>Ben Maughan (Bristol)</li>
 <li>Richard McMahon (IoA)</li>
 <li>Guillaume Mella (JMMC)</li>
@@ -17619,9 +17620,10 @@ Some of the notable contributers are these:
 <li>Douglas Morgan (Bristol)</li>
 <li>August Muench (CfA)</li>
 <li>Simon Murphy (ANU)</li>
-<li>Francois Ochsenbein (CDS)</li>
+<li>Fran&#x00e7;ois Ochsenbein (CDS)</li>
 <li>Clive Page (Leicester)</li>
 <li>Menelaus Perdikeas (ESAC)</li>
+<li>Fran&#x00e7;ois-Xavier Pineau (CDS)</li>
 <li>Roy Platon (RAL)</li>
 <li>James Price (Bristol)</li>
 <li>Anita Richards (Jodrell Bank)</li>
@@ -20285,57 +20287,85 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Next version</dt>
+<dt>Version 4.2 (4 July 2014)</dt>
 <dd><p>
-    <ul>
-    <li>Set antialiasing on by default for OSX - get it right this time.</li>
-    <li>Modify the way antialiasing is controlled.  The Grid antialiasing
-        option, where present, now just covers the actual grid lines.
-        Text antialiasing is now selected with a new "Antialias" option
-        in the (now possibly misnamed) "Text Syntax" item
-        in Font configuration.  This now affects the Aux axis and Legend
-        labelling as well as the grid labelling.</li>
-    <li>Add old-style frame zooming on new-style plots using middle button
-        (or shift) drag.</li>
-    <li>Form configuration options are now preserved, rather than reset,
-        when a new table is selected in one of the plot windows.</li>
-    <li>Fixed some bugs related to TAP table uploads.</li>
-    <li>Use RegTAP as (default) alternative to RI1.0 for registry queries.
-        A registry protocol selector now appears on registry query windows
-        to allow to switch between the two if required.
-        RegTAP is generally much more reliable and requires much less
-        bandwidth than the old arrangement.
-        The number of resources located is also now displayed.</li>
-    <li>Update the endpoint for the NVO/VAO RI1.0 registry, on advice from
-        Theresa Dower.</li>
-    <li>Upgraded Gregory Mantelet's ADQL library to version 1.2.
-        Better ADQL parsing.</li>
-    <li>Added new graphics output format <code>png-transp</code>
-        to generate PNG files with transparent backgrounds.</li>
-    <li>Fix out-by-one error in reporting of Row of min/max values
-        in Statistics window.</li>
-    <li>Add missing geometric reserved words to ADQL reserved word list.
-        Has a slight effect on ADQL validation in TAP window.</li>
-    <li>Improve TAP window Running Jobs display.  The Job URL is now always
-        shown even when the other job details scroll off screen,
-        and the details scroll to the top not the bottom when a job is
-        selected or refreshed.</li>
-    <li>No longer disable "View URL As ..." options in Activation window
-        when no suitable columns are present.</li>
-    <li>Registry search panels now display resource count at the bottom of
-        the resource list.</li>
-    <li>Add CDS X-Match Upload Window.  The button for this replaces the
-        MultiCone button in the main Control Window toolbar.
-        MultiCone is still available from the VO and Joins menus,
-        but is now for most purposes deprecated.</li>
-    <li>Fixed bug reversing cube and sphere navigation help buttons.</li>
-    <li>Fixed TAP load dialogue so that by default it stays open after a
-        table is loaded (the <label>Stay Open</label> option is set true
-        by default).</li>
-    <li>TAP window replaces Concatenate window on the toolbar.
-        The Concatenate window is still available from the
-        Joins menu.</li>
-    </ul>
+    <dl>
+    <dt>Significant new functionality and changes:</dt>
+    <dd><p>
+        <ul>
+        <li>Add the new
+            <ref id="CdsUploadMatchWindow">CDS X-Match Upload Window</ref>.
+            In most cases (matching with a table that can be found in VizieR)
+            this window can and should be used instead of the old
+            Multi-Cone window - it is <em>much</em> faster.
+            The button for this window replaces the
+            MultiCone button in the main Control Window toolbar.
+            MultiCone is still available from the VO and Joins menus,
+            but is now for most purposes deprecated.</li>
+        <li>Windows with a <ref id="RegistryPanel">Registry Query Panel</ref>
+            can now talk to the registry using either RI1.0
+            (the only option in previous versions) or RegTAP.
+            RegTAP is generally much better
+            (faster, less bandwidth, more reliable),
+            and is the default choice, but a selector allows you
+            to revert to RI1.0 if preferred.</li>
+        <li>The "frame"-style zooming that was used in old-style plots
+            is now available in the new-style plots - drag the mouse
+            using the middle button or shift key.</li>
+        <li>The <ref id="TapTableLoadDialog">TAP Window</ref> button
+            replaces the Concatenate window button on the toolbar.
+            The Concatenate window is still available from the
+            Joins menu.  This is not new functionality, but the UI change
+            reflects the growing usefulness of TAP services.</li>
+        </ul>
+        </p></dd>
+    <dt>Minor improvements:</dt>
+    <dd><p>
+        <ul>
+        <li>Form configuration options are now preserved, rather than reset,
+            when a new table is selected in one of the plot windows.</li>
+        <li>Registry search panels now display resource count at the bottom of
+            the resource list.</li>
+        <li>Update the endpoint for the NVO/VAO RI1.0 registry
+            (now deprecated in favour of RegTAP), on advice from
+            Theresa Dower.</li>
+        <li>Fixed TAP load dialogue so that by default it stays open after a
+            table is loaded (the <label>Stay Open</label> option is set true
+            by default).</li>
+        <li>Improve TAP window Running Jobs display.  The Job URL is now always
+            shown even when the other job details scroll off screen,
+            and the details scroll to the top not the bottom when a job is
+            selected or refreshed.</li>
+        <li>Upgraded Gregory Mantelet's ADQL library to version 1.2.
+            Better ADQL parsing.</li>
+        <li>Modify the way antialiasing is controlled in plot windows.
+            The Grid antialiasing
+            option, where present, now just covers the actual grid lines.
+            Text antialiasing is now selected with a new "Antialias" option
+            in the (now possibly misnamed) "Text Syntax" item
+            in Font configuration.  This now affects the Aux axis and Legend
+            labelling as well as the grid labelling.</li>
+        <li>Added new graphics output format <code>png-transp</code>
+            to generate PNG files with transparent backgrounds.</li>
+        </ul>
+        </p></dd>
+    <dt>Bug fixes:</dt>
+    <dd><p>
+        <ul>
+        <li>Set antialiasing on by default for OSX -
+            get it right this time.</li>
+        <li>Fixed some bugs related to TAP table uploads.</li>
+        <li>Fix out-by-one error in reporting of Row of min/max values
+            in Statistics window.</li>
+        <li>Add missing geometric reserved words to ADQL reserved word list.
+            Has a slight effect on ADQL validation in TAP window.</li>
+        <li>No longer disable "View URL As ..." options in Activation window
+            when no suitable columns are present.</li>
+        <li>Fixed bug in which cube plot navigation help button gave you
+            sphere plot help and vice versa.</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>
