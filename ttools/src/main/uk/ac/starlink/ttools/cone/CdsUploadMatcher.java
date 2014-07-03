@@ -51,7 +51,12 @@ public class CdsUploadMatcher implements UploadMatcher {
     /** URL for the CDS Xmatch service. */
     public static final String XMATCH_URL =
         "http://cdsxmatch.u-strasbg.fr/xmatch/api/v1/sync";
+
+    /** Alias for Simbad flat view table. */
     public static final String SIMBAD_NAME = "simbad";
+
+    /** Whether it is safe/recommended to upload empty tables to match. */
+    public static final boolean UPLOAD_EMPTY = false;
 
     private static final String RA_NAME = "__UPLOAD_RA__";
     private static final String DEC_NAME = "__UPLOAD_DEC__";

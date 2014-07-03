@@ -31,6 +31,7 @@ public class BlockUploader {
     private final JoinFixAction remoteFixAct_;
     private final ServiceFindMode serviceMode_;
     private final boolean oneToOne_;
+    private final boolean uploadEmpty_;
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.task" );
@@ -46,11 +47,15 @@ public class BlockUploader {
      * @param   remoteFixAct  name deduplication policy for remote table
      * @param   serviceMode   upload match mode
      * @param   oneToOne   true iff output rows match 1:1 with input rows
+     * @param   uploadEmpty  determines behaviour if there are no input rows:
+     *                       true means attempt the match anyway,
+     *                       false means throw an IOException
      */
     public BlockUploader( UploadMatcher umatcher, int blocksize, long maxrec,
                           String outName, JoinFixAction uploadFixAct,
                           JoinFixAction remoteFixAct,
-                          ServiceFindMode serviceMode, boolean oneToOne ) {
+                          ServiceFindMode serviceMode, boolean oneToOne,
+                          boolean uploadEmpty ) {
         umatcher_ = umatcher;
         blocksize_ = blocksize;
         maxrec_ = maxrec;
@@ -59,6 +64,7 @@ public class BlockUploader {
         remoteFixAct_ = remoteFixAct;
         serviceMode_ = serviceMode;
         oneToOne_ = oneToOne;
+        uploadEmpty_ = uploadEmpty;
         if ( oneToOne_ && ! serviceMode.supportsOneToOne() ) {
             throw new IllegalArgumentException( "Mode " + serviceMode
                                               + " doesn't support 1:1" );
@@ -114,9 +120,13 @@ public class BlockUploader {
         while ( ! done && ( maxrec_ < 0 || totOut < maxrec_ ) ) {
             PreviewBlockSequence blockSeq =
                 new PreviewBlockSequence( coneSeq, blocksize_ );
-            if ( blockSeq.hasNext() ) {
-                BlockSink blockSink =
-                    new BlockSink( rawResultStore, iblock == 0 );
+            boolean isFirst = iblock == 0;
+            boolean hasNext = blockSeq.hasNext();
+            if ( isFirst && ! hasNext && ! uploadEmpty_ ) {
+                throw new IOException( "No candidate rows for upload match" );
+            }
+            if ( hasNext || isFirst ) {
+                BlockSink blockSink = new BlockSink( rawResultStore, isFirst );
                 long nRemain = maxrec_ >= 0 ? maxrec_ - totOut : -1;
                 boolean over =
                     umatcher_.streamRawResult( blockSeq, blockSink, rowMapper,
@@ -130,9 +140,7 @@ public class BlockUploader {
                 totOut += nOut;
                 iblock++;
             }
-            else {
-                done = true;
-            }
+            done = ! hasNext;
         };
         int nblock = iblock;
         coneSeq.close();

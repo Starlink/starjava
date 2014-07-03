@@ -252,9 +252,11 @@ public class CdsUploadSkyMatch extends SingleMapperTask {
         final TableProducer inProd = createInputProducer( env );
         final StoragePolicy storage =
             LineTableEnvironment.getStoragePolicy( env );
+        boolean uploadEmpty = CdsUploadMatcher.UPLOAD_EMPTY;
         final BlockUploader blocker =
             new BlockUploader( umatcher, blocksize, maxrec, tableName,
-                               inFixAct, cdsFixAct, serviceMode, oneToOne );
+                               inFixAct, cdsFixAct, serviceMode, oneToOne,
+                               uploadEmpty );
 
         /* Create and return an object which will produce the result. */
         return new TableProducer() {
