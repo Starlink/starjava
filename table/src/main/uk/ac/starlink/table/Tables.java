@@ -395,6 +395,20 @@ public class Tables {
     }
 
     /**
+     * Casts a long to an int, with an assertion that no truncation occurs.
+     *
+     * @param  lval  long value, asserted to be in the range
+     *               Integer.MIN_VALUE..Integer.MAX_VALUE
+     * @return  truncated version of <code>lval</code>
+     */
+    public static int assertLongToInt( long lval ) {
+        int ival = (int) lval;
+        assert ival == lval
+             : "Long value " + lval + " unexpectedly out of int range";
+        return ival;
+    }
+
+    /**
      * Returns an array of strings suitable as labels or label suffixes
      * for elements of an array as returned by {@link ValueInfo#getShape}.
      * If the given <tt>shape</tt> cannot be decomposed into a fixed
