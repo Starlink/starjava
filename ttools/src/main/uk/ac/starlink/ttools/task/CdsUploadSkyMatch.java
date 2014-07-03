@@ -23,6 +23,7 @@ import uk.ac.starlink.ttools.cone.BlockUploader;
 import uk.ac.starlink.ttools.cone.CdsUploadMatcher;
 import uk.ac.starlink.ttools.cone.Coverage;
 import uk.ac.starlink.ttools.cone.CoverageQuerySequenceFactory;
+import uk.ac.starlink.ttools.cone.HealpixSortedQuerySequenceFactory;
 import uk.ac.starlink.ttools.cone.JELQuerySequenceFactory;
 import uk.ac.starlink.ttools.cone.QuerySequenceFactory;
 import uk.ac.starlink.ttools.cone.ServiceFindMode;
@@ -46,6 +47,7 @@ public class CdsUploadSkyMatch extends SingleMapperTask {
     private final IntegerParameter maxrecParam_;
     private final URLParameter urlParam_;
     private final BooleanParameter usemocParam_;
+    private final BooleanParameter presortParam_;
     private final JoinFixActionParameter fixcolsParam_;
     private final Parameter insuffixParam_;
     private final Parameter cdssuffixParam_;
@@ -201,6 +203,34 @@ public class CdsUploadSkyMatch extends SingleMapperTask {
         usemocParam_.setDefault( Boolean.TRUE.toString() );
         paramList.add( usemocParam_ );
 
+        presortParam_ = new BooleanParameter( "presort" );
+        presortParam_.setPrompt( "Pre-sort rows before uploading?" );
+        presortParam_.setDescription( new String[] {
+            "<p>If true, the rows are sorted by HEALPix index before",
+            "they are uploaded to the CDS X-Match service.",
+            "If the match is done in multiple blocks,",
+            "this may improve efficiency,",
+            "since when matching against a large remote catalogue",
+            "the X-Match service likes to process requests",
+            "in which sources are grouped into a small region",
+            "rather than scattered all over the sky.",
+            "</p>",
+            "<p>Note this will have a couple of other side effects that may",
+            "be undesirable:",
+            "it will read all the input rows into the task at once,",
+            "which may make it harder to assess progress,",
+            "and it will affect the order of the rows in the output table.",
+            "</p>",
+            "<p>It is <em>probably</em> only worth setting true for rather",
+            "large (multi-million-row?) multi-block matches,",
+            "where both local and remote catalogues are spread over",
+            "a significant fraction of the sky.",
+            "But feel free to experiment",
+            "</p>",
+        } );
+        presortParam_.setDefault( Boolean.FALSE.toString() );
+        paramList.add( presortParam_ );
+
         fixcolsParam_ = new JoinFixActionParameter( "fixcols" );
         insuffixParam_ =
             fixcolsParam_.createSuffixParameter( "suffixin",
@@ -230,7 +260,7 @@ public class CdsUploadSkyMatch extends SingleMapperTask {
                                                "Bad value " + cdsName );
         }
         double srDeg = sr / 3600.;
-        final QuerySequenceFactory qsFact =
+        final QuerySequenceFactory qsFact0 =
             new JELQuerySequenceFactory( raString, decString,
                                          Double.toString( srDeg ) );
         UserFindMode userMode = findParam_.objectValue( env );
@@ -242,6 +272,7 @@ public class CdsUploadSkyMatch extends SingleMapperTask {
         final Coverage coverage = usemocParam_.booleanValue( env )
                                 ? UrlMocCoverage.getVizierMoc( cdsName, -1 )
                                 : null;
+        final boolean presort = presortParam_.booleanValue( env );
         UploadMatcher umatcher =
             new CdsUploadMatcher( url, cdsId, sr, serviceMode );
         String tableName = "xmatch(" + cdsIdToTableName( cdsId ) + ")";
@@ -277,11 +308,14 @@ public class CdsUploadSkyMatch extends SingleMapperTask {
                 else {
                     cov = null;
                 }
-                QuerySequenceFactory qsFact2 =
-                      cov == null
-                    ? qsFact
-                    : new CoverageQuerySequenceFactory( qsFact, cov );
-                return blocker.runMatch( inTable, qsFact2, storage );
+                QuerySequenceFactory qsFact1 = qsFact0;
+                if ( cov != null ) {
+                    qsFact1 = new CoverageQuerySequenceFactory( qsFact1, cov );
+                }
+                if ( presort ) {
+                    qsFact1 = new HealpixSortedQuerySequenceFactory( qsFact1 );
+                }
+                return blocker.runMatch( inTable, qsFact1, storage );
             }
         };
     }
