@@ -20306,6 +20306,9 @@ introduced since the last version:
         MultiCone button in the main Control Window toolbar.
         MultiCone is now for most purposes deprecated.</li>
     <li>Fixed bug reversing cube and sphere navigation help buttons.</li>
+    <li>Fixed TAP load dialogue so that by default it stays open after a
+        table is loaded (the <label>Stay Open</label> option is set true
+        by default).</li>
     </ul>
     </p></dd>
 
