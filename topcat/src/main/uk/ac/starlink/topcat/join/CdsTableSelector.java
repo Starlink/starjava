@@ -170,6 +170,17 @@ public class CdsTableSelector extends JPanel {
     }
 
     /**
+     * Returns the object that manages metadata downloads for the
+     * currently-selected table.
+     *
+     * @return   metadata downloader; this will not change over the
+     *           lifetime of this object
+     */
+    public Downloader<VizierMeta> getMetadataDownloader() {
+        return metaDownloader_;
+    }
+
+    /**
      * Invoked when the selected table name may have changed.
      * Updates the display accordingly.
      * Must be invoked from the Event Dispatch Thread.
@@ -177,6 +188,8 @@ public class CdsTableSelector extends JPanel {
     private void updateTableName() {
         String tableName = (String) nameSelector_.getSelectedItem();
         tableName_ = tableName;
+        setMetadata( null );
+        setMoc( null );
 
         /* Reset the downloaded coverage information.  Action will be taken
          * by the setMetadata method to populate this with non-empty
@@ -235,7 +248,40 @@ public class CdsTableSelector extends JPanel {
             if ( alias != null && alias.equals( name ) ) {
                 alias = null;
             }
+
+            /* Having got the metadata we can now get the MOC,
+             * asynchronously if required.
+             * It would be more straightforward and reliable to get the MOC
+             * concurrently as soon as the alias-or-id entered by the user
+             * is known, but Thomas Boch (CDS) advises/requests that by
+             * preference the table name rather than alias should be used
+             * for MOC retrieval (though by alias usually seems to work),
+             * and we may not have the name until we have the metadata.
+             * But if the name is not available for some reason, fall back
+             * to what we have, which is whatever the user entered. */
+            String mocName = name == null ? getTableName() : name;
+            mocDownloader_.setTableName( mocName );
+            if ( mocDownloader_.isComplete() ) {
+                setMoc( mocDownloader_.getData() );
+            }
+            else {
+                if ( mocFuture_ != null ) {
+                    mocFuture_.cancel( true );
+                }
+                mocFuture_ = mocExecutor_.submit( new Runnable() {
+                    public final void run() {
+                        final MocCoverage moc = mocDownloader_.waitForData();
+                        SwingUtilities.invokeLater( new Runnable() {
+                            public void run() {
+                                setMoc( moc );
+                            }
+                        } );
+                    }
+                } );
+            }
         }
+
+        /* Populate the metadata fields. */
         setMetaField( nameField_, name );
         setMetaField( aliasField_, alias );
         setMetaField( descField_, description );
@@ -243,37 +289,6 @@ public class CdsTableSelector extends JPanel {
                       nrow == null
                           ? null
                           : TopcatUtils.formatLong( nrow.longValue() ) );
-
-        /* Having got the metadata (successfully or otherwise)
-         * we can now get the MOC, asynchronously if required.
-         * It would be more straightforward and reliable to get the MOC
-         * concurrently as soon as the alias-or-id entered by the user
-         * is known, but Thomas Boch (CDS) advises/requests that by
-         * preference the table name rather than alias should be used
-         * for MOC retrieval (though by alias usually seems to work),
-         * and we may not have the name until we have the metadata.
-         * But if the name is not available for some reason, fall back
-         * to what we have, which is whatever the user entered. */
-        String mocName = name == null ? getTableName() : name;
-        mocDownloader_.setTableName( mocName );
-        if ( mocDownloader_.isComplete() ) {
-            setMoc( mocDownloader_.getData() );
-        }
-        else {
-            if ( mocFuture_ != null ) {
-                mocFuture_.cancel( true );
-            }
-            mocFuture_ = mocExecutor_.submit( new Runnable() {
-                public final void run() {
-                    final MocCoverage moc = mocDownloader_.waitForData();
-                    SwingUtilities.invokeLater( new Runnable() {
-                        public void run() {
-                            setMoc( moc );
-                        }
-                    } );
-                }
-            } );
-        }
     }
 
     /**
