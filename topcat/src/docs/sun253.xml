@@ -16307,8 +16307,10 @@ field, and may be in one of the following forms:
     <em>Note</em> these must name the table not just the catalogue
     (which may contain several tables), so for instance "II/246" will not work.
     No help is currently provided in this window to search for these IDs,
-    but you can use the VizieR web page to look for them:
-    <webref url="http://vizier.u-strasbg.fr/viz-bin/VizieR"/>.
+    you have to use one of the services or web pages provide by CDS to
+    locate them.
+    A good tip is the table searching facility at the TAPVizieR service,
+    <webref url="http://tapvizier.u-strasbg.fr/adql/"/>.
     </li>
 <li>A VizieR table alias, for instance "2mass".
     A few tens of these are defined for the largest

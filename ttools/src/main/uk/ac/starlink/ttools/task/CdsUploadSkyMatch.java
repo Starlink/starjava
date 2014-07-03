@@ -96,8 +96,8 @@ public class CdsUploadSkyMatch extends SingleMapperTask {
             "for the 2MASS Point Source Catalogue)",
             "or \"<code>simbad</code>\" to indicate SIMBAD data.",
             "</p>",
-            "<p>See for instance",
-            "<code>http://vizier.u-strasbg.fr/viz-bin/VizieR</code>",
+            "<p>See for instance the TAPVizieR table searching facility at" ,
+            "<code>http://tapvizier.u-strasbg.fr/adql/</code>",
             "to find VizieR catalogue identifiers.",
             "</p>",
         } );
