@@ -85,7 +85,7 @@ public class UploadMatchPanel extends JPanel {
     private static final long MAXREC = -1;
     private static final int[] BLOCK_SIZES =
         { 100, 1000, 5000, 10000, 20000, 50000, 100000, 200000, 500000, };
-    private static final int DEFAULT_BLOCKSIZE = 10000;
+    private static final int DEFAULT_BLOCKSIZE = 50000;
     private static final ValueInfo SR_INFO =
         new DefaultValueInfo( "Radius", Double.class, "Search Radius" );
 

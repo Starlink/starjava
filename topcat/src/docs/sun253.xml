@@ -16406,8 +16406,16 @@ about how the match will operate:
         </p></dd>
     <dt>Block size</dt>
     <dd><p>The number of rows uploaded to the X-Match service at a time.
-        This should not affect the result; it may affect performance,
-        though probably not very much.
+        This should not affect the result, though it may affect performance.
+        </p>
+        <p>Large blocksizes tend to be good (up to a point) for
+        reducing the total amount of time a large xmatch operation takes,
+        but they can make it harder to see the job progressing.
+        There is also the danger (for ALL-type find modes)
+        of exceeding the return size limit, which will result in
+        truncation of the returned result.
+        At time of writing, the upload limit is 100Mbyte (about 3Mrow),
+        and the maximum return size is 2Mrow.
         </p></dd>
 </dl>
 </p>

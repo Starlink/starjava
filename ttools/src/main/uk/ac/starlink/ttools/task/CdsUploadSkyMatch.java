@@ -121,9 +121,16 @@ public class CdsUploadSkyMatch extends SingleMapperTask {
             "(about 3Mrow; this does not depend on the width of your table),",
             "and the maximum return size is 2Mrow.",
             "</p>",
+            "<p>Large blocksizes tend to be good (up to a point) for",
+            "reducing the total amount of time a large xmatch operation takes,",
+            "but they can make it harder to see the job progressing.",
+            "There is also the danger (for ALL-type find modes)",
+            "of exceeding the return size limit, which will result in",
+            "truncation of the returned result.",
+            "</p>",
         } );
         chunkParam_.setMinimum( 1 );
-        chunkParam_.setDefault( Integer.toString( 10 * 1000 ) );
+        chunkParam_.setDefault( Integer.toString( 50 * 1000 ) );
 
         findParam_ =
             new ChoiceParameter<UserFindMode>( "find", UserFindMode.class,
