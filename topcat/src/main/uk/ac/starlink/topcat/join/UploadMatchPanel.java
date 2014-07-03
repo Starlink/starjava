@@ -435,9 +435,11 @@ public class UploadMatchPanel extends JPanel {
         JoinFixAction inFixAct = JoinFixAction.NO_ACTION;
         JoinFixAction cdsFixAct = fixSelector_.getJoinFixAction();
         boolean oneToOne = upMode.isOneToOne();
+        boolean uploadEmpty = CdsUploadMatcher.UPLOAD_EMPTY;
         BlockUploader blocker =
             new BlockUploader( umatcher, blocksize, maxrec, outName,
-                               inFixAct, cdsFixAct, serviceMode, oneToOne );
+                               inFixAct, cdsFixAct, serviceMode, oneToOne,
+                               uploadEmpty );
 
         /* Create and return the match worker. */
         return new MatchWorker( blocker, upMode, tcModel, qsFact, storage );
