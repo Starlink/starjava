@@ -288,8 +288,7 @@ even with modest memory and CPU resources.
 including a browser for the cell data themselves, 
 viewers for information about table and column metadata,
 tools for joining tables using flexible matching algorithms,
-and visualisation facilities including histograms, 2- and 3-dimensional
-scatter plots, and density maps.
+and extensive 2- and 3-d visualisation facilities.
 Using a powerful and extensible Java-based expression language
 new columns can be defined and row subsets selected for separate analysis.
 Selecting a row can be configured to trigger an action, for instance
@@ -475,10 +474,11 @@ open up new windows.  These fall into a few groups:
     &IMG.PLOT2_SPHERE;</dt>
 <dd><p>Open plotting/visualisation windows of various kinds.</p></dd>
 
-<dt>&IMG.MATCH2; &IMG.MULTICONE; &IMG.CONCAT;</dt>
-<dd><p>Join tables in various ways, including spatial crossmatching</p></dd>
+<dt>&IMG.MATCH2; &IMG.TAP_DIALOG; &IMG.CDSXMATCH;</dt>
+<dd><p>Join tables in various ways including spatial crossmatching,
+    and access remote databases.</p></dd>
 
-<dt>&IMG.HELP; &IMG.FUNCTION;</dt>
+<dt>&IMG.SAMP; &IMG.FUNCTION; &IMG.HELP;</dt>
 <dd><p>Help and information</p></dd>
 </dl>
 
@@ -486,8 +486,8 @@ The <label>Help</label> (&IMG.HELP;) button appears in most windows -
 if you click it a help browser will be displayed showing an appropriate 
 part of this manual.
 As well as the tool bar there are a number of 
-menus along the top - most of the options just repeat those appearing on the
-toolbar, but a few less common ones may be available as well.
+menus along the top - some of the options just repeat those appearing on the
+toolbar, but several less common ones are available as well.
 The <label>Help</label> menu gives you a few 
 more options along the same lines, including displaying the help 
 information in your usual web browser rather than in TOPCAT's (somewhat
@@ -496,7 +496,7 @@ All the windows follow roughly this pattern.  For some of the toolbar
 buttons you can probably guess what they do from their icons, 
 for others probably not - to find out
 you can hover with the mouse to see the tooltip, 
-look in the menus, or read the manual, or just push it and see.
+look in the menus, read the manual, or just push it and see.
 </p>
 
 <p>Some of the windows allow you to make changes of various sorts to the
@@ -2425,7 +2425,8 @@ TOPCAT provides access to these service types in two main ways:
 </dl>
 </p>
 
-<p>TAP is not restricted to positional queries and has its own interface.
+<p>TAP is a much more powerful protocol
+not restricted to positional queries, and has its own interface.
 See the <ref id="TapTableLoadDialog">TAP</ref> load dialogue section
 in <ref id="vo-windows"/>.
 </p>
@@ -5417,13 +5418,22 @@ functions.  They are grouped as follows:
     </dl>
     </p></dd>
 
-<dt>Matching and joining (see <ref id="join"/>)</dt>
+<dt>Matching etc (see <ref id="join"/>)</dt>
 <dd><p>
     <dl>
 
     <dt>&IMG.MATCH2; <ref id="MatchWindow">Pair Match Window</ref></dt>
     <dd><p>Displays a dialog for joining tables side-by-side by locating
         rows which match between them.
+        </p></dd>
+
+    <dt>&IMG.TAP_DIALOG;
+        <ref id="TapTableLoadDialog">TAP Query</ref></dt>
+    <dd><p>Displays a dialogue window for querying remote databases using
+        the Table Access Protocol (TAP).
+        This is a very powerful way to access remote data by writing
+        SQL-like queries, and can be used to do joins with remote tables
+        as well as simply downloading data.
         </p></dd>
 
     <dt>&IMG.CDSXMATCH;
@@ -5434,13 +5444,11 @@ functions.  They are grouped as follows:
         VizieR or SIMBAD databases.
         </p></dd>
 
-    <dt>&IMG.CONCAT; <ref id="ConcatWindow">Concatenation Window</ref></dt>
-    <dd><p>Displays a dialog for joining tables top-to-bottom.
-        </p></dd>
-
     </dl>
-    Note that matches involving a single table, or more than two tables,
-    can be done using the options in the <label>Joins</label> menu.
+    Note that other options for joining tables,
+    including matches involving a single table or more than two tables,
+    and joining tables top-to-bottom, are available
+    from the <label>Joins</label> menu.
     </p></dd>
 
 <dt>Miscellaneous</dt>
@@ -5603,6 +5611,12 @@ Items available from this menu and not the toolbar are:
 <p>The <label>Joins</label> menu contains actions for various types of
 table join.  The items provided additional to those on the toolbar are:
 <dl>
+
+<dt>&IMG.CONCAT; Concatenation Window</dt>
+<dd><p>Displays the
+    <ref id="ConcatWindow">Contatenate Tables window</ref>,
+    which allows you to join two tables top-to-bottom.
+    </p></dd>
 
 <dt>&IMG.MULTICONE; Multiple Cone Search</dt>
 <dd><p>Displays the
@@ -15728,8 +15742,8 @@ using the <ref id="ActivationQueryWindow">Activation Window</ref>.
 
 <p>The Table Access Protocol (TAP) load window can be opened using the
 <label>TAP Query</label> button (&IMG.TAP_DIALOG;)
-from the Load Window's toolbar or the Control Window's
-<label>VO</label> menu.
+in the Control Window's toolbar or <label>VO</label> menu,
+or the Load Window's toolbar.
 It allows you to use the TAP protocol to
 make freeform queries of remote database services 
 using an SQL-like language.
@@ -16451,7 +16465,7 @@ the following acknowledgement:
 <p>The Concatenation Window allows you to join two tables together
 top-to-bottom.  It can be obtained using the 
 <label>Concatenate Tables</label> button (&IMG.CONCAT;) in the
-<ref id="ControlWindow">Control Window</ref> toolbar or Joins menu.
+<ref id="ControlWindow">Control Window</ref> <label>Joins</label> menu.
 </p>
 
 <p>When two windows are concatenated
@@ -20304,11 +20318,15 @@ introduced since the last version:
         the resource list.</li>
     <li>Add CDS X-Match Upload Window.  The button for this replaces the
         MultiCone button in the main Control Window toolbar.
-        MultiCone is now for most purposes deprecated.</li>
+        MultiCone is still available from the VO and Joins menus,
+        but is now for most purposes deprecated.</li>
     <li>Fixed bug reversing cube and sphere navigation help buttons.</li>
     <li>Fixed TAP load dialogue so that by default it stays open after a
         table is loaded (the <label>Stay Open</label> option is set true
         by default).</li>
+    <li>TAP window replaces Concatenate window on the toolbar.
+        The Concatenate window is still available from the
+        Joins menu.</li>
     </ul>
     </p></dd>
 
