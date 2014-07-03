@@ -109,7 +109,7 @@
 
 <docnumber>256</docnumber>
 
-<docdate>7 March 2014</docdate>
+<docdate>4 July 2014</docdate>
 
 <contactlist>
 <contact>STILTS web page:
@@ -8633,43 +8633,61 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         </ul>
         </p></dd>
 
-    <dt>Next version</dt>
+    <dt>Version 2.5-3 (4 July 2014)</dt>
     <dd><p>
-        <ul>
-        <li>Add "duff query" test to <code>taplint</code>.</li>
-        <li>Fixed some bugs related to TAP table uploads.
-            In particular these could cause incorrect table upload error
-            reports in <code>taplint</code>.</li>
-        <li>Avoid <code>taplint</code> MDQ stage data type mismatch error
-            report for BOOLEAN/boolean declared/returned data.</li>
-        <li><code>taplint</code> now takes steps to ensure that TAP_SCHEMA
-            column list query is not truncated.</li>
-        <li><code>taplint</code> now flags absence of ObsCore table with
-            I[nfo] not F[ailure] status.</li>
-        <li>Change the implementation of <code>taplint</code> stages which
-            perform validation against XSD schemas.
-            Schemas from external namespaces may now be imported and used.
-            The CPV stage, which was previously broken and disabled by default,
-            is now fixed and enabled by default.
-            Known/expected schemas are stored locally, and a warning is
-            reported if external ones are used.  Schema validation seems
-            remarkably complicated, so it's possible there are still errors
-            in this implementation - if you suspect so, please report it.</li>
-        <li>Upgraded Gregory Mantelet's ADQL library to version 1.2.
-            Better ADQL parsing.</li>
-        <li>Added new graphics output format <code>png-transp</code>
-            to generate PNG files with transparent backgrounds.</li>
-        <li>Add new command
-            <ref id="cdsskymatch"><code>cdsskymatch</code></ref>.</li>
-        <li>Commands <code>coneskymatch</code>, <code>sqlskymatch</code>
-            and <code>pixfoot</code> will now guess RA/Dec columns
-            if relevant parameters are left blank.</li>
-        <li>Add missing geometric reserved words to ADQL reserved word list.
-            This fixes some problems with column names like "DISTANCE" in
-            taplint tests.</li>
-        <li>Rework taplint API to facilitate static acquisition of report
-            codes during programmatic use.  A few error codes have changed.</li>
-        </ul>
+        <dl>
+        <dt>New and improved functionality:</dt>
+        <dd><p>
+            <ul>
+            <li>Add new command
+                <ref id="cdsskymatch"><code>cdsskymatch</code></ref>.
+                In most cases (for querying tables that can be found in VizieR)
+                this can and should be used instead of
+                <code>coneskymatch</code> - it's <em>much</em> faster.</li>
+            <li>Commands <code>coneskymatch</code>, <code>sqlskymatch</code>
+                and <code>pixfoot</code> will now guess RA/Dec columns
+                if relevant parameters are left blank.</li>
+            <li>Added new graphics output format <code>png-transp</code>
+                to generate PNG files with transparent backgrounds.</li>
+            <li>Upgraded Gregory Mantelet's ADQL library to version 1.2.
+                Better ADQL parsing.</li>
+            </ul>
+            </p></dd>
+        <dt>Improvements and adjustments to
+            <ref id="taplint"><code>taplint</code></ref>:</dt>
+        <dd><p>
+            <ul>
+            <li>Rework <code>taplint</code>
+                API to facilitate static acquisition of
+                report codes during programmatic use.
+                A few error codes have changed.</li>
+            <li>Add new "duff query" test to <code>taplint</code>.</li>
+            <li>Avoid <code>taplint</code> MDQ stage data type mismatch error
+                report for BOOLEAN/boolean declared/returned data.</li>
+            <li><code>taplint</code> now takes steps to ensure that TAP_SCHEMA
+                column list query is not truncated.</li>
+            <li><code>taplint</code> now flags absence of ObsCore table with
+                I[nfo] not F[ailure] status.</li>
+            <li>Change the implementation of <code>taplint</code> stages which
+                perform validation against XSD schemas.
+                Schemas from external namespaces may now be imported and used.
+                The CPV stage, which was previously broken and disabled
+                by default, is now fixed and enabled by default.
+                Known/expected schemas are stored locally, and a warning is
+                reported if external ones are used.  Schema validation seems
+                remarkably complicated, so it's possible there are still errors
+                in this implementation - if you suspect so,
+                please report it.</li>
+            <li>Add missing geometric reserved words to ADQL reserved word
+                list.  This fixes some problems with column names like
+                "DISTANCE" in taplint tests.</li>
+            <li>Fixed some bugs related to TAP table uploads.
+                In particular these could cause incorrect table upload error
+                reports in <code>taplint</code>.</li>
+            </ul>
+            </p></dd>
+
+        </dl>
         </p></dd>
 
 </dl>
