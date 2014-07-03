@@ -478,6 +478,9 @@ public class ControlWindow extends AuxWindow
                                    "five existing tables", 5 ),
         };
 
+        Action tapAct =
+            getLoadWindow().getDialogAction( TopcatTapTableLoadDialog.class );
+
         Transmitter tableTransmitter = communicator_ == null
                                      ? null
                                      : communicator_.getTableTransmitter();
@@ -575,8 +578,8 @@ public class ControlWindow extends AuxWindow
 
         /* Add join/match control buttons to the toolbar. */
         toolBar.add( matchActs_[ 1 ] );
+        toolBar.add( tapAct );
         toolBar.add( cdsmatchAct_ );
-        toolBar.add( concatAct_ );
         toolBar.addSeparator();
 
         /* Add miscellaneous actions to the toolbar. */
