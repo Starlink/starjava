@@ -85,7 +85,7 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
         paramList.add( decParam_ );
 
         srParam_ = new Parameter( "sr" );
-        srParam_.setUsage( "<expr>" );
+        srParam_.setUsage( "<expr/deg>" );
         srParam_.setPrompt( "Search radius in degrees" );
         srParam_.setDescription( new String[] {
             "<p>Expression which evaluates to the search radius in degrees",

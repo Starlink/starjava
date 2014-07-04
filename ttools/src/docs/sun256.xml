@@ -4174,7 +4174,7 @@ the following acknowledgement:
 
 <dt><verbatim>
 stilts cdsskymatch cdstable=II/246/out find=all
-                   in=dr5qso.fits ra=RA dec=DEC sr=1 out=qso_2mass.fits
+                   in=dr5qso.fits ra=RA dec=DEC radius=1 out=qso_2mass.fits
 </verbatim></dt>
 <dd><p>Matches a local catalogue <code>dr5qso.fits</code> against the
     VizieR table <code>II/246/out</code> (the 2MASS Point Source Catalogue).
@@ -4184,7 +4184,7 @@ stilts cdsskymatch cdstable=II/246/out find=all
 
 <dt><verbatim>
 stilts cdsskymatch cdstable=simbad find=best
-                   in=sources.txt ifmt=ascii ra=RAJ2000 dec=DEJ2000 sr=8.5
+                   in=sources.txt ifmt=ascii ra=RAJ2000 dec=DEJ2000 radius=8.5
                    blocksize=1000 icmd=progress omode=topcat
 </verbatim></dt>
 <dd><p>This finds the closest object in the SIMBAD database within 8.5 arcsec

@@ -72,13 +72,14 @@ public class CdsUploadSkyMatch extends SingleMapperTask {
             SkyCoordParameter.createDecParameter( "dec", system, inDescrip );
         paramList.add( decParam_ );
 
-        srParam_ = new DoubleParameter( "sr" );
+        srParam_ = new DoubleParameter( "radius" );
         srParam_.setPrompt( "Search radius value in arcsec (0-180)" );
+        srParam_.setUsage( "<value/arcsec>" );
         srParam_.setDescription( new String[] {
             "<p>Maximum distance from the local table (ra,dec) position",
             "at which counterparts from the remote table will be identified.",
             "This is a fixed value is given in arcseconds,",
-            "and must be in the range 0&lt;=<code>sr</code>&gt;=180",
+            "and must be in the range [0,180]",
             "(this limit is currently enforced by the CDS Xmatch service).",
             "</p>",
         } );
@@ -232,7 +233,7 @@ public class CdsUploadSkyMatch extends SingleMapperTask {
             "large (multi-million-row?) multi-block matches,",
             "where both local and remote catalogues are spread over",
             "a significant fraction of the sky.",
-            "But feel free to experiment",
+            "But feel free to experiment.",
             "</p>",
         } );
         presortParam_.setDefault( Boolean.FALSE.toString() );
