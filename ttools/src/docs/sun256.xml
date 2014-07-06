@@ -8690,6 +8690,16 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         </dl>
         </p></dd>
 
+    <dt>Next version</dt>
+    <dd><p>
+        <ul>
+        <li>Add new output mode
+            <code><ref id="mode-gui">gui</ref></code>,
+            which displays the table data in a scrollable
+            window on the screen.</li>
+        </ul>
+        </p></dd>
+
 </dl>
 </p>
 </subsect>

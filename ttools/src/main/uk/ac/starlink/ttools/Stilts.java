@@ -134,5 +134,6 @@ public class Stilts {
         modeFactory_.register( "samp", modePkg + "SampMode" );
         modeFactory_.register( "plastic", modePkg + "PlasticMode" );
         modeFactory_.register( "tosql", modePkg + "JdbcMode" );
+        modeFactory_.register( "gui", modePkg + "SwingMode" );
     }
 }
