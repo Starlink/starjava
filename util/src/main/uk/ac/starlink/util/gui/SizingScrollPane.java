@@ -1,4 +1,4 @@
-package uk.ac.starlink.topcat;
+package uk.ac.starlink.util.gui;
 
 import java.awt.Component;
 import java.awt.Dimension;
@@ -10,7 +10,7 @@ import javax.swing.JScrollPane;
 
 /**
  * Adds some functionality to the JScrollPane class;
- * a ResizingScrollPane will attempt to match the shape of its 
+ * a SizingScrollPane will attempt to match the shape of its 
  * view component if it is a sensible shape.  Otherwise it will assume
  * some sensible shape.
  *

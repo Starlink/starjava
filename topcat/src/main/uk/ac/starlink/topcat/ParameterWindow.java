@@ -31,6 +31,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.UCD;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.gui.StarJTable;
+import uk.ac.starlink.util.gui.SizingScrollPane;
 
 /**
  * Top-level window which displays the parameters of a table.
