@@ -46,6 +46,7 @@ import uk.ac.starlink.table.gui.ProgressBarStarTable;
 import uk.ac.starlink.table.gui.StarJTable;
 import uk.ac.starlink.table.gui.StarTableColumn;
 import uk.ac.starlink.ttools.filter.QuantCalc;
+import uk.ac.starlink.util.gui.SizingScrollPane;
 
 /**
  * A window which displays statistics for a RowSubset in the table.

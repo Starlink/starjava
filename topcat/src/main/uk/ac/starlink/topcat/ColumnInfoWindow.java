@@ -43,6 +43,7 @@ import uk.ac.starlink.table.gui.NumericCellRenderer;
 import uk.ac.starlink.table.gui.StarJTable;
 import uk.ac.starlink.table.gui.StarTableColumn;
 import uk.ac.starlink.table.gui.TableRowHeader;
+import uk.ac.starlink.util.gui.SizingScrollPane;
 
 /**
  * A window which displays metadata about each of the columns in a table.

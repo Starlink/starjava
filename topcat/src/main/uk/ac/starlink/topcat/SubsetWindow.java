@@ -31,6 +31,7 @@ import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.topcat.interop.TopcatCommunicator;
 import uk.ac.starlink.topcat.interop.Transmitter;
 import uk.ac.starlink.util.gui.ErrorDialog;
+import uk.ac.starlink.util.gui.SizingScrollPane;
 
 /**
  * A window which displays currently defined RowSubsets for the current
