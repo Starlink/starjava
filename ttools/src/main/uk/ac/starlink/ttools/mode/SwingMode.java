@@ -8,6 +8,7 @@ import javax.swing.JScrollPane;
 import javax.swing.KeyStroke;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.gui.StarJTable;
+import uk.ac.starlink.table.gui.TableRowHeader;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.ttools.DocUtils;
@@ -38,8 +39,19 @@ public class SwingMode implements ProcessingMode, TableConsumer {
     }
 
     public void consume( StarTable table ) {
-        StarJTable jt = new StarJTable( table, true );
+        long nrow = table.getRowCount();
+        JScrollPane scroller = new SizingScrollPane();
+        StarJTable jt = new StarJTable( table, false );
+        TableRowHeader rowHeader = new TableRowHeader( jt ) {
+            public long rowNumber( int irow ) {
+                return irow + 1;
+            }
+        };
+        scroller.setViewportView( jt );
+        rowHeader.installOnScroller( scroller );
         jt.configureColumnWidths( jt, 600, 500 );
+ 
+        /* Post window to screen. */
         final JFrame frame = new JFrame();
         frame.getContentPane().add( new SizingScrollPane( jt ) );
         frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
