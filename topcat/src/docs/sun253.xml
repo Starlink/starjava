@@ -20371,6 +20371,8 @@ introduced since the last version:
 <dt>Next version</dt>
 <dd><p>
     <ul>
+    <li>Support viewing tables up to 2^31 (2 billion) rows in the table
+        viewer window.  The previous limit was 2^27 (134 million) rows.</li>
     </ul>
     </p></dd>
 
