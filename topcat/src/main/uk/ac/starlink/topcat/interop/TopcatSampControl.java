@@ -529,13 +529,19 @@ public class TopcatSampControl {
     private TableWithRows lookupTable( String tableId, String url )
             throws MalformedURLException {
 
+        /* Check we have some identification. */
+        if ( ( tableId == null || tableId.trim().length() == 0 ) &&
+             ( url == null || url.trim().length() == 0 ) ) {
+            throw new RuntimeException( "No table-id/url parameter supplied" );
+        }
+
         /* Examine the tableId. */
         if ( tableId != null && idMap_.containsKey( tableId ) ) {
             return (TableWithRows) idMap_.get( tableId );
         }
 
         /* If that fails, examine the URL. */
-        else {
+        else if ( url != null ) {
             ListModel tablesList =
                 ControlWindow.getInstance().getTablesListModel();
             URL u = new URL( url );
@@ -547,16 +553,18 @@ public class TopcatSampControl {
                     return new TableWithRows( tcModel, null );
                 }
             }
-            throw new RuntimeException( new StringBuffer()
-                                       .append( "No table " )
-                                       .append( "table-id=" )
-                                       .append( tableId )
-                                       .append( '/' )
-                                       .append( "url=" )
-                                       .append( url )
-                                       .append( " is loaded" )
-                                       .toString() );
         }
+
+        /* No luck. */
+        throw new RuntimeException( new StringBuffer()
+                                   .append( "No table with " )
+                                   .append( "table-id=" )
+                                   .append( tableId )
+                                   .append( " or " )
+                                   .append( "url=" )
+                                   .append( url )
+                                   .append( " is loaded" )
+                                   .toString() );
     }
 
     /**
