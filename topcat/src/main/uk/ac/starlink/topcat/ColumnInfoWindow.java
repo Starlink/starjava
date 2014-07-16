@@ -377,7 +377,7 @@ public class ColumnInfoWindow extends AuxWindow {
 
         /* Set up a row header. */
         TableRowHeader rowHead = new TableRowHeader( jtab ) {
-            public int rowNumber( int irow ) {
+            public long rowNumber( int irow ) {
                 return irow;
             }
         };

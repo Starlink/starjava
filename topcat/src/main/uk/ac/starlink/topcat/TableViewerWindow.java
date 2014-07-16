@@ -110,7 +110,7 @@ public class TableViewerWindow extends AuxWindow
 
         /* Set up row header panel. */
         rowHead = new TableRowHeader( jtab ) {
-            public int rowNumber( int irow ) {
+            public long rowNumber( int irow ) {
                 return ((int) viewModel.getBaseRow( irow )) + 1;
             }
         };
