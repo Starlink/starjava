@@ -85,6 +85,7 @@ public class ResourceIcon implements Icon {
         GAVO_LOGO = makeIcon( "gavo48.gif" ),
         ESA_LOGO = makeIcon( "esa48.gif" ),
         VIZIER_LOGO = makeIcon( "vizier_logo.gif" ),
+        EU_LOGO = makeIcon( "eu48.gif" ),
 
         /* Generic actions. */
         CLOSE = makeIcon( "multiply4.gif"),
