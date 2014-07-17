@@ -642,7 +642,7 @@ public class AuxWindow extends JFrame {
         int igap = 20;
         box.add( Box.createHorizontalGlue() );
         JLabel starLogo = new JLabel( ResourceIcon.STAR_LOGO );
-        starLogo.setToolTipText( "Starlink project (deceased): "
+        starLogo.setToolTipText( "Starlink project: "
                                + "http://www.starlink.ac.uk/" );
         box.add( starLogo );
         box.add( Box.createHorizontalStrut( igap ) );
@@ -675,6 +675,16 @@ public class AuxWindow extends JFrame {
         esaLogo.setToolTipText( "European Space Agency: "
                               + "http://www.esa.int/" );
         box.add( esaLogo );
+        box.add( Box.createHorizontalStrut( igap ) );
+
+        /* The swirly FP7 logo is apparently discontinued since 1 Jan 2014,
+         * according to this URL:
+         * http://ec.europa.eu/research/fp7/index_en.cfm?pg=logos
+         * You're supposed to use the EU logo instead. */
+        JLabel fp7Logo = new JLabel( ResourceIcon.EU_LOGO );
+        fp7Logo.setToolTipText( "EU Seventh Framework Programme: "
+                              + "http://ec.europa.eu/research/fp7/" );
+        box.add( fp7Logo );
         return box;
     }
 
