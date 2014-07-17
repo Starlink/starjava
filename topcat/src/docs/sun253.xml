@@ -2803,7 +2803,7 @@ The common ones are:
 <dd><p>
   <dl>
   <dt><code>+</code>  (string concatenation)</dt>
-  <dt><code>[]</code> (array dereferencing)</dt>
+  <dt><code>[]</code> (array dereferencing - first element is zero)</dt>
   <dt><code>?:</code> (conditional switch)</dt>
   <dt><code>instanceof</code> (class membership)</dt>
   </dl>
