@@ -78,17 +78,15 @@ public abstract class SkyCoord implements Coord {
     /**
      * Factory method to create an instance of this class.
      *
-     * @param  hasRadius   true for volume, false for unit sphere surface
+     * @param   variant  type of sky coordinates
      * @param   isRequired  true if this coordinate is required for plotting
      */
-    public static SkyCoord createCoord( boolean hasRadius,
+    public static SkyCoord createCoord( SkyVariant variant,
                                         boolean isRequired ) {
-        SkyVariant variant = hasRadius ? SkyVariant.VOLUME
-                                       : SkyVariant.SURFACE;
         if ( PlotUtil.storeFullPrecision() ) {
             return new DoubleSkyCoord( variant, isRequired );
         }
-        else if ( hasRadius ) {
+        else if ( variant.hasRadius() ) {
             return new FloatSkyCoord( variant, isRequired );
         }
         else {
@@ -264,13 +262,39 @@ public abstract class SkyCoord implements Coord {
      * Controls the interpretation of sky vectors, either fixed to the 
      * surface of the unit sphere or not.
      */
-    private static abstract class SkyVariant {
+    public static abstract class SkyVariant {
 
-        /** Vectors are all normalised to modulus 1, on unit sphere surface. */
-        public static SkyVariant SURFACE = createSkyVariant( false );
+        private final boolean hasRadius_;
+        final ValueInfo lonInfo_;
+        final ValueInfo latInfo_;
 
-        /** No constraints on vector modulus. */
-        public static SkyVariant VOLUME = createSkyVariant( true );
+        /** No radial coordinate, vectors all on unit sphere surface. */
+        public static SkyVariant SURFACE = createSurfaceSkyVariant();
+
+        /** Has radial coordinate, point considered blank if radius blank .*/
+        public static SkyVariant VOLUME_OR_NULL =
+            createVolumeSkyVariant( false );
+
+        /** Has radial coordinate, considered on unit sphere if radius blank. */
+        public static SkyVariant VOLUME_OR_UNIT =
+            createVolumeSkyVariant( true );
+
+        /**
+         * Constructor.
+         *
+         * @param  hasRadius  true if a radial coordinate is used
+         */
+        private SkyVariant( boolean hasRadius ) {
+            hasRadius_ = hasRadius;
+            DefaultValueInfo lonInfo =
+                new DefaultValueInfo( "Lon", Number.class, "Longitude" );
+            DefaultValueInfo latInfo =
+                new DefaultValueInfo( "Lat", Number.class, "Latitude" );
+            lonInfo.setUnitString( "deg" );
+            latInfo.setUnitString( "deg" );
+            lonInfo_ = lonInfo;
+            latInfo_ = latInfo;
+        }
 
         /**
          * Returns the user-directed metadata for value acquisition.
@@ -288,6 +312,15 @@ public abstract class SkyCoord implements Coord {
         abstract double[] userToDouble3( Object[] userCoords );
 
         /**
+         * Indicates whether this coord can represent non-unit vectors.
+         *
+         * @return   true iff this coord has a radial part
+         */
+        boolean hasRadius() {
+            return hasRadius_;
+        }
+
+        /**
          * Converts an object to a double value.
          *
          * @param   val  value object
@@ -299,47 +332,97 @@ public abstract class SkyCoord implements Coord {
         }
 
         /**
-         * Returns a new SkyVariant instance.
+         * Converts lon/lat object values into a unit 3-vector.
          *
-         * @param  hasRadius  true for volume, false for surface
+         * @param  lonObj  Number giving longitude in degrees
+         * @param  latObj  Number giving latitude in degrees
+         * @return  3-element unit vector
          */
-        private static SkyVariant createSkyVariant( boolean hasRadius ) {
-            final DefaultValueInfo lonInfo =
-                new DefaultValueInfo( "Lon", Number.class, "Longitude" );
-            final DefaultValueInfo latInfo =
-                new DefaultValueInfo( "Lat", Number.class, "Latitude" );
-            lonInfo.setUnitString( "deg" );
-            latInfo.setUnitString( "deg" );
-            final DefaultValueInfo radiusInfo =
-                new DefaultValueInfo( "Radius", Number.class,
-                                      "Radial distance" );
-            return hasRadius
-                 ? new SkyVariant() {
-                       public ValueInfo[] getUserInfos() {
-                           return new ValueInfo[] { lonInfo, latInfo,
-                                                    radiusInfo };
-                       }
-                       public double[] userToDouble3( Object[] userCoords ) {
-                           double lon = toDouble( userCoords[ 0 ] );
-                           double lat = toDouble( userCoords[ 1 ] );
-                           double radius = toDouble( userCoords[ 2 ] );
-                           double[] vec3 = lonLatDegreesToDouble3( lon, lat );
-                           vec3[ 0 ] *= radius;
-                           vec3[ 1 ] *= radius;
-                           vec3[ 2 ] *= radius;
-                           return vec3;
-                       }
-                   }
-                 : new SkyVariant() {
-                       public ValueInfo[] getUserInfos() {
-                           return new ValueInfo[] { lonInfo, latInfo };
-                       }
-                       public double[] userToDouble3( Object[] userCoords ) {
-                           double lon = toDouble( userCoords[ 0 ] );
-                           double lat = toDouble( userCoords[ 1 ] );
-                           return lonLatDegreesToDouble3( lon, lat );
-                       }
-                   };
+        static double[] getUnitVector( Object lonObj, Object latObj ) {
+            return lonLatDegreesToDouble3( toDouble( lonObj ),
+                                           toDouble( latObj ) );
         }
+    }
+
+    /**
+     * Partial SkyVariant implementation intended for positions that can
+     * be anywhere in space (not restricted to unit sphere).
+     */
+    private static abstract class VolumeSkyVariant extends SkyVariant {
+        private final ValueInfo radiusInfo_;
+        VolumeSkyVariant() {
+            super( true );
+            radiusInfo_ = new DefaultValueInfo( "Radius", Number.class,
+                                                "Radial distance" );
+        }
+        public ValueInfo[] getUserInfos() {
+            return new ValueInfo[] { lonInfo_, latInfo_, radiusInfo_ };
+        }
+        public double[] userToDouble3( Object[] userCoords ) {
+            Object radObj = userCoords[ 2 ];
+            if ( radObj instanceof Number ) {
+                double radius = ((Number) radObj).doubleValue();
+                if ( ! Double.isNaN( radius ) ) {
+                    double[] vec3 =
+                        getUnitVector( userCoords[ 0 ], userCoords[ 1 ] );
+                    vec3[ 0 ] *= radius;
+                    vec3[ 1 ] *= radius;
+                    vec3[ 2 ] *= radius;
+                    return vec3;
+                }
+            }
+            return getNoRadiusVector( userCoords[ 0 ], userCoords[ 1 ] );
+        }
+ 
+        /**
+         * Returns the 3-vector to be used for a position in which no
+         * (non-blank) radius has been supplied.
+         *
+         * @param  lonObj  Number giving longitude in degrees
+         * @param  latObj  Number giving latitude in degrees
+         * @return  3-element unit vector
+         */
+        abstract double[] getNoRadiusVector( Object lonObj, Object latObj );
+    }
+
+    /**
+     * Returns a SkyVariant for positions restricted to the unit sphere.
+     *
+     * @return  new skyvariant
+     */
+    private static SkyVariant createSurfaceSkyVariant() {
+        return new SkyVariant( false ) {
+            public ValueInfo[] getUserInfos() {
+                return new ValueInfo[] { lonInfo_, latInfo_ };
+            }
+            public double[] userToDouble3( Object[] userCoords ) {
+                return getUnitVector( userCoords[ 0 ], userCoords[ 1 ] );
+            }
+        };
+    }
+
+    /**
+     * Returns a SkyVariant for positions in which a radius is supplied.
+     *
+     * @param   nullRadiusPermitted  if true, a null radius is considered
+     *                               equivalent to a unit value
+     */
+    private static SkyVariant
+            createVolumeSkyVariant( boolean nullRadiusPermitted ) {
+        return nullRadiusPermitted
+             ? new VolumeSkyVariant() {
+                   public double[] getNoRadiusVector( Object lonObj,
+                                                    Object latObj ) {
+                       return getUnitVector( lonObj, latObj );
+                   }
+               }
+             : new VolumeSkyVariant() {
+                   public double[] getNoRadiusVector( Object lonObj,
+                                                      Object latObj ) {
+                       return new double[] { Double.NaN,
+                                             Double.NaN,
+                                             Double.NaN };
+                   }
+               };
     }
 }
