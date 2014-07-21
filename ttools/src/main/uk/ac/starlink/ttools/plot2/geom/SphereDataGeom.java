@@ -16,7 +16,7 @@ import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 public class SphereDataGeom implements DataGeom {
 
     private static final SkyCoord SPHERE_COORD =
-        SkyCoord.createCoord( true, true );
+        SkyCoord.createCoord( SkyCoord.SkyVariant.VOLUME_OR_NULL, true );
 
     /** Singleton instance. */
     public static final SphereDataGeom INSTANCE = new SphereDataGeom();

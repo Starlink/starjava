@@ -18,7 +18,7 @@ public abstract class SkyDataGeom implements DataGeom {
     private final String variantName_;
 
     private static final SkyCoord SKY_COORD =
-        SkyCoord.createCoord( false, true );
+        SkyCoord.createCoord( SkyCoord.SkyVariant.SURFACE, true );
 
     /**
      * Constructor.
