@@ -398,7 +398,7 @@ public abstract class VotLintTapRunner extends TapRunner {
                         .append( postStatus )
                         .append( " is not ERROR/OVERFLOW" )
                         .toString();
-                    reporter.report( FixedCode.E_DQU2, msg );
+                    reporter.report( FixedCode.W_DQU2, msg );
                 }
             }
         }
