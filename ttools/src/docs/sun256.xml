@@ -8697,6 +8697,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
             <code><ref id="mode-gui">gui</ref></code>,
             which displays the table data in a scrollable
             window on the screen.</li>
+        <li>taplint: downgrade unknown post-table QUERY_STATUS value message
+            from Error to Warning.</li>
         </ul>
         </p></dd>
 
