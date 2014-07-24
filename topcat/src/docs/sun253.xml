@@ -20373,6 +20373,8 @@ introduced since the last version:
     <ul>
     <li>Support viewing tables up to 2^31 (2 billion) rows in the table
         viewer window.  The previous limit was 2^27 (134 million) rows.</li>
+        <li>Attempting to write FITS tables with &gt;999 columns now fails
+            with a more helpful error message.</li>
     </ul>
     </p></dd>
 

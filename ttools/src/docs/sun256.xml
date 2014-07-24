@@ -8699,6 +8699,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
             window on the screen.</li>
         <li>taplint: downgrade unknown post-table QUERY_STATUS value message
             from Error to Warning.</li>
+        <li>Attempting to write FITS tables with &gt;999 columns now fails
+            with a more helpful error message.</li>
         </ul>
         </p></dd>
 
