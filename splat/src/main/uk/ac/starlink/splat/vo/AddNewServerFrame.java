@@ -31,6 +31,9 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.border.Border;
+
+import com.sun.tools.javac.util.List;
 
 /**
  * Class AddNewServerFrame
@@ -67,6 +70,8 @@ implements ActionListener, ItemListener
     private String dataSourceValue="";
 
     private String type="";
+    private String[] waveBandValue;
+    private String dataSourceValue="";
     
     /**
      * The server list to be updated
@@ -254,6 +259,8 @@ implements ActionListener, ItemListener
         statusLabel = new JLabel( "", JLabel.CENTER );
         statusPanel.add( statusLabel );
         centrePanel.add( statusPanel );
+        
+        
 
         // the action buttons
 
@@ -303,6 +310,7 @@ implements ActionListener, ItemListener
         {
             statusLabel.setText(new String(""));
             resetFields();
+            resetButtons();
         }
         if ( command.equals( "close" ) ) // close window
         {
@@ -314,6 +322,7 @@ implements ActionListener, ItemListener
         status=0;
     }
 
+    
     /**
      *  Close (hide) the window.
      */
@@ -331,7 +340,29 @@ implements ActionListener, ItemListener
         descriptionField.setText("");
         shortNameField.setText("");
         accessURLField.setText("");
+
     }
+    /**
+     *  Reset all buttons
+     */
+    private void resetButtons() 
+    {
+        for(Component c : bandPanel.getComponents()) {
+            if(c instanceof JCheckBox ) {  
+                ((JCheckBox) c).setSelected(false);
+            }
+        }
+        
+        srcGroup.clearSelection();
+    }
+
+    /**
+     *  itemStateChanged
+     *  process checked/unchecked buttons
+     */
+    public void itemStateChanged(ItemEvent iev) {
+        JCheckBox cb = (JCheckBox) iev.getSource();
+        String name = cb.getName();
 
     /**
      *  Reset all buttons
@@ -372,12 +403,14 @@ implements ActionListener, ItemListener
     }
 
 
+    }
     /**
      *  Sets the new resource to be added to the server list
      */
     private void setResource()
     {
-            newResource = new SSAPRegResource(shortNameField.getText(), titleField.getText(), descriptionField.getText(), accessURLField.getText()); 
+            newResource = new SSAPRegResource(shortNameField.getText(), titleField.getText(), descriptionField.getText(), accessURLField.getText(), waveBandValue, dataSourceValue ); 
+           
     }
 
     /**
@@ -464,4 +497,6 @@ implements ActionListener, ItemListener
             return false;
         }
     }
+
+    
 }

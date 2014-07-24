@@ -72,6 +72,26 @@ public class SSAPRegResource
         capabilities[0] = new SSAPRegCapability( newDescription, newAccessUrl );
     }
 
+    /**
+     * Constructor. Initialised from a {@link AddNewServerFrame}, allows
+     * manual insertion of a server}.
+     *
+     * @param   newshortName     resource short name
+     * @param   newTitle         resource title
+     * @param   newDescription   capability description
+     * @param   newAccessUrl     capability access url
+     * @param   newWaveBandl     wave band
+     * @param   newDataSource    data source
+     */
+    public SSAPRegResource( String newShortName, String newTitle, String newDescription, String newAccessUrl, String[] newWaveBand, String newDataSource )
+    {
+        setShortName(newShortName);
+        setTitle(newTitle);
+        setWaveband(newWaveBand);
+        capabilities = new SSAPRegCapability[1];
+        capabilities[0] = new SSAPRegCapability( newDescription, newAccessUrl, newDataSource );
+    }
+
     public String getShortName()
     {
         return shortName;
