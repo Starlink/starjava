@@ -201,6 +201,9 @@
     <echo message="Executing CDF target: ${what}"/>
     <ant dir="./cdf" target="${what}"/>
 
+    <echo message="Executing GBIN target: ${what}"/>
+    <ant dir="./gbin" target="${what}"/>
+
     <echo message="Executing RAYREG target: ${what}"/>
     <ant dir="./rayreg" target="${what}"/>
 
@@ -462,6 +465,14 @@
       </packageset>
 
       <packageset dir="cdf/build/java" defaultexcludes="yes">
+         <include name="**"/>
+      </packageset>
+
+      <packageset dir="cdf/build/java" defaultexcludes="yes">
+         <include name="**"/>
+      </packageset>
+
+      <packageset dir="gbin/build/java" defaultexcludes="yes">
          <include name="**"/>
       </packageset>
 
