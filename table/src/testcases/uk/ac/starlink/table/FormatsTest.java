@@ -192,6 +192,7 @@ public class FormatsTest extends TableCase {
             "FITS",
             "VOTable",
             "CDF",
+            "GBIN",
         };
         String[] knownFormats = new String[] {
             "FITS-plus",
@@ -200,6 +201,7 @@ public class FormatsTest extends TableCase {
             "FITS",
             "VOTable",
             "CDF",
+            "GBIN",
             "ASCII",
             "CSV",
             "TST",

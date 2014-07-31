@@ -89,6 +89,8 @@ import uk.ac.starlink.util.URLDataSource;
  *      (format name="tst")
  * <li> {@link uk.ac.starlink.table.formats.IpacTableBuilder}
  *      (format name="ipac")
+ * <li> {@link uk.ac.starlink.gbin.GbinTableBuilder}
+ *      (format name="gbin")
  * <li> {@link uk.ac.starlink.table.formats.WDCTableBuilder}
  *      (format name="wdc")
  * </ul>
@@ -135,6 +137,7 @@ public class StarTableFactory {
         "uk.ac.starlink.fits.FitsTableBuilder",
         "uk.ac.starlink.votable.VOTableBuilder",
         "uk.ac.starlink.cdf.CdfTableBuilder",
+        "uk.ac.starlink.gbin.GbinTableBuilder",
     };
     private static String[] knownBuilderClasses = {
         AsciiTableBuilder.class.getName(),
