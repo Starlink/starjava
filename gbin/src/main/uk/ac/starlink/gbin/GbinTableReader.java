@@ -22,7 +22,6 @@ public class GbinTableReader implements RowSequence {
     private final GbinObjectReader reader_;
     private final Object gobj0_;
     private final int ncol_;
-    private final long nrow_;
     private final ItemReader[] itemReaders_;
     private final Map<ItemReader,Object> itemMap_;
     private final ColumnInfo[] colInfos_;
@@ -49,7 +48,6 @@ public class GbinTableReader implements RowSequence {
                                 null );
         }
         itemMap_ = new HashMap<ItemReader,Object>();
-        nrow_ = reader_.getCount();
     }
 
     public int getColumnCount() {
@@ -61,7 +59,7 @@ public class GbinTableReader implements RowSequence {
     }
 
     public long getRowCount() {
-        return nrow_;
+        return -1;
     }
 
     public boolean next() throws IOException {

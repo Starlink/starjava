@@ -13,7 +13,6 @@ public class GbinObjectReader {
     private final Object gbinReaderObj_;
     private final Method hasNextMethod_;
     private final Method nextMethod_;
-    private final Method getCountMethod_;
     private static final Object[] ARGS0 = new Object[ 0 ];
     private static boolean isGaiaToolsInit_;
     private static final Logger logger_ =
@@ -24,7 +23,6 @@ public class GbinObjectReader {
         Class clazz = gbinReaderObj.getClass();
         hasNextMethod_ = getNoArgMethod( clazz, "hasNext", boolean.class );
         nextMethod_ = getNoArgMethod( clazz, "next", null );
-        getCountMethod_ = getNoArgMethod( clazz, "getCount", long.class );
     }
 
     public boolean hasNext() throws IOException {
@@ -33,15 +31,6 @@ public class GbinObjectReader {
 
     public Object next() throws IOException {
         return invoke( nextMethod_ );
-    }
-
-    public long getCount() {
-        try {
-            return ((Number) invoke( getCountMethod_ )).longValue();
-        }
-        catch ( Exception e ) {
-            return -1;
-        }
     }
 
     private Object invoke( Method method ) throws IOException {
