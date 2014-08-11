@@ -42,8 +42,11 @@ public class RegTapRegistryQuery implements RegistryQuery {
      * that will crop up in an actual subject value. */
     private static final String SUBJECT_DELIM = ", ";
 
-    /** TAP endpoint for GAVO registry currently hosted at ARI Heidelberg. */
-    public static final String GAVO_REG = "http://dc.g-vo.org/tap";
+    /** TAP endpoint for high-availablity GAVO registry (DNS pointer). */
+    public static final String GAVO_REG = "http://reg.g-vo.org/tap";
+
+    /** TAP endpoint for GAVO registry hosted at ARI Heidelberg. */
+    public static final String ARI_REG = "http://dc.zah.uni-heidelberg.de/tap";
 
     /** TAP endpoint for GAVO registry hosted at AIP. */
     public static final String AIP_REG = "http://gavo.aip.de/tap";
@@ -55,6 +58,7 @@ public class RegTapRegistryQuery implements RegistryQuery {
     /** List of known registry TAP endpoints. */
     public static final String[] REGISTRIES = new String[] {
         GAVO_REG,
+        ARI_REG,
         AIP_REG,
     };
 
