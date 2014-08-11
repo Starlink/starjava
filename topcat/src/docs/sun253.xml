@@ -20380,6 +20380,10 @@ introduced since the last version:
         and save it again, the columns now remain unicodeChar
         instead of getting squashed to type char.
         Some lurking Unicode-related issues remain.</li>
+    <li>Change the default RegTAP registry endpoint to
+        <code>http://reg.g-vo.org/tap</code>,
+        which should have good reliability,
+        since it can point to different RegTAP services as required.</li>
     </ul>
     </p></dd>
 
