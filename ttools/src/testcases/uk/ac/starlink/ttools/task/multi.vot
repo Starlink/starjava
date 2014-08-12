@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
-<VOTABLE>
+<VOTABLE version="1.0">
 <RESOURCE>
 
 <TABLE name="Authors">
-<FIELD name="AuthorName" datatype="char" arraysize="*"/>
+<FIELD name="AuthorName" datatype="unicodeChar" arraysize="*"/>
 <DATA>
 <TABLEDATA>
 <TR><TD>Charles Messier</TD></TR>
@@ -13,16 +13,31 @@
 </TABLE>
 
 <RESOURCE>
-<COOSYS equinox="J2000.0" epoch="J2000.0" system="eq_FK4"/>
+<COOSYS equinox="J2000.0" epoch="J2000.0" system="eq_FK4" ID="FK4"/>
 <TABLE name="Stars">
 <DESCRIPTION>A very small table</DESCRIPTION>
 <FIELD name="Identifier" datatype="char" arraysize="10"/>
-<FIELD name="RA" datatype="double" units="degrees"/>
-<FIELD name="Dec" datatype="double" units="degrees"/>
+<FIELD name="RA" datatype="double" unit="degrees"/>
+<FIELD name="Dec" datatype="double" unit="degrees"/>
 <DATA>
 <TABLEDATA>
 <TR> <TD>M51</TD> <TD>202.43</TD> <TD>47.22</TD> </TR>
 <TR> <TD>M97</TD> <TD>168.63</TD> <TD>55.03</TD> </TR>
+</TABLEDATA>
+</DATA>
+</TABLE>
+</RESOURCE>
+
+<RESOURCE>
+<TABLE name="Names">
+<FIELD name="Name1" datatype="char" arraysize="*"/>
+<FIELD name="Name2" datatype="unicodeChar" arraysize="*"/>
+<DATA>
+<TABLEDATA>
+<TR><TD>Charles Messier</TD><TD>Charles Messier</TD></TR>
+<TR><TD>Mark Taylor</TD><TD>Mark Taylor</TD></TR>
+<TR><TD>Anders Angstrom</TD><TD>Anders &#xc5;ngstrom</TD></TR>
+<TR><TD>Pythagoras</TD><TD>&#x3a0;&#x3c5;&#x3b8;&#x3b1;&#x3b3;&#x3bf;&#x3c1;&#x3b1;&#x3c2;</TD></TR>
 </TABLEDATA>
 </DATA>
 </TABLE>

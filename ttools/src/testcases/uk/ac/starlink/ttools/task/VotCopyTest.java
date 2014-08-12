@@ -29,6 +29,7 @@ public class VotCopyTest extends TableTestCase {
     final Element multiDOM_;
     final StarTable t1_;
     final StarTable t2_;
+    final StarTable t3_;
     final URL multiLoc_ = getClass().getResource( "multi.vot" );
 
     public VotCopyTest( String name ) throws Exception {
@@ -44,6 +45,8 @@ public class VotCopyTest extends TableTestCase {
         t1_ = vbuilder.makeStarTable( dsrc, true, policy );
         dsrc.setPosition( "1" );
         t2_ = vbuilder.makeStarTable( dsrc, true, policy );
+        dsrc.setPosition( "2" );
+        t3_ = vbuilder.makeStarTable( dsrc, true, policy );
     }
 
     private URL copyLocation( Map map ) throws Exception {
@@ -69,17 +72,17 @@ public class VotCopyTest extends TableTestCase {
 
         map.put( "format", "tabledata" );
         VOElement tDom = readDOM( map );
-        matchMultiData( tDom );
+        matchMultiData( tDom, false );
         matchMultiDOM( checkAndRemoveData( tDom, "TABLEDATA" ) );
 
         map.put( "format", "binary" );
         VOElement bDom = readDOM( map );
-        matchMultiData( bDom );
+        matchMultiData( bDom, false );
         matchMultiDOM( checkAndRemoveData( bDom, "BINARY" ) );
 
         map.put( "format", "fits" );
         VOElement fDom = readDOM( map );
-        matchMultiData( fDom );
+        matchMultiData( fDom, true );
         matchMultiDOM( checkAndRemoveData( fDom, "FITS" ) );
 
         map.put( "format", null );
@@ -92,13 +95,13 @@ public class VotCopyTest extends TableTestCase {
         // map.put( "format", "binary" );
         // map.put( "href", "true" );
         // VOElement bhDom = readDOM( map );
-        // matchMultiData( bhDom );
+        // matchMultiData( bhDom, false );
         // matchMultiDOM( checkAndRemoveData( bhDom, "BINARY" ) );
 
         // map.put( "format", "fits" );
         // map.put( "href", "true" );
         // VOElement fhDom = readDOM( map );
-        // matchMultiData( fhDom );
+        // matchMultiData( fhDom, true );
         // matchMultiDOM( checkAndRemoveData( fhDom, "FITS" ) );
     }
 
@@ -106,15 +109,21 @@ public class VotCopyTest extends TableTestCase {
         assertDOMEquals( multiDOM_, el, "", IGNORE_WHITESPACE );
     }
 
-    private void matchMultiData( VOElement el ) throws Exception {
+    private void matchMultiData( VOElement el, boolean fudgeUnicode )
+            throws Exception {
         NodeList tables =
             ((VOElement) el.getOwnerDocument().getDocumentElement())
            .getElementsByVOTagName( "TABLE" );
-        assertEquals( 2, tables.getLength() );
+        assertEquals( 3, tables.getLength() );
         assertSameData( t1_,
                         new VOStarTable( (TableElement) tables.item( 0 ) ) );
         assertSameData( t2_,
                         new VOStarTable( (TableElement) tables.item( 1 ) ) );
+        if ( ! fudgeUnicode ) {
+            assertSameData( t3_,
+                            new VOStarTable( (TableElement)
+                                             tables.item( 2 ) ) );
+        }
     }
 
     private Element checkAndRemoveData( Element el, String formatName ) {
