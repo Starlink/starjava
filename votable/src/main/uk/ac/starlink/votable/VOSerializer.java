@@ -232,7 +232,7 @@ public abstract class VOSerializer {
             pinfo.setNullable( Tables.isBlank( pvalue ) );
 
             /* Try to write it as a typed PARAM element. */
-            Encoder encoder = Encoder.getEncoder( pinfo, false );
+            Encoder encoder = Encoder.getEncoder( pinfo, false, false );
             if ( encoder != null ) {
                 String valtext = encoder.encodeAsText( pvalue );
                 String content = encoder.getFieldContent();
@@ -660,7 +660,12 @@ public abstract class VOSerializer {
         Encoder[] encoders = new Encoder[ ncol ];
         for ( int icol = 0; icol < ncol; icol++ ) {
             ColumnInfo info = table.getColumnInfo( icol );
-            encoders[ icol ] = Encoder.getEncoder( info, magicNulls );
+            boolean isUnicode =
+                "unicodeChar"
+               .equals( info.getAuxDatumValue( VOStarTable.DATATYPE_INFO,
+                                               String.class ) );
+            encoders[ icol ] =
+                Encoder.getEncoder( info, magicNulls, isUnicode );
             if ( encoders[ icol ] == null ) {
                 logger.warning( "Can't serialize column " + info + " of type " +
                                 info.getContentClass().getName() );
@@ -964,7 +969,7 @@ public abstract class VOSerializer {
                     /* Get the basic information for this column. */
                     Encoder encoder =
                         Encoder.getEncoder( getTable().getColumnInfo( icol ),
-                                            true );
+                                            true, false );
                     String content = encoder.getFieldContent();
                     Map atts = encoder.getFieldAttributes();
 

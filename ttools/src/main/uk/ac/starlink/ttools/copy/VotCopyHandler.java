@@ -216,7 +216,7 @@ public class VotCopyHandler
 
             /* Fix up arraysize values here. */
             if ( ( "char".equals( datatype ) ||
-                   "unsignedChar".equals( datatype ) ) &&
+                   "unicodeChar".equals( datatype ) ) &&
                  atts.getValue( "arraysize" ) == null ) {
                 String arraysize;
                 if ( strict_ ) {
