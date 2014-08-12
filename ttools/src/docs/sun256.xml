@@ -8701,6 +8701,14 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
             from Error to Warning.</li>
         <li>Attempting to write FITS tables with &gt;999 columns now fails
             with a more helpful error message.</li>
+        <li>Improved Unicode handling in VOTables.
+            Fixed a serious bug in <code>votcopy</code>
+            that generated unreadable output to BINARY or BINARY2 serialization
+            if any non-empty column had datatype="unicodeChar".
+            Also improved behaviour when copying between tables with
+            unicodeChar columns; these are usually preserved now, rather
+            than being squashed to datatype char.
+            Some lurking Unicode-related issues remain.</li>
         </ul>
         </p></dd>
 

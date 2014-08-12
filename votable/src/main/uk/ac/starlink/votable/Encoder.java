@@ -239,10 +239,15 @@ abstract class Encoder {
      *          be encoded
      * @param   magicNulls  if true, the returned encoder may attempt to use
      *          a magic value to signify null values; if false, it never will
+     * @param   useUnicodeChar  if true, character-type columns will be output
+     *          with datatype unicodeChar, else with datatype char
      * @return  an encoder object which can do it
      */
-    public static Encoder getEncoder( ValueInfo info, boolean magicNulls ) {
+    public static Encoder getEncoder( ValueInfo info, boolean magicNulls,
+                                      boolean useUnicodeChar ) {
 
+        final CharWriter cwrite = useUnicodeChar ? CharWriter.UCS2
+                                                 : CharWriter.ASCII;
         Class clazz = info.getContentClass();
         int[] dims = info.getShape();
         final boolean isNullable = info.isNullable() && magicNulls;
@@ -370,8 +375,8 @@ abstract class Encoder {
         }
 
         else if ( clazz == Character.class ) {
-            final int badVal = (int) '\0';
-            return new ScalarEncoder( info, "char", null ) {
+            final char badVal = '\0';
+            return new ScalarEncoder( info, cwrite.getDatatype(), null ) {
                 /* For a single character take care to add the attribute
                  * arraysize="1" - although this is implicit according to
                  * the standard, it's often left off and assumed to be
@@ -383,8 +388,8 @@ abstract class Encoder {
                 public void encodeToStream( Object val, DataOutput out )
                         throws IOException {
                     Character value = (Character) val;
-                    out.write( value == null ? badVal 
-                                             : (int) value.charValue() );
+                    cwrite.writeChar( out, value == null ? badVal
+                                                         : value.charValue() );
                 }
             };
         }
@@ -517,8 +522,7 @@ abstract class Encoder {
 
             /* Fixed length strings. */
             if ( nChar > 0 ) {
-                final byte[] padBuf = new byte[ nChar ];
-                return new Encoder( info, "char" ) {
+                return new Encoder( info, cwrite.getDatatype() ) {
                     /*anonymousConstructor*/ {
                         attMap.put( "arraysize", Integer.toString( nChar ) );
                     }
@@ -534,17 +538,19 @@ abstract class Encoder {
                             String value = val.toString();
                             int limit = Math.min( value.length(), nChar );
                             for ( ; i < limit; i++ ) {
-                                out.write( value.charAt( i ) );
+                                cwrite.writeChar( out, value.charAt( i ) );
                             }
                         }
-                        out.write( padBuf, 0, nChar - i );
+                        for ( ; i < nChar; i++ ) {
+                            cwrite.writeChar( out, '\0' );
+                        }
                     }
                 };
             }
 
             /* Variable length strings. */
             else {
-                return new Encoder( info, "char" ) {
+                return new Encoder( info, cwrite.getDatatype() ) {
                     /*anonymousConstructor*/ {
                         attMap.put( "arraysize", "*" );
                     }
@@ -563,7 +569,7 @@ abstract class Encoder {
                             int leng = value.length();
                             out.writeInt( leng );
                             for ( int i = 0 ; i < leng; i++ ) {
-                                out.write( value.charAt( i ) );
+                                cwrite.writeChar( out, value.charAt( i ) );
                             }
                         }
                     }
@@ -610,10 +616,8 @@ abstract class Encoder {
             final String arraysize = sbuf.toString();
             final int nString = ns;
 
-            return new Encoder( info, "char" ) {
+            return new Encoder( info, cwrite.getDatatype() ) {
                 char[] cbuf = new char[ nChar ];
-                byte[] bbuf = new byte[ nChar ];
-                byte[] padding = new byte[ nChar ];
 
                 /*anonymousConstructor*/ {
                     attMap.put( "arraysize", arraysize );
@@ -662,16 +666,16 @@ abstract class Encoder {
                         int climit = Math.min( str.length(), nChar );
                         int ic = 0;
                         for ( ; ic < climit; ic++ ) {
-                            bbuf[ ic ] = (byte) str.charAt( ic );
+                            cwrite.writeChar( out, str.charAt( ic ) );
                         }
                         for ( ; ic < nChar; ic++ ) {
-                            bbuf[ ic ] = (byte) '\0';
+                            cwrite.writeChar( out, '\0' );
                         }
-                        out.write( bbuf );
                     }
                     if ( ! isVariable ) {
-                        for ( ; is < nString; is++ ) {
-                            out.write( padding );
+                        int nc = ( nString - is ) * nChar;
+                        for ( int ic = 0; ic < nc; ic++ ) {
+                            cwrite.writeChar( out, '\0' );
                         }
                     }
                 }
@@ -843,5 +847,62 @@ abstract class Encoder {
          * @param  out   destination stream
          */
         void pad1( DataOutput out ) throws IOException;
+    }
+
+    /**
+     * Handles character output.
+     */
+    private static abstract class CharWriter {
+        private final String datatype_;
+
+        /**
+         * Implementation using 1-byte characters.
+         * Only the lower 7 bits of a char are used, anything else is ignored.
+         */
+        public static final CharWriter ASCII = new CharWriter( "char" ) {
+            public void writeChar( DataOutput out, char c ) throws IOException {
+                out.write( (int) c );
+            }
+        };
+
+        /**
+         * Implementation using 2-byte characters.
+         * The encoding is java's character storage, which is either identical
+         * or similar (not sure which) to the deprecated Unicode UCS-2 encoding.
+         */
+        public static final CharWriter UCS2 = new CharWriter( "unicodeChar" ) {
+            public void writeChar( DataOutput out, char c ) throws IOException {
+                out.writeChar( c );
+            }
+        };
+
+        /**
+         * Constructor.
+         *
+         * @return   value of VOTable datatype attribute corresponding
+         *           to this writer's output
+         */
+        public CharWriter( String datatype ) {
+            datatype_ = datatype;
+        }
+
+        /**
+         * Returns the value of the VOTable datatype attribute corresponding
+         * to this writer's output.
+         *
+         * @return   datatype attribute value
+         */
+        public String getDatatype() {
+            return datatype_;
+        }
+
+        /**
+         * Writes a character to an output stream.
+         *
+         * @param  out  destination stream
+         * @param  c   character to output
+         */
+        public abstract void writeChar( DataOutput out, char c )
+                throws IOException;
     }
 }

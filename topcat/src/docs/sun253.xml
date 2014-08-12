@@ -20373,8 +20373,13 @@ introduced since the last version:
     <ul>
     <li>Support viewing tables up to 2^31 (2 billion) rows in the table
         viewer window.  The previous limit was 2^27 (134 million) rows.</li>
-        <li>Attempting to write FITS tables with &gt;999 columns now fails
-            with a more helpful error message.</li>
+    <li>Attempting to write FITS tables with &gt;999 columns now fails
+        with a more helpful error message.</li>
+    <li>Somewhat improved Unicode handling in VOTables.
+        If you load a VOTable with columns marked datatype="unicodeChar"
+        and save it again, the columns now remain unicodeChar
+        instead of getting squashed to type char.
+        Some lurking Unicode-related issues remain.</li>
     </ul>
     </p></dd>
 
