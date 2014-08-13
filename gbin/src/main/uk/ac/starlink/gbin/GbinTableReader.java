@@ -7,12 +7,13 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.RowSequence;
 
@@ -27,25 +28,42 @@ public class GbinTableReader implements RowSequence {
     private final ColumnInfo[] colInfos_;
     private boolean started_;
 
-    private static final String NAME_SEP = "_";
+    private static final String GET = "get";  // accessor method name prefix
     private static final Map<Class,Class> primitiveMap_ = createPrimitiveMap();
-    private static final Set<String> boringGetters_ = createBoringGetters();
 
-    public GbinTableReader( InputStream in ) throws IOException {
+    public GbinTableReader( InputStream in, GbinTableProfile profile )
+            throws IOException {
         in_ = in;
         reader_ = GbinObjectReader.createReader( in );
         if ( ! reader_.hasNext() ) {
             throw new IOException( "No objects in GBIN file" );
         }
         gobj0_ = reader_.next();
-        itemReaders_ = createItemReaders( gobj0_.getClass() );
+        itemReaders_ = createItemReaders( gobj0_.getClass(), profile );
         ncol_ = itemReaders_.length;
+
+        Map<String,List<ItemReader>> nameMap =
+            new HashMap<String,List<ItemReader>>();
+        boolean forceHier = profile.isHierarchicalNames();
+        String separator = profile.getNameSeparator();
+        if ( ! forceHier ) {
+            for ( int ic = 0; ic < ncol_; ic++ ) {
+                ItemReader irdr = itemReaders_[ ic ];
+                String name = irdr.getItemName();
+                if ( ! nameMap.containsKey( name ) ) {
+                    nameMap.put( name, new ArrayList<ItemReader>() );
+                }
+                nameMap.get( name ).add( irdr );
+            }
+        }
+
         colInfos_ = new ColumnInfo[ ncol_ ];
         for ( int ic = 0; ic < ncol_; ic++ ) {
             ItemReader irdr = itemReaders_[ ic ];
             colInfos_[ ic ] =
-                new ColumnInfo( irdr.getItemName(), irdr.getItemContentClass(),
-                                null );
+                new ColumnInfo( getColumnName( irdr, nameMap, forceHier,
+                                               separator ),
+                                irdr.getItemContentClass(), null );
         }
         itemMap_ = new HashMap<ItemReader,Object>();
     }
@@ -58,8 +76,12 @@ public class GbinTableReader implements RowSequence {
         return colInfos_[ icol ];
     }
 
-    public long getRowCount() {
-        return -1;
+    public Class getItemClass() {
+        return gobj0_.getClass();
+    }
+
+    public GbinObjectReader getObjectReader() {
+        return reader_;
     }
 
     public boolean next() throws IOException {
@@ -96,35 +118,63 @@ public class GbinTableReader implements RowSequence {
         in_.close();
     }
 
-    private static ItemReader[] createItemReaders( Class rootClazz ) {
+    private static ItemReader[] createItemReaders( Class rootClazz,
+                                                   GbinTableProfile profile ) {
         List<ItemReader> rdrList = new ArrayList<ItemReader>();
-        addItemReaders( rootClazz, ItemReader.ROOT, rdrList );
+        addItemReaders( rootClazz, ItemReader.ROOT, rdrList,
+                        profile.isSortedMethods(),
+                        new HashSet<String>(
+                            Arrays.asList( profile.getIgnoreNames() ) ) );
         return rdrList.toArray( new ItemReader[ 0 ] );
     }
 
     private static void addItemReaders( Class parentClazz, ItemReader parentRdr,
-                                        List<ItemReader> rdrList ) {
+                                        List<ItemReader> rdrList,
+                                        boolean sortMethods,
+                                        Collection<String> ignoreNames ) {
         Method[] methods = parentClazz.getMethods();
+        if ( sortMethods ) {
+            Arrays.sort( methods, new Comparator<Method>() {
+                public int compare( Method m1, Method m2 ) {
+                    return m1.getName().compareTo( m2.getName() );
+                }
+            } );
+        }
         for ( int i = 0; i < methods.length; i++ ) {
             Method method = methods[ i ];
-            if ( isGetterMethod( method ) ) {
+            if ( isGetterMethod( method, ignoreNames ) ) {
                 ItemReader rdr = new ItemReader( parentRdr, method );
                 Class clazz = rdr.getItemContentClass();
-                if ( isColumnType( clazz ) ) {
+                if ( isColumnType( clazz ) ||
+                     hasAncestorType( rdr.getParentReader(), clazz ) ) {
                     rdrList.add( rdr );
                 }
                 else {
-                    addItemReaders( clazz, rdr, rdrList );
+                    addItemReaders( clazz, rdr, rdrList,
+                                    sortMethods, ignoreNames );
                 }
             }
         }
     }
 
-    private static boolean isGetterMethod( Method method ) {
+    private static boolean hasAncestorType( ItemReader rdr, Class clazz ) {
+        if ( rdr.isRoot() ) {
+            return false;
+        }
+        else if ( rdr.getItemContentClass().equals( clazz ) ) {
+            return true;
+        }
+        else {
+            return hasAncestorType( rdr.getParentReader(), clazz );
+        }
+    }
+
+    private static boolean isGetterMethod( Method method,
+                                           Collection<String> ignoreNames ) {
         String name = method.getName();
         int mods = method.getModifiers();
-        return name.startsWith( "get" )
-            && ! boringGetters_.contains( name )
+        return name.startsWith( GET )
+            && ! ignoreNames.contains( name.substring( GET.length() ) )
             && Modifier.isPublic( mods )
             && ! Modifier.isStatic( mods )
             && method.getParameterTypes().length == 0;
@@ -154,16 +204,22 @@ public class GbinTableReader implements RowSequence {
         return map;
     }
 
-    private static Set<String> createBoringGetters() {
-        return new HashSet<String>( Arrays.asList( new String[] {
-            "getClass",
-            "getField",
-            "getStringValue",
-            "getGTDescription",
-            "getParamMaxValues",
-            "getParamMinValues",
-            "getParamOutOfRangeValues",
-        } ) );
+    private static String getColumnName( ItemReader rdr,
+                                         Map<String,List<ItemReader>> nameMap,
+                                         boolean forceHier, String separator ) {
+        String itemName = rdr.getItemName();
+        StringBuffer sbuf = new StringBuffer();
+        if ( forceHier || ( nameMap.containsKey( itemName ) &&
+                            nameMap.get( itemName ).size() > 1 ) ) {
+            ItemReader parentRdr = rdr.getParentReader();
+            if ( ! parentRdr.isRoot() ) {
+                sbuf.append( getColumnName( parentRdr, nameMap,
+                                            forceHier, separator ) )
+                    .append( separator );
+            }
+        }
+        sbuf.append( itemName );
+        return sbuf.toString();
     }
 
     private static class ItemReader {
@@ -176,20 +232,20 @@ public class GbinTableReader implements RowSequence {
             parentReader_ = parentReader;
             method_ = method;
         }
+        public boolean isRoot() {
+            return this == ROOT;
+        }
+        public ItemReader getParentReader() {
+            return parentReader_;
+        }
         public String getItemName() {
-            StringBuffer sbuf = new StringBuffer();
-            if ( parentReader_ != ROOT ) {
-                sbuf.append( parentReader_.getItemName() )
-                    .append( NAME_SEP );
-            }
-            sbuf.append( method_.getName().substring( 3 ) );
-            return sbuf.toString();
+            return method_.getName().substring( GET.length() );
         }
         public Class getItemContentClass() {
-            Class clazz = method_.getReturnType();
-            return primitiveMap_.containsKey( clazz )
-                 ? primitiveMap_.get( clazz )
-                 : clazz;
+            Class rclazz = method_.getReturnType();
+            return primitiveMap_.containsKey( rclazz )
+                 ? primitiveMap_.get( rclazz )
+                 : rclazz;
         }
         public Object readItem( Map<ItemReader,Object> itemMap )
                 throws IOException {
