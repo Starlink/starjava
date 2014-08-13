@@ -150,7 +150,7 @@ public class GbinObjectReader {
         }
     }
 
-    private static Object createGbinReaderObject( InputStream in )
+    public static Object createGbinReaderObject( InputStream in )
             throws IOException {
         try {
             Class factClazz =
