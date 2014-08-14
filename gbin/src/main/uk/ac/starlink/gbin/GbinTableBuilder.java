@@ -21,19 +21,31 @@ import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.util.DataSource;
 
+/**
+ * TableBuilder implementation for GBIN files.
+ *
+ * @author   Mark Taylor
+ * @since    14 Aug 2014
+ */
 public class GbinTableBuilder implements TableBuilder {
 
     private final GbinTableProfile profile_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.gbin" );
 
+    /** ValueInfo for GBIN row object classname. */
     public static final ValueInfo CLASSNAME_INFO =
         new DefaultValueInfo( "GbinClass", String.class,
                               "Classname of GBIN objects" );
+
+    /** ValueInfo for GBIN description string. */
     public static final ValueInfo DESCRIPTION_INFO =
         new DefaultValueInfo( "GbinDescription", String.class,
                               "GBIN build description" );
 
+    /**
+     * Constructs a builder with default options.
+     */
     public GbinTableBuilder() {
         this( new GbinTableProfile() {
             public boolean isReadMeta() {
@@ -51,25 +63,42 @@ public class GbinTableBuilder implements TableBuilder {
             public boolean isSortedMethods() {
                 return true;
             }
-            public String[] getIgnoreNames() {
+            public String[] getIgnoreMethodNames() {
                 return new String[] {
-                    "Class",
-                    "Field",
-                    "StringValue",
-                    "GTDescription",
-                    "ParamMaxValues",
-                    "ParamMinValues",
-                    "ParamOutOfRangeValues",
-                    "FieldNames",
+                    "getClass",
+                    "getField",
+                    "getStringValue",
+                    "getGTDescription",
+                    "getParamMaxValues",
+                    "getParamMinValues",
+                    "getParamOutOfRangeValues",
+                    "getFieldNames",
                 };
             }
         } );
     }
 
+    /**
+     * Constructs a builder with custom options.
+     *
+     * @param  profile  configures how GBIN files will be mapped to a table
+     */
     public GbinTableBuilder( GbinTableProfile profile ) {
         profile_ = profile;
     }
 
+    /**
+     * Returns the object configuring how GBIN files are mapped to tables.
+     *
+     * @return  configuration profile
+     */
+    public GbinTableProfile getProfile() {
+        return profile_;
+    }
+
+    /**
+     * Returns "GBIN".
+     */
     public String getFormatName() {
         return "GBIN";
     }
@@ -104,13 +133,24 @@ public class GbinTableBuilder implements TableBuilder {
     public StarTable makeStarTable( final DataSource datsrc, boolean wantRandom,
                                     StoragePolicy storage )
             throws IOException {
+
+        /* If required, check the magic number of the input file. */
         if ( profile_.isTestMagic() &&
              ! GbinObjectReader.isMagic( datsrc.getIntro() ) ) {
             throw new TableFormatException( "Not GBIN" );
         }
+
+        /* Read the start of the file to obtain essential metadata. */
         GbinTableReader trdr =
             new GbinTableReader(
                 new BufferedInputStream( datsrc.getInputStream() ), profile_ );
+        trdr.close();
+
+        /* If required, read the start of the file again to obtain
+         * non-essential metadata.  This requires another read, since the
+         * way GBIN files and the GaiaTools reader API are arranged,
+         * pretty much anything you read from a GBIN file makes it
+         * useless for reading anything else. */
         final long nrow;
         final List<DescribedValue> params = new ArrayList<DescribedValue>();
         if ( profile_.isReadMeta() ) {
@@ -139,7 +179,9 @@ public class GbinTableBuilder implements TableBuilder {
         else {
             nrow = -1;
         }
-        trdr.close();
+
+        /* Construct a table with the metadata we have obtained,
+         * and return it. */
         StarTable table = new GbinStarTable( trdr, nrow ) {
             public RowSequence getRowSequence() throws IOException {
                 return new GbinTableReader(
@@ -153,26 +195,33 @@ public class GbinTableBuilder implements TableBuilder {
         return table;
     }
 
+    /** 
+     * Partial StarTable implementation for use with GBIN files.
+     */
     private static abstract class GbinStarTable extends AbstractStarTable {
-        private final GbinTableReader trdr_;
+        private final ColumnInfo[] colInfos_;
         private final long nrow_;
 
+        /**
+         * Constructor.
+         *
+         * @param  trdr  contains metadata about the table;
+         *               will not be used to read data (may be closed)
+         * @param  nrow  row count (-1 if not known)
+         */
         GbinStarTable( GbinTableReader trdr, long nrow ) {
-            trdr_ = trdr;
             nrow_ = nrow;
-            @SuppressWarnings("unchecked")
-            List<DescribedValue> paramList = getParameters();
-            paramList.add( new DescribedValue( CLASSNAME_INFO,
-                                               trdr_.getItemClass()
-                                                    .getName() ) );
+            colInfos_ = trdr.getColumnInfos();
+            setParameter( new DescribedValue( CLASSNAME_INFO,
+                                              trdr.getItemClass().getName() ) );
         }
 
         public int getColumnCount() {
-            return trdr_.getColumnCount();
+            return colInfos_.length;
         }
 
         public ColumnInfo getColumnInfo( int icol ) {
-            return trdr_.getColumnInfo( icol );
+            return colInfos_[ icol ];
         }
 
         public long getRowCount() {
