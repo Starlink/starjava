@@ -14,8 +14,6 @@ package uk.ac.starlink.splat.vo;
 
 
 import java.awt.BorderLayout;
-import java.awt.Checkbox;
-import java.awt.CheckboxGroup;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -36,7 +34,6 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.Authenticator;
 import java.net.MalformedURLException;
@@ -49,7 +46,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Properties;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
@@ -3193,7 +3189,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         
         if (metaPanel != null)
             extendedQueryText=metaPanel.getParamsQueryString(); 
-      
+           
             try {
                 String txt = queryLine.getQueryURLText() + extendedQueryText;
                 queryText.setText(txt /*queryLine.getQueryURLText() + extendedQueryText */);
