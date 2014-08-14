@@ -14,8 +14,6 @@ package uk.ac.starlink.splat.vo;
 
 
 import java.awt.BorderLayout;
-import java.awt.Checkbox;
-import java.awt.CheckboxGroup;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -36,7 +34,6 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.Authenticator;
 import java.net.MalformedURLException;
@@ -49,7 +46,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Properties;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
@@ -508,16 +504,16 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
 
     /**
      * The Button for adding optional parameters to the query
-     * @uml.property  name="addParamButton"
+     * @uml.property  name="selectAllParamsButton"
      * @uml.associationEnd  
      */
-    protected JButton addParamButton = null;
+    protected JButton selectAllParamsButton = null;
     /**
      * The Button for removing optional parameters from the optional parameters list
-     * @uml.property  name="removeParamButton"
+     * @uml.property  name="selectAllParamsButton"
      * @uml.associationEnd  
      */
-    protected JButton removeParamButton = null;
+    protected JButton deselectAllParamsButton = null;
     
     /** The list of all input parameters read from the servers */
    // protected static SSAMetadataFrame metaFrame = null;
@@ -1072,25 +1068,26 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         optionalQueryPanel.setLayout( new BoxLayout(optionalQueryPanel, BoxLayout.PAGE_AXIS) );
        metaPanel = new SSAMetadataPanel();
        metaPanel.addPropertyChangeListener(this);
-       metaPanel.setVisible(false);
+       //showParameters();
+      // metaPanel.setVisible(false);
       // layouter.add(metaPanel, true);
     //   metaPanel.setTableWidth(200);
        optionalQueryPanel.add(metaPanel);//, BorderLayout.NORTH);
-
+       showParameters();
     //   queryTextPanel.add(new JLabel("Query:"));
         JPanel paramButtonsPanel = new JPanel( );
-        addParamButton = new JButton("Add Parameter");
-        addParamButton.addActionListener( this );
-        addParamButton.setToolTipText("Add Optional Parameters");
-        addParamButton.setMargin(new Insets(2,2,2,2));  
-       // optionalQueryPanel.add(addParamButton, BorderLayout.WEST);
-        removeParamButton = new JButton("Remove Parameter");
-        removeParamButton.addActionListener( this );
-        removeParamButton.setToolTipText("Remove selected Parameters");
-        removeParamButton.setMargin(new Insets(2,2,2,2));  
-    //    optionalQueryPanel.add(removeParamButton, BorderLayout.EAST);
-        paramButtonsPanel.add( addParamButton );
-        paramButtonsPanel.add( removeParamButton );
+        selectAllParamsButton = new JButton("Select all");
+        selectAllParamsButton.addActionListener( this );
+       // selectAllParamsButton.setToolTipText("Add optional parameters");
+        selectAllParamsButton.setMargin(new Insets(2,2,2,2));  
+       // optionalQueryPanel.add(selectAllParamsButton, BorderLayout.WEST);
+        deselectAllParamsButton = new JButton("Deselect all");
+        deselectAllParamsButton.addActionListener( this );
+     //   deselectAllParamsButton.setToolTipText("Remove selected parameters");
+        deselectAllParamsButton.setMargin(new Insets(2,2,2,2));  
+    //    optionalQueryPanel.add(deselectAllParamsButton, BorderLayout.EAST);
+        paramButtonsPanel.add( selectAllParamsButton );
+        paramButtonsPanel.add( deselectAllParamsButton );
         optionalQueryPanel.add(paramButtonsPanel, BorderLayout.SOUTH);
     
          
@@ -1110,7 +1107,8 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         JScrollPane queryScroller = new JScrollPane();
         queryScroller.add(queryText);
      //   queryScroller.setV
-        queryText.setEditable(false);
+        queryText.setEditable(true);
+        
         sendQueryPanel.add(queryText);
         queryText.setLineWrap(true);     
         sendQueryPanel.add(goButton, BorderLayout.LINE_END);
@@ -1501,20 +1499,24 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             ErrorDialog.showError( this, "Position input error", e );
             return;
         }
-        queryLine.setRadius( radius );
+   /*     queryLine.setRadius( radius );
         queryLine.setBand(lowerBandField.getText(), upperBandField.getText());
         queryLine.setTime(lowerTimeField.getText(), upperTimeField.getText());
         queryLine.setWaveCalib(wlcalibList.getSelectedItem().toString());
         queryLine.setFluxCalib(flcalibList.getSelectedItem().toString());
         queryLine.setFormat(formatList.getSelectedItem().toString());
+     */   
+       // !!!!!
+       
+        // update serverlist from servertree class
+        final SSAServerList slist=tree.getServerList();
         
         //  Create a stack of all queries to perform.
         ArrayList<SSAQuery> queryList = new ArrayList<SSAQuery>();
-        // update serverlist from servertree class
-        final SSAServerList slist=tree.getServerList();
+        
         //serverList = tree.getServerList();
         Iterator i = slist.getIterator();
-       
+
         SSAPRegResource server = null;
         while( i.hasNext() ) {
             server = (SSAPRegResource) i.next();
@@ -1522,18 +1524,20 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                 try {
                     if (slist.isServerSelected(server.getShortName())) {
 
-                        SSAQuery ssaQuery =  new SSAQuery(queryLine);//new SSAQuery( server );
-                        ssaQuery.setServer( server) ; //Parameters(queryLine); // copy the query parameters to the new query
-
-                        /*           ssaQuery.setTargetName( objectName );
-            ssaQuery.setPosition( ra, dec );
-            ssaQuery.setRadius( radius );
-            ssaQuery.setBand( lowerBand, upperBand );
-            ssaQuery.setTime( lowerTime, upperTime );
-            ssaQuery.setFormat( format );
-            ssaQuery.setWaveCalib( waveCalib );
-            ssaQuery.setFluxCalib( fluxCalib );*/
-                        queryList.add( ssaQuery );
+                        SSAQuery ssaQuery =  new SSAQuery( server );
+                       // ssaQuery.setServer(server) ; //Parameters(queryLine); // copy the query parameters to the new query
+                        ssaQuery.setQuery(queryText.getText());
+                        ArrayList<String> extp = ssaQuery.getParamList(queryText.getText());
+                        
+                        boolean supportsAll = true;
+                        boolean supportsSome = false;
+                        for (int j=0; j<extp.size(); j++) {
+                           
+                                supportsAll = supportsAll && serverParam.paramSupported(server.getShortName(), extp.get(j));
+                                supportsSome = supportsSome || serverParam.paramSupported(server.getShortName(), extp.get(j));
+                        }
+                        if (supportsSome) // or supportsAll...   
+                            queryList.add(ssaQuery);
                     }
                 } catch(Exception npe) {
                     ErrorDialog.showError( this, "Exception", npe );
@@ -1541,7 +1545,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                 }
 
         }//while
-        
+
 
         // Now actually do the queries, these are performed in a separate
         // Thread so we avoid locking the interface.
@@ -1640,20 +1644,22 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         logger.info( "Querying: " + queryURL );
         progressPanel.logMessage( ssaQuery.getBaseURL() );
       
-        try {
-            queryURL = ssaQuery.getQueryURL();
+        try { //!!!!!
+            
+            //queryURL = ssaQuery.getBaseURL();
  
             // check if more parameters have been added
             // Not very nice... should think of a better way to do that
             //     
-            String extendedQuery = extendedQuery=metaPanel.getParamsQueryString();
+            //String extendedQuery =metaPanel.getParamsQueryString();
            // logger.info( "Extended Query string " + extendedQuery );
-            if (extendedQuery != null && extendedQuery.length() > 0) 
-            {
-                String newURL = queryURL.toString() + extendedQuery;
-                logger.info( "Query string " + newURL );
-                queryURL = new URL(newURL);
-            }
+            //if (extendedQuery != null && extendedQuery.length() > 0) 
+           // {
+                queryURL = ssaQuery.getRequestURL();
+             
+                logger.info( "Query string " + queryURL.toString() );
+                //queryURL = new URL(newURL);
+           // }
             
         }   
         catch ( MalformedURLException mue ) {
@@ -1667,7 +1673,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             logger.info( "URL Encoding Exception "+queryURL );
             failed = true;
             return;
-        } 
+        }
         
         //  Do the query and get the result as a StarTable. Uses this
         //  method for efficiency as non-result tables are ignored.
@@ -2880,10 +2886,11 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                 return;     
             }
                                  
-        if ( source.equals( addParamButton ) ) 
+        if ( source.equals( selectAllParamsButton ) ) 
         {
+            metaPanel.selectAll();
             //tree.setParamMap(serverParam);
-            addParameter();
+           /* addParameter();
             if (extendedQueryText != null && extendedQueryText.length() > 0) 
             {
                 try {
@@ -2893,14 +2900,14 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                     e1.printStackTrace();
                 }
             }
-          
+          */
             return;
         } 
-        if ( source.equals( removeParamButton ) ) 
+        if ( source.equals( deselectAllParamsButton ) ) 
         {
             // de-select and update query text
-            
-            metaPanel.removeSelectedMetadata();
+            metaPanel.deselectAll();
+           // metaPanel.removeSelectedMetadata();
         /*    if (extendedQueryText != null && extendedQueryText.length() > 0) 
             {
                 try {
@@ -3112,36 +3119,43 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
      * Event listener 
      * 
      */
-    public void propertyChange(PropertyChangeEvent pvt)
+    public void propertyChange(PropertyChangeEvent pvt) //!!!!!!!!!!!!!!!!!!
     {
         // trigger a metadata update if metadata has been added
-        if (pvt.getPropertyName().equals("changeQuery"))
+        if (pvt.getPropertyName().equals("changeQuery")) {
             updateQueryText(); 
+            String txt = "";
+        }
             // update if the server list has been modifyed at ssaservertree (for example, new registry query)
-        else if (pvt.getPropertyName().equals("changeServerlist"))
+        else if (pvt.getPropertyName().equals("changeServerlist")) {
             serverList = tree.getServerList();
+            updateParameters();
+            metaPanel.updateUI();
+        }
     }
     
     private void updateQueryText() {
         
         if (metaPanel != null)
             extendedQueryText=metaPanel.getParamsQueryString(); 
-      
+           
             try {
-                queryText.setText(queryLine.getQueryURLText() + extendedQueryText);
-            } catch (UnsupportedEncodingException e) {
+                String txt = queryLine.getQueryURLText() + extendedQueryText;
+                queryText.setText(txt /*queryLine.getQueryURLText() + extendedQueryText */);
+                txt = null;
+                
+            } catch (Exception e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }           
     }
 
     /**
-     * addParameter
-     * Adds an optional metadata parameter to the query.
-     * Allows the user to select a list of parameters, according to the selected list of servers
-     * update the parameter table
+     * showParameters
+     * shows a list of optional metadata parameters that can be added to the query.
+     * 
      */
-    private void addParameter() 
+    private void showParameters() 
     {
         // check serverlist (selected servers!!)
         // update serverlist
@@ -3165,9 +3179,9 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         
         // remove the INPUT: Prefix from the parameters
         for (int i=0; i<parameters.size(); i++) {
-           // String param = parameters.get(i).substring(6); // INPUT: = 6 characters
-            parameters.set(i,parameters.get(i).substring(6));// INPUT: = 6 characters
-        }
+            String param = parameters.get(i); //.substring(6); // INPUT: = 6 characters
+           // parameters.set(i,parameters.get(i).substring(6));// INPUT: = 6 characters
+            metaPanel.addRow(metaParam.get(param), false); 
         
         
          
@@ -3468,9 +3482,10 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             metaParam.put( mip.getName(), mip );
             // update nr server column in the table
     //        metaPanel.setNrServers(mip.getCounter(), mip.getName()); // !! Frame
+            
         }
         
-         
+        /* 
         Object selectedValue = JOptionPane.showInputDialog(this, "Supported Parameters", "Input", JOptionPane.INFORMATION_MESSAGE, null, 
                 (Object[]) parameters.toArray(), null);
         if (selectedValue != null) {
@@ -3479,12 +3494,24 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
     //        metaPanel.
             metaPanel.setVisible(true);
         }
+        */
+        metaPanel.setVisible(true);
         metaPanel.repaint();
        // queryMetaParam.put(txtf, selectedValue.toString());
       //  JLabel label = new JLabel(selectedValue.toString() + ":");
       //  customQueryPanel.add(label); queryPanel.add(txtf);
        // customQueryPanel.repaint();
       
+    }
+    
+    /**
+     * updateParameters
+     * updates the list of optional metadata parameters that can be added to the query.
+     * 
+     */
+    private void updateParameters() {
+        metaPanel.removeAll();
+        showParameters();
     }
     /**
      * Customize metadata parameters
@@ -3907,32 +3934,22 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
     {
         ParamElement param;
         String paramName = null;
-        /**
-         * @uml.property  name="description"
-         */
+        
         String description = null;
-        /**
-         * @uml.property  name="unit"
-         */
+        
         String unit = null;
-        /**
-         * @uml.property  name="value"
-         */
+        String UCD = null;
         String value = null;
         String nullValue = null;
         String[] options;
         //ValuesElement values = null;
-        /**
-         * @uml.property  name="datatype"
-         */
+       
         String datatype = null;
         String min=null;    
         String max=null;
 
 
-        /**
-         * @uml.property  name="counter"
-         */
+       
         int counter;
 
         MetadataInputParameter(ParamElement param) {
@@ -3948,9 +3965,10 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             //if (value.equals("NaN") || value.contains("null") || value.contains("NULL") || value.contains("Null"))
             //    value = "";
             unit = param.getUnit();
-
+            
+            UCD = param.getUcd();
+            
             /* To be done later after some questions have been cleared:
-             * what to do if different servers have parameter with same name and different default values, units and limits?
              * 
              * 
     		ValuesElement values = param.getActualValues(); // or legal values??
@@ -3999,6 +4017,13 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
          */
         protected String getUnit() {
             return unit;
+        }
+        /**
+         * @return
+         * @uml.property  name="UCD"
+         */
+        protected String getUCD() {
+            return UCD;
         }
         /*
     	protected void setDescription(String description) {

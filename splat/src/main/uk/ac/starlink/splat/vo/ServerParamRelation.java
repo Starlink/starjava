@@ -16,6 +16,7 @@ public class ServerParamRelation {
 
     static HashMap<String, ArrayList> server2param;
     static HashMap<String, ArrayList> param2server;
+   
     private static Logger logger =
             Logger.getLogger( "uk.ac.starlink.splat.vo.ServerParamRelation" );
     
