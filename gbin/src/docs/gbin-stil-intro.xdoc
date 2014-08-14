@@ -1,0 +1,44 @@
+<!-- Required entities:
+ !   &gbin-package-name;       TOPCAT
+ !-->
+
+<p>GBIN format is a special-interest file format used within DPAC,
+the Data Processing and Analysis Consortium working on data from the
+<webref url="http://www.cosmos.esa.int/web/gaia">Gaia</webref>
+astrometry satellite.
+It is based on java serialization, and in all of its various forms
+has the peculiarity that you only stand any chance of decoding it
+if you have the Gaia data model classes on your java classpath at runtime.
+Since the set of relevant classes is very large,
+and also depends on what version of the data model your GBIN file
+corresponds to, those classes will not be packaged as part of
+the standard &gbin-package-name; distribution,
+so some additional setup is required to read GBIN files.
+</p>
+
+<p>As well as the data model classes, you must provide on the runtime
+classpath the GaiaTools classes required for GBIN reading.
+The table input handler accesses these by reflection,
+partly because GaiaTools is targeted at java 7 while STIL is at
+time of writing java 1.5 compatible, and partly to avoid an
+additional large library dependency for a rather niche requirement.
+It is likely that since you have to supply the required data model classes
+you will also have the required GaiaTools classes to hand as well,
+so this shouldn't constitute much of an additional burden for usage.
+</p>
+
+<p>In practice, if you have a jar file or files for pretty much any
+java library or application which is capable of reading a given
+GBIN file, just adding it or them to &gbin-package-name;'s classpath
+at run time ought to do the trick.
+Examples of such jar files are
+the 
+<webref url="http://gaia.esac.esa.int/mdbexp/lib/MDBExplorerStandalone.jar"
+        ><code>MDBExplorerStandalone.jar</code></webref>
+file available from
+<webref url="http://gaia.esac.esa.int/mdbexp/"/>,
+or the <code>gbcat.jar</code> file you can build from the
+<webref url="http://gaia.esac.esa.int/dpacsvn/DPAC/CU9/software/gbcat/"
+                                                  >CU9/software/gbcat/</webref>
+directory in the DPAC subversion repository.
+</p>

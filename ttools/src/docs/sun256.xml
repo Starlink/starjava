@@ -1331,7 +1331,7 @@ the location, but be aware that this may be less efficient on memory.
 As with command-line STILTS, the <code>fmt</code> argument
 is one of the options in <ref id="inFormats"/>, but may be
 left as the default if the format auto-detectable,
-which currently means if the file is in VOTable, FITS or CDF format.
+which currently means if the file is in VOTable, FITS, CDF or GBIN format.
 The <code>random</code> argument can be used to ensure that the returned file
 has random (i.e. not sequential-only) access;
 for some table formats the default way of reading them in means that
@@ -1979,6 +1979,16 @@ The following list gives the values usually allowed for this
     using approximately the conventions used by MS Excel.
     </p></dd>
 
+<dt><code>gbin</code></dt>
+<dd><p>Special-interest GBIN format for internal use by the DPAC
+    consortium in relation to the Gaia astrometry satellite.
+    Additional classes (data model and GaiaTools GBIN reader)
+    are required on the classpath at runtime to use this format
+    (e.g. <code>stilts -classpath MDBExplorerStandalone.jar</code>
+     or <code>java -classpath stilts.jar:MDBExplorerStandalone.jar
+              uk.ac.starlink.ttools.Stilts</code>).
+    </p></dd>
+
 <dt><code>tst</code></dt>
 <dd><p>Tab-Separated Table format,
     as used by Starlink's GAIA and ESO's SkyCat amongst other tools.
@@ -1997,7 +2007,7 @@ For more details on these formats, see the descriptions in
 <docxref doc="sun253" loc="inFormats"/>.
 </p>
 
-<p>In some cases (when using VOTable or FITS format tables) the 
+<p>In some cases (when using VOTable, FITS, CDF or GBIN format tables) the 
 tools can detect the table format automatically, and no explicit 
 specification is necessary.  If this isn't the case and you omit
 the format specification, the tool will fail with a suitable error
@@ -9857,6 +9867,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Fix <code>stilts</code> invocation script to pick up classes from
         <code>stilts.jar</code> in script directory in preference to
         other places (e.g. topcat-full.jar).</li>
+    <li>Add (experimental) read-only support for Gaia/DPAC GBIN format.</li>
     </ul>
     </p></dd>
 
