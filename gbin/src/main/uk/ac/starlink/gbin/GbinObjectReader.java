@@ -8,6 +8,31 @@ import java.lang.reflect.Modifier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * Provides read services for an object implementing the
+ * <code>gaia.cu1.tools.dal.gbin.GbinReader</code> interface.
+ * This object can read the elements stored in a GBIN file.
+ *
+ * <p>Access is via reflection, so I don't need GaiaTools on the classpath
+ * at build time, for several reasons:
+ * <ul>
+ * <li>The GbinReader class is targeted at Java 1.7, and at time of 
+ *     writing STIL is targeted at java 1.5</li>
+ * <li>GbinReader and its dependencies are probably large and complicated
+ *     (though I haven't actually checked that)</li>
+ * <li>To use this class for most actual GBIN files, you're going to
+ *     need Gaia data model classes on the classpath which I have no
+ *     intention of packaging with STIL.  If you have the data model
+ *     classes on the path, there's a good chance that you've got
+ *     the relevant bits of GaiaTools as well.</li>
+ * <li>It can benefit from future GbinReader implementations without
+ *     requiring updates to the code in STIL (as long as the basic
+ *     interfaces don't change).</li>
+ * </ul>
+ *
+ * @author   Mark Taylor
+ * @since    13 Aug 2014
+ */
 public class GbinObjectReader {
 
     private final Object gbinReaderObj_;
@@ -18,6 +43,14 @@ public class GbinObjectReader {
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.gbin" );
 
+    /**
+     * Constructor.
+     *
+     * @param  gbinReaderObj  object implementing 
+     *                        <code>gaia.cu1.tools.dal.gbin.GbinReader</code>
+     * @throws   IllegalArgumentException   if <code>gbinReaderObj</code>
+     *           doesn't appear to be a GbinReader
+     */
     public GbinObjectReader( Object gbinReaderObj ) {
         gbinReaderObj_ = gbinReaderObj;
         Class clazz = gbinReaderObj.getClass();
@@ -25,15 +58,34 @@ public class GbinObjectReader {
         nextMethod_ = getNoArgMethod( clazz, "next", null );
     }
 
+    /**
+     * Indicates whether this reader can read another element.
+     *
+     * @return  true if another record will be returned by <code>next</code>
+     */
     public boolean hasNext() throws IOException {
-        return Boolean.TRUE.equals( invoke( hasNextMethod_ ) );
+        return Boolean.TRUE.equals( invokeNoArgMethod( hasNextMethod_ ) );
     }
 
+    /**
+     * Reads the next record.
+     *
+     * @return  object implementing <code>gaia.cu1.tools.dm.GaiaRoot</code>
+     */
     public Object next() throws IOException {
-        return invoke( nextMethod_ );
+        return invokeNoArgMethod( nextMethod_ );
     }
 
-    private Object invoke( Method method ) throws IOException {
+    /**
+     * Invokes a no-arg method on this reader's GbinReader object,
+     * translating exceptions appropriately.
+     *
+     * @param  method  method to invoke with no arguments
+     * @return   method return value
+     * @throws  IOException  with an informative method if something
+     *          went wrong
+     */
+    private Object invokeNoArgMethod( Method method ) throws IOException {
         try {
             return method.invoke( gbinReaderObj_, ARGS0 );
         }
@@ -59,6 +111,17 @@ public class GbinObjectReader {
         }
     }
 
+    /**
+     * Returns a public instance method with no arguments and a given
+     * signature for a given class.
+     *
+     * @param  clazz  class to query
+     * @param  name   method name
+     * @param  retClazz   method return type
+     * @return  method object
+     * @throws  IllegalArgumentException with informative message
+     *                                   if method does not exist
+     */
     private static Method getNoArgMethod( Class<?> clazz, String name,
                                           Class<?> retClazz ) {
         Method method;
@@ -85,12 +148,29 @@ public class GbinObjectReader {
         return method;
     }
 
+    /**
+     * Attempts to construct a GbinObjectReader that can read records
+     * from a given input stream.
+     *
+     * @param  in  input stream containing a GBIN file
+     * @return   gbin object reader
+     */
     public static GbinObjectReader createReader( InputStream in )
             throws IOException {
         initGaiaTools();
         return new GbinObjectReader( createGbinReaderObject( in ) );
     }
 
+    /**
+     * Indicates whether a buffer containing the first few bytes of a
+     * file look like a GBIN magic number.
+     *
+     * <p>Note this has not been exhaustively tested with all known
+     * GBIN variants.
+     *
+     * @param   intro  first few bytes to test
+     * @return   true if buffer looks like it could be the start of a GBIN file
+     */
     public static boolean isMagic( byte[] intro ) {
         if ( intro.length < 13 ) {
             return false;
@@ -125,12 +205,15 @@ public class GbinObjectReader {
             return true;
         }
 
-        /* No known GBIN. */
+        /* No known GBIN format. */
         return false;
     }
 
     /**
-     * Called by createReader.
+     * Performs GaiaTools setup required before GbinReaders are used etc.
+     * Called by {@link #createReader createReader}.
+     * Calls after the first one do nothing, but are harmless and cheap.
+     * Uses reflection.
      */
     public static synchronized void initGaiaTools() {
         if ( ! isGaiaToolsInit_ ) {
@@ -150,6 +233,17 @@ public class GbinObjectReader {
         }
     }
 
+    /**
+     * Constructs a GbinReader from a given input stream.
+     * Uses reflection to invoke
+     * <code>gaia.cu1.tools.dal.gbin.GbinFactory.getGbinReader()</code>.
+     *
+     * @param   in  input stream assumed to contain a GBIN file
+     * @return  object implementing
+     *          <code>gaia.cu1.tools.dal.gbin.GbinReader</code> interface
+     * @throws   IOException  with informative message if something goes wrong,
+     *           including reflection trouble
+     */
     public static Object createGbinReaderObject( InputStream in )
             throws IOException {
         try {
