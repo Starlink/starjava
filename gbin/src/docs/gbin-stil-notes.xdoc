@@ -1,0 +1,22 @@
+<p>The GBIN format doesn't really store tables, it stores arrays of
+java objects, so the input handler has to make some decisions about how to
+flatten these into table rows.  It basically looks for public instance
+methods of the form <code>getXxx()</code>
+and uses the <code>Xxx</code> as column names.
+If the corresponding values are themselves objects with suitable getter
+methods, those objects are added as new columns instead.
+This more or less follows the practice of the
+<code>gaia.cu1.tools.util.GbinInterogator</code>/<code>gbcat</code> tool.
+Method names are sorted alphabetically.
+Arrays of complex objects are not handled well,
+and various other things may trip it up.
+See the source code (e.g. <code>uk.ac.starlink.gbin.GbinTableProfile</code>)
+for more details.
+</p>
+
+<p>Note that support for GBIN files is somewhat experimental.
+Please contact the author (who is not a GBIN expert)
+if it doesn't seem to be working properly
+or you think it should do things differently.
+</p>
+

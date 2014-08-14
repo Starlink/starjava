@@ -122,6 +122,7 @@
   <property name="user.doc" value="sun253"/>
   <property name="src.docs" value="${src.dir}/docs"/>
   <property name="xdoc.etc" value="${star.dir}/etc/xdoc"/>
+  <property name="gbin.docs" value="${star.dir}/docs/gbin"/>
 
   <!-- Directory containing any script required to execute or setup package-->
   <property name="script.dir" value="${src.dir}/script"/>
@@ -1403,6 +1404,8 @@
                includes="images/*"/>
       <fileset dir="${xdoc.etc}"
                includes="docs.dtd"/>
+      <fileset dir="${gbin.docs}"
+               includes="gbin-stil-*.xdoc"/>
     </copy>
 
     <!-- Write a file containing entity definitions for all the image files

@@ -1,0 +1,24 @@
+<!-- Required entities:
+ !   &gbin-package-name;       TOPCAT
+ !   &gbin-package-cmdline;    topcat
+ !   &gbin-package-classpath;  topcat-full.jar
+ |   &gbin-package-mainclass;  uk.ac.starlink.topcat.Driver
+ !-->
+
+<p>Suppose you have the <code>MDBExplorerStandalone.jar</code> file
+mentioned above, you can do it by starting &gbin-package-name; like this:
+<verbatim>
+   &gbin-package-cmdline; -classpath MDBExplorerStandalone.jar
+</verbatim>
+or like this:
+<verbatim>
+   java -classpath &gbin-package-classpath;:MDBExplorerStandalone.jar &gbin-package-mainclass;
+</verbatim>
+Note you will need to be using whatever version of java is required
+by GaiaTools, probably java 7.
+</p>
+
+<p>The GBIN format is recognised automatically, so you do not need to
+explicitly set the file type when loading GBIN files.
+</p>
+
