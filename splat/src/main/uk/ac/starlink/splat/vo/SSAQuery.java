@@ -13,6 +13,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.MalformedURLException;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 
 import jsky.coords.DMS;
 import jsky.coords.HMS;
@@ -91,6 +92,12 @@ public class SSAQuery
     /** The DataLink input parameters  */
     private DataLinkParams dataLinkParams = null;
 
+    /** Extended Query with metadata parameters  */
+    private String extendedQuery = "";
+
+    /** Extended Query with metadata parameters  */
+    private String queryText = "";
+    
     /**
      * Create an instance with the given base URL for an SSA service.
      */
@@ -135,7 +142,7 @@ public class SSAQuery
                                                //  interface. 
         this.description = server.getShortName();
     }
-
+   
     /**
      * Set the position used for the query. The values are in degrees and must
      * be in ICRS (FK5/J2000 will do if accuracy isn't a problem). To not
@@ -404,6 +411,58 @@ public class SSAQuery
     public String getShortName() {
         return this.description;
     }
-        
+    
+    public void setQuery(String q) {
+       this.queryText = q.substring("<SERVER>?".length(), q.length());
+    }
  
+    public String getQueryText() {
+        return this.queryText;
+       
+     }
+   // public String getExtendedQuery() {
+   //     return this.extendedQuery;
+   // }
+    
+    /**
+     * Parse a query line into an array of parameter names 
+     * returns the extended parameters
+     */
+    public ArrayList<String> getParamList( String queryparams) {
+        
+        ArrayList<String> extp = new ArrayList <String>();
+        //String sub = "";
+        String[] paramdata = queryparams.split("&");
+        for ( int i = 1; i<paramdata.length; i++) { // the first one is thrown away
+            String param = paramdata[i].substring(0, paramdata[i].indexOf("="));
+            if ( !param.equals("TARGETNAME") && !param.equals("POS") && !param.equals("SIZE") && 
+                 !param.equals("BAND") && !param.equals("TIME") && !param.equals("FORMAT") && 
+                 !param.equals("WAVECALIB") && !param.equals("FLUXCALIB")) 
+                extp.add(param);
+        }
+        
+        
+        //ArrayList<String> extp = new ArrayList<String>();
+        if (extp.isEmpty())
+            return null;
+        else return extp;
+    }
+    
+    
+    /**
+     * Returns the full request URL as String
+     */
+    public URL getRequestURL() 
+            throws MalformedURLException, UnsupportedEncodingException
+    {
+        String newURL = this.baseURL;
+        if ( newURL.indexOf( '?' ) == -1 )  //  No ? in URL.
+            newURL += ( "?" );
+        else if ( newURL.indexOf('?') != newURL.length()-1 ) //? is not at the end
+            newURL += ( "&" );
+            
+        newURL += this.queryText;
+        return new URL(newURL);
+        
+    }
 }

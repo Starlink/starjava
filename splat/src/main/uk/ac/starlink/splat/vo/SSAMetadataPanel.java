@@ -25,6 +25,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
@@ -101,7 +102,7 @@ public class SSAMetadataPanel extends JPanel implements ActionListener, TableMod
     private HashMap<String, MetadataInputParameter> metaParam=null;
 
     // the metadata table
-    private static final int NRCOLS = 5;					// the number of columns in the table
+    private static final int NRCOLS = 6;					// the number of columns in the table
     // the table indexes
 
     private static final int SELECTED_INDEX = 0;
@@ -109,18 +110,18 @@ public class SSAMetadataPanel extends JPanel implements ActionListener, TableMod
     private static final int NAME_INDEX = 2;
     private static final int VALUE_INDEX = 3;    
     private static final int DESCRIPTION_INDEX = 4;
+    private static final int UCD_INDEX = 5;
 
     // total number of servers that returned parameters
-    int nrServers;
+    // private int nrServers;
     // the table headers
-    String[] headers;
-    String[] headersToolTips;
+    private String[] headers;
+    private String[] headersToolTips;
 
    
     // cell renderer for the parameter name column
-    ParamCellRenderer paramRenderer=null;
+    private ParamCellRenderer paramRenderer=null;
 
-  
 
     /**
      * Constructor: 
@@ -169,7 +170,7 @@ public class SSAMetadataPanel extends JPanel implements ActionListener, TableMod
         headers[NAME_INDEX] = "Name";
         headers[VALUE_INDEX] = "Value";
         headers[DESCRIPTION_INDEX] = "Description";
-        
+        headers[UCD_INDEX] = "UCD";
         // the tooltip Texts for the headers
         headersToolTips = new String[NRCOLS];
 
@@ -178,7 +179,7 @@ public class SSAMetadataPanel extends JPanel implements ActionListener, TableMod
         headersToolTips[NAME_INDEX] = "Parameter name";
         headersToolTips[VALUE_INDEX] = "Parameter value";
         headersToolTips[DESCRIPTION_INDEX] = "Description";
-        
+        headersToolTips[UCD_INDEX] = "UCD";
 
         //  Table of metadata parameters goes into a scrollpane in the center of
         //  window (along with a set of buttons, see initUI).
@@ -214,9 +215,11 @@ public class SSAMetadataPanel extends JPanel implements ActionListener, TableMod
      */
     public void updateMetadata(HashMap<String, MetadataInputParameter> metaParam ) 
     {
+    
         metadataTableModel = new MetadataTableModel(headers);
         metadataTable.setModel(metadataTableModel );
-        adjustColumns();        
+        adjustColumns();   
+        // ???fireProperty();
     }
 
 
@@ -243,7 +246,8 @@ public class SSAMetadataPanel extends JPanel implements ActionListener, TableMod
 
             metadataList[row][NR_SERVERS_INDEX] = Integer.toString(mip.getCounter());//+"/"+Integer.toString(nrServers);       // nr supporting servers
             metadataList[row][NAME_INDEX] = mip.getName().replace("INPUT:", "");                // name
-            metadataList[row][VALUE_INDEX] =  mip.getValue();                         // value (default value or "")
+            metadataList[row][VALUE_INDEX] =  ""; //mip.getValue();  
+            metadataList[row][UCD_INDEX] =  mip.getUCD(); 
             String unit = mip.getUnit();
             String desc = mip.getDescription();
             desc = desc.replaceAll("\n+", "<br>");
@@ -284,11 +288,12 @@ public class SSAMetadataPanel extends JPanel implements ActionListener, TableMod
         metadataTable.getColumnModel().getColumn(SELECTED_INDEX).setCellEditor(new DefaultCellEditor(cb));
         metadataTable.getColumnModel().getColumn(SELECTED_INDEX).setMaxWidth(30);
         metadataTable.getColumnModel().getColumn(SELECTED_INDEX).setMinWidth(30);
-        metadataTable.getColumnModel().getColumn(NR_SERVERS_INDEX).setMaxWidth(60);
-        metadataTable.getColumnModel().getColumn(NAME_INDEX).setMinWidth(150);
-        metadataTable.getColumnModel().getColumn(VALUE_INDEX).setMinWidth(150);
+        metadataTable.getColumnModel().getColumn(NR_SERVERS_INDEX).setMaxWidth(0);
+        metadataTable.getColumnModel().getColumn(NAME_INDEX).setMinWidth(100);
+        metadataTable.getColumnModel().getColumn(VALUE_INDEX).setMinWidth(100);
         metadataTable.getColumnModel().getColumn(VALUE_INDEX).setCellEditor(new DefaultCellEditor(tf));
-        metadataTable.getColumnModel().getColumn(NAME_INDEX).setCellRenderer(paramRenderer);       
+        metadataTable.getColumnModel().getColumn(NAME_INDEX).setCellRenderer(paramRenderer);
+        metadataTable.getColumnModel().getColumn(UCD_INDEX).setMinWidth(100);
         metadataTable.getColumnModel().getColumn (DESCRIPTION_INDEX).setMaxWidth(0);
         // Remove the description column. Its contents will not be removed. They'll be displayed as tooltip text in the NAME_INDEX column.  
         metadataTable.removeColumn(metadataTable.getColumnModel().getColumn (DESCRIPTION_INDEX));
@@ -304,19 +309,50 @@ public class SSAMetadataPanel extends JPanel implements ActionListener, TableMod
     public String getParamsQueryString() 
     {
         String query="";
-
+        HashMap  <String, String> UCDList = new HashMap <String, String> () ;
         // iterate through all rows
+        // String suffix = "";
         for (int i=0; i< metadataTable.getRowCount(); i++) 
         {
             if (rowChecked( i )) 
             {
                 String val = getTableData(i,VALUE_INDEX).toString().trim();
-                if (val != null && val.length() > 0) {
-                    String name = getTableData(i,NAME_INDEX).toString().trim();
+                String ucd = (String) getTableData(i,UCD_INDEX);
+                String name = (String) getTableData(i,NAME_INDEX);
+
+                /* if (ucd.endsWith("max") )
+                    suffix = "max";
+                else if (ucd.endsWith("min") )
+                    suffix = "min";
+                 */
+                if (val != null && val.length() > 0) { // all non-empty values
+                    if ( ucd != null && ! ucd.isEmpty())   // if there are no UCDs assigned just add the parameters to the  query string
+                        UCDList.put(ucd, val);
                     query += "&"+name+"="+val;
-                }
+                } 
             }
         }
+            /*
+        // set the same value and add to the query all params with the same UCD as the selected parameters
+        for (int i=0; i< metadataTable.getRowCount(); i++) 
+        {
+            String suffix2 = "";
+            String ucd = (String) getTableData(i,UCD_INDEX);
+            if ( ucd != null && !ucd.isEmpty() && UCDList.containsKey(ucd)) 
+            {
+               
+                if (ucd.endsWith("max") )
+                    suffix2 = "max";
+                else if (ucd.endsWith("min") )
+                    suffix2 = "min";
+                if ( suffix.isEmpty() || suffix.equals(suffix2) ) 
+                {
+                  String name = getTableData(i,NAME_INDEX).toString().trim();
+                   query += "&"+name+"="+UCDList.get(ucd);
+                }
+            } 
+        }
+        */
         return query;	
     }
 
@@ -365,7 +401,7 @@ public class SSAMetadataPanel extends JPanel implements ActionListener, TableMod
      */
     protected void initUI()
     {
-       // this.setPreferredSize(new Dimension(500,150));
+        this.setPreferredSize(new Dimension(500,150));
         setLayout( new BorderLayout() );
        
         JScrollPane scroller = new JScrollPane( metadataTable, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS );
@@ -503,7 +539,9 @@ public class SSAMetadataPanel extends JPanel implements ActionListener, TableMod
         }
         if ( command.equals( "load" ) ) // read saved table values from a file
         {
+           
             readMetadataFromFile();
+            fireProperty();
         }
  //       if ( command.equals( "refresh" ) ) // add new server to list
  //       {
@@ -538,17 +576,31 @@ public class SSAMetadataPanel extends JPanel implements ActionListener, TableMod
     }
 
     /**
-     *  Remove selected Parameter from table
+     *  Select all Parameters from table
      */
-    public void removeSelectedMetadata()
+    public void selectAll()
     {
-        int [] selRows = metadataTable.getSelectedRows();
-        for (int i=0; i<selRows.length; i++) {
+       
+        MetadataTableModel mtm = (MetadataTableModel) metadataTable.getModel(); 
+        for (int i=0; i<mtm.getRowCount(); i++) {
             //deselect it first to remove from query string
-            metadataTable.getModel().setValueAt(Boolean.FALSE, i, SELECTED_INDEX);
-            metadataTableModel.removeRow(selRows[i]);
+            mtm.setValueAt(Boolean.TRUE, i, SELECTED_INDEX);
+            
         }
+        fireProperty();
+    }
+    /**
+     *  Deselect all Parameters from table
+     */
+    public void deselectAll()
+    {
         
+        MetadataTableModel mtm = (MetadataTableModel) metadataTable.getModel(); 
+        for (int i=0; i<mtm.getRowCount(); i++) {
+            //deselect it first to remove from query string
+            mtm.setValueAt(Boolean.FALSE, i, SELECTED_INDEX);
+        }
+        fireProperty();
     }
     /**
      *  Reset all fields
@@ -561,6 +613,7 @@ public class SSAMetadataPanel extends JPanel implements ActionListener, TableMod
                 setTableData("", i,VALUE_INDEX);
             }
         }
+        fireProperty();
     } //resetFields
 
     /**
@@ -690,7 +743,17 @@ public class SSAMetadataPanel extends JPanel implements ActionListener, TableMod
     } //readTable()
 
 
-  
+    /**
+     * Remove all rows from the table 
+     * @param mip the metadata parameter that will be added to the table
+     */
+    // checkbox included 
+    public void removeAll( ) {
+        MetadataTableModel mtm = (MetadataTableModel) metadataTable.getModel();
+        mtm.setRowCount(0);
+       
+    }
+    
     /**
      * Adds a new row to the table 
      * @param mip the metadata parameter that will be added to the table
@@ -708,8 +771,11 @@ public class SSAMetadataPanel extends JPanel implements ActionListener, TableMod
         paramRow[NR_SERVERS_INDEX] = Integer.toString(mip.getCounter());//+"/"+Integer.toString(nrServers);       // nr supporting servers
         paramRow[NAME_INDEX] = mip.getName().replace("INPUT:", "");                // name
         paramRow[VALUE_INDEX] =  mip.getValue();                         // value (default value or "")
+        paramRow[UCD_INDEX] =  mip.getUCD();  
         String unit = mip.getUnit();
         String desc = mip.getDescription();
+        //String utype = mip.getUtype();
+        
         if (desc != null) 
         {
             // remove newline, tabs, and multiple spaces
@@ -743,37 +809,27 @@ public class SSAMetadataPanel extends JPanel implements ActionListener, TableMod
 
         if ( selected ) {         
             mtm.setValueAt(true, mtm.getRowCount()-1, SELECTED_INDEX);
-          //  metadataTable.removeColumn(metadataTable.getColumnModel().getColumn (SELECTED_INDEX));
         }
-     //   if (mtm.getRowCount() )
-           this.setPreferredSize( new Dimension(100,metadataTable.getRowHeight()*8));
-            
-     //  else 
-       //    this.setPreferredSize( new Dimension(500,metadataTable.getRowHeight()*(mtm.getRowCount()+4)));
-            
-      //  this.repaint();
-        
+   
     } //addRow
     
- //   public void setTableWidth(int w) {
- //       this.setPreferredSize(new Dimension( w, metadataTable.getRowHeight()*8));
- //   }
+
 
     /**
      * Set number of servers to the respective column in the table
      * @param counter the nr of servers supporting the parameter
      * @param name the name of the parameter
      */
-    public void setNrServers(int counter, String name) {
+    public void setNrServers(int counter, String UCD) {
 
         // boolean found=false;
         int row=0;
-        String paramName = name.replace("INPUT:", ""); 
+       // String paramName = name.replace("INPUT:", ""); 
         MetadataTableModel mtm = (MetadataTableModel) metadataTable.getModel();
        
         while (row<mtm.getRowCount() )
         {
-            if ( mtm.getValueAt(row, NAME_INDEX).toString().equalsIgnoreCase(paramName)) {
+            if ( mtm.getValueAt(row, UCD_INDEX).toString().equalsIgnoreCase(UCD)) {
               
                 mtm.setValueAt(counter, row, NR_SERVERS_INDEX); 
                 return;
@@ -789,8 +845,13 @@ public class SSAMetadataPanel extends JPanel implements ActionListener, TableMod
      */
     public void tableChanged(TableModelEvent tme) {
       
+        if ( (tme.getColumn() != TableModelEvent.ALL_COLUMNS) && (tme.getColumn() == SELECTED_INDEX  || tme.getColumn() == VALUE_INDEX) )
+             this.firePropertyChange("changeQuery", false, true);      
+    }
+    // fire this only in certain events
+    public void fireProperty() 
+    {
         this.firePropertyChange("changeQuery", false, true);
-       
     }
 
 
