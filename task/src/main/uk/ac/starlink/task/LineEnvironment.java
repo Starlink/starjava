@@ -13,7 +13,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import uk.ac.starlink.task.MultiParameter;
 import uk.ac.starlink.util.LineReader;
 
 /**
@@ -31,8 +30,8 @@ public class LineEnvironment implements Environment {
     private Argument[] arguments_;
     private PrintStream out_ = System.out;
     private PrintStream err_ = System.err;
-    private final Set clearedParams_ = new HashSet();
-    private final List acquiredValues_ = new ArrayList();
+    private final Set<Parameter> clearedParams_ = new HashSet<Parameter>();
+    private final List<String> acquiredValues_ = new ArrayList<String>();
 
     static final String NULL_STRING = "";
     public static final char INDIRECTION_CHAR = '@';
@@ -117,14 +116,15 @@ public class LineEnvironment implements Environment {
      */
     public void checkParameters( Parameter[] params ) throws UsageException {
         int narg = arguments_.length;
-        Set paramSet = new HashSet( Arrays.asList( params ) );
+        Set<Parameter> paramSet =
+            new HashSet<Parameter>( Arrays.asList( params ) );
         int position = 1;
         for ( int ia = 0; ia < narg; ia++ ) {
             LineWord word = arguments_[ ia ].word_;
             boolean found = false;
-            for ( Iterator it = paramSet.iterator();
+            for ( Iterator<Parameter> it = paramSet.iterator();
                   ! found && it.hasNext(); ) {
-                Parameter param = (Parameter) it.next();
+                Parameter param = it.next();
                 if ( ! found && paramNameMatches( word.getName(), param ) ) {
                     found = true;
                     if ( ! ( param instanceof MultiParameter ) ) {
@@ -221,7 +221,7 @@ public class LineEnvironment implements Environment {
          * on the command line. */
         if ( param instanceof MultiParameter ) {
             char separator = ((MultiParameter) param).getValueSeparator();
-            List valueList = new ArrayList();
+            List<String> valueList = new ArrayList<String>();
             for ( int i = 0; i < arguments_.length; i++ ) {
                 Argument arg = arguments_[ i ];
                 LineWord word = arg.word_;
@@ -232,7 +232,7 @@ public class LineEnvironment implements Environment {
                 }
             }
             if ( valueList.size() == 1 ) {
-                String value = (String) valueList.get( 0 );
+                String value = valueList.get( 0 );
                 if ( value.charAt( 0 ) == INDIRECTION_CHAR ) {
                     String[] lines;
                     try {
@@ -256,8 +256,9 @@ public class LineEnvironment implements Environment {
             }
             else if ( valueList.size() > 1 ) {
                 StringBuffer val = new StringBuffer();
-                for ( Iterator it = valueList.iterator(); it.hasNext(); ) {
-                    val.append( (String) it.next() );
+                for ( Iterator<String> it = valueList.iterator();
+                      it.hasNext(); ) {
+                    val.append( it.next() );
                     if ( it.hasNext() ) {
                         val.append( separator );
                     }
@@ -485,14 +486,14 @@ public class LineEnvironment implements Environment {
      * @return   array of unused words
      */
     public String[] getUnused() {
-        List unusedList = new ArrayList();
+        List<String> unusedList = new ArrayList<String>();
         for ( int i = 0; i < arguments_.length; i++ ) {
             Argument arg = arguments_[ i ];
             if ( ! arg.used_ ) {
                 unusedList.add( arg.word_.getText() );
             }
         }
-        return (String[]) unusedList.toArray( new String[ 0 ] );
+        return unusedList.toArray( new String[ 0 ] );
     }
 
     /**
@@ -503,7 +504,7 @@ public class LineEnvironment implements Environment {
      * @return   array of parameter assignment strings
      */
     public String[] getAssignments() {
-        return (String[]) acquiredValues_.toArray( new String[ 0 ] );
+        return acquiredValues_.toArray( new String[ 0 ] );
     }
 
     /**
@@ -552,7 +553,7 @@ public class LineEnvironment implements Environment {
         InputStream istrm = new FileInputStream( new File( location ) );
         BufferedReader rdr =
            new BufferedReader( new InputStreamReader( istrm ) );
-        List lineList = new ArrayList();
+        List<String> lineList = new ArrayList<String>();
         try {
             for ( String line; ( line = rdr.readLine() ) != null; ) {
                 lineList.add( line );
@@ -561,7 +562,7 @@ public class LineEnvironment implements Environment {
         finally {
             rdr.close();
         }
-        return (String[]) lineList.toArray( new String[ 0 ] );
+        return lineList.toArray( new String[ 0 ] );
     }
 
     /**

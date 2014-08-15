@@ -23,8 +23,8 @@ import java.util.Set;
  */
 public class TerminalEnvironment implements Environment {
 
-    private Map valueMap;
-    private Set paramSet;
+    private Map<Parameter,String> valueMap;
+    private Set<Parameter> paramSet;
 
     /** The number of goes you get to put in an invalid parameter. */
     public static int NUM_TRIES = 5;
@@ -45,11 +45,11 @@ public class TerminalEnvironment implements Environment {
      */
     public TerminalEnvironment( String[] args, Parameter[] params )
             throws UsageException {
-        paramSet = new HashSet( params.length );
+        paramSet = new HashSet<Parameter>( params.length );
         for ( int i = 0; i < params.length; i++ ) {
             paramSet.add( params[ i ] );
         }
-        valueMap = new LinkedHashMap();
+        valueMap = new LinkedHashMap<Parameter,String>();
         for ( int i = 0; i < args.length; i++ ) {
             boolean found = false;
             String[] pp = args[ i ].split( "=" );
@@ -155,7 +155,7 @@ public class TerminalEnvironment implements Environment {
             }
         }
         try {
-            par.setValueFromString( this, (String) valueMap.get( par ) );
+            par.setValueFromString( this, valueMap.get( par ) );
         }
         catch ( ParameterValueException e ) {
             System.out.println( e.getMessage() );
@@ -174,11 +174,11 @@ public class TerminalEnvironment implements Environment {
     }
 
     public String[] getNames() {
-        List nameList = new ArrayList();
-        for ( Iterator it = paramSet.iterator(); it.hasNext(); ) {
-            nameList.add( ((Parameter) it.next()).getName() );
+        List<String> nameList = new ArrayList<String>();
+        for ( Parameter param : paramSet ) {
+            nameList.add( param.getName() );
         }
-        return (String[]) nameList.toArray( new String[ 0 ] );
+        return nameList.toArray( new String[ 0 ] );
     }
 
     /**

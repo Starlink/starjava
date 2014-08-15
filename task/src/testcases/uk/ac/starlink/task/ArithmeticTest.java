@@ -13,7 +13,7 @@ public class ArithmeticTest extends TestCase {
     }
 
     public void testArithmetic() throws TaskException, IOException {
-        Map paramMap = new HashMap();
+        Map<String,String> paramMap = new HashMap<String,String>();
         paramMap.put( "first", "101" );
         paramMap.put( "second", "707" );
         Task task = new AddTask();
