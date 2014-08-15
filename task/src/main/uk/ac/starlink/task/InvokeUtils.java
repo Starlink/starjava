@@ -114,16 +114,16 @@ public class InvokeUtils {
      * @return  output list
      */
     public static Parameter[] sortParameters( Parameter[] params ) {
-        List numbered = new ArrayList();
-        List unNumbered = new ArrayList();
+        List<Parameter> numbered = new ArrayList<Parameter>();
+        List<Parameter> unNumbered = new ArrayList<Parameter>();
         for ( int i = 0; i < params.length; i++ ) {
             Parameter param = params[ i ];
             ( param.getPosition() > 0 ? numbered : unNumbered ).add( param );
         }
-        Collections.sort( numbered, new Comparator() {
-            public int compare( Object o1, Object o2 ) {
-                int pos1 = ((Parameter) o1).getPosition();
-                int pos2 = ((Parameter) o2).getPosition();
+        Collections.sort( numbered, new Comparator<Parameter>() {
+            public int compare( Parameter p1, Parameter p2 ) {
+                int pos1 = p1.getPosition();
+                int pos2 = p2.getPosition();
                 if ( pos1 < pos2 ) {
                     return -1;
                 }
@@ -136,7 +136,7 @@ public class InvokeUtils {
                 }
              }
         } );
-        List paramList = numbered;
+        List<Parameter> paramList = numbered;
         paramList.addAll( unNumbered );
         return (Parameter[]) paramList.toArray( new Parameter[ 0 ] );
     }

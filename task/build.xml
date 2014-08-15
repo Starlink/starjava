@@ -347,6 +347,7 @@
            source="${source.version}"
            optimize="${optimize}">
 
+      <compilerarg value="-Xlint:unchecked"/>
       <compilerarg value="-proc:none" compiler="javac1.6"/>
       <classpath refid="classpath"/>
 
@@ -895,6 +896,7 @@
            source="${source.version}"
            deprecation="${deprecation}" >
 
+      <compilerarg value="-Xlint:unchecked"/>
       <compilerarg value="-proc:none" compiler="javac1.6"/>
       <classpath refid="tests-classpath"/>
 

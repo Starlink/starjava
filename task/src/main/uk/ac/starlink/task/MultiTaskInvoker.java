@@ -43,14 +43,14 @@ public class MultiTaskInvoker {
      * @param  args  command line words
      */
     public int invoke( String[] args ) {
-        List argList = new ArrayList( Arrays.asList( args ) );
+        List<String> argList = new ArrayList<String>( Arrays.asList( args ) );
 
         /* Process flags. */
         boolean debug = false;
         boolean bench = false;
         int verbose = 0;
-        for ( Iterator it = argList.iterator(); it.hasNext(); ) {
-            String arg = (String) it.next();
+        for ( Iterator<String> it = argList.iterator(); it.hasNext(); ) {
+            String arg = it.next();
             if ( arg.charAt( 0 ) != '-' ) {
                 break;
             }

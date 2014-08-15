@@ -31,12 +31,12 @@ public class SingleTaskInvoker {
     }
 
     public int invoke( String[] args ) {
-        List argList = new ArrayList( Arrays.asList( args ) );
+        List<String> argList = new ArrayList<String>( Arrays.asList( args ) );
 
         /* Process flags. */
         boolean debug = false;
-        for ( Iterator it = argList.iterator(); it.hasNext(); ) {
-            String arg = (String) it.next();
+        for ( Iterator<String> it = argList.iterator(); it.hasNext(); ) {
+            String arg = it.next();
             if ( arg.charAt( 0 ) != '-' ) {
                 break;
             }
@@ -53,7 +53,7 @@ public class SingleTaskInvoker {
 
         /* Execute the task given the now-flagless command line. */
         try {
-            String[] taskArgs = (String[]) argList.toArray( new String[ 0 ] );
+            String[] taskArgs = argList.toArray( new String[ 0 ] );
             Environment env =
                 new LineEnvironment( taskArgs, task_.getParameters() );
             task_.createExecutable( env ).execute();

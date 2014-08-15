@@ -24,7 +24,7 @@ import java.util.TreeMap;
 public class TerminalInvoker {
 
     private String toolname;
-    private Map taskmap;
+    private Map<String,Task> taskmap;
 
     /**
      * Creates a new invoker based on the given class with a given name.
@@ -35,7 +35,7 @@ public class TerminalInvoker {
      * @param   toolname   the name of this tool, used for user messages
      * @param   taskmap    map of task names to <tt>Task</tt> objects
      */
-    public TerminalInvoker( String toolname, Map taskmap ) {
+    public TerminalInvoker( String toolname, Map<String,Task> taskmap ) {
         this.toolname = toolname;
         this.taskmap = taskmap;
     }
@@ -98,11 +98,10 @@ public class TerminalInvoker {
         if ( taskname.startsWith( "-" ) ) {
             System.out.println( usage );
             System.out.println( "Known tasks:" );
-            Map tmap = new TreeMap( taskmap );
-            for ( Iterator it = tmap.entrySet().iterator(); it.hasNext(); ) {
-                Map.Entry entry = (Map.Entry) it.next();
-                System.out.println( "   " + (String) entry.getKey() + " " +
-                                    getTaskUsage( (Task) entry.getValue() ) );
+            Map<String,Task> tmap = new TreeMap<String,Task>( taskmap );
+            for ( Map.Entry<String,Task> entry : tmap.entrySet() ) {
+                System.out.println( "   " + entry.getKey() + " " +
+                                    getTaskUsage( entry.getValue() ) );
  
             }
             System.out.println();
@@ -113,7 +112,7 @@ public class TerminalInvoker {
         if ( taskmap.containsKey( taskname ) ) {
 
             /* Get the task object which defines what is to be done. */
-            Task task = (Task) taskmap.get( taskname );
+            Task task = taskmap.get( taskname );
 
             /* Prepare the command line which may contain its parameter 
              * values. */
@@ -204,16 +203,16 @@ public class TerminalInvoker {
          * the numbered ones first and all the unnumbered ones (in the
          * order they were submitted) following. */
         Parameter[] params = task.getParameters();
-        List numbered = new ArrayList();
-        List unNumbered = new ArrayList();
+        List<Parameter> numbered = new ArrayList<Parameter>();
+        List<Parameter> unNumbered = new ArrayList<Parameter>();
         for ( int i = 0; i < params.length; i++ ) {
             Parameter param = params[ i ];
             ( param.getPosition() > 0 ? numbered : unNumbered ).add( param );
         }
-        Collections.sort( numbered, new Comparator() {
-            public int compare( Object o1, Object o2 ) {
-                int pos1 = ((Parameter) o1).getPosition();
-                int pos2 = ((Parameter) o2).getPosition();
+        Collections.sort( numbered, new Comparator<Parameter>() {
+            public int compare( Parameter p1, Parameter p2 ) {
+                int pos1 = p1.getPosition();
+                int pos2 = p2.getPosition();
                 if ( pos1 < pos2 ) { 
                     return -1;
                 }
@@ -226,13 +225,13 @@ public class TerminalInvoker {
                 }
             } 
         } );
-        List paramList = numbered;
+        List<Parameter> paramList = numbered;
         paramList.addAll( unNumbered );
 
         /* Assemble the usage message with one element for each parameter. */
         StringBuffer usage = new StringBuffer();
-        for ( Iterator it = paramList.iterator(); it.hasNext(); ) {
-            Parameter param = (Parameter) it.next();
+        for ( Iterator<Parameter> it = paramList.iterator(); it.hasNext(); ) {
+            Parameter param = it.next();
             boolean optional = param.isNullPermitted()
                             || param.getDefault() != null;
             if ( optional ) {
