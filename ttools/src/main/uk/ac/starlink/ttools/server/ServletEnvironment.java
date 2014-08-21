@@ -100,7 +100,8 @@ public class ServletEnvironment implements TableEnvironment {
                 throw new ParameterValueException( param,
                     "Unknown table output format " + format, e );
             }
-            outParam.setValueFromConsumer( new ServletTableConsumer( writer ) );
+            outParam.setValueFromConsumer( this,
+                                           new ServletTableConsumer( writer ) );
         }
 
         /* Configure output table consumer modes to cause tables to be written
@@ -119,7 +120,8 @@ public class ServletEnvironment implements TableEnvironment {
                 throw new ParameterValueException( param,
                     "Unknown table output format " + format, e );
             }
-            outParam.setValueFromConsumer( new ServletTableConsumer( writer ) );
+            outParam.setValueFromConsumer( this,
+                                           new ServletTableConsumer( writer ) );
         }
 
         /* Configure graphics output to cause graphics to be written to 
@@ -130,7 +132,7 @@ public class ServletEnvironment implements TableEnvironment {
             formatParam.setDefault( "png" );
             GraphicExporter exporter =
                 (GraphicExporter) formatParam.objectValue( this );
-            pmParam.setValueFromPainter( new ServletPainter( exporter ) );
+            pmParam.setValueFromPainter( this, new ServletPainter( exporter ) );
         }
 
         /* Other parameters will be acquired from the servlet parameters

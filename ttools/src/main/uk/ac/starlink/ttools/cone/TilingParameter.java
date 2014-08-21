@@ -11,9 +11,7 @@ import uk.ac.starlink.task.TaskException;
  * @author   Mark Taylor
  * @since    13 Dec 2007
  */
-public class TilingParameter extends Parameter {
-
-    private SkyTiling tiling_;
+public class TilingParameter extends Parameter<SkyTiling> {
 
     private static final String HTM_PREFIX = "htm";
     private static final String HEALPIX_RING_PREFIX = "healpixring";
@@ -25,7 +23,7 @@ public class TilingParameter extends Parameter {
      * @param  name   parameter name
      */
     public TilingParameter( String name ) {
-        super( name );
+        super( name, SkyTiling.class, true );
         setPrompt( "Sky tiling scheme" );
         setUsage( HTM_PREFIX + "<level>" + "|"
                 + HEALPIX_NEST_PREFIX + "<nside>" + "|"
@@ -49,26 +47,25 @@ public class TilingParameter extends Parameter {
         } );
     }
 
-    public void setValueFromString( Environment env, String value )
+    public SkyTiling stringToObject( Environment env, String svalue )
             throws TaskException {
-        String lvalue = value.toLowerCase();
+        String lvalue = svalue.toLowerCase();
         if ( lvalue.startsWith( HTM_PREFIX ) ) {
-            int level = getNumberSuffix( value, HTM_PREFIX );
-            tiling_ = new HtmTiling( level );
+            int level = getNumberSuffix( svalue, HTM_PREFIX );
+            return new HtmTiling( level );
         }
         else if ( lvalue.startsWith( HEALPIX_NEST_PREFIX ) ) {
-            int nside = getNumberSuffix( value, HEALPIX_NEST_PREFIX );
-            tiling_ = new HealpixTiling( nside, true );
+            int nside = getNumberSuffix( svalue, HEALPIX_NEST_PREFIX );
+            return new HealpixTiling( nside, true );
         }
         else if ( lvalue.startsWith( HEALPIX_RING_PREFIX ) ) {
-            int nside = getNumberSuffix( value, HEALPIX_RING_PREFIX );
-            tiling_ = new HealpixTiling( nside, false );
+            int nside = getNumberSuffix( svalue, HEALPIX_RING_PREFIX );
+            return new HealpixTiling( nside, false );
         }
         else {
             throw new ParameterValueException( this, "Unknown tiling scheme \""
-                                                   + value + "\"" );
+                                                   + svalue + "\"" );
         }
-        super.setValueFromString( env, value );
     }
 
     /**
@@ -78,8 +75,7 @@ public class TilingParameter extends Parameter {
      * @return   tiling value
      */
     public SkyTiling tilingValue( Environment env ) throws TaskException {
-        checkGotValue( env );
-        return tiling_;
+        return objectValue( env );
     }
 
     /**

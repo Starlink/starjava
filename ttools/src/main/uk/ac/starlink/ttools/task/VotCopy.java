@@ -27,6 +27,7 @@ import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Executable;
 import uk.ac.starlink.task.ExecutionException;
 import uk.ac.starlink.task.Parameter;
+import uk.ac.starlink.task.StringParameter;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.UsageException;
@@ -50,21 +51,21 @@ public class VotCopy implements Task {
         Logger.getLogger( "uk.ac.starlink.ttools.task" );
     private static final String SAX_PROPERTY = "http://xml.org/sax/properties/";
 
-    private final Parameter inParam_;
-    private final Parameter outParam_;
+    private final StringParameter inParam_;
+    private final StringParameter outParam_;
     private final ChoiceParameter<DataFormat> formatParam_;
     private final ChoiceParameter<VOTableVersion> versionParam_;
     private final XmlEncodingParameter xencParam_;
     private final BooleanParameter cacheParam_;
     private final BooleanParameter hrefParam_;
     private final BooleanParameter nomagicParam_;
-    private final Parameter baseParam_;
+    private final StringParameter baseParam_;
 
     /**
      * Constructor.
      */
     public VotCopy() {
-        inParam_ = new Parameter( "in" );
+        inParam_ = new StringParameter( "in" );
         inParam_.setPosition( 1 );
         inParam_.setPrompt( "Input votable" );
         inParam_.setUsage( "<location>" );
@@ -77,7 +78,7 @@ public class VotCopy implements Task {
             "</p>",
         } );
 
-        outParam_ = new Parameter( "out" );
+        outParam_ = new StringParameter( "out" );
         outParam_.setPosition( 2 );
         outParam_.setPrompt( "Output votable" );
         outParam_.setUsage( "<location>" );
@@ -174,7 +175,7 @@ public class VotCopy implements Task {
         } );
         nomagicParam_.setDefault( "true" );
 
-        baseParam_ = new Parameter( "base" );
+        baseParam_ = new StringParameter( "base" );
         baseParam_.setUsage( "<location>" );
         baseParam_.setPrompt( "Base location for FITS/BINARY href data" );
         baseParam_.setNullPermitted( true );
@@ -269,7 +270,7 @@ public class VotCopy implements Task {
         else {
             base = null;
         }
-        Charset xenc = xencParam_.charsetValue( env );
+        Charset xenc = xencParam_.objectValue( env );
         boolean strict = LineTableEnvironment.isStrictVotable( env );
         boolean cache = cacheParam_.booleanValue( env );
         StoragePolicy policy = LineTableEnvironment.getStoragePolicy( env );

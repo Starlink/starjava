@@ -9,14 +9,13 @@ import uk.ac.starlink.ttools.mode.CopyMode;
 /**
  * Parameter to hold an output table.
  */
-public class OutputTableParameter extends Parameter
+public class OutputTableParameter extends Parameter<TableConsumer>
                                   implements TableConsumerParameter {
 
     private final OutputFormatParameter formatParam_;
-    private TableConsumer consumer_;
 
     public OutputTableParameter( String name ) {
-        super( name );
+        super( name, TableConsumer.class, true );
         formatParam_ = new OutputFormatParameter( "ofmt" );
         setUsage( "<out-table>" );
         setPrompt( "Location of output table" );
@@ -35,35 +34,20 @@ public class OutputTableParameter extends Parameter
         return formatParam_;
     }
 
-    /**
-     * Sets the value directly from a given TableConsumer.
-     *
-     * @param  consumer  table consumer  
-     */
-    public void setValueFromConsumer( TableConsumer consumer ) {
-        consumer_ = consumer;
-        setStringValue( consumer.toString() );
-        setGotValue( true );
-    }
-
-    public void setValueFromString( Environment env, String sval ) 
+    public TableConsumer stringToObject( Environment env, String sval )
             throws TaskException {
-        if ( sval != null ) {
-            String loc = sval;
-            String fmt = formatParam_.stringValue( env );
-            consumer_ = CopyMode.createConsumer( env, loc, fmt );
-        }
-        super.setValueFromString( env, sval );
+        String loc = sval;
+        String fmt = formatParam_.stringValue( env );
+        return CopyMode.createConsumer( env, loc, fmt );
     }
 
-    /**
-     * Returns a TableConsumer which corresponds to the value of this
-     * parameter.
-     *
-     * @param  env  execution environment
-     */
-    public TableConsumer consumerValue( Environment env ) throws TaskException {
-        checkGotValue( env );
-        return consumer_;
+    public TableConsumer consumerValue( Environment env )
+            throws TaskException {
+        return objectValue( env );
+    }
+
+    public void setValueFromConsumer( Environment env, TableConsumer consumer )
+            throws TaskException {
+        setValueFromObject( env, consumer );
     }
 }

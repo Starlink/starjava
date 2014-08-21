@@ -25,6 +25,7 @@ import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
+import uk.ac.starlink.task.StringParameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.DocUtils;
 import uk.ac.starlink.ttools.TableConsumer;
@@ -43,8 +44,8 @@ import uk.ac.starlink.votable.VOTableWriter;
  */
 public class PlasticMode implements ProcessingMode {
 
-    private final Parameter transportParam_;
-    private final Parameter clientParam_;
+    private final Parameter<String> transportParam_;
+    private final StringParameter clientParam_;
 
     final static String TRANSPORT_STRING;
     final static String TRANSPORT_FILE;
@@ -72,7 +73,8 @@ public class PlasticMode implements ProcessingMode {
     }
 
     public PlasticMode() {
-        transportParam_ = new ChoiceParameter( "transport", TRANSPORTS );
+        transportParam_ =
+            new ChoiceParameter<String>( "transport", TRANSPORTS );
         transportParam_.setDescription( new String[] {
             "<p>Determines the method (PLASTIC <em>message</em>) used",
             "to perform the PLASTIC communication.  The choices are",
@@ -95,7 +97,7 @@ public class PlasticMode implements ProcessingMode {
         transportParam_.setNullPermitted( true );
         transportParam_.setPrompt( "PLASTIC transport mechanism" );
 
-        clientParam_ = new Parameter( "client" );
+        clientParam_ = new StringParameter( "client" );
         clientParam_.setDescription( new String[] {
             "<p>Gives the name of a PLASTIC listener application which is to",
             "receive the broadcast table.",

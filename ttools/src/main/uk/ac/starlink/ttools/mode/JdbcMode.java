@@ -8,6 +8,7 @@ import uk.ac.starlink.table.jdbc.WriteMode;
 import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
+import uk.ac.starlink.task.StringParameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.DocUtils;
 import uk.ac.starlink.ttools.TableConsumer;
@@ -20,20 +21,20 @@ import uk.ac.starlink.ttools.TableConsumer;
  */
 public class JdbcMode implements ProcessingMode {
 
-    private final Parameter protoParam_;
-    private final Parameter hostParam_;
-    private final Parameter dbParam_;
-    private final Parameter tableParam_;
-    private final ChoiceParameter writeParam_;
-    private final Parameter userParam_;
-    private final Parameter passwdParam_;
+    private final StringParameter protoParam_;
+    private final StringParameter hostParam_;
+    private final StringParameter dbParam_;
+    private final StringParameter tableParam_;
+    private final ChoiceParameter<WriteMode> writeParam_;
+    private final StringParameter userParam_;
+    private final StringParameter passwdParam_;
 
     private final static Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.table.jdbc" );
 
     public JdbcMode() {
 
-        protoParam_ = new Parameter( "protocol" );
+        protoParam_ = new StringParameter( "protocol" );
         protoParam_.setPrompt( "Subprotocol for JDBC connection (e.g. mysql)" );
         protoParam_.setUsage( "<jdbc-protocol>" );
         protoParam_.setDescription( new String[] {
@@ -46,7 +47,7 @@ public class JdbcMode implements ProcessingMode {
             "</p>",
         } );
 
-        hostParam_ = new Parameter( "host" );
+        hostParam_ = new StringParameter( "host" );
         hostParam_.setPrompt( "SQL database host" );
         hostParam_.setPrompt( "<hostname>" );
         hostParam_.setDefault( "localhost" );
@@ -55,7 +56,7 @@ public class JdbcMode implements ProcessingMode {
             "</p>",
         } );
 
-        dbParam_ = new Parameter( "db" );
+        dbParam_ = new StringParameter( "db" );
         dbParam_.setPrompt( "Name of database on database server" );
         dbParam_.setUsage( "<db-name>" );
         dbParam_.setDescription( new String[] {
@@ -64,7 +65,7 @@ public class JdbcMode implements ProcessingMode {
             "</p>",
         } );
 
-        tableParam_ = new Parameter( "dbtable" );
+        tableParam_ = new StringParameter( "dbtable" );
         tableParam_.setPrompt( "Name of table to write to database" );
         tableParam_.setUsage( "<table-name>" );
         tableParam_.setDescription( new String[] {
@@ -74,7 +75,7 @@ public class JdbcMode implements ProcessingMode {
         } );
 
         WriteMode[] modes = WriteMode.getAllModes();
-        writeParam_ = new ChoiceParameter( "write", modes );
+        writeParam_ = new ChoiceParameter<WriteMode>( "write", modes );
         writeParam_.setPrompt( "Mode for writing to the database table" );
         writeParam_.setDefault( WriteMode.CREATE.toString() );
         StringBuffer descrip = new StringBuffer()
@@ -94,7 +95,7 @@ public class JdbcMode implements ProcessingMode {
                .append( "</p>" );
         writeParam_.setDescription( descrip.toString() );
 
-        userParam_ = new Parameter( "user" ); 
+        userParam_ = new StringParameter( "user" ); 
         userParam_.setPrompt( "Username for SQL connection" );
         userParam_.setUsage( "<username>" );
         userParam_.setNullPermitted( true );
@@ -110,7 +111,7 @@ public class JdbcMode implements ProcessingMode {
             "</p>",
         } );
 
-        passwdParam_ = new Parameter( "password" );
+        passwdParam_ = new StringParameter( "password" );
         passwdParam_.setPrompt( "Password for SQL connection" );
         passwdParam_.setUsage( "<passwd>" );
         passwdParam_.setNullPermitted( true );
@@ -156,7 +157,7 @@ public class JdbcMode implements ProcessingMode {
         logger_.info( "JDBC URL: " + url );
         final String user = userParam_.stringValue( env );
         final String passwd = passwdParam_.stringValue( env );
-        final WriteMode mode = (WriteMode) writeParam_.objectValue( env );
+        final WriteMode mode = writeParam_.objectValue( env );
         JDBCAuthenticator auth = new JDBCAuthenticator() {
             public String[] authenticate() {
                 return new String[] { user, passwd };

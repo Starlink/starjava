@@ -3,7 +3,7 @@ package uk.ac.starlink.ttools.task;
 import uk.ac.starlink.table.JoinFixAction;
 import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Environment;
-import uk.ac.starlink.task.Parameter;
+import uk.ac.starlink.task.StringParameter;
 import uk.ac.starlink.task.TaskException;
 
 /**
@@ -13,7 +13,8 @@ import uk.ac.starlink.task.TaskException;
  * @author   Mark Taylor
  * @since    20 Nov 2007
  */
-public class JoinFixActionParameter extends ChoiceParameter {
+public class JoinFixActionParameter
+             extends ChoiceParameter<JoinFixActionParameter.Fixer> {
 
     /**
      * Constructor.
@@ -21,14 +22,14 @@ public class JoinFixActionParameter extends ChoiceParameter {
      * @param  name   parameter name
      */
     public JoinFixActionParameter( String name ) {
-        super( name );
+        super( name, Fixer.class );
         setPrompt( "Whether and how to rename input columns" );
         String dflt;
 
         /* Option which does not alter column names. */
         addOption( new Fixer( "none", "columns are not renamed" ) {
             public JoinFixAction createAction( Environment env,
-                                               Parameter suffixParam )
+                                               StringParameter suffixParam )
                     throws TaskException {
                 return JoinFixAction.NO_ACTION;
             }
@@ -40,7 +41,7 @@ public class JoinFixActionParameter extends ChoiceParameter {
                             + "names in the output will be renamed "
                             + "to indicate which table they came from" ) {
             public JoinFixAction createAction( Environment env,
-                                               Parameter suffixParam )
+                                               StringParameter suffixParam )
                     throws TaskException {
                 String suffix = suffixParam.stringValue( env );
                 return suffix == null || suffix.trim().length() == 0
@@ -54,7 +55,7 @@ public class JoinFixActionParameter extends ChoiceParameter {
                               "all columns will be renamed to indicate "
                             + "which table they came from" ) {
             public JoinFixAction createAction( Environment env,
-                                               Parameter suffixParam )
+                                               StringParameter suffixParam )
                     throws TaskException {
                 String suffix = suffixParam.stringValue( env );
                 return suffix == null || suffix.trim().length() == 0
@@ -98,9 +99,9 @@ public class JoinFixActionParameter extends ChoiceParameter {
      *          (got from a <code>createSuffixParameter</code> method)
      */
     public JoinFixAction getJoinFixAction( Environment env,
-                                           Parameter suffixParam )
+                                           StringParameter suffixParam )
             throws TaskException {
-        Fixer fixer = (Fixer) objectValue( env );
+        Fixer fixer = objectValue( env );
         return fixer.createAction( env, suffixParam );
     }
 
@@ -117,7 +118,7 @@ public class JoinFixActionParameter extends ChoiceParameter {
             throws TaskException {
         JoinFixAction[] fixActs = new JoinFixAction[ nin ];
         for ( int i = 0; i < nin; i++ ) {
-            Parameter suffixParam =
+            StringParameter suffixParam =
                 createSuffixParameter( Integer.toString( i + 1 ) );
             fixActs[ i ] = getJoinFixAction( env, suffixParam );
         }
@@ -130,7 +131,7 @@ public class JoinFixActionParameter extends ChoiceParameter {
      *
      * @param  numLabel  table identifier such as "1"
      */
-    public Parameter createSuffixParameter( String numLabel ) {
+    public StringParameter createSuffixParameter( String numLabel ) {
         return createSuffixParameter( "suffix" + numLabel, "table " + numLabel,
                                       "_" + numLabel );
     }
@@ -144,9 +145,9 @@ public class JoinFixActionParameter extends ChoiceParameter {
      *                   (such as "table 3")
      * @param  dflt  default value
      */
-    public Parameter createSuffixParameter( String name, String descrip,
-                                            String dflt ) {
-        Parameter param = new Parameter( name );
+    public StringParameter createSuffixParameter( String name, String descrip,
+                                                  String dflt ) {
+        StringParameter param = new StringParameter( name );
         param.setDefault( dflt );
         param.setNullPermitted( true );
         param.setUsage( "<label>" );
@@ -166,7 +167,7 @@ public class JoinFixActionParameter extends ChoiceParameter {
     /**
      * Helper class which defines how suffixes are turned into JoinFixActions.
      */
-    private abstract class Fixer {
+    public abstract class Fixer {
 
         private final String name_;
         private final String description_;
@@ -176,7 +177,7 @@ public class JoinFixActionParameter extends ChoiceParameter {
          *
          * @param  name  object name, for presentation to the user as a 
          *               parameter value
-         * @return  description short description of the function
+         * @param  description short description of the function
          */
         public Fixer( String name, String description ) {
             name_ = name;
@@ -190,8 +191,8 @@ public class JoinFixActionParameter extends ChoiceParameter {
          * @param   suffixParam  parameter supplying suffix value
          *          (got from a <code>createSuffixParameter</code> method)
          */
-        public abstract JoinFixAction createAction( Environment env,
-                                                    Parameter suffixParam )
+        public abstract JoinFixAction
+                createAction( Environment env, StringParameter suffixParam )
                 throws TaskException;
 
         /**

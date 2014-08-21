@@ -122,10 +122,10 @@ public class VotLint implements Task {
         boolean debug = env instanceof TableEnvironment
                      && ((TableEnvironment) env).isDebug();
         String sysid = inParam_.stringValue( env );
-        InputStream in = inParam_.inputStreamValue( env );
+        InputStream in = inParam_.objectValue( env );
         PrintStream out;
         try {
-            out = new PrintStream( outParam_.destinationValue( env )
+            out = new PrintStream( outParam_.objectValue( env )
                                             .createStream() );
         }
         catch ( IOException e ) {

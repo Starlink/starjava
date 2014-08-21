@@ -11,14 +11,13 @@ import uk.ac.starlink.task.TaskException;
 /**
  * Parameter representing an Ndx object which already exists.
  */
-class ExistingNdxParameter extends Parameter {
+class ExistingNdxParameter extends Parameter<Ndx> {
 
     private NdxIO ndxio = new NdxIO();
-    private Ndx ndxvalue;
     private AccessMode accessMode = AccessMode.READ;
 
     public ExistingNdxParameter( String name ) {
-        super( name );
+        super( name, Ndx.class, true );
     }
 
     /**
@@ -40,25 +39,26 @@ class ExistingNdxParameter extends Parameter {
      * Get the value of the parameter as an Ndx object.
      */
     public Ndx ndxValue( Environment env ) throws TaskException {
-        checkGotValue( env );
-        return ndxvalue;
+        return objectValue( env );
     }
 
-    public void setValueFromString( Environment env, String stringval )
+    public Ndx stringToObject( Environment env, String stringval )
             throws TaskException {
         String loc = stringval;
+        Ndx ndx;
         try {
-            ndxvalue = ndxio.makeNdx( loc, accessMode );
+            ndx = ndxio.makeNdx( loc, accessMode );
         }
         catch ( Exception e ) {
             throw new ParameterValueException(
                 this, "Failed to read NDX from " + loc, e );
         }
-        if ( ndxvalue == null ) {
+        if ( ndx == null ) {
             throw new ParameterValueException(
                 this, "Unknown NDX type " + loc );
         }
-        super.setValueFromString( env, stringval );
+        else {
+            return ndx;
+        }
     }
-    
 }

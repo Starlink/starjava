@@ -6,6 +6,7 @@ import uk.ac.starlink.task.BooleanParameter;
 import uk.ac.starlink.task.DoubleParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
+import uk.ac.starlink.task.StringParameter;
 import uk.ac.starlink.task.TaskException;
 
 /**
@@ -16,7 +17,7 @@ import uk.ac.starlink.task.TaskException;
  */
 public class TableLoop extends ConsumerTask {
 
-    private final Parameter varParam_;
+    private final StringParameter varParam_;
     private final DoubleParameter startParam_;
     private final DoubleParameter endParam_;
     private final DoubleParameter stepParam_;
@@ -29,7 +30,7 @@ public class TableLoop extends ConsumerTask {
         super( "Generates a single-column table from a loop variable",
                new ChoiceMode(), true );
 
-        varParam_ = new Parameter( "colname" );
+        varParam_ = new StringParameter( "colname" );
         varParam_.setPrompt( "Column name" );
         varParam_.setDescription( new String[] {
             "<p>Gives the name of the single column produced by this command.",

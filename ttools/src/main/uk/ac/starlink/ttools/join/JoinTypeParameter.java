@@ -12,20 +12,10 @@ import uk.ac.starlink.task.UsageException;
  * @author   Mark Taylor
  * @since    8 Sep 2005
  */
-public class JoinTypeParameter extends ChoiceParameter {
-
-    /* Set up the available choices by interrogating the JoinType class. */
-    private static final String[] CHOICES;
-    static {
-        JoinType[] joins = JoinType.getPairTypes();
-        CHOICES = new String[ joins.length ];
-        for ( int i = 0; i < joins.length; i++ ) {
-            CHOICES[ i ] = joins[ i ].getName();
-        }
-    }
+public class JoinTypeParameter extends ChoiceParameter<JoinType> {
 
     public JoinTypeParameter( String name ) {
-        super( name, CHOICES );
+        super( name, JoinType.getPairTypes() );
 
         StringBuffer items = new StringBuffer();
         JoinType[] joins = JoinType.getPairTypes();
@@ -64,13 +54,11 @@ public class JoinTypeParameter extends ChoiceParameter {
      * @return  join type
      */
     public JoinType joinTypeValue( Environment env ) throws TaskException {
-        String sval = stringValue( env );
-        JoinType[] joins = JoinType.getPairTypes();
-        for ( int i = 0; i < joins.length; i++ ) {
-            if ( joins[ i ].getName().toLowerCase().equals( sval ) ) {
-                return joins[ i ];
-            }
-        }
-        throw new UsageException( "Unknown join type " + sval );
+        return objectValue( env );
+    }
+
+    @Override
+    public String stringifyOption( JoinType type ) {
+        return type.getName();
     }
 }

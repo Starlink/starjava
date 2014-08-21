@@ -20,6 +20,7 @@ import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Executable;
 import uk.ac.starlink.task.IntegerParameter;
 import uk.ac.starlink.task.Parameter;
+import uk.ac.starlink.task.StringParameter;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.plot.AuxLegend;
@@ -43,13 +44,13 @@ public abstract class PlotTask implements Task {
     private final String purpose_;
     private final PlotStateFactory stateFactory_;
     private final TablePlot plot_;
-    private final List paramList_;
+    private final List<Parameter> paramList_;
     private final IntegerParameter xpixParam_;
     private final IntegerParameter ypixParam_;
     private final BooleanParameter legendParam_;
     private final FontParameter fontParam_;
     private final PaintModeParameter painterParam_;
-    private final Parameter titleParam_;
+    private final StringParameter titleParam_;
 
     /**
      * Constructor.
@@ -63,7 +64,7 @@ public abstract class PlotTask implements Task {
         purpose_ = purpose;
         stateFactory_ = stateFactory;
         plot_ = plot;
-        paramList_ = new ArrayList();
+        paramList_ = new ArrayList<Parameter>();
 
         xpixParam_ = new IntegerParameter( "xpix" );
         xpixParam_.setMinimum( 1 );
@@ -100,7 +101,7 @@ public abstract class PlotTask implements Task {
         } );
         paramList_.add( legendParam_ );
 
-        titleParam_ = new Parameter( "title" );
+        titleParam_ = new StringParameter( "title" );
         titleParam_.setPrompt( "Plot title" );
         titleParam_.setNullPermitted( true );
         titleParam_.setDescription( new String[] {
@@ -119,7 +120,7 @@ public abstract class PlotTask implements Task {
         paramList_.addAll( Arrays.asList( stateFactory_.getParameters() ) );
     }
 
-    protected List getParameterList() {
+    protected List<Parameter> getParameterList() {
         return paramList_;
     }
 
@@ -128,7 +129,7 @@ public abstract class PlotTask implements Task {
     }
 
     public Parameter[] getParameters() {
-        return (Parameter[]) paramList_.toArray( new Parameter[ 0 ] );
+        return paramList_.toArray( new Parameter[ 0 ] );
     }
 
     /**

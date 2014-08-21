@@ -7,6 +7,7 @@ import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
+import uk.ac.starlink.task.StringParameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.URLParameter;
 import uk.ac.starlink.ttools.task.LineTableEnvironment;
@@ -23,10 +24,10 @@ import uk.ac.starlink.vo.ConeSearch;
 public class ConeSearchConer implements Coner {
 
     private final URLParameter urlParam_;
-    private final ChoiceParameter verbParam_;
+    private final ChoiceParameter<String> verbParam_;
     private final ChoiceParameter<ServiceType> serviceParam_;
     private final BooleanParameter believeemptyParam_;
-    private final Parameter formatParam_;
+    private final StringParameter formatParam_;
     private int nside_;
     private static final String BELIEVE_EMPTY_NAME = "emptyok";
     private static final String INCONSISTENT_EMPTY_ADVICE =
@@ -82,8 +83,9 @@ public class ConeSearchConer implements Coner {
         } );
         serviceParam_.setDefaultOption( serviceTypes[ 0 ] );
 
-        verbParam_ = new ChoiceParameter( "verb",
-                                          new String[] { "1", "2", "3", } );
+        verbParam_ =
+            new ChoiceParameter<String>( "verb",
+                                         new String[] { "1", "2", "3", } );
         verbParam_.setNullPermitted( true );
         verbParam_.setPrompt( "Verbosity level of search responses (1..3)" );
         verbParam_.setDescription( new String[] {
@@ -112,7 +114,7 @@ public class ConeSearchConer implements Coner {
             "</p>",
         } );
 
-        formatParam_ = new Parameter( "dataformat" );
+        formatParam_ = new StringParameter( "dataformat" );
         formatParam_.setPrompt( "Data format type for DAL outputs" );
         formatParam_.setNullPermitted( true );
         StringBuffer formatsDescrip = new StringBuffer();
@@ -173,7 +175,7 @@ public class ConeSearchConer implements Coner {
     public ConeSearcher createSearcher( Environment env, boolean bestOnly )
             throws TaskException {
         ServiceType serviceType = serviceParam_.objectValue( env );
-        URL url = urlParam_.urlValue( env );
+        URL url = urlParam_.objectValue( env );
         boolean believeEmpty = believeemptyParam_.booleanValue( env );
         StarTableFactory tfact = LineTableEnvironment.getTableFactory( env );
         return serviceType
@@ -182,7 +184,7 @@ public class ConeSearchConer implements Coner {
 
     public Coverage getCoverage( Environment env ) throws TaskException {
         ServiceType serviceType = serviceParam_.objectValue( env );
-        URL url = urlParam_.urlValue( env );
+        URL url = urlParam_.objectValue( env );
         return serviceType.getCoverage( url, nside_ );
     }
 

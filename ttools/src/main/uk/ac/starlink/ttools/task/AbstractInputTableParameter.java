@@ -31,7 +31,7 @@ import uk.ac.starlink.util.DataSource;
  * @author   Mark Taylor
  * @since    15 Sep 2006
  */
-public abstract class AbstractInputTableParameter extends Parameter {
+public abstract class AbstractInputTableParameter<T> extends Parameter<T> {
 
     private InputFormatParameter formatParam_;
     private BooleanParameter streamParam_;
@@ -44,8 +44,8 @@ public abstract class AbstractInputTableParameter extends Parameter {
      *
      * @param  name  parameter name
      */
-    protected AbstractInputTableParameter( String name ) {
-        super( name );
+    protected AbstractInputTableParameter( String name, Class<T> clazz ) {
+        super( name, clazz, true );
         String suffix = "";
         for ( String prefix : Arrays.asList( KNOWN_PREFIXES ) ) {
             if ( name.startsWith( prefix ) ) {

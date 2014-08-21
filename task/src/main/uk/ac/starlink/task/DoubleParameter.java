@@ -5,9 +5,8 @@ package uk.ac.starlink.task;
  *
  * @author   Mark Taylor
  */
-public class DoubleParameter extends Parameter {
+public class DoubleParameter extends Parameter<Double> {
 
-    private double doubleval_;
     private Double min_;
     private Double max_;
     private boolean minInclusive_;
@@ -19,8 +18,20 @@ public class DoubleParameter extends Parameter {
      * @param   name  parameter name
      */
     public DoubleParameter( String name ) {
-        super( name );
+        super( name, Double.class, false );
         setUsage( "<float-value>" );
+    }
+
+    /**
+     * Returns the value of this parameter as a <tt>double</tt>.
+     * A null string value, if permitted, will give a NaN result.
+     *
+     * @param   env  execution environment
+     * @return   double value
+     */
+    public double doubleValue( Environment env ) throws TaskException {
+        Double objVal = objectValue( env );
+        return objVal == null ? Double.NaN : objVal.doubleValue();
     }
 
     /**
@@ -44,20 +55,14 @@ public class DoubleParameter extends Parameter {
         max_ = Double.isNaN( max ) ? null : new Double( max );
     }
 
-    public void setValueFromString( Environment env, String stringval )
+    public Double stringToObject( Environment env, String stringval )
             throws TaskException {
         double dval;
-        if ( isNullPermitted() &&
-             ( stringval == null || stringval.trim().length() == 0 ) ) {
-            dval = Double.NaN;
+        try {
+            dval = Double.parseDouble( stringval );
         }
-        else {
-            try {
-                dval = Double.parseDouble( stringval );
-            }
-            catch ( NumberFormatException e ) {
-                throw new ParameterValueException( this, e.getMessage() );
-            }
+        catch ( NumberFormatException e ) {
+            throw new ParameterValueException( this, e.getMessage() );
         }
         if ( min_ != null ) {
             double dmin = min_.doubleValue();
@@ -89,19 +94,22 @@ public class DoubleParameter extends Parameter {
                 }
             }
         }
-        doubleval_ = dval;
-        super.setValueFromString( env, stringval );
+        return dval;
     }
 
     /**
-     * Returns the value of this parameter as a <tt>double</tt>.
-     * A null string value, if permitted, will give a NaN result.
-     *
-     * @param   env  execution environment
-     * @return   double value
+     * As a special case, setting the value of this parameter with a
+     * null or empty string will result in a NaN value.
      */
-    public double doubleValue( Environment env ) throws TaskException {
-        checkGotValue( env );
-        return doubleval_;
+    @Override
+    public void setValueFromString( Environment env, String stringval )
+            throws TaskException {
+        if ( ( stringval == null || stringval.trim().length() == 0 ) &&
+             isNullPermitted() ) {
+            setValue( stringval, Double.NaN );
+        }
+        else {
+            super.setValueFromString( env, stringval );
+        }
     }
 }

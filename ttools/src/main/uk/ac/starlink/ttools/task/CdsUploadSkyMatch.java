@@ -17,6 +17,7 @@ import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.IntegerParameter;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
+import uk.ac.starlink.task.StringParameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.URLParameter;
 import uk.ac.starlink.ttools.cone.BlockUploader;
@@ -38,10 +39,10 @@ import uk.ac.starlink.ttools.cone.UrlMocCoverage;
  */
 public class CdsUploadSkyMatch extends SingleMapperTask {
 
-    private final Parameter raParam_;
-    private final Parameter decParam_;
+    private final StringParameter raParam_;
+    private final StringParameter decParam_;
     private final DoubleParameter srParam_;
-    private final Parameter cdstableParam_;
+    private final StringParameter cdstableParam_;
     private final ChoiceParameter<UserFindMode> findParam_;
     private final IntegerParameter chunkParam_;
     private final IntegerParameter maxrecParam_;
@@ -49,8 +50,8 @@ public class CdsUploadSkyMatch extends SingleMapperTask {
     private final BooleanParameter usemocParam_;
     private final BooleanParameter presortParam_;
     private final JoinFixActionParameter fixcolsParam_;
-    private final Parameter insuffixParam_;
-    private final Parameter cdssuffixParam_;
+    private final StringParameter insuffixParam_;
+    private final StringParameter cdssuffixParam_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.task" );
 
@@ -87,7 +88,7 @@ public class CdsUploadSkyMatch extends SingleMapperTask {
         srParam_.setMaximum( 180, true );
         paramList.add( srParam_ );
 
-        cdstableParam_ = new Parameter( "cdstable" );
+        cdstableParam_ = new StringParameter( "cdstable" );
         cdstableParam_.setPrompt( "Identifier for remote table" );
         cdstableParam_.setDescription( new String[] {
             "<p>Identifier of the table from the CDS crossmatch service",
@@ -134,7 +135,7 @@ public class CdsUploadSkyMatch extends SingleMapperTask {
         chunkParam_.setDefault( Integer.toString( 50 * 1000 ) );
 
         findParam_ =
-            new ChoiceParameter<UserFindMode>( "find", UserFindMode.class,
+            new ChoiceParameter<UserFindMode>( "find",
                                                UserFindMode.getInstances() );
         findParam_.setPrompt( "Which pair matches to include" );
         StringBuffer optBuf = new StringBuffer();
@@ -276,7 +277,7 @@ public class CdsUploadSkyMatch extends SingleMapperTask {
         boolean oneToOne = userMode.isOneToOne();
         int blocksize = chunkParam_.intValue( env );
         long maxrec = maxrecParam_.intValue( env );
-        URL url = urlParam_.urlValue( env );
+        URL url = urlParam_.objectValue( env );
         final Coverage coverage = usemocParam_.booleanValue( env )
                                 ? UrlMocCoverage.getVizierMoc( cdsName, -1 )
                                 : null;

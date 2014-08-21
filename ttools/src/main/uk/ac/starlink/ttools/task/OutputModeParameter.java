@@ -1,8 +1,8 @@
 package uk.ac.starlink.ttools.task;
 
 import uk.ac.starlink.task.Environment;
+import uk.ac.starlink.task.ObjectFactoryParameter;
 import uk.ac.starlink.task.Parameter;
-import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.Stilts;
 import uk.ac.starlink.ttools.TableConsumer;
@@ -16,12 +16,9 @@ import uk.ac.starlink.util.ObjectFactory;
  * @author   Mark Taylor
  * @since    15 Aug 2005
  */
-public class OutputModeParameter extends Parameter
-                                 implements TableConsumerParameter,
-                                            ExtraParameter {
-
-    private ProcessingMode mode_;
-    private TableConsumer consumer_;
+public class OutputModeParameter
+             extends ObjectFactoryParameter<ProcessingMode>
+             implements TableConsumerParameter, ExtraParameter {
 
     /**
      * Constructor.
@@ -29,13 +26,13 @@ public class OutputModeParameter extends Parameter
      * @param  name  parameter name
      */
     public OutputModeParameter( String name ) {
-        super( name );
+        super( name, Stilts.getModeFactory() );
         setPrompt( "Output mode" );
         setDefault( "out" );
         setUsage( "<out-mode> <mode-args>" );
 
         StringBuffer sbuf = new StringBuffer();
-        String[] modeNames = Stilts.getModeFactory().getNickNames();
+        String[] modeNames = getObjectFactory().getNickNames();
         sbuf.append( "<ul>\n" );
         for ( int i = 0; i < modeNames.length; i++ ) {
             sbuf.append( "<li><code>" )
@@ -68,8 +65,7 @@ public class OutputModeParameter extends Parameter
     }
 
     public String getExtraUsage( TableEnvironment env ) {
-        ObjectFactory<ProcessingMode> modeFactory = Stilts.getModeFactory();
-        String[] names = modeFactory.getNickNames();
+        String[] names = getObjectFactory().getNickNames();
         StringBuffer sbuf = new StringBuffer();
         sbuf.append( "   Available modes, with associated arguments:\n" );
         for ( int i = 0; i < names.length; i++ ) {
@@ -105,7 +101,7 @@ public class OutputModeParameter extends Parameter
      */
     public String getModeUsage( String modeName, String prefix )
             throws LoadException {
-        ProcessingMode mode = Stilts.getModeFactory().createObject( modeName );
+        ProcessingMode mode = getObjectFactory().createObject( modeName );
         StringBuffer sbuf = new StringBuffer();
         StringBuffer line = new StringBuffer()
             .append( prefix )
@@ -130,44 +126,33 @@ public class OutputModeParameter extends Parameter
         return sbuf.toString();
     }
 
-    public void setValueFromString( Environment env, String stringval ) 
-            throws TaskException {
-        ObjectFactory<ProcessingMode> modeFactory = Stilts.getModeFactory();
-        if ( ! modeFactory.isRegistered( stringval ) ) {
-            throw new ParameterValueException( this, "No such mode: " 
-                                                    + stringval );
-        }
-        try {
-            ProcessingMode mode = modeFactory.createObject( stringval );
-            consumer_ = mode.createConsumer( env );
-            mode_ = mode;
-        }
-        catch ( LoadException e ) {
-            throw new ParameterValueException( this, "Mode " + stringval +
-                                               " unavailable - " + e, e );
-        }
-        super.setValueFromString( env, stringval );
-    }
-
-    /**
-     * Returns a TableConsumer which corresponds to the value of this
-     * parameter.
-     *
-     * @param  env  execution environment
-     */
     public TableConsumer consumerValue( Environment env ) throws TaskException {
-        checkGotValue( env );
-        return consumer_;
+        ProcessingMode mode = objectValue( env );
+        return mode == null ? null : mode.createConsumer( env );
     }
 
     /**
      * Sets the value directly from a given TableConsumer.
      *
+     * @param  env   execution environment
      * @param  consumer  table consumer
      */
-    public void setValueFromConsumer( TableConsumer consumer ) {
-        consumer_ = consumer;
-        setStringValue( consumer.toString() );
-        setGotValue( true );
+    public void setValueFromConsumer( Environment env,
+                                      final TableConsumer consumer )
+            throws TaskException {
+        setValueFromObject( env, new ProcessingMode() {
+            public TableConsumer createConsumer( Environment env ) {
+                return consumer;
+            }
+            public Parameter[] getAssociatedParameters() {
+                return new Parameter[ 0 ];
+            }
+            public String getDescription() {
+                return "";
+            }
+            public String toString() {
+                return consumer.toString();
+            }
+        } );
     }
 }

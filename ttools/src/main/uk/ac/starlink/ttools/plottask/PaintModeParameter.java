@@ -13,11 +13,10 @@ import uk.ac.starlink.ttools.plot.GraphicExporter;
  * @author   Mark Taylor
  * @since    4 Aug 2008
  */
-public class PaintModeParameter extends ChoiceParameter {
+public class PaintModeParameter extends ChoiceParameter<PaintMode> {
 
     private final OutputStreamParameter outParam_;
-    private final ChoiceParameter formatParam_;
-    private Painter painterValue_;
+    private final ChoiceParameter<GraphicExporter> formatParam_;
 
     /**
      * Constructor.
@@ -26,14 +25,15 @@ public class PaintModeParameter extends ChoiceParameter {
      * @param  exporters   list of graphic exporters for file output options
      */
     public PaintModeParameter( String name, GraphicExporter[] exporters ) {
-        super( name, PaintMode.getKnownModes( exporters ) );
+        super( name, PaintMode.class, PaintMode.getKnownModes( exporters ) );
 
         outParam_ = new OutputStreamParameter( "out" );
         outParam_.setPrompt( "Output file for graphics" );
         outParam_.setDefault( null );
         outParam_.setNullPermitted( false );
 
-        formatParam_ = new ChoiceParameter( "ofmt", exporters );
+        formatParam_ =
+            new ChoiceParameter<GraphicExporter>( "ofmt", exporters );
         formatParam_.setPrompt( "Graphics format for plot output" );
         StringBuffer fmtbuf = new StringBuffer()
             .append( "<p>Graphics format in which the plot is written to\n" )
@@ -99,15 +99,8 @@ public class PaintModeParameter extends ChoiceParameter {
      *
      * @return  format parameter
      */
-    public ChoiceParameter getFormatParameter() {
+    public ChoiceParameter<GraphicExporter> getFormatParameter() {
         return formatParam_;
-    }
-
-    public void setValueFromString( Environment env, String stringVal )
-            throws TaskException {
-        super.setValueFromString( env, stringVal );
-        PaintMode mode = (PaintMode) objectValue( env );
-        painterValue_ = mode.createPainter( env, this );
     }
 
     /**
@@ -115,10 +108,20 @@ public class PaintModeParameter extends ChoiceParameter {
      *
      * @param  painter  value for parameter
      */
-    public void setValueFromPainter( Painter painter ) {
-        painterValue_ = painter;
-        setStringValue( painter.toString() );
-        setGotValue( true );
+    public void setValueFromPainter( Environment env, final Painter painter )
+            throws TaskException {
+        setValueFromObject( env, new PaintMode( painter.toString() ) {
+            public Painter createPainter( Environment env,
+                                          PaintModeParameter param ) {
+                return painter;
+            }
+            public String getDescription( PaintModeParameter param ) {
+                return null;
+            }
+            public String getModeUsage( PaintModeParameter param ) {
+                return null;
+            }
+        } );
     }
 
     /**
@@ -128,7 +131,6 @@ public class PaintModeParameter extends ChoiceParameter {
      * @return  painter
      */
     public Painter painterValue( Environment env ) throws TaskException {
-        checkGotValue( env );
-        return painterValue_;
+        return objectValue( env ).createPainter( env, this );
     }
 }

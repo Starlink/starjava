@@ -22,6 +22,7 @@ import uk.ac.starlink.table.WrapperStarTable;
 import uk.ac.starlink.task.BooleanParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
+import uk.ac.starlink.task.StringParameter;
 import uk.ac.starlink.task.TaskException;
 
 /**
@@ -32,9 +33,9 @@ import uk.ac.starlink.task.TaskException;
  */
 public class CatMapper implements TableMapper {
 
-    private final Parameter seqParam_;
-    private final Parameter locParam_;
-    private final Parameter ulocParam_;
+    private final StringParameter seqParam_;
+    private final StringParameter locParam_;
+    private final StringParameter ulocParam_;
     private final BooleanParameter lazyParam_;
     private final BooleanParameter countParam_;
     private final boolean hasLazy_;
@@ -65,7 +66,7 @@ public class CatMapper implements TableMapper {
     public CatMapper( boolean hasLazy ) {
         hasLazy_ = hasLazy;
 
-        seqParam_ = new Parameter( "seqcol" );
+        seqParam_ = new StringParameter( "seqcol" );
         seqParam_.setUsage( "<colname>" );
         seqParam_.setNullPermitted( true );
         seqParam_.setDefault( null );
@@ -78,7 +79,7 @@ public class CatMapper implements TableMapper {
             "</p>",
         } );
 
-        locParam_ = new Parameter( "loccol" );
+        locParam_ = new StringParameter( "loccol" );
         locParam_.setUsage( "<colname>" );
         locParam_.setNullPermitted( true );
         locParam_.setDefault( null );
@@ -90,7 +91,7 @@ public class CatMapper implements TableMapper {
             "</p>",
         } );
 
-        ulocParam_ = new Parameter( "uloccol" );
+        ulocParam_ = new StringParameter( "uloccol" );
         ulocParam_.setUsage( "<colname>" );
         ulocParam_.setNullPermitted( true );
         ulocParam_.setDefault( null );

@@ -12,6 +12,7 @@ import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
+import uk.ac.starlink.task.StringParameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.task.ConnectionParameter;
 
@@ -25,14 +26,14 @@ import uk.ac.starlink.ttools.task.ConnectionParameter;
 public class JdbcConer implements Coner {
 
     private final ConnectionParameter connParam_;
-    private final Parameter dbtableParam_;
-    private final Parameter dbraParam_;
-    private final Parameter dbdecParam_;
-    private final Parameter dbtileParam_;
+    private final StringParameter dbtableParam_;
+    private final StringParameter dbraParam_;
+    private final StringParameter dbdecParam_;
+    private final StringParameter dbtileParam_;
     private final TilingParameter tilingParam_;
-    private final Parameter colsParam_;
-    private final Parameter whereParam_;
-    private final ChoiceParameter dbunitParam_;
+    private final StringParameter colsParam_;
+    private final StringParameter whereParam_;
+    private final ChoiceParameter<AngleUnits> dbunitParam_;
     private final BooleanParameter prepareParam_;
 
     private static final Logger logger_ =
@@ -48,7 +49,7 @@ public class JdbcConer implements Coner {
 
         connParam_ = new ConnectionParameter( "db" );
 
-        dbtableParam_ = new Parameter( "dbtable" );
+        dbtableParam_ = new StringParameter( "dbtable" );
         dbtableParam_.setUsage( "<table-name>" );
         dbtableParam_.setPrompt( "Name of table in database" );
         dbtableParam_.setDescription( new String[] {
@@ -57,7 +58,8 @@ public class JdbcConer implements Coner {
             "</p>",
         } );
 
-        dbunitParam_ = new ChoiceParameter( "dbunit" );
+        dbunitParam_ =
+            new ChoiceParameter<AngleUnits>( "dbunit", AngleUnits.class );
         dbunitParam_.addOption( AngleUnits.DEGREES, "deg" );
         dbunitParam_.addOption( AngleUnits.RADIANS, "rad" );
         dbunitParam_.setDefault( "deg" );
@@ -69,7 +71,7 @@ public class JdbcConer implements Coner {
             "</p>",
         } );
 
-        dbraParam_ = new Parameter( "dbra" );
+        dbraParam_ = new StringParameter( "dbra" );
         dbraParam_.setUsage( "<sql-col>" );
         dbraParam_.setPrompt( "Name of right ascension column in database" );
         dbraParam_.setDescription( new String[] {
@@ -80,7 +82,7 @@ public class JdbcConer implements Coner {
             "</p>",
         } );
 
-        dbdecParam_ = new Parameter( "dbdec" );
+        dbdecParam_ = new StringParameter( "dbdec" );
         dbdecParam_.setUsage( "<sql-col>" );
         dbdecParam_.setPrompt( "Name of declination column in database" );
         dbdecParam_.setDescription( new String[] {
@@ -93,7 +95,7 @@ public class JdbcConer implements Coner {
 
         tilingParam_ = new TilingParameter( "tiling" );
 
-        dbtileParam_ = new Parameter( "dbtile" );
+        dbtileParam_ = new StringParameter( "dbtile" );
         dbtileParam_.setUsage( "<sql-col>" );
         dbtileParam_.setNullPermitted( true );
         dbtileParam_.setPrompt( "Name of tiling column in database" );
@@ -111,7 +113,7 @@ public class JdbcConer implements Coner {
             "</p>",
         } );
 
-        colsParam_ = new Parameter( "selectcols" );
+        colsParam_ = new StringParameter( "selectcols" );
         colsParam_.setUsage( "<sql-cols>" );
         colsParam_.setPrompt( "Database columns to select" );
         colsParam_.setDescription( new String[] {
@@ -122,7 +124,7 @@ public class JdbcConer implements Coner {
         } );
         colsParam_.setDefault( "*" );
 
-        whereParam_ = new Parameter( "where" );
+        whereParam_ = new StringParameter( "where" );
         whereParam_.setUsage( "<sql-condition>" );
         whereParam_.setPrompt( "Additional WHERE restriction on selection" );
         whereParam_.setNullPermitted( true );
@@ -159,7 +161,7 @@ public class JdbcConer implements Coner {
     }
 
     public Parameter[] getParameters() {
-        List pList = new ArrayList();
+        List<Parameter> pList = new ArrayList<Parameter>();
         pList.add( connParam_ );
         pList.addAll( Arrays.asList( connParam_.getAssociatedParameters() ) );
         pList.add( dbtableParam_ );
@@ -171,7 +173,7 @@ public class JdbcConer implements Coner {
         pList.add( colsParam_ );
         pList.add( whereParam_ );
         pList.add( prepareParam_ );
-        return (Parameter[]) pList.toArray( new Parameter[ 0 ] );
+        return pList.toArray( new Parameter[ 0 ] );
     }
 
     public void configureParams( Environment env, Parameter srParam ) {
@@ -183,14 +185,14 @@ public class JdbcConer implements Coner {
 
     public ConeSearcher createSearcher( Environment env, boolean bestOnly )
             throws TaskException {
-        final Connection connection = connParam_.connectionValue( env );
+        final Connection connection = connParam_.objectValue( env );
         String table = dbtableParam_.stringValue( env );
         String raCol = dbraParam_.stringValue( env );
         String decCol = dbdecParam_.stringValue( env );
         String tileCol = dbtileParam_.stringValue( env );
         SkyTiling tiling = tileCol == null ? null
                                            : tilingParam_.tilingValue( env );
-        AngleUnits units = (AngleUnits) dbunitParam_.objectValue( env );
+        AngleUnits units = dbunitParam_.objectValue( env );
         String cols = colsParam_.stringValue( env );
         String where = whereParam_.stringValue( env );
         boolean prepareSql = prepareParam_.booleanValue( env );

@@ -233,7 +233,8 @@ public class LineEnvironment implements Environment {
             }
             if ( valueList.size() == 1 ) {
                 String value = valueList.get( 0 );
-                if ( value.charAt( 0 ) == INDIRECTION_CHAR ) {
+                if ( value.length() > 0 &&
+                     value.charAt( 0 ) == INDIRECTION_CHAR ) {
                     String[] lines;
                     try {
                         lines = readLines( value.substring( 1 ) );

@@ -18,13 +18,11 @@ import uk.ac.starlink.util.ObjectFactory;
  * @author   Mark Taylor
  * @since    17 Aug 2005
  */
-public class FilterParameter extends Parameter
+public class FilterParameter extends Parameter<ProcessingStep[]>
         implements ExtraParameter, MultiParameter {
 
-    private ProcessingStep[] steps_;
-
     public FilterParameter( String name ) {
-        super( name );
+        super( name, ProcessingStep[].class, true );
         setUsage( "<cmds>" );
         setNullPermitted( true );
 
@@ -53,15 +51,9 @@ public class FilterParameter extends Parameter
         return ';';
     }
 
-    public void setValueFromString( Environment env, String sval )
+    public ProcessingStep[] stringToObject( Environment env, String sval )
             throws TaskException {
-        if ( sval != null ) {
-            steps_ = StepFactory.getInstance().createSteps( sval );
-        }
-        else {
-            steps_ = new ProcessingStep[ 0 ];
-        }
-        super.setValueFromString( env, sval );
+        return StepFactory.getInstance().createSteps( sval );
     }
 
     /**
@@ -71,8 +63,9 @@ public class FilterParameter extends Parameter
      * @return   array of zero or more processing steps 
      */
     public ProcessingStep[] stepsValue( Environment env ) throws TaskException {
-        checkGotValue( env );
-        return steps_;
+        ProcessingStep[] steps = objectValue( env );
+        return ( env == null || steps == null ) ? new ProcessingStep[ 0 ]
+                                                : steps;
     }
 
     public String getExtraUsage( TableEnvironment env ) {

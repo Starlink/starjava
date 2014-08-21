@@ -8709,6 +8709,12 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
             unicodeChar columns; these are usually preserved now, rather
             than being squashed to datatype char.
             Some lurking Unicode-related issues remain.</li>
+        <li>Reworked the <code>Parameter</code> class to use generics.
+            The API has changed, so if you're using the <code>ttools</code>
+            classes programatically you may notice the difference.
+            This should not have user-visible changes to the STILTS package,
+            but a fair bit of code changed, so unexpected problems
+            are possible.</li>
         </ul>
         </p></dd>
 

@@ -11,9 +11,9 @@ import uk.ac.starlink.util.ObjectFactory;
  * @author   Mark Taylor
  * @since    22 Nov 2006
  */
-public class ObjectFactoryParameter extends Parameter {
+public class ObjectFactoryParameter<T> extends Parameter<T> {
 
-    private final ObjectFactory factory_;
+    private final ObjectFactory<T> factory_;
     private Object objValue_;
 
     /**
@@ -22,11 +22,31 @@ public class ObjectFactoryParameter extends Parameter {
      * @param  name  parameter name
      * @param  factory   object factory
      */
-    public ObjectFactoryParameter( String name, ObjectFactory factory ) {
-        super( name );
+    public ObjectFactoryParameter( String name, ObjectFactory<T> factory ) {
+        super( name, factory.getFactoryClass(), false );
         factory_ = factory;
     }
 
+    /**
+     * Returns the object factory used by this parameter.
+     *
+     * @return  object factory
+     */
+    public ObjectFactory<T> getObjectFactory() {
+        return factory_;
+    }
+
+    public T stringToObject( Environment env, String sval )
+            throws ParameterValueException {
+        try {
+            return factory_.createObject( sval );
+        }
+        catch ( LoadException e ) {
+            throw new ParameterValueException( this, e );
+        }
+    }
+
+    @Override
     public String getUsage() {
         StringBuffer sbuf = new StringBuffer();
         String[] nickNames = factory_.getNickNames();
@@ -37,27 +57,5 @@ public class ObjectFactoryParameter extends Parameter {
             sbuf.append( nickNames[ i ] );
         }
         return sbuf.toString();
-    }
-
-    public void setValueFromString( Environment env, String stringval )
-            throws TaskException {
-        try {
-            objValue_ = factory_.createObject( stringval );
-        }
-        catch ( LoadException e ) {
-            throw new ParameterValueException( this, e );
-        }
-        super.setValueFromString( env, stringval );
-    }
-
-    /**
-     * Returns the object created by this object's factory using its
-     * string value as a nickname.
-     * 
-     * @param   env   execution environment
-     */
-    public Object objectValue( Environment env ) throws TaskException {
-        checkGotValue( env );
-        return objValue_;
     }
 }

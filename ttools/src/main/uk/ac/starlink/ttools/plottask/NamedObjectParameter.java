@@ -19,13 +19,16 @@ import uk.ac.starlink.task.TaskException;
  * turned into an object.
  * The supplied options do not need to have names which follow this scheme.
  *
+ * <strong>Note:</strong> this class duplicates some of the functionality
+ * in other Parameter subclasses.  It's here for historical reasons.
+ * New code in general ought not to make use of this class.
+ *
  * @author   Mark Taylor
  * @since    14 Aug 2008
  */
-public abstract class NamedObjectParameter extends Parameter {
+public abstract class NamedObjectParameter<T> extends Parameter<T> {
 
-    private final List optList_;
-    private Object objectValue_;
+    private final List<NamedOption<T>> optList_;
     private boolean usageSet_;
 
     /**
@@ -33,9 +36,9 @@ public abstract class NamedObjectParameter extends Parameter {
      *
      * @param  name  parameter name
      */
-    public NamedObjectParameter( String name ) {
-        super( name );
-        optList_ = new ArrayList();
+    public NamedObjectParameter( String name, Class<T> clazz ) {
+        super( name, clazz, true );
+        optList_ = new ArrayList<NamedOption<T>>();
     }
 
     /**
@@ -45,56 +48,23 @@ public abstract class NamedObjectParameter extends Parameter {
      * @param  name  option alias
      * @param  option  option value object
      */
-    public void addOption( String name, Object option ) {
-        optList_.add( new NamedOption( name, option ) );
+    public void addOption( String name, T option ) {
+        optList_.add( new NamedOption<T>( name, option ) );
     }
 
-    public void setValueFromString( Environment env, String sval )
+    public T stringToObject( Environment env, String sval )
             throws TaskException {
-        boolean done = false;
-        if ( sval == null && isNullPermitted() ) {
-            objectValue_ = null;
-            done = true;
-        }
-        if ( ! done ) {
-            for ( Iterator it = optList_.iterator(); it.hasNext() && ! done; ) {
-                NamedOption opt = (NamedOption) it.next();
-                if ( opt.name_.equalsIgnoreCase( sval ) ) {
-                    objectValue_ = opt.option_;
-                    done = true;
-                }
+        for ( NamedOption<T> opt : optList_ ) {
+            if ( opt.name_.equalsIgnoreCase( sval ) ) {
+                return opt.option_;
             }
         }
-        if ( ! done ) {
-            try {
-                objectValue_ = fromString( sval );
-                done = true;
-            }
-            catch ( RuntimeException e ) {
-                throw new ParameterValueException( this, "Bad format " + sval,
-                                                   e );
-            }
+        try {
+            return fromString( sval );
         }
-        assert done;
-        super.setValueFromString( env, sval );
-    }
-
-    /**
-     * Returns the value of this parameter as an object.
-     * The returned value will be one of:
-     * <ul>
-     * <li>an option previously added using {@link #addOption}</li>
-     * <li>a value which has been returned from {@link #fromString}</li>
-     * <li>a value which was set using {@link #setDefaultOption}</li>
-     * <li><code>null</code>, if <code>isNullPermitted()</code></li>
-     * </ul>
-     *
-     * @param  env  execution environment
-     * @return   option value
-     */
-    public Object objectValue( Environment env ) throws TaskException {
-        checkGotValue( env );
-        return objectValue_;
+        catch ( RuntimeException e ) {
+            throw new ParameterValueException( this, "Bad format " + sval, e );
+        }
     }
 
     /**
@@ -105,13 +75,12 @@ public abstract class NamedObjectParameter extends Parameter {
      *
      * @param  option  new default value as an object
      */
-    public void setDefaultOption( Object option ) {
+    public void setDefaultOption( T option ) {
         if ( option == null ) {
             super.setDefault( null );
             return;
         }
-        for ( Iterator it = optList_.iterator(); it.hasNext(); ) {
-            NamedOption opt = (NamedOption) it.next();
+        for ( NamedOption<T> opt : optList_ ) {
             if ( opt.option_.equals( option ) ) {
                 super.setDefault( opt.name_ );
                 return;
@@ -127,7 +96,7 @@ public abstract class NamedObjectParameter extends Parameter {
      * @param  option   object value
      * @return  corresponding string
      */
-    public String toString( Object option ) {
+    public String toString( T option ) {
         return option.toString();
     }
 
@@ -142,7 +111,7 @@ public abstract class NamedObjectParameter extends Parameter {
      * @param   name   option name
      * @return   corresponding option value
      */
-    public abstract Object fromString( String name );
+    public abstract T fromString( String name );
 
     /**
      * Returns a formatted XML string giving an unordered list of the options
@@ -154,8 +123,7 @@ public abstract class NamedObjectParameter extends Parameter {
     public String getOptionList() {
         StringBuffer sbuf = new StringBuffer()
             .append( "<ul>\n" );
-        for ( Iterator it = optList_.iterator(); it.hasNext(); ) {
-            NamedOption opt = (NamedOption) it.next();
+        for ( NamedOption<T> opt : optList_ ) {
             sbuf.append( "<li>" )
                 .append( "<code>" )
                 .append( "<![CDATA[" )
@@ -188,12 +156,12 @@ public abstract class NamedObjectParameter extends Parameter {
      *
      * @return   object list
      */
-    public Object[] getOptions() {
-        Object[] options = new Object[ optList_.size() ];
-        for ( int i = 0; i < options.length; i++ ) {
-            options[ i ] = ((NamedOption) optList_.get( i )).option_;
+    public T[] getOptions() {
+        List<T> list = new ArrayList<T>();
+        for ( int i = 0; i < optList_.size(); i++ ) {
+            list.add( optList_.get( i ).option_ );
         }
-        return options;
+        return toArray( list );
     }
 
     public void setUsage( String usage ) {
@@ -214,7 +182,7 @@ public abstract class NamedObjectParameter extends Parameter {
             StringBuffer sbuf = new StringBuffer();
             if ( nopt > 4 ) {
                 for ( int i = 0; i < 2; i++ ) {
-                    sbuf.append( ((NamedOption) optList_.get( i )).name_ );
+                    sbuf.append( optList_.get( i ).name_ );
                     sbuf.append( '|' );
                 }
                 sbuf.append( "..." );
@@ -224,7 +192,7 @@ public abstract class NamedObjectParameter extends Parameter {
                     if ( i > 0 ) {
                         sbuf.append( '|' );
                     }
-                    sbuf.append( ((NamedOption) optList_.get( i )).name_ );
+                    sbuf.append( optList_.get( i ).name_ );
                 }
             }
             return sbuf.toString();
@@ -234,10 +202,10 @@ public abstract class NamedObjectParameter extends Parameter {
     /**
      * Utility class which aggregates a name and an object.
      */
-    private static class NamedOption {
+    private static class NamedOption<T> {
         final String name_;
-        final Object option_;
-        NamedOption( String name, Object option ) {
+        final T option_;
+        NamedOption( String name, T option ) {
             name_ = name;
             option_ = option;
         }

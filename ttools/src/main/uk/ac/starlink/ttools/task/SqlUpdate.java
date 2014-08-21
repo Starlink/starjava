@@ -22,6 +22,7 @@ import uk.ac.starlink.task.Executable;
 import uk.ac.starlink.task.MultiParameter;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
+import uk.ac.starlink.task.StringParameter;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.jel.JELRowReader;
@@ -37,7 +38,7 @@ import uk.ac.starlink.ttools.jel.ResultSetJELRowReader;
 public class SqlUpdate implements Task {
 
     private final ConnectionParameter connParam_;
-    private final Parameter selectParam_;
+    private final StringParameter selectParam_;
     private final AssignParameter assignParam_;
     private final BooleanParameter progressParam_;
 
@@ -52,7 +53,7 @@ public class SqlUpdate implements Task {
     public SqlUpdate() {
         connParam_ = new ConnectionParameter( "db" );
 
-        selectParam_ = new Parameter( "select" );
+        selectParam_ = new StringParameter( "select" );
         selectParam_.setUsage( "<select-stmt>" );
         selectParam_.setPrompt( "SELECT statement" );
         selectParam_.setDescription( new String[] {
@@ -109,9 +110,9 @@ public class SqlUpdate implements Task {
     }
 
     public Executable createExecutable( Environment env ) throws TaskException {
-        final Connection connection = connParam_.connectionValue( env );
+        final Connection connection = connParam_.objectValue( env );
         final String select = selectParam_.stringValue( env );
-        final Assignment[] assigns = assignParam_.assignmentsValue( env );
+        final Assignment[] assigns = assignParam_.objectValue( env );
         boolean progress = progressParam_.booleanValue( env );
         final PrintStream progStrm = progress ? env.getErrorStream()
                                               : null;
@@ -234,9 +235,8 @@ public class SqlUpdate implements Task {
     /**
      * Parameter for holding one or more assignment statements.
      */
-    private static class AssignParameter extends Parameter
+    private static class AssignParameter extends Parameter<Assignment[]>
                                          implements MultiParameter {
-        private Assignment[] assigns_;
 
         /**
          * Constructor.
@@ -244,7 +244,7 @@ public class SqlUpdate implements Task {
          * @param  name  parameter name
          */
         public AssignParameter( String name ) {
-            super( name );
+            super( name, Assignment[].class, true );
             setUsage( "<name>=<value>" );
             setNullPermitted( false );
         }
@@ -253,34 +253,7 @@ public class SqlUpdate implements Task {
             return ';';
         }
 
-        public void setValueFromString( Environment env, String sval )
-                throws TaskException {
-            assigns_ = sval == null ? new Assignment[ 0 ]
-                                    : parseAssignments( sval );
-            super.setValueFromString( env, sval );
-        }
-
-        /**
-         * Returns the value of this parameter as an array of Assignment
-         * objects.
-         *
-         * @param  env  execution environment
-         * @return   array of assignments
-         */
-        public Assignment[] assignmentsValue( Environment env )
-                throws TaskException {
-            checkGotValue( env );
-            return assigns_;
-        }
-
-        /**
-         * Parses a {@link #getValueSeparator}-separated string of
-         * name=value strings into an array of Assignment objects.
-         *
-         * @param  sval  string value representing zero or more assignments
-         * @return  array of Assignments
-         */
-        private Assignment[] parseAssignments( String sval )
+        public Assignment[] stringToObject( Environment env, String sval )
                 throws TaskException {
             String[] lines = 
                 sval.split( new String( new char[] { getValueSeparator() } ) );

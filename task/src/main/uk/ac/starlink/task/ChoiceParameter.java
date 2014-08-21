@@ -6,7 +6,6 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.lang.reflect.Constructor;
 
 /**
  * Parameter whose legal value must be one of a disjunction of given values.
@@ -15,26 +14,20 @@ import java.lang.reflect.Constructor;
  * @author   Mark Taylor
  * @since    15 Aug 2005
  */
-public class ChoiceParameter<T> extends Parameter {
+public class ChoiceParameter<T> extends Parameter<T> {
 
     private final Map<T,String> optionMap_;
-    private T objectValue_;
     private boolean usageSet_;
-    private final Class<T> clazz_;
 
     /**
-     * Constructs a ChoiceParameter with a given list of options
-     * and the possibility to use values by dynamically loaded class name.
+     * Constructor.
      *
      * @param   name  parameter name
-     * @param   clazz  type for values of this parameter;
-     *          any string which names a class of this type and has a
-     *          no-arg constructor is a legal value
-     * @param   options  legal values of this parameter
+     * @param   clazz  type for values of this parameter
+     * @param   options  initial array of legal values of this parameter
      */
     public ChoiceParameter( String name, Class<T> clazz, T[] options ) {
-        super( name );
-        clazz_ = clazz;
+        super( name, clazz, true );
         optionMap_ = new LinkedHashMap<T,String>();
         if ( options != null ) {
             for ( int iopt = 0; iopt < options.length; iopt++ ) {
@@ -44,22 +37,52 @@ public class ChoiceParameter<T> extends Parameter {
     }
 
     /**
-     * Constructs a ChoiceParameter with a given list of options.
+     * Constructs a choice parameter with no initially set options.
      *
      * @param   name  parameter name
-     * @param   options  legal values of this parameter
+     * @param   clazz  type for values of this parameter
      */
-    public ChoiceParameter( String name, T[] options ) {
-        this( name, null, options );
+    public ChoiceParameter( String name, Class<T> clazz ) {
+        this( name, clazz, null );
     }
 
     /**
-     * Constructs a ChoiceParameter with no options.
+     * Constructs a choice parameter with an initial option set.
+     * The data type is taken from the supplied array type.
      *
      * @param   name  parameter name
+     * @param   options  initial array of legal values of this parameter
      */
-    public ChoiceParameter( String name ) {
-        this( name, null );
+    @SuppressWarnings("unchecked")
+    public ChoiceParameter( String name, T[] options ) {
+        this( name, (Class<T>) options.getClass().getComponentType(), options );
+    }
+
+    public T stringToObject( Environment env, String sval )
+            throws TaskException {
+        for ( T option : optionMap_.keySet() ) {
+            if ( sval.equalsIgnoreCase( getName( option ) ) ) {
+                return option;
+            }
+        }
+        StringBuffer sbuf = new StringBuffer()
+            .append( "Unknown value " )
+            .append( sval )
+            .append( " - must be one of " );
+        for ( Iterator<T> it = optionMap_.keySet().iterator(); it.hasNext(); ) {
+            sbuf.append( getName( it.next() ) );
+            if ( it.hasNext() ) {
+                sbuf.append( ", " );
+            }
+        }
+        throw new ParameterValueException( this, sbuf.toString() );
+    }
+
+    @Override
+    public String objectToString( Environment env, T objVal ) {
+        return optionMap_.containsKey( objVal )
+             ? optionMap_.get( objVal )
+             : stringifyOption( objVal );
     }
 
     /**
@@ -81,7 +104,7 @@ public class ChoiceParameter<T> extends Parameter {
      * @param  option  option object
      */
     public void addOption( T option ) {
-        addOption( option, null );
+        addOption( option, stringifyOption( option ) );
     }
 
     /**
@@ -91,6 +114,7 @@ public class ChoiceParameter<T> extends Parameter {
      *
      * @return   usage message
      */
+    @Override
     public String getUsage() {
         if ( usageSet_ ) {
             return super.getUsage();
@@ -108,87 +132,10 @@ public class ChoiceParameter<T> extends Parameter {
         }
     }
 
+    @Override
     public void setUsage( String usage ) {
         usageSet_ = true;
         super.setUsage( usage );
-    }
-
-    public void setValueFromString( Environment env, String value )
-            throws TaskException {
-        if ( value == null ) {
-            super.setValueFromString( env, value );
-            return;
-        }
-        for ( T option : optionMap_.keySet() ) {
-            if ( value.equalsIgnoreCase( getName( option ) ) ) {
-                objectValue_ = option;
-                super.setValueFromString( env, value );
-                return;
-            }
-        }
-        if ( clazz_ != null ) {
-            try {
-                Class vclazz = Class.forName( value );
-                if ( clazz_.isAssignableFrom( vclazz ) ) {
-                    Class<T> vtclazz = vclazz.asSubclass( clazz_ );
-                    Constructor<T> constructor;
-                    try {
-                        constructor =
-                            vtclazz.getConstructor( new Class[ 0 ] );
-                    }
-                    catch ( NoSuchMethodException e ) {
-                        throw new ParameterValueException( this,
-                                                           "No no-arg "
-                                                         + "constructor for "
-                                                         + vtclazz );
-                    }
-                    T instance;
-                    try {
-                        instance = constructor.newInstance( new Object[ 0 ] );
-                    }
-                    catch ( Throwable e ) {
-                        throw new ParameterValueException( this,
-                                                           "Error constructing "
-                                                         + vtclazz, e );
-                    }
-                    objectValue_ = instance;
-                    super.setValueFromString( env, value );
-                    return;
-                }
-                else {
-                    throw new ParameterValueException( this,
-                                                       vclazz
-                                                     + " is not of type "
-                                                     + clazz_ );
-                }
-            }
-            catch ( ClassNotFoundException e ) {
-                // No class with that name - fine
-            }
-        }
-        StringBuffer sbuf = new StringBuffer()
-            .append( "Unknown value " )
-            .append( value )
-            .append( " - must be one of " );
-        for ( Iterator<T> it = optionMap_.keySet().iterator(); it.hasNext(); ) {
-            sbuf.append( getName( it.next() ) );
-            if ( it.hasNext() ) {
-                sbuf.append( ", " );
-            }
-        }
-        throw new ParameterValueException( this, sbuf.toString() );
-    }
-
-    /**
-     * Returns the value as an object.  It will be identical to one of
-     * the options of this parameter.
-     *
-     * @param  env  execution environment
-     * @return  selected object
-     */
-    public T objectValue( Environment env ) throws TaskException {
-        checkGotValue( env );
-        return objectValue_;
     }
 
     /**
@@ -237,8 +184,8 @@ public class ChoiceParameter<T> extends Parameter {
      *
      * @return   permitted options
      */
-    public Object[] getOptions() {
-        return getOptionValueList().toArray( new Object[ 0 ] );
+    public T[] getOptions() {
+        return toArray( getOptionValueList() );
     }
 
     /**

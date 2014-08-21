@@ -167,83 +167,113 @@ public class MapEnvironment implements TableEnvironment {
 
     public void acquireValue( Parameter param ) throws TaskException {
         final String pname = param.getName();
-        boolean isDefault = ! paramMap_.containsKey( pname );
-        Object value = isDefault ? param.getDefault()
-                                 : paramMap_.get( pname );
-        if ( isDefault &&
-             param instanceof TableConsumerParameter ) {
-            ((TableConsumerParameter) param).setValueFromConsumer(
-                new TableConsumer() {
+        final Class pclazz = param.getValueClass();
+        final Object value;
+
+        /* Parameters not explicitly specified. */
+        if ( ! paramMap_.containsKey( pname ) ) {
+
+            /* Special treatment if output table is not specified;
+             * just store the result for later retrieval. */
+            if ( param instanceof TableConsumerParameter ) {
+                value = new TableConsumer() {
                     public void consume( StarTable table ) {
                         outputTables_.put( pname, table );
                     }
-                } );
-        }
-        else if ( value == null && param.isNullPermitted() ) {
-            param.setValueFromString( this, null );
-        }
-        else if ( value == null ) {
-            throw new ParameterValueException( param,
-                "No value supplied for non-nullable parameter" );
-        }
-        else if ( param instanceof InputTableParameter &&
-                  value instanceof StarTable ) {
-            ((InputTableParameter) param)
-                                  .setValueFromTable( (StarTable) value );
-        }
-        else if ( param instanceof ConnectionParameter &&
-                  value instanceof Connection ) {
-            try {
-                ((ConnectionParameter) param)
-               .setValueFromConnection( (Connection) value );
-            }
-            catch ( SQLException e ) {
-                throw new TaskException( e.getMessage(), e );
-            }
-        }
-        else if ( param instanceof InputTablesParameter &&
-                  value instanceof StarTable[] ) {
-            StarTable[] tables = (StarTable[]) value;
-            int nTable = tables.length;
-            TableProducer[] tablePs = new TableProducer[ nTable ];
-            for ( int i = 0; i < nTable; i++ ) {
-                final StarTable table = tables[ i ];
-                final String name = "table_" + ( i + 1 );
-                tablePs[ i ] = new TableProducer() {
-                    public StarTable getTable() {
-                        return table;
-                    }
-                    public String toString() {
-                        return name;
-                    }
                 };
             }
-            ((InputTablesParameter) param).setValueFromTables( tablePs );
-        }
-        else if ( param instanceof InputTableParameter &&
-                  value instanceof String &&
-                  ((String) value).indexOf( '/' ) < 0 ) {
-            String sval = (String) value;
-            String frag = "";
-            int ihash = sval.indexOf( '#' );
-            if ( ihash > 0 ) {
-                frag = sval.substring( ihash );
-                sval = sval.substring( 0, ihash );
+
+            /* For any other unspecified value, use the parameter default. */
+            else {
+                value = param.getDefault();
             }
-            param.setValueFromString( this, resourceBase_
-                                           .getResource( sval )
-                                           .toString() + frag );
         }
-        else if ( param instanceof PaintModeParameter &&
-                  value instanceof Painter ) {
-            ((PaintModeParameter) param).setValueFromPainter( (Painter) value );
+
+        /* Explicitly specified parameters. */
+        else {
+            Object mapVal = paramMap_.get( pname );
+
+            /* Map arrays of StarTables to arrays of TableProducers for
+             * convenience. */
+            if ( pclazz.equals( TableProducer[].class ) &&
+                 mapVal instanceof StarTable[] ) {
+                StarTable[] tables = (StarTable[]) mapVal;
+                int nTable = tables.length;
+                TableProducer[] tablePs = new TableProducer[ nTable ];
+                for ( int i = 0; i < nTable; i++ ) {
+                    final StarTable table = tables[ i ];
+                    final String name = "table_" + ( i + 1 );
+                    tablePs[ i ] = new TableProducer() {
+                        public StarTable getTable() {
+                            return table;
+                        }
+                        public String toString() {
+                            return name;
+                        }
+                    };
+                }
+                value = tablePs;
+            }
+
+            /* For tables that are specified by name, use the current
+             * context. */
+            else if ( pclazz.equals( StarTable.class ) &&
+                      mapVal instanceof String &&
+                      ((String) mapVal).indexOf( '/' ) < 0 ) {
+                String sval = (String) mapVal;
+                String frag = "";
+                int ihash = sval.indexOf( '#' );
+                if ( ihash > 0 ) {
+                    frag = sval.substring( ihash );
+                    sval = sval.substring( 0, ihash );
+                }
+                value = resourceBase_.getResource( sval ).toString() + frag;
+            }
+
+            /* Otherwise use the specified value. */
+            else {     
+                value = mapVal;
+            }
         }
+
+        /* Now we have the value, pass it to the parameter somehow. */
+        /* Treat null values specially. */
+        if ( value == null ) {
+            if ( param.isNullPermitted() ) {
+                param.setValueFromString( this, null );
+            }
+            else {
+                throw new ParameterValueException( param,
+                    "No value supplied for non-nullable parameter" );
+            }
+        }
+
+        /* If we have a value of the object type required by the parameter,
+         * we can set it directly. */
+        else if ( pclazz.isAssignableFrom( value.getClass() ) ) {
+            setParamValueFromObject( param, value );
+        }
+
+        /* If we have a string value, use the parameter's required
+         * set-from-string capability. */
         else if ( value instanceof String ) {
             param.setValueFromString( this, (String) value );
         }
+
+        /* Special treatment for table consumers (see above). */
+        else if ( param instanceof TableConsumerParameter &&
+                  value instanceof TableConsumer ) {
+            ((TableConsumerParameter) param)
+                .setValueFromConsumer( this, (TableConsumer) value );
+        }
+
+        /* Otherwise, looks like user error. */
         else {
-            throw new ParameterValueException( param,
-                "Unexpected type " + value.getClass() );
+            throw new ParameterValueException(
+                param,
+                "Unexpected type " + value.getClass()
+                + " (expecting String or " + pclazz.getName() + ")" );
+
         }
     }
 
@@ -273,5 +303,17 @@ public class MapEnvironment implements TableEnvironment {
 
     public void setStrictVotable( boolean strict ) {
         strictVot_ = strict;
+    }
+
+    /**
+     * Sets the value of a typed parameter from an object of the right type.
+     *
+     * @param  param  parameter
+     * @param  obj  object of type X
+     * @throws  ClassCastException  iff obj is not of type X
+     */
+    private <X> void setParamValueFromObject( Parameter<X> param, Object obj )
+            throws TaskException {
+        param.setValueFromObject( this, param.getValueClass().cast( obj ) );
     }
 }

@@ -10,6 +10,7 @@ import uk.ac.starlink.task.BooleanParameter;
 import uk.ac.starlink.task.DoubleParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
+import uk.ac.starlink.task.StringParameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.plot.BinnedData;
 import uk.ac.starlink.ttools.plot.DataBounds;
@@ -36,7 +37,7 @@ public class HistogramPlotStateFactory extends PlotStateFactory {
     private final DoubleParameter yloParam_;
     private final DoubleParameter yhiParam_;
     private final BooleanParameter ylogParam_;
-    private final Parameter ylabelParam_;
+    private final StringParameter ylabelParam_;
     private final DoubleParameter binwidthParam_;
     private final BooleanParameter normParam_;
     private final BooleanParameter cumulativeParam_;
@@ -77,7 +78,7 @@ public class HistogramPlotStateFactory extends PlotStateFactory {
         } );
         ylogParam_.setDefault( "false" );
 
-        ylabelParam_ = new Parameter( "ylabel" );
+        ylabelParam_ = new StringParameter( "ylabel" );
         ylabelParam_.setPrompt( "Label for vertical axis" );
         ylabelParam_.setDescription( new String[] {
             "<p>Specifies a label for annotating the vertical axis.",
@@ -409,8 +410,8 @@ public class HistogramPlotStateFactory extends PlotStateFactory {
      * @param   tlabel   table identifier label
      * @return   new weighting parameter
      */
-    private Parameter createWeightParameter( String tlabel )  {
-        Parameter param = new Parameter( "weight" + tlabel );
+    private StringParameter createWeightParameter( String tlabel )  {
+        StringParameter param = new StringParameter( "weight" + tlabel );
         param.setPrompt( "Histogram weighting for table " + tlabel );
         param.setDescription( new String[] {
             "<p>Defines a weighting for each point accumulated to determine",

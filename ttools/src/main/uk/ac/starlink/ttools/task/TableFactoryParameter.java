@@ -20,9 +20,7 @@ import uk.ac.starlink.util.FileDataSource;
  *
  * @author   Mark Taylor
  */
-public class TableFactoryParameter extends Parameter {
-
-    private StarTableFactory tfactVal_;
+public class TableFactoryParameter extends Parameter<StarTableFactory> {
 
     private static final String FILE_OPTION = "file";
     private static final String DIRS_PREFIX = "dirs:";
@@ -36,7 +34,7 @@ public class TableFactoryParameter extends Parameter {
      * @param   name   parameter name
      */
     public TableFactoryParameter( String name ) {
-        super( name );
+        super( name, StarTableFactory.class, true );
         setUsage( FILE_OPTION +
             "|" + DIRS_PREFIX + "..." +
             "|" + LOCCLASS_PREFIX + "..." );
@@ -98,27 +96,14 @@ public class TableFactoryParameter extends Parameter {
         setDefault( FILE_OPTION );
     }
 
-    public void setValueFromString( Environment env, String sval )
+    public StarTableFactory stringToObject( Environment env, String sval )
             throws TaskException {
         try {
-            tfactVal_ = createTableFactory( sval );
+            return createTableFactory( sval );
         }
         catch ( UsageException e ) {
             throw new ParameterValueException( this, e );
         }
-        super.setValueFromString( env, sval );
-    }
-
-    /**
-     * Returns the value of this parameter as a StarTableFactory.
-     *
-     * @param  env  execution environment
-     * @return   table factory
-     */
-    public StarTableFactory factoryValue( Environment env )
-            throws TaskException {
-        checkGotValue( env );
-        return tfactVal_;
     }
 
     /**

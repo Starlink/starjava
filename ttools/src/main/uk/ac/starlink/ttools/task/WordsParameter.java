@@ -16,12 +16,10 @@ import uk.ac.starlink.ttools.Tokenizer;
  * @author   Mark Taylor
  * @since    1 Sep 2005
  */
-public class WordsParameter extends Parameter {
+public class WordsParameter extends Parameter<String[]> {
 
     private int nWords_ = -1;
     private WordParser parser_;
-    private String[] words_;
-    private Object[] parsedWords_;
 
     /**
      * Constructor.
@@ -29,7 +27,7 @@ public class WordsParameter extends Parameter {
      * @param   name  parameter name
      */
     public WordsParameter( String name ) {
-        super( name );
+        super( name, String[].class, false );
     }
 
     /**
@@ -97,7 +95,6 @@ public class WordsParameter extends Parameter {
     }
 
     /**
-     * Returns the value of this parameter as an array of words.
      * If the required word count value of this parameter is non-negative,
      * then the return value is guaranteed to contain that number of elements.
      *
@@ -105,8 +102,7 @@ public class WordsParameter extends Parameter {
      * @return  array of words constituting the value of this parameter
      */
     public String[] wordsValue( Environment env ) throws TaskException {
-        checkGotValue( env );
-        return words_;
+        return objectValue( env );
     }
 
     /**
@@ -121,47 +117,64 @@ public class WordsParameter extends Parameter {
      * @return  array of objects representing the value of this parameter
      */
     public Object[] parsedWordsValue( Environment env ) throws TaskException {
-        checkGotValue( env );
-        return parsedWords_;
+        return parseWords( objectValue( env ) );
     }
 
-    public void setValueFromString( Environment env, String sval )
+    public String[] stringToObject( Environment env, String sval )
             throws TaskException {
-        if ( sval != null ) {
-            String[] words = Tokenizer.tokenizeWords( sval );
-            if ( nWords_ >= 0 && nWords_ != words.length ) {
-                StringBuffer sbuf = new StringBuffer();
-                sbuf.append( "Wrong number of words - wanted " )
-                    .append( nWords_ )
-                    .append( ", got " )
-                    .append( words.length );
-                throw new ParameterValueException( this, sbuf.toString() );
-            }
-            Object[] parsedWords;
-            WordParser parser = getWordParser();
-            if ( parser != null ) {
-                parsedWords = new Object[ words.length ];
-                for ( int i = 0; i < words.length; i++ ) {
-                    try {
-                        parsedWords[ i ] = parser.parseWord( words[ i ] );
-                    }
-                    catch ( TaskException e ) {
-                        StringBuffer msg = new StringBuffer( e.getMessage() )
-                            .append( " in word \"" )
-                            .append( words[ i ] )
-                            .append( '"' );
-                        throw new ParameterValueException( this, msg.toString(),
-                                                           e );
-                    }
+        String[] svals = stringToWords( sval );
+        parseWords( svals );  // validation
+        return svals;
+    }
+
+    /**
+     * Splits a given string value into words.
+     * A TaskException is thrown if the number of words does not match
+     * the required constraints.
+     *
+     * @param  sval  string value
+     * @return   word array
+     */
+    private String[] stringToWords( String sval ) throws TaskException {
+        String[] words = Tokenizer.tokenizeWords( sval );
+        if ( nWords_ >= 0 && nWords_ != words.length ) {
+            StringBuffer sbuf = new StringBuffer();
+            sbuf.append( "Wrong number of words - wanted " )
+                .append( nWords_ )
+                .append( ", got " )
+                .append( words.length );
+            throw new ParameterValueException( this, sbuf.toString() );
+        }
+        return words;
+    }
+
+    /**
+     * Invokes the installed word parser, if any, on each of an array of words.
+     *
+     * @param  words  string array
+     * @return  array of objects matching <code>words</code>
+     */
+    private Object[] parseWords( String[] words ) throws TaskException {
+        WordParser parser = getWordParser();
+        if ( parser != null ) {
+            Object[] parsedWords = new Object[ words.length ];
+            for ( int i = 0; i < words.length; i++ ) {
+                try {
+                    parsedWords[ i ] = parser.parseWord( words[ i ] );
+                }
+                catch ( TaskException e ) {
+                    StringBuffer msg = new StringBuffer( e.getMessage() )
+                        .append( " in word \"" )
+                        .append( words[ i ] )
+                        .append( '"' );
+                    throw new ParameterValueException( this, msg.toString(),
+                                                       e );
                 }
             }
-            else {
-                parsedWords = words;
-            }
-
-            words_ = words;
-            parsedWords_ = parsedWords;
+            return parsedWords;
         }
-        super.setValueFromString( env, sval );
+        else {
+            return words;
+        }
     }
 }

@@ -10,7 +10,7 @@ import uk.ac.starlink.task.TaskException;
  * @since    15 Aug 2008
  * @see      java.awt.BasicStroke#getDashArray
  */
-public class DashParameter extends NamedObjectParameter {
+public class DashParameter extends NamedObjectParameter<float[]> {
 
     /**
      * Constructor.
@@ -18,7 +18,7 @@ public class DashParameter extends NamedObjectParameter {
      * @param   name   parameter name
      */
     public DashParameter( String name ) {
-        super( name );
+        super( name, float[].class );
         addOption( "dot", new float[] { 1f, 2f, } );
         addOption( "dash", new float[] { 4f, 2f, } );
         addOption( "longdash", new float[] { 8f, 4f, } );
@@ -54,11 +54,10 @@ public class DashParameter extends NamedObjectParameter {
      * @return   float array giving dash type
      */
     public float[] dashValue( Environment env ) throws TaskException {
-        return (float[]) objectValue( env );
+        return objectValue( env );
     }
 
-    public String toString( Object obj ) {
-        float[] dash = (float[]) obj;
+    public String toString( float[] dash ) {
         StringBuffer sbuf = new StringBuffer();
         for ( int i = 0; i < dash.length; i++ ) {
             if ( i > 0 ) {
@@ -71,7 +70,7 @@ public class DashParameter extends NamedObjectParameter {
         return sbuf.toString();
     }
 
-    public Object fromString( String name ) {
+    public float[] fromString( String name ) {
         String[] parts = name.split( "," );
         int np = parts.length;
         float[] fs = new float[ np ];

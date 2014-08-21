@@ -11,9 +11,7 @@ import uk.ac.starlink.task.TaskException;
  * @author   Mark Taylor
  * @since    24 Jan 2008
  */
-public class ConeErrorPolicyParameter extends Parameter {
-
-    private ConeErrorPolicy policy_;
+public class ConeErrorPolicyParameter extends Parameter<ConeErrorPolicy> {
 
     private static final ConeErrorPolicy[] FIXED_POLICIES =
         new ConeErrorPolicy[] {
@@ -29,7 +27,7 @@ public class ConeErrorPolicyParameter extends Parameter {
      * @param   name  parameter name
      */
     public ConeErrorPolicyParameter( String name ) {
-        super( name );
+        super( name, ConeErrorPolicy.class, true );
         StringBuffer ubuf = new StringBuffer();
         for ( int i = 0; i < FIXED_POLICIES.length; i++ ) {
             if ( i > 0 ) {
@@ -75,12 +73,6 @@ public class ConeErrorPolicyParameter extends Parameter {
         } );
     }
 
-    public void setValueFromString( Environment env, String stringVal )
-            throws TaskException {
-        policy_ = stringToPolicy( stringVal );
-        super.setValueFromString( env, stringVal );
-    }
-
     /**
      * Returns the value of this parameter as a ConeErrorPolicy.
      *
@@ -88,17 +80,10 @@ public class ConeErrorPolicyParameter extends Parameter {
      * @return  error policy value
      */
     public ConeErrorPolicy policyValue( Environment env ) throws TaskException {
-        checkGotValue( env );
-        return policy_;
+        return objectValue( env );
     }
 
-    /**
-     * Decodes a string representation into a ConeErrorPolicy object.
-     *
-     * @param  stringVal   string value
-     * @return   policy object
-     */
-    private ConeErrorPolicy stringToPolicy( String stringVal )
+    public ConeErrorPolicy stringToObject( Environment env, String stringVal )
             throws TaskException {
         for ( int i = 0; i < FIXED_POLICIES.length; i++ ) {
             ConeErrorPolicy policy = FIXED_POLICIES[ i ];

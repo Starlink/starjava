@@ -5,7 +5,7 @@ import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.task.Environment;
-import uk.ac.starlink.task.Parameter;
+import uk.ac.starlink.task.StringParameter;
 import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.TaskException;
 
@@ -15,7 +15,8 @@ import uk.ac.starlink.task.TaskException;
  * @author   Mark Taylor
  * @since    15 Aug 2005
  */
-public class InputFormatParameter extends Parameter implements ExtraParameter {
+public class InputFormatParameter extends StringParameter
+                                  implements ExtraParameter {
 
     public InputFormatParameter( String name ) {
         super( name );
@@ -65,7 +66,7 @@ public class InputFormatParameter extends Parameter implements ExtraParameter {
         return sbuf.toString();
     }
 
-    public void setValueFromString( Environment env, String stringval )
+    public String stringToObject( Environment env, String stringval )
             throws TaskException {
         if ( ! StarTableFactory.AUTO_HANDLER.equals( stringval ) ) {
             try {
@@ -76,7 +77,7 @@ public class InputFormatParameter extends Parameter implements ExtraParameter {
                     this, "Unknown format " + stringval, e );
             }
         }
-        super.setValueFromString( env, stringval );
+        return super.stringToObject( env, stringval );
     }
 
     private StarTableFactory getTableFactory( Environment env ) {

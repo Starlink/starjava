@@ -53,7 +53,7 @@ public class TapResume extends ConsumerTask {
 
     public TableProducer createProducer( Environment env )
             throws TaskException {
-        final URL jobUrl = urlParam_.urlValue( env );
+        final URL jobUrl = urlParam_.objectValue( env );
         final TapResultProducer resultProducer =
             resultReader_.createResultProducer( env );
         return new TableProducer() {
