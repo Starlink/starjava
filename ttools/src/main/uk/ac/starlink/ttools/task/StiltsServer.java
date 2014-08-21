@@ -90,7 +90,7 @@ public class StiltsServer implements Task {
             "also want to reduce the list for security reasons.",
             "</p>",
         } );
-        ObjectFactory taskFactory = Stilts.getTaskFactory();
+        ObjectFactory<Task> taskFactory = Stilts.getTaskFactory();
         List taskList =
             new ArrayList( Arrays.asList( taskFactory.getNickNames() ) );
         taskList.removeAll( Arrays.asList( new String[] {

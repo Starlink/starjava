@@ -362,12 +362,12 @@ public abstract class CeaWriter extends XmlWriter {
 
         /* Get a map containing each of the known STILTS tasks keyed by
          * name. */
-        ObjectFactory taskFactory = Stilts.getTaskFactory();
+        ObjectFactory<Task> taskFactory = Stilts.getTaskFactory();
         String[] taskNames = taskFactory.getNickNames();
         Map appMap = new HashMap();
         for ( int i = 0; i < taskNames.length; i++ ) {
             String name = taskNames[ i ];
-            Task task = (Task) taskFactory.createObject( name );
+            Task task = taskFactory.createObject( name );
 
             /* MapperTasks with VariableTablesInput won't work because
              * they construct their argument lists on the fly from other
@@ -560,8 +560,8 @@ public abstract class CeaWriter extends XmlWriter {
                     System.err.println( usage );
                     return 1;
                 }
-                task1 = new CeaTask( (Task) Stilts.getTaskFactory()
-                                                  .createObject( taskName ),
+                task1 = new CeaTask( Stilts.getTaskFactory()
+                                          .createObject( taskName ),
                                      taskName );
             }
             else if ( arg.equals( "-redirects" ) ) {

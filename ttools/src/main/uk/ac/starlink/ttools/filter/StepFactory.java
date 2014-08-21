@@ -21,7 +21,7 @@ import uk.ac.starlink.util.ObjectFactory;
  */
 public class StepFactory {
 
-    private final ObjectFactory filterFactory_;
+    private final ObjectFactory<ProcessingFilter> filterFactory_;
     private static StepFactory instance_;
 
     /**
@@ -68,12 +68,11 @@ public class StepFactory {
     }
 
     /**
-     * Returns the object factory which can create {@link ProcessingFilter}
-     * instances from their nicknames.
+     * Returns the factory which can create filters from their nicknames.
      *
      * @return  ProcessingFilter factory
      */
-    public ObjectFactory getFilterFactory() {
+    public ObjectFactory<ProcessingFilter> getFilterFactory() {
         return filterFactory_;
     }
 
@@ -87,14 +86,14 @@ public class StepFactory {
      */
     public ProcessingStep[] createSteps( String text ) throws TaskException {
         String[] lines = Tokenizer.tokenizeLines( text );
-        List stepList = new ArrayList();
+        List<ProcessingStep> stepList = new ArrayList<ProcessingStep>();
         for ( int i = 0; i < lines.length; i++ ) {
             ProcessingStep step = createStep( lines[ i ] );
             if ( step != null ) {
                 stepList.add( step );
             }
         }
-        return (ProcessingStep[]) stepList.toArray( new ProcessingStep[ 0 ] );
+        return stepList.toArray( new ProcessingStep[ 0 ] );
     }
 
     /**
@@ -118,14 +117,14 @@ public class StepFactory {
 
         /* Get the name of the command and the other arguments. */
         String cmd = tokens[ 0 ];
-        List argList = new ArrayList( Arrays.asList( tokens ) );
+        List<String> argList = new ArrayList<String>( Arrays.asList( tokens ) );
         argList.remove( 0 );
 
         /* Try to make and return a filter command from the tokens. */
         if ( filterFactory_.isRegistered( cmd ) ) {
             ProcessingFilter filter; 
             try {
-                filter = (ProcessingFilter) filterFactory_.createObject( cmd );
+                filter = filterFactory_.createObject( cmd );
             }
             catch ( LoadException e ) {
                 throw new TaskException( "Trouble loading command " + cmd, e );
@@ -138,8 +137,7 @@ public class StepFactory {
                 else {
                     boolean containSpace = false;
                     StringBuffer msg = new StringBuffer( "Unused arguments:" ); 
-                    for ( Iterator it = argList.iterator(); it.hasNext(); ) {
-                        String arg = (String) it.next();
+                    for ( String arg : argList ) {
                         containSpace = containSpace || arg.indexOf( ' ' ) >= 0;
                         msg.append( " '" )
                            .append( arg )
@@ -196,8 +194,7 @@ public class StepFactory {
         for ( int i = 0; i < fnames.length; i++ ) {
             try {
                 String fname = fnames[ i ];
-                ProcessingFilter filter = (ProcessingFilter)
-                                          filterFactory_.createObject( fname );
+                ProcessingFilter filter = filterFactory_.createObject( fname );
                 String fintro = "   " + fname;
                 sbuf.append( fintro );
                 String fusage = filter.getUsage();

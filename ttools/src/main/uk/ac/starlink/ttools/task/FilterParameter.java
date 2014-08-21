@@ -89,14 +89,13 @@ public class FilterParameter extends Parameter
     public static String getFiltersUsage( TableEnvironment env ) {
         StringBuffer sbuf = new StringBuffer()
             .append( "   Known filter commands:\n" );
-        ObjectFactory filterFactory = StepFactory.getInstance()
-                                                 .getFilterFactory();
+        ObjectFactory<ProcessingFilter> filterFactory =
+            StepFactory.getInstance().getFilterFactory();
         String[] fnames = filterFactory.getNickNames();
         for ( int i = 0; i < fnames.length; i++ ) {
             String fname = fnames[ i ];
             try {
-                ProcessingFilter filter = (ProcessingFilter)
-                                          filterFactory.createObject( fname );
+                ProcessingFilter filter = filterFactory.createObject( fname );
                 String fusage = filter.getUsage();
                 sbuf.append( "      " )
                     .append( fname );

@@ -26,14 +26,13 @@ public class ModeDoc {
     }
 
     private void write() throws LoadException {
-        ObjectFactory modeFact = Stilts.getModeFactory();
+        ObjectFactory<ProcessingMode> modeFact = Stilts.getModeFactory();
         String[] mnames = modeFact.getNickNames();
         Arrays.sort( mnames );
         OutputModeParameter omodeParam = new OutputModeParameter( "omode" );
         for ( int i = 0; i < mnames.length; i++ ) {
             String name = mnames[ i ];
-            ProcessingMode mode = (ProcessingMode)
-                                  modeFact.createObject( name );
+            ProcessingMode mode = modeFact.createObject( name );
             out_.println( "<subsubsect id=\"mode-" + name + "\">" );
             out_.println( "<subhead><title><code>" + name 
                         + "</code></title></subhead>" );

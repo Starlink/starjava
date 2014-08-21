@@ -41,7 +41,7 @@ import uk.ac.starlink.util.gui.MemoryMonitor;
 public class LineInvoker {
 
     private final String toolName_;
-    private final ObjectFactory taskFactory_;
+    private final ObjectFactory<Task> taskFactory_;
     private static Logger logger_ = Logger.getLogger( "uk.ac.starlink.ttools" );
 
     /**
@@ -51,7 +51,7 @@ public class LineInvoker {
      * @param   taskFactory  factory which can create the tasks known to
      *          the application
      */
-    public LineInvoker( String toolName, ObjectFactory taskFactory ) {
+    public LineInvoker( String toolName, ObjectFactory<Task> taskFactory ) {
         toolName_ = toolName;
         taskFactory_ = taskFactory;
     }
@@ -249,7 +249,7 @@ public class LineInvoker {
         if ( taskFactory_.isRegistered( taskName ) ) {
             Task task = null;
             try {
-                task = (Task) taskFactory_.createObject( taskName );
+                task = taskFactory_.createObject( taskName );
                 String[] taskArgs = (String[])
                                     argList.toArray( new String[ 0 ] );
                 String helpText = helpMessage( env, task, taskName, taskArgs );
@@ -500,7 +500,7 @@ public class LineInvoker {
     private String getUsage( String topic ) {
         if ( topic != null ) {
             try {
-                Task task = (Task) taskFactory_.createObject( topic );
+                Task task = taskFactory_.createObject( topic );
                 return getTaskUsage( task, topic );
             }
             catch ( LoadException e ) {

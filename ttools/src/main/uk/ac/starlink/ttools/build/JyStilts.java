@@ -628,7 +628,7 @@ public class JyStilts {
         lineList.addAll( Arrays.asList( prefixLines( "    ", writeLines ) ) );
 
         /* Add filters as methods. */
-        ObjectFactory filterFactory =
+        ObjectFactory<ProcessingFilter> filterFactory =
             StepFactory.getInstance().getFilterFactory();
         String[] filterNames = filterFactory.getNickNames();
         for ( int i = 0; i < filterNames.length; i++ ) {
@@ -639,7 +639,7 @@ public class JyStilts {
         }
 
         /* Add modes as methods. */
-        ObjectFactory modeFactory = stilts_.getModeFactory();
+        ObjectFactory<ProcessingMode> modeFactory = stilts_.getModeFactory();
         String[] modeNames = modeFactory.getNickNames();
         for ( int i = 0; i < modeNames.length; i++ ) {
             String name = modeNames[ i ];
@@ -873,9 +873,8 @@ public class JyStilts {
                              boolean isBound )
             throws LoadException, SAXException {
         ProcessingFilter filter =
-            (ProcessingFilter) StepFactory.getInstance()
-                                          .getFilterFactory()
-                                          .createObject( filterNickName );
+            StepFactory.getInstance().getFilterFactory()
+                                     .createObject( filterNickName );
         String usage = filter.getUsage();
         boolean hasUsage = usage != null && usage.trim().length() > 0;
         String tArgName = isBound ? "self" : "table";
@@ -930,8 +929,7 @@ public class JyStilts {
                               boolean isBound )
             throws LoadException, SAXException {
         ProcessingMode mode =
-            (ProcessingMode) stilts_.getModeFactory()
-                                    .createObject( modeNickName );
+            stilts_.getModeFactory().createObject( modeNickName );
 
         /* Assemble mandatory and optional parameters. */
         Parameter[] params = mode.getAssociatedParameters();
@@ -1010,8 +1008,7 @@ public class JyStilts {
      */
     private String[] defTask( String fname, String taskNickName )
             throws LoadException, SAXException {
-        Task task =
-            (Task) stilts_.getTaskFactory().createObject( taskNickName );
+        Task task = stilts_.getTaskFactory().createObject( taskNickName );
 
         /* Identify tasks whose primary output is the table presented to
          * the processing mode. */
@@ -1326,7 +1323,7 @@ public class JyStilts {
         writeLines( defFilter( "tfilter" ), writer );
 
         /* Write task wrappers. */
-        ObjectFactory taskFactory = stilts_.getTaskFactory();
+        ObjectFactory<Task> taskFactory = stilts_.getTaskFactory();
         String[] taskNames = taskFactory.getNickNames();
         for ( int i = 0; i < taskNames.length; i++ ) {
             String name = taskNames[ i ];
@@ -1335,7 +1332,7 @@ public class JyStilts {
         }
 
         /* Write filter wrappers. */
-        ObjectFactory filterFactory =
+        ObjectFactory<ProcessingFilter> filterFactory =
             StepFactory.getInstance().getFilterFactory();
         String[] filterNames = filterFactory.getNickNames();
         for ( int i = 0; i < filterNames.length; i++ ) {
@@ -1345,7 +1342,7 @@ public class JyStilts {
         }
 
         /* Write mode wrappers. */
-        ObjectFactory modeFactory = stilts_.getModeFactory();
+        ObjectFactory<ProcessingMode> modeFactory = stilts_.getModeFactory();
         String[] modeNames = modeFactory.getNickNames();
         for ( int i = 0; i < modeNames.length; i++ ) {
             String name = modeNames[ i ];

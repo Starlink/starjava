@@ -68,7 +68,7 @@ public class OutputModeParameter extends Parameter
     }
 
     public String getExtraUsage( TableEnvironment env ) {
-        ObjectFactory modeFactory = Stilts.getModeFactory();
+        ObjectFactory<ProcessingMode> modeFactory = Stilts.getModeFactory();
         String[] names = modeFactory.getNickNames();
         StringBuffer sbuf = new StringBuffer();
         sbuf.append( "   Available modes, with associated arguments:\n" );
@@ -105,8 +105,7 @@ public class OutputModeParameter extends Parameter
      */
     public String getModeUsage( String modeName, String prefix )
             throws LoadException {
-        ProcessingMode mode = (ProcessingMode)
-                              Stilts.getModeFactory().createObject( modeName );
+        ProcessingMode mode = Stilts.getModeFactory().createObject( modeName );
         StringBuffer sbuf = new StringBuffer();
         StringBuffer line = new StringBuffer()
             .append( prefix )
@@ -133,14 +132,13 @@ public class OutputModeParameter extends Parameter
 
     public void setValueFromString( Environment env, String stringval ) 
             throws TaskException {
-        ObjectFactory modeFactory = Stilts.getModeFactory();
+        ObjectFactory<ProcessingMode> modeFactory = Stilts.getModeFactory();
         if ( ! modeFactory.isRegistered( stringval ) ) {
             throw new ParameterValueException( this, "No such mode: " 
                                                     + stringval );
         }
         try {
-            ProcessingMode mode = (ProcessingMode)
-                                  modeFactory.createObject( stringval );
+            ProcessingMode mode = modeFactory.createObject( stringval );
             consumer_ = mode.createConsumer( env );
             mode_ = mode;
         }

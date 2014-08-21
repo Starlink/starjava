@@ -33,7 +33,7 @@ import uk.ac.starlink.util.ObjectFactory;
  */
 public class FormServlet extends HttpServlet {
 
-    private ObjectFactory taskFactory_;
+    private ObjectFactory<Task> taskFactory_;
     private StarTableFactory tableFactory_;
     private String taskBase_;
     private Map formWriterMap_;
@@ -225,7 +225,7 @@ public class FormServlet extends HttpServlet {
          */
         public FormWriter( String taskName ) throws LoadException {
             taskName_ = taskName;
-            task_ = (Task) taskFactory_.createObject( taskName );
+            task_ = taskFactory_.createObject( taskName );
             paramMap_ = new HashMap();
             Parameter[] params = task_.getParameters();
             for ( int ip = 0; ip < params.length; ip++ ) {

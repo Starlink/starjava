@@ -24,13 +24,13 @@ public class FilterDoc {
     }
 
     private void write() throws LoadException {
-        ObjectFactory stepFact = StepFactory.getInstance().getFilterFactory();
+        ObjectFactory<ProcessingFilter> stepFact =
+            StepFactory.getInstance().getFilterFactory();
         String[] fnames = stepFact.getNickNames();
         Arrays.sort( fnames );
         for ( int i = 0; i < fnames.length; i++ ) {
             String name = fnames[ i ];
-            ProcessingFilter filter = (ProcessingFilter)
-                                      stepFact.createObject( name );
+            ProcessingFilter filter = stepFact.createObject( name );
             out_.println( "<subsubsect id=\"" + name + "\">" );
             out_.println( "<subhead><title><code>" + name
                         + "</code></title></subhead>" );
