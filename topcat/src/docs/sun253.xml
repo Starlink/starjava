@@ -20384,6 +20384,8 @@ introduced since the last version:
         <code>http://reg.g-vo.org/tap</code>,
         which should have good reliability,
         since it can point to different RegTAP services as required.</li>
+    <li>Fix regression bug (introduced at v4.2) which caused authentication
+        to fail when using the SQL Query load dialogue.</li>
     </ul>
     </p></dd>
 

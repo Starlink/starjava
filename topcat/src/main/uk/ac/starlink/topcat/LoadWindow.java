@@ -284,7 +284,6 @@ public class LoadWindow extends AuxWindow {
                 }
             }
         }
-        assert false;
         return null;
     }
 

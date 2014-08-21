@@ -145,6 +145,13 @@ import uk.ac.starlink.vo.TapTableLoadDialog;
  * Main window providing user control of the TOPCAT application.
  * This is a singleton class.
  *
+ * <p><strong>Note:</strong> there is a lot wrong with this class.
+ * It's been here for as long as topcat has (i.e. since before I knew
+ * better), and it does far too much, often in the wrong way.
+ * It would be nice to do something about it one day, but in the
+ * meantime, don't assume that there's a good reason for all the
+ * implementation details that you see here.
+ *
  * @author   Mark Taylor (Starlink)
  * @since    9 Mar 2004
  */
@@ -478,8 +485,15 @@ public class ControlWindow extends AuxWindow
                                    "five existing tables", 5 ),
         };
 
+        /* Hack.  We want to get an action to launch the TAP load
+         * dialogue here.  One way is to call getLoadWindow() and get it
+         * from there.  However, that instantiates the Load Window too
+         * early, which is not only inefficient (not otherwise required
+         * at startup) but also causes some trouble with JDBC
+         * (the SQL load dialog fails for reasons I haven't identified).
+         * So do it another way. */
         Action tapAct =
-            getLoadWindow().getDialogAction( TopcatTapTableLoadDialog.class );
+           createLoadDialogAction( TopcatTapTableLoadDialog.class );
 
         Transmitter tableTransmitter = communicator_ == null
                                      ? null
@@ -578,7 +592,9 @@ public class ControlWindow extends AuxWindow
 
         /* Add join/match control buttons to the toolbar. */
         toolBar.add( matchActs_[ 1 ] );
-        toolBar.add( tapAct );
+        if ( tapAct != null ) {
+            toolBar.add( tapAct );
+        }
         toolBar.add( cdsmatchAct_ );
         toolBar.addSeparator();
 
@@ -1928,6 +1944,43 @@ public class ControlWindow extends AuxWindow
             label = label.substring( 0, 48 ) + "...";
         }
         return label;
+    }
+
+    /**
+     * Returns an action which will launch a load dialogue of a particular
+     * class.  These individual load dialogues are really owned by the
+     * LoadWindow, which doesn't (and shouldn't) exist during
+     * ControlWindow construction, so we have to jump through some hoops.
+     */
+    private Action
+            createLoadDialogAction( final Class<? extends TableLoadDialog>
+                                    tldClazz ) {
+
+        /* Get a dialogue instance for the metadata: name, icon, description.
+         * Throw it away after that.  Not ideal. */
+        TableLoadDialog tld0;
+        try {
+            tld0 = tldClazz.newInstance();
+        }
+        catch ( Throwable e ) {
+            logger_.log( Level.WARNING, "Can't set up TAP action", e );
+            return null;
+        }
+
+        /* Construct and return an action which will lazily acquire the
+         * LoadWindow's copy of the relevant dialogue as required. */
+        return new BasicAction( tld0.getName(), tld0.getIcon(),
+                                tld0.getDescription() ) {
+            Action act_;
+            public void actionPerformed( ActionEvent evt ) {
+                if ( act_ == null ) {
+                    act_ = getLoadWindow().getDialogAction( tldClazz );
+                }
+                if ( act_ != null ) {
+                    act_.actionPerformed( evt );
+                }
+            }
+        };
     }
 
     /**
