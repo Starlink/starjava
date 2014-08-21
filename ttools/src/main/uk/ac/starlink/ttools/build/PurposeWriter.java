@@ -13,11 +13,11 @@ import uk.ac.starlink.util.ObjectFactory;
  */
 public class PurposeWriter {
     public static void main( String[] args ) throws LoadException {
-        ObjectFactory taskFactory = Stilts.getTaskFactory();
+        ObjectFactory<Task> taskFactory = Stilts.getTaskFactory();
         String[] taskNames = taskFactory.getNickNames();
         for ( int i = 0; i < taskNames.length; i++ ) {
             String name = taskNames[ i ];
-            Task task = (Task) taskFactory.createObject( name );
+            Task task = taskFactory.createObject( name );
             String purpose = task.getPurpose();
             String entDef = new StringBuffer()
                 .append( "<!ENTITY " )

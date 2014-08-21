@@ -20,8 +20,8 @@ import uk.ac.starlink.util.URLUtils;
  */
 public class Stilts {
 
-    private static ObjectFactory taskFactory_;
-    private static ObjectFactory modeFactory_;
+    private static ObjectFactory<Task> taskFactory_;
+    private static ObjectFactory<ProcessingMode> modeFactory_;
     static { init(); }
 
     public static final String VERSION_RESOURCE = "stilts.version";
@@ -48,20 +48,18 @@ public class Stilts {
     /**
      * Returns the factory which can create any of the known output modes.
      *
-     * @return   factory which creates
-     *           {@link uk.ac.starlink.ttools.mode.ProcessingMode} objects.
+     * @return   factory which creates processing modes
      */
-    public static ObjectFactory getModeFactory() {
+    public static ObjectFactory<ProcessingMode> getModeFactory() {
         return modeFactory_;
     }
 
     /**
      * Returns the factory which can create any of the known tasks.
      *
-     * @return   factory which creates
-     *           {@link uk.ac.starlink.task.Task} objects.
+     * @return   factory which creates tasks
      */
-    public static ObjectFactory getTaskFactory() {
+    public static ObjectFactory<Task> getTaskFactory() {
         return taskFactory_;
     }
 
@@ -87,7 +85,7 @@ public class Stilts {
      * Initialises factories.
      */
     private static void init() {
-        taskFactory_ = new ObjectFactory( Task.class );
+        taskFactory_ = new ObjectFactory<Task>( Task.class );
         String taskPkg = "uk.ac.starlink.ttools.task.";
         taskFactory_.register( "calc", taskPkg + "Calc" );
         taskFactory_.register( "cdsskymatch", taskPkg + "CdsUploadSkyMatch" );
@@ -122,7 +120,8 @@ public class Stilts {
         taskFactory_.register( "votcopy", taskPkg + "VotCopy" );
         taskFactory_.register( "votlint", taskPkg + "VotLint" );
 
-        modeFactory_ = new ObjectFactory( ProcessingMode.class );
+        modeFactory_ =
+            new ObjectFactory<ProcessingMode>( ProcessingMode.class );
         String modePkg = "uk.ac.starlink.ttools.mode.";
         modeFactory_.register( "out", modePkg + "CopyMode" );
         modeFactory_.register( "meta", modePkg + "MetadataMode" );

@@ -18,16 +18,17 @@ import uk.ac.starlink.util.ObjectFactory;
 public class MultiTaskInvoker {
 
     private final String toolName_;
-    private final ObjectFactory taskFactory_;
+    private final ObjectFactory<Task> taskFactory_;
     private String versionMessage_;
 
     /**
      * Constructor.
      *
      * @param  toolName  user-known name for the tool
-     * @param  taskFactory  factory which produces {@link Task} objects
+     * @param  taskFactory  lists available tasks
      */
-    public MultiTaskInvoker( String toolName, ObjectFactory taskFactory ) {
+    public MultiTaskInvoker( String toolName,
+                             ObjectFactory<Task> taskFactory ) {
         toolName_ = toolName;
         taskFactory_ = taskFactory;
     }
@@ -95,7 +96,7 @@ public class MultiTaskInvoker {
         String taskName = (String) argList.remove( 0 );
         Task task;
         try {
-            task = (Task) taskFactory_.createObject( taskName );
+            task = taskFactory_.createObject( taskName );
         }
         catch ( LoadException e ) {
             System.err.println( "No such task " + taskName );

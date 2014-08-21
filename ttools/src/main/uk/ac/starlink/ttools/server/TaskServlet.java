@@ -40,7 +40,7 @@ import uk.ac.starlink.util.ObjectFactory;
  */
 public class TaskServlet extends HttpServlet {
 
-    private ObjectFactory taskFactory_;
+    private ObjectFactory<Task> taskFactory_;
     private StarTableFactory tableFactory_;
     private StarTableOutput tableOutput_;
     private JDBCAuthenticator jdbcAuth_;
@@ -117,7 +117,7 @@ public class TaskServlet extends HttpServlet {
             assert taskFactory_.isRegistered( taskName );
             Task task;
             try { 
-                task = (Task) taskFactory_.createObject( taskName );
+                task = taskFactory_.createObject( taskName );
             }
             catch ( LoadException e ) {
                 replyError( response, 500, e );
@@ -332,7 +332,7 @@ public class TaskServlet extends HttpServlet {
      * @throws   IllegalArgumentException  if any unknown task name
      *           is included in <code>taskList</code>
      */
-    public static String[] getTaskNames( ObjectFactory taskFactory,
+    public static String[] getTaskNames( ObjectFactory<Task> taskFactory,
                                          String taskList ) {
         Collection knownTasks =
             new HashSet( Arrays.asList( taskFactory.getNickNames() ) );

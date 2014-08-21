@@ -21,11 +21,11 @@ import java.util.logging.Logger;
  * @author   Mark Taylor
  * @since    10 Aug 2005
  */
-public class ObjectFactory {
+public class ObjectFactory<T> {
 
-    private final Class superClass_;
-    private Map nameMap_ = new HashMap();
-    private List nameList_ = new ArrayList();
+    private final Class<T> superClass_;
+    private Map<String,String> nameMap_ = new HashMap<String,String>();
+    private List<String> nameList_ = new ArrayList<String>();
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.util" );
@@ -36,7 +36,7 @@ public class ObjectFactory {
      * @param  clazz  type which must be a supertype of any class registered
      *         with this factory
      */
-    public ObjectFactory( Class clazz ) {
+    public ObjectFactory( Class<T> clazz ) {
         superClass_ = clazz;
     }
 
@@ -46,7 +46,7 @@ public class ObjectFactory {
      *
      * @return   clazz
      */
-    public Class getFactoryClass() {
+    public Class<T> getFactoryClass() {
         return superClass_;
     }
 
@@ -90,7 +90,7 @@ public class ObjectFactory {
         /* Is it a suitable fully qualified classname? */
         else {
             try {
-                Class clazz = Class.forName( name );
+                Class<?> clazz = Class.forName( name );
                 if ( superClass_.isAssignableFrom( clazz ) ) {
                      nameMap_.put( name, clazz.getName() );
                      return true;
@@ -116,13 +116,13 @@ public class ObjectFactory {
      * @param  name  classname/nickname of class to instantiate
      * @throws LoadException  if the load fails for unsurprising reasons
      */
-    public Object createObject( String name ) throws LoadException {
+    public T createObject( String name ) throws LoadException {
         if ( ! isRegistered( name ) ) {
             throw new LoadException( "Unknown classname/nickname " + name );
         }
         String className = (String) nameMap_.get( name );
         logger_.config( "Instantiating " + className + " for " + name );
-        Class clazz; 
+        Class<?> clazz; 
         try {
             clazz = Class.forName( className );
         }
@@ -139,8 +139,8 @@ public class ObjectFactory {
                                         + superClass_ );
         }
         try {
-            return clazz.getConstructor( new Class[ 0 ] )
-                        .newInstance( new Object[ 0 ] );
+            return superClass_.cast( clazz.getConstructor( new Class[ 0 ] )
+                                    .newInstance( new Object[ 0 ] ) );
         }
         catch ( IllegalAccessException e ) {
             throw new RuntimeException( e );
