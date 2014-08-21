@@ -43,6 +43,15 @@ public abstract class ConfigKey<T> {
     }
 
     /**
+     * Returns the type of value described by this key.
+     *
+     * @return  class
+     */
+    public Class<T> getValueClass() {
+        return clazz_;
+    }
+
+    /**
      * Returns the default value associated with this key.
      * This value may be used when no value is explicitly supplied for this key.
      * 

@@ -1,6 +1,7 @@
 package uk.ac.starlink.ttools.plottask;
 
 import uk.ac.starlink.task.ChoiceParameter;
+import uk.ac.starlink.task.Environment;
 
 /**
  * ChoiceParameter subclass suitable for use with plotting style configuration.
@@ -9,7 +10,7 @@ import uk.ac.starlink.task.ChoiceParameter;
  * @author   Mark Taylor
  * @since    8 Aug 2008
  */
-public class StyleParameter extends ChoiceParameter {
+public class StyleParameter<T> extends ChoiceParameter<T> {
 
     private boolean usageSet_;
 
@@ -19,7 +20,7 @@ public class StyleParameter extends ChoiceParameter {
      * @param   name  parameter name
      * @param   options  list of options
      */
-    public StyleParameter( String name, Object[] options ) {
+    public StyleParameter( String name, T[] options ) {
         super( name, options );
     }
 
@@ -28,15 +29,17 @@ public class StyleParameter extends ChoiceParameter {
      *
      * @param  name  parameter name
      */
-    public StyleParameter( String name ) {
-        super( name );
+    public StyleParameter( String name, Class<T> clazz ) {
+        super( name, clazz );
     }
 
+    @Override
     public void setUsage( String usage ) {
         usageSet_ = true;
         super.setUsage( usage );
     }
 
+    @Override
     public String getUsage() {
         if ( usageSet_ ) {
             return super.getUsage();
@@ -93,7 +96,9 @@ public class StyleParameter extends ChoiceParameter {
         return sbuf.toString();
     }
 
-    public String getName( Object option ) {
-        return super.getName( option ).toLowerCase().replaceAll( " ", "_" );
+    @Override
+    public String stringifyOption( T option ) {
+        return super.stringifyOption( option )
+                    .toLowerCase().replaceAll( " ", "_" );
     }
 }

@@ -7,9 +7,7 @@ package uk.ac.starlink.task;
  * @author   Mark Taylor
  * @since    9 Aug 2005
  */
-public class BooleanParameter extends Parameter {
-
-    private boolean booleanVal_;
+public class BooleanParameter extends Parameter<Boolean> {
 
     /**
      * Constructs a new boolean parameter.
@@ -17,8 +15,9 @@ public class BooleanParameter extends Parameter {
      * @param  name  parameter name
      */
     public BooleanParameter( String name ) {
-        super( name );
+        super( name, Boolean.class, false );
         setUsage( "true|false" );
+        setNullPermitted( false );
     }
 
     /**
@@ -26,10 +25,11 @@ public class BooleanParameter extends Parameter {
      *
      * @param   env  execution environment
      * @return  boolean value
+     * @throws  NullPointerException if the value is null, only possible
+     *          if isNullPermitted is true (not by default)
      */
     public boolean booleanValue( Environment env ) throws TaskException {
-        checkGotValue( env );
-        return booleanVal_;
+        return objectValue( env ).booleanValue();
     }
 
     /**
@@ -41,20 +41,19 @@ public class BooleanParameter extends Parameter {
         setDefault( dflt ? "true" : "false" );
     }
 
-    public void setValueFromString( Environment env, String stringval )
-            throws TaskException {
+    public Boolean stringToObject( Environment env, String stringval )
+            throws ParameterValueException {
         if ( "TRUE".equalsIgnoreCase( stringval ) ||
              "YES".equalsIgnoreCase( stringval ) ) {
-            booleanVal_ = true;
+            return Boolean.TRUE;
         }
         else if ( "FALSE".equalsIgnoreCase( stringval ) ||
                   "NO".equalsIgnoreCase( stringval ) ) {
-            booleanVal_ = false;
+            return Boolean.FALSE;
         }
         else {
             throw new ParameterValueException( this, stringval +
                                                " is not true/false/yes/no" );
         }
-        super.setValueFromString( env, stringval );
     }
 }

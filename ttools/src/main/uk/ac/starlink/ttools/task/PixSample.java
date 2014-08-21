@@ -7,6 +7,7 @@ import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
+import uk.ac.starlink.task.StringParameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.convert.SkySystem;
 import uk.ac.starlink.ttools.filter.AddColumnsTable;
@@ -38,11 +39,11 @@ public class PixSample extends MapperTask {
      */
     private static class PixSampleMapper implements TableMapper {
         private final ChoiceParameter<PixSampler.StatMode> modeParam_;
-        private final Parameter lonParam_;
-        private final Parameter latParam_;
+        private final StringParameter lonParam_;
+        private final StringParameter latParam_;
         private final ChoiceParameter<SkySystem> insysParam_;
         private final ChoiceParameter<SkySystem> outsysParam_;
-        private final Parameter radiusParam_;
+        private final StringParameter radiusParam_;
         private final ChoiceParameter<HealpixScheme> schemeParam_;
 
         /**
@@ -62,7 +63,7 @@ public class PixSample extends MapperTask {
                     return mode.toString().toLowerCase();
                 }
             };
-            radiusParam_ = new Parameter( "radius" );
+            radiusParam_ = new StringParameter( "radius" );
             insysParam_ =
                 new ChoiceParameter<SkySystem>( "insys",
                                                 SkySystem.getKnownSystems() );
@@ -132,7 +133,7 @@ public class PixSample extends MapperTask {
                 .append( " parameters.\n" )
                 .toString();
 
-            lonParam_ = new Parameter( "lon" );
+            lonParam_ = new StringParameter( "lon" );
             lonParam_.setPrompt( "Input table longitude in degrees" );
             lonParam_.setUsage( "<expr>" );
             lonParam_.setDescription( new String[] {
@@ -143,7 +144,7 @@ public class PixSample extends MapperTask {
                 "</p>",
             } );
 
-            latParam_ = new Parameter( "lat" );
+            latParam_ = new StringParameter( "lat" );
             latParam_.setPrompt( "Input table latitude in degrees" );
             latParam_.setUsage( "<expr>" );
             latParam_.setDescription( new String[] {

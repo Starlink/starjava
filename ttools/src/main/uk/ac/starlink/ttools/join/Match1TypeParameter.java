@@ -14,9 +14,7 @@ import uk.ac.starlink.task.TaskException;
  * @author   Mark Taylor
  * @since    16 Nov 2007
  */
-public class Match1TypeParameter extends Parameter {
-
-    private Match1Type typeVal_;
+public class Match1TypeParameter extends Parameter<Match1Type> {
 
     private static final String IDENTIFY = "identify";
     private static final String ELIMINATE_0 = "keep0";
@@ -29,7 +27,7 @@ public class Match1TypeParameter extends Parameter {
      * @param   name  parameter name
      */
     public Match1TypeParameter( String name ) {
-        super( name );
+        super( name, Match1Type.class, true );
         setDefault( IDENTIFY );
         setNullPermitted( false );
         String usage = new StringBuffer()
@@ -96,40 +94,18 @@ public class Match1TypeParameter extends Parameter {
         } );
     }
 
-    public void setValueFromString( Environment env, String sval )
-            throws TaskException {
-        typeVal_ = parseTypeString( this, sval );
-        assert typeVal_ != null;
-        super.setValueFromString( env, sval );
-    }
-
     /**
      * Returns the value of this parameter as a Match1Type object.
      *
      * @param   env  execution environment
      */
     public Match1Type typeValue( Environment env ) throws TaskException {
-        checkGotValue( env );
-        return typeVal_;
+        return objectValue( env );
     }
 
-    /**
-     * Converts a string value to a Match1Type value.
-     *
-     * @param   param  parameter on whose behalf the conversion is being done
-     * @param   sval   string representation of value
-     * @return  internal match type, not null
-     * @throws  ParameterValueException  if no non-null Match1Type can be
-     *          derived from the string
-     */
-    private static Match1Type parseTypeString( Match1TypeParameter param,
-                                               String sval )
+    public Match1Type stringToObject( Environment env, String sval )
             throws ParameterValueException {
-        if ( sval == null || sval.trim().length() == 0 ) {
-            throw new ParameterValueException( param,
-                                               "Blank value not permitted" );
-        }
-        else if ( sval.equalsIgnoreCase( IDENTIFY ) ) {
+        if ( sval.equalsIgnoreCase( IDENTIFY ) ) {
             return Match1Type.createIdentifyType();
         }
         else if ( sval.equalsIgnoreCase( ELIMINATE_0 ) ) {
@@ -145,14 +121,14 @@ public class Match1TypeParameter extends Parameter {
                 wideness = Integer.parseInt( postFix );
             }
             catch ( NumberFormatException e ) {
-                throw new ParameterValueException( param,
+                throw new ParameterValueException( this,
                                                    postFix + " not a number",
                                                    e );
             }
             return Match1Type.createWideType( wideness );
         }
         else {
-            throw new ParameterValueException( param,
+            throw new ParameterValueException( this,
                                                "Unknown internal match type" );
         }
     }

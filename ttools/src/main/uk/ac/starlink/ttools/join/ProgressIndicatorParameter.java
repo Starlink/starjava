@@ -14,9 +14,8 @@ import uk.ac.starlink.task.TaskException;
  * @author   Mark Taylor
  * @since    20 Nov 2007
  */
-public class ProgressIndicatorParameter extends ChoiceParameter {
+public class ProgressIndicatorParameter extends ChoiceParameter<String> {
 
-    private ProgressIndicator indicator_;
     private static final String NONE = "none";
     private static final String LOG = "log";
     private static final String PROFILE = "profile";
@@ -54,34 +53,42 @@ public class ProgressIndicatorParameter extends ChoiceParameter {
         } );
     }
 
-    public void setValueFromString( Environment env, String sval )
+    /**
+     * Returns the progress indicator indicated by the value of this parameter.
+     *
+     * @param  env  execution environment
+     * @return  progress indicator, not null
+     */
+    public ProgressIndicator progressIndicatorValue( Environment env )
              throws TaskException {
-        super.setValueFromString( env, sval );
-        ProgressIndicator indicator = null;
-        PrintStream strm = env.getErrorStream();
-        if ( strm != null ) {
-            if ( LOG.equals( sval ) ) {
-                indicator = new TextProgressIndicator( strm, false );
-            }
-            else if ( PROFILE.equals( sval ) ) {
-                indicator = new TextProgressIndicator( strm, true );
-            }
-        }
-        if ( indicator == null ) {
-            indicator = new NullProgressIndicator();
-        }
-        indicator_ = indicator;
+        return stringToProgressIndicator( env, objectValue( env ) );
+    }
+
+    public String stringToObject( Environment env, String sval )
+            throws TaskException {
+        stringToProgressIndicator( env, sval );  // validation
+        return sval;
     }
 
     /**
-     * Returns the value of this parameter as a ProgressIndicator object.
+     * Turns a string value of this parameter into a progress indicator.
      *
-     * @param   env  execution environment
-     * @return  progress indicator
+     * @param  env  execution environment
+     * @param  sval  string value of this parameter
+     * @return   non-null progress indicator
      */
-    public ProgressIndicator progressIndicatorValue( Environment env )
+    private ProgressIndicator stringToProgressIndicator( Environment env,
+                                                         String sval )
             throws TaskException {
-        checkGotValue( env );
-        return indicator_;
+        PrintStream strm = env.getErrorStream();
+        if ( strm != null ) {
+            if ( LOG.equals( sval ) ) {
+                return new TextProgressIndicator( strm, false );
+            }
+            else if ( PROFILE.equals( sval ) ) {
+                return new TextProgressIndicator( strm, true );
+            }
+        }
+        return new NullProgressIndicator();
     }
 }

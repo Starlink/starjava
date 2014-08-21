@@ -40,6 +40,7 @@ import uk.ac.starlink.task.IntegerParameter;
 import uk.ac.starlink.task.OutputStreamParameter;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
+import uk.ac.starlink.task.StringParameter;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.func.Strings;
@@ -83,9 +84,9 @@ import uk.ac.starlink.ttools.plottask.Painter;
 import uk.ac.starlink.ttools.plottask.SwingPainter;
 import uk.ac.starlink.ttools.task.AddEnvironment;
 import uk.ac.starlink.ttools.task.ConsumerTask;
-import uk.ac.starlink.ttools.task.DefaultMultiParameter;
 import uk.ac.starlink.ttools.task.FilterParameter;
 import uk.ac.starlink.ttools.task.InputTableParameter;
+import uk.ac.starlink.ttools.task.StringMultiParameter;
 import uk.ac.starlink.ttools.task.TableProducer;
 
 /**
@@ -103,7 +104,7 @@ public class Plot2Task implements Task {
     private final InsetsParameter insetsParam_;
     private final PaintModeParameter painterParam_;
     private final DataStoreParameter dstoreParam_;
-    private final DefaultMultiParameter orderParam_;
+    private final StringMultiParameter orderParam_;
     private final BooleanParameter bitmapParam_;
     private final DoubleParameter boostParam_;
     private final InputTableParameter animateParam_;
@@ -122,15 +123,14 @@ public class Plot2Task implements Task {
      * Constructor.
      */
     public Plot2Task() {
-        typeParam_ = new ChoiceParameter<PlotType>( "type", PlotType.class,
-                                                    new PlotType[] {
+        typeParam_ = new ChoiceParameter<PlotType>( "type", new PlotType[] {
             PlanePlotType.getInstance(),
             SkyPlotType.getInstance(),
             CubePlotType.getInstance(),
             SpherePlotType.getInstance(),
             TimePlotType.getInstance(),
         } );
-        geomParam_ = new ChoiceParameter<DataGeom>( "geom" );
+        geomParam_ = new ChoiceParameter<DataGeom>( "geom", DataGeom.class );
         xpixParam_ = new IntegerParameter( "xpix" );
         xpixParam_.setDefault( "500" );
         ypixParam_ = new IntegerParameter( "ypix" );
@@ -138,7 +138,7 @@ public class Plot2Task implements Task {
         insetsParam_ = new InsetsParameter( "insets" );
         painterParam_ = createPaintModeParameter();
         dstoreParam_ = new DataStoreParameter( "storage" );
-        orderParam_ = new DefaultMultiParameter( "order", ',' );
+        orderParam_ = new StringMultiParameter( "order", ',' );
         orderParam_.setNullPermitted( true );
         bitmapParam_ = new BooleanParameter( "forcebitmap" );
         bitmapParam_.setDefault( Boolean.FALSE.toString() );
@@ -842,7 +842,10 @@ public class Plot2Task implements Task {
             throws TaskException {
         String pname = key.getMeta().getShortName() + suffix;
         ConfigParameter<T> param = new ConfigParameter<T>( pname, key );
-        T value = param.configValue( env );
+        T value = param.objectValue( env );
+        if ( key.getValueClass().equals( Double.class ) && value == null ) {
+            value = key.cast( Double.NaN );
+        }
         map.put( key, value );
     }
 
@@ -904,8 +907,7 @@ public class Plot2Task implements Task {
      */
     private ChoiceParameter<Plotter>
             createPlotterParameter( String pname, PlotType plotType ) {
-        return new ChoiceParameter<Plotter>( pname, Plotter.class,
-                                             plotType.getPlotters() ) {
+        return new ChoiceParameter<Plotter>( pname, plotType.getPlotters() ) {
             @Override
             public String getName( Plotter option ) {
                 return option.getPlotterName();
@@ -920,8 +922,9 @@ public class Plot2Task implements Task {
      * @param  suffix  layer-specific suffix
      * @return   data parameter
      */
-    private Parameter createDataParameter( ValueInfo info, String suffix ) {
-        return new Parameter( info.getName().toLowerCase() + suffix );
+    private StringParameter createDataParameter( ValueInfo info,
+                                                 String suffix ) {
+        return new StringParameter( info.getName().toLowerCase() + suffix );
     }
 
     /**

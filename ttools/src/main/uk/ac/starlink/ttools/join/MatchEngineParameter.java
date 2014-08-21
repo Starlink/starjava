@@ -22,6 +22,7 @@ import uk.ac.starlink.table.join.PixtoolsHealpixSkyPixellator;
 import uk.ac.starlink.table.join.SphericalPolarMatchEngine;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
+import uk.ac.starlink.task.StringParameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.UsageException;
 import uk.ac.starlink.ttools.func.CoordsRadians;
@@ -36,12 +37,12 @@ import uk.ac.starlink.util.Loader;
  * @author   Mark Taylor
  * @since    2 Sep 2005
  */
-public class MatchEngineParameter extends Parameter implements ExtraParameter {
+public class MatchEngineParameter extends Parameter<MatchEngine>
+                                  implements ExtraParameter {
 
     private final WordsParameter paramsParam_;
     private final WordsParameter tuningParam_;
-    private final Parameter scoreParam_;
-    private MatchEngine matchEngine_;
+    private final StringParameter scoreParam_;
 
     private static final int MAX_CHARS = 78;
     private static final ValueInfo SCORE_INFO = 
@@ -56,7 +57,7 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
         Logger.getLogger( "uk.ac.starlink.ttools.join" );
 
     public MatchEngineParameter( String name ) {
-        super( name );
+        super( name, MatchEngine.class, true );
 
         paramsParam_ = new WordsParameter( "params" );
         tuningParam_ = new WordsParameter( "tuning" );
@@ -112,7 +113,7 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
         tuningParam_.setNullPermitted( true );
         tuningParam_.setUsage( "<tuning-params>" );
 
-        scoreParam_ = new Parameter( "scorecol" );
+        scoreParam_ = new StringParameter( "scorecol" );
         scoreParam_.setUsage( "<col-name>" );
         scoreParam_.setPrompt( "Match score output column name" );
         scoreParam_.setDescription( new String[] {
@@ -217,13 +218,12 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
      * @return  match score metadata; may be null
      */
     public ValueInfo getScoreInfo( Environment env ) throws TaskException {
-        checkGotValue( env );
         String scoreVal = scoreParam_.stringValue( env );
         if ( scoreVal == null || scoreVal.trim().length() == 0 ) {
             return null;
         }
         else {
-            ValueInfo baseInfo = matchEngine_.getMatchScoreInfo();
+            ValueInfo baseInfo = objectValue( env ).getMatchScoreInfo();
             DefaultValueInfo info = baseInfo == null
                                   ? new DefaultValueInfo( SCORE_INFO )
                                   : new DefaultValueInfo( baseInfo );
@@ -338,11 +338,10 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
      */
     public MatchEngine matchEngineValue( Environment env )
             throws TaskException {
-        checkGotValue( env );
-        return matchEngine_;
+        return objectValue( env );
     }
 
-    public void setValueFromString( Environment env, String stringVal )
+    public MatchEngine stringToObject( Environment env, String stringVal )
             throws TaskException {
 
         /* Get the unconfigured engine corresponding to this parameter's
@@ -360,9 +359,8 @@ public class MatchEngineParameter extends Parameter implements ExtraParameter {
         setConfigValues( env, engine.getTuningParameters(), tuningParam_,
                          false );
 
-        /* Set this parameter's value to the configured engine. */
-        matchEngine_ = engine;
-        super.setValueFromString( env, stringVal );
+        /* Return the configured object. */
+        return engine;
     }
 
     /**

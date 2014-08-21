@@ -16,17 +16,16 @@ import uk.ac.starlink.util.DataSource;
  * @since    16 Aug 2005
  * @see      uk.ac.starlink.util.Compression
  */
-public class InputStreamParameter extends Parameter {
+public class InputStreamParameter extends Parameter<InputStream> {
 
     public InputStreamParameter( String name ) {
-        super( name );
+        super( name, InputStream.class, true );
         setUsage( "<location>" );
     }
 
-    public void setValueFromString( Environment env, String sval )
-            throws TaskException {
-        if ( sval != null &&
-             ! sval.equals( "-" ) &&
+    public InputStream stringToObject( Environment env, String sval )
+            throws ParameterValueException {
+        if ( ! sval.equals( "-" ) &&
              ! new File( sval ).exists() ) {
             try {
                 new URL( sval ); 
@@ -36,25 +35,11 @@ public class InputStreamParameter extends Parameter {
                 throw new ParameterValueException( this, msg );
             }
         }
-        super.setValueFromString( env, sval );
-    }
-
-    /**
-     * Returns an input stream based on the value of this parameter.
-     *
-     * @param   env  execution environment
-     * @return  new, uncompressed input stream
-     */
-    public InputStream inputStreamValue( Environment env )
-            throws TaskException {
-        String loc = stringValue( env );
         try {
-            return loc == null
-                 ? null
-                 : DataSource.getInputStream( stringValue( env ) );
+            return DataSource.getInputStream( sval );
         }
         catch ( IOException e ) {
-            throw new TaskException( e.getMessage(), e );
+            throw new ParameterValueException( this, e.getMessage() );
         }
     }
 }

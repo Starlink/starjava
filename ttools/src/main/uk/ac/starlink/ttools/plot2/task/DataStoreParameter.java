@@ -36,7 +36,7 @@ public class DataStoreParameter extends ChoiceParameter<DataStoreFactory> {
      * @param   name  parameter name
      */
     public DataStoreParameter( String name ) {
-        super( name );
+        super( name, DataStoreFactory.class );
         addOption( SIMPLE, "simple" );
         addOption( CACHED, "cache" );
         addOption( SMART, "smart" );

@@ -122,7 +122,7 @@ public class MocMode implements ProcessingMode {
             new JELQuerySequenceFactory( raString, decString, radiusString );
         final int order = orderParam_.intValue( env );
         final MocFormat mocfmt = mocfmtParam_.objectValue( env );
-        final Destination dest = outParam_.destinationValue( env );
+        final Destination dest = outParam_.objectValue( env );
         return new TableConsumer() {
             public void consume( StarTable table ) throws IOException {
                 ConeQueryRowSequence qseq = qsFact.createQuerySequence( table );

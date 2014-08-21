@@ -1,78 +1,269 @@
 package uk.ac.starlink.task;
 
+import java.lang.reflect.Array;
+import java.lang.reflect.Constructor;
+import java.util.Collection;
+
 /**
  * A Parameter describes the function of one of a task's parameters.
- * An instance of the class encapsulates a parameter's name,
- * prompt string, source, default values, position on the command line,
+ * An instance of the class encapsulates a parameter's name, value type,
+ * prompt string, default value, position on the command line,
  * and so on.  It can also validate, hold and clear the value of the
- * parameter.  The parameter value is obtained in string form by an
- * associated Environment object, and the Parameter object configures
- * its value from this string.
+ * parameter.  The parameter value is acquired from an associated
+ * Environment in either String or typed form, and the Parameter
+ * object configures its value from that.
  * <p>
- * This class can be subclassed to provide more specialised kinds of 
- * parameter.  Such subclasses should subclass the 
- * {@link #setValueFromString} method to perform specific setup 
- * and validation, and may supply methods additional to {@link #stringValue}
- * which provide the parameter value in other forms; for instance
- * an <tt>IntegerParameter</tt> class might provide a method returning
- * the result as an <tt>int</tt>.  <b>Note</b> that methods which
- * return the value must call {@link #checkGotValue} to ensure that
- * initialisation from a string has taken place.
- * <p>
- * Here is an implementation of an example subclass:
- * <pre>
- *     public class IntegerParameter extends Parameter {
- *
- *         private int intval;
- *
- *         public IntegerParameter( String name ) {
- *             setUsage( "&lt;int-value&gt;" );
- *             super( name );
- *         }
- *
- *         public void setValueFromString( Environment env, String stringval )
- *                 throws TaskException {
- *             try {
- *                 intval = Integer.parseInt( stringval );
- *             }
- *             catch ( NumberFormatException e ) {
- *                 throw new ParameterValueException( this, e );
- *             }
- *             super.setValueFromString( env, stringval );
- *         }
- *
- *         public int intValue( Environment env ) throws TaskException {
- *             checkGotValue( env );
- *             return intval;
- *         }
- *     }
- * </pre>
+ * This class must be subclassed according to the type of values it obtains.
+ * Such concrete subclasses must implement the {@link #stringToObject}
+ * method to perform mapping from an environment-supplied string value
+ * to a typed parameter value, including validation.
  *
  * @author   Mark Taylor (Starlink)
  * @see Task
  * @see Environment
  */
-public class Parameter {
+public abstract class Parameter<T> {
 
-    private String name;
-    private String prompt;
-    private String description;
-    private String usage = "<value>";
-    private String def;
-    private int pos;
-    private String stringValue;
-    private boolean gotValue;
-    private boolean nullPermitted;
-    private boolean preferExplicit;
+    private final Class<T> clazz_;
+    private boolean allowClassnameValue_;
+    private String name_;
+    private String prompt_;
+    private String description_;
+    private String usage_ = "<value>";
+    private String dflt_;
+    private int pos_;
+    private boolean nullPermitted_;
+    private boolean preferExplicit_;
+    private String stringValue_;
+    private T objectValue_;
+    private boolean gotValue_;
 
     /**
      * Constructs a parameter with a given name.  This name should be unique
      * within a given Task.
+     *
+     * <p>If the <code>allowClassnameValue</code> flag is set,
+     * then in addition to the options provided by
+     * {@link #stringToObject stringToObject}, any supplied string value
+     * equal to the classname of an available class matching
+     * this parameter's value type which has a no-arg constructor
+     * will cause a newly constructed instance of that class to be
+     * used as a value.
      * 
      * @param  name  the identifying name of this parameter
+     * @param  clazz  the class of this parameter's typed values
+     * @param  allowClassnameValue  whether suitable classnames may be
+     *         supplied as string values
      */
-    public Parameter( String name ) {
-        this.name = name;
+    public Parameter( String name, Class<T> clazz,
+                      boolean allowClassnameValue ) {
+        name_ = name;
+        clazz_ = clazz;
+        allowClassnameValue_ = allowClassnameValue;
+    }
+
+    /**
+     * Takes a non-blank string, as supplied by the execution environment,
+     * and turns it into a typed value for this parameter.
+     * This method also performs validation, so if the string value
+     * is unacceptable in any way, a ParameterValueException should
+     * be thrown.
+     *
+     * <p>It is an error to supply a null or empty string value.
+     *
+     * <p>If this method fails (throws a ParameterValueException)
+     * and if <code>allowClassnameValue</code> is set, then a subsequent
+     * attempt will be made to interpret the <code>stringVal</code>
+     * as the classname of a suitable class with a no-arg constructor.
+     *
+     * @param  env  execution environment; in most cases this is not required
+     *              but for some purposes environment-specific characteristics
+     *              may influence the result
+     * @param  stringVal  non-null, non-empty string value
+     * @return  typed value
+     */
+    public abstract T stringToObject( Environment env, String stringVal )
+            throws TaskException;
+
+    /**
+     * Takes a typed value of this parameter and formats it as a string
+     * which may be used for presentation to the user.
+     * Ideally, round-tripping between this method and
+     * {@link #stringToObject stringToObject} should be possible,
+     * but that is not in general required/guaranteed.
+     *
+     * <p>The default implementation uses the value's toString method,
+     * but subclasses can override this for smarter behaviour.
+     *
+     * @param  env  execution environment
+     * @param  objectVal  typed parameter value
+     * @return  string value for presentation
+     */
+    public String objectToString( Environment env, T objectVal )
+            throws TaskException {
+        return objectVal == null ? null : objectVal.toString();
+    }
+
+    /**
+     * Sets the value of this parameter from a String.  This method is
+     * called by the Environment to configure the value of this parameter.
+     *
+     * <p>A null or empty string is intercepted by this method and translated
+     * to a null object value or triggers a ParameterValueException 
+     * according to the value of isNullPermitted().
+     *
+     * @param  env  execution environment; in most cases this is not required
+     *              but for some purposes environment-specific characteristics
+     *              may influence the result
+     * @param  stringval  string representation of value
+     */
+    public void setValueFromString( Environment env, String stringval ) 
+            throws TaskException {
+        final String sval;
+        final T oval;
+
+        /* Null or empty string: convert to a null value. */
+        if ( stringval == null || stringval.trim().length() == 0 ) {
+            if ( isNullPermitted() ) {
+                sval = null;
+                oval = null;
+            }
+            else {
+                throw new ParameterValueException( this, "Null value "
+                                                       + "not permitted" );
+            }
+        }
+
+        /* Otherwise, use this parameter's custom string-to-object
+         * conversion. */
+        else {
+            sval = stringval;
+            T ov;
+            try {
+                ov = stringToObject( env, stringval );
+            }
+
+            /* If that fails, maybe try interpreting the string
+             * as a classname. */
+            catch ( TaskException e ) {
+                if ( allowClassnameValue_ ) {
+                    T instance = attemptGetClassInstance( stringval );
+                    if ( instance != null ) {
+                        ov = instance;
+                    }
+                    else {
+                        throw e;
+                    }
+                }
+                else {
+                    throw e;
+                }
+            }
+            oval = ov;
+        }
+        setValue( sval, oval );
+    }
+
+    /**
+     * Sets the value of this parameter directly from a typed object.
+     * In this case the reported string value is obtained by calling
+     * {@link #objectToString objectToString}.
+     *
+     * @param  env  execution environment; in most cases this is not required
+     *              but for some purposes environment-specific characteristics
+     *              may influence the result
+     * @param  objectValue  typed value
+     */
+    public void setValueFromObject( Environment env, T objectValue )
+            throws TaskException {
+        final String stringValue;
+        if ( objectValue == null ) {
+            if ( isNullPermitted() ) {
+                stringValue = null;
+            }
+            else {
+                throw new ParameterValueException( this, "Null value "
+                                                       + "not permitted" );
+            }
+        }
+        else {
+            stringValue = objectToString( env, objectValue );
+        }
+        setValue( stringValue, objectValue );
+    }
+
+    /**
+     * Gets the value of this parameter as a String.
+     * The value is lazily acquired by the supplied environment object.
+     *
+     * <p>The returned value may be <tt>null</tt> 
+     * only if the {@link #isNullPermitted} method returns true.
+     *
+     * @param   env  execution environment from which value is obtained
+     * @return   the value of this parameter as a string, or <tt>null</tt>
+     * @throws  AbortException  if during the course of trying to obtain
+     *          a value the Environment determines that the task should
+     *          not continue.
+     */
+    public final String stringValue( Environment env ) throws TaskException {
+        checkGotValue( env );
+        return stringValue_;
+    }
+
+    /**
+     * Gets the value of this parameter as a typed object.
+     * The value is actually acquired by the supplied environment object.
+     *
+     * <p>The returned value will generally be null if the string value
+     * that generated it is null or empty.  That is only possible
+     * if the {@link #isNullPermitted} method returns true.
+     *
+     * @param   env  execution environment from which value is obtained
+     * @return   the value of this parameter as a string, or <tt>null</tt>
+     * @throws  AbortException  if during the course of trying to obtain
+     *          a value the Environment determines that the task should
+     *          not continue.
+     */
+    public final T objectValue( Environment env ) throws TaskException {
+        checkGotValue( env );
+        return objectValue_;
+    }
+
+    /**
+     * Clears the value of this parameter.  Subsequent retrievals of the
+     * parameter value will trigger a request to the environment for a new
+     * value.
+     *
+     * @param  env  execution environment within which value will be cleared
+     */
+    public void clearValue( Environment env ) {
+        env.clearValue( this );
+        stringValue_ = null;
+        objectValue_ = null;
+        gotValue_ = false;
+    }
+
+    /**
+     * Sets the value of this parameter without any additional validation.
+     * This is invoked by setValueFromString and setValueFromObject,
+     * and should not normally be invoked directly.
+     *
+     * @param  stringValue  string representation of value
+     * @param  objectValue  typed value
+     */
+    protected void setValue( String stringValue, T objectValue ) {
+        stringValue_ = stringValue;
+        objectValue_ = objectValue;
+        gotValue_ = true;
+    }
+
+    /**
+     * Returns the class of the typed values this parameter takes.
+     *
+     * @return  the class of this parameter's typed values
+     */
+    public Class<T> getValueClass() {
+        return clazz_;
     }
 
     /**
@@ -81,7 +272,7 @@ public class Parameter {
      * @return  name  the identifying name of this parameter
      */
     public String getName() {
-        return name;
+        return name_;
     }
 
     /**
@@ -90,7 +281,7 @@ public class Parameter {
      * @param  name  identifying name of this parameter
      */
     public void setName( String name ) {
-        this.name = name;
+        name_ = name;
     }
 
     /**
@@ -101,7 +292,7 @@ public class Parameter {
      * @return  prompt string
      */
     public String getPrompt() {
-        return prompt;
+        return prompt_;
     }
 
     /**
@@ -112,7 +303,7 @@ public class Parameter {
      * @param   prompt  the prompt string
      */
     public void setPrompt( String prompt ) {
-        this.prompt = prompt;
+        prompt_ = prompt;
     }
 
     /**
@@ -121,7 +312,7 @@ public class Parameter {
      * @return  description, if known
      */
     public String getDescription() {
-        return description;
+        return description_;
     }
 
     /**
@@ -130,7 +321,7 @@ public class Parameter {
      * @param  description  description
      */
     public void setDescription( String description ) {
-        this.description = description;
+        description_ = description;
     }
 
     /**
@@ -146,7 +337,7 @@ public class Parameter {
             sbuf.append( descLines[ i ] )
                 .append( '\n' );
         }
-        description = sbuf.toString();
+        setDescription( sbuf.toString() );
     }
 
     /**
@@ -165,7 +356,7 @@ public class Parameter {
      * @param   usage  usage string
      */
     public void setUsage( String usage ) {
-        this.usage = usage;
+        usage_ = usage;
     }
 
     /**
@@ -175,18 +366,20 @@ public class Parameter {
      * @see   #setUsage
      */
     public String getUsage() {
-        return usage;
+        return usage_;
     }
 
     /**
      * Set whether it is legal for this parameter's value to be blank.
      * By default it is not.
+     * Note that null and blank string values are treated the same as each
+     * other, and are translated to null object values.
      *
      * @param  permitted  whether null values are to be permitted for this
      *         parameter
      */
     public void setNullPermitted( boolean permitted ) {
-        this.nullPermitted = permitted;
+        nullPermitted_ = permitted;
     }
 
     /**
@@ -196,7 +389,7 @@ public class Parameter {
      * @return   true if null values are permitted for this parameter
      */
     public boolean isNullPermitted() {
-        return nullPermitted;
+        return nullPermitted_;
     }
 
     /**
@@ -206,7 +399,7 @@ public class Parameter {
      * @return   true  if a default value should generally be avoided
      */
     public boolean getPreferExplicit() {
-        return preferExplicit;
+        return preferExplicit_;
     }
 
     /**
@@ -217,7 +410,7 @@ public class Parameter {
      *                   value to be set for this parameter
      */
     public void setPreferExplicit( boolean prefer ) {
-        preferExplicit = prefer;
+        preferExplicit_ = prefer;
     }
 
     /**
@@ -226,16 +419,16 @@ public class Parameter {
      * @return  the default string value
      */
     public String getDefault() {
-        return def;
+        return dflt_;
     }
 
     /**
      * Sets the default string value for this parameter.
      *
-     * @param  def  the default string value
+     * @param  dflt  the default string value
      */
-    public void setDefault( String def ) {
-        this.def = def;
+    public void setDefault( String dflt ) {
+        dflt_ = dflt;
     }
 
     /**
@@ -246,7 +439,7 @@ public class Parameter {
      * @return  parameter position
      */
     public int getPosition() {
-        return pos;
+        return pos_;
     }
 
     /**
@@ -257,91 +450,30 @@ public class Parameter {
      * @param  pos  parameter position
      */
     public void setPosition( int pos ) {
-        this.pos = pos;
+        pos_ = pos;
     }
 
     /**
-     * Sets the value of this parameter from a String.  This method is
-     * called by the Environment to configure the value of this parameter.
-     * It should be overridden by subclasses to set up their internal
-     * state given a string representing their value. 
-     * Validation is performed by throwing a ParameterValueException if
-     * <tt>stringval</tt> does not represent a legal value for this parameter.
-     * <p>
-     * Note that subclasses implementations must invoke their parent 
-     * implementation using <tt>super.setValueFromString</tt> once
-     * it is certain that the value is legal.
-     * <p>
-     * It is an error for the environment to call this method with
-     * <code>stringval=null</code> if {@link #isNullPermitted} returns false.
+     * Utility function to convert a list to an array, where the elements
+     * are of the value class of this parameter.
      *
-     * @param  env  execution environment
-     * @param  stringval  string representation of value
+     * @param   collection  typed collection
+     * @return  typed array with same contents
      */
-    public void setValueFromString( Environment env, String stringval ) 
-            throws TaskException {
-         setStringValue( stringval );
-         setGotValue( true );
+    public T[] toArray( Collection<T> collection ) {
+        @SuppressWarnings("unchecked")
+        T[] array = (T[]) Array.newInstance( clazz_, collection.size() );
+        return collection.toArray( array );
     }
 
     /**
-     * Sets the string value of this parameter without any additional
-     * checking or side effects.  Should only normally be invoked by
-     * subclasses if they have set the parameter in some way other than
-     * using a string, in order to maintain some string representation
-     * of the value.  Use with care.
+     * Returns the name of this parameter.
      *
-     * @param  stringValue  new string value
+     * @return  string representation
      */
-    protected void setStringValue( String stringValue ) {
-         if ( stringValue == null && ! isNullPermitted() ) {
-             throw new NullPointerException( "Null value not permitted" );
-         }
-         this.stringValue = stringValue;
-    }
-
-    /**
-     * Gets the value of this parameter as a String.
-     * The value is actually obtained by the <tt>Environment</tt> 
-     * associated with this parameter.
-     * The returned value may be <tt>null</tt> 
-     * only if the {@link #isNullPermitted} method returns true.
-     * if the parameter has a null value.
-     *
-     * @param   env  execution environment from which value is obtained
-     * @return   the value of this parameter as a string, or <tt>null</tt>
-     * @throws  AbortException  if during the course of trying to obtain
-     *          a value the Environment determines that the task should
-     *          not continue.
-     */
-    public String stringValue( Environment env ) throws TaskException {
-        checkGotValue( env );
-        assert stringValue != null || isNullPermitted();
-        return stringValue;
-    }
-
-    /**
-     * Clears the value of this parameter.  Subsequent retrievals of the
-     * parameter value will trigger a request to the environment for a new
-     * value.
-     *
-     * @param  env  execution environment within which value will be cleared
-     */
-    public void clearValue( Environment env ) {
-        env.clearValue( this );
-        setGotValue( false );
-    }
-
-    /**
-     * Sets the gotValue flag.  This determines whether the environment needs
-     * to be queried before we can satisfy a request for the value of this
-     * parameter.
-     *
-     * @param  gotValue  true iff this object is configured with a 
-     *         valid parameter value from the environment
-     */
-    protected void setGotValue( boolean gotValue ) {
-        this.gotValue = gotValue;
+    @Override
+    public String toString() {
+        return name_;
     }
 
     /**
@@ -350,20 +482,67 @@ public class Parameter {
      *
      * @param   env  execution environment which supplies value
      */
-    protected void checkGotValue( Environment env ) throws TaskException {
-        if ( ! gotValue ) {
+    private void checkGotValue( Environment env ) throws TaskException {
+        if ( ! gotValue_ ) {
             env.acquireValue( this );
-            setGotValue( true );
+            assert gotValue_ : "Environment did not call setValue";
         }
     }
 
     /**
-     * Returns the name of this parameter.
+     * Attempts to interpret a string as a classname to turn it into
+     * a typed object.  The class must exist, must extend this parameter's
+     * value type, and must have a public no-arg constructor for this to work.
+     * In most cases, failure just results in a null return, but if it
+     * looks like a genuine attempt has been made to supply a classname,
+     * a ParameterValueException with a helpful message is thrown.
      *
-     * @return  string representation
+     * @param   cname  string which might just be the name of a suitable
+     *                 class with a no-arg constructor
+     * @return  typed value or null
      */
-    public String toString() {
-        return name;
-    }
+    private T attemptGetClassInstance( String cname )
+            throws ParameterValueException {
 
+        /* See if we have a classname.  Most likely the string value is not
+         * intended to represent a class instance at all, so if it's not
+         * a class just return null with no error. */
+        final Class<?> vclazz;
+        try {
+            vclazz = Class.forName( cname );
+        }
+        catch ( ClassNotFoundException e ) {
+            return null;
+        }
+
+        /* We have a classname, so it's a fair bet that it is intended to
+         * name a class whose instance should be the value of this parameter.
+         * Anything that goes wrong from here generates an exception. */
+        final Class<T> clazz = getValueClass();
+        if ( clazz.isAssignableFrom( vclazz ) ) {
+            Class<? extends T> vtclazz = vclazz.asSubclass( clazz );
+            Constructor<? extends T> constructor;
+            try {
+                constructor = vtclazz.getConstructor( new Class[ 0 ] );
+            }
+            catch ( NoSuchMethodException e ) {
+                throw new ParameterValueException( this,
+                                                   "No no-arg constructor for "
+                                                 + vtclazz );
+            }
+            try {
+                return constructor.newInstance( new Object[ 0 ] );
+            }
+            catch ( Throwable e ) {
+                throw new ParameterValueException( this,
+                                                   "Error constructing "
+                                                 + vtclazz, e );
+            }
+        }
+        else {
+            throw new ParameterValueException( this,
+                                               vclazz + " is not of type "
+                                             + clazz );
+        }
+    }
 }

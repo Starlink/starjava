@@ -16,13 +16,11 @@ import uk.ac.starlink.task.TaskException;
  * @author   Mark Taylor
  * @since    16 Aug 2005
  */
-public class XmlEncodingParameter extends Parameter
+public class XmlEncodingParameter extends Parameter<Charset>
                                   implements ExtraParameter {
 
-    private Charset charset_;
-
     public XmlEncodingParameter( String name ) {
-        super( name );
+        super( name, Charset.class, true );
         setUsage( "<xml-encoding>" );
         setNullPermitted( true );
 
@@ -48,23 +46,10 @@ public class XmlEncodingParameter extends Parameter
         return sbuf.toString();
     }
 
-    /**
-     * Returns the value of this parameter as a Charset object.
-     *
-     * @param   env  execution environment
-     * @return  charset representing the XML encoding
-     */
-    public Charset charsetValue( Environment env ) throws TaskException {
-        checkGotValue( env );
-        return charset_;
-    }
-
-    public void setValueFromString( Environment env, String sval )
+    public Charset stringToObject( Environment env, String sval )
             throws TaskException {
         try {
-            charset_ = sval == null ? null
-                                    : Charset.forName( sval );
-            super.setValueFromString( env, sval );
+            return Charset.forName( sval );
         }
         catch ( UnsupportedCharsetException e ) {
             throw new ParameterValueException( this, e );
@@ -73,5 +58,4 @@ public class XmlEncodingParameter extends Parameter
             throw new ParameterValueException( this, e );
         }
     }
-
 }

@@ -20,6 +20,7 @@ import uk.ac.starlink.task.Executable;
 import uk.ac.starlink.task.MultiParameter;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
+import uk.ac.starlink.task.StringParameter;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.Tokenizer;
@@ -73,7 +74,7 @@ public class SqlClient implements Task {
         }
         ResultSink sink =
             new StreamResultSink( writer, env.getOutputStream() );
-        Connection connection = connParam_.connectionValue( env );
+        Connection connection = connParam_.objectValue( env );
         String[] sqlLines = 
             Tokenizer.tokenizeLines( stmtParam_.stringValue( env ) );
         PrintStream err = env.getErrorStream();
@@ -248,7 +249,7 @@ public class SqlClient implements Task {
     /**
      * MultiParameter for specifying SQL statements.
      */
-    private static class StatementParameter extends Parameter
+    private static class StatementParameter extends StringParameter
                                             implements MultiParameter {
 
         /**

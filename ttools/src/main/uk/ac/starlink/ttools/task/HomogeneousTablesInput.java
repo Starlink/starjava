@@ -74,7 +74,7 @@ public class HomogeneousTablesInput implements TablesInput {
         ProcessingStep[] steps = inFilterParam_ == null
                                ? null
                                : inFilterParam_.stepsValue( env );
-        TableProducer[] tprods = inTablesParam_.tablesValue( env );
+        TableProducer[] tprods = inTablesParam_.objectValue( env );
         final int nIn = tprods.length;
         InputTableSpec[] specs = new InputTableSpec[ nIn ];
         for ( int i = 0; i < nIn; i++ ) {

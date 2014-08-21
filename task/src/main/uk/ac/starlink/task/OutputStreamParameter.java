@@ -13,9 +13,7 @@ import uk.ac.starlink.util.Destination;
  * @author   Mark Taylor
  * @since    9 May 2006
  */
-public class OutputStreamParameter extends Parameter {
-
-    private Destination destination_;
+public class OutputStreamParameter extends Parameter<Destination> {
 
     /**
      * Constructor.
@@ -23,7 +21,7 @@ public class OutputStreamParameter extends Parameter {
      * @param   name  parameter name
      */
     public OutputStreamParameter( String name ) {
-        super( name );
+        super( name, Destination.class, true );
         setUsage( "<out-file>" );
         setPrompt( "Location of output file" );
         setDefault( "-" );
@@ -37,14 +35,11 @@ public class OutputStreamParameter extends Parameter {
         } );
     }
 
-    public void setValueFromString( Environment env, String sval )
-            throws TaskException {
-        if ( sval == null || sval.trim().length() == 0 ) {
-            destination_ = null;
-        }
-        else if ( "-".equals( sval ) ) {
+    public Destination stringToObject( Environment env, String sval )
+            throws ParameterValueException {
+        if ( "-".equals( sval ) ) {
             final PrintStream out = env.getOutputStream();
-            destination_ = new Destination() {
+            return new Destination() {
                 public OutputStream createStream() {
                     return out;
                 }
@@ -57,23 +52,11 @@ public class OutputStreamParameter extends Parameter {
                 throw new ParameterValueException( this,
                                                    "Bad pathname (no dir?)" );
             }
-            destination_ = new Destination() {
+            return new Destination() {
                 public OutputStream createStream() throws IOException {
                     return new FileOutputStream( file );
                 }
             };
         }
-        super.setValueFromString( env, sval );
-    }
-
-    /**
-     * Returns a Destination object representing the value of this parameter.
-     *
-     * @param  env  execution environment
-     */
-    public Destination destinationValue( Environment env )
-            throws TaskException {
-        checkGotValue( env );
-        return destination_;
     }
 }

@@ -16,8 +16,10 @@ import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.task.BooleanParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.ExecutionException;
+import uk.ac.starlink.task.LongParameter;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
+import uk.ac.starlink.task.StringParameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.URLParameter;
 import uk.ac.starlink.vo.AdqlValidator;
@@ -33,11 +35,11 @@ import uk.ac.starlink.vo.UwsJob;
 public class TapMapper implements TableMapper {
 
     private final URLParameter urlParam_;
-    private final Parameter adqlParam_;
+    private final StringParameter adqlParam_;
     private final BooleanParameter parseParam_;
     private final BooleanParameter syncParam_;
-    private final Parameter langParam_;
-    private final Parameter maxrecParam_;
+    private final StringParameter langParam_;
+    private final LongParameter maxrecParam_;
     private final TapResultReader resultReader_;
     private final Parameter[] params_;
 
@@ -56,7 +58,7 @@ public class TapMapper implements TableMapper {
         } );
         paramList.add( urlParam_ );
 
-        adqlParam_ = new Parameter( "adql" );
+        adqlParam_ = new StringParameter( "adql" );
         adqlParam_.setPrompt( "ADQL query text" );
         adqlParam_.setDescription( new String[] {
             "<p>Astronomical Data Query Language string specifying the",
@@ -103,7 +105,7 @@ public class TapMapper implements TableMapper {
         syncParam_.setDefault( Boolean.FALSE.toString() );
         paramList.add( syncParam_ );
 
-        maxrecParam_ = new Parameter( "maxrec" );
+        maxrecParam_ = new LongParameter( "maxrec" );
         maxrecParam_.setPrompt( "Maximum number of records in output table" );
         maxrecParam_.setDescription( new String[] {
             "<p>Sets the requested maximum row count for the result of",
@@ -114,10 +116,12 @@ public class TapMapper implements TableMapper {
             "If no value is set, the service's default policy will be used.",
             "</p>",
         } );
+        maxrecParam_.setMinimum( 0L );
         maxrecParam_.setNullPermitted( true );
+     
         paramList.add( maxrecParam_ );
 
-        langParam_ = new Parameter( "language" );
+        langParam_ = new StringParameter( "language" );
         langParam_.setPrompt( "TAP query language" );
         langParam_.setDescription( new String[] {
             "<p>Language to use for the ADQL-like query.",
@@ -143,7 +147,7 @@ public class TapMapper implements TableMapper {
 
     public TableMapping createMapping( Environment env, final int nup )
             throws TaskException {
-        final URL serviceUrl = urlParam_.urlValue( env );
+        final URL serviceUrl = urlParam_.objectValue( env );
         final String adql = adqlParam_.stringValue( env );
         if ( parseParam_.booleanValue( env ) ) {
             AdqlValidator validator = new AdqlValidator( null, true );
@@ -162,16 +166,9 @@ public class TapMapper implements TableMapper {
         if ( ! "ADQL".equals( lang ) ) {
             extraParams.put( "LANG", lang );
         }
-        String sMaxrec = maxrecParam_.stringValue( env );
-        if ( sMaxrec != null && sMaxrec.trim().length() > 0 ) {
-            try {
-                long maxrec = Long.parseLong( sMaxrec.trim() );
-                extraParams.put( "MAXREC", Long.toString( maxrec ) );
-            }
-            catch ( NumberFormatException e ) {
-                throw new ParameterValueException( maxrecParam_,
-                                                   "Not an integer", e );
-            }
+        Long maxrec = maxrecParam_.objectValue( env );
+        if ( maxrec != null ) {
+            extraParams.put( "MAXREC", maxrec.toString() );
         }
         final String[] upNames = new String[ nup ];
         for ( int iu = 0; iu < nup; iu++ ) {
@@ -256,7 +253,7 @@ public class TapMapper implements TableMapper {
      * @return   upload name parameter
      */
     private static Parameter createUploadNameParameter( String label ) {
-        Parameter upnameParam = new Parameter( "upname" + label );
+        StringParameter upnameParam = new StringParameter( "upname" + label );
         upnameParam.setPrompt( "Label for uploaded table #" + label );
         upnameParam.setUsage( "<label>" );
         upnameParam.setDescription( new String[] {

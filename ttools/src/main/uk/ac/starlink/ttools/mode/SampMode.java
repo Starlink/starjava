@@ -32,11 +32,12 @@ import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
+import uk.ac.starlink.task.StringParameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.DocUtils;
 import uk.ac.starlink.ttools.Stilts;
 import uk.ac.starlink.ttools.TableConsumer;
-import uk.ac.starlink.ttools.task.DefaultMultiParameter;
+import uk.ac.starlink.ttools.task.StringMultiParameter;
 import uk.ac.starlink.ttools.task.LineTableEnvironment;
 
 /**
@@ -48,8 +49,8 @@ import uk.ac.starlink.ttools.task.LineTableEnvironment;
  */
 public class SampMode implements ProcessingMode {
 
-    private final DefaultMultiParameter formatsParam_;
-    private final Parameter clientParam_;
+    private final StringMultiParameter formatsParam_;
+    private final StringParameter clientParam_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.mode" );
 
@@ -57,7 +58,7 @@ public class SampMode implements ProcessingMode {
      * Constructor.
      */
     public SampMode() {
-        formatsParam_ = new DefaultMultiParameter( "format", ' ' );
+        formatsParam_ = new StringMultiParameter( "format", ' ' );
         formatsParam_.setPrompt( "Format(s) for SAMP transmission of table" );
         formatsParam_.setDescription( new String[] {
             "<p>Gives one or more table format types for attempting the",
@@ -86,7 +87,7 @@ public class SampMode implements ProcessingMode {
         } );
         formatsParam_.setDefault( "votable fits" );
 
-        clientParam_ = new Parameter( "client" );
+        clientParam_ = new StringParameter( "client" );
         clientParam_.setDescription( new String[] {
             "<p>Identifies a registered SAMP client which is to",
             "receive the table.",

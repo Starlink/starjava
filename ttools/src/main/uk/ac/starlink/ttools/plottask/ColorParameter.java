@@ -4,7 +4,7 @@ import java.awt.Color;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.TaskException;
 
-public class ColorParameter extends NamedObjectParameter {
+public class ColorParameter extends NamedObjectParameter<Color> {
 
     /**
      * Constructor.
@@ -12,7 +12,7 @@ public class ColorParameter extends NamedObjectParameter {
      * @param  name  parameter name
      */
     public ColorParameter( String name ) {
-        super( name );
+        super( name, Color.class );
         setUsage( "<rrggbb>|red|blue|..." );
         addOption( "red", new Color( 0xf00000 ) );
         addOption( "blue", new Color( 0x0000f0 ) );
@@ -33,7 +33,7 @@ public class ColorParameter extends NamedObjectParameter {
      * @param  env  execution environment
      */
     public Color colorValue( Environment env ) throws TaskException {
-        return (Color) objectValue( env );
+        return objectValue( env );
     }
 
     /**
@@ -45,11 +45,11 @@ public class ColorParameter extends NamedObjectParameter {
         setDefaultOption( color );
     }
 
-    public String toString( Object option ) {
-        return Integer.toString( ((Color) option).getRGB() & 0x00ffffff, 16 );
+    public String toString( Color option ) {
+        return Integer.toString( option.getRGB() & 0x00ffffff, 16 );
     }
 
-    public Object fromString( String name ) {
+    public Color fromString( String name ) {
         return new Color( Integer.parseInt( name, 16 ) );
     }
 

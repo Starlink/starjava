@@ -7,6 +7,7 @@ import java.util.Properties;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
+import uk.ac.starlink.task.StringParameter;
 import uk.ac.starlink.task.TaskException;
 
 /**
@@ -15,11 +16,10 @@ import uk.ac.starlink.task.TaskException;
  * @author   Mark Taylor
  * @since    15 Aug 2007
  */
-public class ConnectionParameter extends Parameter {
+public class ConnectionParameter extends Parameter<Connection> {
 
-    private final Parameter userParam_;
-    private final Parameter passParam_;
-    private Connection connection_;
+    private final StringParameter userParam_;
+    private final StringParameter passParam_;
 
     /**
      * Constructor.
@@ -27,7 +27,7 @@ public class ConnectionParameter extends Parameter {
      * @param   name  parameter name
      */
     public ConnectionParameter( String name ) {
-        super( name );
+        super( name, Connection.class, true );
 
         setPrompt( "JDBC-type URL for database connection" );
         setUsage( "<jdbc-url>" );
@@ -44,7 +44,7 @@ public class ConnectionParameter extends Parameter {
             "</p>",
         } );
 
-        userParam_ = new Parameter( "user" );
+        userParam_ = new StringParameter( "user" );
         userParam_.setPrompt( "User name for database connection" );
         try {
             Properties props = System.getProperties();
@@ -62,7 +62,7 @@ public class ConnectionParameter extends Parameter {
             "</p>",
         } );
 
-        passParam_ = new Parameter( "password" );
+        passParam_ = new StringParameter( "password" );
         passParam_.setPrompt( "Password for database connection" );
         passParam_.setNullPermitted( true );
         passParam_.setPreferExplicit( true );
@@ -84,33 +84,7 @@ public class ConnectionParameter extends Parameter {
         };
     }
 
-    /**
-     * Returns the value of this parameter as a connection.
-     *
-     * @param   env  execution environment
-     * @return   connection
-     */
-    public Connection connectionValue( Environment env )
-            throws TaskException {
-        checkGotValue( env );
-        return connection_;
-    }
-
-    /**
-     * Sets the value of this parameter from a Connection object.
-     *
-     * @param  connection  connection
-     */
-    public void setValueFromConnection( Connection connection )
-            throws SQLException {
-        connection_ = connection;
-        String name = connection.getMetaData().getDatabaseProductName()
-                    + ":" + connection.getCatalog();
-        setStringValue( name );
-        setGotValue( true );
-    }
-
-    public void setValueFromString( Environment env, String stringValue )
+    public Connection stringToObject( Environment env, String stringValue )
             throws TaskException {
         if ( ! stringValue.startsWith( "jdbc:" ) ) {
             String msg = "Must be of form \"jdbc:<subprotocol>:<subname>\"";
@@ -119,12 +93,21 @@ public class ConnectionParameter extends Parameter {
         String user = userParam_.stringValue( env );
         String pass = passParam_.stringValue( env );
         try {
-            connection_ =
-                DriverManager.getConnection( stringValue, user, pass );
+            return DriverManager.getConnection( stringValue, user, pass );
         }
         catch ( SQLException e ) {
             throw new ParameterValueException( this, e );
         }
-        super.setValueFromString( env, stringValue );
+    }
+
+    @Override
+    public String objectToString( Environment env, Connection connection ) {
+        try {
+            return connection.getMetaData().getDatabaseProductName()
+                 + ":" + connection.getCatalog();
+        }
+        catch ( SQLException e ) {
+            return "JDBC";
+        }
     }
 }

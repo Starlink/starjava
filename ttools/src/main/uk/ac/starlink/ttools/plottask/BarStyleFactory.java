@@ -50,10 +50,10 @@ public class BarStyleFactory extends StyleFactory {
             (BarStyle) styleSet_.getStyle( getStyleIndex( stSuffix ) );
 
         /* Bar shape. */
-        ChoiceParameter shapeParam = createShapeParameter( stSuffix );
+        ChoiceParameter<BarShape> shapeParam = createShapeParameter( stSuffix );
         shapeParam.setDefaultOption( new BarShape( style0.getForm(),
                                                    style0.getPlacement() ) );
-        BarShape shape = (BarShape) shapeParam.objectValue( env );
+        BarShape shape = shapeParam.objectValue( env );
 
         /* Colour. */
         ColorParameter colorParam = createColorParameter( stSuffix );
@@ -108,9 +108,10 @@ public class BarStyleFactory extends StyleFactory {
      * @param  stSuffix  label identifying dataset
      * @return  new bar form parameter
      */
-    private ChoiceParameter createShapeParameter( String stSuffix ) {
-        StyleParameter param =
-            new StyleParameter( paramName( "barstyle", stSuffix ) );
+    private ChoiceParameter<BarShape> createShapeParameter( String stSuffix ) {
+        StyleParameter<BarShape> param =
+            new StyleParameter<BarShape>( paramName( "barstyle", stSuffix ),
+                                          BarShape.class );
         param.addOption( new BarShape( BarStyle.FORM_FILLED,
                                        BarStyle.PLACE_ADJACENT ), "fill" );
         param.addOption( new BarShape( BarStyle.FORM_OPEN,

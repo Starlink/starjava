@@ -20,6 +20,7 @@ import uk.ac.starlink.task.Executable;
 import uk.ac.starlink.task.IntegerParameter;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
+import uk.ac.starlink.task.StringParameter;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.Stilts;
@@ -44,8 +45,8 @@ import uk.ac.starlink.util.ObjectFactory;
 public class StiltsServer implements Task {
 
     private final IntegerParameter portParam_;
-    private final Parameter baseParam_;
-    private final Parameter tasksParam_;
+    private final StringParameter baseParam_;
+    private final StringParameter tasksParam_;
     private final TableFactoryParameter tfactParam_;
 
     /**
@@ -60,7 +61,7 @@ public class StiltsServer implements Task {
         } );
         portParam_.setDefault( new Integer( 2112 ).toString() );
 
-        baseParam_ = new Parameter( "basepath" );
+        baseParam_ = new StringParameter( "basepath" );
         baseParam_.setPrompt( "Base path for server URLs" );
         String baseDefault = "/stilts";
         baseParam_.setDescription( new String[] {
@@ -75,7 +76,7 @@ public class StiltsServer implements Task {
         baseParam_.setNullPermitted( true );
         baseParam_.setDefault( baseDefault );
 
-        tasksParam_ = new Parameter( "tasks" );
+        tasksParam_ = new StringParameter( "tasks" );
         tasksParam_.setPrompt( "List of tasks provided" );
         tasksParam_.setUsage( "<task-name> ..." );
         tasksParam_.setNullPermitted( true );
@@ -91,14 +92,15 @@ public class StiltsServer implements Task {
             "</p>",
         } );
         ObjectFactory<Task> taskFactory = Stilts.getTaskFactory();
-        List taskList =
-            new ArrayList( Arrays.asList( taskFactory.getNickNames() ) );
+        List<String> taskList =
+            new ArrayList<String>( Arrays.asList( taskFactory
+                                                 .getNickNames() ) );
         taskList.removeAll( Arrays.asList( new String[] {
             "server", "funcs",
         } ) );
         StringBuffer taskBuf = new StringBuffer();
-        for ( Iterator it = taskList.iterator(); it.hasNext(); ) {
-            taskBuf.append( (String) it.next() );
+        for ( Iterator<String> it = taskList.iterator(); it.hasNext(); ) {
+            taskBuf.append( it.next() );
             if ( it.hasNext() ) {
                 taskBuf.append( ' ' );
             }

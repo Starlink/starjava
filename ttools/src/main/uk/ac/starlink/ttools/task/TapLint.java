@@ -14,6 +14,7 @@ import uk.ac.starlink.task.Executable;
 import uk.ac.starlink.task.IntegerParameter;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
+import uk.ac.starlink.task.StringParameter;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.URLParameter;
@@ -32,11 +33,11 @@ public class TapLint implements Task {
 
     private final TapLinter tapLinter_;
     private final URLParameter urlParam_;
-    private final DefaultMultiParameter stagesParam_;
+    private final StringMultiParameter stagesParam_;
     private final IntegerParameter repeatParam_;
     private final IntegerParameter truncParam_;
     private final BooleanParameter debugParam_;
-    private final Parameter reportParam_;
+    private final StringParameter reportParam_;
     private final Parameter[] params_;
 
     /**
@@ -55,7 +56,7 @@ public class TapLint implements Task {
         } );
         paramList.add( urlParam_ );
 
-        stagesParam_ = new DefaultMultiParameter( "stages", ' ' );
+        stagesParam_ = new StringMultiParameter( "stages", ' ' );
         stagesParam_.setPrompt( "Codes for validation stages to run" );
         tapLinter_ = new TapLinter();
         Map<String,Stage> stageMap = tapLinter_.getKnownStages();
@@ -106,7 +107,7 @@ public class TapLint implements Task {
         } );
         paramList.add( stagesParam_ );
 
-        reportParam_ = new Parameter( "report" );
+        reportParam_ = new StringParameter( "report" );
         reportParam_.setPrompt( "Message types to report" );
         ReportType[] types = ReportType.values();
         StringBuilder dbuf = new StringBuilder();
@@ -184,7 +185,7 @@ public class TapLint implements Task {
     }
 
     public Executable createExecutable( Environment env ) throws TaskException {
-        URL serviceUrl = urlParam_.urlValue( env );
+        URL serviceUrl = urlParam_.objectValue( env );
         PrintStream out = env.getOutputStream();
         String typeStr = reportParam_.stringValue( env );
         List<ReportType> typeList = new ArrayList<ReportType>();

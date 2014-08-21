@@ -160,7 +160,7 @@ public abstract class PaintMode {
                 throws TaskException {
             OutputStreamParameter outParam = param.getOutputParameter();
             ChoiceParameter formatParam = param.getFormatParameter();
-            final Destination dest = outParam.destinationValue( env );
+            final Destination dest = outParam.objectValue( env );
             String out = outParam.stringValue( env );
             GraphicExporter dfltExp = null;
             if ( out != null ) {

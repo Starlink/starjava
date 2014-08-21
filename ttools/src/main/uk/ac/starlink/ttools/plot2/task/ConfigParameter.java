@@ -13,10 +13,9 @@ import uk.ac.starlink.ttools.plot2.config.ConfigKey;
  * @author   Mark Taylor
  * @since    1 Mark 2013
  */
-public class ConfigParameter<T> extends Parameter {
+public class ConfigParameter<T> extends Parameter<T> {
 
     private final ConfigKey<T> key_;
-    private T tval_;
 
     /**
      * Constructor.
@@ -25,7 +24,7 @@ public class ConfigParameter<T> extends Parameter {
      * @param  key  config key
      */
     public ConfigParameter( String name, ConfigKey<T> key ) {
-        super( name );
+        super( name, key.getValueClass(), true );
         key_ = key;
         setDefault( key.valueToString( key.getDefaultValue() ) );
         boolean nullPermitted;
@@ -39,27 +38,13 @@ public class ConfigParameter<T> extends Parameter {
         setNullPermitted( nullPermitted );
     }
 
-    @Override
-    public void setValueFromString( Environment env, String stringval )
+    public T stringToObject( Environment env, String stringval )
             throws TaskException {
         try {
-            tval_ = key_.stringToValue( stringval );
+            return key_.stringToValue( stringval );
         }
         catch ( ConfigException e ) {
             throw new ParameterValueException( this, e );
         }
-        super.setValueFromString( env, stringval );
-    }
-
-    /**
-     * Returns the value of this parameter in the type appropriate for
-     * its config key.
-     *
-     * @param  env   execution environment
-     * @return   typed parameter value
-     */
-    public T configValue( Environment env ) throws TaskException {
-        checkGotValue( env );
-        return tval_;
     }
 }

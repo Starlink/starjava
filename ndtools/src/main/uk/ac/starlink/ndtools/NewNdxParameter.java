@@ -5,14 +5,14 @@ import uk.ac.starlink.array.AccessMode;
 import uk.ac.starlink.ndx.Ndx;
 import uk.ac.starlink.ndx.NdxIO;
 import uk.ac.starlink.task.Environment;
-import uk.ac.starlink.task.Parameter;
+import uk.ac.starlink.task.StringParameter;
 import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.TaskException;
 
 /**
  * Parameter representing a new Ndx object ready for writing.
  */
-class NewNdxParameter extends Parameter {
+class NewNdxParameter extends StringParameter {
 
     private NdxIO ndxio = new NdxIO();
 
@@ -31,7 +31,6 @@ class NewNdxParameter extends Parameter {
      */
     public Ndx getOutputNdx( Environment env, Ndx template ) 
             throws TaskException {
-        checkGotValue( env );
         String loc = stringValue( env );
         try {
             if ( ndxio.makeBlankNdx( loc, template ) ) {
@@ -58,7 +57,6 @@ class NewNdxParameter extends Parameter {
      */
     public NdxConsumer ndxConsumerValue( final Environment env )
             throws TaskException {
-        checkGotValue( env );
         final String loc = stringValue( env );
         return new NdxConsumer() {
             public void consume( Ndx ndx ) throws IOException {

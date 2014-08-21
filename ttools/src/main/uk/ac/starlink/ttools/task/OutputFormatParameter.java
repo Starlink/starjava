@@ -2,7 +2,7 @@ package uk.ac.starlink.ttools.task;
 
 import java.util.Iterator;
 import uk.ac.starlink.table.StarTableOutput;
-import uk.ac.starlink.task.Parameter;
+import uk.ac.starlink.task.StringParameter;
 
 /**
  * Parameter to hold the format of a table for output.
@@ -10,7 +10,7 @@ import uk.ac.starlink.task.Parameter;
  * @author   Mark Taylor 
  * @since    15 Aug 2005
  */
-public class OutputFormatParameter extends Parameter 
+public class OutputFormatParameter extends StringParameter 
                                    implements ExtraParameter {
 
     public OutputFormatParameter( String name ) {

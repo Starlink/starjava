@@ -18,11 +18,10 @@ import uk.ac.starlink.task.TaskException;
  * @author   Mark Taylor
  * @since    12 Aug 2008
  */
-public class FontParameter extends StyleParameter {
+public class FontParameter extends StyleParameter<String> {
 
     private final IntegerParameter sizeParam_;
-    private final ChoiceParameter styleParam_;
-    private Font fontValue_;
+    private final ChoiceParameter<Integer> styleParam_;
 
     /**
      * Constructor.
@@ -30,8 +29,9 @@ public class FontParameter extends StyleParameter {
      * @param  name  parameter base name
      */
     public FontParameter( String name ) {
-        super( name, GraphicsEnvironment.getLocalGraphicsEnvironment()
-                                        .getAvailableFontFamilyNames() );
+        super( name,
+               GraphicsEnvironment.getLocalGraphicsEnvironment()
+                                  .getAvailableFontFamilyNames() );
 
         /* Set the default font name.  In J2SE, font "dialog" should always
          * be present, and it ought to be a sensible default. */
@@ -40,17 +40,22 @@ public class FontParameter extends StyleParameter {
             setDefault( dflt );
         }
         else {
-            assert false;
+            assert false : Arrays.asList( getOptionNames() );
             setDefault( getOptionNames()[ 0 ] );
         }
         setPrompt( "Font family name" );
         setUsage( "dialog|serif|..." );
-        List alwaysList = Arrays.asList( new String[] {
+        List<String> alwaysList = Arrays.asList( new String[] {
             "serif", "sansserif", "monospaced", "dialog", "dialoginput",
         } );
-        List otherList = new ArrayList( Arrays.asList( getOptionNames() ) );
+        List<String> otherList =
+            new ArrayList<String>( Arrays.asList( getOptionNames() ) );
         otherList.removeAll( alwaysList );
-        otherList = otherList.subList( 0, Math.min( otherList.size(), 24 ) );
+        if ( otherList.size() > 24 ) {
+            otherList =
+                otherList.subList( 0, Math.min( otherList.size(), 24 ) );
+            otherList.add( "..." );
+        }
         setDescription( new String[] {
             "<p>Determines the font that will be used for textual annotation",
             "of the plot, including axes etc.",
@@ -73,7 +78,8 @@ public class FontParameter extends StyleParameter {
         sizeParam_.setMinimum( 1 );
 
         /* Set up associated font style parameter. */
-        styleParam_ = new ChoiceParameter( name + "style" );
+        styleParam_ =
+            new ChoiceParameter<Integer>( name + "style", Integer.class );
         styleParam_.addOption( new Integer( Font.PLAIN ), "plain" );
         styleParam_.addOption( new Integer( Font.BOLD ), "bold" );
         styleParam_.addOption( new Integer( Font.ITALIC ), "italic" );
@@ -106,23 +112,17 @@ public class FontParameter extends StyleParameter {
         };
     }
 
-    public void setValueFromString( Environment env, String sval )
-            throws TaskException {
-        int size = sizeParam_.intValue( env );
-        int style = ((Integer) styleParam_.objectValue( env )).intValue();
-        super.setValueFromString( env, sval );
-        String family = (String) objectValue( env );
-        fontValue_ = new Font( family, style, size );
-    }
-
     /**
      * Returns the value of this parameter as a font.
      *
      * @param  env  execution environment
+     * @return  font
      */
     public Font fontValue( Environment env ) throws TaskException {
-        checkGotValue( env );
-        return fontValue_;
+        int size = sizeParam_.intValue( env );
+        int style = styleParam_.objectValue( env ).intValue();
+        String family = objectValue( env );
+        return new Font( family, style, size );
     }
 
     /**

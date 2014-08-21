@@ -9,23 +9,14 @@ import uk.ac.starlink.task.TaskException;
 /**
  * Parameter representing an N-dimensional shape.
  */
-class ShapeParameter extends Parameter {
-
-    private NDShape shape;
+class ShapeParameter extends Parameter<NDShape> {
 
     public ShapeParameter( String name ) {
-        super( name );
+        super( name, NDShape.class, false );
     }
 
-    public void setValueFromString( Environment env, String stringval )
-            throws TaskException {
-        try {
-            shape = NDShape.fromString( stringval );
-        }
-        catch ( IllegalArgumentException e ) {
-            throw new ParameterValueException( this, e.getMessage() );
-        }
-        super.setValueFromString( env, stringval );
+    public NDShape stringToObject( Environment env, String stringval ) {
+        return NDShape.fromString( stringval );
     }
 
 
@@ -33,7 +24,6 @@ class ShapeParameter extends Parameter {
      * Gets the value of this parameter as an NDShape object.
      */
     public NDShape shapeValue( Environment env ) throws TaskException {
-        checkGotValue( env );
-        return shape;
+        return objectValue( env );
     }
 }

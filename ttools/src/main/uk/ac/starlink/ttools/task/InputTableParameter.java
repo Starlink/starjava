@@ -11,9 +11,8 @@ import uk.ac.starlink.util.DataSource;
  *
  * @author   Mark Taylor
  */
-public class InputTableParameter extends AbstractInputTableParameter {
-
-    private StarTable table_;
+public class InputTableParameter
+             extends AbstractInputTableParameter<StarTable> {
 
     /**
      * Constructor.
@@ -21,7 +20,7 @@ public class InputTableParameter extends AbstractInputTableParameter {
      * @param  name  parameter name
      */
     public InputTableParameter( String name ) {
-        super( name );
+        super( name, StarTable.class );
         setUsage( "<table>" );
     }
 
@@ -30,29 +29,17 @@ public class InputTableParameter extends AbstractInputTableParameter {
      *
      * @param  env  execution environment
      */
-    public StarTable tableValue( Environment env ) throws TaskException {
-        checkGotValue( env );
-        if ( table_ == null ) {
-            String sval = stringValue( env );
-            table_ = sval == null || sval.trim().length() == 0
-                   ? null
-                   : makeTable( env, sval );
-        }
-        return table_;
+    public StarTable stringToObject( Environment env, String sval )
+            throws TaskException {
+        return makeTable( env, sval );
     }
 
-    /**
-     * Sets the table value of this parameter directly.
-     *
-     * @param   table
-     */
-    public void setValueFromTable( StarTable table ) {
-        table_ = table;
+    public String objectToString( Environment env, StarTable table ) {
         String name = table.getName();
-        if ( name == null ) {
-            name = "unnamed table";
-        }
-        setStringValue( name );
-        setGotValue( true );
+        return name == null ? "unnamed table" : name;
+    }
+
+    public StarTable tableValue( Environment env ) throws TaskException {
+        return objectValue( env );
     }
 }

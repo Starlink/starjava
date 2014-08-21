@@ -13,6 +13,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Executable;
 import uk.ac.starlink.task.Parameter;
+import uk.ac.starlink.task.StringParameter;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.jel.DummyJELRowReader;
@@ -28,14 +29,14 @@ import uk.ac.starlink.ttools.jel.StarTableJELRowReader;
  */
 public class Calc implements Task {
 
-    private final Parameter exprParam_;
+    private final StringParameter exprParam_;
     private final InputTableParameter tableParam_;
 
     private final static Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.task" );
 
     public Calc() {
-        exprParam_ = new Parameter( "expression" );
+        exprParam_ = new StringParameter( "expression" );
         exprParam_.setPosition( 1 );
         exprParam_.setUsage( "<expr>" );
         exprParam_.setPrompt( "Expression to evaluate" );

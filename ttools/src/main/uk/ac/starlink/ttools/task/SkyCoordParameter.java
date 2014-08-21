@@ -4,7 +4,7 @@ import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.StarTable;
-import uk.ac.starlink.task.Parameter;
+import uk.ac.starlink.task.StringParameter;
 
 /**
  * Utilities for sky coordinate parameters.
@@ -12,7 +12,7 @@ import uk.ac.starlink.task.Parameter;
  * @author   Mark Taylor
  * @since    15 May 2014
  */
-public class SkyCoordParameter extends Parameter {
+public class SkyCoordParameter extends StringParameter {
 
     private static final Pattern RA_REGEX =
         Pattern.compile( "RA_?J?(2000)?", Pattern.CASE_INSENSITIVE );
@@ -65,9 +65,9 @@ public class SkyCoordParameter extends Parameter {
      *                       for instance "the input table"
      * @return  new RA parameter
      */
-    public static Parameter createRaParameter( String paramName,
-                                               String coordSys,
-                                               String tableDescrip ) {
+    public static StringParameter createRaParameter( String paramName,
+                                                     String coordSys,
+                                                     String tableDescrip ) {
         return new SkyCoordParameter( paramName, "Right ascension", coordSys,
                                       tableDescrip );
     }
@@ -81,9 +81,9 @@ public class SkyCoordParameter extends Parameter {
      *                       for instance "the input table"
      * @return  new declination parameter
      */
-    public static Parameter createDecParameter( String paramName,
-                                                String coordSys,
-                                                String tableDescrip ) {
+    public static StringParameter createDecParameter( String paramName,
+                                                      String coordSys,
+                                                      String tableDescrip ) {
         return new SkyCoordParameter( paramName, "Declination", coordSys,
                                       tableDescrip );
     }

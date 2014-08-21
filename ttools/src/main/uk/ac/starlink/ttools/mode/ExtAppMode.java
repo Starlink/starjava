@@ -11,10 +11,12 @@ import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableOutput;
+import uk.ac.starlink.task.BooleanParameter;
 import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.ExecutionException;
 import uk.ac.starlink.task.Parameter;
+import uk.ac.starlink.task.StringParameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.DocUtils;
 import uk.ac.starlink.ttools.TableConsumer;
@@ -33,21 +35,20 @@ import uk.ac.starlink.votable.VOTableWriter;
  */
 public class ExtAppMode implements ProcessingMode {
 
-    private final Parameter selParam_;
-    private final Parameter showParam_;
-    private final Parameter visParam_;
+    private final StringParameter selParam_;
+    private final StringParameter showParam_;
+    private final BooleanParameter visParam_;
 
     public ExtAppMode() {
-        selParam_ = new Parameter( "select" );
+        selParam_ = new StringParameter( "select" );
         selParam_.setUsage( "<expr>" );
         selParam_.setNullPermitted( true );
 
-        showParam_ = new Parameter( "show" );
+        showParam_ = new StringParameter( "show" );
         showParam_.setUsage( "<expr>" );
         showParam_.setNullPermitted( true );
 
-        visParam_ = new ChoiceParameter( "visible",
-                                         new String[] { "true", "false" } );
+        visParam_ = new BooleanParameter( "visible" );
         visParam_.setNullPermitted( true );
     }
 
@@ -74,10 +75,7 @@ public class ExtAppMode implements ProcessingMode {
             throws TaskException {
         final String selExpr = selParam_.stringValue( env );
         final String showExpr = showParam_.stringValue( env );
-        String visStr = visParam_.stringValue( env );
-        final Boolean vis = visStr == null 
-                          ? null
-                          : Boolean.valueOf( visParam_.stringValue( env ) );
+        final Boolean vis = visParam_.objectValue( env );
         return new TableConsumer() {
             public void consume( StarTable table ) throws IOException {
                 table = doctor( table );

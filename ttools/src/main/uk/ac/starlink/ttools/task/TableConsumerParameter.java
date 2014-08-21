@@ -24,7 +24,9 @@ public interface TableConsumerParameter {
     /**
      * Sets the value of this parameter directly from a TableConsumer.
      *
+     * @param  env  execution environment
      * @param  consumer  consumer
      */
-    void setValueFromConsumer( TableConsumer consumer );
+    void setValueFromConsumer( Environment env, TableConsumer consumer )
+            throws TaskException;
 }

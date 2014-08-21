@@ -35,7 +35,7 @@ public class ArithmeticTest extends TestCase {
     private static class AddTask implements Task {
         private DoubleParameter p1;
         private DoubleParameter p2;
-        private Parameter p3;
+        private StringParameter p3;
 
         public AddTask() {
             p1 = new DoubleParameter( "first" );
@@ -47,7 +47,7 @@ public class ArithmeticTest extends TestCase {
             p2.setPrompt( "Second number" );
             p2.setDefault( "0" );
 
-            p3 = new Parameter( "comment" );
+            p3 = new StringParameter( "comment" );
             p3.setPrompt( "Comment" );
             p3.setNullPermitted( true );
         }

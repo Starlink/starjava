@@ -10,6 +10,7 @@ import uk.ac.starlink.task.ExecutionException;
 import uk.ac.starlink.task.OutputStreamParameter;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
+import uk.ac.starlink.task.StringParameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.URLParameter;
 import uk.ac.starlink.util.Destination;
@@ -24,7 +25,7 @@ import uk.ac.starlink.vo.RegistryStarTable;
  */
 public class RegQuery extends ConsumerTask {
 
-    private final Parameter queryParam_;
+    private final StringParameter queryParam_;
     private final URLParameter urlParam_;
     private final OutputStreamParameter soapoutParam_;
     private final static String ALL_RECORDS = "ALL";
@@ -36,7 +37,7 @@ public class RegQuery extends ConsumerTask {
         super( "Queries the VO registry", new ChoiceMode(), true );
         List paramList = new ArrayList();
 
-        queryParam_ = new Parameter( "query" );
+        queryParam_ = new StringParameter( "query" );
         queryParam_.setPrompt( "Text of registry query" );
         queryParam_.setDescription( new String[] {
             "<p>Text of an ADQL WHERE clause targeted at the",
@@ -108,8 +109,8 @@ public class RegQuery extends ConsumerTask {
             queryText = null;
         }
         final String qText = queryText;
-        final URL regURL = urlParam_.urlValue( env );
-        final Destination soapdest = soapoutParam_.destinationValue( env );
+        final URL regURL = urlParam_.objectValue( env );
+        final Destination soapdest = soapoutParam_.objectValue( env );
         return new TableProducer() {
             public StarTable getTable() throws TaskException {
                 try {

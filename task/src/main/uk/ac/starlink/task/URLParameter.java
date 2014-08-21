@@ -9,9 +9,7 @@ import java.net.URL;
  * @author   Mark Taylor
  * @since    23 Feb 2011
  */
-public class URLParameter extends Parameter {
-
-    private URL urlValue_;
+public class URLParameter extends Parameter<URL> {
 
     /**
      * Constructor.
@@ -19,28 +17,17 @@ public class URLParameter extends Parameter {
      * @param  name  parameter name
      */
     public URLParameter( String name ) {
-        super( name );
+        super( name, URL.class, false );
         setUsage( "<url-value>" );
     }
 
-    public void setValueFromString( Environment env, String stringval )
-            throws TaskException {
+    public URL stringToObject( Environment env, String stringval )
+            throws ParameterValueException {
         try {
-            urlValue_ = new URL( stringval );
+            return new URL( stringval );
         }
         catch ( MalformedURLException e ) {
-            throw new ParameterValueException( this, e );
+            throw new ParameterValueException( this, "Not a URL", e );
         }
-        super.setValueFromString( env, stringval );
-    }
-
-    /**
-     * Returns the value of this parameter as a URL.
-     *
-     * @return  url value
-     */
-    public URL urlValue( Environment env ) throws TaskException {
-        checkGotValue( env );
-        return urlValue_;
     }
 }
