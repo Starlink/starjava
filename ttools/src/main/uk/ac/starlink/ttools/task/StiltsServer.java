@@ -59,7 +59,7 @@ public class StiltsServer implements Task {
             "<p>Port number on which the server should run.",
             "</p>",
         } );
-        portParam_.setDefault( new Integer( 2112 ).toString() );
+        portParam_.setIntDefault( 2112 );
 
         baseParam_ = new StringParameter( "basepath" );
         baseParam_.setPrompt( "Base path for server URLs" );
@@ -74,7 +74,7 @@ public class StiltsServer implements Task {
             "</p>",
         } );
         baseParam_.setNullPermitted( true );
-        baseParam_.setDefault( baseDefault );
+        baseParam_.setStringDefault( baseDefault );
 
         tasksParam_ = new StringParameter( "tasks" );
         tasksParam_.setPrompt( "List of tasks provided" );
@@ -107,7 +107,7 @@ public class StiltsServer implements Task {
         }
         String tasksDefault = taskBuf.toString();
         TaskServlet.getTaskNames( taskFactory, tasksDefault );  // test no error
-        tasksParam_.setDefault( tasksDefault );
+        tasksParam_.setStringDefault( tasksDefault );
 
         tfactParam_ = new TableFactoryParameter( "tablefactory" );
     }

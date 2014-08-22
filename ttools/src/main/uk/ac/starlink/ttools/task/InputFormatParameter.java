@@ -22,7 +22,7 @@ public class InputFormatParameter extends StringParameter
         super( name );
         setPrompt( "Format name for input table" );
         setNullPermitted( false );
-        setDefault( StarTableFactory.AUTO_HANDLER );
+        setStringDefault( StarTableFactory.AUTO_HANDLER );
 
         setDescription( new String[] {
             "<p>Specifies the format of the input table",

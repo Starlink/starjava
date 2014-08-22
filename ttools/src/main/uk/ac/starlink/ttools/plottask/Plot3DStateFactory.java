@@ -49,7 +49,7 @@ public class Plot3DStateFactory extends PlotStateFactory {
             "make the fog thicker, or set to zero if no fogging is required.",
             "</p>",
         } );
-        fogParam_.setDefault( new Double( 1.0 ).toString() );
+        fogParam_.setDoubleDefault( 1.0 );
 
         phiParam_ = new DoubleParameter( "phi" );
         phiParam_.setPrompt( "Rotation around Z axis" );
@@ -59,7 +59,7 @@ public class Plot3DStateFactory extends PlotStateFactory {
             "abound the Z axis prior to drawing.",
             "</p>",
         } );
-        phiParam_.setDefault( new Double( 30. ).toString() );
+        phiParam_.setDoubleDefault( 30 );
 
         thetaParam_ = new DoubleParameter( "theta" );
         thetaParam_.setPrompt( "Rotation around plane horizontal" );
@@ -71,7 +71,7 @@ public class Plot3DStateFactory extends PlotStateFactory {
             "prior to drawing.",
             "</p>",
         } );
-        thetaParam_.setDefault( new Double( 15. ).toString() );
+        thetaParam_.setDoubleDefault( 15. );
     }
 
     public Parameter[] getParameters() {

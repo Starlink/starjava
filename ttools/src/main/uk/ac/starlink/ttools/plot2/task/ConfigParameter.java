@@ -26,7 +26,7 @@ public class ConfigParameter<T> extends Parameter<T> {
     public ConfigParameter( String name, ConfigKey<T> key ) {
         super( name, key.getValueClass(), true );
         key_ = key;
-        setDefault( key.valueToString( key.getDefaultValue() ) );
+        setStringDefault( key.valueToString( key.getDefaultValue() ) );
         boolean nullPermitted;
         try {
             key.stringToValue( null );

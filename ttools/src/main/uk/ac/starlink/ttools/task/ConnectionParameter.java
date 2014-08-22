@@ -49,7 +49,7 @@ public class ConnectionParameter extends Parameter<Connection> {
         try {
             Properties props = System.getProperties();
             if ( props.containsKey( "user.name" ) ) {
-                userParam_.setDefault( props.getProperty( "user.name" ) );
+                userParam_.setStringDefault( props.getProperty( "user.name" ) );
             }
         }
         catch ( SecurityException e ) {

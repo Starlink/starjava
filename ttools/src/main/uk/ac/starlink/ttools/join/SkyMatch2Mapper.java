@@ -121,7 +121,7 @@ public class SkyMatch2Mapper implements TableMapper {
         FixedSkyMatchEngine matcher = new FixedSkyMatchEngine( pixer, error );
         int defk = pixer.getHealpixK();
         if ( defk >= 0 ) {
-            healpixkParam_.setDefault( Integer.toString( defk ) );
+            healpixkParam_.setIntDefault( defk );
         }
         int k = healpixkParam_.intValue( env );
         pixer.setHealpixK( k );

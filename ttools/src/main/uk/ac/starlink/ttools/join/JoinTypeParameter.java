@@ -45,7 +45,7 @@ public class JoinTypeParameter extends ChoiceParameter<JoinType> {
             "</p>",
         } );
         setPrompt( "Selection criteria for output rows" );
-        setDefault( "1and2" );
+        setDefaultOption( JoinType._1AND2 );
     }
 
     /**

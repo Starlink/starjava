@@ -116,7 +116,7 @@ public class SingleTaskInvoker {
                 .append( padding );
             Parameter param = params[ i ];
             boolean optional = param.isNullPermitted()
-                            || param.getDefault() != null;
+                            || param.getStringDefault() != null;
             ubuf.append( optional ? "[" : "" )
                 .append( param.getName() )
                 .append( '=' )

@@ -105,7 +105,7 @@ public class UsageWriter {
             .append( "</code></dt>\n" )
             .append( "<dd>" )
             .append( param.getDescription().toString() );
-        String dflt = param.getDefault();
+        String dflt = param.getStringDefault();
         if ( dflt != null && dflt.length() > 0 ) {
             sbuf.append( "<p>[Default: <code>" )
                 .append( dflt.replaceAll( "&", "&amp;" )

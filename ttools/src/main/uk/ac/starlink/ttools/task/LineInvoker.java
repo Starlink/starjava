@@ -730,7 +730,7 @@ public class LineInvoker {
     public static String getParamHelp( TableEnvironment env, String taskName,
                                        Parameter param ) {
         boolean byPos = param.getPosition() > 0;
-        boolean isOptional = param.getDefault() != null 
+        boolean isOptional = param.getStringDefault() != null 
                           || param.isNullPermitted();
         StringBuffer sbuf = new StringBuffer();
         if ( taskName != null ) {
@@ -764,11 +764,11 @@ public class LineInvoker {
         catch ( SAXException e ) {
             sbuf.append( "      ???" );
         }
-        if ( param.getDefault() != null ||
+        if ( param.getStringDefault() != null ||
              param.isNullPermitted() ) {
             sbuf.append( "\n\n   Default:\n" )
                 .append( "      " )
-                .append( param.getDefault() );
+                .append( param.getStringDefault() );
         }
         if ( param instanceof ExtraParameter ) {
             sbuf.append( "\n\n" )

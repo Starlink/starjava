@@ -49,7 +49,7 @@ public class CeaParameter {
         name_ = taskParam.getName();
         description_ = taskParam.getDescription();
         summary_ = taskParam.getPrompt();
-        dflt_ = taskParam.getDefault();
+        dflt_ = taskParam.getStringDefault();
         isNullPermitted_ = taskParam.isNullPermitted();
         type_ = "text";
         if ( taskParam instanceof OutputTableParameter ||

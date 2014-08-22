@@ -37,11 +37,11 @@ public class FontParameter extends StyleParameter<String> {
          * be present, and it ought to be a sensible default. */
         String dflt = "dialog";
         if ( Arrays.asList( getOptionNames() ).contains( dflt ) ) {
-            setDefault( dflt );
+            setStringDefault( dflt );
         }
         else {
             assert false : Arrays.asList( getOptionNames() );
-            setDefault( getOptionNames()[ 0 ] );
+            setStringDefault( getOptionNames()[ 0 ] );
         }
         setPrompt( "Font family name" );
         setUsage( "dialog|serif|..." );
@@ -74,7 +74,7 @@ public class FontParameter extends StyleParameter<String> {
             "<p>Sets the font size used for plot annotations.",
             "</p>",
         } );
-        sizeParam_.setDefault( Integer.toString( 12 ) );
+        sizeParam_.setIntDefault( 12 );
         sizeParam_.setMinimum( 1 );
 
         /* Set up associated font style parameter. */
@@ -96,7 +96,7 @@ public class FontParameter extends StyleParameter<String> {
             "<code>bold-italic</code>.",
             "</p>",
         } );
-        styleParam_.setDefault( "plain" );
+        styleParam_.setStringDefault( "plain" );
     }
 
     /**

@@ -59,7 +59,7 @@ public class HistogramPlotStateFactory extends PlotStateFactory {
             "<p>Lower bound for Y axis.",
             "</p>",
         } );
-        yloParam_.setDefault( "0" );
+        yloParam_.setDoubleDefault( 0. );
 
         yhiParam_ = new DoubleParameter( "yhi" );
         yhiParam_.setNullPermitted( true );
@@ -76,7 +76,7 @@ public class HistogramPlotStateFactory extends PlotStateFactory {
             "<p>Whether to use a logarithmic scale for the Y axis.",
             "</p>",
         } );
-        ylogParam_.setDefault( "false" );
+        ylogParam_.setBooleanDefault( false );
 
         ylabelParam_ = new StringParameter( "ylabel" );
         ylabelParam_.setPrompt( "Label for vertical axis" );
@@ -86,7 +86,8 @@ public class HistogramPlotStateFactory extends PlotStateFactory {
             "if no value is supplied for this parameter.",
             "</p>",
         } );
-        ylabelParam_.setDefault( Histogram.getYInfo( false, false ).getName() );
+        ylabelParam_.setStringDefault( Histogram.getYInfo( false, false )
+                                                .getName() );
         ylabelParam_.setNullPermitted( true );
 
         binwidthParam_ = new DoubleParameter( "binwidth" );
@@ -108,7 +109,7 @@ public class HistogramPlotStateFactory extends PlotStateFactory {
             "Otherwise (the default), no scaling is done.",
             "</p>",
         } );
-        normParam_.setDefault( "false" );
+        normParam_.setBooleanDefault( false );
 
         cumulativeParam_ = new BooleanParameter( "cumulative" );
         cumulativeParam_.setPrompt( "Cumulative plot?" );
@@ -122,7 +123,7 @@ public class HistogramPlotStateFactory extends PlotStateFactory {
             "on the X axis that it covers.",
             "</p>",
         } );
-        cumulativeParam_.setDefault( "false" );
+        cumulativeParam_.setBooleanDefault( false );
 
         binbaseParam_ = new DoubleParameter( "binbase" );
         binbaseParam_.setPrompt( "Lower bound for one histogram bin" );
@@ -136,7 +137,7 @@ public class HistogramPlotStateFactory extends PlotStateFactory {
             "corresponding distance.",
             "</p>",
         } );
-        binbaseParam_.setDefault( "0" );
+        binbaseParam_.setDoubleDefault( 0. );
     }
 
     public Parameter[] getParameters() {
@@ -175,7 +176,7 @@ public class HistogramPlotStateFactory extends PlotStateFactory {
         final double ylo;
         if ( ylog ) {
             yloParam_.setNullPermitted( true );
-            yloParam_.setDefault( null );
+            yloParam_.setStringDefault( null );
             ylo = yloParam_.doubleValue( env );
         }
         else {
@@ -184,7 +185,7 @@ public class HistogramPlotStateFactory extends PlotStateFactory {
              * trouble with static parameter settings (e.g. from HTML forms).
              * So work around it. */
             yloParam_.setNullPermitted( true );
-            yloParam_.setDefault( "0" );
+            yloParam_.setDoubleDefault( 0 );
             double yl = yloParam_.doubleValue( env );
             ylo = Double.isNaN( yl ) ? 0 : yl;
         }
@@ -200,18 +201,18 @@ public class HistogramPlotStateFactory extends PlotStateFactory {
         double xhi = state.getRanges()[ 0 ][ 1 ];
         if ( ! Double.isNaN( xlo ) && ! Double.isNaN( xhi ) ) {
             binwidthParam_.setNullPermitted( false );
-            binwidthParam_.setDefault( Double
-                                      .toString( getDefaultBinWidth( xlo, xhi,
-                                                                     xlog ) ) );
+            binwidthParam_.setDoubleDefault( getDefaultBinWidth( xlo, xhi,
+                                                                 xlog ) );
         }
         double bw = binwidthParam_.doubleValue( env );
         state.setBinWidth( Double.isNaN( bw ) ? 0.0 : bw );
 
         state.setNormalised( normParam_.booleanValue( env ) );
 
-        ylabelParam_.setDefault( Histogram.getYInfo( state.getWeighted(),
-                                                     state.getNormalised() )
-                                          .getName() );
+        ylabelParam_.setStringDefault( Histogram
+                                      .getYInfo( state.getWeighted(),
+                                                 state.getNormalised() )
+                                      .getName() );
         state.setAxisLabels( new String[] {
             state.getAxisLabels()[ 0 ],
             ylabelParam_.stringValue( env ),
@@ -219,7 +220,7 @@ public class HistogramPlotStateFactory extends PlotStateFactory {
 
         state.setNormalised( normParam_.booleanValue( env ) );
         state.setCumulative( cumulativeParam_.booleanValue( env ) );
-        binbaseParam_.setDefault( state.getLogFlags()[ 0 ] ? "1" : "0" );
+        binbaseParam_.setDoubleDefault( state.getLogFlags()[ 0 ] ? 1. : 0. );
         state.setBinBase( binbaseParam_.doubleValue( env ) );
     }
 
@@ -432,7 +433,7 @@ public class HistogramPlotStateFactory extends PlotStateFactory {
             "(contact the author to lobby for such an amendment).",
             "</p>",
         } );
-        param.setDefault( "1" );
+        param.setStringDefault( "1" );
         return param;
     }
 }

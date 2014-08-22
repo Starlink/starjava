@@ -28,7 +28,7 @@ public class OutputModeParameter
     public OutputModeParameter( String name ) {
         super( name, Stilts.getModeFactory() );
         setPrompt( "Output mode" );
-        setDefault( "out" );
+        setStringDefault( "out" );
         setUsage( "<out-mode> <mode-args>" );
 
         StringBuffer sbuf = new StringBuffer();

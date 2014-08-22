@@ -62,7 +62,7 @@ public class MatchEngineParameter extends Parameter<MatchEngine>
         paramsParam_ = new WordsParameter( "params" );
         tuningParam_ = new WordsParameter( "tuning" );
 
-        setDefault( "sky" );
+        setStringDefault( "sky" );
         setPreferExplicit( true );
 
         setUsage( "<matcher-name>" );
@@ -130,7 +130,7 @@ public class MatchEngineParameter extends Parameter<MatchEngine>
             "</p>",
         } );
         scoreParam_.setNullPermitted( true );
-        scoreParam_.setDefault( SCORE_INFO.getName() );
+        scoreParam_.setStringDefault( SCORE_INFO.getName() );
     }
 
     public String getExtraUsage( TableEnvironment env ) {
@@ -350,8 +350,8 @@ public class MatchEngineParameter extends Parameter<MatchEngine>
 
         /* Configure score column parameter accordingly. */
         ValueInfo scoreInfo = engine.getMatchScoreInfo();
-        scoreParam_.setDefault( scoreInfo == null ? null
-                                                  : scoreInfo.getName() );
+        scoreParam_.setStringDefault( scoreInfo == null ? null
+                                                        : scoreInfo.getName() );
 
         /* Configure the engine's subparameters. */
         setConfigValues( env, engine.getMatchParameters(), paramsParam_,
@@ -384,7 +384,7 @@ public class MatchEngineParameter extends Parameter<MatchEngine>
         int nConfig = configs.length;
         if ( nConfig == 0 ) {
             wordsParam.setNullPermitted( true );
-            wordsParam.setDefault( null );
+            wordsParam.setStringDefault( null );
         }
 
         /* Otherwise, enquire about the values to use via the relevant

@@ -77,16 +77,16 @@ public abstract class NamedObjectParameter<T> extends Parameter<T> {
      */
     public void setDefaultOption( T option ) {
         if ( option == null ) {
-            super.setDefault( null );
+            super.setStringDefault( null );
             return;
         }
         for ( NamedOption<T> opt : optList_ ) {
             if ( opt.option_.equals( option ) ) {
-                super.setDefault( opt.name_ );
+                super.setStringDefault( opt.name_ );
                 return;
             }
         }
-        super.setDefault( toString( option ) );
+        super.setStringDefault( toString( option ) );
     }
 
     /**

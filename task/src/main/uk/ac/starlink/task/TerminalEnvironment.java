@@ -116,8 +116,8 @@ public class TerminalEnvironment implements Environment {
         }
           
         if ( ! valueMap.containsKey( par ) ) {
-            if ( par.getDefault() != null ) {
-                valueMap.put( par, par.getDefault() );
+            if ( par.getStringDefault() != null ) {
+                valueMap.put( par, par.getStringDefault() );
             }
             else if ( par.getPreferExplicit() || ! par.isNullPermitted() ) {
                 String prompt = par.getPrompt();
@@ -142,8 +142,8 @@ public class TerminalEnvironment implements Environment {
                     value = "";
                 }
                 if ( value.length() == 0 ) {
-                    String def = par.getDefault();
-                    if ( par.getDefault() != null ) {
+                    String def = par.getStringDefault();
+                    if ( par.getStringDefault() != null ) {
                         value = def;
                     }
                     else {  // recurse

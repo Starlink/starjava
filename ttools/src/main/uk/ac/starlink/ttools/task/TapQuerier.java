@@ -16,6 +16,6 @@ public class TapQuerier extends MapperTask {
         IntegerParameter countParam =
             ((VariableTablesInput) getTablesInput()).getCountParam();
         countParam.setMinimum( 0 );
-        countParam.setDefault( "0" );
+        countParam.setIntDefault( 0 );
     }
 }

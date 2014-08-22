@@ -196,7 +196,7 @@ public class MultiTaskInvoker {
             Parameter param = params[ i ];
             ubuf.append( padding );
             boolean optional = param.isNullPermitted()
-                            || param.getDefault() != null;
+                            || param.getStringDefault() != null;
             ubuf.append( optional ? "[" : "" )
                 .append( param.getName() )
                 .append( '=' )

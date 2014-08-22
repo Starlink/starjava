@@ -93,7 +93,7 @@ public class TableFactoryParameter extends Parameter<StarTableFactory> {
             "and may change significantly in future releases.",
             "</p>",
         } );
-        setDefault( FILE_OPTION );
+        setStringDefault( FILE_OPTION );
     }
 
     public StarTableFactory stringToObject( Environment env, String sval )

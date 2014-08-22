@@ -90,7 +90,7 @@ public class ServletEnvironment implements TableEnvironment {
         if ( isDefault && param instanceof OutputTableParameter ) {
             OutputTableParameter outParam = (OutputTableParameter) param;
             OutputFormatParameter formatParam = outParam.getFormatParameter();
-            formatParam.setDefault( "votable" );
+            formatParam.setStringDefault( "votable" );
             String format = formatParam.stringValue( this );
             StarTableWriter writer;
             try {
@@ -110,7 +110,7 @@ public class ServletEnvironment implements TableEnvironment {
             OutputModeParameter outParam = (OutputModeParameter) param;
             OutputFormatParameter formatParam =
                 new OutputFormatParameter( "ofmt" );
-            formatParam.setDefault( "votable" );
+            formatParam.setStringDefault( "votable" );
             String format = formatParam.stringValue( this );
             StarTableWriter writer;
             try {
@@ -129,7 +129,7 @@ public class ServletEnvironment implements TableEnvironment {
         else if ( isDefault && param instanceof PaintModeParameter ) {
             PaintModeParameter pmParam = (PaintModeParameter) param;
             ChoiceParameter formatParam = pmParam.getFormatParameter();
-            formatParam.setDefault( "png" );
+            formatParam.setStringDefault( "png" );
             GraphicExporter exporter =
                 (GraphicExporter) formatParam.objectValue( this );
             pmParam.setValueFromPainter( this, new ServletPainter( exporter ) );
@@ -143,7 +143,7 @@ public class ServletEnvironment implements TableEnvironment {
 
             /* No value supplied: use parameter default. */
             if ( isDefault ) {
-                stringVal = param.getDefault();
+                stringVal = param.getStringDefault();
             }
 
             /* Multiple-valued parameter: concatenate different values. */

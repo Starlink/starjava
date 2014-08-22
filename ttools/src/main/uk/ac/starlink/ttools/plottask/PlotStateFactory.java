@@ -99,7 +99,7 @@ public class PlotStateFactory {
             "If false, they are absent.",
             "</p>",
         } );
-        gridParam_.setDefault( true );
+        gridParam_.setBooleanDefault( true );
 
         seqParam_ = new StringMultiParameter( "sequence", ',' );
         seqParam_.setPrompt( "Defines plot order of subsets" );
@@ -143,7 +143,7 @@ public class PlotStateFactory {
             "Setting it true may slow the plot down slightly.",
             "</p>",
         } );
-        aaParam_.setDefault( true );
+        aaParam_.setBooleanDefault( true );
     }
 
     /**
@@ -208,7 +208,7 @@ public class PlotStateFactory {
         if ( useAux_ ) {
             ShaderParameter shaderParam =
                 createShaderParameters( new String[] { AUX_VARIABLE } )[ 0 ];
-            assert shaderParam.getDefault() != null;
+            assert shaderParam.getStringDefault() != null;
             paramList.add( shaderParam );
         }
 
@@ -367,7 +367,7 @@ public class PlotStateFactory {
             }
         }
         String seqDefault = seqbuf.toString();
-        seqParam_.setDefault( seqDefault );
+        seqParam_.setStringDefault( seqDefault );
         String seqString = seqParam_.stringValue( env );
         if ( seqString != null && ! seqString.equals( seqDefault ) ) {
             String[] setLabels = seqParam_.stringValue( env )
@@ -412,7 +412,7 @@ public class PlotStateFactory {
                              ? mainDimNames_[ idim ]
                              : "Aux " + ( idim - mainNdim + 1 );
             }
-            axParamSet.labelParam_.setDefault( labelDefault );
+            axParamSet.labelParam_.setStringDefault( labelDefault );
             labels[ idim ] = axParamSet.labelParam_.stringValue( env );
         }
         state.setLogFlags( logFlags );
@@ -775,7 +775,7 @@ public class PlotStateFactory {
          * a single subset with inclusion of all points. */
         if ( nset == 0 ) {
             StringParameter nameParam = createSubsetNameParameter( tlabel );
-            nameParam.setDefault( tlabel );
+            nameParam.setStringDefault( tlabel );
             String name = nameParam.stringValue( env );
             return new SubsetDef[] {
                 new SubsetDef( tlabel, "true", name,
@@ -793,7 +793,7 @@ public class PlotStateFactory {
                              .stringValue( env );
                 StringParameter nameParam =
                     createSubsetNameParameter( stLabel );
-                nameParam.setDefault( expr );
+                nameParam.setStringDefault( expr );
                 String name = nameParam.stringValue( env );
                 sdefs[ is ] =
                     new SubsetDef( stLabel, expr, name,
@@ -940,7 +940,7 @@ public class PlotStateFactory {
         for ( int i = 0; i < nparam; i++ ) {
             params[ i ] =
                 new ShaderParameter( AUX_PREFIX + auxlabels[ i ] + "shader" );
-            params[ i ].setDefault( dflts[ i ] );
+            params[ i ].setStringDefault( dflts[ i ] );
         }
         return params;
     }
@@ -1016,7 +1016,7 @@ public class PlotStateFactory {
                 "axis is linear; if true it is logarithmic.",
                 "</p>",
             } );
-            logParam_.setDefault( "false" );
+            logParam_.setBooleanDefault( false );
 
             flipParam_ = new BooleanParameter( axName_ + "flip" );
             flipParam_.setPrompt( "Reversed direction on " + axName_
@@ -1027,7 +1027,7 @@ public class PlotStateFactory {
                 "(e.g. right to left rather than left to right).",
                 "</p>",
             } );
-            flipParam_.setDefault( "false" );
+            flipParam_.setBooleanDefault( false );
 
             labelParam_ = new StringParameter( axName_ + "label" );
             labelParam_.setPrompt( "Label for axis " + axName_ );

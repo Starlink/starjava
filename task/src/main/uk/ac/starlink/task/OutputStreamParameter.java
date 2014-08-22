@@ -24,7 +24,7 @@ public class OutputStreamParameter extends Parameter<Destination> {
         super( name, Destination.class, true );
         setUsage( "<out-file>" );
         setPrompt( "Location of output file" );
-        setDefault( "-" );
+        setStringDefault( "-" );
 
         setDescription( new String[] {
             "<p>The location of the output file.  This is usually a filename",

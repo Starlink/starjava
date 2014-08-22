@@ -73,7 +73,7 @@ public abstract class PlotTask implements Task {
             "<p>The width of the output graphic in pixels.",
             "</p>",
         } );
-        xpixParam_.setDefault( "400" );
+        xpixParam_.setIntDefault( 400 );
         paramList_.add( xpixParam_ );
 
         ypixParam_ = new IntegerParameter( "ypix" );
@@ -83,7 +83,7 @@ public abstract class PlotTask implements Task {
             "<p>The height of the output graphic in pixels.",
             "</p>",
         } );
-        ypixParam_.setDefault( "300" );
+        ypixParam_.setIntDefault( 300 );
         paramList_.add( ypixParam_ );
 
         fontParam_ = new FontParameter( "font" );
@@ -154,9 +154,7 @@ public abstract class PlotTask implements Task {
         final int xpix = xpixParam_.intValue( env );
         final int ypix = ypixParam_.intValue( env );
         final PlotState state = stateFactory_.getPlotState( env );
-        legendParam_.setDefault( state.getPlotData().getSetCount() > 1
-                                      ? "true"
-                                      : "false" );
+        legendParam_.setBooleanDefault( state.getPlotData().getSetCount() > 1 );
         final boolean hasLegend = legendParam_.booleanValue( env );
         final Painter painter = painterParam_.painterValue( env );
         final Font font = fontParam_.fontValue( env );

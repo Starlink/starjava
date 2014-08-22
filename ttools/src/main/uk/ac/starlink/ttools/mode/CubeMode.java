@@ -48,7 +48,7 @@ public class CubeMode implements ProcessingMode {
     public CubeMode() {
         boundsParam_ = new WordsParameter( "bounds" );
         boundsParam_.setNullPermitted( true );
-        boundsParam_.setDefault( null );
+        boundsParam_.setStringDefault( null );
         boundsParam_.setWordParser( new BoundsParser() );
         boundsParam_.setWordUsage( "[<lo>]:[<hi>]" );
         boundsParam_.setPrompt( "Data bounds for each dimension" );
@@ -114,7 +114,7 @@ public class CubeMode implements ProcessingMode {
 
         typeParam_ = new ChoiceParameter<Class>( "otype", OUT_TYPES );
         typeParam_.setNullPermitted( true );
-        typeParam_.setDefault( null );
+        typeParam_.setStringDefault( null );
         typeParam_.setPrompt( "Type of output array elements" );
         typeParam_.setDescription( new String[] {
             "<p>The type of numeric value which will fill the output array.",
@@ -130,7 +130,7 @@ public class CubeMode implements ProcessingMode {
         scaleParam_ = new StringParameter( "scale" );
         scaleParam_.setUsage( "<col-id>" );
         scaleParam_.setNullPermitted( true );
-        scaleParam_.setDefault( null );
+        scaleParam_.setStringDefault( null );
         scaleParam_.setPrompt( "Value by which to scale counts" );
         scaleParam_.setDescription( new String[] {
             "<p>Optionally gives a value by which the count in each bin is",

@@ -55,6 +55,15 @@ public class IntegerParameter extends Parameter<Integer> {
     }
 
     /**
+     * Sets the default value as an integer.
+     *
+     * @param  dflt  new default value
+     */
+    public void setIntDefault( int dflt ) {
+        setStringDefault( Integer.toString( dflt ) );
+    }
+
+    /**
      * Mandates that any value of this parameter must be even.
      */
     public void setEven() {

@@ -29,7 +29,7 @@ public class PaintModeParameter extends ChoiceParameter<PaintMode> {
 
         outParam_ = new OutputStreamParameter( "out" );
         outParam_.setPrompt( "Output file for graphics" );
-        outParam_.setDefault( null );
+        outParam_.setStringDefault( null );
         outParam_.setNullPermitted( false );
 
         formatParam_ =
@@ -79,7 +79,7 @@ public class PaintModeParameter extends ChoiceParameter<PaintMode> {
         /* Set the default as the final value.  This happens to be "auto"
          * at present.  If it wasn't, choosing the last one wouldn't
          * necessarily be a good choice. */
-        setDefault( modes[ modes.length - 1 ].getName() );
+        setStringDefault( modes[ modes.length - 1 ].getName() );
     }
 
     /**

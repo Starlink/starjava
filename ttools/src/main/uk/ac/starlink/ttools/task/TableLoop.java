@@ -36,7 +36,7 @@ public class TableLoop extends ConsumerTask {
             "<p>Gives the name of the single column produced by this command.",
             "</p>",
         } );
-        varParam_.setDefault( "i" );
+        varParam_.setStringDefault( "i" );
 
         stepParam_ = new DoubleParameter( "step" );
         stepParam_.setPrompt( "Loop step value" );
@@ -45,7 +45,7 @@ public class TableLoop extends ConsumerTask {
             "at each iteration, i.e. each table row.",
             "</p>",
         } );
-        stepParam_.setDefault( "1" );
+        stepParam_.setDoubleDefault( 1. );
 
         startParam_ = new DoubleParameter( "start" );
         startParam_.setPrompt( "Loop initial value" );
@@ -54,7 +54,7 @@ public class TableLoop extends ConsumerTask {
             "This will the the value in the first row of the table.",
             "</p>",
         } );
-        startParam_.setDefault( "0" );
+        startParam_.setDoubleDefault( 0. );
 
         endParam_ = new DoubleParameter( "end" );
         endParam_.setPrompt( "Loop final value" );
@@ -75,7 +75,7 @@ public class TableLoop extends ConsumerTask {
             "the column will be an integer column.",
             "</p>",
         } );
-        forceFloatParam_.setDefault( false );
+        forceFloatParam_.setBooleanDefault( false );
 
         int ipos = 0;
         varParam_.setPosition( ++ipos );

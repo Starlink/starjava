@@ -85,7 +85,7 @@ public class SqlUpdate implements Task {
         } );
 
         progressParam_ = new BooleanParameter( "progress" );
-        progressParam_.setDefault( "true" );
+        progressParam_.setBooleanDefault( true );
         progressParam_.setPrompt( "Display progress on console?" );
         progressParam_.setDescription( new String[] {
             "<p>If true, a spinner will be drawn on standard error",

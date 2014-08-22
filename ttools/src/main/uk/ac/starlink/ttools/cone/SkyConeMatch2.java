@@ -115,7 +115,7 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
                 }
             }
         };
-        modeParam_.setDefault( "all" );
+        modeParam_.setStringDefault( "all" );
         modeParam_.setPrompt( "Type of match to perform" );
         modeParam_.setDescription( new String[] {
             "<p>Determines which matches are retained.",
@@ -163,7 +163,7 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
             "which covers VizieR and a few other cone search services.",
             "</p>",
         } );
-        usefootParam_.setDefault( Boolean.TRUE.toString() );
+        usefootParam_.setBooleanDefault( true );
         paramList.add( usefootParam_ );
 
         nsideParam_ = new IntegerParameter( "footnside" );
@@ -193,7 +193,7 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
         copycolsParam_ = new StringParameter( "copycols" );
         copycolsParam_.setUsage( "<colid-list>" );
         copycolsParam_.setNullPermitted( true );
-        copycolsParam_.setDefault( "*" );
+        copycolsParam_.setStringDefault( "*" );
         copycolsParam_.setPrompt( "Columns to be copied from input table" );
         copycolsParam_.setDescription( new String[] {
             "<p>List of columns from the input table which are to be copied",
@@ -211,7 +211,7 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
 
         distcolParam_ = new StringParameter( "scorecol" );
         distcolParam_.setNullPermitted( true );
-        distcolParam_.setDefault( "Separation" );
+        distcolParam_.setStringDefault( "Separation" );
         distcolParam_.setPrompt( "Angular distance output column name" );
         distcolParam_.setUsage( "<col-name>" );
         distcolParam_.setDescription( new String[] {
@@ -226,7 +226,7 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
         paramList.add( distcolParam_ );
 
         parallelParam_ = new IntegerParameter( "parallel" );
-        parallelParam_.setDefault( "1" );
+        parallelParam_.setIntDefault( 1 );
         parallelParam_.setPrompt( "Number of queries to make in parallel" );
         parallelParam_.setUsage( "<n>" );
         parallelParam_.setMinimum( 1 );
@@ -269,7 +269,7 @@ public abstract class SkyConeMatch2 extends SingleMapperTask {
         paramList.add( erractParam_ );
 
         ostreamParam_ = new BooleanParameter( "ostream" );
-        ostreamParam_.setDefault( "false" );
+        ostreamParam_.setBooleanDefault( false );
         ostreamParam_.setPrompt( "Whether output will be strictly streamed" );
         ostreamParam_.setDescription( new String[] {
             "<p>If set true, this will cause the operation to stream on",

@@ -44,7 +44,7 @@ public class SqlClient implements Task {
         connParam_ = new ConnectionParameter( "db" );
         stmtParam_ = new StatementParameter( "sql" );
         ofmtParam_ = new OutputFormatParameter( "ofmt" );
-        ofmtParam_.setDefault( "text" );
+        ofmtParam_.setStringDefault( "text" );
     }
 
     public String getPurpose() {

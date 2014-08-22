@@ -40,7 +40,7 @@ public class ConeErrorPolicyParameter extends Parameter<ConeErrorPolicy> {
             .append( "<n>" );
         setUsage( ubuf.toString() );
         setPrompt( "Action on cone search failure" );
-        setDefault( ConeErrorPolicy.ABORT.toString() );
+        setStringDefault( ConeErrorPolicy.ABORT.toString() );
         setDescription( new String[] {
             "<p>Determines what will happen if any of the individual cone",
             "search requests fails.  By default the task aborts.",

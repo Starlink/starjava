@@ -185,7 +185,7 @@ public class MapEnvironment implements TableEnvironment {
 
             /* For any other unspecified value, use the parameter default. */
             else {
-                value = param.getDefault();
+                value = param.getStringDefault();
             }
         }
 

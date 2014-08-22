@@ -64,7 +64,7 @@ public class JoinFixActionParameter
             }
         } );
 
-        setDefault( dflt );
+        setStringDefault( dflt );
         StringBuffer dbuf = new StringBuffer()
             .append( "<p>Determines how input columns are renamed before\n" )
             .append( "use in the output table.  The choices are:\n" )
@@ -148,7 +148,7 @@ public class JoinFixActionParameter
     public StringParameter createSuffixParameter( String name, String descrip,
                                                   String dflt ) {
         StringParameter param = new StringParameter( name );
-        param.setDefault( dflt );
+        param.setStringDefault( dflt );
         param.setNullPermitted( true );
         param.setUsage( "<label>" );
         param.setPrompt( "Deduplicating suffix for columns in " + descrip );

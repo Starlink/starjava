@@ -28,7 +28,7 @@ public class ProgressIndicatorParameter extends ChoiceParameter<String> {
     public ProgressIndicatorParameter( String name ) {
         super( name, new String[] { NONE, LOG, PROFILE, } );
         setPrompt( "How to report progress to screen" );
-        setDefault( LOG );
+        setStringDefault( LOG );
         setDescription( new String[] {
             "<p>Determines whether information on progress of the match",
             "should be output to the standard error stream as it progresses.",

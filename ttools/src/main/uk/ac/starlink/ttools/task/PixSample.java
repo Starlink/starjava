@@ -324,7 +324,7 @@ public class PixSample extends MapperTask {
                 "This is usually, but not necessarily, FITS.",
                 "</p>",
             } );
-            pixFmtParam.setDefault( "fits" );
+            pixFmtParam.setStringDefault( "fits" );
 
             pixFilterParam_ = new FilterParameter( "pcmd" );
             pixFilterParam_.setPrompt( "Processing command(s)"

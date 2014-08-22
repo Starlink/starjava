@@ -78,11 +78,10 @@ public class ChoiceMode implements ProcessingMode {
             getDefaultAssociatedParameters( OutputModeParameter modeParam ) {
 
         /* Get the default mode object, which is copy mode. */
-        String modeName = modeParam.getDefault();
+        String modeName = modeParam.getStringDefault();
         ProcessingMode mode;
         try {
-            mode = (ProcessingMode)
-                   Stilts.getModeFactory().createObject( modeName );
+            mode = Stilts.getModeFactory().createObject( modeName );
         }
         catch ( LoadException e ) {
             logger_.warning( "Can't load default output mode?? " + e );

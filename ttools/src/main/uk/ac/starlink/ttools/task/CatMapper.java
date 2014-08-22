@@ -69,7 +69,7 @@ public class CatMapper implements TableMapper {
         seqParam_ = new StringParameter( "seqcol" );
         seqParam_.setUsage( "<colname>" );
         seqParam_.setNullPermitted( true );
-        seqParam_.setDefault( null );
+        seqParam_.setStringDefault( null );
         seqParam_.setDescription( new String[] {
             "<p>Name of a column to be added to the output table",
             "which will contain the sequence number of the input table",
@@ -82,7 +82,7 @@ public class CatMapper implements TableMapper {
         locParam_ = new StringParameter( "loccol" );
         locParam_.setUsage( "<colname>" );
         locParam_.setNullPermitted( true );
-        locParam_.setDefault( null );
+        locParam_.setStringDefault( null );
         locParam_.setDescription( new String[] {
             "<p>Name of a column to be added to the output table",
             "which will contain the location",
@@ -94,7 +94,7 @@ public class CatMapper implements TableMapper {
         ulocParam_ = new StringParameter( "uloccol" );
         ulocParam_.setUsage( "<colname>" );
         ulocParam_.setNullPermitted( true );
-        ulocParam_.setDefault( null );
+        ulocParam_.setStringDefault( null );
         ulocParam_.setDescription( new String[] {
             "<p>Name of a column to be added to the output table",
             "which will contain the unique part of the location",
@@ -114,7 +114,7 @@ public class CatMapper implements TableMapper {
         } );
 
         lazyParam_ = new BooleanParameter( "lazy" );
-        lazyParam_.setDefault( false );
+        lazyParam_.setBooleanDefault( false );
         lazyParam_.setDescription( new String[] {
             "<p>Whether to perform table resolution lazily.",
             "If true, each table is only accessed when the time comes to",
@@ -127,7 +127,7 @@ public class CatMapper implements TableMapper {
         } );
 
         countParam_ = new BooleanParameter( "countrows" );
-        countParam_.setDefault( false );
+        countParam_.setBooleanDefault( false );
         countParam_.setDescription( new String[] {
             "<p>Whether to count the rows in the table before starting",
             "the output.  This is essentially a tuning parameter -",

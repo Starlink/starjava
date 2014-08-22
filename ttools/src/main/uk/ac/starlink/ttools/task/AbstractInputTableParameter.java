@@ -56,7 +56,7 @@ public abstract class AbstractInputTableParameter<T> extends Parameter<T> {
         char labelChar = name.charAt( 0 );
         formatParam_ = new InputFormatParameter( labelChar + "fmt" + suffix );
         streamParam_ = new BooleanParameter( labelChar + "stream" + suffix );
-        streamParam_.setDefault( false );
+        streamParam_.setBooleanDefault( false );
 
         setDescription( new String[] {
             "<p>The location of the input table.",

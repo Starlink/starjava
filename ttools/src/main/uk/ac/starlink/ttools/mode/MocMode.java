@@ -13,6 +13,7 @@ import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.IntegerParameter;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.OutputStreamParameter;
+import uk.ac.starlink.task.StringParameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.DocUtils;
 import uk.ac.starlink.ttools.TableConsumer;
@@ -32,9 +33,9 @@ import uk.ac.starlink.util.Destination;
 public class MocMode implements ProcessingMode {
 
     private final IntegerParameter orderParam_;
-    private final Parameter raParam_;
-    private final Parameter decParam_;
-    private final Parameter radiusParam_;
+    private final StringParameter raParam_;
+    private final StringParameter decParam_;
+    private final StringParameter radiusParam_;
     private final ChoiceParameter<MocFormat> mocfmtParam_;
     private final OutputStreamParameter outParam_;
     private static final Logger logger_ =
@@ -56,7 +57,7 @@ public class MocMode implements ProcessingMode {
             "(3520*2^<em>-k</em> arcmin).",
             "</p>",
         } );
-        orderParam_.setDefault( Integer.toString( 13 ) );
+        orderParam_.setIntDefault( 13 );
 
         String system = null;
         String inDescrip = "the input table";
@@ -65,7 +66,7 @@ public class MocMode implements ProcessingMode {
         decParam_ =
             SkyCoordParameter.createDecParameter( "dec", system, inDescrip );
 
-        radiusParam_ = new DoubleParameter( "radius" );
+        radiusParam_ = new StringParameter( "radius" );
         radiusParam_.setUsage( "<expr>" );
         radiusParam_.setPrompt( "Radius expression in degrees" );
         radiusParam_.setDescription( new String[] {
@@ -77,7 +78,7 @@ public class MocMode implements ProcessingMode {
             "<ref id='jel'/> may be used instead.",
             "</p>",
         } );
-        radiusParam_.setDefault( "0" );
+        radiusParam_.setStringDefault( "0" );
 
         mocfmtParam_ =
             new ChoiceParameter<MocFormat>( "mocfmt", MocFormat.getFormats() );
