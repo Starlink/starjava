@@ -108,6 +108,13 @@ public class ChoiceParameter<T> extends Parameter<T> {
     }
 
     /**
+     * Clears the list of known options.
+     */
+    public void clearOptions() {
+        optionMap_.clear();
+    }
+
+    /**
      * Returns a usage message.  Unless it has been overriden by an earlier
      * call to {@link #setUsage}, this will return a usage message based on
      * the list of known options.

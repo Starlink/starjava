@@ -15,8 +15,8 @@ import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.Icon;
@@ -27,14 +27,14 @@ import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.WrapperRowSequence;
 import uk.ac.starlink.table.WrapperStarTable;
-import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.task.BooleanParameter;
 import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.DoubleParameter;
-import uk.ac.starlink.task.Executable;
 import uk.ac.starlink.task.Environment;
+import uk.ac.starlink.task.Executable;
 import uk.ac.starlink.task.ExecutionException;
 import uk.ac.starlink.task.IntegerParameter;
 import uk.ac.starlink.task.OutputStreamParameter;
@@ -45,7 +45,6 @@ import uk.ac.starlink.task.Task;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.func.Strings;
 import uk.ac.starlink.ttools.plot.GraphicExporter;
-import uk.ac.starlink.ttools.plot.Picture;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot.Style;
 import uk.ac.starlink.ttools.plot2.AuxScale;
@@ -53,8 +52,8 @@ import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Decoration;
 import uk.ac.starlink.ttools.plot2.LayerOpt;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
-import uk.ac.starlink.ttools.plot2.PlotType;
 import uk.ac.starlink.ttools.plot2.PlotPlacement;
+import uk.ac.starlink.ttools.plot2.PlotType;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.ShadeAxis;
@@ -69,16 +68,9 @@ import uk.ac.starlink.ttools.plot2.data.CoordGroup;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.DataStoreFactory;
-import uk.ac.starlink.ttools.plot2.geom.CubePlotType;
-import uk.ac.starlink.ttools.plot2.geom.PlanePlotType;
-import uk.ac.starlink.ttools.plot2.geom.SpherePlotType;
-import uk.ac.starlink.ttools.plot2.geom.SkyPlotType;
-import uk.ac.starlink.ttools.plot2.geom.TimePlotType;
 import uk.ac.starlink.ttools.plot2.paper.Compositor;
 import uk.ac.starlink.ttools.plot2.paper.PaperType;
 import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
-import uk.ac.starlink.ttools.plottask.ColorParameter;
-import uk.ac.starlink.ttools.plottask.PaintMode;
 import uk.ac.starlink.ttools.plottask.PaintModeParameter;
 import uk.ac.starlink.ttools.plottask.Painter;
 import uk.ac.starlink.ttools.plottask.SwingPainter;
@@ -90,15 +82,16 @@ import uk.ac.starlink.ttools.task.StringMultiParameter;
 import uk.ac.starlink.ttools.task.TableProducer;
 
 /**
- * STILTS Task for generic layer plots.
+ * Abstract superclass for tasks performing plot2 plots using STILTS.
+ * Concrete subclasses must supply the PlotType (perhaps from the
+ * environment), and may customise the visible task parameter set.
  *
  * @author   Mark Taylor
- * @since    1 Mar 2013
+ * @since    22 Aug 2014
  */
-public class Plot2Task implements Task {
+public abstract class AbstractPlot2Task implements Task {
 
-    private final ChoiceParameter<PlotType> typeParam_;
-    private final ChoiceParameter<DataGeom> geomParam_;
+    private final boolean allowAnimate_;
     private final IntegerParameter xpixParam_;
     private final IntegerParameter ypixParam_;
     private final InsetsParameter insetsParam_;
@@ -110,6 +103,7 @@ public class Plot2Task implements Task {
     private final InputTableParameter animateParam_;
     private final FilterParameter animateFilterParam_;
     private final IntegerParameter parallelParam_;
+    private final Parameter[] basicParams_;
 
     private static final String PLOTTER_PREFIX = "layer";
     private static final String TABLE_PREFIX = "in";
@@ -121,75 +115,103 @@ public class Plot2Task implements Task {
 
     /**
      * Constructor.
+     *
+     * @param  allowAnimate  true iff animation options should be provided
      */
-    public Plot2Task() {
-        typeParam_ = new ChoiceParameter<PlotType>( "type", new PlotType[] {
-            PlanePlotType.getInstance(),
-            SkyPlotType.getInstance(),
-            CubePlotType.getInstance(),
-            SpherePlotType.getInstance(),
-            TimePlotType.getInstance(),
-        } );
-        geomParam_ = new ChoiceParameter<DataGeom>( "geom", DataGeom.class );
+    protected AbstractPlot2Task( boolean allowAnimate ) {
+        allowAnimate_ = allowAnimate;
+        List<Parameter> plist = new ArrayList<Parameter>();
+
         xpixParam_ = new IntegerParameter( "xpix" );
         xpixParam_.setIntDefault( 500 );
+        plist.add( xpixParam_ );
+
         ypixParam_ = new IntegerParameter( "ypix" );
         ypixParam_.setIntDefault( 400 );
+        plist.add( ypixParam_ );
+
         insetsParam_ = new InsetsParameter( "insets" );
+        plist.add( insetsParam_ );
+
         painterParam_ = createPaintModeParameter();
+        plist.add( painterParam_ );
+
         dstoreParam_ = new DataStoreParameter( "storage" );
+        plist.add( dstoreParam_ );
+
         orderParam_ = new StringMultiParameter( "order", ',' );
         orderParam_.setNullPermitted( true );
+        plist.add( orderParam_ );
+
         bitmapParam_ = new BooleanParameter( "forcebitmap" );
         bitmapParam_.setBooleanDefault( false );
+        plist.add( bitmapParam_ );
+
         boostParam_ = new DoubleParameter( "boost" );
         boostParam_.setMinimum( 0, true );
         boostParam_.setMaximum( 1, true );
         boostParam_.setDoubleDefault( 0.05 );
-        animateParam_ = new InputTableParameter( "animate" );
-        animateParam_.setNullPermitted( true );
-        animateFilterParam_ = new FilterParameter( "acmd" );
-        parallelParam_ = new IntegerParameter( "parallel" );
-        parallelParam_.setMinimum( 1 );
-        parallelParam_.setIntDefault( Runtime.getRuntime()
-                                     .availableProcessors() );
+        plist.add( boostParam_ );
+
+        if ( allowAnimate ) {
+            animateParam_ = new InputTableParameter( "animate" );
+            animateParam_.setNullPermitted( true );
+            plist.add( animateParam_ );
+            animateFilterParam_ = new FilterParameter( "acmd" );
+            plist.add( animateFilterParam_ );
+            parallelParam_ = new IntegerParameter( "parallel" );
+            parallelParam_.setMinimum( 1 );
+            parallelParam_.setIntDefault( Runtime.getRuntime()
+                                         .availableProcessors() );
+            plist.add( parallelParam_ );
+        }
+        else {
+            animateParam_ = null;
+            animateFilterParam_ = null;
+            parallelParam_ = null;
+        }
+        basicParams_ = plist.toArray( new Parameter[ 0 ] );
     }
 
-    public String getPurpose() {
-        return "Draws a generic plot";
-    }
+    /**
+     * Concrete subclasses must implement this method to provide
+     * the PlotType and other information from the environment
+     * that may not be available at construction time.
+     *
+     * @param  env  execution environment
+     * @return  context
+     */
+    public abstract PlotContext getPlotContext( Environment env )
+            throws TaskException;
 
-    public Parameter[] getParameters() {
-        return new Parameter[] {
-            typeParam_,
-            geomParam_,
-            xpixParam_,
-            ypixParam_,
-            insetsParam_,
-            painterParam_,
-            dstoreParam_,
-            orderParam_,
-            bitmapParam_,
-            animateParam_,
-            animateFilterParam_,
-            parallelParam_,
-        };
+    /**
+     * Returns the list of parameters supplied by the AbstractPlot2Task
+     * implementation.  Subclasses should include these alongside any
+     * they want to add for presentation to the user.
+     *
+     * @return  basic parameter list
+     */
+    public final Parameter[] getBasicParameters() {
+        return basicParams_;
     }
 
     public Executable createExecutable( final Environment env )
             throws TaskException {
+        final PlotContext context = getPlotContext( env );
         final Painter painter = painterParam_.painterValue( env );
         final boolean isSwing = painter instanceof SwingPainter;
         final TableProducer animateProducer =
-            ConsumerTask
-           .createProducer( env, animateFilterParam_, animateParam_ );
+              allowAnimate_
+            ? ConsumerTask.createProducer( env, animateFilterParam_,
+                                           animateParam_ )
+            : null;
         boolean isAnimate = animateProducer != null;
         dstoreParam_.setDefaultCaching( isSwing || isAnimate );
 
         /* Single frame: prepare operation and return an executable that
          * has no reference to the environment. */
         if ( ! isAnimate ) {
-            final PlotExecutor executor = createPlotExecutor( env );
+            final PlotExecutor executor = createPlotExecutor( env, context );
             return new Executable() {
                 public void execute() throws IOException {
                     DataStore dataStore;
@@ -238,7 +260,7 @@ public class Plot2Task implements Task {
         else {
 
             /* First, read the animation table for later use. */
-            final StarTable animateTable; 
+            final StarTable animateTable;
             final ColumnInfo[] infos;
             final long nrow;
             Object[] row0;
@@ -267,14 +289,14 @@ public class Plot2Task implements Task {
              * showing up during the actual execution.  For related reasons,
              * if we didn't do this, the parameter system would complain
              * that there are unused parameters in the environment. */
-            createPlotExecutor( env0 );
+            createPlotExecutor( env0, context );
 
             /* Screen animation. */
             if ( isSwing ) {
                 return new Executable() {
                     public void execute() throws IOException, TaskException {
                         try {
-                            animateSwing( env, animateTable );
+                            animateSwing( env, context, animateTable );
                         }
                         catch ( InterruptedException e ) {
                             Thread.currentThread().isInterrupted();
@@ -283,7 +305,7 @@ public class Plot2Task implements Task {
                     }
                 };
             }
-    
+
             /* File output animation. */
             else {
                 final String out0 = getPainterOutputName( env0 );
@@ -291,7 +313,8 @@ public class Plot2Task implements Task {
                 return new Executable() {
                     public void execute() throws IOException, TaskException {
                         try {
-                            animateOutput( env, animateTable, parallel, out0 );
+                            animateOutput( env, context, animateTable,
+                                           parallel, out0 );
                         }
                         catch ( InterruptedException e ) {
                             Thread.currentThread().isInterrupted();
@@ -308,13 +331,15 @@ public class Plot2Task implements Task {
      * table, outputting the result to a sequence of files.
      *
      * @param  baseEnv  base execution environment
+     * @param  context  plot context
      * @param  animateTable  table providing per-frame adjustments
      *                       to environment
      * @param  parallel  thread count for calculations
      * @param  out0  name of first output frame
      */
-    private void animateOutput( Environment baseEnv, StarTable animateTable,
-                                int parallel, String out0 )
+    private void animateOutput( Environment baseEnv, PlotContext context,
+                                StarTable animateTable, int parallel,
+                                String out0 )
             throws TaskException, IOException, InterruptedException {
         ColumnInfo[] infos = Tables.getColumnInfos( animateTable );
         long nrow = animateTable.getRowCount();
@@ -331,7 +356,8 @@ public class Plot2Task implements Task {
                 Environment frameEnv =
                     createFrameEnvironment( baseEnv, infos, aseq.getRow(),
                                             irow, nrow );
-                final PlotExecutor executor = createPlotExecutor( frameEnv );
+                final PlotExecutor executor =
+                    createPlotExecutor( frameEnv, context );
                 final Painter painter = getPainter( frameEnv );
                 final DataStore dstore =
                     executor.createDataStore( lastDataStore );
@@ -363,15 +389,17 @@ public class Plot2Task implements Task {
      * table, displaying the results in a screen component.
      *
      * @param  baseEnv  base execution environment
+     * @param  context  plot context
      * @param  animateTable  table providing per-frame adjustments
      *                       to environment
      */
-    private void animateSwing( Environment baseEnv, StarTable animateTable )
+    private void animateSwing( Environment baseEnv, PlotContext context,
+                               StarTable animateTable )
             throws TaskException, IOException, InterruptedException {
         final SwingPainter painter =
             (SwingPainter) createPaintModeParameter().painterValue( baseEnv );
         ColumnInfo[] infos = Tables.getColumnInfos( animateTable );
-        long nrow = animateTable.getRowCount();
+        long nrow = animateTable.getRowCount(); 
         RowSequence aseq = animateTable.getRowSequence();
         final JComponent holder = new JPanel( new BorderLayout() );
         DataStore dataStore = null;
@@ -380,7 +408,7 @@ public class Plot2Task implements Task {
                 Environment frameEnv =
                     createFrameEnvironment( baseEnv, infos, aseq.getRow(),
                                             irow, nrow );
-                PlotExecutor executor = createPlotExecutor( frameEnv );
+                PlotExecutor executor = createPlotExecutor( frameEnv, context );
                 dataStore = executor.createDataStore( dataStore );
                 final JComponent panel =
                     executor.createPlotComponent( dataStore, true, true );
@@ -393,10 +421,10 @@ public class Plot2Task implements Task {
                         holder.repaint();
                         if ( init ) {
                             painter.postComponent( holder );
-                        }
+                        }                   
                     }
                 } );
-            }
+            }   
         }
         finally {
             aseq.close();
@@ -468,7 +496,8 @@ public class Plot2Task implements Task {
     public Icon createPlotIcon( Environment env )
             throws TaskException, IOException, InterruptedException {
         dstoreParam_.setDefaultCaching( false );
-        PlotExecutor executor = createPlotExecutor( env );
+        PlotExecutor executor =
+            createPlotExecutor( env, getPlotContext( env ) );
         return executor.createPlotIcon( executor.createDataStore( null ) );
     }
 
@@ -486,7 +515,8 @@ public class Plot2Task implements Task {
     public JComponent createPlotComponent( Environment env, boolean caching )
             throws TaskException, IOException, InterruptedException {
         dstoreParam_.setDefaultCaching( caching );
-        PlotExecutor executor = createPlotExecutor( env );
+        PlotExecutor executor =
+            createPlotExecutor( env, getPlotContext( env ) );
         return executor.createPlotComponent( executor.createDataStore( null ),
                                              true, caching );
     }
@@ -502,7 +532,7 @@ public class Plot2Task implements Task {
      */
     private Painter getPainter( Environment env ) throws TaskException {
         PaintModeParameter paintModeParam = createPaintModeParameter();
-        
+
         /* The following line is the ghastly hack.  We have to force the
          * output parameter associated with the paint mode parameter to
          * acquire its value from the given environment.  Because of the
@@ -535,13 +565,15 @@ public class Plot2Task implements Task {
      * into an object capable of performing a static or interactive plot.
      *
      * @param  env  execution environment
+     * @param  context   plot context
      * @return   plot executor
      */
-    private PlotExecutor createPlotExecutor( Environment env )
+    private PlotExecutor createPlotExecutor( Environment env,
+                                             PlotContext context )
             throws TaskException {
 
         /* What kind of plot? */
-        PlotType plotType = typeParam_.objectValue( env );
+        PlotType plotType = context.getPlotType();
         final PaperTypeSelector ptsel = plotType.getPaperTypeSelector();
 
         /* Set up generic configuration. */
@@ -576,7 +608,8 @@ public class Plot2Task implements Task {
                        surfConfig.get( StyleKeys.SHADE_HIGH ) );
 
         /* Gather the requested plot layers from the environment. */
-        final PlotLayer[] layers = createLayers( env, plotType );
+        DataGeom geom = context.getDataGeom();
+        final PlotLayer[] layers = createLayers( env, plotType, geom );
         int nl = layers.length;
         final DataSpec[] dataSpecs = new DataSpec[ nl ];
         for ( int il = 0; il < nl; il++ ) {
@@ -607,7 +640,7 @@ public class Plot2Task implements Task {
             }
 
             public Icon createPlotIcon( DataStore dataStore ) {
-                return Plot2Task
+                return AbstractPlot2Task
                       .createPlotIcon( layers, surfFact, surfConfig,
                                        legend, legpos, shadeAxis, shadeFixRange,
                                        ptsel, compositor, dataStore,
@@ -622,23 +655,19 @@ public class Plot2Task implements Task {
      *
      * @param   env  execution environment
      * @param   plotType  plot type
+     * @param   geom  data geom
+     * @return   plot layers specified by the environment
+     *           for the given plot type
      */
-    private PlotLayer[] createLayers( Environment env, PlotType plotType )
+    private PlotLayer[] createLayers( Environment env, PlotType plotType,
+                                      DataGeom geom )
             throws TaskException {
-
-        /* Determine the data position coordinate geometry. */
-        DataGeom[] geoms = plotType.getPointDataGeoms();
-        for ( int ig = 0; ig < geoms.length; ig++ ) {
-            geomParam_.addOption( geoms[ ig ], geoms[ ig ].getVariantName() );
-        }
-        geomParam_.setDefaultOption( geoms[ 0 ] );
-        DataGeom geom = geomParam_.objectValue( env );
 
         /* Work out what plotters/layers are requested. */
         Map<String,Plotter> plotterMap = getPlotters( env, plotType );
 
         /* For each plotter, create a PlotLayer based on it using the
-         * appropriately suffix-coded parameters in the environment. 
+         * appropriately suffix-coded parameters in the environment.
          * In this step we deliberately create all the specified layers
          * and possibly discard some rather than only creating the
          * required layers.  This is to make sure that the parameter
@@ -700,7 +729,8 @@ public class Plot2Task implements Task {
         String[] pnames = env.getNames();
         for ( int in = 0; in < pnames.length; in++ ) {
             String name = pnames[ in ];
-            if ( name.toLowerCase().startsWith( prefix.toLowerCase() ) ) {
+            if ( name != null &&
+                 name.toLowerCase().startsWith( prefix.toLowerCase() ) ) {
                 String suffix = name.substring( prefix.length() );
                 Plotter plotter =
                     createPlotterParameter( prefix + suffix, plotType )
@@ -852,14 +882,11 @@ public class Plot2Task implements Task {
     /**
      * Returns a table from the environment.
      *
-     * <p>This should be improved in a couple of respects.
-     * <ol>
+     * <p>This should be improved:
+     * <ul>
      * <li>It should be possible to use the same table for several or all
      *     layers by using the name without the suffix
-     * <li>The returned table should be identifiably equal to others
-     *     specified with the same text so that the data system does not
-     *     read the same data multiple times for different layers.
-     * </ol>
+     * </ul>
      *
      * @param   env  execution environment
      * @param   suffix   parameter suffix
@@ -867,6 +894,13 @@ public class Plot2Task implements Task {
      */
     private StarTable getInputTable( Environment env, String suffix )
             throws TaskException {
+
+        /* Note that tables produced by this call which have the same
+         * input specifications (text of input and filter parameters)
+         * will be equal in the sense of Object.equals().  That's good,
+         * since it means that in the common case where the same table
+         * contributes to multiple layers, the DataStore only has to
+         * scan the table once. */
         TableProducer producer =
             ConsumerTask.createProducer( env, createFilterParameter( suffix ),
                                               createTableParameter( suffix ) );
@@ -892,7 +926,7 @@ public class Plot2Task implements Task {
      * Returns a parameter for acquiring a data filter.
      *
      * @param  suffix  layer-specific suffix
-     * @return   fileter parameter
+     * @return   filter parameter
      */
     private FilterParameter createFilterParameter( String suffix ) {
         return new FilterParameter( FILTER_PREFIX + suffix );

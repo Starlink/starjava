@@ -5,7 +5,7 @@ import javax.swing.JComponent;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.TaskException;
-import uk.ac.starlink.ttools.plot2.task.Plot2Task;
+import uk.ac.starlink.ttools.plot2.task.GenericPlot2Task;
 import uk.ac.starlink.ttools.task.MapEnvironment;
 
 /**
@@ -32,20 +32,20 @@ public class EnvPlanePlotter implements SinePlot.PlanePlotter {
          * pairs describing what plot to do on the table. */
         Environment env = configurePlotEnvironment( table );
 
-        /* Pass the populated environment to the Plot2Task object,
+        /* Pass the populated environment to the GenericPlot2Task object,
          * which can turn it into a JComponent containing the plot. */
         boolean caching = ! dataMayChange;
-        return new Plot2Task().createPlotComponent( env, caching );
+        return new GenericPlot2Task().createPlotComponent( env, caching );
     }
 
     /**
      * Constructs and returns an execution environment populated with
-     * the name/value pairs that will cause Plot2Task to make a plot
+     * the name/value pairs that will cause GenericPlot2Task to make a plot
      * for the supplied table.  This method does the work of specifying
      * the plot.
      *
      * @param  table  input table
-     * @return   Plot2Task execution environment ready to plot
+     * @return   GenericPlot2Task execution environment ready to plot
      */
     private Environment configurePlotEnvironment( StarTable table ) {
 
