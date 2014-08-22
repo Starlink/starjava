@@ -35,6 +35,15 @@ public class DoubleParameter extends Parameter<Double> {
     }
 
     /**
+     * Sets the default value as a floating point value.
+     *
+     * @param  dflt  new default value
+     */
+    public void setDoubleDefault( double dflt ) {
+        setStringDefault( Double.isNaN( dflt ) ? "" : Double.toString( dflt ) );
+    }
+
+    /**
      * Sets the minimum acceptable value for this parameter.
      *
      * @param   min   minimum value

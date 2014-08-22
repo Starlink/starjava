@@ -27,7 +27,7 @@ public class CgiMode implements ProcessingMode {
 
     public CgiMode() {
         formatParam_ = new OutputFormatParameter( "ofmt" );
-        formatParam_.setDefault( "votable" );
+        formatParam_.setStringDefault( "votable" );
         formatParam_.setNullPermitted( false );
         formatParam_.setDescription( new String[] {
             "<p>Specifies the format in which the output table will be written",

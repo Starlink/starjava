@@ -28,7 +28,7 @@ public class Match1TypeParameter extends Parameter<Match1Type> {
      */
     public Match1TypeParameter( String name ) {
         super( name, Match1Type.class, true );
-        setDefault( IDENTIFY );
+        setStringDefault( IDENTIFY );
         setNullPermitted( false );
         String usage = new StringBuffer()
             .append( IDENTIFY )

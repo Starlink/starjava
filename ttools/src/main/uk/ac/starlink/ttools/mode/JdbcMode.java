@@ -50,7 +50,7 @@ public class JdbcMode implements ProcessingMode {
         hostParam_ = new StringParameter( "host" );
         hostParam_.setPrompt( "SQL database host" );
         hostParam_.setPrompt( "<hostname>" );
-        hostParam_.setDefault( "localhost" );
+        hostParam_.setStringDefault( "localhost" );
         hostParam_.setDescription( new String[] {
             "<p>The host which is acting as a database server.",
             "</p>",
@@ -77,7 +77,7 @@ public class JdbcMode implements ProcessingMode {
         WriteMode[] modes = WriteMode.getAllModes();
         writeParam_ = new ChoiceParameter<WriteMode>( "write", modes );
         writeParam_.setPrompt( "Mode for writing to the database table" );
-        writeParam_.setDefault( WriteMode.CREATE.toString() );
+        writeParam_.setDefaultOption( WriteMode.CREATE );
         StringBuffer descrip = new StringBuffer()
             .append( "<p>Controls how the values are written to a table " )
             .append( "in the database. " )
@@ -101,7 +101,7 @@ public class JdbcMode implements ProcessingMode {
         userParam_.setNullPermitted( true );
         userParam_.setPreferExplicit( true );
         try {
-            userParam_.setDefault( System.getProperty( "user.name" ) );
+            userParam_.setStringDefault( System.getProperty( "user.name" ) );
         }
         catch ( SecurityException e ) {
             // no default - OK

@@ -104,7 +104,7 @@ public class MarkStyleFactory extends StyleFactory {
         /* Configure transparency (opacity limit). */
         IntegerParameter transparParam =
             createTransparencyParameter( stSuffix );
-        transparParam.setDefault( Integer.toString( style0.getOpaqueLimit() ) );
+        transparParam.setIntDefault( style0.getOpaqueLimit() );
         style.setOpaqueLimit( transparParam.intValue( env ) );
 
         /* Configure line mode. */
@@ -117,7 +117,7 @@ public class MarkStyleFactory extends StyleFactory {
 
         /* Configure point hide flag. */
         BooleanParameter hideParam = createHidePointsParameter( stSuffix );
-        hideParam.setDefault( style0.getHidePoints() ? "true" : "false" );
+        hideParam.setBooleanDefault( style0.getHidePoints() );
         style.setHidePoints( hideParam.booleanValue( env ) );
 
         /* Configure error renderer if appropriate. */
@@ -164,7 +164,7 @@ public class MarkStyleFactory extends StyleFactory {
         IntegerParameter param =
             new IntegerParameter( paramName( "size", stSuffix ) );
         param.setPrompt( "Marker size in pixels for data set " + stSuffix );
-        param.setDefault( Integer.toString( -1 ) );
+        param.setIntDefault( -1 );
         param.setDescription( new String[] {
             "<p>Defines the marker size in pixels for markers plotted in",
             "data set " + stSuffix + ".",
@@ -321,7 +321,7 @@ public class MarkStyleFactory extends StyleFactory {
             "parameter is set to draw lines.",
             "</p>",
         } );
-        param.setDefault( "1" );
+        param.setIntDefault( 1 );
         param.setMinimum( 1 );
         return param;
     }
@@ -358,7 +358,7 @@ public class MarkStyleFactory extends StyleFactory {
     private BooleanParameter createHidePointsParameter( String stSuffix ) {
         BooleanParameter param =
             new BooleanParameter( paramName( "hide", stSuffix ) );
-        param.setDefault( "false" );
+        param.setBooleanDefault( false );
         param.setPrompt( "Hide point markers for data set " + stSuffix + "?" );
         param.setDescription( new String[] {
             "<p>Indicates whether the actual markers plotted for each point",

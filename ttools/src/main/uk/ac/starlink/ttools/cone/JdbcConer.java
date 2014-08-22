@@ -62,7 +62,7 @@ public class JdbcConer implements Coner {
             new ChoiceParameter<AngleUnits>( "dbunit", AngleUnits.class );
         dbunitParam_.addOption( AngleUnits.DEGREES, "deg" );
         dbunitParam_.addOption( AngleUnits.RADIANS, "rad" );
-        dbunitParam_.setDefault( "deg" );
+        dbunitParam_.setStringDefault( "deg" );
         dbunitParam_.setPrompt( "Units of ra/dec values in database" );
         dbunitParam_.setDescription( new String[] {
             "<p>Units of the right ascension and declination columns",
@@ -122,7 +122,7 @@ public class JdbcConer implements Coner {
             "A value of \"<code>*</code>\" retrieves all columns.",
             "</p>",
         } );
-        colsParam_.setDefault( "*" );
+        colsParam_.setStringDefault( "*" );
 
         whereParam_ = new StringParameter( "where" );
         whereParam_.setUsage( "<sql-condition>" );
@@ -149,7 +149,7 @@ public class JdbcConer implements Coner {
             "false (the default); on others it may be faster, who knows?",
             "</p>",
         } );
-        prepareParam_.setDefault( "false" );
+        prepareParam_.setBooleanDefault( false );
     }
 
     /**

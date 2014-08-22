@@ -66,7 +66,7 @@ public class BarStyleFactory extends StyleFactory {
 
         /* Configure line width. */
         IntegerParameter lineParam = createLineWidthParameter( stSuffix );
-        lineParam.setDefault( Integer.toString( style0.getLineWidth() ) );
+        lineParam.setIntDefault( style0.getLineWidth() );
         style.setLineWidth( lineParam.intValue( env ) );
 
         /* Configure dash. */
@@ -124,7 +124,7 @@ public class BarStyleFactory extends StyleFactory {
                                        BarStyle.PLACE_OVER ), "fillover" );
         param.addOption( new BarShape( BarStyle.FORM_OPEN,
                                        BarStyle.PLACE_OVER ), "openover" );
-        param.setDefault( "fill" );
+        param.setStringDefault( "fill" );
         param.setPrompt( "Histogram bar style for dataset " + stSuffix );
         param.setDescription( new String[] {
             "<p>Defines how histogram bars will be drawn for dataset",
@@ -153,7 +153,7 @@ public class BarStyleFactory extends StyleFactory {
             "Only certain bar styles are affected by the line width.",
             "</p>",
         } );
-        param.setDefault( Integer.toString( 2 ) );
+        param.setIntDefault( 2 );
         param.setMinimum( 1 );
         return param;
     }

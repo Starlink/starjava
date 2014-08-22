@@ -17,7 +17,7 @@ public class OutputFormatParameter extends StringParameter
         super( name );
         setUsage( "<out-format>" );
         setPrompt( "Format name for output table" );
-        setDefault( StarTableOutput.AUTO_HANDLER );
+        setStringDefault( StarTableOutput.AUTO_HANDLER );
         setNullPermitted( false );
 
         setDescription( new String[] {

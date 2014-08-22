@@ -303,15 +303,15 @@ public class LineEnvironment implements Environment {
         /* Assemble a prompt string. */
         String name = param.getName();
         String prompt = param.getPrompt();
-        String dflt = param.getDefault();
+        String strDflt = param.getStringDefault();
         StringBuffer obuf = new StringBuffer( param.getName() );
         if ( prompt != null ) {
             obuf.append( " - " )
                 .append( prompt );
         }
-        if ( dflt != null || param.isNullPermitted() ) {
+        if ( strDflt != null || param.isNullPermitted() ) {
             obuf.append( " [" )
-                .append( dflt )
+                .append( strDflt )
                 .append( "]" );
         }
         obuf.append( ": " );
@@ -343,7 +343,7 @@ public class LineEnvironment implements Environment {
 
                 /* Massage it if necessary. */
                 String stringVal = sval.length() == 0
-                                 ? param.getDefault()
+                                 ? param.getStringDefault()
                                  : readValue( sval );
                 if ( NULL_STRING.equals( stringVal ) ) {
                     stringVal = null;
@@ -422,14 +422,15 @@ public class LineEnvironment implements Environment {
          * the user. */
         else if ( interactive_ &&
                   ( promptAll_
-                 || ( param.getDefault() == null && ! param.isNullPermitted() )
+                 || ( param.getStringDefault() == null &&
+                      ! param.isNullPermitted() )
                  || param.getPreferExplicit() ) ) {
             stringVal = promptForValue( param );
         }
 
         /* Otherwise, use the default. */
         else {
-            stringVal = param.getDefault();
+            stringVal = param.getStringDefault();
             setValueFromString( param, stringVal );
         }
 

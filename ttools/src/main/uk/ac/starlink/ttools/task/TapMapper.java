@@ -79,7 +79,7 @@ public class TapMapper implements TableMapper {
             "to submit the query.",
             "</p>",
         } );
-        parseParam_.setDefault( Boolean.FALSE.toString() );
+        parseParam_.setBooleanDefault( false );
         paramList.add( parseParam_ );
 
         syncParam_ = new BooleanParameter( "sync" );
@@ -102,7 +102,7 @@ public class TapMapper implements TableMapper {
             "In most cases <code>false</code> (the default) is preferred.",
             "</p>",
         } );
-        syncParam_.setDefault( Boolean.FALSE.toString() );
+        syncParam_.setBooleanDefault( false );
         paramList.add( syncParam_ );
 
         maxrecParam_ = new LongParameter( "maxrec" );
@@ -132,7 +132,7 @@ public class TapMapper implements TableMapper {
             "to submit a PQL query.",
             "</p>",
         } );
-        langParam_.setDefault( "ADQL" );
+        langParam_.setStringDefault( "ADQL" );
         paramList.add( langParam_ );
 
         resultReader_ = new TapResultReader();
@@ -263,7 +263,7 @@ public class TapMapper implements TableMapper {
             "\"<code>TAP_UPLOAD.&lt;label&gt;</code>\".",
             "</p>",
         } );
-        upnameParam.setDefault( "up" + label );
+        upnameParam.setStringDefault( "up" + label );
         return upnameParam;
     }
 }

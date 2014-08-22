@@ -43,7 +43,7 @@ class Diff implements Task {
         ndiffpar = new IntegerParameter( "ndiffs" );
         ndiffpar.setPrompt( "Number of pixel diffs displayed" );
         ndiffpar.setPosition( 3 );
-        ndiffpar.setDefault( "4" );
+        ndiffpar.setIntDefault( 4 );
     }
 
     public String getPurpose() {

@@ -175,7 +175,7 @@ public abstract class PaintMode {
                 }
             }
             if ( dfltExp != null ) {
-                formatParam.setDefault( dfltExp.getName() );
+                formatParam.setStringDefault( dfltExp.getName() );
             }
             final GraphicExporter exporter =
                 (GraphicExporter) formatParam.objectValue( env );

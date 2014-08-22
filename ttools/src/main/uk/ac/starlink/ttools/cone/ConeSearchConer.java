@@ -96,7 +96,7 @@ public class ConeSearchConer implements Coner {
         } );
 
         believeemptyParam_ = new BooleanParameter( BELIEVE_EMPTY_NAME );
-        believeemptyParam_.setDefault( "true" );
+        believeemptyParam_.setBooleanDefault( true );
         believeemptyParam_.setPrompt( "Believe metadata from empty results?" );
         believeemptyParam_.setDescription( new String[] {
             "<p>Whether the table metadata which is returned from a search",
@@ -378,7 +378,7 @@ public class ConeSearchConer implements Coner {
             /* SIZE = 0 has a special meaning for SIA: it means any image
              * containing the given image.  This is a sensible default in 
              * most cases. */
-            srParam.setDefault( "0" );
+            srParam.setStringDefault( "0" );
             srParam.setNullPermitted( false );
         }
 
@@ -390,7 +390,7 @@ public class ConeSearchConer implements Coner {
                                             final boolean believeEmpty,
                                             StarTableFactory tfact )
                 throws TaskException {
-            formatParam_.setDefault( "image/fits" );
+            formatParam_.setStringDefault( "image/fits" );
             String format = formatParam_.stringValue( env );
             return new SiaConeSearcher( url, format, believeEmpty, tfact ) {
                 @Override

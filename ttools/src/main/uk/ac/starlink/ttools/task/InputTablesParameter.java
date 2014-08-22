@@ -82,7 +82,7 @@ public class InputTablesParameter
             "FITS and VOTable and their variants.",
             "</p>",
         } );
-        multiParam_.setDefault( "false" );
+        multiParam_.setBooleanDefault( false );
     }
 
     /**

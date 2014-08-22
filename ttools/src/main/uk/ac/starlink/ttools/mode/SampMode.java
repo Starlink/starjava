@@ -85,7 +85,7 @@ public class SampMode implements ProcessingMode {
             "<code>table.load.format</code>.",
             "</p>",
         } );
-        formatsParam_.setDefault( "votable fits" );
+        formatsParam_.setStringDefault( "votable fits" );
 
         clientParam_ = new StringParameter( "client" );
         clientParam_.setDescription( new String[] {

@@ -132,27 +132,27 @@ public class Plot2Task implements Task {
         } );
         geomParam_ = new ChoiceParameter<DataGeom>( "geom", DataGeom.class );
         xpixParam_ = new IntegerParameter( "xpix" );
-        xpixParam_.setDefault( "500" );
+        xpixParam_.setIntDefault( 500 );
         ypixParam_ = new IntegerParameter( "ypix" );
-        ypixParam_.setDefault( "400" );
+        ypixParam_.setIntDefault( 400 );
         insetsParam_ = new InsetsParameter( "insets" );
         painterParam_ = createPaintModeParameter();
         dstoreParam_ = new DataStoreParameter( "storage" );
         orderParam_ = new StringMultiParameter( "order", ',' );
         orderParam_.setNullPermitted( true );
         bitmapParam_ = new BooleanParameter( "forcebitmap" );
-        bitmapParam_.setDefault( Boolean.FALSE.toString() );
+        bitmapParam_.setBooleanDefault( false );
         boostParam_ = new DoubleParameter( "boost" );
         boostParam_.setMinimum( 0, true );
         boostParam_.setMaximum( 1, true );
-        boostParam_.setDefault( Double.toString( 0.05 ) );
+        boostParam_.setDoubleDefault( 0.05 );
         animateParam_ = new InputTableParameter( "animate" );
         animateParam_.setNullPermitted( true );
         animateFilterParam_ = new FilterParameter( "acmd" );
         parallelParam_ = new IntegerParameter( "parallel" );
         parallelParam_.setMinimum( 1 );
-        parallelParam_.setDefault( Integer.toString( Runtime.getRuntime()
-                                                    .availableProcessors() ) );
+        parallelParam_.setIntDefault( Runtime.getRuntime()
+                                     .availableProcessors() );
     }
 
     public String getPurpose() {

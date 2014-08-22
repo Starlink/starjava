@@ -39,7 +39,7 @@ public class VotLint implements Task {
 
     public VotLint() {
         inParam_ = new InputStreamParameter( "votable" );
-        inParam_.setDefault( "-" );
+        inParam_.setStringDefault( "-" );
         inParam_.setPosition( 1 );
         inParam_.setPrompt( "VOTable location" );
         inParam_.setDescription( new String[] {
@@ -52,7 +52,7 @@ public class VotLint implements Task {
         } );
 
         validParam_ = new BooleanParameter( "validate" );
-        validParam_.setDefault( true );
+        validParam_.setBooleanDefault( true );
         validParam_.setPrompt( "Validate against VOTable DTD?" );
         validParam_.setDescription( new String[] {
             "<p>Whether to validate the input document aganist",
@@ -95,7 +95,7 @@ public class VotLint implements Task {
         outParam_ = new OutputStreamParameter( "out" );
         outParam_.setPrompt( "File for output messages" );
         outParam_.setUsage( "<location>" );
-        outParam_.setDefault( "-" );
+        outParam_.setStringDefault( "-" );
         outParam_.setDescription( new String[] {
             "<p>Destination file for output messages.",
             "May be a filename or \"-\" to indicate standard output.",

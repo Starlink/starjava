@@ -37,8 +37,8 @@ public class BooleanParameter extends Parameter<Boolean> {
      *
      * @param   dflt  default value
      */
-    public void setDefault( boolean dflt ) {
-        setDefault( dflt ? "true" : "false" );
+    public void setBooleanDefault( boolean dflt ) {
+        setStringDefault( dflt ? "true" : "false" );
     }
 
     public Boolean stringToObject( Environment env, String stringval )

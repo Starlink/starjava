@@ -31,7 +31,7 @@ public class TapResultReader {
 
     private final IntegerParameter pollParam_;
     private final BooleanParameter progressParam_;
-    private final ChoiceParameter deleteParam_;
+    private final ChoiceParameter<DeleteMode> deleteParam_;
     private final Parameter[] parameters_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.task" );
@@ -58,7 +58,7 @@ public class TapResultReader {
             "</p>",
         } );
         pollParam_.setMinimum( 50 );
-        pollParam_.setDefault( "5000" );
+        pollParam_.setIntDefault( 5000 );
         paramList.add( pollParam_ );
 
         progressParam_ = new BooleanParameter( "progress" );
@@ -68,10 +68,11 @@ public class TapResultReader {
             "reported to standard output as it happens.",
             "</p>",
         } );
-        progressParam_.setDefault( "true" );
+        progressParam_.setBooleanDefault( true );
         paramList.add( progressParam_ );
 
-        deleteParam_ = new ChoiceParameter( "delete", DeleteMode.values() );
+        deleteParam_ = new ChoiceParameter<DeleteMode>( "delete",
+                                                        DeleteMode.values() );
         deleteParam_.setPrompt( "Delete job on exit?" );
         deleteParam_.setDescription( new String[] {
             "<p>Determines under what circumstances the UWS job is to be",
@@ -86,7 +87,7 @@ public class TapResultReader {
             "</ul>",
             "</p>",
         } );
-        deleteParam_.setDefault( DeleteMode.finished.toString() );
+        deleteParam_.setDefaultOption( DeleteMode.finished );
         paramList.add( deleteParam_ );
 
         parameters_ = paramList.toArray( new Parameter[ 0 ] );
@@ -122,7 +123,7 @@ public class TapResultReader {
         final int pollMillis = pollParam_.intValue( env );
         final boolean progress = progressParam_.booleanValue( env );
         final PrintStream errStream = env.getErrorStream();
-        final DeleteMode delete = (DeleteMode) deleteParam_.objectValue( env );
+        final DeleteMode delete = deleteParam_.objectValue( env );
         final StarTableFactory tfact =
             LineTableEnvironment.getTableFactory( env );
 

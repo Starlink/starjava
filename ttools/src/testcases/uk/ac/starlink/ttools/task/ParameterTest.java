@@ -66,7 +66,7 @@ public class ParameterTest extends TestCase {
 
     private void checkParam( Parameter param ) throws SAXException {
         assertTrue( param.getName(),
-                    param.getDefault() != null ||
+                    param.getStringDefault() != null ||
                     param.isNullPermitted() ||
                     noDefaults.contains( param.getName() ) );
         formatter_.formatXML( param.getDescription(), 0 );

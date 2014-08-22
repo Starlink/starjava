@@ -30,7 +30,7 @@ public abstract class Parameter<T> {
     private String prompt_;
     private String description_;
     private String usage_ = "<value>";
-    private String dflt_;
+    private String stringDflt_;
     private int pos_;
     private boolean nullPermitted_;
     private boolean preferExplicit_;
@@ -418,17 +418,20 @@ public abstract class Parameter<T> {
      *
      * @return  the default string value
      */
-    public String getDefault() {
-        return dflt_;
+    public String getStringDefault() {
+        return stringDflt_;
     }
 
     /**
      * Sets the default string value for this parameter.
+     * Concrete subclasses may additionally supply type-specific
+     * default value setter methods, but those ought to operate by invoking
+     * this method.
      *
-     * @param  dflt  the default string value
+     * @param  stringDflt  the default string value
      */
-    public void setDefault( String dflt ) {
-        dflt_ = dflt;
+    public void setStringDefault( String stringDflt ) {
+        stringDflt_ = stringDflt;
     }
 
     /**

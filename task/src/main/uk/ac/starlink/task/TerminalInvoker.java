@@ -233,7 +233,7 @@ public class TerminalInvoker {
         for ( Iterator<Parameter> it = paramList.iterator(); it.hasNext(); ) {
             Parameter param = it.next();
             boolean optional = param.isNullPermitted()
-                            || param.getDefault() != null;
+                            || param.getStringDefault() != null;
             if ( optional ) {
                 usage.append( '[' );
             }

@@ -1186,7 +1186,7 @@ public class JyStilts {
      * @param  default value, suitable for insertion into python source
      */
     private String getDefaultString( Parameter param ) {
-        String dflt = param.getDefault();
+        String dflt = param.getStringDefault();
         boolean isDfltNull = dflt == null || dflt.trim().length() == 0;
         boolean nullable = param.isNullPermitted();
         if ( nullable || ! isDfltNull ) {

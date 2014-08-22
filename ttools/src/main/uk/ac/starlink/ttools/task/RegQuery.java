@@ -72,7 +72,7 @@ public class RegQuery extends ConsumerTask {
 
         urlParam_ = new URLParameter( "regurl" );
         urlParam_.setPrompt( "URL of registry service" );
-        urlParam_.setDefault( Ri1RegistryQuery.AG_REG );
+        urlParam_.setStringDefault( Ri1RegistryQuery.AG_REG );
         urlParam_.setDescription( new String[] {
             "<p>The URL of a SOAP endpoint which provides",
             "a VOResource1.0 IVOA registry service.",
@@ -88,7 +88,7 @@ public class RegQuery extends ConsumerTask {
 
         soapoutParam_ = new OutputStreamParameter( "soapout" );
         soapoutParam_.setNullPermitted( true );
-        soapoutParam_.setDefault( null );
+        soapoutParam_.setStringDefault( null );
         soapoutParam_.setPrompt( "SOAP message destination stream" );
         soapoutParam_.setDescription( new String[] {
             "<p>If set to a non-null value, this gives the destination",

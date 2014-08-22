@@ -147,7 +147,7 @@ public class ChoiceParameter<T> extends Parameter<T> {
     public void setDefaultOption( T option ) {
         if ( option == null ) {
             if ( isNullPermitted() ) {
-                setDefault( null );
+                setStringDefault( null );
             }
             else {
                 throw new IllegalArgumentException( "null value not allowed" );
@@ -155,7 +155,7 @@ public class ChoiceParameter<T> extends Parameter<T> {
         }
         else {
             if ( optionMap_.containsKey( option ) ) {
-                setDefault( getName( option ) );
+                setStringDefault( getName( option ) );
             }
             else {
                 throw new IllegalArgumentException( "No such option: "

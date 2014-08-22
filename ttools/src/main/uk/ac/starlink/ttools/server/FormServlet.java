@@ -305,7 +305,7 @@ public class FormServlet extends HttpServlet {
         protected void writeTextControl( ServletOutputStream out, String name,
                                          Parameter param )
                 throws IOException {
-            String dflt = param.getDefault();
+            String dflt = param.getStringDefault();
             out.println( "<dt><b>" + name + ":</b></dt>" );
             out.println( "<dd>" );
             out.print( "<input type='text' name='" + name + "'" );
@@ -326,7 +326,7 @@ public class FormServlet extends HttpServlet {
         protected void writeOptionControl( ServletOutputStream out, String name,
                                            ChoiceParameter param )
                 throws IOException {
-            String dflt = param.getDefault();
+            String dflt = param.getStringDefault();
             out.println( "<dt><b>" + name + ":</b></dt>" );
             out.println( "<dd>" );
             out.print( "<select name='" + name + "'" );
@@ -356,7 +356,7 @@ public class FormServlet extends HttpServlet {
             out.println( "<dd>" );
             out.print( "<input type='checkbox' value='true'"
                      + " name='" + name + "'" );
-            if ( "true".equalsIgnoreCase( param.getDefault() ) ) {
+            if ( "true".equalsIgnoreCase( param.getStringDefault() ) ) {
                 out.print( " checked='checked'" );
             }
             out.println( "/>" );
@@ -542,7 +542,7 @@ public class FormServlet extends HttpServlet {
             out.println( "<dt><b>Y Axis</b></dt>" );
             out.println( "<dd><dl>" );
             Parameter yloParam = getParameter( "ylo" );
-            yloParam.setDefault( null );
+            yloParam.setStringDefault( null );
             writeTextControl( out, "ylo", getParameter( "ylo" ) );
             writeTextControl( out, "yhi", getParameter( "yhi" ) );
             writeBooleanControl( out, "ylog", getParameter( "ylog" ) );

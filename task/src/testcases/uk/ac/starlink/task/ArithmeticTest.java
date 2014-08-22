@@ -34,7 +34,7 @@ public class ArithmeticTest extends TestCase {
 
     private static class AddTask implements Task {
         private DoubleParameter p1;
-        private DoubleParameter p2;
+        private IntegerParameter p2;
         private StringParameter p3;
 
         public AddTask() {
@@ -42,10 +42,13 @@ public class ArithmeticTest extends TestCase {
             p1.setPosition( 1 );
             p1.setPrompt( "First number" );
 
-            p2 = new DoubleParameter( "second" );
+            p2 = new IntegerParameter( "second" );
             p2.setPosition( 2 );
             p2.setPrompt( "Second number" );
-            p2.setDefault( "0" );
+            p2.setIntDefault( 0 );
+            assertEquals( "0", p2.getStringDefault() );
+            p2.setStringDefault( "0" );
+            assertEquals( "0", p2.getStringDefault() );
 
             p3 = new StringParameter( "comment" );
             p3.setPrompt( "Comment" );
@@ -61,7 +64,7 @@ public class ArithmeticTest extends TestCase {
             final String sval1 = p1.stringValue( env );
             final String sval2 = p2.stringValue( env );
             final double val1 = p1.doubleValue( env );
-            final double val2 = p2.doubleValue( env );
+            final int val2 = p2.intValue( env );
             final PrintStream out = env.getOutputStream();
             return new Executable() {
                 public void execute() {

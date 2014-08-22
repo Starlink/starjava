@@ -16,6 +16,7 @@ public class TablePlot3D extends PlotTask {
                new Plot3DStateFactory( new String[] { "X", "Y", "Z" },
                                        true, true, 3 ),
                new CartesianPlot3D() );
-        getXpixParameter().setDefault( getYpixParameter().getDefault() );
+        getXpixParameter().setStringDefault( getYpixParameter()
+                                            .getStringDefault() );
     }
 }

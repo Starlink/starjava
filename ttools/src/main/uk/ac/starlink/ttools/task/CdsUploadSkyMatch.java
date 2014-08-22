@@ -132,7 +132,7 @@ public class CdsUploadSkyMatch extends SingleMapperTask {
             "</p>",
         } );
         chunkParam_.setMinimum( 1 );
-        chunkParam_.setDefault( Integer.toString( 50 * 1000 ) );
+        chunkParam_.setIntDefault( 50 * 1000 );
 
         findParam_ =
             new ChoiceParameter<UserFindMode>( "find",
@@ -185,7 +185,7 @@ public class CdsUploadSkyMatch extends SingleMapperTask {
             "(2,000,000 at time of writing).",
             "</p>",
         } );
-        maxrecParam_.setDefault( "-1" );
+        maxrecParam_.setIntDefault( -1 );
         paramList.add( maxrecParam_ );
 
         urlParam_ = new URLParameter( "serviceurl" );
@@ -197,7 +197,7 @@ public class CdsUploadSkyMatch extends SingleMapperTask {
             "this parameter can be used to access them.",
             "</p>",
         } );
-        urlParam_.setDefault( CdsUploadMatcher.XMATCH_URL );
+        urlParam_.setStringDefault( CdsUploadMatcher.XMATCH_URL );
         paramList.add( urlParam_ );
 
         usemocParam_ = new BooleanParameter( "usemoc" );
@@ -209,7 +209,7 @@ public class CdsUploadSkyMatch extends SingleMapperTask {
             "This should improve efficiency, but have no effect on the result.",
             "</p>",
         } );
-        usemocParam_.setDefault( Boolean.TRUE.toString() );
+        usemocParam_.setBooleanDefault( true );
         paramList.add( usemocParam_ );
 
         presortParam_ = new BooleanParameter( "presort" );
@@ -237,7 +237,7 @@ public class CdsUploadSkyMatch extends SingleMapperTask {
             "But feel free to experiment.",
             "</p>",
         } );
-        presortParam_.setDefault( Boolean.FALSE.toString() );
+        presortParam_.setBooleanDefault( false );
         paramList.add( presortParam_ );
 
         fixcolsParam_ = new JoinFixActionParameter( "fixcols" );

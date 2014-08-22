@@ -54,14 +54,14 @@ public class MatchMapper implements TableMapper {
         irefParam_.setPrompt( "Index of reference table in " + PAIRS_MODE
                             + " mode" );
         irefParam_.setUsage( "<table-index>" );
-        irefParam_.setDefault( "1" );
+        irefParam_.setIntDefault( 1 );
 
         mmodeParam_ =
             new ChoiceParameter<String>( "multimode",
                                          new String[] { PAIRS_MODE,
                                                         GROUP_MODE, } );
         mmodeParam_.setPrompt( "Semantics of multi-table match" );
-        mmodeParam_.setDefault( PAIRS_MODE );
+        mmodeParam_.setStringDefault( PAIRS_MODE );
 
         irefParam_.setDescription( new String[] {
             "<p>If <code>" + mmodeParam_.getName() + "</code>"
@@ -402,7 +402,7 @@ public class MatchMapper implements TableMapper {
                 prompt += " from table " + numLabel;
             }
             setPrompt( prompt );
-            setDefault( MultiJoinType.DEFAULT.toString() );
+            setDefaultOption( MultiJoinType.DEFAULT );
             setDescription( new String[] {
                 "<p>Determines which rows",
                 ( hasNum ? ( "from input table " + numLabel )
