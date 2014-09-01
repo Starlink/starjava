@@ -108,6 +108,7 @@ public abstract class AbstractPlot2Task implements Task {
     private static final String PLOTTER_PREFIX = "layer";
     private static final String TABLE_PREFIX = "in";
     private static final String FILTER_PREFIX = "cmd";
+    public static final String LAYER_VARIABLE = "N";
     private static final GraphicExporter[] EXPORTERS =
         GraphicExporter.getKnownExporters( PlotUtil.LATEX_PDF_EXPORTER );
     private static final Logger logger_ =
@@ -732,9 +733,8 @@ public abstract class AbstractPlot2Task implements Task {
             if ( name != null &&
                  name.toLowerCase().startsWith( prefix.toLowerCase() ) ) {
                 String suffix = name.substring( prefix.length() );
-                Plotter plotter =
-                    createPlotterParameter( prefix + suffix, plotType )
-                   .objectValue( env );
+                Plotter plotter = createPlotterParameter( suffix, plotType )
+                                 .objectValue( env );
                 map.put( suffix, plotter );
             }
         }
@@ -918,7 +918,7 @@ public abstract class AbstractPlot2Task implements Task {
      * @param  suffix  layer-specific suffix
      * @return   table parameter
      */
-    private InputTableParameter createTableParameter( String suffix ) {
+    public static InputTableParameter createTableParameter( String suffix ) {
         return new InputTableParameter( TABLE_PREFIX + suffix );
     }
 
@@ -928,25 +928,22 @@ public abstract class AbstractPlot2Task implements Task {
      * @param  suffix  layer-specific suffix
      * @return   filter parameter
      */
-    private FilterParameter createFilterParameter( String suffix ) {
+    public static FilterParameter createFilterParameter( String suffix ) {
         return new FilterParameter( FILTER_PREFIX + suffix );
     }
 
     /**
      * Returns a parameter for acquiring a plotter.
      *
-     * @param   pname  parameter name
+     * @param   suffix  parameter name suffix
      * @param   plotType  plot type
      * @return   plotter parameter
      */
-    private ChoiceParameter<Plotter>
-            createPlotterParameter( String pname, PlotType plotType ) {
-        return new ChoiceParameter<Plotter>( pname, plotType.getPlotters() ) {
-            @Override
-            public String getName( Plotter option ) {
-                return option.getPlotterName();
-            }
-        };
+    public static Parameter<Plotter>
+            createPlotterParameter( String suffix, PlotType plotType ) {
+        return new PlotterParameter( PLOTTER_PREFIX, suffix,
+                                     plotType.getPlotters(),
+                                     plotType.getPointDataGeoms() );
     }
 
     /**
@@ -956,8 +953,8 @@ public abstract class AbstractPlot2Task implements Task {
      * @param  suffix  layer-specific suffix
      * @return   data parameter
      */
-    private StringParameter createDataParameter( ValueInfo info,
-                                                 String suffix ) {
+    public static StringParameter createDataParameter( ValueInfo info,
+                                                       String suffix ) {
         return new StringParameter( info.getName().toLowerCase() + suffix );
     }
 
