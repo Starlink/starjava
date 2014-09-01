@@ -145,11 +145,11 @@ public class ShapePlotter extends AbstractPlotter<ShapeStyle> {
             smode_ = mode;
         }
 
-        public Form getForm() {
+        public ShapeForm getForm() {
             return sform_;
         }
 
-        public Mode getMode() {
+        public ShapeMode getMode() {
             return smode_;
         }
     }
