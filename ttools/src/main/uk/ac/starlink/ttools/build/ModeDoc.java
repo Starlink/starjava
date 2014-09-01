@@ -40,7 +40,7 @@ public class ModeDoc {
             out_.println( "<strong>Usage:</strong>" );
             out_.print( "<verbatim>" );
             out_.print( "<![CDATA[" );
-            out_.print( omodeParam.getModeUsage( name, "   " ) );
+            out_.print( omodeParam.getModeUsage( name, 3 ) );
             out_.print( "]]>" );
             out_.print( "</verbatim>" );
             out_.print( "</p>" );

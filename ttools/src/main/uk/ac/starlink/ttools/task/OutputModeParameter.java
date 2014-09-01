@@ -1,9 +1,12 @@
 package uk.ac.starlink.ttools.task;
 
+import java.util.ArrayList;
+import java.util.List;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.ObjectFactoryParameter;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.TaskException;
+import uk.ac.starlink.ttools.Formatter;
 import uk.ac.starlink.ttools.Stilts;
 import uk.ac.starlink.ttools.TableConsumer;
 import uk.ac.starlink.ttools.mode.ProcessingMode;
@@ -71,7 +74,7 @@ public class OutputModeParameter
         for ( int i = 0; i < names.length; i++ ) {
             String name = names[ i ];
             try {
-                sbuf.append( getModeUsage( names[ i ], "      " ) );
+                sbuf.append( getModeUsage( names[ i ], 6 ) );
             }
             catch ( LoadException e ) {
                 if ( env.isDebug() ) {
@@ -96,34 +99,20 @@ public class OutputModeParameter
      * Returns a usage message for a given processing mode.
      *
      * @param  modeName  name of the mode
-     * @param  prefix  prefix for each line of output (e.g. padding spaces)
+     * @param  indent  number of spaces to indent each line
      * @return   usage message
      */
-    public String getModeUsage( String modeName, String prefix )
+    public String getModeUsage( String modeName, int indent )
             throws LoadException {
         ProcessingMode mode = getObjectFactory().createObject( modeName );
-        StringBuffer sbuf = new StringBuffer();
-        StringBuffer line = new StringBuffer()
-            .append( prefix )
-            .append( getName() )
-            .append( '=' )
-            .append( modeName );
-        String pad = prefix + line.substring( prefix.length() )
-                                  .toString().replaceAll( ".", " " );
+        List<String> wordList = new ArrayList<String>();
+        wordList.add( getName() + "=" + modeName );
         Parameter[] params = mode.getAssociatedParameters();
         for ( int i = 0; i < params.length; i++ ) {
             Parameter param = params[ i ];
-            String word = " " + param.getName() + "=" + param.getUsage();
-            if ( line.length() + word.length() > 78 ) {
-                sbuf.append( line )
-                    .append( '\n' );
-                line = new StringBuffer( pad );
-            }
-            line.append( word );
+            wordList.add( param.getName() + "=" + param.getUsage() );
         }
-        sbuf.append( line )
-            .append( '\n' );
-        return sbuf.toString();
+        return Formatter.formatWords( wordList, indent );
     }
 
     public TableConsumer consumerValue( Environment env ) throws TaskException {
