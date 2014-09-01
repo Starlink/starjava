@@ -3,6 +3,7 @@ package uk.ac.starlink.ttools;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.StringTokenizer;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -175,6 +176,58 @@ public class Formatter {
     }
 
     /**
+     * Utility method for writing a number of unbreakable words on the
+     * terminal.  Line breaks are introduced where required to avoid
+     * overrunning screen lines (currently, 80 characters).
+     * The first line is indented the given number of spaces,
+     * subsequent lines start aligned with the end of the first word:
+     * <pre>
+     *     aaaa bbb cccc d eee ...
+     *          xxxxxx yy
+     * </pre>
+     *
+     * @param   wordList  list of words
+     * @param   indent  number of spaces to indent lines
+     * @return   formatted string
+     */
+    public static String formatWords( List<String> wordList, int indent ) {
+        StringBuffer sbuf = new StringBuffer();
+        StringBuffer line = new StringBuffer( nspaces( indent ) );
+        String pad = nspaces( indent + wordList.get( 0 ).length() + 1 );
+        int nw = 0;
+        for ( String word : wordList ) {
+            if ( line.length() + word.length() > 78 &&
+                 line.length() > pad.length() + 1 ) {
+                sbuf.append( line )
+                    .append( '\n' );
+                line = new StringBuffer( pad );
+                nw = 0;
+            }
+            if ( nw++ > 0 ) {
+                line.append( ' ' );
+            }
+            line.append( word );
+        }
+        sbuf.append( line )
+            .append( '\n' );
+        return sbuf.toString();
+    }
+
+    /**
+     * Returns a string consisting of a given number of space characters.
+     *
+     * @param  n  character count
+     * @return  padding string
+     */
+    private static String nspaces( int n ) {
+        StringBuffer sbuf = new StringBuffer( n );
+        for ( int i = 0; i < n; i++ ) {
+            sbuf.append( ' ' );
+        }
+        return sbuf.toString();
+    }
+
+    /**
      * Helper class which keeps track of a screed of output text, taking
      * care of things like indenting, line breaking etc.
      */
@@ -266,10 +319,7 @@ public class Formatter {
                 }
                 sbuf_.append( '\n' );
             }
-            line_ = new StringBuffer();
-            for ( int i = 0; i < indent_; i++ ) {
-                line_.append( ' ' );
-            }
+            line_ = new StringBuffer( nspaces( indent_ ) );
             for ( int i = 0; i < level_; i++ ) {
                 line_.append( pad1_ );
             }
