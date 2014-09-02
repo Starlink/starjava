@@ -821,7 +821,12 @@ public abstract class AbstractPlot2Task implements Task {
         int nuc = infos.length;
         String[] exprs = new String[ nuc ];
         for ( int iuc = 0; iuc < nuc; iuc++ ) {
-            Parameter param = createDataParameter( infos[ iuc ], suffix );
+            final ValueInfo info = infos[ iuc ];
+            Parameter param = new ParameterFinder<Parameter>() {
+                protected Parameter createParameter( String sfix ) {
+                    return createDataParameter( info, sfix );
+                }
+            }.getParameter( env, suffix );
             param.setNullPermitted( ! coord.isRequired() );
             exprs[ iuc ] = param.stringValue( env );
         }
@@ -868,10 +873,14 @@ public abstract class AbstractPlot2Task implements Task {
      * @param  map   map into which key/value pair will be written
      */
     private <T> void putConfigValue( Environment env, String suffix,
-                                     ConfigKey<T> key, ConfigMap map )
+                                     final ConfigKey<T> key, ConfigMap map )
             throws TaskException {
-        String pname = key.getMeta().getShortName() + suffix;
-        ConfigParameter<T> param = new ConfigParameter<T>( pname, key );
+        final String pbase = key.getMeta().getShortName();
+        ConfigParameter<T> param = new ParameterFinder<ConfigParameter<T>>() {
+            protected ConfigParameter<T> createParameter( String sfix ) {
+                return new ConfigParameter<T>( pbase + sfix, key );
+            }
+        }.getParameter( env, suffix );
         T value = param.objectValue( env );
         if ( key.getValueClass().equals( Double.class ) && value == null ) {
             value = key.cast( Double.NaN );
@@ -882,18 +891,23 @@ public abstract class AbstractPlot2Task implements Task {
     /**
      * Returns a table from the environment.
      *
-     * <p>This should be improved:
-     * <ul>
-     * <li>It should be possible to use the same table for several or all
-     *     layers by using the name without the suffix
-     * </ul>
-     *
      * @param   env  execution environment
      * @param   suffix   parameter suffix
      * @return   table
      */
     private StarTable getInputTable( Environment env, String suffix )
             throws TaskException {
+        FilterParameter filterParam = new ParameterFinder<FilterParameter>() {
+            protected FilterParameter createParameter( String sfix ) {
+                return createFilterParameter( sfix );
+            }
+        }.getParameter( env, suffix );
+        InputTableParameter tableParam =
+                new ParameterFinder<InputTableParameter>() {
+            protected InputTableParameter createParameter( String sfix ) {
+                return createTableParameter( sfix );
+            }
+        }.getParameter( env, suffix );
 
         /* Note that tables produced by this call which have the same
          * input specifications (text of input and filter parameters)
@@ -902,8 +916,7 @@ public abstract class AbstractPlot2Task implements Task {
          * contributes to multiple layers, the DataStore only has to
          * scan the table once. */
         TableProducer producer =
-            ConsumerTask.createProducer( env, createFilterParameter( suffix ),
-                                              createTableParameter( suffix ) );
+            ConsumerTask.createProducer( env, filterParam, tableParam );
         try {
             return producer.getTable();
         }
