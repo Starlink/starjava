@@ -108,7 +108,6 @@ public abstract class AbstractPlot2Task implements Task {
     private static final String PLOTTER_PREFIX = "layer";
     private static final String TABLE_PREFIX = "in";
     private static final String FILTER_PREFIX = "cmd";
-    public static final String LAYER_VARIABLE = "N";
     private static final GraphicExporter[] EXPORTERS =
         GraphicExporter.getKnownExporters( PlotUtil.LATEX_PDF_EXPORTER );
     private static final Logger logger_ =
@@ -609,8 +608,7 @@ public abstract class AbstractPlot2Task implements Task {
                        surfConfig.get( StyleKeys.SHADE_HIGH ) );
 
         /* Gather the requested plot layers from the environment. */
-        DataGeom geom = context.getDataGeom();
-        final PlotLayer[] layers = createLayers( env, plotType, geom );
+        final PlotLayer[] layers = createLayers( env, context );
         int nl = layers.length;
         final DataSpec[] dataSpecs = new DataSpec[ nl ];
         for ( int il = 0; il < nl; il++ ) {
@@ -652,20 +650,18 @@ public abstract class AbstractPlot2Task implements Task {
 
     /**
      * Obtains a list of the PlotLayers specified by parameters in
-     * the execution environment for a given PlotType.
+     * the execution environment for a given PlotContext.
      *
      * @param   env  execution environment
-     * @param   plotType  plot type
-     * @param   geom  data geom
+     * @param   context  plot context
      * @return   plot layers specified by the environment
      *           for the given plot type
      */
-    private PlotLayer[] createLayers( Environment env, PlotType plotType,
-                                      DataGeom geom )
+    private PlotLayer[] createLayers( Environment env, PlotContext context )
             throws TaskException {
 
         /* Work out what plotters/layers are requested. */
-        Map<String,Plotter> plotterMap = getPlotters( env, plotType );
+        Map<String,Plotter> plotterMap = getPlotters( env, context );
 
         /* For each plotter, create a PlotLayer based on it using the
          * appropriately suffix-coded parameters in the environment.
@@ -678,6 +674,9 @@ public abstract class AbstractPlot2Task implements Task {
         for ( Map.Entry<String,Plotter> entry : plotterMap.entrySet() ) {
             String suffix = entry.getKey();
             Plotter plotter = entry.getValue();
+            DataGeom geom = plotter.getCoordGroup().getPositionCount() > 0
+                          ? context.getGeom( env, suffix )
+                          : null;
             PlotLayer layer = createPlotLayer( env, suffix, plotter, geom );
             layerMap.put( suffix, layer );
         }
@@ -719,11 +718,11 @@ public abstract class AbstractPlot2Task implements Task {
      * relevant plotter as a namespacing device on the command line.
      *
      * @param  env  execution environment
-     * @param  plotType  plot type
+     * @param  context  plot context
      * @return  mapping from suffixes to plotters for the environment
      */
     private Map<String,Plotter> getPlotters( Environment env,
-                                             PlotType plotType )
+                                             PlotContext context )
             throws TaskException {
         String prefix = PLOTTER_PREFIX;
         Map<String,Plotter> map = new LinkedHashMap<String,Plotter>();
@@ -733,7 +732,7 @@ public abstract class AbstractPlot2Task implements Task {
             if ( name != null &&
                  name.toLowerCase().startsWith( prefix.toLowerCase() ) ) {
                 String suffix = name.substring( prefix.length() );
-                Plotter plotter = createPlotterParameter( suffix, plotType )
+                Plotter plotter = createPlotterParameter( suffix, context )
                                  .objectValue( env );
                 map.put( suffix, plotter );
             }
@@ -949,14 +948,12 @@ public abstract class AbstractPlot2Task implements Task {
      * Returns a parameter for acquiring a plotter.
      *
      * @param   suffix  parameter name suffix
-     * @param   plotType  plot type
+     * @param   context  plot context
      * @return   plotter parameter
      */
     public static Parameter<Plotter>
-            createPlotterParameter( String suffix, PlotType plotType ) {
-        return new PlotterParameter( PLOTTER_PREFIX, suffix,
-                                     plotType.getPlotters(),
-                                     plotType.getPointDataGeoms() );
+            createPlotterParameter( String suffix, PlotContext context ) {
+        return new PlotterParameter( PLOTTER_PREFIX, suffix, context );
     }
 
     /**
