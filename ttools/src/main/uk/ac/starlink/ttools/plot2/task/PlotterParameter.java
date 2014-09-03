@@ -57,6 +57,7 @@ public class PlotterParameter extends Parameter<Plotter>
 
     private final String layerSuffix_;
     private final DataGeom[] geoms_;
+    private final Parameter[] geomParams_;
     private final List<Plotter> singlePlotterList_;
     private final Map<ShapeForm,List<ShapeModePlotter>> shapePlotterMap_;
     private final ShapeModeParameter shapemodeParam_;
@@ -66,14 +67,15 @@ public class PlotterParameter extends Parameter<Plotter>
      *
      * @param   prefix  non-suffix part of this parameter's name
      * @param   suffix  layer-specific part of this parameter's name
-     * @param   plotters  plotter list
-     * @param   geoms  example data geoms
+     * @param   context  plot context
      */
-    public PlotterParameter( String prefix, String suffix, Plotter[] plotters,
-                             DataGeom[] geoms ) {
+    public PlotterParameter( String prefix, String suffix,
+                             PlotContext context ) {
         super( prefix + suffix, Plotter.class, true );
         layerSuffix_ = suffix;
-        geoms_ = geoms;
+        geoms_ = context.getExampleGeoms();
+        geomParams_ = context.getGeomParameters( suffix );
+        Plotter[] plotters = context.getPlotType().getPlotters();
         List<String> names = new ArrayList<String>();
 
         /* Divide up the supplied plotters into those which constitute
@@ -81,7 +83,7 @@ public class PlotterParameter extends Parameter<Plotter>
         singlePlotterList_ = new ArrayList<Plotter>();
         shapePlotterMap_ =
             new LinkedHashMap<ShapeForm,List<ShapeModePlotter>>();
-        for ( int ip = 0; ip < plotters.length; ip++ ) {
+        for ( int ip = 0; ip < plotters.length; ip++ ) { 
             Plotter plotter = plotters[ ip ];
             final String name;
             if ( plotter instanceof ShapeModePlotter ) {
@@ -268,6 +270,11 @@ public class PlotterParameter extends Parameter<Plotter>
                         suffix = PlotUtil.getIndexSuffix( ipos ) + suffix;
                     }
                     coordWords.addAll( getCoordsUsage( posCoords, suffix ) );
+                }
+                if ( npos > 0 ) {
+                    for ( int i = 0; i < geomParams_.length; i++ ) {
+                        coordWords.add( usageWord( geomParams_[ i ] ) );
+                    }
                 }
                 coordWords.addAll( getCoordsUsage( extraCoords,
                                                    layerSuffix_ ) );

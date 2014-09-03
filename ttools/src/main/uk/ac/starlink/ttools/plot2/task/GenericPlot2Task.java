@@ -29,16 +29,12 @@ import uk.ac.starlink.ttools.plot2.geom.TimePlotType;
 public class GenericPlot2Task extends AbstractPlot2Task {
 
     private final ChoiceParameter<PlotType> typeParam_;
-    private final ChoiceParameter<DataGeom> geomParam_;
-    private final Parameter[] params_;
 
     /**
      * Constructor.
      */
     public GenericPlot2Task() {
         super( true );
-
-        List<Parameter> paramList = new ArrayList<Parameter>();
 
         /* Plot type parameter. */
         typeParam_ = new ChoiceParameter<PlotType>( "type", new PlotType[] {
@@ -48,45 +44,21 @@ public class GenericPlot2Task extends AbstractPlot2Task {
             SpherePlotType.getInstance(),
             TimePlotType.getInstance(),
         } );
-        paramList.add( typeParam_ );
-
-        /* DataGeom parameter. */
-        geomParam_ = new ChoiceParameter<DataGeom>( "geom", DataGeom.class );
-        paramList.add( geomParam_ );
-
-        /* Other parameters from superclass. */
-        paramList.addAll( Arrays.asList( getBasicParameters() ) );
-        params_ = paramList.toArray( new Parameter[ 0 ] );
     }
 
     public String getPurpose() {
         return "Draws a generic plot";
     }
 
-    public PlotContext getPlotContext( Environment env ) throws TaskException {
-
-        /* Get plot type. */
-        final PlotType plotType = typeParam_.objectValue( env );
-
-        /* Determine the data position coordinate geometry. */
-        DataGeom[] geoms = plotType.getPointDataGeoms();
-        geomParam_.clearOptions();
-        for ( int ig = 0; ig < geoms.length; ig++ ) {
-            geomParam_.addOption( geoms[ ig ], geoms[ ig ].getVariantName() );
-        }
-        geomParam_.setDefaultOption( geoms[ 0 ] );
-        final DataGeom dataGeom = geomParam_.objectValue( env );
-        return new PlotContext() {
-            public PlotType getPlotType() {
-                return plotType;
-            }
-            public DataGeom getDataGeom() {
-                return dataGeom;
-            }
-        };
+    public Parameter[] getParameters() {
+        List<Parameter> paramList = new ArrayList<Parameter>();
+        paramList.add( typeParam_ );
+        paramList.addAll( Arrays.asList( getBasicParameters() ) );
+        return paramList.toArray( new Parameter[ 0 ] );
     }
 
-    public Parameter[] getParameters() {
-        return params_;
+    public PlotContext getPlotContext( Environment env ) throws TaskException {
+        return PlotContext
+              .createStandardContext( typeParam_.objectValue( env ) );
     }
 }
