@@ -20,6 +20,9 @@ public abstract class SkyDataGeom implements DataGeom {
     private static final SkyCoord SKY_COORD =
         SkyCoord.createCoord( SkyCoord.SkyVariant.SURFACE, true );
 
+    /** Instance which converts between unspecified, but identical, systems. */
+    public static final SkyDataGeom GENERIC = createGeom( null, null );
+
     /**
      * Constructor.
      *

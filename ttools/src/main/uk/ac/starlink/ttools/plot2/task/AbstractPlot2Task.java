@@ -114,7 +114,7 @@ public abstract class AbstractPlot2Task implements Task {
         Logger.getLogger( "uk.ac.starlink.ttools.plot2.task" );
 
     /**
-     * Constructor.
+     * Constructor with explicit animation capability.
      *
      * @param  allowAnimate  true iff animation options should be provided
      */
@@ -171,6 +171,13 @@ public abstract class AbstractPlot2Task implements Task {
             parallelParam_ = null;
         }
         basicParams_ = plist.toArray( new Parameter[ 0 ] );
+    }
+
+    /**
+     * Constructor with default animation capability.
+     */
+    protected AbstractPlot2Task() {
+        this( true );
     }
 
     /**
