@@ -642,6 +642,7 @@ public abstract class AbstractPlot2Task implements Task {
                                        ptsel, compositor, dataStore,
                                        surfaceAuxRange, navigable, caching );
                 panel.setPreferredSize( new Dimension( xpix, ypix ) );
+                panel.setDataInsets( insets );
                 return panel;
             }
 

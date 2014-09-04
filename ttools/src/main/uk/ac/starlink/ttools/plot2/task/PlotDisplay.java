@@ -59,6 +59,7 @@ public class PlotDisplay<P,A> extends JComponent {
     private final boolean surfaceAuxRange_;
     private final Compositor compositor_;
     private final boolean caching_;
+    private Insets dataInsets_;
     private Decoration navDecoration_;
     private Map<AuxScale,Range> auxRanges_;
     private Surface approxSurf_;
@@ -161,23 +162,40 @@ public class PlotDisplay<P,A> extends JComponent {
     @Override
     protected void paintComponent( Graphics g ) {
         super.paintComponent( g );
-        Insets insets = getInsets();
+        Rectangle extBounds =
+            PlotUtil.subtractInsets( getBounds(), getInsets() );
 
         /* If we already have a cached image, it is for the right plot,
          * just draw that.  If not, generate a new one. */
         Icon icon = icon_;
         if ( icon == null ) {
-            Rectangle box =
-                new Rectangle( insets.left, insets.top,
-                               getWidth() - insets.left - insets.right,
-                               getHeight() - insets.top - insets.bottom );
+
+            /* Work out data bounds to use for the actual plot,
+             * and also some nominal bounds that can be used to tell
+             * whether the plot has changed in a way that may require
+             * re-ranging of aux axes. */
+            final Rectangle dataBounds;
+            final Rectangle approxBounds;
+            if ( dataInsets_ != null ) {
+                dataBounds = PlotUtil.subtractInsets( extBounds, dataInsets_ );
+                approxBounds = dataBounds;
+            }
+            else {
+                boolean withScroll = true;
+                dataBounds =
+                    PlotPlacement
+                   .calculateDataBounds( extBounds, surfFact_, profile_,
+                                         aspect_, withScroll, legend_,
+                                         legPos_, shadeAxis_ );
+                approxBounds = extBounds;
+            }
 
             /* (Re)calculate aux ranges if required. */
             Surface approxSurf =
-                surfFact_.createSurface( box, profile_, aspect_ );
-            Map<AuxScale,Range> auxRanges;
+                surfFact_.createSurface( approxBounds, profile_, aspect_ );
+            final Map<AuxScale,Range> auxRanges;
             if ( auxRanges_ != null &&
-                 ! surfaceAuxRange_ || approxSurf.equals( approxSurf_ ) ) {
+                 ( ! surfaceAuxRange_ || approxSurf.equals( approxSurf_ ) ) ) {
                 auxRanges = auxRanges_;
             }
             else {
@@ -188,12 +206,12 @@ public class PlotDisplay<P,A> extends JComponent {
             approxSurf_ = approxSurf;
 
             /* Work out plot positioning. */
-            boolean withScroll = true;
+            surface_ = surfFact_.createSurface( dataBounds, profile_, aspect_ );
+            Decoration[] decs =
+                PlotPlacement.createPlotDecorations( dataBounds, legend_,
+                                                     legPos_, shadeAxis_ );
             PlotPlacement placer =
-                PlotPlacement
-               .createPlacement( box, surfFact_, profile_, aspect_, withScroll,
-                                 legend_, legPos_, shadeAxis_ );
-            surface_ = placer.getSurface();
+                new PlotPlacement( extBounds, surface_, decs );
 
             /* Get rendering implementation. */
             LayerOpt[] opts = PaperTypeSelector.getOpts( layers_ );
@@ -212,7 +230,7 @@ public class PlotDisplay<P,A> extends JComponent {
 
         /* Paint the image to this component. */
         long start = System.currentTimeMillis();
-        icon.paintIcon( this, g, insets.left, insets.top );
+        icon.paintIcon( this, g, extBounds.x, extBounds.y );
         if ( navDecoration_ != null ) {
             navDecoration_.paintDecoration( g );
         }
@@ -261,6 +279,21 @@ public class PlotDisplay<P,A> extends JComponent {
      */
     public Surface getSurface() {
         return surface_;
+    }
+
+    /**
+     * Sets the geometry of the region between the external bound
+     * of this component (excluding component borders) and the data region
+     * of the plot.  This insets region is where axis labels, legend,
+     * and other plot decorations are drawn.  If null (the default),
+     * the extent of the region is worked out automatically and dynamically
+     * on the basis of what labels need to be drawn etc.
+     * 
+     * @param  dataInsets  geometry of the region outside the actual data plot
+     */
+    public void setDataInsets( Insets dataInsets ) {
+        dataInsets_ = dataInsets;
+        clearPlot();
     }
 
     /**
