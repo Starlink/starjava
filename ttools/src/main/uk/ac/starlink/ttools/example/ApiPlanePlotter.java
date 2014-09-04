@@ -1,6 +1,7 @@
 package uk.ac.starlink.ttools.example;
 
 import java.awt.Color;
+import java.awt.Insets;
 import java.io.IOException;
 import javax.swing.Icon;
 import javax.swing.JComponent;
@@ -141,11 +142,13 @@ public class ApiPlanePlotter implements SinePlot.PlanePlotter {
         /* Dimensions. */
         int xpix = 500;
         int ypix = 400;
+        Insets dataInsets = null;
 
         /* Construct and return the plot generator. */
         return new PlotGenerator( layers, surfFact, profile, aspect,
                                   legend, legPos, shadeAxis, shadeFixRange,
-                                  ptSel, compositor, dataStore, xpix, ypix );
+                                  ptSel, compositor, dataStore, xpix, ypix,
+                                  dataInsets );
     }
 
     /**

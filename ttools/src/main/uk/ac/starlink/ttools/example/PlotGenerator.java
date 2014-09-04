@@ -1,6 +1,7 @@
 package uk.ac.starlink.ttools.example;
 
 import java.awt.Dimension;
+import java.awt.Insets;
 import java.awt.Rectangle;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
@@ -57,6 +58,7 @@ public class PlotGenerator<P,A> {
     private final DataStore dataStore_;
     private final int xpix_;
     private final int ypix_;
+    private final Insets dataInsets_;
  
     /**
      * Constructor.
@@ -79,13 +81,17 @@ public class PlotGenerator<P,A> {
      *                 (may get changed by window resizing)
      * @param  ypix    initial vertical size in pixels
      *                 (may get changed by window resizing)
+     * @param  dataInsets  extent of region outside plot data box,
+     *                     used for axis labels etc;
+     *                     if null, will be calculated automatically
      */
     public PlotGenerator( PlotLayer[] layers,
                           SurfaceFactory<P,A> surfFact, P profile, A aspect,
                           Icon legend, float[] legPos,
                           ShadeAxis shadeAxis, Range shadeFixRange,
                           PaperTypeSelector ptSel, Compositor compositor,
-                          DataStore dataStore, int xpix, int ypix ) {
+                          DataStore dataStore, int xpix, int ypix,
+                          Insets dataInsets ) {
         layers_ = layers;
         surfFact_ = surfFact;
         profile_ = profile;
@@ -99,6 +105,7 @@ public class PlotGenerator<P,A> {
         dataStore_ = dataStore;
         xpix_ = xpix;
         ypix_ = ypix;
+        dataInsets_ = dataInsets;
     }
 
     /**
@@ -122,6 +129,7 @@ public class PlotGenerator<P,A> {
                              ptSel_, compositor_, dataStore_,
                              surfaceAuxRange, navigator, caching );
         display.setPreferredSize( new Dimension( xpix_, ypix_ ) );
+        display.setDataInsets( dataInsets_ );
         return display;
     }
 
@@ -153,14 +161,21 @@ public class PlotGenerator<P,A> {
      */
     public Icon createIcon( boolean forceBitmap ) {
         Rectangle extBounds = new Rectangle( 0, 0, xpix_, ypix_ );
-        Rectangle dataBounds =
-            PlotPlacement
-           .calculateDataBounds( extBounds, surfFact_, profile_, aspect_,
-                                 false, legend_, legPos_, shadeAxis_ );
-        dataBounds.x += 2;
-        dataBounds.y += 2;
-        dataBounds.width -= 4;
-        dataBounds.height -= 4;
+        final Rectangle dataBounds;
+        if ( dataInsets_ != null ) {
+            dataBounds = PlotUtil.subtractInsets( extBounds, dataInsets_ );
+        }
+        else {
+            boolean withScroll = false;
+            dataBounds =
+                PlotPlacement
+               .calculateDataBounds( extBounds, surfFact_, profile_, aspect_,
+                                     withScroll, legend_, legPos_, shadeAxis_ );
+            dataBounds.x += 2;
+            dataBounds.y += 2;
+            dataBounds.width -= 4;
+            dataBounds.height -= 4;
+        }
         Surface surf = surfFact_.createSurface( dataBounds, profile_, aspect_ );
         Decoration[] decs =
             PlotPlacement.createPlotDecorations( dataBounds, legend_, legPos_,
