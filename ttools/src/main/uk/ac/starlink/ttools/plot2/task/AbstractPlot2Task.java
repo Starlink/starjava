@@ -32,7 +32,6 @@ import uk.ac.starlink.table.WrapperRowSequence;
 import uk.ac.starlink.table.WrapperStarTable;
 import uk.ac.starlink.task.BooleanParameter;
 import uk.ac.starlink.task.ChoiceParameter;
-import uk.ac.starlink.task.DoubleParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Executable;
 import uk.ac.starlink.task.ExecutionException;
@@ -99,7 +98,7 @@ public abstract class AbstractPlot2Task implements Task {
     private final DataStoreParameter dstoreParam_;
     private final StringMultiParameter orderParam_;
     private final BooleanParameter bitmapParam_;
-    private final DoubleParameter boostParam_;
+    private final Parameter<Compositor> compositorParam_;
     private final InputTableParameter animateParam_;
     private final FilterParameter animateFilterParam_;
     private final IntegerParameter parallelParam_;
@@ -147,11 +146,8 @@ public abstract class AbstractPlot2Task implements Task {
         bitmapParam_.setBooleanDefault( false );
         plist.add( bitmapParam_ );
 
-        boostParam_ = new DoubleParameter( "boost" );
-        boostParam_.setMinimum( 0, true );
-        boostParam_.setMaximum( 1, true );
-        boostParam_.setDoubleDefault( 0.05 );
-        plist.add( boostParam_ );
+        compositorParam_ = new CompositorParameter( "compositor" );
+        plist.add( compositorParam_ );
 
         if ( allowAnimate ) {
             animateParam_ = new InputTableParameter( "animate" );
@@ -590,10 +586,7 @@ public abstract class AbstractPlot2Task implements Task {
         final boolean forceBitmap = bitmapParam_.booleanValue( env );
         final boolean surfaceAuxRange = false;
         final DataStoreFactory storeFact = dstoreParam_.objectValue( env );
-        double boost = boostParam_.doubleValue( env );
-        final Compositor compositor =
-            boost == 0 ? Compositor.SATURATION
-                       : Compositor.createBoostCompositor( (float) boost );
+        final Compositor compositor = compositorParam_.objectValue( env );
 
         /* Leave out some optional extras for now. */
         final Icon legend = null;

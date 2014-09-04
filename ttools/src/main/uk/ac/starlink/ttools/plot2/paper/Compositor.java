@@ -104,26 +104,50 @@ public abstract class Compositor {
          * @return   ARGB integer
          */
         int toRgbInt( int index );
-    }
-
+    } 
     /**
-     * Creates a new boosted saturation compositor.
+     * Compositor with boosted saturation.
      * This acts like {@link #SATURATION} except that any pixel with a
-     * non-zero alpha has its alpha value boosted to a given threshold.
+     * non-zero alpha has its alpha value boosted to a given minimum.
      * The effect is that even very slightly populated pixels can be
      * visually distinguished from unpopulated pixels, which is not the
      * case for standard saturation composition.
-     *
-     * @param   boost  minimum alpha output for non-empty pixel
-     * @return  new compositor
      */
-    public static Compositor createBoostCompositor( final float boost ) {
-        final float boost1 = 1f - boost;
-        return new SaturationCompositor() {
-            public float scaleAlpha( float alpha ) {
-                return boost + boost1 * alpha;
+    public static class BoostCompositor extends Compositor {
+        private final float boost_;
+        private final float boost1_;
+
+        /**
+         * Constructor.
+         * The boost value must be in the range 0..1; zero is equivalent
+         * to {@link #SATURATION}.
+         *
+         * @param   boost  minimum alpha output for non-empty pixel
+         */
+        public BoostCompositor( float boost ) {
+            boost_ = boost;
+            boost1_ = 1f - boost;
+            if ( ! ( boost >= 0 && boost <= 1 ) ) {
+                throw new IllegalArgumentException( "Boost out of range 0..1" );
             }
-        };
+        }
+
+        public Buffer createBuffer( int count ) {
+            return new SaturationBuffer( this, count );
+        }
+
+        public float scaleAlpha( float alpha ) {
+            return boost_ + boost1_ * alpha;
+        }
+
+        /**
+         * Returns the boost value for this compositor.
+         *
+         * @return  boost value in range 0..1
+         */
+        public float getBoost() {
+            return boost_;
+        }
     }
 
     /**
