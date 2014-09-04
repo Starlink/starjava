@@ -133,7 +133,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
          * the replot machinery currently assumes that PaperType is fixed
          * (does not check whether it's changed between replot requests)
          * so a bit of re-engineering would be required. */
-        final Compositor compositor = Compositor.createBoostCompositor( 0.05f );
+        final Compositor compositor = new Compositor.BoostCompositor( 0.05f );
 
         /* Set up user interface components in the window that can gather
          * all the information required to perform (re-)plots. */
