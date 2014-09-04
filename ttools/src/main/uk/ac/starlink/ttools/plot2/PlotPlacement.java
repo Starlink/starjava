@@ -238,10 +238,7 @@ public class PlotPlacement {
         insets.right = Math.max( insets.right, shadeExtWidth );
 
         /* Work out available space given padding required by first guess. */
-        return new Rectangle( extBounds.x + insets.left,
-                              extBounds.y + insets.top,
-                              extBounds.width - insets.left - insets.right,
-                              extBounds.height - insets.top - insets.bottom );
+        return PlotUtil.subtractInsets( extBounds, insets );
     }
 
     /**

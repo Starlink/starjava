@@ -1,7 +1,9 @@
 package uk.ac.starlink.ttools.plot2;
 
 import java.awt.Graphics2D;
+import java.awt.Insets;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
@@ -552,5 +554,21 @@ public class PlotUtil {
         fmt.setMaximumFractionDigits( nFracDigits );
         fmt.setMinimumFractionDigits( nFracDigits );
         return fmt.format( value );
+    }
+
+    /**
+     * Returns the rectangle that results from removing the insets from
+     * a given rectangle.
+     *
+     * @param   base  input rectangle
+     * @param   insets  amount that should be excluded from the edges of
+     *                  the base rectangle
+     * @return  new, smaller rectangle
+     */
+    public static Rectangle subtractInsets( Rectangle base, Insets insets ) {
+        return new Rectangle( base.x + insets.left,
+                              base.y + insets.top,
+                              base.width - insets.left - insets.right,
+                              base.height - insets.top - insets.bottom );
     }
 }

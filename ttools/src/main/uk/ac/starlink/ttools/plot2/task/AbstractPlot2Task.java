@@ -1034,11 +1034,7 @@ public abstract class AbstractPlot2Task implements Task {
         Rectangle extBounds = new Rectangle( 0, 0, xpix, ypix );
         final Rectangle dataBounds;
         if ( insets != null ) {
-            dataBounds =
-                new Rectangle( extBounds.x + insets.left,
-                               extBounds.y + insets.top,
-                               extBounds.width - insets.left - insets.right,
-                               extBounds.height - insets.top - insets.bottom );
+            dataBounds = PlotUtil.subtractInsets( extBounds, insets );
         }
         else {
             dataBounds = PlotPlacement
