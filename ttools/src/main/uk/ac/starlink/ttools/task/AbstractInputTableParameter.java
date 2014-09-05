@@ -37,7 +37,8 @@ public abstract class AbstractInputTableParameter<T> extends Parameter<T> {
     private BooleanParameter streamParam_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.task" );
-    private static final String[] KNOWN_PREFIXES = { "in", "upload", };
+    private static final String[] KNOWN_PREFIXES =
+        { "in", "upload", "animate" };
     
     /**
      * Constructor. 

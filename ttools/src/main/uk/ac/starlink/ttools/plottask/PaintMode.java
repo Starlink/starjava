@@ -27,9 +27,14 @@ public abstract class PaintMode {
 
     private final String name_;
 
-    private static final PaintMode SWING_MODE = new SwingPaintMode();
-    private static final PaintMode CGI_MODE = new CgiPaintMode();
-    private static final PaintMode DISCARD_MODE = new DiscardPaintMode();
+    /** Mode used for displaying a live plot on the display. */
+    public static final PaintMode SWING_MODE = new SwingPaintMode();
+
+    /** Mode used for standard output in CGI form. */
+    public static final PaintMode CGI_MODE = new CgiPaintMode();
+
+    /** Mode used to perform the plot internally, but produce no output. */
+    public static final PaintMode DISCARD_MODE = new DiscardPaintMode();
 
     /**
      * Constructor.

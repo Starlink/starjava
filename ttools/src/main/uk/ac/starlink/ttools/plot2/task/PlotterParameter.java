@@ -61,6 +61,7 @@ public class PlotterParameter extends Parameter<Plotter>
     private final List<Plotter> singlePlotterList_;
     private final Map<ShapeForm,List<ShapeModePlotter>> shapePlotterMap_;
     private final ShapeModeParameter shapemodeParam_;
+    public static final String SHADING_PREFIX = "shading";
 
     /**
      * Constructor.
@@ -109,7 +110,7 @@ public class PlotterParameter extends Parameter<Plotter>
          * select the ShapeMode (shading), while this parameter will select
          * the ShapeForm. */
         if ( shapePlotterMap_.keySet().size() > 0 ) {
-            shapemodeParam_ = new ShapeModeParameter( "shading" + suffix );
+            shapemodeParam_ = new ShapeModeParameter( SHADING_PREFIX + suffix );
             shapemodeParam_.configurePlotters( shapePlotterMap_.entrySet()
                                               .iterator().next().getValue() );
         }
@@ -117,20 +118,76 @@ public class PlotterParameter extends Parameter<Plotter>
             shapemodeParam_ = null;
         }
 
-        /* Construct usage string as disjunction of all possible string
-         * values of this parameter. */
-        StringBuffer usage = new StringBuffer();
-        for ( String name : names ) {
-            if ( usage.length() > 0 ) {
-                usage.append( '|' );
-            }
-            usage.append( name );
-        }
-        usage.append( " " )
+        /* Construct usage string. */
+        StringBuffer usage = new StringBuffer()
+             .append( "<layer-type>" )
+             .append( " " )
              .append( "<layer" )
              .append( layerSuffix_ )
              .append( "-specific-params>" );
         setUsage( usage.toString() );
+
+        setPrompt( "Plot type for layer " + suffix );
+        String osfix = "&lt;" + AbstractPlot2Task.EXAMPLE_LAYER_SUFFIX + "&gt;";
+        StringBuffer obuf = new StringBuffer();
+        for ( ShapeForm form : shapePlotterMap_.keySet() ) {
+            obuf.append( "<li><code>" )
+                .append( form.getFormName().toLowerCase() )
+                .append( "</code></li>\n" );
+        }
+        for ( Plotter plotter : singlePlotterList_ ) {
+            obuf.append( "<li><code>" )
+                .append( plotter.getPlotterName().toLowerCase() )
+                .append( "</code></li>\n" );
+        }
+        String optlist = obuf.toString();
+        setDescription( new String[] {
+            "<p>Selects one of the available plot types",
+            "for layer" + suffix + ".",
+            "A plot consists of a plotting surface,",
+            "set up using the various unsuffixed parameters",
+            "of the plotting command,",
+            "and zero or more plot layers.",
+            "Each layer is introduced by a parameter with the name",
+            "<code>" + prefix + osfix + "</code>",
+            "where the suffix \"<code>" + osfix + "</code>\"",
+            "is a label identifying the layer",
+            "and is appended to all the parameter names",
+            "which configure that layer.",
+            "Suffixes may be any string, including the empty string.",
+            "</p>",
+            "<p>This parameter may take one of the following values:",
+            "<ul>",
+            optlist,
+            "</ul>",
+            "</p>",
+            "<p>Each of these layer types comes with a list of type-specific",
+            "parameters to define the details of that layer,",
+            "including some or all of the following groups:",
+            "<ul>",
+            "<li>input table parameters",
+                "(e.g. <code>in" + suffix + "</code>,",
+                      "<code>icmd" + suffix + "</code>)</li>",
+            "<li>coordinate params referring to input table columns",
+                "(e.g. <code>x" + suffix + "</code>,",
+                      "<code>y" + suffix + "</code>)</li>",
+            "<li>layer style parameters",
+                "(e.g. <code>" + SHADING_PREFIX + suffix + "</code>,",
+                      "<code>color" + suffix + "</code>)</li>",
+            "</ul>",
+            "</p>",
+            "<p>Every parameter notionally carries the same suffix",
+            "<code>" + suffix + "</code>.",
+            "However, if the suffix is not present,",
+            "the application will try looking for a parameter with the",
+            "same name with no suffix instead.",
+            "In this way, if several layers have the same value for a given",
+            "parameter (for instance input table),",
+            "you can supply it using one unsuffixed parameter",
+            "to save having to supply several parameters with the same",
+            "value but different suffixes.",
+            "</p>",
+        } );
     }
 
     public Plotter stringToObject( Environment env, String sval )
@@ -148,7 +205,9 @@ public class PlotterParameter extends Parameter<Plotter>
         /* Check if it's the name of a non-shape plotter. */
         for ( Plotter plotter : singlePlotterList_ ) {
             if ( sval.equalsIgnoreCase( plotter.getPlotterName() ) ) {
-                shapemodeParam_.configurePlotters( null );
+                if ( shapemodeParam_ != null ) {
+                    shapemodeParam_.configurePlotters( null );
+                }
                 return plotter;
             }
         }
@@ -510,13 +569,13 @@ public class PlotterParameter extends Parameter<Plotter>
          * Returns the value of this parameter as a Plotter.
          * It requires that the configurePlotters was called with a suitable
          * list earlier.
-         *
+         * 
          * @param  env  execution environment
-         * @return  plotter
+         * @return  plotter  
          */
         ShapeModePlotter plotterValue( Environment env ) throws TaskException {
             return plotterMap_.get( objectValue( env ) );
-        }
+        }   
 
         @Override
         public String stringifyOption( ShapeMode mode ) {
