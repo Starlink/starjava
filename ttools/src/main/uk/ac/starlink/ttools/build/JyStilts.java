@@ -1250,7 +1250,7 @@ public class JyStilts {
         StringBuffer sbuf = new StringBuffer();
         sbuf.append( "<dl>" );
         for ( int i = 0; i < params.length; i++ ) {
-            sbuf.append( UsageWriter.xmlItem( params[ i ] ) );
+            sbuf.append( UsageWriter.xmlItem( params[ i ], true ) );
         }
         sbuf.append( "</dl>" );
         lineList.addAll( Arrays.asList( formatXml( sbuf.toString() ) ) );
@@ -1452,6 +1452,9 @@ public class JyStilts {
         private byte toByte( char c ) throws IOException {
             if ( c >= 0 && c <= 127 ) {
                 return (byte) c;
+            }
+            else if ( Character.isSpaceChar( c ) ) {
+                return (byte) ' ';
             }
             else {
                 throw new IOException(

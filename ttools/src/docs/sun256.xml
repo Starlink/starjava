@@ -16,6 +16,11 @@
   <!ENTITY URL.STIL_JAVADOCS
            "http://www.starlink.ac.uk/stil/javadocs/uk/ac/starlink/table/">
 
+  <!-- Define javadoc base URLs. -->
+  <!ENTITY corejavadocs "http://java.sun.com/j2se/1.5.0/docs/api/">
+  <!ENTITY stiljavadocs "http://www.starlink.ac.uk/stil/javadocs/">
+  <!ENTITY stiltsjavadocs "http://andromeda.star.bris.ac.uk/starjavadocs/">
+
   <!ENTITY flag-verbose '
      <dt><code>-v[erbose]</code></dt>
      <dd><p>May cause more information about progress to be written as
@@ -8715,6 +8720,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
             This should not have user-visible changes to the STILTS package,
             but a fair bit of code changed, so unexpected problems
             are possible.</li>
+        <li>Task parameters now report their data types in the documentation.
+            </li>
         </ul>
         </p></dd>
 

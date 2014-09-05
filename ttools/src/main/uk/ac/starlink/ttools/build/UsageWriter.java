@@ -69,7 +69,7 @@ public class UsageWriter {
                 }
             } );
             for ( int i = 0; i < params.length; i++ ) {
-                outln( xmlItem( params[ i ] ) );
+                outln( xmlItem( params[ i ], false ) );
             }
             outln( "</dl>" );
             outln( "</p>" );
@@ -86,26 +86,111 @@ public class UsageWriter {
      * and description.
      * 
      * @param  param  parameter
+     * @param  isBasic  if true, avoid adding XML constructs which won't be
+     *                  evident (and may cause parsing trouble)
+     *                  in plain text output
      * @return   XML snippet for <code>param</code>
      */
-    public static String xmlItem( Parameter param ) {
-        String usage = ( param.getName() + " = " + param.getUsage() )
-                      .replaceAll( "<", "&lt;" )
-                      .replaceAll( ">", "&gt;" );
+    public static String xmlItem( Parameter param, boolean isBasic ) {
         String descrip = param.getDescription();
         if ( descrip == null ) {
             throw new NullPointerException( "No description for parameter "
                                           + param );
         }
-        StringBuffer sbuf = new StringBuffer();
-        sbuf.append( "<dt><code>" )
-            .append( ( param.getName() + " = " + param.getUsage() )
-                    .replaceAll( "<", "&lt;" )
-                    .replaceAll( ">", "&gt;" ) )
-            .append( "</code></dt>\n" )
+        return new StringBuffer()
+            .append( "<dt>" )
+            .append( "<code>" )
+            .append( getUsageXml( param ) )
+            .append( "</code>" )
+            .append( " " )
+            .append( nbsps( 6 ) )
+            .append( "<em>(" )
+            .append( getTypeXml( param, isBasic ) )
+            .append( ")</em>" )
+            .append( "</dt>\n" )
             .append( "<dd>" )
-            .append( param.getDescription().toString() );
+            .append( descrip )
+            .append( getDefaultXml( param ) )
+            .append( "</dd>" )
+            .toString();
+    }
+
+    /**
+     * Returns XML text giving the basic usage text for a parameter.
+     *
+     * @param  param  parameter to describe
+     * @return  XML snippet giving name=value
+     */
+    private static String getUsageXml( Parameter param ) {
+        return ( param.getName() + " = " + param.getUsage() )
+              .replaceAll( "<", "&lt;" )
+              .replaceAll( ">", "&gt;" );
+    }
+
+    /**
+     * Returns XML text describing the value class of a parameter. 
+     *
+     * @param  param   parameter to describe
+     * @param  isBasic  if true, avoid adding XML constructs which won't be
+     *                  evident (and may cause parsing trouble)
+     *                  in plain text output
+     * @return  XML snippet
+     */
+    private static String getTypeXml( Parameter param, boolean isBasic ) {
+        Class vClazz = param.getValueClass();
+        boolean isArray = vClazz.getComponentType() != null;
+        Class clazz = isArray ? vClazz.getComponentType() : vClazz;
+        String arraySuffix = isArray ? "[]" : "";
+        String clazzName = clazz.getName();
+        int pkgLeng = clazzName.lastIndexOf( "." );
+        String pkgName = pkgLeng >= 0 ? clazzName.substring( 0, pkgLeng ) : "";
+        String unqName = clazz.getSimpleName();
+        final String docset;
+        if ( pkgName.startsWith( "java" ) ) {
+            docset = "&corejavadocs;";
+        }
+        else if ( pkgName.startsWith( "uk.ac.starlink.ttools" ) ) {
+            docset = "&stiltsjavadocs;";
+        }
+        else if ( pkgName.startsWith( "uk.ac.starlink.table" ) ) {
+            docset = "&stiljavadocs;";
+        }
+        else {
+            docset = null;
+        }
+        StringBuffer sbuf = new StringBuffer();
+        if ( pkgName.length() == 0 || pkgName.startsWith( "java.lang" ) ) {
+            sbuf.append( unqName )
+                .append( arraySuffix );
+        }
+        else if ( docset == null || isBasic ) {
+            sbuf.append( clazzName )
+                .append( arraySuffix );
+        }
+        else {
+            sbuf.append( "<javadoc docset='" )
+                .append( docset )
+                .append( "'" )
+                .append( " class='" )
+                .append( clazzName )
+                .append( "'" )
+                .append( ">" )
+                .append( unqName )
+                .append( arraySuffix )
+                .append( "</javadoc>" );
+        }
+        return sbuf.toString();
+    }
+
+    /**
+     * Returns XML text giving the default value for a parameter.
+     *
+     * @param  param  parameter to describe
+     * @return  XML snippet giving default string (may be empty)
+     */
+    private static String getDefaultXml( Parameter param ) {
         String dflt = param.getStringDefault();
+        StringBuffer sbuf = new StringBuffer();
         if ( dflt != null && dflt.length() > 0 ) {
             sbuf.append( "<p>[Default: <code>" )
                 .append( dflt.replaceAll( "&", "&amp;" )
@@ -113,7 +198,20 @@ public class UsageWriter {
                              .replaceAll( ">", "&gt;" ) )
                 .append( "</code>]</p>" );
         }
-        sbuf.append( "</dd>" );
+        return sbuf.toString();
+    }
+
+    /**
+     * Returns a padding string containing non-breaking spaces.
+     *
+     * @param  count  number of spaces
+     * @return  count-char padding string
+     */
+    private static String nbsps( int count ) {
+        StringBuffer sbuf = new StringBuffer( count );
+        for ( int i = 0; i < count; i++ ) {
+            sbuf.append( "\u00a0" );
+        }
         return sbuf.toString();
     }
 
