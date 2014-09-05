@@ -157,15 +157,7 @@ public class VariableTablesInput implements TablesInput {
             new InputTableParameter( naming.pName_ + label );
         inParam.setUsage( "<table" + label + ">" );
         inParam.setPrompt( "Location of " + naming.pWord_ + " table " + label );
-        inParam.setDescription( inParam.getDescription()
-                               .replaceFirst( "the input table",
-                                              naming.pWord_
-                                            + " table #" + label ) );
-        InputFormatParameter fmtParam = inParam.getFormatParameter();
-        fmtParam.setDescription( fmtParam.getDescription()
-                                .replaceFirst( "the input table",
-                                               naming.pWord_
-                                             + " table #" + label ) );
+        inParam.setTableDescription( naming.pWord_ + " table #" + label );
         return inParam;
     }
 

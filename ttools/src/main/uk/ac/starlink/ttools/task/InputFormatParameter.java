@@ -20,14 +20,36 @@ public class InputFormatParameter extends StringParameter
 
     public InputFormatParameter( String name ) {
         super( name );
-        setPrompt( "Format name for input table" );
         setNullPermitted( false );
         setStringDefault( StarTableFactory.AUTO_HANDLER );
+        setTableDescription( "the input table", null );
+    }
 
+    /** 
+     * Sets the wording used to refer to the input table in parameter
+     * descriptions. 
+     * If not set, the wording "the input table" is used.
+     *  
+     * @param  inDescrip  text to replace "the input table"
+     * @param  tableParam  if supplied, gives the table parameter on behalf
+     *                     of which this format parameter is operating;
+     *                     may be null
+     */ 
+    public final void
+            setTableDescription( String inDescrip,
+                                 AbstractInputTableParameter tableParam ) {
+        setPrompt( "Format name for " + inDescrip );
+        StringBuffer dbuf = new StringBuffer();
+        dbuf.append( inDescrip );
+        if ( tableParam != null ) {
+            dbuf.append( " as specified by parameter <code>" )
+                .append( tableParam.getName() )
+                .append( "</code>" );
+        }
         setDescription( new String[] {
-            "<p>Specifies the format of the input table",
-            "(one of the known formats listed in <ref id='inFormats'/>).",
-            "This flag can be used if you know what format your input",
+            "<p>Specifies the format of " + dbuf.toString() + ".",
+            "The known formats are listed in <ref id='inFormats'/>.",
+            "This flag can be used if you know what format your",
             "table is in.",
             "If it has the special value",
             "<code>" + StarTableFactory.AUTO_HANDLER + "</code> (the default),",

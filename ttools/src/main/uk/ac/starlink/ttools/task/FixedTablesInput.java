@@ -39,17 +39,9 @@ public class FixedTablesInput implements TablesInput {
             inParam.setPosition( i1 );
             inParam.setUsage( "<table" + i1 + ">" );
             inParam.setPrompt( "Location of " + ord + " input table" );
-            inParam.setDescription( inParam.getDescription()
-                                   .replaceFirst( "the input table",
-                                                  "the " + ord +
-                                                  " input table" ) );
-            InputFormatParameter fmtParam = inParam.getFormatParameter();
-            fmtParam.setDescription( fmtParam.getDescription()
-                                    .replaceFirst( "the input table",
-                                                   "the " + ord +
-                                                   " input table" ) );
-            paramList.add( fmtParam );
+            inParam.setTableDescription( "the " + ord + " input table" );
             paramList.add( inParam );
+            paramList.add( inParam.getFormatParameter() );
         }
 
         /* Input filter parameters. */
