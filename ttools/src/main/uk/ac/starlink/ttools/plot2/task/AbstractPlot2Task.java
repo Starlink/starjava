@@ -67,9 +67,11 @@ import uk.ac.starlink.ttools.plot2.data.CoordGroup;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.DataStoreFactory;
+import uk.ac.starlink.ttools.plot2.layer.ShapeMode;
 import uk.ac.starlink.ttools.plot2.paper.Compositor;
 import uk.ac.starlink.ttools.plot2.paper.PaperType;
 import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
+import uk.ac.starlink.ttools.plottask.PaintMode;
 import uk.ac.starlink.ttools.plottask.PaintModeParameter;
 import uk.ac.starlink.ttools.plottask.Painter;
 import uk.ac.starlink.ttools.plottask.SwingPainter;
@@ -107,6 +109,7 @@ public abstract class AbstractPlot2Task implements Task {
     private static final String PLOTTER_PREFIX = "layer";
     private static final String TABLE_PREFIX = "in";
     private static final String FILTER_PREFIX = "cmd";
+    public static final String EXAMPLE_LAYER_SUFFIX = "N";
     private static final GraphicExporter[] EXPORTERS =
         GraphicExporter.getKnownExporters( PlotUtil.LATEX_PDF_EXPORTER );
     private static final Logger logger_ =
@@ -121,28 +124,133 @@ public abstract class AbstractPlot2Task implements Task {
         allowAnimate_ = allowAnimate;
         List<Parameter> plist = new ArrayList<Parameter>();
 
+        insetsParam_ = new InsetsParameter( "insets" );
+
         xpixParam_ = new IntegerParameter( "xpix" );
+        xpixParam_.setPrompt( "Total horizontal size in pixels" );
+        xpixParam_.setDescription( new String[] {
+            "<p>Size of the output image in the X direction in pixels.",
+            "This includes space for any axis labels, padding",
+            "and other decoration outside the plot area itself.",
+            "See also <code>" + insetsParam_.getName() + "</code>.",
+            "</p>",
+        } );
         xpixParam_.setIntDefault( 500 );
+        xpixParam_.setMinimum( 1 );
         plist.add( xpixParam_ );
 
         ypixParam_ = new IntegerParameter( "ypix" );
+        ypixParam_.setPrompt( "Total vertical size in pixels" );
+        ypixParam_.setDescription( new String[] {
+            "<p>Size of the output image in the Y direction in pixels.",
+            "This includes space for any axis labels, padding",
+            "and other decoration outside the plot area itself.",
+            "See also <code>" + insetsParam_.getName() + "</code>.",
+            "</p>",
+        } );
         ypixParam_.setIntDefault( 400 );
+        ypixParam_.setMinimum( 1 );
         plist.add( ypixParam_ );
 
-        insetsParam_ = new InsetsParameter( "insets" );
+        insetsParam_.setPrompt( "Space outside plotting area" );
+        insetsParam_.setDescription( new String[] {
+            "<p>Defines the amount of space in pixels around the",
+            "actual plotting area.",
+            "This space is used for axis labels, and other decorations",
+            "and any left over forms an empty border.",
+            "</p>",
+            "<p>The size and position of the actual plotting area",
+            "is determined by this parameter along with", 
+            "<code>" + xpixParam_ + "</code> and",
+            "<code>" + ypixParam_ + "</code>.",
+            "If no value is set (the default), the insets will be determined",
+            "automatically according to how much space is required for",
+            "labels etc.",
+            "</p>",
+        } );
         plist.add( insetsParam_ );
 
         painterParam_ = createPaintModeParameter();
         plist.add( painterParam_ );
 
         dstoreParam_ = new DataStoreParameter( "storage" );
+        dstoreParam_.setDescription( new String[] {
+           dstoreParam_.getDescription(),
+           "<p>The default value is",
+           "<code>" + dstoreParam_.getName( dstoreParam_
+                                           .getDefaultForCaching( true ) )
+                    + "</code>",
+           "if a live plot is being generated",
+           "(<code>" + painterParam_.getName() + "="
+                     + painterParam_.getName( PaintMode.SWING_MODE )
+                     + "</code>),",
+           "since in that case the plot needs to be redrawn every time",
+           "the user performs plot navigation actions or resizes the window,",
+           "or if animations are being produced.",
+           "Otherwise (e.g. output to a graphics file) the default is",
+           "<code>" + dstoreParam_.getName( dstoreParam_
+                                           .getDefaultForCaching( false ) )
+                    + "</code>.",
+           "</p>",
+        } );
         plist.add( dstoreParam_ );
 
-        orderParam_ = new StringMultiParameter( "order", ',' );
+        orderParam_ = new StringMultiParameter( "sequence", ',' );
+        orderParam_.setUsage( "<suffix>[,...]" );
+        orderParam_.setPrompt( "Order in which to plot layers" );
+        String osfix = "&lt;" + EXAMPLE_LAYER_SUFFIX + "&gt;";
+        orderParam_.setDescription( new String[] {
+            "<p>Contains a comma-separated list of layer suffixes",
+            "to determine the order in which layers are drawn on the plot.",
+            "This can affect which symbol are plotted on top of,",
+            "and so potentially obscure, which other ones.",
+            "</p>",
+            "<p>When specifying a plot, multiple layers may be specified,",
+            "each introduced by a parameter",
+            "<code>" + PLOTTER_PREFIX + osfix + "</code>,",
+            "where <code>" + osfix + "</code> is a different (arbitrary)",
+            "suffix labelling the layer,",
+            "and is appended to all the parameters",
+            "specific to defining that layer.",
+            "</p>",
+            "<p>By default the layers are drawn on the plot in the order",
+            "in which the <code>" + PLOTTER_PREFIX + "*</code> parameters",
+            "appear on the command line.",
+            "However if this parameter is specified, each comma-separated",
+            "element is interpreted as a layer suffix,",
+            "giving the ordered list of layers to plot.",
+            "Every element of the list must be a suffix with a corresponding",
+            "<code>" + PLOTTER_PREFIX + "</code> parameter,",
+            "but missing or repeated elements are allowed.",
+            "</p>",
+        } );
         orderParam_.setNullPermitted( true );
         plist.add( orderParam_ );
 
         bitmapParam_ = new BooleanParameter( "forcebitmap" );
+        bitmapParam_.setPrompt( "Force non-vector graphics output?" );
+        bitmapParam_.setDescription( new String[] {
+            "<p>This option only has an effect when writing output",
+            "to vector graphics formats (PDF and PostScript).",
+            "If set <code>true</code>, the data contents of the plot",
+            "are drawn as a pixel map embedded into the output",
+            "file rather than plotting each point in the output.",
+            "This may make the output less beautiful",
+            "(round markers will no longer be perfectly round),",
+            "but it may result in a much smaller file",
+            "if there are very many data points. Plot annotations such as",
+            "axis labels will not be affected - they are still drawn as",
+            "vector text.",
+            "Note that in some cases",
+            "(e.g. <code>" + PlotterParameter.SHADING_PREFIX
+                           + EXAMPLE_LAYER_SUFFIX + "="
+                           + ShapeMode.AUTO.getModeName() + "</code>",
+            "or    <code>" + PlotterParameter.SHADING_PREFIX
+                           + EXAMPLE_LAYER_SUFFIX + "="
+                           + ShapeMode.DENSITY.getModeName() + "</code>)",
+            "this kind of pixellisation will happen in any case.",
+            "</p>",
+        } );
         bitmapParam_.setBooleanDefault( false );
         plist.add( bitmapParam_ );
 
@@ -152,10 +260,37 @@ public abstract class AbstractPlot2Task implements Task {
         if ( allowAnimate ) {
             animateParam_ = new InputTableParameter( "animate" );
             animateParam_.setNullPermitted( true );
+            animateParam_.setTableDescription( "the animation table" );
+            animateParam_.setDescription( new String[] {
+                "<p>If not null, this parameter causes the command",
+                "to create a sequence of plots instead of just one.",
+                "The parameter value is a table with one row for each",
+                "frame to be produced.",
+                "Columns in the table are interpreted as parameters",
+                "which may take different values for each frame;",
+                "the column name is the parameter name,",
+                "and the value for a given frame is its value from that row.",
+                "Animating like this is considerably more efficient",
+                "than invoking the STILTS command in a loop.",
+                "</p>",
+                animateParam_.getDescription(),
+            } );
             plist.add( animateParam_ );
+            plist.add( animateParam_.getFormatParameter() );
+            plist.add( animateParam_.getStreamParameter() );
             animateFilterParam_ = new FilterParameter( "acmd" );
             plist.add( animateFilterParam_ );
             parallelParam_ = new IntegerParameter( "parallel" );
+            parallelParam_.setPrompt( "Parallelism for animation frames" );
+            parallelParam_.setDescription( new String[] {
+                "<p>Determines how many threads will run in parallel",
+                "if animation output is being produced.",
+                "Only used if the <code>" + animateParam_.getName() + "</code>",
+                "parameter is supplied.",
+                "The default value is the number of processors apparently",
+                "available to the JVM.",
+                "</p>",
+            } );
             parallelParam_.setMinimum( 1 );
             parallelParam_.setIntDefault( Runtime.getRuntime()
                                          .availableProcessors() );

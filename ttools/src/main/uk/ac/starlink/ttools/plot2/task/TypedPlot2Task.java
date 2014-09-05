@@ -26,7 +26,6 @@ public class TypedPlot2Task extends AbstractPlot2Task {
     private final PlotType plotType_;
     private final PlotContext context_;
     private final Parameter[] params_;
-    private static final String EXAMPLE_LAYER_SUFFIX = "N";
 
     /**
      * Constructs a plot task with a supplied PlotContext.
