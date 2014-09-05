@@ -57,35 +57,7 @@ public abstract class AbstractInputTableParameter<T> extends Parameter<T> {
         formatParam_ = new InputFormatParameter( labelChar + "fmt" + suffix );
         streamParam_ = new BooleanParameter( labelChar + "stream" + suffix );
         streamParam_.setBooleanDefault( false );
-
-        setDescription( new String[] {
-            "<p>The location of the input table.",
-            "This is usually a filename or URL, and may point to a file",
-            "compressed in one of the supported compression formats",
-            "(Unix compress, gzip or bzip2).",
-            "If it is omitted, or equal to the special value \"-\",",
-            "the input table will be read from standard input.",
-            "In this case the input format must be given explicitly",
-            "using the <code>" + formatParam_.getName() + "</code> parameter.",
-            "</p>",
-        } );
-
-        streamParam_.setDescription( new String[] {
-            "<p>If set true, the <code>" + getName() + "</code> table",
-            "will be read as a stream.",
-            "It is necessary to give the ",
-            "<code>" + formatParam_.getName() + "</code> parameter",
-            "in this case.",
-            "Depending on the required operations and processing mode,",
-            "this may cause the read to fail (sometimes it is necessary",
-            "to read the input table more than once).",
-            "It is not normally necessary to set this flag;",
-            "in most cases the data will be streamed automatically",
-            "if that is the best thing to do.",
-            "However it can sometimes result in less resource usage when",
-            "processing large files in certain formats (such as VOTable).",
-            "</p>",
-        } );
+        setTableDescription( "the input table" );
     }
 
     /**
@@ -104,6 +76,46 @@ public abstract class AbstractInputTableParameter<T> extends Parameter<T> {
      */
     public BooleanParameter getStreamParameter() {
         return streamParam_;
+    }
+
+    /**
+     * Sets the wording used to refer to the input table in parameter
+     * descriptions.  This parameter and the associated parameters
+     * (format and stream) are affected.
+     * If not set, the wording "the input table" is used.
+     *
+     * @param  inDescrip  text to replace "the input table"
+     */
+    public final void setTableDescription( String inDescrip ) {
+        setDescription( new String[] {
+            "<p>The location of " + inDescrip,
+            "This is usually a filename or URL, and may point to a file",
+            "compressed in one of the supported compression formats",
+            "(Unix compress, gzip or bzip2).",
+            "If it is omitted, or equal to the special value \"-\",",
+            "the table will be read from standard input.",
+            "In this case the input format must be given explicitly",
+            "using the <code>" + formatParam_.getName() + "</code> parameter.",
+            "</p>",
+        } );
+        streamParam_.setDescription( new String[] {
+            "<p>If set true, " + inDescrip,
+            "specified by the <code>" + getName() + "</code> parameter",
+            "will be read as a stream.",
+            "It is necessary to give the ",
+            "<code>" + formatParam_.getName() + "</code> parameter",
+            "in this case.",
+            "Depending on the required operations and processing mode,",
+            "this may cause the read to fail (sometimes it is necessary",
+            "to read the table more than once).",
+            "It is not normally necessary to set this flag;",
+            "in most cases the data will be streamed automatically",
+            "if that is the best thing to do.",
+            "However it can sometimes result in less resource usage when",
+            "processing large files in certain formats (such as VOTable).",
+            "</p>",
+        } );
+        formatParam_.setTableDescription( inDescrip, this );
     }
 
     /**
