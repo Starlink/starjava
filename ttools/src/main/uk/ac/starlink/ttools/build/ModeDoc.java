@@ -56,7 +56,7 @@ public class ModeDoc {
                 out_.println( "<p>Additional parameters for this output mode "
                             + "are:<dl>" );
                 for ( int j = 0; j < params.length; j++ ) {
-                    out_.println( UsageWriter.xmlItem( params[ j ] ) );
+                    out_.println( UsageWriter.xmlItem( params[ j ], false ) );
                 }
                 out_.println( "</dl></p>" );
             }

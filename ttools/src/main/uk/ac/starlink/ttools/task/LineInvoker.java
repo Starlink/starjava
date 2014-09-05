@@ -764,6 +764,15 @@ public class LineInvoker {
         catch ( SAXException e ) {
             sbuf.append( "      ???" );
         }
+        Class clazz = param.getValueClass();
+        String clazzName = clazz.getCanonicalName();
+        String javaPrefix = "java.lang.";
+        String clazzAbbrev = clazzName.startsWith( javaPrefix )
+                           ? clazzName.substring( javaPrefix.length() )
+                           : clazzName;
+        sbuf.append( "\n\n   Type:\n" )
+            .append( "      " )
+            .append( clazzAbbrev );
         if ( param.getStringDefault() != null ||
              param.isNullPermitted() ) {
             sbuf.append( "\n\n   Default:\n" )
