@@ -1101,7 +1101,44 @@ public abstract class AbstractPlot2Task implements Task {
      */
     public static StringParameter createDataParameter( ValueInfo info,
                                                        String suffix ) {
-        return new StringParameter( info.getName().toLowerCase() + suffix );
+        String cName = info.getName();
+        Class cClazz = info.getContentClass();
+        final String typeTxt;
+        if ( cClazz.equals( String.class ) ) {
+            typeTxt = "string";
+        }
+        else if ( cClazz.equals( Integer.class ) ||
+                  cClazz.equals( Long.class ) ) {
+            typeTxt = "integer";
+        }
+        else if ( Number.class.isAssignableFrom( cClazz ) ) {
+            typeTxt = "numeric";
+        }
+        else {
+            typeTxt = "<code>" + cClazz.getSimpleName() + "</code>";
+        }
+        String descrip = info.getDescription();
+        if ( ! descrip.endsWith( "." ) ) {
+            descrip = descrip + ".";
+        }
+        StringParameter param =
+            new StringParameter( cName.toLowerCase() + suffix );
+        param.setPrompt( cName + " coordinate for layer " + suffix );
+        param.setDescription( new String[] {
+            "<p><![CDATA[" + descrip + "]]>",
+            suffix.length() > 0 ? ( "Applies to layer <code>" + suffix
+                                                              + "</code>." )
+                                : "",
+            "</p>",
+            "<p>This parameter gives a column name or expression for the",
+            "<code>" + cName + "</code> coordinate",
+            ( suffix.length() > 0 ? ( "for layer <code>" + suffix + "</code>" )
+                                  : "for all layers" ) + ".",
+            "The expression is a " + typeTxt + " algebraic expression",
+            "based on column names as described in <ref id='jel'/>.",
+            "</p>",
+        } );
+        return param;
     }
 
     /**
