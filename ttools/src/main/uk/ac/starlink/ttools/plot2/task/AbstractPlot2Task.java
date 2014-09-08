@@ -5,6 +5,7 @@ import java.awt.Dimension;
 import java.awt.Insets;
 import java.awt.Rectangle;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -541,6 +542,19 @@ public abstract class AbstractPlot2Task implements Task {
         RowSequence aseq = animateTable.getRowSequence();
         final JComponent holder = new JPanel( new BorderLayout() );
         DataStore dataStore = null;
+
+        /* The swing animation is not parallelised, but should be.
+         * It's like this.  The work is not (mostly) done by creating the
+         * PlotDisplay component plot component, it's done when that
+         * component paints itself, i.e. on the event dispatch thread,
+         * so I can't easily do parallel plotting and feed the results
+         * to the EDT to display.
+         * To parallelise it, I should cause that painting work to be
+         * done before the component is posted, and cached within the
+         * PlotDisplay object ready for fast plotting when it becomes visible.
+         * PlotDisplay is more or less set up to do this, but it would
+         * need to know its dimensions to know how to do the plot,
+         * which requires a bit of additional plumbing. */
         try {
             for ( long irow = 0; aseq.next(); irow++ ) {
                 Environment frameEnv =
@@ -551,18 +565,29 @@ public abstract class AbstractPlot2Task implements Task {
                 final JComponent panel =
                     executor.createPlotComponent( dataStore, true, true );
                 final boolean init = irow == 0;
-                SwingUtilities.invokeLater( new Runnable() {
-                    public void run() {
-                        holder.removeAll();
-                        holder.add( panel, BorderLayout.CENTER );
-                        holder.revalidate();
-                        holder.repaint();
-                        if ( init ) {
-                            painter.postComponent( holder );
-                        }                   
-                    }
-                } );
-            }   
+
+                /* It's necessary to use invokeAndWait here, since the
+                 * display painting is slow.  If invokeLater is used,
+                 * most frames are never seen.  If I fix it so that
+                 * most of the work is done outside the EDT,
+                 * I can change this back to invokeLater. */
+                try {
+                    SwingUtilities.invokeAndWait( new Runnable() {
+                        public void run() {
+                            holder.removeAll();
+                            holder.add( panel, BorderLayout.CENTER );
+                            holder.revalidate();
+                            holder.repaint();
+                            if ( init ) {
+                                painter.postComponent( holder );
+                            }                   
+                        }
+                    } );
+                }
+                catch( InvocationTargetException e ) {
+                    throw new TaskException( "Painting error: " + e, e );
+                }
+            }
         }
         finally {
             aseq.close();
