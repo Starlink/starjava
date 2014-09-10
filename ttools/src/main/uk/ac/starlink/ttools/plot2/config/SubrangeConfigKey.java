@@ -185,4 +185,37 @@ public class SubrangeConfigKey extends ConfigKey<Subrange> {
             return (int) Math.round( p01 * ( MAX - MIN ) ) + MIN;
         }
     }
+
+    /**
+     * Returns a metadata object to describe a SubrangeConfigKey for use
+     * with a coordinate axis.
+     *
+     * @param  axisName  axis name
+     * @return   metadata object describing a subrange config key for an axis
+     */
+    public static ConfigMeta createAxisMeta( String axisName ) {
+        ConfigMeta meta =
+            new ConfigMeta( axisName.substring( 0, 1 ).toLowerCase() + "sub",
+                            ConfigMeta.capitalise( axisName ) + " Subrange" );
+        meta.setStringUsage( "<lo>,<hi>" );
+        meta.setXmlDescription( new String[] {
+            "<p>Defines a normalised adjustment to the data range of the",
+            axisName + " axis.",
+            "The value may be specified as a comma-separated pair",
+            "of two numbers,",
+            "giving the lower and upper bounds of the range of",
+            "of interest respectively.",
+            "This sub-range is applied to the data range that would",
+            "otherwise be used, either automatically calculated",
+            "or explicitly supplied;",
+            "zero corresponds to the lower bound and one to the upper.",
+            "</p>",
+            "<p>The default value \"<code>0,1</code>\" therefore has",
+            "no effect.",
+            "The range could be restricted to its lower half",
+            "with the value <code>0,0.5</code>.",
+            "</p>",
+        } );
+        return meta;
+    }
 }

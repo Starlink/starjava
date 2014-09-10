@@ -1,6 +1,7 @@
 package uk.ac.starlink.ttools.plot2.config;
 
 import java.awt.Font;
+import java.util.Arrays;
 import org.scilab.forge.jlatexmath.TeXFormula;
 import uk.ac.starlink.ttools.plot2.BasicCaptioner;
 import uk.ac.starlink.ttools.plot2.Captioner;
@@ -26,26 +27,84 @@ public class CaptionerKeySet implements KeySet<Captioner> {
      * Constructor.
      */
     public CaptionerKeySet() {
+        ConfigMeta syntaxMeta = new ConfigMeta( "syntax", "Text Syntax" );
+        syntaxMeta.setShortDescription( "Text interpretation" );
+        syntaxMeta.setXmlDescription( new String[] {
+            "<p>Determines how to turn label text into characters",
+            "on the plot.",
+            "<code>" + TextSyntax.PLAIN + "</code> and",
+            "<code>" + TextSyntax.AAPLAIN + "</code>",
+            "both take the text at face value,",
+            "but <code>" + TextSyntax.AAPLAIN + "</code>",
+            "smooths the characters.",
+            "<code>" + TextSyntax.LATEX + "</code>",
+            "interprets the text as LaTeX source code",
+            "and typesets it accordingly.",
+            "</p>",
+            "<p>When not using LaTeX, antialiased text usually looks nicer,",
+            "but can be perceptibly slower to plot.",
+            "At time of writing, on MacOS antialiased text",
+            "seems to be required to stop the writing coming out",
+            "upside-down for non-horizontal text (MacOS java bug).",
+            "</p>",
+        } );
+        TextSyntax syntaxDflt = PlotUtil.getDefaultTextAntialiasing()
+                              ? TextSyntax.AAPLAIN
+                              : TextSyntax.PLAIN;
         textSyntaxKey_ =
-            new OptionConfigKey<TextSyntax>(
-                    new ConfigMeta( "syntax", "Text Syntax" ),
-                    TextSyntax.class, TextSyntax.values(),
-                    PlotUtil.getDefaultTextAntialiasing() ? TextSyntax.AAPLAIN
-                                                          : TextSyntax.PLAIN,
-                    true );
+            new OptionConfigKey<TextSyntax>( syntaxMeta, TextSyntax.class,
+                                             TextSyntax.values(),
+                                             syntaxDflt, true )
+           .setOptionUsage();
+
+        ConfigMeta sizeMeta = new ConfigMeta( "fontsize", "Font Size" );
+        sizeMeta.setShortDescription( "Font size in points" );
+        sizeMeta.setXmlDescription( new String[] {
+            "<p>Size of the text font in points.",
+            "</p>",
+        } );
         fontSizeKey_ =
-            IntegerConfigKey.createSpinnerKey( new ConfigMeta( "fontsize",
-                                                               "Font Size" ),
-                                               12, 2, 64 );
+            IntegerConfigKey.createSpinnerKey( sizeMeta, 12, 2, 64 );
+
+        ConfigMeta typeMeta = new ConfigMeta( "fontstyle", "Font Style" );
+        typeMeta.setShortDescription( "Font style" );
+        StringBuffer sitemBuf = new StringBuffer();
+        for ( FontType ftype : Arrays.asList( FontType.values() ) ) {
+            sitemBuf.append( "<li><code>" )
+                    .append( ftype.toString() )
+                    .append( "</code></li>\n" );
+        }
+        typeMeta.setXmlDescription( new String[] {
+            "<p>Font style for text, one of",
+            "<ul>",
+            sitemBuf.toString(),
+            "</ul>",
+            "</p>",
+        } );
         fontTypeKey_ =
-            new OptionConfigKey<FontType>( new ConfigMeta( "fontstyle",
-                                                           "Font Style" ),
-                                           FontType.class, FontType.values() );
+            new OptionConfigKey<FontType>( typeMeta, FontType.class,
+                                           FontType.values() )
+           .setOptionUsage();
+
+        ConfigMeta weightMeta = new ConfigMeta( "fontweight", "Font Weight" );
+        weightMeta.setShortDescription( "Font weight" );
+        StringBuffer witemBuf = new StringBuffer();
+        for ( FontWeight fweight : Arrays.asList( FontWeight.values() ) ) {
+            witemBuf.append( "<li><code>" )
+                    .append( fweight.toString() )
+                    .append( "</code></li>\n" );
+        }
+        weightMeta.setXmlDescription( new String[] {
+            "<p>Font weight for text, one of",
+            "<ul>",
+            witemBuf.toString(),
+            "</ul>",
+            "</p>",
+        } );
         fontWeightKey_ =
-            new OptionConfigKey<FontWeight>( new ConfigMeta( "fontweight",
-                                                             "Font Weight" ),
-                                             FontWeight.class,
-                                             FontWeight.values() );
+            new OptionConfigKey<FontWeight>( weightMeta, FontWeight.class,
+                                             FontWeight.values() )
+           .setOptionUsage();
     }
 
     public ConfigKey[] getKeys() {
