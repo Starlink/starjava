@@ -98,9 +98,7 @@ public class TypedPlot2Task extends AbstractPlot2Task {
     private static List<Parameter> getKeyParams( ConfigKey[] keys ) {
         List<Parameter> plist = new ArrayList<Parameter>();
         for ( int ik = 0; ik < keys.length; ik++ ) {
-            ConfigKey key = keys[ ik ];
-            plist.add( new ConfigParameter( key.getMeta().getShortName(),
-                                            key ) );
+            plist.add( new ConfigParameter( keys[ ik ] ) );
         }
         return plist;
     }

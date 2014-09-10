@@ -472,9 +472,9 @@ public class PlotterParameter extends Parameter<Plotter>
                                                 String suffix ) {
         List<String> wordList = new ArrayList<String>();
         for ( int ik = 0; ik < configKeys.length; ik++ ) {
-            ConfigKey key = configKeys[ ik ];
-            String pname = key.getMeta().getShortName() + suffix;
-            ConfigParameter param = new ConfigParameter( pname, key );
+            ConfigParameter param = ConfigParameter
+                                   .createSuffixedParameter( configKeys[ ik ],
+                                                             suffix );
             wordList.add( usageWord( param ) );
         }
         return wordList;

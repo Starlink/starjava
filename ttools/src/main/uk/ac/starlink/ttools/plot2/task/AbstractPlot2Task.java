@@ -1035,10 +1035,9 @@ public abstract class AbstractPlot2Task implements Task {
     private <T> void putConfigValue( Environment env, String suffix,
                                      final ConfigKey<T> key, ConfigMap map )
             throws TaskException {
-        final String pbase = key.getMeta().getShortName();
         ConfigParameter<T> param = new ParameterFinder<ConfigParameter<T>>() {
             protected ConfigParameter<T> createParameter( String sfix ) {
-                return new ConfigParameter<T>( pbase + sfix, key );
+                return ConfigParameter.createSuffixedParameter( key, sfix );
             }
         }.getParameter( env, suffix );
         T value = param.objectValue( env );
