@@ -34,8 +34,13 @@ public class SinProjection extends SkyviewProjection {
     }
 
     @Override
-    public String getName() {
+    public String getProjectionName() {
         return "Sin";
+    }
+
+    @Override
+    public String getProjectionDescription() {
+        return "rotatable sphere";
     }
 
     /**

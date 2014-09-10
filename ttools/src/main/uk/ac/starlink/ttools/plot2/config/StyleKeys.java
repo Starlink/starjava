@@ -139,8 +139,17 @@ public class StyleKeys {
 
     /** Config key for axis grid antialiasing. */
     public static final ConfigKey<Boolean> GRID_ANTIALIAS =
-        new BooleanConfigKey( new ConfigMeta( "gridaa", "Antialiasing" ),
-                              false );
+        new BooleanConfigKey(
+            new ConfigMeta( "gridaa", "Antialiasing" )
+           .setShortDescription( "Use antialiasing for grid lines?" )
+           .setXmlDescription( new String[] {
+                "<p>If true, grid lines are drawn with antialiasing.",
+                "Antialiased lines look smoother, but may take",
+                "perceptibly longer to draw.",
+                "Only has any effect for bitmapped output formats.",
+                "</p>",
+            } )
+        , false );
 
     /** Config key for text anchor positioning. */
     public static final ConfigKey<Anchor> ANCHOR =

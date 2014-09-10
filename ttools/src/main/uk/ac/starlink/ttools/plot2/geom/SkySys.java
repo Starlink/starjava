@@ -23,6 +23,7 @@ import uk.ac.starlink.ttools.plot2.config.OptionConfigKey;
 public class SkySys {
 
     private final String name_;
+    private final String description_;
     private final String ucd1pBase_;
     private final String ucd1Base_;
     private final String lonLabel_;
@@ -61,7 +62,8 @@ public class SkySys {
     private static final SkySys[] KNOWN_SYSTEMS = new SkySys[] {
 
         EQUATORIAL =
-            new SkySys( "Equatorial", "eq", "EQ", "ra", "dec",
+            new SkySys( "Equatorial", "J2000 equatorial system",
+                        "eq", "EQ", "ra", "dec",
                         new String[][] { { "ra", "dec" },
                                          { "alpha", "delta" },
                                          { "ra2000", "dec2000" },
@@ -70,7 +72,8 @@ public class SkySys {
                         new double[] { 1, 0, 0, 0, 1, 0, 0, 0, 1 } ),
 
         GALACTIC =
-            new SkySys( "Galactic", "galactic", "GAL", "lon", "lat",
+            new SkySys( "Galactic", "IAU 1958 galactic system",
+                        "galactic", "GAL", "lon", "lat",
                         new String[][] { { "gal_lon", "gal_lat" },
                                          { "gal_lon", "gal_lat" },
                                          { "glon", "glat" },
@@ -78,13 +81,16 @@ public class SkySys {
                         Matrices.invert( EQ2GAL ) ),
 
         SUPERGALACTIC =
-            new SkySys( "SuperGalactic", "supergalactic", "SG", "lon", "lat",
+            new SkySys( "SuperGalactic", "De Vaucouleurs supergalactic system",
+                        "supergalactic", "SG", "lon", "lat",
                         new String[ 0 ][],
                         Matrices.mmMult( Matrices.invert( EQ2GAL ),
                                          Matrices.invert( GAL2SUP ) ) ),
 
         ECLIPTIC2000 =
-            new SkySys( "Ecliptic2000", "ecliptic2000", "EC", "lon", "lat",
+            new SkySys( "Ecliptic",
+                        "ecliptic system based on conversion at 2000.0",
+                        "ecliptic2000", "EC", "lon", "lat",
                         new String[ 0 ][],
                         Matrices.invert( Matrices
                                         .fromPal( new Pal()
@@ -97,6 +103,7 @@ public class SkySys {
      * are given.  All such strings are interpreted case-insensitively.
      *
      * @param  name  system name
+     * @param  description  short description
      * @param  ucd1pBase  root atom for coordinate UCDs in UCD1+
      * @param  ucd1Base   root atom for coordinate UCDs in UCD1
      * @param  lonLabel  name of longitude coordinate in UCDs
@@ -105,10 +112,12 @@ public class SkySys {
      * @param  toEquatorial  9-element rotation matrix to convert from this
      *                       system to J2000 Equatorial coordinates
      */
-    private SkySys( String name, String ucd1pBase, String ucd1Base,
+    private SkySys( String name, String description,
+                    String ucd1pBase, String ucd1Base,
                     String lonLabel, String latLabel, String[][] namePairs,
                     double[] toEquatorial ) {
         name_ = name;
+        description_ = description;
         ucd1pBase_ = ucd1pBase;
         ucd1Base_ = ucd1Base;
         lonLabel_ = lonLabel;
@@ -118,6 +127,24 @@ public class SkySys {
         if ( toEq_.length != 9 ) {
             throw new IllegalArgumentException();
         }
+    }
+
+    /**
+     * Returns the name for this system.
+     *
+     * @return  name
+     */
+    public String getSysName() {
+        return name_;
+    }
+
+    /**
+     * Returns the description for this system.
+     *
+     * @return  description
+     */
+    public String getSysDescription() {
+        return description_;
     }
 
     /**

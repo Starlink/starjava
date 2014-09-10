@@ -15,9 +15,16 @@ public interface SkyAxisLabeller {
     /**
      * Returns a name for this axis labelling mode.
      *
-     * @return  user-directed name
+     * @return  one-word name
      */
-    String getName();
+    String getLabellerName();
+
+    /**
+     * Returns a description for this mode.
+     *
+     * @return  description
+     */
+    String getLabellerDescription();
 
     /**
      * Returns an axis annotation object for a given grid painter and

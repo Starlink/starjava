@@ -1,17 +1,16 @@
 package uk.ac.starlink.ttools.plot2.task;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
-import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.plot2.DataGeom;
+import uk.ac.starlink.ttools.plot2.config.SkySysConfigKey;
 import uk.ac.starlink.ttools.plot2.geom.SkyPlotType;
 import uk.ac.starlink.ttools.plot2.geom.SkySys;
 import uk.ac.starlink.ttools.plot2.geom.SkyDataGeom;
+import uk.ac.starlink.ttools.plot2.geom.SkySurfaceFactory;
 
 /**
  * Task for Sky-type plots.
@@ -21,30 +20,27 @@ import uk.ac.starlink.ttools.plot2.geom.SkyDataGeom;
  */
 public class SkyPlot2Task extends TypedPlot2Task {
 
-    private final SysParameter viewsysParam_;
+    private static final String viewsysName_ =
+        SkySurfaceFactory.VIEWSYS_KEY.getMeta().getShortName();
 
     /**
      * Constructor.
      */
     public SkyPlot2Task() {
         super( SkyPlotType.getInstance(), new SkyPlotContext() );
-
-        /* Parameter to define the sky system in which the plot is viewed. */
-        viewsysParam_ = new SysParameter( "viewsys" );
-        viewsysParam_.setNullPermitted( true );
-        viewsysParam_.setStringDefault( null );
+        Parameter<SkySys> viewsysParam = null;
+        for ( Parameter param : Arrays.asList( super.getParameters() ) ) {
+            if ( viewsysName_.equals( param.getName() ) ) {
+                viewsysParam = param;
+            }
+        }
+        viewsysParam.setNullPermitted( true );
+        viewsysParam.setStringDefault( null );
 
         /* Initialise the context with this parameter,
          * since it's not possible to do it at construction time. */
         ((SkyPlotContext) getPlotContext())
-                         .setViewsysParameter( viewsysParam_ );
-    }
-
-    public Parameter[] getParameters() {
-        List<Parameter> params = new ArrayList<Parameter>();
-        params.addAll( Arrays.asList( super.getParameters() ) );
-        params.add( viewsysParam_ );
-        return params.toArray( new Parameter[ 0 ] );
+                         .setViewsysParameter( viewsysParam );
     }
 
     /**
@@ -54,7 +50,7 @@ public class SkyPlot2Task extends TypedPlot2Task {
      * SkySys data selection.
      */
     private static class SkyPlotContext extends PlotContext {
-        private SysParameter viewsysParam_;
+        private Parameter<SkySys> viewsysParam_;
 
         /**
          * Constructor.
@@ -71,33 +67,37 @@ public class SkyPlot2Task extends TypedPlot2Task {
          *
          * @param   viewsysParam  parameter for selecting per-plot view system
          */
-        public void setViewsysParameter( SysParameter viewsysParam ) {
+        public void setViewsysParameter( Parameter<SkySys> viewsysParam ) {
             viewsysParam_ = viewsysParam;
         }
 
         public Parameter[] getGeomParameters( String suffix ) {
             return new Parameter[] {
-                new SysParameter( datasysParamName( suffix ) ),
+                createDataSysParameter( suffix ),
             };
         }
 
         public DataGeom getGeom( Environment env, String suffix )
                 throws TaskException {
             SkySys viewsys = viewsysParam_.objectValue( env );
-            SysParameter datasysParam = new ParameterFinder<SysParameter>() {
-                protected SysParameter createParameter( String sfix ) {
-                    return new SysParameter( datasysParamName( sfix ) );
+            ChoiceParameter<SkySys> datasysParam =
+                    new ParameterFinder<ChoiceParameter<SkySys>>() {
+                protected ChoiceParameter<SkySys>
+                        createParameter( String sfix ) {
+                    return createDataSysParameter( sfix );
                 }
             }.getParameter( env, suffix );
             datasysParam.setNullPermitted( viewsys == null );
+            datasysParam.setDefaultOption( viewsys );
             SkySys datasys = datasysParam.objectValue( env );
             if ( viewsys == null && datasys != null ) {
                 String msg = new StringBuffer()
-                   .append( "Must be null if " )
+                   .append( datasysParam.getName() )
+                   .append( " must be null if " )
                    .append( viewsysParam_.getName() )
                    .append( " is null" )
                    .toString();
-                throw new ParameterValueException( datasysParam, msg );
+                throw new TaskException( msg );
             }
             return SkyDataGeom.createGeom( datasys, viewsys );
         }
@@ -108,23 +108,36 @@ public class SkyPlot2Task extends TypedPlot2Task {
          * @param  suffix  layer-specific suffix
          * @return  parameter name
          */
-        private String datasysParamName( String suffix ) {
-            return "datasys" + suffix;
-        }
-    }
-
-    /**
-     * Parameter type for selecting sky coordinate systems.
-     */
-    private static class SysParameter extends ChoiceParameter<SkySys> {
-
-        /**
-         * Constructor.
-         *
-         * @param  name  parameter name
-         */
-        SysParameter( String name ) {
-            super( name, SkySys.getKnownSystems( false ) );
+        private ChoiceParameter<SkySys>
+                createDataSysParameter( String suffix ) {
+            String datasysName = "datasys" + suffix;
+            ChoiceParameter<SkySys> param =
+                new ChoiceParameter( datasysName,
+                                     SkySys.getKnownSystems( false ) );
+            param.setPrompt( "Sky coordinate system for data" );
+            param.setDescription( new String[] {
+                "<p>The sky coordinate system used to interpret",
+                "supplied data longitude and latitude coordinate values"
+                + ( suffix.length() > 0 ? ( " for layer " + suffix )
+                                        : "" ) + ".",
+                "</p>",
+                "<p>Choice of this value goes along with the",
+                "<code>" + viewsysName_ + "</code> parameter.",
+                "If neither <code>" + viewsysName_ + "</code>",
+                "nor <code>" + datasysName + "</code> is given,",
+                "plotting is carried out in a generic sky system",
+                "assumed the same between the data and the view.",
+                "But if any layers have a supplied",
+                "<code>" + datasysName + "</code> parameter,",
+                "there must be a non-blank",
+                "<code>" + viewsysName_ + "</code> supplied",
+                "into which the data input coordinates will be transformed.",
+                "If not supplied explicitly,",
+                "<code>" + datasysName + "</code> defaults to the same value",
+                "as <code>" + viewsysName_ + "</code>.",
+                SkySysConfigKey.getOptionsXml(),
+            } );
+            return param;
         }
     }
 }
