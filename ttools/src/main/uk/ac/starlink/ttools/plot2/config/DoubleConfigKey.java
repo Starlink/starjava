@@ -24,6 +24,9 @@ public abstract class DoubleConfigKey extends ConfigKey<Double> {
      */
     protected DoubleConfigKey( ConfigMeta meta, double dflt ) {
         super( meta, Double.class, new Double( dflt ) );
+        if ( meta.getStringUsage() == null ) {
+            meta.setStringUsage( "<number>" );
+        }
     }
 
     public String valueToString( Double value ) {

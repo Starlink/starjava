@@ -31,6 +31,9 @@ public class BooleanConfigKey extends ConfigKey<Boolean> {
      */
     public BooleanConfigKey( ConfigMeta meta, boolean dflt ) {
         super( meta, Boolean.class, Boolean.valueOf( dflt ) );
+        if ( meta.getStringUsage() == null ) {
+            meta.setStringUsage( "true|false" );
+        }
     }
 
     /**
