@@ -27,10 +27,14 @@ public class SkyviewProjection implements Projection {
     private final Shape shape_;
 
     /** Aitoff projection. */
-    public static final SkyviewProjection AIT = createProjection( new Ait() );
+    public static final SkyviewProjection AIT =
+         createProjection( new Ait(), "Aitoff", "Hammer-Aitoff projection" );
 
     /** Cartesian projection. */
-    public static final SkyviewProjection CAR1 = createProjection( new Car1() );
+    public static final SkyviewProjection CAR1 =
+         createProjection( new Car1(), "Car",
+                           "Plate Carree projection"
+                         + " (lon/lat on Cartesian axes)" );
 
     /** Gnomonic projection. */
     public static final SkyviewProjection TAN = createProjection( new Tan() );
@@ -56,11 +60,11 @@ public class SkyviewProjection implements Projection {
         shape_ = shape;
     }
 
-    public String getName() {
+    public String getProjectionName() {
         return projecter_.getName();
     }
 
-    public String getDescription() {
+    public String getProjectionDescription() {
         return projecter_.getDescription();
     }
 
@@ -140,12 +144,37 @@ public class SkyviewProjection implements Projection {
 
     /**
      * Factory method that knows shapes for some projections.
+     * Name and description are taken from the skyview metadata.
      *
      * @param  projecter  skyview projecter
      * @throws  IllegalArgumentException  if the shape is not known
      */
     public static SkyviewProjection createProjection( Projecter projecter ) {
-        return new SkyviewProjection( projecter, getShape( projecter ) );
+        return createProjection( projecter, projecter.getName(),
+                                 projecter.getDescription() );
+    }
+
+    /**
+     * Constructs a projection with given projecter, name and desription.
+     *
+     * @param  projecter  skyview projecter
+     * @param  name  projection name
+     * @param  descrip  projection description
+     * @throws  IllegalArgumentException  if the shape is not known
+     */
+    private static SkyviewProjection createProjection( Projecter projecter,
+                                                       final String name,
+                                                       final String descrip ) {
+        return new SkyviewProjection( projecter, getShape( projecter ) ) {
+             @Override
+             public String getProjectionName() {
+                 return name;
+             }
+             @Override
+             public String getProjectionDescription() {
+                 return descrip;
+             }
+        };
     }
 
     /**

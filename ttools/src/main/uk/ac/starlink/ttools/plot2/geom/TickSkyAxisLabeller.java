@@ -20,6 +20,7 @@ import uk.ac.starlink.ttools.plot2.Captioner;
 public abstract class TickSkyAxisLabeller implements SkyAxisLabeller {
 
     private final String name_;
+    private final String description_;
     public static Anchor X_ANCHOR = Anchor.N;
     public static Anchor Y_ANCHOR = Anchor.E;
 
@@ -27,13 +28,19 @@ public abstract class TickSkyAxisLabeller implements SkyAxisLabeller {
      * Constructor.
      *
      * @param  name  labeller name
+     * @param  description  labeller description
      */
-    public TickSkyAxisLabeller( String name ) {
+    public TickSkyAxisLabeller( String name, String description ) {
         name_ = name;
+        description_ = description;
     }
 
-    public String getName() {
+    public String getLabellerName() {
         return name_;
+    }
+
+    public String getLabellerDescription() {
+        return description_;
     }
 
     public AxisAnnotation createAxisAnnotation( GridLiner gridLiner,

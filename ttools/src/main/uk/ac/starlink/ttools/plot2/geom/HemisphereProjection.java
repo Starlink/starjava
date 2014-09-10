@@ -39,8 +39,12 @@ public class HemisphereProjection implements Projection {
         upNorth_ = upNorth;
     }
 
-    public String getName() {
+    public String getProjectionName() {
         return "Hemisphere";
+    }
+
+    public String getProjectionDescription() {
+        return "no-frills, possibly buggy projection onto a rotatable sphere";
     }
 
     public boolean project( double rx, double ry, double rz,

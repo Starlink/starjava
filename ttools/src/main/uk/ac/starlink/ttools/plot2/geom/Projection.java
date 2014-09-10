@@ -18,7 +18,14 @@ public interface Projection {
      *
      * @return   user-directed projection name
      */
-    String getName();
+    String getProjectionName();
+
+    /**
+     * Returns a short description of the projection.
+     *
+     * return  projection description
+     */
+    String getProjectionDescription();
 
     /**
      * Transforms a sky position to a plane position.

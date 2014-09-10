@@ -24,8 +24,11 @@ public class SkyAxisLabellers {
 
     /** Labeller implentation that does no drawing. */
     public static SkyAxisLabeller NONE = new SkyAxisLabeller() {
-        public String getName() {
+        public String getLabellerName() {
             return "None";
+        }
+        public String getLabellerDescription() {
+            return "Axes are not labelled";
         }
         public AxisAnnotation createAxisAnnotation( GridLiner gridLiner,
                                                     Captioner captioner ) {
@@ -44,8 +47,11 @@ public class SkyAxisLabellers {
      * but not much effort is made to position axis labels sensibly.
      */
     public static SkyAxisLabeller LAME = new SkyAxisLabeller() {
-        public String getName() {
+        public String getLabellerName() {
             return "Basic";
+        }
+        public String getLabellerDescription() {
+            return "Labels are drawn somewhere near the grid line";
         }
         public AxisAnnotation createAxisAnnotation( final GridLiner gridLiner,
                                                    final Captioner captioner ) {
@@ -76,7 +82,9 @@ public class SkyAxisLabellers {
 
     /** Labeller implementation that draws labels outside the plot bounds. */
     public static SkyAxisLabeller EXTERNAL =
-            new TickSkyAxisLabeller( "External" ) {
+            new TickSkyAxisLabeller( "External",
+                                     "Labels are drawn"
+                                   + " outside the plot bounds" ) {
         protected SkyTick[] calculateTicks( double[][][] lines, String[] labels,
                                             Rectangle plotBounds ) {
             List<SkyTick> tickList = new ArrayList<SkyTick>();
@@ -94,7 +102,9 @@ public class SkyAxisLabellers {
 
     /** Labeller implementation that draws labels inside the plot bounds. */
     public static SkyAxisLabeller INTERNAL =
-            new TickSkyAxisLabeller( "Internal" ) {
+            new TickSkyAxisLabeller( "Internal",
+                                     "Labels are drawn"
+                                   + " inside the plot bounds" ) {
         protected SkyTick[] calculateTicks( double[][][] lines, String[] labels,
                                             Rectangle plotBounds ) {
             List<SkyTick> tickList = new ArrayList<SkyTick>();
@@ -115,7 +125,13 @@ public class SkyAxisLabellers {
      * Doesn't necessarily end up looking as sensible as it sounds.
      */ 
     public static SkyAxisLabeller HYBRID =
-            new TickSkyAxisLabeller( "Hybrid" ) {
+            new TickSkyAxisLabeller( "Hybrid",
+                                     "Grid lines are labelled outside the "
+                                   + "plot bounds where possible, "
+                                   + "but inside if they would otherwise "
+                                   + "be invisible" ) {
+ 
+
         protected SkyTick[] calculateTicks( double[][][] lines, String[] labels,
                                             Rectangle plotBounds ) {
             List<SkyTick> tickList = new ArrayList<SkyTick>();
@@ -135,7 +151,6 @@ public class SkyAxisLabellers {
         }
     };
  
-
     /**
      * Returns a list of the known SkyAxisLabeller instances.
      * The first element is null, which is interpreted as auto mode.

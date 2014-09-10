@@ -20,6 +20,7 @@ import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
 import uk.ac.starlink.ttools.plot2.config.DoubleConfigKey;
 import uk.ac.starlink.ttools.plot2.config.OptionConfigKey;
+import uk.ac.starlink.ttools.plot2.config.SkySysConfigKey;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.SkyCoord;
@@ -33,69 +34,144 @@ import uk.ac.starlink.ttools.plot2.data.SkyCoord;
 public class SkySurfaceFactory
              implements SurfaceFactory<SkySurfaceFactory.Profile,SkyAspect> {
 
+    private static final String LON_NAME = "clon";
+    private static final String LAT_NAME = "clat";
+    private static final String FOV_RADIUS_NAME = "radius";
+
     /** Config key for sky projection type. */
     public static final ConfigKey<Projection> PROJECTION_KEY =
-            new OptionConfigKey<Projection>( new ConfigMeta( "projection",
-                                                             "Projection" ),
-                                             Projection.class,
-                                             SkyAspect.getProjections() ) {
-        public String valueToString( Projection proj ) {
-            return proj.getName();
-        }
-    };
+        createProjectionKey();
  
     /** Config key to determine whether longitude runs right to left. */
     public static final ConfigKey<Boolean> REFLECT_KEY =
-        new BooleanConfigKey( new ConfigMeta( "reflectlon",
-                                              "Reflect longitude axis" ),
-                              true );
+        new BooleanConfigKey(
+            new ConfigMeta( "reflectlon", "Reflect longitude axis" )
+           .setShortDescription( "Reflect longitude axis?" )
+           .setXmlDescription( new String[] {
+                "<p>Whether to invert the celestial sphere by displaying",
+                "the longitude axis increasing right-to-left",
+                "rather than left-to-right.",
+                "It is conventional to display the celestial sphere",
+                "in this way because that's what it looks like",
+                "from the earth, so the default is <code>true</code>.",
+                "Set it false to see the sphere from the outside.",
+                "</p>",
+            } )
+            , true );
 
     /** Config key for the sky system used for projecting the data. */
     public static final ConfigKey<SkySys> VIEWSYS_KEY =
-        SkySys.createConfigKey( new ConfigMeta( "viewsys", "View Sky System" ),
-                                false );
+        new SkySysConfigKey(
+            new ConfigMeta( "viewsys", "View Sky System" )
+           .setShortDescription( "Sky coordinate system for plot display" )
+           .setXmlDescription( new String[] {
+                "<p>The sky coordinate system used for the generated plot.",
+                "</p>",
+                "<p>Choice of this value goes along with the data coordinate",
+                "system that may be specified for plot layers.",
+                "If unspecified, a generic longitude/latitude system is used,",
+                "and all lon/lat coordinates in the plotted data layers",
+                "are assumed to be in the same system.",
+                "If a value is supplied for this parameter,",
+                "then a sky system must (implicitly or explicitly)",
+                "be supplied for each data layer,",
+                "and the coordinates are converted from data to view system",
+                "before being plotted.",
+                "</p>",
+                SkySysConfigKey.getOptionsXml(),
+            } )
+            , false ).setOptionUsage();
 
     /** Config key to determine whether grid lines are drawn. */
     public static final ConfigKey<Boolean> GRID_KEY =
-        new BooleanConfigKey( new ConfigMeta( "grid", "Draw Grid" ), true );
+        new BooleanConfigKey(
+            new ConfigMeta( "grid", "Draw Grid" )
+           .setShortDescription( "Draw sky grid?" )
+           .setXmlDescription( new String[] {
+                "<p>If true, sky coordinate grid lines are drawn",
+                "on the plot.",
+                "If false, they are absent.",
+                "</p>",
+            } )
+        , true );
 
     /** Config key to control tick mark crowding. */
     public static final ConfigKey<Double> CROWD_KEY =
-        StyleKeys.createCrowdKey( new ConfigMeta( "crowd", "Grid Crowding" ) );
+        StyleKeys.createCrowdKey(
+            new ConfigMeta( "crowd", "Grid Crowding" )
+           .setShortDescription( "Grid line crowding" )
+           .setXmlDescription( new String[] {
+                "<p>Determines how closely sky grid lines are spaced.",
+                "The default value is 1, meaning normal crowding.",
+                "Larger values result in more grid lines,",
+                "and smaller values in fewer grid lines.",
+                "</p>",
+            } )
+        );
 
     /** Config key to control axis label positioning. */
     public static final ConfigKey<SkyAxisLabeller> AXISLABELLER_KEY =
-            new OptionConfigKey<SkyAxisLabeller>(
-                    new ConfigMeta( "labelpos", "Label Positioning" ),
-                    SkyAxisLabeller.class,
-                    SkyAxisLabellers.getKnownLabellers() ) {
-        public String valueToString( SkyAxisLabeller labeller ) {
-            return labeller == null ? "Auto" : labeller.getName();
-        }
-    };
+        createAxisLabellerKey();
  
-    /** Config key to determine whether sexagesimal coordinate s are used. */
+    /** Config key to determine whether sexagesimal coordinates are used. */
     public static final ConfigKey<Boolean> SEX_KEY =
-        new BooleanConfigKey( new ConfigMeta( "sex", "Sexagesimal" ), true );
+        new BooleanConfigKey(
+            new ConfigMeta( "sex", "Sexagesimal" )
+           .setShortDescription( "Sexagesimal labels?" )
+           .setXmlDescription( new String[] {
+                "<p>If true, grid line labels are written in",
+                "sexagesimal notation, if false in decimal degrees.",
+                "</p>",
+            } )
+        , true );
 
     /** Config key for specifying aspect central longitude, in degrees. */
     public static final ConfigKey<Double> LON_KEY =
-        DoubleConfigKey
-       .createTextKey( new ConfigMeta( "clon", "Central Longitude" ) );
+        DoubleConfigKey.createTextKey(
+            new ConfigMeta( LON_NAME, "Central Longitude" )
+           .setShortDescription( "Longitude of plot centre" )
+           .setXmlDescription( new String[] {
+                "<p>Longitude of the central position of the plot",
+                "in decimal degrees.",
+                "Use with <code>" + LAT_NAME + "</code>",
+                "and <code>" + FOV_RADIUS_NAME + "</code>.",
+                "If the center is not specified,",
+                "the field of view is determined from the data.",
+                "</p>",
+            } )
+        );
 
     /** Config key for specifying aspect central latitude, in degrees. */
     public static final ConfigKey<Double> LAT_KEY =
-        DoubleConfigKey
-       .createTextKey( new ConfigMeta( "clat", "Central Latitude" ) );
+        DoubleConfigKey.createTextKey(
+            new ConfigMeta( LAT_NAME, "Central Latitude" )
+           .setShortDescription( "Latitude of plot centre" )
+           .setXmlDescription( new String[] {
+                "<p>Latitude of the central position of the plot",
+                "in decimal degrees.",
+                "Use with <code>" + LON_NAME + "</code>",
+                "and <code>" + FOV_RADIUS_NAME + "</code>.",
+                "If the center is not specified,",
+                "the field of view is determined from the data.",
+                "</p>",
+            } )
+        );
 
     /** Config key for specifying aspect field of view, in degrees. */
     public static final ConfigKey<Double> FOV_RADIUS_KEY =
-        DoubleConfigKey
-       .createTextKey( new ConfigMeta( "radius", "Radius" ), 1 );
+        DoubleConfigKey.createTextKey(
+            new ConfigMeta( FOV_RADIUS_NAME, "Radius" )
+           .setShortDescription( "Field of view radius in degrees" )
+           .setXmlDescription( new String[] {
+                "<p>Approximate radius of the plot field of view in degrees.",
+                "Only used if <code>" + LON_NAME + "</code>",
+                "and <code>" + LAT_NAME + "</code> are also specified.",
+                "</p>",
+            } )
+        , 1 );
 
     public Surface createSurface( Rectangle plotBounds, Profile p,
                                   SkyAspect aspect ) {
-        
         return new SkySurface( plotBounds, aspect.getProjection(),
                                aspect.getRotation(), aspect.getZoom(),
                                aspect.getOffsetX(), aspect.getOffsetY(),
@@ -108,6 +184,7 @@ public class SkySurfaceFactory
         List<ConfigKey> list = new ArrayList<ConfigKey>();
         list.addAll( Arrays.asList( new ConfigKey[] {
             PROJECTION_KEY,
+            VIEWSYS_KEY,
             REFLECT_KEY,
             GRID_KEY,
             AXISLABELLER_KEY,
@@ -213,6 +290,109 @@ public class SkySurfaceFactory
             }
         }
         return true;
+    }
+
+    /**
+     * Returns a config key for selecting sky projection.
+     *
+     * @return  Projection config key
+     */
+    private static ConfigKey<Projection> createProjectionKey() {
+        ConfigMeta meta = new ConfigMeta( "projection", "Projection" );
+        Projection[] projs = SkyAspect.getProjections();
+        meta.setShortDescription( "Sky coordinate projection" );
+        StringBuffer sbuf = new StringBuffer();
+        for ( Projection proj : Arrays.asList( projs ) ) {
+            sbuf.append( "<li>" )
+                .append( "<code>" )
+                .append( proj.getProjectionName() )
+                .append( "</code>" )
+                .append( ": " )
+                .append( proj.getProjectionDescription() )
+                .append( "</li>\n" );
+        }
+        meta.setXmlDescription( new String[] {
+            "<p>Sky projection used to display the plot.",
+            "The options are:",
+            "<ul>",
+            sbuf.toString(),
+            "</ul>",
+            "</p>",
+        } );
+        OptionConfigKey<Projection> key =
+                new OptionConfigKey<Projection>( meta, Projection.class,
+                                                 projs ) {
+            public String valueToString( Projection proj ) {
+                return proj.getProjectionName().toLowerCase();
+            }
+        };
+        key.setOptionUsage();
+        return key;
+    }
+
+    /**
+     * Returns a config key for selecting sky grid line labeller policy.
+     *
+     * @return   SkyAxisLabeller config key
+     */
+    private static ConfigKey<SkyAxisLabeller> createAxisLabellerKey() {
+        final String auto = "Auto";
+        SkyAxisLabeller[] labellers = SkyAxisLabellers.getKnownLabellers();
+        ConfigMeta meta =
+            new ConfigMeta( "labelpos", "Grid Label Positioning" );
+        meta.setShortDescription( "Position of sky grid labels" );
+        StringBuffer sbuf = new StringBuffer();
+        sbuf.append( "<li><code>" )
+            .append( auto )
+            .append( "</code>: " )
+            .append( "Uses " )
+            .append( "<code>" )
+            .append( SkyAxisLabellers.EXTERNAL.getLabellerName() )
+            .append( "</code>" )
+            .append( " or " )
+            .append( "<code>" )
+            .append( SkyAxisLabellers.INTERNAL.getLabellerName() )
+            .append( "</code>" )
+            .append( " policy according to whether " )
+            .append( "the sky fills the plot bounds or not" )
+            .append( "</li>\n" );
+        for ( SkyAxisLabeller labeller : Arrays.asList( labellers ) ) {
+            if ( labeller != null ) {
+                sbuf.append( "<li>" )
+                    .append( "<code>" )
+                    .append( labeller.getLabellerName() )
+                    .append( "</code>" )
+                    .append( ": " )
+                    .append( labeller.getLabellerDescription() )
+                    .append( "</li>\n" );
+            }
+        }
+        meta.setXmlDescription( new String[] {
+            "<p>Controls whether and where the numeric annotations",
+            "of the lon/lat axes are displayed.",
+            "The default option <code>" + auto + "</code>",
+            "usually does the sensible thing,",
+            "but other options exist to force labelling internally",
+            "or externally to the plot region,",
+            "or to remove numeric labels altogether.",
+            "</p>",
+            "<p>Available options are:",
+            "<ul>",
+            sbuf.toString(),
+            "</ul>",
+            "</p>",
+        } );
+        OptionConfigKey<SkyAxisLabeller> key =
+                new OptionConfigKey<SkyAxisLabeller>( meta,
+                                                      SkyAxisLabeller.class,
+                                                      labellers ) {
+            @Override
+            public String valueToString( SkyAxisLabeller labeller ) {
+                return labeller == null ? auto : labeller.getLabellerName();
+            }
+        };
+        key.setOptionUsage();
+        return key;
     }
 
     /**
