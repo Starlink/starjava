@@ -8,10 +8,26 @@ import uk.ac.starlink.votable.VOStarTable;
 /**
  * Utility functions for converting between value types.
  *
+ * <p><strong>Note:</strong>
+ * The functionality provided here predates the DomainMapper
+ * machinery (see {@link uk.ac.starlink.table.ValueInfo#getDomainMappers}),
+ * and using it may interfere with that.
+ * At time of writing this note however, DomainMapper implementation and
+ * use is not complete either.  When DomainMappers are working properly,
+ * use of this class should be phased out.
+ * The class is currently configured to perform conversions for
+ * (sexagesimal) angles, but not for ISO-8601 time representations,
+ * since time is handled by DomainMappers.  But there may still be
+ * opportunities for nasty surprises.
+ *
  * @author   Mark Taylor
  * @since    24 Feb 2006
  */
 public class Conversions {
+
+    /* These settings control which types of conversion this class handles. */
+    private static final boolean DO_TIME = false;
+    private static final boolean DO_ANGLE = true;
 
     private static final Pattern ISO8601_UNIT_PATTERN =
         Pattern.compile( "iso.?8601", Pattern.CASE_INSENSITIVE );
@@ -29,6 +45,12 @@ public class Conversions {
     private static final Pattern DMS_UCD_PATTERN =
         Pattern.compile( "POS_EQ_DEC.*|pos\\.eq\\.dec.*",
                          Pattern.CASE_INSENSITIVE );
+
+    /**
+     * Private constructor prevents instantiation.
+     */
+    private Conversions() {
+    }
 
     /**
      * Returns a converter from the given ValueInfo to a numeric quantity.
@@ -71,9 +93,10 @@ public class Conversions {
 
             /* Try the VOTable 1.2 xtype attribute. */
             if ( xtype != null && xtype.trim().length() > 0 ) {
-                if ( "iso8601".equals( xtype ) ||
-                     ISO8601_UNIT_PATTERN.matcher( xtype ).matches() ||
-                     "adql:TIMESTAMP".equalsIgnoreCase( xtype ) ) {
+                if ( DO_TIME && 
+                     ( "iso8601".equals( xtype ) ||
+                       ISO8601_UNIT_PATTERN.matcher( xtype ).matches() ||
+                       "adql:TIMESTAMP".equalsIgnoreCase( xtype ) ) ) {
                     return new Iso8601ToDecimalYear( info );
                 }
             }
@@ -86,7 +109,8 @@ public class Conversions {
                  * to represent non-standard values, e.g. unit='"hms"'.
                  * Also trim it for good measure. */
                 units = unquote( units.trim() ).trim();
-                if ( ISO8601_UNIT_PATTERN.matcher( units ).matches() ) {
+                if ( DO_TIME &&
+                     ISO8601_UNIT_PATTERN.matcher( units ).matches() ) {
                     return new Iso8601ToDecimalYear( info );
                 }
                 else if ( DMS_UNIT_PATTERN.matcher( units ).matches() ) {
@@ -100,7 +124,8 @@ public class Conversions {
             /* See if there's a clue in the UCD. */
             if ( ucd != null && ucd.trim().length() > 0 ) {
                 ucd = ucd.trim();
-                if ( ISO8601_UCD_PATTERN.matcher( ucd ).matches() ) {
+                if ( DO_TIME &&
+                     ISO8601_UCD_PATTERN.matcher( ucd ).matches() ) {
                     return new Iso8601ToDecimalYear( info );
                 }
                 else if ( DMS_UCD_PATTERN.matcher( ucd ).matches() ) {
