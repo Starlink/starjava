@@ -25,6 +25,9 @@ public abstract class IntegerConfigKey extends ConfigKey<Integer> {
      */
     protected IntegerConfigKey( ConfigMeta meta, int dflt ) {
         super( meta, Integer.class, new Integer( dflt ) );
+        if ( meta.getStringUsage() == null ) {
+            meta.setStringUsage( "<int-value>" );
+        }
         dflt_ = dflt;
     }
 

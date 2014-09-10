@@ -7,7 +7,10 @@ import javax.swing.JComponent;
 import javax.swing.JRadioButton;
 
 /**
- * Config key for use with items that can be chosed from a list of options.
+ * Config key for use with items that can be chosen from a list of options.
+ * The list is basically closed, though it may be possible programmatically
+ * to supply an object of the required type.
+ * For open lists of options see {@link ChoiceConfigKey}.
  *
  * @author   Mark Taylor
  * @since    23 Feb 2013
@@ -64,7 +67,13 @@ public class OptionConfigKey<T> extends ConfigKey<T> {
      * May be overridden.
      */
     public String valueToString( T value ) {
-        return value == null ? null : value.toString();
+        if ( value == null ) {
+            return null;
+        }
+        else {
+            String name = value.toString();
+            return name.toLowerCase().replaceAll( " ", "_" );
+        }
     }
 
     /**
@@ -118,6 +127,30 @@ public class OptionConfigKey<T> extends ConfigKey<T> {
             spec.setSpecifiedValue( getDefaultValue() );
             return spec;
         }
+    }
+
+    /**
+     * Sets the usage string based on the currently configured options.
+     * This method calls setStringUsage.
+     *
+     * @return   this object, as a convenience
+     */
+    public OptionConfigKey<T> setOptionUsage() {
+        StringBuffer sbuf = new StringBuffer();
+        for ( int i = 0; i < options_.length; i++ ) {
+            if ( sbuf.length() > 0 ) {
+                sbuf.append( "|" );
+            }
+            sbuf.append( valueToString( options_[ i ] ) );
+        }
+        if ( sbuf.length() > 50 ) {
+            int point = sbuf.indexOf( "|", 20 );
+            if ( point > 0 ) {
+                sbuf.replace( point + 1, sbuf.length(), "..." );
+            }
+        }
+        getMeta().setStringUsage( sbuf.toString() );
+        return this;
     }
 
     /**
