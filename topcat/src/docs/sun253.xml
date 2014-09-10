@@ -20386,6 +20386,10 @@ introduced since the last version:
         since it can point to different RegTAP services as required.</li>
     <li>Fix regression bug (introduced at v4.2) which caused authentication
         to fail when using the SQL Query load dialogue.</li>
+    <li>Fix time plot to work for ISO-8601 times.
+        This change also breaks use of ISO-8601 times in non-time plots,
+        but that didn't work particularly well before.
+        Please complain if this change of functionality causes a problem.</li>
     </ul>
     </p></dd>
 
