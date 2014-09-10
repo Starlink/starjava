@@ -9,11 +9,8 @@ import java.util.List;
 import javax.swing.Icon;
 import javax.swing.JComboBox;
 import javax.swing.ListModel;
-import uk.ac.starlink.ttools.gui.ColorComboBox;
-import uk.ac.starlink.ttools.gui.DashComboBox;
 import uk.ac.starlink.ttools.gui.MarkStyleSelectors;
 import uk.ac.starlink.ttools.gui.ThicknessComboBox;
-import uk.ac.starlink.ttools.gui.ShaderListCellRenderer;
 import uk.ac.starlink.ttools.plot.BarStyle;
 import uk.ac.starlink.ttools.plot.BarStyles;
 import uk.ac.starlink.ttools.plot.ErrorMode;
@@ -26,9 +23,6 @@ import uk.ac.starlink.ttools.plot.Styles;
 import uk.ac.starlink.ttools.plot2.Anchor;
 import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.layer.LevelMode;
-import uk.ac.starlink.ttools.plottask.ColorParameter;
-import uk.ac.starlink.ttools.plottask.DashParameter;
-import uk.ac.starlink.ttools.plottask.NamedObjectParameter;
 import uk.ac.starlink.util.gui.RenderingComboBox;
 
 /**
@@ -40,6 +34,7 @@ import uk.ac.starlink.util.gui.RenderingComboBox;
 public class StyleKeys {
 
     private static final MarkShape[] SHAPES = createShapes();
+    private static final Shader[] DENSITY_SHADERS = createDensityShaders();
 
     /** Config key for marker shape. */
     public static final ConfigKey<MarkShape> MARK_SHAPE =
@@ -50,7 +45,7 @@ public class StyleKeys {
             return new ComboBoxSpecifier<MarkShape>( MarkStyleSelectors
                                                     .createShapeSelector() );
         }
-    };
+    }.setOptionUsage();
 
     /** Config key for marker size. */
     public static final ConfigKey<Integer> SIZE =
@@ -63,7 +58,8 @@ public class StyleKeys {
 
     /** Config key for style colour. */
     public static final ConfigKey<Color> COLOR =
-        new ColorConfigKey( new ConfigMeta( "color", "Colour" ),
+        new ColorConfigKey( ColorConfigKey
+                           .createColorMeta( "", "plotted data" ),
                             Color.RED, false );
 
     /** Config key for the opacity limit of transparent plots.
@@ -97,23 +93,21 @@ public class StyleKeys {
 
     /** Config key for line dash style. */
     public static final ConfigKey<float[]> DASH =
-            new NamedObjectKey<float[]>( new ConfigMeta( "dash", "Dash" ),
-                                         float[].class, null,
-                                         new DashParameter( "dash" ) ) {
-        public Specifier<float[]> createSpecifier() {
-            return new ComboBoxSpecifier<float[]>( new DashComboBox() );
-        }
-    };
+        new DashConfigKey( DashConfigKey.createDashMeta( "dash", "Dash" ) );
 
     /** Config key for axis grid colour. */
     public static final ConfigKey<Color> GRID_COLOR =
-        new ColorConfigKey( new ConfigMeta( "gridcolor", "Grid Colour" ),
+        new ColorConfigKey( ColorConfigKey
+                           .createColorMeta( "grid", "the plot grid" ),
                             Color.LIGHT_GRAY, false );
 
     /** Config key for axis label colour. */
     public static final ConfigKey<Color> AXLABEL_COLOR =
-        new ColorConfigKey( new ConfigMeta( "labelcolor", "Label Colour" ),
-                            Color.BLACK, false );
+        new ColorConfigKey(
+            ColorConfigKey 
+           .createColorMeta( "label",
+                             "axis labels and other plot annotations" )
+            , Color.BLACK, false );
 
     private static final BarStyle.Form[] BARFORMS = new BarStyle.Form[] {
         BarStyle.FORM_FILLED,
@@ -136,7 +130,7 @@ public class StyleKeys {
             };
             return new ComboBoxSpecifier<BarStyle.Form>( formSelector );
         }
-    };
+    }.setOptionUsage();
 
     /** Config key for line antialiasing. */
     public static final ConfigKey<Boolean> ANTIALIAS =
@@ -154,13 +148,13 @@ public class StyleKeys {
                                      Anchor.class,
                                      new Anchor[] {
                                          Anchor.W, Anchor.E, Anchor.N, Anchor.S,
-                                     } );
+                                     } ).setOptionUsage();
 
     /** Config key for scaling level mode. */ 
     public static final ConfigKey<LevelMode> LEVEL_MODE =
         new OptionConfigKey<LevelMode>( new ConfigMeta( "scaling", "Scaling" ),
                                         LevelMode.class, LevelMode.MODES,
-                                        LevelMode.LINEAR );
+                                        LevelMode.LINEAR ).setOptionUsage();
 
     /** Config key for vector marker style. */
     public static final MultiPointConfigKey VECTOR_SHAPE =
@@ -198,8 +192,14 @@ public class StyleKeys {
 
     /** Config key for aux shader colour ramp. */
     public static final ConfigKey<Shader> AUX_SHADER =
-        new ShaderConfigKey( new ConfigMeta( "shader", "Shader" ),
-                             createAuxShaders(), Shaders.LUT_RAINBOW );
+        new ShaderConfigKey(
+            new ConfigMeta( "auxmap", "Map" )
+           .setShortDescription( "Color map for aux shading" )
+           .setXmlDescription( new String[] {
+                "<p>Color map used for aux axis shading.",
+                "</p>",
+            } )
+            , createAuxShaders(), Shaders.LUT_RAINBOW );
 
     /** Config key for restricting the range of an aux shader colour map. */
     public static final ConfigKey<Subrange> AUX_SHADER_CLIP =
@@ -215,8 +215,16 @@ public class StyleKeys {
 
     /** Config key for aux shader null colour. */
     public static final ConfigKey<Color> SHADE_NULL_COLOR =
-        new ColorConfigKey( new ConfigMeta( "nullcolor", "Null Colour" ),
-                            Color.GRAY, true );
+        new ColorConfigKey(
+            ColorConfigKey.createColorMeta( "null",
+                                            "points with a null value "
+                                          + "of the aux coordinate" )
+           .appendXmlDescription( new String[] {
+                "<p>If the value is null, then points with a null aux value",
+                "will not be plotted at all.",
+                "</p>",
+            } )
+            , Color.GRAY, true );
 
     /** Config key for aux shader lower limit. */
     public static final ConfigKey<Double> SHADE_LOW =
@@ -234,9 +242,14 @@ public class StyleKeys {
 
     /** Config key for density shader colour map. */
     public static final ConfigKey<Shader> DENSITY_SHADER =
-        new ShaderConfigKey( new ConfigMeta( "densemap", "Map" ),
-                             createDensityShaders(),
-                             createDensityShaders()[ 0 ] );
+        new ShaderConfigKey(
+            new ConfigMeta( "densemap", "Map")
+           .setShortDescription( "Color map for density shading" )
+           .setXmlDescription( new String[] {
+                "<p>Color map used to indicate point density.",
+                "</p>",
+            } )
+            , DENSITY_SHADERS, DENSITY_SHADERS[ 0 ] );
 
     /** Config key for restricting the range of a density shader colour map. */
     public static final ConfigKey<Subrange> DENSITY_SHADER_CLIP =
@@ -278,13 +291,32 @@ public class StyleKeys {
 
     /** Config key for minor tick drawing key. */
     public static final ConfigKey<Boolean> MINOR_TICKS =
-        new BooleanConfigKey( new ConfigMeta( "minor", "Minor Ticks" ), true );
+        new BooleanConfigKey(
+            new ConfigMeta( "minor", "Minor Ticks" )
+           .setShortDescription( "Display minor tick marks?" )
+           .setXmlDescription( new String[] {
+                "<p>If true, minor tick marks are painted along the axes",
+                "as well as the major tick marks.",
+                "Minor tick marks do not have associated grid lines.",
+                "</p>",
+            } )
+        , true );
 
     /** Config key for zoom factor. */
     public static final ConfigKey<Double> ZOOM_FACTOR =
-        DoubleConfigKey
-       .createSliderKey( new ConfigMeta( "zoomfactor", "Zoom Factor" ),
-                         1.2, 1, 2, true );
+        DoubleConfigKey.createSliderKey(
+            new ConfigMeta( "zoomfactor", "Zoom Factor" )
+           .setShortDescription( "Amount of zoom per mouse wheel unit" )
+           .setXmlDescription( new String[] {
+                "<p>Sets the amount by which the plot view zooms in or out",
+                "for each unit of mouse wheel movement.",
+                "A value of 1 means that mouse wheel zooming has no effect.",
+                "A higher value means that the mouse wheel zooms faster",
+                "and a value nearer 1 means it zooms slower.",
+                "Values below 1 are not permitted.",
+                "</p>",
+            } )
+        , 1.2, 1, 2, true );
 
     /** Config key set for axis and general captioner. */
     public static final CaptionerKeySet CAPTIONER = new CaptionerKeySet();
@@ -349,10 +381,17 @@ public class StyleKeys {
      * @return  new key
      */
     public static ConfigKey<String> createAxisLabelKey( String axName ) {
-        return new StringConfigKey( new ConfigMeta( axName.toLowerCase()
-                                                    + "label",
-                                                    axName + " Label" ),
-                                                    axName );
+        ConfigMeta meta = new ConfigMeta( axName.toLowerCase() + "label",
+                                          axName + " Label" );
+        meta.setStringUsage( "<text>" );
+        meta.setShortDescription( "Label for axis " + axName );
+        meta.setXmlDescription( new String[] {
+            "<p>Gives a label to be used for annotating axis " + axName,
+            "A default value based on the plotted data will be used",
+            "if no value is supplied.",
+            "</p>",
+        } );
+        return new StringConfigKey( meta, axName );
     }
 
     /**
@@ -495,120 +534,4 @@ public class StyleKeys {
             Shaders.BREWER_PURD,
         };
     }
-
-    /**
-     * Config key implementation based on a NamedObject.
-     * This gives you a list of options but also lets you specify
-     * values by string using some potentially constructive syntax.
-     */
-    private static abstract class NamedObjectKey<T> extends ConfigKey<T> {
-        final NamedObjectParameter param_;
-        final String[] names_;
-        final Object[] options_;
-
-        /**
-         * Constructor.
-         *
-         * @param   meta  metadata
-         * @param   clazz  value class
-         * @param   dflt  default value
-         * @param   param  parameter object contaning encode/decode logic
-         */
-        NamedObjectKey( ConfigMeta meta, Class<T> clazz, T dflt,
-                        NamedObjectParameter param ) {
-            super( meta, clazz, dflt );
-            param_ = param;
-            names_ = param.getNames();
-            options_ = param.getOptions();
-        }
-        public T stringToValue( String txt ) {
-            if ( txt == null || txt.length() == 0 ) {
-                return null;
-            }
-            for ( int i = 0; i < names_.length; i++ ) {
-                if ( txt.equals( names_[ i ] ) ) {
-                    return cast( options_[ i ] );
-                }
-            }
-            try {
-                return cast( param_.fromString( txt ) );
-            }
-            catch ( RuntimeException e ) {
-                throw new ConfigException( this, e.getMessage(), e );
-            }
-        }
-        public String valueToString( T value ) {
-            if ( value == null ) {
-                return null;
-            }
-            for ( int i = 0; i < options_.length; i++ ) {
-                if ( value.equals( options_[ i ] ) ) {
-                    return names_[ i ];
-                }
-            }
-            return param_.toString( value );
-        }
-    }
-
-    /**
-     * Config key implementation for selecting colours.
-     * A null colour is optionally available, controlled by a toggle switch.
-     */
-    private static class ColorConfigKey extends NamedObjectKey<Color> {
-        private final boolean nullPermitted_;
-        private final Color[] colors_;
-
-        /**
-         * Constructor.
-         *
-         * @param  meta  metadata
-         * @param  dflt  default value
-         * @param  nullPermitted  true if null is a legal option
-         */
-        ColorConfigKey( ConfigMeta meta, Color dflt, boolean nullPermitted ) {
-            super( meta, Color.class, dflt,
-                   new ColorParameter( meta.getShortName() ) );
-            nullPermitted_ = nullPermitted;
-            param_.setNullPermitted( nullPermitted );
-            List<Color> colorList =
-                new ArrayList<Color>( Arrays.asList( Styles.COLORS ) );
-            if ( ! colorList.contains( dflt ) ) {
-                colorList.add( 0, dflt );
-            }
-            colors_ = colorList.toArray( new Color[ 0 ] );
-        }
-        public Specifier<Color> createSpecifier() {
-            Specifier<Color> basic =
-                new ComboBoxSpecifier<Color>( new ColorComboBox( colors_ ) );
-            return nullPermitted_
-                 ? new ToggleSpecifier<Color>( basic, null, "Hide" )
-                 : basic;
-        }
-    };
-
-    /**
-     * Config key implementation for selecting shader objects.
-     */
-    private static class ShaderConfigKey extends OptionConfigKey<Shader> {
-
-        /**
-         * Constructor.
-         *
-         * @param  meta  metadata
-         * @param  shaders  list of options
-         * @param  dflt  default value
-         */
-        ShaderConfigKey( ConfigMeta meta, Shader[] shaders, Shader dflt ) {
-            super( meta, Shader.class, shaders, dflt );
-        }
-        public String valueToString( Shader shader ) {
-            return shader.getName();
-        }
-        public Specifier<Shader> createSpecifier() {
-            JComboBox comboBox = new JComboBox( getOptions() );
-            comboBox.setSelectedItem( getDefaultValue() );
-            comboBox.setRenderer( new ShaderListCellRenderer( comboBox ) );
-            return new ComboBoxSpecifier<Shader>( comboBox );
-        }
-    };
 }

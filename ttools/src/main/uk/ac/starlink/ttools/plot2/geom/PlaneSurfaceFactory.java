@@ -35,43 +35,43 @@ public class PlaneSurfaceFactory
 
     /** Config key for X axis lower bound, before subranging. */
     public static final ConfigKey<Double> XMIN_KEY =
-        DoubleConfigKey.createTextKey( new ConfigMeta( "xmin", "X Minimum" ) );
+        createAxisLimitKey( "X", false );
 
     /** Config key for X axis upper bound, before subranging. */
     public static final ConfigKey<Double> XMAX_KEY =
-        DoubleConfigKey.createTextKey( new ConfigMeta( "xmax", "X Maximum" ) );
+        createAxisLimitKey( "X", true );
 
     /** Config key for X axis subrange. */
     public static final ConfigKey<Subrange> XSUBRANGE_KEY =
-        new SubrangeConfigKey( new ConfigMeta( "xsub", "X Subrange" ) );
+        new SubrangeConfigKey( SubrangeConfigKey.createAxisMeta( "X" ) );
 
     /** Config key for Y axis lower bound, before subranging. */
     public static final ConfigKey<Double> YMIN_KEY =
-        DoubleConfigKey.createTextKey( new ConfigMeta( "ymin", "Y Minimum" ) );
+        createAxisLimitKey( "Y", false );
 
     /** Config key for Y axis upper bound, before subranging. */
     public static final ConfigKey<Double> YMAX_KEY =
-        DoubleConfigKey.createTextKey( new ConfigMeta( "ymax", "Y Maximum" ) );
+        createAxisLimitKey( "Y", true );
 
     /** Config key for Y axis subrange. */
     public static final ConfigKey<Subrange> YSUBRANGE_KEY =
-        new SubrangeConfigKey( new ConfigMeta( "ysub", "Y Subrange" ) );
+        new SubrangeConfigKey( SubrangeConfigKey.createAxisMeta( "Y" ) );
 
     /** Config key for X axis log scale flag. */
     public static final ConfigKey<Boolean> XLOG_KEY =
-        new BooleanConfigKey( new ConfigMeta( "xlog", "X Log" ) );
+        createAxisLogKey( "X" );
 
     /** Config key for Y axis log scale flag. */
     public static final ConfigKey<Boolean> YLOG_KEY =
-        new BooleanConfigKey( new ConfigMeta( "ylog", "Y Log" ) );
+        createAxisLogKey( "Y" );
 
     /** Config key for X axis flip flag. */
     public static final ConfigKey<Boolean> XFLIP_KEY =
-        new BooleanConfigKey( new ConfigMeta( "xflip", "X Flip" ) );
+        createAxisFlipKey( "X" );
 
     /** Config key for Y axis flip flag. */
     public static final ConfigKey<Boolean> YFLIP_KEY =
-        new BooleanConfigKey( new ConfigMeta( "yflip", "Y Flip" ) );
+        createAxisFlipKey( "Y" );
 
     /** Config key for X axis text label. */
     public static final ConfigKey<String> XLABEL_KEY =
@@ -83,28 +83,61 @@ public class PlaneSurfaceFactory
 
     /** Config key for axis aspect ratio fix. */
     public static final ConfigKey<Double> XYFACTOR_KEY =
-        DoubleConfigKey.createToggleKey( new ConfigMeta( "aspect",
-                                                         "Aspect Lock" ),
-                                         Double.NaN, 1.0 );
+        DoubleConfigKey.createToggleKey(
+            new ConfigMeta( "aspect", "Aspect Lock" )
+           .setShortDescription( "X/Y axis unit ratio" )
+           .setXmlDescription( new String[] {
+                "<p>Ratio of the unit length on the X axis to the unit",
+                "length on the Y axis.",
+                "If set to 1, the space will be isotropic.",
+                "If not set (the default)",
+                "the ratio will be determined by the given or calculated",
+                "data bounds on both axes and the shape of the plotting",
+                "region.",
+                "</p>",
+            } )
+        , Double.NaN, 1.0 );
 
     /** Config key to determine if grid lines are drawn. */
     public static final ConfigKey<Boolean> GRID_KEY =
-        new BooleanConfigKey( new ConfigMeta( "grid", "Draw Grid" ), false );
+        new BooleanConfigKey(
+            new ConfigMeta( "grid", "Draw Grid" )
+           .setShortDescription( "Draw grid lines?" )
+           .setXmlDescription( new String[] {
+                "<p>If true, grid lines are drawn on the plot",
+                "at positions determined by the major tick marks.",
+                "If false, they are absent.",
+                "</p>",
+            } )
+        , false );
 
     /** Config key to control tick mark crowding on X axis. */
     public static final ConfigKey<Double> XCROWD_KEY =
-        StyleKeys.createCrowdKey( new ConfigMeta( "xcrowd",
-                                                  "X Tick Crowding" ) );
+        createAxisCrowdKey( "X" );
 
     /** Config key to control tick mark crowding on Y axis. */
     public static final ConfigKey<Double> YCROWD_KEY =
-        StyleKeys.createCrowdKey( new ConfigMeta( "ycrowd",
-                                                  "Y Tick Crowding" ) );
+        createAxisCrowdKey( "Y" );
 
     /** Config key to select which axes navigation actions will operate on. */
     public static final ConfigKey<boolean[]> NAVAXES_KEY =
-        new CombinationConfigKey( new ConfigMeta( "navaxes", "Pan/Zoom Axes" ),
-                                  new String[] { "X", "Y" } );
+        new CombinationConfigKey(
+             new ConfigMeta( "navaxes", "Pan/Zoom Axes" )
+            .setStringUsage( "xy|x|y" )
+            .setShortDescription( "Axes affected by pan/zoom" )
+            .setXmlDescription( new String[] {
+                "<p>Determines the axes which are affected by",
+                "the interactive navigation actions (pan and zoom).",
+                "The default is <code>xy</code>, which means that",
+                "the various mouse gestures will provide panning and zooming",
+                "in both X and Y directions.",
+                "However, if it is set to (for instance) <code>x</code>",
+                "then the mouse will only allow panning and",
+                "zooming in the horizontal direction,",
+                "with the vertical extent fixed.",
+                "</p>",
+            } )
+        , new String[] { "X", "Y" } );
 
     /** Config key to anchor X axis during zooms. */
     public static final ConfigKey<Boolean> XANCHOR_KEY =
@@ -224,7 +257,7 @@ public class PlaneSurfaceFactory
     }
 
     /**
-     * Creates a config key for determining whether one of the axes is
+     * Creates a config key for determining whether a named axis is
      * to be anchored at a data value of zero.
      * 
      * @param  axname  axis name
@@ -237,7 +270,111 @@ public class PlaneSurfaceFactory
         String axL = axname.toUpperCase();
         ConfigMeta meta =
             new ConfigMeta( axl + "anchor", "Anchor " + axL + " axis" );
+        meta.setShortDescription( "Fix " + axL + " zero point?" );
+        meta.setXmlDescription( new String[] {
+            "<p>If true, then zoom actions",
+            "will work in such a way that the zero point",
+            "on the " + axL + " axis stays in the same position on the plot.",
+            "</p>",
+        } );
         return new BooleanConfigKey( meta, dflt );
+    }
+
+    /**
+     * Creates a config key for fixing a minimum or maximum limit
+     * for a named axis.
+     *
+     * @param   axname  axis name
+     * @param   isMax   true for upper limit, false for lower limit
+     * @return  new config key
+     */
+    public static ConfigKey<Double> createAxisLimitKey( String axname,
+                                                        boolean isMax ) {
+        String axl = axname.toLowerCase();
+        String axL = ConfigMeta.capitalise( axname );
+        String lim = isMax ? "max" : "min";
+        String limit = isMax ? "Maximum" : "Minimum";
+        String shortName = axl + lim;
+        String longName = limit + " " + axL;
+        ConfigMeta meta = new ConfigMeta( shortName, longName );
+        meta.setShortDescription( limit + " " + axL + " data value" );
+        meta.setXmlDescription( new String[] {
+            "<p>" + limit + " value of the data coordinate",
+            "on the " + axL + " axis.",
+            "This sets the value before any subranging is applied.",
+            "If not supplied, the value is determined from the plotted data.",
+            "</p>",
+        } );
+        return DoubleConfigKey.createTextKey( meta );
+    }
+
+    /**
+     * Creates a config key for determining whether a named Cartesian axis
+     * is logarithmic or linear.
+     *
+     * @param  axname  axis name
+     * @return  new config key, true for log scaling
+     */
+    public static ConfigKey<Boolean> createAxisLogKey( String axname ) {
+        String axl = axname.toLowerCase();
+        String axL = ConfigMeta.capitalise( axname );
+        ConfigMeta meta = new ConfigMeta( axl + "log", axL + " Log" );
+        meta.setShortDescription( "Logarithmic scale on " + axL + " axis?" );
+        meta.setXmlDescription( new String[] {
+            "<p>If false (the default), the scale on the " + axL + " axis",
+            "is linear,",
+            "if true it is logarithmic.",
+            "</p>",
+        } );
+        return new BooleanConfigKey( meta );
+    }
+
+    /**
+     * Creates a config key for determining whether a named Cartesian axis
+     * is to be reversed.
+     *
+     * @param  axname  axis name
+     * @return   new config key, true if sense is reversed
+     */
+    public static ConfigKey<Boolean> createAxisFlipKey( String axname ) {
+        String axl = axname.toLowerCase();
+        String axL = ConfigMeta.capitalise( axname );
+        ConfigMeta meta = new ConfigMeta( axl + "flip", axL + " Flip" );
+        meta.setShortDescription( "Flip scale on " + axL + " axis?" );
+        meta.setXmlDescription( new String[] {
+            "<p>If true, the scale on the " + axL + " axis",
+            "will increase in the opposite sense from usual",
+            "(e.g. right to left rather than left to right).",
+            "</p>",
+        } );
+        return new BooleanConfigKey( meta );
+    }
+
+    /**
+     * Creates a config key for determining tickmark crowding on a named axis.
+     *
+     * @param  axname  axis name
+     * @return   new config key for dimensionless crowding figure
+     */
+    public static ConfigKey<Double> createAxisCrowdKey( String axname ) {
+        String axl = axname.substring( 0, 1 ).toLowerCase();
+        String axL = ConfigMeta.capitalise( axname );
+        ConfigMeta meta =
+            new ConfigMeta( axl + "crowd", axL + " Tick Crowding" );
+        meta.setShortDescription( "Tick crowding on " + axL + " axis" );
+        meta.setXmlDescription( new String[] {
+            "<p>Determines how closely the tick marks are spaced",
+            "on the " + axL + " axis.",
+            "The default value is 1, meaning normal crowding.",
+            "Larger values result in more ticks,",
+            "and smaller values fewer ticks.",
+            "Tick marks will not however be spaced so closely that",
+            "the labels overlap each other,",
+            "so to get very closely spaced marks you may need to",
+            "reduce the font size as well.",
+            "</p>",
+        } );
+        return StyleKeys.createCrowdKey( meta );
     }
 
     /**
