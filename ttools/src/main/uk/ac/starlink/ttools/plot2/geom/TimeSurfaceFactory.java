@@ -34,15 +34,37 @@ public class TimeSurfaceFactory
 
     /** Config key for time axis lower bound, before subranging. */
     public static final ConfigKey<Double> TMIN_KEY =
-        new TimeConfigKey( new ConfigMeta( "tmin", "Time Minimum" ) );
+        new TimeConfigKey(
+            new ConfigMeta( "tmin", "Time Minimum" )
+           .setShortDescription( "Lower limit on time axis" )
+           .setXmlDescription( new String[] {
+                "<p>Minimum value of the time coordinate plotted.",
+                "This sets the value before any subranging is applied.",
+                "If not supplied, the value is determined from the plotted",
+                "data.",
+                "</p>",
+                TimeConfigKey.FORMAT_XML,
+            } )
+        );
 
     /** Config key for time axis upper bound, before subranging. */
     public static final ConfigKey<Double> TMAX_KEY =
-        new TimeConfigKey( new ConfigMeta( "tmax", "Time Maximum" ) );
+        new TimeConfigKey(
+            new ConfigMeta( "tmax", "Time Maximum" )
+           .setShortDescription( "Upper limit on time axis" )
+           .setXmlDescription( new String[] {
+                "<p>Maximum value of the time coordinate plotted.",
+                "This sets the value before any subranging is applied.",
+                "If not supplied, the value is determined from the plotted",
+                "data.",
+                "</p>",
+                TimeConfigKey.FORMAT_XML,
+            } )
+        );
 
     /** Config key for time axis subrange. */
     public static final ConfigKey<Subrange> TSUBRANGE_KEY =
-        new SubrangeConfigKey( new ConfigMeta( "tsub", "Time Subrange" ) );
+        new SubrangeConfigKey( SubrangeConfigKey.createAxisMeta( "Time" ) );
 
     /** Config key for Y axis lower bound, before subranging. */
     public static final ConfigKey<Double> YMIN_KEY =
@@ -66,8 +88,16 @@ public class TimeSurfaceFactory
 
     /** Config key for time axis text label. */
     public static final ConfigKey<String> TLABEL_KEY =
-        new StringConfigKey( new ConfigMeta( "timelabel", "Time Label" ),
-                             null );
+        new StringConfigKey(
+            new ConfigMeta( "tlabel", "Time Label" )
+           .setStringUsage( "<text>" )
+           .setShortDescription( "Label for Time axis" )
+           .setXmlDescription( new String[] {
+                "<p>Gives a label to be used for annotating the Time axis.",
+                "If not supplied no label will be drawn.",
+                "</p>",
+            } )
+        , null );
 
     /** Config key for Y axis text label.*/
     public static final ConfigKey<String> YLABEL_KEY =
@@ -75,12 +105,20 @@ public class TimeSurfaceFactory
 
     /** Config key to determine if grid lines are drawn. */
     public static final ConfigKey<Boolean> GRID_KEY =
-        new BooleanConfigKey( new ConfigMeta( "grid", "Draw Grid" ), false );
+        new BooleanConfigKey(
+            new ConfigMeta( "grid", "Draw Grid" )
+           .setShortDescription( "Draw grid lines?" )
+           .setXmlDescription( new String[] {
+                "<p>If true, grid lines are drawn on the plot",
+                "at positions determined by the major tick marks.",
+                "If false, they are absent.",
+                "</p>",
+            } )
+        , false );
 
     /** Config key to control tick mark crowding on time axis. */
     public static final ConfigKey<Double> TCROWD_KEY =
-        StyleKeys.createCrowdKey( new ConfigMeta( "tcrowd",
-                                                  "Time Tick Crowding" ) );
+        PlaneSurfaceFactory.createAxisCrowdKey( "Time" );
 
     /** Config key to control tick mark crowding on Y axis. */
     public static final ConfigKey<Double> YCROWD_KEY =
@@ -88,10 +126,7 @@ public class TimeSurfaceFactory
 
     /** Config key to control time value formatting. */
     public static final ConfigKey<TimeFormat> TFORMAT_KEY =
-        new OptionConfigKey<TimeFormat>( new ConfigMeta( "tformat",
-                                                         "Time Format" ),
-                                         TimeFormat.class,
-                                         TimeFormat.getKnownFormats() );
+        createTimeFormatKey();
 
     public Surface createSurface( Rectangle plotBounds, Profile profile,
                                   TimeAspect aspect ) {
@@ -203,6 +238,51 @@ public class TimeSurfaceFactory
         return tlimits == null || ylimits == null
              ? null
              : new TimeAspect( tlimits, ylimits );
+    }
+
+    /**
+     * Returns a config key used to select time display format.
+     *
+     * @return  config key
+     */
+    private static ConfigKey<TimeFormat> createTimeFormatKey() {
+        TimeFormat[] formats = TimeFormat.getKnownFormats();
+        StringBuffer sbuf = new StringBuffer();
+        double unixSec = 1331613420;
+        double secPrecision = 60 * 60 * 4;
+        for ( TimeFormat format : Arrays.asList( formats ) ) {
+            sbuf.append( "<li>" )
+                .append( "<code>" )
+                .append( format.getFormatName() )
+                .append( "</code>" )
+                .append( ": " )
+                .append( format.getFormatDescription() )
+                .append( " (e.g. \"" )
+                .append( format.formatTime( unixSec, secPrecision ) )
+                .append( "\")" )
+                .append( "</li>" )
+                .append( "\n" );
+        }
+        ConfigMeta meta = new ConfigMeta( "tformat", "Time Format" );
+        meta.setShortDescription( "Time display format" );
+        meta.setXmlDescription( new String[] {
+            "<p>Selects the way in which time values are represented",
+            "when using them to label the time axis.",
+            "</p>",
+            "<p>Available options are",
+            "<ul>",
+            sbuf.toString(),
+            "</ul>",
+            "</p>",
+        } );
+        OptionConfigKey<TimeFormat> key =
+                new OptionConfigKey( meta, TimeFormat.class, formats ) {
+            public String valueToString( TimeFormat format ) {
+                return format.getFormatName();
+            } 
+        };
+        key.setOptionUsage();
+        return key;
     }
 
     /**
