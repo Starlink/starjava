@@ -15,6 +15,21 @@ import uk.ac.starlink.ttools.plot2.geom.TimeFormat;
  */
 public class TimeConfigKey extends ConfigKey<Double> {
 
+    /** XML &lt;p&gt; element describing the text input format. */
+    public static final String FORMAT_XML =
+        ConfigMeta.concatLines( new String[] {
+            "<p>The value may be set with a string that can be interpreted as",
+            "a decimal year",
+            "(e.g. \"<code>2007.521</code>\")",
+            "or an ISO-8601 string",
+            "(e.g. \"<code>2007-07-10T03:57:36</code>\",",
+                  "\"<code>2007-07-10T03</code>\"",
+               "or \"<code>2007-07-10</code>\").",
+            "Note however that the numeric value of this configuration item",
+            "if accessed programmatically is seconds since 1 Jan 1970.",
+            "</p>",
+        } );
+
     /**
      * Constructs a key with no default value.
      *
@@ -22,6 +37,9 @@ public class TimeConfigKey extends ConfigKey<Double> {
      */
     public TimeConfigKey( ConfigMeta meta ) {
         this( meta, Double.NaN );
+        if ( meta.getStringUsage() == null ) {
+            meta.setStringUsage( "<year-or-iso8601>" );
+        }
     }
 
     /**

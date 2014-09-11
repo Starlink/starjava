@@ -33,9 +33,7 @@ public class TimeNavigator implements Navigator<TimeAspect> {
 
     /** Config key to select which axes zoom will operate on. */
     public static final ConfigKey<boolean[]> NAVAXES_KEY =
-        new AxisCombinationConfigKey( new ConfigMeta( "navaxes",
-                                                      "Pan/Zoom Axes" ),
-                                      true, false );
+        createNavAxesKey();
 
     /**
      * Constructor.
@@ -193,32 +191,38 @@ public class TimeNavigator implements Navigator<TimeAspect> {
     }
 
     /**
-     * ConfigKey for selecting a combination (0, 1 or 2) of the axes
-     * of a time plot.
+     * Returns a config key for selecting which axes of a time plot
+     * will be pan/zoomable.
+     *
+     * @return   config key
      */
-    private static class AxisCombinationConfigKey extends CombinationConfigKey {
+    private static CombinationConfigKey createNavAxesKey() {
+        ConfigMeta meta = new ConfigMeta( "navaxes", "Pan/Zoom Axes" );
+        meta.setStringUsage( "t|y|ty" );
+        meta.setShortDescription( "Axes affected by pan/zoom" );
+        meta.setXmlDescription( new String[] {
+            "<p>Determines the axes which are affected by",
+                "the interactive navigation actions (pan and zoom).",
+                "The default is <code>t</code>",
+                "which means that the various mouse gestures",
+                "will provide panning and zooming in the Time direction only.",
+                "However, if it is set to <code>ty</code>",
+                "mouse actions will affect both the horizontal and vertical",
+                "axes.",
+            "</p>",
+        } );
 
-        /**
-         * Constructor.
-         *
-         * @param  metadata
-         * @param  tDflt    true to include time axis by default
-         * @param  yDflt    true to include Y axis by default
-         */
-        AxisCombinationConfigKey( ConfigMeta meta,
-                                  boolean tDflt, boolean yDflt) {
-            super( meta, new boolean[] { tDflt, yDflt },
-                   new String[] { "Time", "Y" }, null );
-        }
-
-        /**
-         * Allow X as an alias for T
-         */
-        @Override
-        public int optCharToIndex( char c ) throws ConfigException {
-            return Character.toLowerCase( c ) == 'x'
-                 ? 0
-                 : super.optCharToIndex( c );
-        }
+        /* Allow X as an alias for T. */
+        CombinationConfigKey key =
+                new CombinationConfigKey( meta, new boolean[] { true, false },
+                                          new String[] { "Time", "Y" }, null ) {
+            @Override
+            public int optCharToIndex( char c ) throws ConfigException {
+                return Character.toLowerCase( c ) == 'x'
+                     ? 0
+                     : super.optCharToIndex( c );
+            }
+        };
+        return key;
     }
 }

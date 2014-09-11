@@ -35,6 +35,7 @@ import uk.ac.starlink.ttools.plot2.Ticker;
 public abstract class TimeFormat {
 
     private final String name_;
+    private final String description_;
 
     /** Time format for ISO-8601 dates. */
     public static final TimeFormat ISO8601;
@@ -53,7 +54,8 @@ public abstract class TimeFormat {
     private static final TimeFormat[] KNOWN_FORMATS = new TimeFormat[] {
         ISO8601 = new Iso8601TimeFormat( 'T', TimeZone.getTimeZone( "UTC" ),
                                          Locale.UK ),
-        DECIMAL_YEAR = decimalYear_ = new NumericTimeFormat( "Year" ) {
+        DECIMAL_YEAR = decimalYear_ =
+                new NumericTimeFormat( "Year", "Decimal year" ) {
             public double fromUnixSeconds( double unixSec ) {
                 return unixSecondsToDecimalYear( unixSec );
             }
@@ -61,7 +63,7 @@ public abstract class TimeFormat {
                 return decimalYearToUnixSeconds( value );
             }
         },
-        MJD = new NumericTimeFormat( "MJD" ) {
+        MJD = new NumericTimeFormat( "MJD", "Modified Julian Date" ) {
             public double fromUnixSeconds( double unixSec ) {
                 return Times
                       .decYearToMjd( unixSecondsToDecimalYear( unixSec ) );
@@ -70,7 +72,9 @@ public abstract class TimeFormat {
                 return decimalYearToUnixSeconds( Times.mjdToDecYear( value ) );
             }
         },
-        UNIX_SECONDS = new NumericTimeFormat( "Unix" ) {
+        UNIX_SECONDS = new NumericTimeFormat( "Unix",
+                                              "Seconds since midnight"
+                                            + " of 1 Jan 1970" ) {
             public double fromUnixSeconds( double unixSec ) {
                 return unixSec;
             }
@@ -84,9 +88,11 @@ public abstract class TimeFormat {
      * Constructor.
      *
      * @param  name  format name
+     * @param  description  short description
      */
-    protected TimeFormat( String name ) {
+    protected TimeFormat( String name, String description ) {
         name_ = name;
+        description_ = description;
     }
 
     /**
@@ -104,6 +110,24 @@ public abstract class TimeFormat {
      * @return  tick calculator
      */
     public abstract Ticker getTicker();
+
+    /**
+     * Returns the name of this format.
+     *
+     * @return  format name
+     */
+    public String getFormatName() {
+        return name_;
+    }
+
+    /**
+     * Returns a short description of this format.
+     *
+     * @return  format description
+     */
+    public String getFormatDescription() {
+        return description_;
+    }
 
     @Override
     public String toString() {
@@ -183,9 +207,10 @@ public abstract class TimeFormat {
          * Constructor.
          *
          * @param   name  format name
+         * @param   description  format description
          */
-        protected NumericTimeFormat( String name ) {
-            super( name );
+        protected NumericTimeFormat( String name, String description ) {
+            super( name, description );
             ticker_ = new BasicTicker( false ) {
                 public Rule createRule( double dlo, double dhi,
                                         double approxMajorCount, int adjust ) {
@@ -284,7 +309,8 @@ public abstract class TimeFormat {
          * @param  locale  calendar locale
          */
         Iso8601TimeFormat( char dateSep, TimeZone tz, Locale locale ) {
-            super( "ISO-8601" );
+            super( "ISO-8601",
+                   "ISO 8601 date, of the form yyyy-mm-ddThh:mm:ss.s" );
             levelSet_ = new DateLevelSet( dateSep, tz, locale );
             ticker_ = new Iso8601Ticker( levelSet_ );
         }
