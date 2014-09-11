@@ -47,27 +47,27 @@ public class CubeSurfaceFactory
 
     /** Config key for X axis log scale flag. */
     public static final ConfigKey<Boolean> XLOG_KEY =
-        new BooleanConfigKey( new ConfigMeta( "xlog", "X Log" ) );
+        PlaneSurfaceFactory.createAxisLogKey( "X" );
 
     /** Config key for Y axis log scale flag. */
     public static final ConfigKey<Boolean> YLOG_KEY =
-        new BooleanConfigKey( new ConfigMeta( "ylog", "Y Log" ) );
+        PlaneSurfaceFactory.createAxisLogKey( "Y" );
 
     /** Config key for Z axis log scale flag. */
     public static final ConfigKey<Boolean> ZLOG_KEY =
-        new BooleanConfigKey( new ConfigMeta( "zlog", "Z Log" ) );
+        PlaneSurfaceFactory.createAxisLogKey( "Z" );
 
     /** Config key for X axis flip flag. */
     public static final ConfigKey<Boolean> XFLIP_KEY =
-        new BooleanConfigKey( new ConfigMeta( "xflip", "X Flip" ) );
+        PlaneSurfaceFactory.createAxisFlipKey( "X" );
 
     /** Config key for Y axis flip flag. */
     public static final ConfigKey<Boolean> YFLIP_KEY =
-        new BooleanConfigKey( new ConfigMeta( "yflip", "Y Flip" ) );
+        PlaneSurfaceFactory.createAxisFlipKey( "Y" );
 
     /** Config key for Z axis flip flag. */
     public static final ConfigKey<Boolean> ZFLIP_KEY =
-        new BooleanConfigKey( new ConfigMeta( "zflip", "Z Flip" ) );
+        PlaneSurfaceFactory.createAxisFlipKey( "Z" );
 
     /** Config key for X axis text label. */
     public static final ConfigKey<String> XLABEL_KEY =
@@ -83,114 +83,178 @@ public class CubeSurfaceFactory
 
     /** Config key for whether to draw axis wire frame. */
     public static final ConfigKey<Boolean> FRAME_KEY =
-        new BooleanConfigKey( new ConfigMeta( "frame", "Draw wire frame" ),
-                              true );
+        new BooleanConfigKey(
+            new ConfigMeta( "frame", "Draw wire frame" )
+           .setShortDescription( "Draw wire frame?" )
+           .setXmlDescription( new String[] {
+                "<p>If true, a cube wire frame with labelled axes",
+                "is drawn to indicate the limits of the plotted 3D region.",
+                "If false, no wire frame and no axes are drawn.",
+                "</p>",
+            } )
+        , true );
 
     /** Config key for X axis tick mark crowding. */
     public static final ConfigKey<Double> XCROWD_KEY =
-        StyleKeys.createCrowdKey( new ConfigMeta( "xcrowd",
-                                                  "X Tick Crowding" ) );
+        PlaneSurfaceFactory.createAxisCrowdKey( "X" );
 
     /** Config key for Y axis tick mark crowding. */
     public static final ConfigKey<Double> YCROWD_KEY =
-        StyleKeys.createCrowdKey( new ConfigMeta( "ycrowd",
-                                                  "Y Tick Crowding" ) );
+        PlaneSurfaceFactory.createAxisCrowdKey( "Y" );
 
     /** Config key for Z axis tick mark crowding. */
     public static final ConfigKey<Double> ZCROWD_KEY =
-        StyleKeys.createCrowdKey( new ConfigMeta( "zcrowd",
-                                                  "Z Tick Crowding" ) );
+        PlaneSurfaceFactory.createAxisCrowdKey( "Z" );
 
     /** Config key for isotropic tick mark crowding. */
     public static final ConfigKey<Double> ISOCROWD_KEY =
-        StyleKeys.createCrowdKey( new ConfigMeta( "crowd", "Tick Crowding" ) );
+        StyleKeys.createCrowdKey(
+            new ConfigMeta( "crowd", "Tick Crowding" )
+           .setShortDescription( "Crowding of axis ticks" )
+           .setXmlDescription( new String[] {
+                "<p>Determines how closely tick marks are spaced",
+                "on the wire frame axes.",
+                "The default value is 1, meaning normal crowding.",
+                "Larger values result in more grid lines,",
+                "and smaller values in fewer grid lines.",
+                "</p>",
+            } )
+        );
 
     /** Config key for X axis lower bound, before subranging. */
     public static final ConfigKey<Double> XMIN_KEY =
-        DoubleConfigKey.createTextKey( new ConfigMeta( "xmin", "X Minimum" ) );
+        PlaneSurfaceFactory.createAxisLimitKey( "X", false );
 
     /** Config key for X axis upper bound, before subranging. */
     public static final ConfigKey<Double> XMAX_KEY =
-        DoubleConfigKey.createTextKey( new ConfigMeta( "xmax", "X Maximum" ) );
+        PlaneSurfaceFactory.createAxisLimitKey( "X", true );
 
     /** Config key for X axis subrange. */
     public static final ConfigKey<Subrange> XSUBRANGE_KEY =
-        new SubrangeConfigKey( new ConfigMeta( "xsub", "X Subrange" ) );
+        new SubrangeConfigKey( SubrangeConfigKey.createAxisMeta( "X" ) );
 
     /** Config key for Y axis lower bound, before subranging. */
     public static final ConfigKey<Double> YMIN_KEY =
-        DoubleConfigKey.createTextKey( new ConfigMeta( "ymin", "Y Minimum" ) );
+        PlaneSurfaceFactory.createAxisLimitKey( "Y", false );
 
     /** Config key for Y axis upper bound, before subranging. */
     public static final ConfigKey<Double> YMAX_KEY =
-        DoubleConfigKey.createTextKey( new ConfigMeta( "ymax", "Y Maximum" ) );
+        PlaneSurfaceFactory.createAxisLimitKey( "Y", true );
 
     /** Config key for Y axis subrange. */
     public static final ConfigKey<Subrange> YSUBRANGE_KEY =
-        new SubrangeConfigKey( new ConfigMeta( "ysub", "Y Subrange" ) );
+        new SubrangeConfigKey( SubrangeConfigKey.createAxisMeta( "Y" ) );
 
     /** Config key for Z axis lower bound, before subranging. */
     public static final ConfigKey<Double> ZMIN_KEY =
-        DoubleConfigKey.createTextKey( new ConfigMeta( "zmin", "Z Minimum" ) );
+        PlaneSurfaceFactory.createAxisLimitKey( "Z", false );
 
     /** Config key for Z axis upper bound, before subranging. */
     public static final ConfigKey<Double> ZMAX_KEY =
-        DoubleConfigKey.createTextKey( new ConfigMeta( "zmax", "Z Maximum" ) );
+        PlaneSurfaceFactory.createAxisLimitKey( "Z", true );
 
     /** Config key for Z axis subrange. */
     public static final ConfigKey<Subrange> ZSUBRANGE_KEY =
-        new SubrangeConfigKey( new ConfigMeta( "zsub", "Z Subrange" ) );
+        new SubrangeConfigKey( SubrangeConfigKey.createAxisMeta( "Z" ) );
 
     /** Config key for X axis central position key (isotropic only). */
     public static final ConfigKey<Double> XC_KEY =
-        DoubleConfigKey.createTextKey( new ConfigMeta( "xc", "X Center" ) );
+        createIsoCenterKey( "X" );
 
     /** Config key for Y axis central position key (isotropic only). */
     public static final ConfigKey<Double> YC_KEY =
-        DoubleConfigKey.createTextKey( new ConfigMeta( "yc", "Y Center" ) );
+        createIsoCenterKey( "Y" );
 
     /** Config key for Z axis central position key (isotropic only). */
     public static final ConfigKey<Double> ZC_KEY =
-        DoubleConfigKey.createTextKey( new ConfigMeta( "zc", "Z Center" ) );
+        createIsoCenterKey( "Z" );
 
     /** Config key for cube edge length (isotropic only). */
     public static final ConfigKey<Double> SCALE_KEY =
-        DoubleConfigKey.createTextKey( new ConfigMeta( "scale",
-                                                       "Cube Edge Length" ) );
+        DoubleConfigKey.createTextKey(
+            new ConfigMeta( "scale", "Cube Edge Length" )
+           .setShortDescription( "Cube edge length" )
+           .setXmlDescription( new String[] {
+                "<p>The length of the cube sides in data coordinates.",
+                "This will be determined from the data range if not supplied.",
+                "</p>",
+            } )
+        );
 
     /** Config key for rotation from vertical, units of degrees. */
     public static final ConfigKey<Double> THETA_KEY =
-        DoubleConfigKey
-       .createSliderKey( new ConfigMeta( "theta", "Rotation from vertical" ),
-                         15, -180, 180, false );
+        DoubleConfigKey.createSliderKey(
+            new ConfigMeta( "theta", "Rotation from vertical" )
+           .setShortDescription( "View rotation from vertical" )
+           .setXmlDescription( new String[] {
+                "<p>Rotation towards the viewer in degrees of the",
+                "plotted 3d space.",
+                "</p>",
+            } )
+           .setStringUsage( "<degrees>" )
+        , 15, -180, 180, false );
 
     /** Config key for rotation about vertical, units of degrees. */
     public static final ConfigKey<Double> PHI_KEY =
-        DoubleConfigKey
-       .createSliderKey( new ConfigMeta( "phi", "Rotation about Z axis" ),
-                         -30, -180, 180, false );
+        DoubleConfigKey.createSliderKey(
+            new ConfigMeta( "phi", "Rotation about Z axis" )
+           .setShortDescription( "View rotation around Z axis" )
+           .setXmlDescription( new String[] {
+                "<p>Rotation around the Z axis of the plotted 3d space",
+                "applied before the plot is viewed.",
+                "</p>",
+            } )
+           .setStringUsage( "<degrees>" )
+        , -30, -180, 180, false );
  
     /** Config key for zoom factor. */
     public static final ConfigKey<Double> ZOOM_KEY =
-        DoubleConfigKey
-       .createSliderKey( new ConfigMeta( "zoom", "Zoom factor" ),
-                         1.0, 0.1, 10.0, true );
+        DoubleConfigKey.createSliderKey(
+            new ConfigMeta( "zoom", "Zoom factor" )
+           .setShortDescription( "Magnification factor" )
+           .setXmlDescription( new String[] {
+                "<p>Sets the magnification factor at which the the",
+                "plotted 3D region itself is viewed,",
+                "without affecting its contents.",
+                "The default value is 1, which means the cube",
+                "fits into the plotting space however it is rotated.",
+                "Much higher zoom factors will result in parts of the",
+                "plotting region and axes being drawn outside of",
+                "the plotting region (so invisible).",
+                "</p>",
+            } )
+           .setStringUsage( "<factor>" )
+        , 1.0, 0.1, 10.0, true );
 
     /** Config key for graphics X offset, units of 1/2 screen size. */
     public static final ConfigKey<Double> XOFF_KEY =
-        DoubleConfigKey
-       .createSliderKey( new ConfigMeta( "xoff", "X offset of centre" ),
-                         0, -2, +2, false );
+        DoubleConfigKey.createSliderKey(
+            new ConfigMeta( "xoff", "X offset of centre" )
+           .setShortDescription( "Horizontal offset in pixels" )
+           .setXmlDescription( new String[] {
+                "<p>Shifts the whole plot within the plotting region",
+                "by the given number of pixels in the horizontal direction.",
+                "</p>",
+            } )
+           .setStringUsage( "<pixels>" )
+        , 0, -2, +2, false );
 
     /** Config key for graphics Y offset, units of 1/2 screen size. */
     public static final ConfigKey<Double> YOFF_KEY =
-        DoubleConfigKey
-       .createSliderKey( new ConfigMeta( "yoff", "Y offset of centre" ),
-                         0, -2, +2, false );
+        DoubleConfigKey.createSliderKey(
+            new ConfigMeta( "yoff", "Y offset of centre" )
+           .setShortDescription( "Vertical offset in pixels" )
+           .setXmlDescription( new String[] {
+                "<p>Shifts the whole plot within the plotting region",
+                "by the given number of pixels in the vertical direction.",
+                "</p>",
+            } )
+           .setStringUsage( "<pixels>" )
+        , 0, -2, +2, false );
 
     /** Config key for rotation matrix.
      *  This key is hidden, but if present it overrides
-     * {@link #THETA_KEY} and {@link #PHI_KEY}. */
+     *  {@link #THETA_KEY} and {@link #PHI_KEY}. */
     public static final ConfigKey<double[]> ROTMAT_KEY =
         new HiddenConfigKey<double[]>( new ConfigMeta( "rotmat",
                                                        "Rotation Matrix" ),
@@ -489,6 +553,25 @@ public class CubeSurfaceFactory
             return Matrices
                   .fromPal( new Pal().Deuler( "zx", -phiRad, -thetaRad, 0 ) );
         }
+    }
+
+    /**
+     * Returns a config key for setting one of the axis coordinate center
+     * values.  Used only in the isotropic case.
+     *
+     * @param  axName  axis name
+     * @return   config key
+     */
+    private static ConfigKey<Double> createIsoCenterKey( String axName ) {
+        ConfigMeta meta =
+            new ConfigMeta( "c" + axName.toLowerCase(), axName + " Center" );
+        meta.setShortDescription( "Central " + axName + " coordinate" );
+        meta.setXmlDescription( new String[] {
+            "<p>Gives the central coordinate in the " + axName + " dimension.",
+            "This will be determined from the data range if not supplied.",
+            "</p>",
+        } );
+        return DoubleConfigKey.createTextKey( meta );
     }
 
     /**
