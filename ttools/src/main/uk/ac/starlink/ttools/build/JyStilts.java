@@ -13,6 +13,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.MultiStarTableWriter;
@@ -1358,6 +1360,8 @@ public class JyStilts {
      */
     public static void main( String[] args )
             throws IOException, LoadException, SAXException {
+        Logger.getLogger( "uk.ac.starlink.ttools.plot2" )
+              .setLevel( Level.WARNING );
         new JyStilts( new Stilts() )
            .writeModule( new OutputStreamWriter(
                              new BufferedOutputStream( System.out ) ) );

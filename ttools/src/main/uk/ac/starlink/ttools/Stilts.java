@@ -120,6 +120,13 @@ public class Stilts {
         taskFactory_.register( "votcopy", taskPkg + "VotCopy" );
         taskFactory_.register( "votlint", taskPkg + "VotLint" );
 
+        String plot2Pkg = "uk.ac.starlink.ttools.plot2.task.";
+        taskFactory_.register( "plot2plane", plot2Pkg + "PlanePlot2Task" );
+        taskFactory_.register( "plot2sky", plot2Pkg + "SkyPlot2Task" );
+        taskFactory_.register( "plot2cube", plot2Pkg + "CubePlot2Task" );
+        taskFactory_.register( "plot2sphere", plot2Pkg + "SpherePlot2Task" );
+        taskFactory_.register( "plot2time", plot2Pkg + "TimePlot2Task" );
+
         modeFactory_ =
             new ObjectFactory<ProcessingMode>( ProcessingMode.class );
         String modePkg = "uk.ac.starlink.ttools.mode.";
