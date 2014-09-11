@@ -6,6 +6,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.URL;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.xml.XMLConstants;
 import javax.xml.transform.sax.SAXSource;
 import javax.xml.validation.Schema;
@@ -31,6 +33,7 @@ public class CeaTest extends TestCase {
 
     public CeaTest( String name ) {
         super( name );
+        Logger.getLogger( "uk.ac.starlink.ttools" ).setLevel( Level.WARNING );
     }
 
     public void setUp() throws LoadException {

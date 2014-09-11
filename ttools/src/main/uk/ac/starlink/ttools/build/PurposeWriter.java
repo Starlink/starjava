@@ -1,5 +1,7 @@
 package uk.ac.starlink.ttools.build;
 
+import java.util.logging.Logger;
+import java.util.logging.Level;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.ttools.Stilts;
 import uk.ac.starlink.util.LoadException;
@@ -13,6 +15,7 @@ import uk.ac.starlink.util.ObjectFactory;
  */
 public class PurposeWriter {
     public static void main( String[] args ) throws LoadException {
+        Logger.getLogger( "uk.ac.starlink.ttools" ).setLevel( Level.WARNING );
         ObjectFactory<Task> taskFactory = Stilts.getTaskFactory();
         String[] taskNames = taskFactory.getNickNames();
         for ( int i = 0; i < taskNames.length; i++ ) {

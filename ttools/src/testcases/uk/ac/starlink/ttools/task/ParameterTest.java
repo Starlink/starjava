@@ -6,6 +6,8 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import junit.framework.TestCase;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.task.Parameter;
@@ -39,11 +41,13 @@ public class ParameterTest extends TestCase {
         "legend",
         "xdataN", "ydataN", "zdataN", "auxdataN",
         "subsetNS", "colourNS", "shapeNS", "transparencyNS",
+        "layerN",
         "end",
     } ) );
 
     public ParameterTest( String name ) {
         super( name );
+        Logger.getLogger( "uk.ac.starlink.ttools" ).setLevel( Level.WARNING );
     }
 
     public void testParams() throws LoadException, SAXException {

@@ -8,6 +8,8 @@ import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.ttools.Stilts;
@@ -233,6 +235,7 @@ public class UsageWriter {
      * surrounding XML boilerplate.
      */
     public static void main( String[] args ) throws IOException, LoadException {
+        Logger.getLogger( "uk.ac.starlink.ttools" ).setLevel( Level.WARNING );
         if ( args.length == 0 ) {
             String[] taskNames = Stilts.getTaskFactory().getNickNames();
             File dir = new File( "." );
