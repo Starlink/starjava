@@ -401,11 +401,23 @@ public class CubeSurfaceFactory
             double[] xlimits = ranges[ 0 ].getFiniteBounds( false );
             double[] ylimits = ranges[ 1 ].getFiniteBounds( false );
             double[] zlimits = ranges[ 2 ].getFiniteBounds( false );
-            if ( Double.isNaN( scale ) ) {
-                scale = max3( xlimits[ 1 ] - xlimits[ 0 ],
-                              ylimits[ 1 ] - ylimits[ 0 ],
-                              zlimits[ 1 ] - zlimits[ 0 ] );
+            if ( Double.isNaN( xc ) ) {
+                xc = 0.5 * ( xlimits[ 0 ] + xlimits[ 1 ] );
             }
+            if ( Double.isNaN( yc ) ) {
+                yc = 0.5 * ( ylimits[ 0 ] + ylimits[ 1 ] );
+            }
+            if ( Double.isNaN( zc ) ) {
+                zc = 0.5 * ( zlimits[ 0 ] + zlimits[ 1 ] );
+            }
+            assert ! Double.isNaN( xc + yc + zc );
+            if ( Double.isNaN( scale ) ) {
+                scale = max3( Math.max( xlimits[ 1 ] - xc, xc - xlimits[ 0 ] ),
+                              Math.max( ylimits[ 1 ] - yc, yc - ylimits[ 0 ] ),
+                              Math.max( zlimits[ 1 ] - zc, zc - zlimits[ 0 ] ) )
+                      * 2;
+            }
+            assert ! Double.isNaN( scale );
             return new double[][] {
                 centerLimits( xlimits, xc, scale ),
                 centerLimits( ylimits, yc, scale ),
