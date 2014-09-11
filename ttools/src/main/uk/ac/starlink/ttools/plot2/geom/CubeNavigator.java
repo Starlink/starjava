@@ -31,9 +31,31 @@ public class CubeNavigator implements Navigator<CubeAspect> {
 
     /** Config key to select which axes zoom will operate on. */
     public static final ConfigKey<boolean[]> ZOOMAXES_KEY =
-        new CombinationConfigKey( new ConfigMeta( "zoomaxes", "Zoom Axes" ),
-                                  null, new String[] { "X", "Y", "Z" },
-                                  "Auto" );
+        new CombinationConfigKey(
+            new ConfigMeta( "zoomaxes", "Zoom Axes" )
+           .setShortDescription( "Axes affected by zooming" )
+           .setXmlDescription( new String[] {
+                "<p>Determines which axes are affected by zoom navigation",
+                "actions.",
+                "</p>",
+                "<p>If no value is supplied (the default),",
+                "the mouse wheel zooms around the center of the cube,",
+                "and right-button (or CTRL-) drag zooms in the two dimensions",
+                "most closely aligned with the plane of the screen,",
+                "with the reference position set by the initial position",
+                "of the mouse.",
+                "</p>",
+                "<p>If this value is set",
+                "(legal values are",
+                "<code>x</code>, <code>y</code>, <code>z</code>,",
+                "<code>xy</code>, <code>yz</code>, <code>xz</code>",
+                "and <code>xyz</code>)",
+                "then all zoom operations are around the cube center",
+                "and affect the axes named.",
+                "</p>",
+            } )
+           .setStringUsage( "[[x][y][z]]" )
+        , null, new String[] { "X", "Y", "Z" }, "Auto" );
 
     /**
      * Constructor.
