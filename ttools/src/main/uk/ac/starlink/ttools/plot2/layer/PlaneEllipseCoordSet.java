@@ -2,6 +2,7 @@ package uk.ac.starlink.ttools.plot2.layer;
 
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
+import uk.ac.starlink.ttools.plot2.data.InputMeta;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 
 /**
@@ -14,21 +15,29 @@ public class PlaneEllipseCoordSet implements MultiPointCoordSet {
 
     private static final int NP = 4;
     private static final FloatingCoord AR_COORD =
-        FloatingCoord.createCoord( "Major radius",
-                                   "One of the ellipse principal radii",
-                                   true );
+        FloatingCoord.createCoord(
+            new InputMeta( "ra", "Primary Radius" )
+           .setShortDescription( "Ellipse first principal radius" )
+        , true );
     private static final FloatingCoord BR_COORD =
-        FloatingCoord.createCoord( "Minor radius",
-                                   "The other ellipse principal radius",
-                                   false );
+        FloatingCoord.createCoord(
+            new InputMeta( "rb", "Secondary Radius" )
+           .setShortDescription( "Ellipse second principal radius" )
+        , false );
     private static final FloatingCoord POSANG_COORD =
-        FloatingCoord.createCoord( "Orientation",
-                                   "Angle from X axis towards Y axis "
-                                 + "of semi-major radius",
-                                   false );
-    static {
-        POSANG_COORD.getUserInfo().setUnitString( "degrees" );
-    }
+        FloatingCoord.createCoord(
+            new InputMeta( "posang", "Position Angle" )
+           .setShortDescription( "Anticlockwise angle from X axis"
+                               + "of primary axis" )
+           .setXmlDescription( new String[] {
+                "<p>Orientation of the ellipse.",
+                "The value is the angle in degrees",
+                "from the X axis towards the Y axis",
+                "of the first principal axis of the ellipse.",
+                "</p>",
+            } )
+           .setValueUsage( "deg" )
+        , false );
 
     /**
      * Constructor.

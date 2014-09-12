@@ -32,6 +32,7 @@ import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.FloatingArrayCoord;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
+import uk.ac.starlink.ttools.plot2.data.InputMeta;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 import uk.ac.starlink.ttools.plot2.geom.SliceDataGeom;
 import uk.ac.starlink.ttools.plot2.paper.Paper;
@@ -73,17 +74,37 @@ public class SpectrogramPlotter
 
         /* Spectral coordinate, containing the spectrum at each X position. */
         spectrumCoord_ =
-            FloatingArrayCoord.createCoord( "Spectrum",
-                                            "Array of spectrum channel values",
-                                            true );
+            FloatingArrayCoord.createCoord(
+                new InputMeta( "spectrum", "Spectrum" )
+               .setShortDescription( "Array of spectrum channel values" )
+               .setXmlDescription( new String[] {
+                    "<p>Provides an array of spectral samples at each",
+                    "data point.",
+                    "The value must be a numeric array",
+                    "(e.g. the value of an array-valued column).",
+                    "</p>",
+                } )
+               .setValueUsage( "array" )
+            , true );
 
-        /* X extent is the width of each spectrum.  If not supplied,
-         * an attempt is made to determine it automatically by looking at
-         * the separations of the X coordinates. */
+        /* X extent is the width of each spectrum. */
+        InputMeta xMeta = xCoord.getInput().getMeta();
+        String xName = xMeta.getLongName();
         xExtentCoord_ = 
-            FloatingCoord.createCoord( xCoord.getUserInfo().getName() + "Width",
-                                       "Extent of samples in X direction",
-                                       false );
+            FloatingCoord.createCoord(
+                new InputMeta( xMeta.getShortName() + "width",
+                               xMeta.getLongName() + " Width" )
+               .setShortDescription( xName + " extent of spectrum" )
+               .setXmlDescription( new String[] {
+                    "<p>Range on the " + xName + " axis",
+                    "over which the spectrum is plotted.",
+                    "If no value is supplied, an attempt will be made",
+                    "to determine it automatically by looking at the",
+                    "spacing of the " + xName + " coordinates",
+                    "plotted in the spectrogram.",
+                    "</p>",
+                } )
+            , false );
 
         /* Maps each row to an X position, but not to a point, since it
          * covers a vertical line. */

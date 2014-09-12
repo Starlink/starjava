@@ -28,7 +28,6 @@ import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
-import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.WrapperRowSequence;
 import uk.ac.starlink.table.WrapperStarTable;
 import uk.ac.starlink.task.BooleanParameter;
@@ -68,6 +67,8 @@ import uk.ac.starlink.ttools.plot2.data.CoordGroup;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.DataStoreFactory;
+import uk.ac.starlink.ttools.plot2.data.Input;
+import uk.ac.starlink.ttools.plot2.data.InputMeta;
 import uk.ac.starlink.ttools.plot2.layer.ShapeMode;
 import uk.ac.starlink.ttools.plot2.paper.Compositor;
 import uk.ac.starlink.ttools.plot2.paper.PaperType;
@@ -977,18 +978,18 @@ public abstract class AbstractPlot2Task implements Task {
      */
     private CoordValue getCoordValue( Environment env, Coord coord,
                                       String suffix ) throws TaskException {
-        ValueInfo[] infos = coord.getUserInfos();
-        int nuc = infos.length;
-        String[] exprs = new String[ nuc ];
-        for ( int iuc = 0; iuc < nuc; iuc++ ) {
-            final ValueInfo info = infos[ iuc ];
+        Input[] inputs = coord.getInputs();
+        int ni = inputs.length;
+        String[] exprs = new String[ ni ];
+        for ( int ii = 0; ii < ni; ii++ ) {
+            final Input input = inputs[ ii ];
             Parameter param = new ParameterFinder<Parameter>() {
                 protected Parameter createParameter( String sfix ) {
-                    return createDataParameter( info, sfix );
+                    return createDataParameter( input, sfix );
                 }
             }.getParameter( env, suffix );
             param.setNullPermitted( ! coord.isRequired() );
-            exprs[ iuc ] = param.stringValue( env );
+            exprs[ ii ] = param.stringValue( env );
         }
         return new CoordValue( coord, exprs );
     }
@@ -1119,49 +1120,57 @@ public abstract class AbstractPlot2Task implements Task {
     /**
      * Returns a parameter for acquiring a column of data.
      *
-     * @param  info  metadata for column
+     * @param  input  specifies input value required from user
      * @param  suffix  layer-specific suffix
      * @return   data parameter
      */
-    public static StringParameter createDataParameter( ValueInfo info,
+    public static StringParameter createDataParameter( Input input,
                                                        String suffix ) {
-        String cName = info.getName();
-        Class cClazz = info.getContentClass();
+        InputMeta meta = input.getMeta();
+        boolean hasSuffix = suffix.length() > 0;
+        String cName = meta.getShortName();
+        Class cClazz = input.getValueClass();
         final String typeTxt;
+        final String typeUsage;
         if ( cClazz.equals( String.class ) ) {
             typeTxt = "string";
+            typeUsage = "txt";
         }
         else if ( cClazz.equals( Integer.class ) ||
                   cClazz.equals( Long.class ) ) {
             typeTxt = "integer";
+            typeUsage = "int";
         }
         else if ( Number.class.isAssignableFrom( cClazz ) ) {
             typeTxt = "numeric";
+            typeUsage = "num";
         }
         else {
             typeTxt = "<code>" + cClazz.getSimpleName() + "</code>";
+            typeUsage = null;
         }
-        String descrip = info.getDescription();
-        if ( ! descrip.endsWith( "." ) ) {
-            descrip = descrip + ".";
-        }
-        StringParameter param =
-            new StringParameter( cName.toLowerCase() + suffix );
-        param.setPrompt( cName + " coordinate for layer " + suffix );
+
+        StringParameter param = new StringParameter( cName + suffix );
+        param.setPrompt( meta.getShortDescription()
+                       + ( hasSuffix ? ( " for layer " + suffix )
+                                     : " for plot layers" ) );
         param.setDescription( new String[] {
-            "<p><![CDATA[" + descrip + "]]>",
-            suffix.length() > 0 ? ( "Applies to layer <code>" + suffix
-                                                              + "</code>." )
-                                : "",
-            "</p>",
-            "<p>This parameter gives a column name or expression for the",
+            meta.getXmlDescription(),
+            "<p>This parameter gives a column name, fixed value,",
+            "or algebraic expression for the",
             "<code>" + cName + "</code> coordinate",
-            ( suffix.length() > 0 ? ( "for layer <code>" + suffix + "</code>" )
-                                  : "for all layers" ) + ".",
-            "The expression is a " + typeTxt + " algebraic expression",
+            ( hasSuffix ? ( "for layer <code>" + suffix + "</code>" )
+                        : ( "for all plot layers" ) ) + ".",
+            "The value is a " + typeTxt + " algebraic expression",
             "based on column names as described in <ref id='jel'/>.",
             "</p>",
         } );
+        String vUsage = meta.getValueUsage();
+        if ( vUsage == null ) {
+            vUsage = typeUsage;
+        }
+        param.setUsage( vUsage == null ? "<expr>"
+                                       : "<" + vUsage + "-expr>" );
         return param;
     }
 

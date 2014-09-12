@@ -3,6 +3,7 @@ package uk.ac.starlink.ttools.plot2.geom;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
+import uk.ac.starlink.ttools.plot2.data.InputMeta;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 
 /**
@@ -68,7 +69,9 @@ public class CubeDataGeom implements DataGeom {
      * @return  coordinate
      */
     private static FloatingCoord posCoord( String axName ) {
-        return FloatingCoord
-              .createCoord( axName, axName + " coordinate", true );
+        InputMeta meta =
+            new InputMeta( axName.toLowerCase(), axName.toUpperCase() );
+        meta.setShortDescription( axName + " coordinate" );
+        return FloatingCoord.createCoord( meta, true );
     }
 }

@@ -33,6 +33,7 @@ import uk.ac.starlink.ttools.plot2.data.CoordGroup;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
+import uk.ac.starlink.ttools.plot2.data.InputMeta;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 import uk.ac.starlink.ttools.plot2.geom.PlaneSurface;
 import uk.ac.starlink.ttools.plot2.geom.SliceDataGeom;
@@ -76,8 +77,19 @@ public class HistogramPlotter
         xCoord_ = xCoord;
         if ( hasWeight ) {
             weightCoord_ =
-                FloatingCoord.createCoord( "Weight", "Weighting of data points"
-                                         + ", if not unity", false );
+                FloatingCoord.createCoord(
+                    new InputMeta( "weight", "Weight" )
+                   .setShortDescription( "Non-unit weighting of data points" )
+                   .setXmlDescription( new String[] {
+                        "<p>Weighting of data points.",
+                        "If supplied, each point contributes a value",
+                        "to the histogram equal to the data value",
+                        "multiplied by this coordinate.",
+                        "If not supplied, the effect is the same as",
+                        "supplying a fixed value of one.",
+                        "</p>",
+                    } )
+                , false );
             histoCoordGrp_ =
                 CoordGroup
                .createPartialCoordGroup( new Coord[] { xCoord, weightCoord_ },

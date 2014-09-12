@@ -2,6 +2,7 @@ package uk.ac.starlink.ttools.plot2.layer;
 
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
+import uk.ac.starlink.ttools.plot2.data.InputMeta;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 
 /**
@@ -25,10 +26,16 @@ public class CartesianVectorCoordSet implements MultiPointCoordSet {
         componentCoords_ = new FloatingCoord[ ndim_ ];
         for ( int id = 0; id < ndim_; id++ ) {
             String axName = axisNames[ id ];
+            String axname = axName.toLowerCase();
             componentCoords_[ id ] =
-                FloatingCoord
-               .createCoord( "Delta" + axName,
-                             axName + " component of vector", true );
+                FloatingCoord.createCoord(
+                    new InputMeta( axname + "delta", axName + " Delta" )
+                   .setShortDescription( axName + " component of vector" )
+                   .setXmlDescription( new String[] {
+                        "<p>Vector component in the " + axName + " direction.",
+                        "</p>",
+                    } )
+                , true );
         }
     }
 

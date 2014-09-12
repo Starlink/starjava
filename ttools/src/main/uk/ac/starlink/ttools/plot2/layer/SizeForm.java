@@ -22,6 +22,7 @@ import uk.ac.starlink.ttools.plot2.config.DoubleConfigKey;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
+import uk.ac.starlink.ttools.plot2.data.InputMeta;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 import uk.ac.starlink.ttools.plot2.geom.CubeSurface;
 import uk.ac.starlink.ttools.plot2.paper.Paper;
@@ -40,10 +41,16 @@ import uk.ac.starlink.ttools.plot2.paper.PaperType3D;
 public class SizeForm implements ShapeForm {
 
     private static final FloatingCoord SIZE_COORD =
-        FloatingCoord.createCoord( "Size",
-                                   "Size to draw each marker; "
-                                 + "if not auto-scaled, units are pixels",
-                                   false );
+        FloatingCoord.createCoord(
+            new InputMeta( "size", "Size" )
+           .setShortDescription( "Marker size (pixels or auto)" )
+           .setXmlDescription( new String[] {
+                "<p>Size to draw each sized marker.",
+                "Units are pixels unless auto-scaling is in effect,",
+                "in which case units are arbitrary.",
+                "</p>",
+            } )
+        , false );
 
     private static ConfigKey<Double> SCALE_KEY =
         DoubleConfigKey.createSliderKey( new ConfigMeta( "maxsize",

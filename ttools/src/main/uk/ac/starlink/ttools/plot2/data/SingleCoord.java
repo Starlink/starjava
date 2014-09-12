@@ -1,11 +1,6 @@
 package uk.ac.starlink.ttools.plot2.data;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DomainMapper;
-import uk.ac.starlink.table.ValueInfo;
 
 /**
  * Partial Coord implementation for quantities that are represented
@@ -16,59 +11,38 @@ import uk.ac.starlink.table.ValueInfo;
  */
 public abstract class SingleCoord implements Coord {
 
-    private DefaultValueInfo coordInfo_;
+    private final Input input_;
     private final boolean isRequired_;
     private final StorageType storageType_;
-    private final List<Class<? extends DomainMapper>> domains_;
 
     /**
      * Constructor.
      *
-     * @param   name   user-directed coordinate name
-     * @param   description  user-directed coordinate description
+     * @param   meta   descriptive metadata for single user coordinate
      * @param   isRequired  true if this coordinate is required for plotting
-     * @param   infoClass   class of user coordinate quantity
+     * @param   valueClass   class of input coordinate quantity
      * @param   storageType  storage type object
      * @param   domain  DomainMapper subtype for this coord, or null
      */
-    protected SingleCoord( String name, String description, boolean isRequired,
-                           Class infoClass, StorageType storageType,
+    protected SingleCoord( InputMeta meta, boolean isRequired,
+                           Class valueClass, StorageType storageType,
                            Class<? extends DomainMapper> domain ) {
+        input_ = new Input( meta, valueClass, domain );
         isRequired_ = isRequired;
         storageType_ = storageType;
-        List<Class<? extends DomainMapper>> domainList =
-            new ArrayList<Class<? extends DomainMapper>>();
-        domainList.add( domain );
-        domains_ = Collections.unmodifiableList( domainList );
-        setCoordInfo( new DefaultValueInfo( name, infoClass, description ) );
     }
 
-    public ValueInfo[] getUserInfos() {
-        return new ValueInfo[] { getUserInfo() };
-    }
-
-    public List<Class<? extends DomainMapper>> getUserDomains() {
-        return domains_;
+    public Input[] getInputs() {
+        return new Input[] { getInput() };
     }
 
     /**
-     * Returns the single coordinate metadata object.
-     * This may be modified as part of configuration.
+     * Returns the single user data input object.
      *
      * @return   modifiable info object
      */
-    public DefaultValueInfo getUserInfo() {
-        return coordInfo_;
-    }
-
-    /**
-     * Sets the single coordinate metadata object
-     * This may be written to modify configuration.
-     *
-     * @param  info  replaces existing user metadata
-     */
-    public void setCoordInfo( DefaultValueInfo info ) {
-        coordInfo_ = info;
+    public Input getInput() {
+        return input_;
     }
 
     public StorageType getStorageType() {

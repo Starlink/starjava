@@ -18,7 +18,7 @@ public class CoordValue {
      * Constructor.
      *
      * @param  coord  coordinate definition
-     * @param  exprs  array of user-supplied expressions, one for each user
+     * @param  exprs  array of user-supplied expressions, one for each input
      *                value associated with the coordinate
      */
     public CoordValue( Coord coord, String[] exprs ) {
@@ -37,7 +37,7 @@ public class CoordValue {
 
     /**
      * Returns the user-supplied expressions for the coordinate's values.
-     * The returned array has coord.getUserInfos().length elements.
+     * The returned array has coord.getInputs().length elements.
      *
      * @return  expressions array
      */

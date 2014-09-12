@@ -542,7 +542,7 @@ public class CachedDataStoreFactory implements DataStoreFactory {
         Object readValue( RowSequence rseq, long irow ) throws IOException {
             Object[] userCoords =
                 dataReader_.getUserCoordValues( rseq, irow, icoord_ );
-            Object value = coord_.userToStorage( userCoords, mappers_ );
+            Object value = coord_.inputToStorage( userCoords, mappers_ );
             assert value != null;
             return value;
         }

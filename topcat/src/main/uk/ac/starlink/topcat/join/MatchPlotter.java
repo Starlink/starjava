@@ -37,6 +37,7 @@ import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
+import uk.ac.starlink.ttools.plot2.data.Input;
 import uk.ac.starlink.ttools.plot2.geom.CubeDataGeom;
 import uk.ac.starlink.ttools.plot2.geom.PlaneDataGeom;
 import uk.ac.starlink.ttools.plot2.geom.SkyDataGeom;
@@ -243,14 +244,13 @@ public abstract class MatchPlotter {
             markMode1_ = is2d ? ShapeMode.FLAT2D : ShapeMode.FLAT3D;
             markModeN_ = is2d ? ShapeMode.AUTO : ShapeMode.FLAT3D;
             Coord[] posCoords = geom.getPosCoords();
-            List<String> ucList = new ArrayList<String>();
-            for ( int ic = 0; ic < posCoords.length; ic++ ) {
-                ValueInfo[] infos = posCoords[ ic ].getUserInfos();
-                for ( int iu = 0; iu < infos.length; iu++ ) {
-                    ucList.add( infos[ iu ].getName() );
+            List<String> inameList = new ArrayList<String>();
+            for ( Coord posCoord : geom.getPosCoords() ) {
+                for ( Input input : posCoord.getInputs() ) {
+                    inameList.add( LayerCommand.getInputName( input ) );
                 }
             }
-            userPosCoordNames_ = ucList.toArray( new String[ 0 ] );
+            userPosCoordNames_ = inameList.toArray( new String[ 0 ] );
         }
 
         /**

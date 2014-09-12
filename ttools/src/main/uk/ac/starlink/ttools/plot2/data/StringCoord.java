@@ -13,17 +13,15 @@ public class StringCoord extends SingleCoord {
     /**
      * Constructor.
      *
-     * @param   name   user-directed coordinate name
-     * @param   description  user-directed coordinate description
+     * @param   meta   input value metadata
      * @param   isRequired  true if this coordinate is required for plotting
      */
-    public StringCoord( String name, String description, boolean isRequired ) {
-        super( name, description, isRequired,
-               Object.class, StorageType.STRING, null );
+    public StringCoord( InputMeta meta, boolean isRequired ) {
+        super( meta, isRequired, Object.class, StorageType.STRING, null );
     }
 
-    public Object userToStorage( Object[] userCoords, DomainMapper[] mappers ) {
-        Object c = userCoords[ 0 ];
+    public Object inputToStorage( Object[] values, DomainMapper[] mappers ) {
+        Object c = values[ 0 ];
         return c == null ? "" : c.toString();
     }
 

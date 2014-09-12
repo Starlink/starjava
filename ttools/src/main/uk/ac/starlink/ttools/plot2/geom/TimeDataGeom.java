@@ -3,6 +3,7 @@ package uk.ac.starlink.ttools.plot2.geom;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
+import uk.ac.starlink.ttools.plot2.data.InputMeta;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 
 /**
@@ -19,9 +20,17 @@ import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 public class TimeDataGeom implements DataGeom {
 
     public static final FloatingCoord T_COORD =
-        FloatingCoord.createTimeCoord( "Time", "Time coordinate", true );
+        FloatingCoord.createTimeCoord(
+            new InputMeta( "t", "Time" )
+           .setShortDescription( "Time coordinate" )
+           .setValueUsage( "time" )
+        , true );
+
     public static final FloatingCoord Y_COORD =
-        FloatingCoord.createCoord( "Y", "Vertical coordinate", true );
+        FloatingCoord.createCoord(
+            new InputMeta( "y", "Y" )
+           .setShortDescription( "Vertical coordinate" )
+       , true );
 
     /** Singleton instance. */
     public static TimeDataGeom INSTANCE = new TimeDataGeom();
