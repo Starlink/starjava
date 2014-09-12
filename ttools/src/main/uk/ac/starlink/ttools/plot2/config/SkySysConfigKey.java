@@ -1,6 +1,5 @@
 package uk.ac.starlink.ttools.plot2.config;
 
-import java.util.Arrays;
 import uk.ac.starlink.ttools.plot2.geom.SkySys;
 
 /**
@@ -40,7 +39,7 @@ public class SkySysConfigKey extends OptionConfigKey<SkySys> {
             .append( "<p>" )
             .append( "Available options are:\n" )
             .append( "<ul>\n" );
-        for ( SkySys sys : Arrays.asList( SkySys.getKnownSystems( false ) ) ) {
+        for ( SkySys sys : SkySys.getKnownSystems( false ) ) {
             sbuf.append( "<li>" )
                 .append( "<code>" )
                 .append( sys.getSysName() )

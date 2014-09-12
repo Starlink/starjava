@@ -446,8 +446,8 @@ public class PlotterParameter extends Parameter<Plotter>
     private static List<String> getCoordsUsage( Coord[] coords,
                                                 String suffix ) {
         List<String> wordList = new ArrayList<String>();
-        for ( Coord coord : Arrays.asList( coords ) ) {
-            for ( Input input : Arrays.asList( coord.getInputs() ) ) {
+        for ( Coord coord : coords ) {
+            for ( Input input : coord.getInputs() ) {
                 Parameter param =
                     AbstractPlot2Task.createDataParameter( input, suffix );
                 param.setNullPermitted( ! coord.isRequired() );

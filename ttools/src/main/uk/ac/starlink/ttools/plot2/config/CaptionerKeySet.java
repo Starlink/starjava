@@ -1,7 +1,6 @@
 package uk.ac.starlink.ttools.plot2.config;
 
 import java.awt.Font;
-import java.util.Arrays;
 import org.scilab.forge.jlatexmath.TeXFormula;
 import uk.ac.starlink.ttools.plot2.BasicCaptioner;
 import uk.ac.starlink.ttools.plot2.Captioner;
@@ -69,7 +68,7 @@ public class CaptionerKeySet implements KeySet<Captioner> {
         ConfigMeta typeMeta = new ConfigMeta( "fontstyle", "Font Style" );
         typeMeta.setShortDescription( "Font style" );
         StringBuffer sitemBuf = new StringBuffer();
-        for ( FontType ftype : Arrays.asList( FontType.values() ) ) {
+        for ( FontType ftype : FontType.values() ) {
             sitemBuf.append( "<li><code>" )
                     .append( ftype.toString() )
                     .append( "</code></li>\n" );
@@ -89,7 +88,7 @@ public class CaptionerKeySet implements KeySet<Captioner> {
         ConfigMeta weightMeta = new ConfigMeta( "fontweight", "Font Weight" );
         weightMeta.setShortDescription( "Font weight" );
         StringBuffer witemBuf = new StringBuffer();
-        for ( FontWeight fweight : Arrays.asList( FontWeight.values() ) ) {
+        for ( FontWeight fweight : FontWeight.values() ) {
             witemBuf.append( "<li><code>" )
                     .append( fweight.toString() )
                     .append( "</code></li>\n" );
