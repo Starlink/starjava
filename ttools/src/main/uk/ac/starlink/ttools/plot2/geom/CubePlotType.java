@@ -51,8 +51,8 @@ public class CubePlotType implements PlotType {
         Coord[] coords = dataGeoms_[ 0 ].getPosCoords();
         axisNames_ = new String[ coords.length ];
         for ( int i = 0; i < coords.length; i++ ) {
-            axisNames_[ i ] =
-                ((FloatingCoord) coords[ i ]).getUserInfo().getName();
+            axisNames_[ i ] = ((FloatingCoord) coords[ i ])
+                             .getInput().getMeta().getLongName();
         }
     }
 

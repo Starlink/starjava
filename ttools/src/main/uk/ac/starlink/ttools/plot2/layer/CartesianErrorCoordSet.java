@@ -2,6 +2,7 @@ package uk.ac.starlink.ttools.plot2.layer;
 
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
+import uk.ac.starlink.ttools.plot2.data.InputMeta;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 
 /**
@@ -40,18 +41,37 @@ public class CartesianErrorCoordSet implements MultiPointCoordSet {
         for ( int jdim = 0; jdim < nErrDim_; jdim++ ) {
             int iErrDim = iErrDims[ jdim ];
             String axName = axisNames[ iErrDim ];
+            String axname = axName.toLowerCase();
             pCoords_[ jdim ] =
-                FloatingCoord
-               .createCoord( axName + " Positive Error",
-                             "Error in " + axName + " positive direction; "
-                           + "used in negative direction too if no negative "
-                           + "error is supplied", false );
+                FloatingCoord.createCoord(
+                    new InputMeta( axname + "errhi",
+                                   axName + " Positive Error" )
+                   .setShortDescription( "Error in " + axName
+                                       + " positive direction" )
+                   .setXmlDescription( new String[] {
+                        "<p>Error in the " + axName + " coordinate",
+                        "in the positive direction.",
+                        "If no corresponding negative error value is supplied,",
+                        "then this value is also used in the negative",
+                        "direction, i.e. in that case errors are assumed",
+                        "to be symmetric.",
+                        "</p>",
+                    } )
+                , false );
             mCoords_[ jdim ] =
-                FloatingCoord
-               .createCoord( axName + " Negative Error",
-                             "Error in " + axName + " negative direction; "
-                           + "defaults to same as positive error "
-                           + "if left blank", false );
+                FloatingCoord.createCoord(
+                    new InputMeta( axname + "errlo",
+                                   axName + " Negative Error" )
+                   .setShortDescription( "Error in " + axName
+                                       + " negative direction" )
+                   .setXmlDescription( new String[] {
+                        "<p>Error in the " + axName + " coordinate",
+                        "in the negative direction.",
+                        "If left blank, it is assumed to take the same value",
+                        "as the positive error.",
+                        "</p>",
+                    } )
+                , false );
         }
     }
 

@@ -2,6 +2,7 @@ package uk.ac.starlink.ttools.plot2.layer;
 
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
+import uk.ac.starlink.ttools.plot2.data.InputMeta;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 
 /**
@@ -14,21 +15,31 @@ public class SkyEllipseCoordSet implements MultiPointCoordSet {
 
     private static final int NP = 4;
     private static final FloatingCoord AR_COORD =
-        FloatingCoord.createCoord( "Major radius",
-                                   "One of the ellipse principal radii", true );
+        FloatingCoord.createCoord(
+            new InputMeta( "ra", "Primary Radius" )  // is "ra" a bad name?
+           .setShortDescription( "Ellipse first principal radius in degrees" )
+           .setValueUsage( "deg" )
+        , true );
     private static final FloatingCoord BR_COORD =
-        FloatingCoord.createCoord( "Minor radius",
-                                   "The other ellipse principal radius",
-                                   false );
+        FloatingCoord.createCoord(
+            new InputMeta( "rb", "Secondary Radius" )
+           .setShortDescription( "Ellipse second principal radius in degrees" )
+           .setValueUsage( "deg" )
+        , false );
     private static final FloatingCoord POSANG_COORD =
-        FloatingCoord.createCoord( "Position Angle",
-                                   "Angle from north pole to primary axis, "
-                                 + "in direction of positive RA", false );
-    static {
-        AR_COORD.getUserInfo().setUnitString( "degrees" );
-        BR_COORD.getUserInfo().setUnitString( "degrees" );
-        POSANG_COORD.getUserInfo().setUnitString( "degrees" );
-    }
+        FloatingCoord.createCoord(
+            new InputMeta( "posang", "Position Angle" )
+           .setShortDescription( "Clockwise angle from north pole "
+                               + "to primary axis" )
+           .setXmlDescription( new String[] {
+                "<p>Orientation of the ellipse.",
+                "The value is the angle in degrees from the North pole",
+                "to the primary axis of the ellipse",
+                "in the direction of increasing longitude.",
+                "</p>",
+            } )
+           .setValueUsage( "deg" )
+        , false );
 
     /**
      * Constructor.

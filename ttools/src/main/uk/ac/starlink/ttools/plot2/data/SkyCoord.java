@@ -1,10 +1,6 @@
 package uk.ac.starlink.ttools.plot2.data;
 
-import java.util.ArrayList;
-import java.util.List;
-import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DomainMapper;
-import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 
 /**
@@ -42,18 +38,8 @@ public abstract class SkyCoord implements Coord {
         isRequired_ = isRequired;
     }
 
-    public ValueInfo[] getUserInfos() {
-        return skyVariant_.getUserInfos();
-    }
-
-    public List<Class<? extends DomainMapper>> getUserDomains() {
-        int nuc = getUserInfos().length;
-        List<Class<? extends DomainMapper>> list =
-            new ArrayList<Class<? extends DomainMapper>>( nuc );
-        for ( int iuc = 0; iuc < nuc; iuc++ ) {
-            list.add( null );
-        }
-        return list;
+    public Input[] getInputs() {
+        return skyVariant_.getInputs();
     }
 
     public StorageType getStorageType() {
@@ -139,9 +125,9 @@ public abstract class SkyCoord implements Coord {
             variant_ = variant;
         }
 
-        public Object userToStorage( Object[] userCoords,
-                                     DomainMapper[] mappers ) {
-            return variant_.userToDouble3( userCoords );
+        public Object inputToStorage( Object[] values,
+                                      DomainMapper[] mappers ) {
+            return variant_.inputToDouble3( values );
         }
 
         public boolean readSkyCoord( TupleSequence tseq, int icol,
@@ -177,9 +163,9 @@ public abstract class SkyCoord implements Coord {
             variant_ = variant;
         }
 
-        public Object userToStorage( Object[] userCoords,
-                                     DomainMapper[] mappers ) {
-            double[] d3 = variant_.userToDouble3( userCoords );
+        public Object inputToStorage( Object[] values,
+                                      DomainMapper[] mappers ) {
+            double[] d3 = variant_.inputToDouble3( values );
             return new float[] {
                 (float) d3[ 0 ],
                 (float) d3[ 1 ],
@@ -224,9 +210,9 @@ public abstract class SkyCoord implements Coord {
             variant_ = variant;
         }
 
-        public Object userToStorage( Object[] userCoords,
-                                     DomainMapper[] mappers ) {
-            double[] v3 = variant_.userToDouble3( userCoords );
+        public Object inputToStorage( Object[] values,
+                                      DomainMapper[] mappers ) {
+            double[] v3 = variant_.inputToDouble3( values );
             if ( v3 == NO_SKY ) {
                 return ZERO3;
             }
@@ -267,8 +253,8 @@ public abstract class SkyCoord implements Coord {
     public static abstract class SkyVariant {
 
         private final boolean hasRadius_;
-        final ValueInfo lonInfo_;
-        final ValueInfo latInfo_;
+        final Input lonInput_;
+        final Input latInput_;
 
         /** No radial coordinate, vectors all on unit sphere surface. */
         public static SkyVariant SURFACE = createSurfaceSkyVariant();
@@ -288,30 +274,32 @@ public abstract class SkyCoord implements Coord {
          */
         private SkyVariant( boolean hasRadius ) {
             hasRadius_ = hasRadius;
-            DefaultValueInfo lonInfo =
-                new DefaultValueInfo( "Lon", Number.class, "Longitude" );
-            DefaultValueInfo latInfo =
-                new DefaultValueInfo( "Lat", Number.class, "Latitude" );
-            lonInfo.setUnitString( "deg" );
-            latInfo.setUnitString( "deg" );
-            lonInfo_ = lonInfo;
-            latInfo_ = latInfo;
+            InputMeta lonMeta =
+                new InputMeta( "lon", "Lon" )
+               .setShortDescription( "Longitude in decimal degrees" )
+               .setValueUsage( "deg" );
+            InputMeta latMeta =
+                new InputMeta( "lat", "Lat" )
+               .setShortDescription( "Latitude in decimal degrees" )
+               .setValueUsage( "deg" );
+            lonInput_ = new Input( lonMeta, Number.class, null );
+            latInput_ = new Input( latMeta, Number.class, null );
         }
 
         /**
          * Returns the user-directed metadata for value acquisition.
          *
-         * @return  one metadata item for each user coordinate
+         * @return  one metadata item for each input coordinate
          */
-        abstract ValueInfo[] getUserInfos();
+        abstract Input[] getInputs();
 
         /**
-         * Converts user coordinate array to storage coordinate array.
+         * Converts input value array to storage coordinate array.
          *
-         * @param   userCoords  object array corresponding to user infos
+         * @param   inputValues  object array corresponding to inputs
          * @return  3-element storage coordinate array (x,y,z)
          */
-        abstract double[] userToDouble3( Object[] userCoords );
+        abstract double[] inputToDouble3( Object[] inputValues );
 
         /**
          * Indicates whether this coord can represent non-unit vectors.
@@ -351,29 +339,31 @@ public abstract class SkyCoord implements Coord {
      * be anywhere in space (not restricted to unit sphere).
      */
     private static abstract class VolumeSkyVariant extends SkyVariant {
-        private final ValueInfo radiusInfo_;
+        private final Input radiusInput_;
         VolumeSkyVariant() {
             super( true );
-            radiusInfo_ = new DefaultValueInfo( "Radius", Number.class,
-                                                "Radial distance" );
+            InputMeta meta =
+                new InputMeta( "r", "Radius" )
+               .setShortDescription( "Radial distance" );
+            radiusInput_ = new Input( meta, Number.class, null );
         }
-        public ValueInfo[] getUserInfos() {
-            return new ValueInfo[] { lonInfo_, latInfo_, radiusInfo_ };
+        public Input[] getInputs() {
+            return new Input[] { lonInput_, latInput_, radiusInput_ };
         }
-        public double[] userToDouble3( Object[] userCoords ) {
-            Object radObj = userCoords[ 2 ];
+        public double[] inputToDouble3( Object[] inputValues ) {
+            Object radObj = inputValues[ 2 ];
             if ( radObj instanceof Number ) {
                 double radius = ((Number) radObj).doubleValue();
                 if ( ! Double.isNaN( radius ) ) {
                     double[] vec3 =
-                        getUnitVector( userCoords[ 0 ], userCoords[ 1 ] );
+                        getUnitVector( inputValues[ 0 ], inputValues[ 1 ] );
                     vec3[ 0 ] *= radius;
                     vec3[ 1 ] *= radius;
                     vec3[ 2 ] *= radius;
                     return vec3;
                 }
             }
-            return getNoRadiusVector( userCoords[ 0 ], userCoords[ 1 ] );
+            return getNoRadiusVector( inputValues[ 0 ], inputValues[ 1 ] );
         }
  
         /**
@@ -394,11 +384,11 @@ public abstract class SkyCoord implements Coord {
      */
     private static SkyVariant createSurfaceSkyVariant() {
         return new SkyVariant( false ) {
-            public ValueInfo[] getUserInfos() {
-                return new ValueInfo[] { lonInfo_, latInfo_ };
+            public Input[] getInputs() {
+                return new Input[] { lonInput_, latInput_ };
             }
-            public double[] userToDouble3( Object[] userCoords ) {
-                return getUnitVector( userCoords[ 0 ], userCoords[ 1 ] );
+            public double[] inputToDouble3( Object[] values ) {
+                return getUnitVector( values[ 0 ], values[ 1 ] );
             }
         };
     }
@@ -414,7 +404,7 @@ public abstract class SkyCoord implements Coord {
         return nullRadiusPermitted
              ? new VolumeSkyVariant() {
                    public double[] getNoRadiusVector( Object lonObj,
-                                                    Object latObj ) {
+                                                      Object latObj ) {
                        return getUnitVector( lonObj, latObj );
                    }
                }

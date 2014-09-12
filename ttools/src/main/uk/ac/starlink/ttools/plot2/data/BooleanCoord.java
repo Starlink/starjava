@@ -13,17 +13,16 @@ public class BooleanCoord extends SingleCoord {
     /**
      * Constructor.
      *
-     * @param   name   user-directed coordinate name
-     * @param   description  user-directed coordinate description
+     * @param   meta   input value metadata
      * @param   isRequired  true if this coordinate is required for plotting
      */
-    public BooleanCoord( String name, String description, boolean isRequired ) {
-        super( name, description, isRequired,
-               Boolean.class, StorageType.BOOLEAN, null );
+    public BooleanCoord( InputMeta meta, boolean isRequired ) {
+        super( meta, isRequired, Boolean.class, StorageType.BOOLEAN, null );
     }
 
-    public Object userToStorage( Object[] userCoords, DomainMapper[] mappers ) {
-        Object c = userCoords[ 0 ];
+    public Object inputToStorage( Object[] inputValues,
+                                  DomainMapper[] mappers ) {
+        Object c = inputValues[ 0 ];
         return c instanceof Boolean ? (Boolean) c : Boolean.FALSE;
     }
 

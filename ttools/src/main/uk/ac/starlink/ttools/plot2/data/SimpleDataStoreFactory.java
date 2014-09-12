@@ -1,8 +1,6 @@
 package uk.ac.starlink.ttools.plot2.data;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.DomainMapper;
@@ -51,7 +49,7 @@ public class SimpleDataStoreFactory implements DataStoreFactory, DataStore {
      * Utility method to work out the domain mappers for a given
      * coordinate of a DataSpec.
      * For the requested coord, it returns a mapper array with elements
-     * filled, in with any mapper known for the given user coordinates
+     * filled, in with any mapper known for the given input coordinates
      * that has the sub-type appropriate for that coordinate.
      *
      * @param   dataSpec  data specification object
@@ -61,13 +59,12 @@ public class SimpleDataStoreFactory implements DataStoreFactory, DataStore {
      */
     public static DomainMapper[] getUserCoordMappers( DataSpec dataSpec,
                                                       int icoord ) {
-        List<Class<? extends DomainMapper>> userDomains =
-            dataSpec.getCoord( icoord ).getUserDomains();
         ValueInfo[] userInfos = dataSpec.getUserCoordInfos( icoord );
-        int nu = userDomains.size();
+        Input[] inputs = dataSpec.getCoord( icoord ).getInputs();
+        int nu = inputs.length;
         DomainMapper[] mappers = new DomainMapper[ nu ];
         for ( int iu = 0; iu < nu; iu++ ) {
-            Class reqClazz = userDomains.get( iu );
+            Class<? extends DomainMapper> reqClazz = inputs[ iu ].getDomain();
             if ( reqClazz != null ) {
                 DomainMapper[] infoMappers = userInfos[ iu ].getDomainMappers();
                 for ( int im = 0;
@@ -142,7 +139,7 @@ public class SimpleDataStoreFactory implements DataStoreFactory, DataStore {
                     reader_.getUserCoordValues( baseSeq_, irow_, icol );
                 Object value =
                     spec_.getCoord( icol )
-                         .userToStorage( userCoords, mappers_[ icol ] );
+                         .inputToStorage( userCoords, mappers_[ icol ] );
                 assert value != null;
                 return value;
             }

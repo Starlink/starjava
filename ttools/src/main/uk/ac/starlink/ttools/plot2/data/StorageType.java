@@ -4,7 +4,7 @@ package uk.ac.starlink.ttools.plot2.data;
  * Enumerates the possibilities for internal storage of coordinate data
  * for presentation to the plotting classes.
  * In particular defines the type of the object returned by
- * {@link Coord#userToStorage}.
+ * {@link Coord#inputToStorage}.
  *
  * <p>At time of writing, this data is stored in memory, but in principle
  * they could be cached in some disk-based file.

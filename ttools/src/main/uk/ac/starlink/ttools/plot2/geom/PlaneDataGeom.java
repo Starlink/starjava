@@ -3,6 +3,7 @@ package uk.ac.starlink.ttools.plot2.geom;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
+import uk.ac.starlink.ttools.plot2.data.InputMeta;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 
 /**
@@ -15,12 +16,17 @@ import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 public class PlaneDataGeom implements DataGeom {
 
     /** Horizontal coordinate. */
-    public static final FloatingCoord X_COORD =
-         FloatingCoord.createCoord( "X", "Horizontal coordinate", true );
+    public static final FloatingCoord X_COORD = FloatingCoord.createCoord(
+        new InputMeta( "x", "X" )
+       .setShortDescription( "Horizontal coordinate" )
+    , true );
 
     /** Vertical coordinate. */
-    public static final FloatingCoord Y_COORD =
-         FloatingCoord.createCoord( "Y", "Vertical coordinate", true );
+    public static final FloatingCoord Y_COORD = FloatingCoord.createCoord(
+         new InputMeta( "y", "Y" )
+        .setShortDescription( "Vertical coordinate" )
+    , true );
+        
 
     /** Singleton instance. */
     public static PlaneDataGeom INSTANCE = new PlaneDataGeom();

@@ -2,6 +2,7 @@ package uk.ac.starlink.ttools.plot2.layer;
 
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
+import uk.ac.starlink.ttools.plot2.data.InputMeta;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 
 /**
@@ -24,18 +25,34 @@ public class SkyVectorCoordSet implements MultiPointCoordSet {
      */
     public SkyVectorCoordSet( boolean preMultCosLat ) {
         preMultCosLat_ = preMultCosLat;
-        dlonCoord_ = FloatingCoord
-                    .createCoord( "Proper Motion Longitude",
-                                  "Change in longitude coordinate "
-                                + ( preMultCosLat ? "" : "*not* " )
-                                + "multiplied by cos(Latitude))",
-                                  true );
-        dlatCoord_ = FloatingCoord
-                    .createCoord( "Proper Motion Latitude",
-                                  "Change in latitude coordinate",
-                                  true );
-        dlonCoord_.getUserInfo().setUnitString( "degrees" );
-        dlatCoord_.getUserInfo().setUnitString( "degrees" );
+        dlonCoord_ = FloatingCoord.createCoord(
+            new InputMeta( "dlon", "Delta Longitude" )
+           .setShortDescription( "Change in longitude coordinate "
+                               + ( preMultCosLat ? "" : "NOT " )
+                               + "premultiplied by cos(lat)" )
+           .setXmlDescription( new String[] {
+                "<p>Change in the longitude coordinate represented by",
+                "the plotted vector.",
+                "The supplied value is an angle in degrees, and",
+                "<strong>",
+                ( preMultCosLat ? "must" : "must not" ) + " be premultiplied",
+                "</strong>",
+                "by cos(Latitude).",
+                "</p>",
+            } )
+           .setValueUsage( "deg" )
+        , true );
+        dlatCoord_ = FloatingCoord.createCoord(
+            new InputMeta( "dlat", "Delta Latitude" )
+           .setShortDescription( "Change in latitude coordinate" )
+           .setXmlDescription( new String[] {
+                "<p>Change in the latitude coordinate represented by",
+                "the plotted vector.",
+                "The supplied value is an angle in degrees.",
+                "</p>",
+            } )
+           .setValueUsage( "deg" )
+        , true );
     }
 
     public Coord[] getCoords() {

@@ -26,23 +26,23 @@ public class FloatingCoord extends SingleCoord {
     /**
      * Constructor.
      *
-     * @param   name   user-directed coordinate name
-     * @param   description  user-directed coordinate description
+     * @param   meta  input value metadata
      * @param   isRequired  true if this coordinate is required for plotting
      * @param   isDouble  true for double precision, false for single
-     * @param   infoClass   class of user coordinate quantity
+     * @param   inputClass   class of input coordinate quantity
      * @param   domain  DomainMapper subtype for this coord, or null
      */
-    private FloatingCoord( String name, String description, boolean isRequired,
-                           boolean isDouble, Class infoClass,
+    private FloatingCoord( InputMeta meta, boolean isRequired,
+                           boolean isDouble, Class inputClass,
                            Class<? extends DomainMapper> domain ) {
-        super( name, description, isRequired, infoClass,
+        super( meta, isRequired, inputClass,
                isDouble ? StorageType.DOUBLE : StorageType.FLOAT, domain );
         nan_ = isDouble ? new Double( Double.NaN ) : new Float( Float.NaN );
     }
 
-    public Object userToStorage( Object[] userCoords, DomainMapper[] mappers ) {
-        Object c = userCoords[ 0 ];
+    public Object inputToStorage( Object[] userValues,
+                                  DomainMapper[] mappers ) {
+        Object c = userValues[ 0 ];
         return c instanceof Number ? ((Number) c) : nan_;
     }
 
@@ -63,14 +63,13 @@ public class FloatingCoord extends SingleCoord {
      * Implementation is currently determined by the
      * {@link PlotUtil#storeFullPrecision} method.
      *
-     * @param   name   user-directed coordinate name
-     * @param   description  user-directed coordinate description
+     * @param   meta   input value metadata
      * @param   isRequired  true if this coordinate is required for plotting
      * @return   instance
      */
-    public static FloatingCoord createCoord( String name, String description,
+    public static FloatingCoord createCoord( InputMeta meta,
                                              boolean isRequired ) {
-        return new FloatingCoord( name, description, isRequired,
+        return new FloatingCoord( meta, isRequired,
                                   PlotUtil.storeFullPrecision(),
                                   Number.class, null );
     }
@@ -80,28 +79,26 @@ public class FloatingCoord extends SingleCoord {
      * and the numeric value returned should normally be seconds since
      * the Unix epoch (1 Jan 1970 midnight).
      *
-     * @param   name   user-directed coordinate name
-     * @param   description  user-directed coordinate description
+     * @param   meta   input value metadata
      * @param   isRequired  true if this coordinate is required for plotting
      * @return   instance
      */
-    public static FloatingCoord createTimeCoord( String name,
-                                                 String description,
+    public static FloatingCoord createTimeCoord( InputMeta meta,
                                                  boolean isRequired ) {
         final Double nan = new Double( Double.NaN );
-        return new FloatingCoord( name, description, isRequired, true,
+        return new FloatingCoord( meta, isRequired, true,
                                   Object.class, TimeMapper.class ) {
             @Override
-            public Object userToStorage( Object[] userCoords,
-                                         DomainMapper[] mappers ) {
+            public Object inputToStorage( Object[] userValues,
+                                          DomainMapper[] mappers ) {
                 DomainMapper mapper = mappers[ 0 ];
-                Object userCoord = userCoords[ 0 ];
+                Object userValue = userValues[ 0 ];
                 if ( mapper instanceof TimeMapper ) {
-                    return ((TimeMapper) mapper).toUnixSeconds( userCoord );
+                    return ((TimeMapper) mapper).toUnixSeconds( userValue );
                 }
                 else {
-                    return userCoord instanceof Number
-                         ? ((Number) userCoord)
+                    return userValue instanceof Number
+                         ? ((Number) userValue)
                          : nan;
                 }
             }

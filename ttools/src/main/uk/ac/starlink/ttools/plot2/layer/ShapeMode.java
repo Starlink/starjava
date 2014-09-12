@@ -37,6 +37,7 @@ import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
+import uk.ac.starlink.ttools.plot2.data.InputMeta;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 import uk.ac.starlink.ttools.plot2.geom.CubeSurface;
 import uk.ac.starlink.ttools.plot2.paper.Paper;
@@ -971,9 +972,13 @@ public abstract class ShapeMode implements ModePlotter.Mode {
         private final boolean transparent_;
 
         private static final AuxScale SCALE = AuxScale.COLOR;
+        private static final String scaleName = SCALE.getName();
         private static final FloatingCoord SHADE_COORD =
-            FloatingCoord.createCoord( SCALE.getName(), "Colour coordinate",
-                                       false );
+            FloatingCoord.createCoord(
+                new InputMeta( scaleName.toLowerCase(), scaleName )
+               .setShortDescription( "Colour coordinate for " + scaleName
+                                   + " shading" )
+            , false );
 
         /**
          * Constructor.

@@ -19,14 +19,13 @@ public abstract class FloatingArrayCoord extends SingleCoord {
     /**
      * Constructor.
      *
-     * @param  name  user-directed coordinate name
-     * @param  description  user-directed coordinate description
+     * @param  meta  input value metadata
      * @param  isRequired   true if this coordinate is required for plotting
      * @param  isDouble  true for double precision, false for single
      */
-    private FloatingArrayCoord( String name, String description,
-                                boolean isRequired, boolean isDouble ) {
-        super( name, description, isRequired, Object.class,
+    private FloatingArrayCoord( InputMeta meta, boolean isRequired,
+                                boolean isDouble ) {
+        super( meta, isRequired, Object.class,
                isDouble ? StorageType.DOUBLE_ARRAY : StorageType.FLOAT_ARRAY,
                null );
     }
@@ -70,21 +69,20 @@ public abstract class FloatingArrayCoord extends SingleCoord {
     /**
      * Constructs a new FloatingArrayCoord.
      *
-     * @param  name  user-directed coordinate name
-     * @param  descrip  user-directed coordinate description
+     * @param  meta   input value metadata
      * @param  isRequired   true if this coordinate is required for plotting
      * @return   new coord
      */
-    public static FloatingArrayCoord createCoord( String name, String descrip,
+    public static FloatingArrayCoord createCoord( InputMeta meta,
                                                   boolean isRequired ) {
         if ( PlotUtil.storeFullPrecision() ) {
 
             /* Double precision implementation. */
-            return new FloatingArrayCoord( name, descrip, isRequired, true ) {
+            return new FloatingArrayCoord( meta, isRequired, true ) {
 
-                public Object userToStorage( Object[] userCoords,
-                                             DomainMapper[] mappers ) {
-                    Object a = userCoords[ 0 ];
+                public Object inputToStorage( Object[] values,
+                                              DomainMapper[] mappers ) {
+                    Object a = values[ 0 ];
                     final double[] da;
                     if ( a instanceof double[] ) {
                         da = (double[]) a;
@@ -148,10 +146,10 @@ public abstract class FloatingArrayCoord extends SingleCoord {
         else {
 
             /* Single precision implementation. */
-            return new FloatingArrayCoord( name, descrip, isRequired, true ) {
-                public Object userToStorage( Object[] userCoords,
-                                             DomainMapper[] mappers ) {
-                    Object a = userCoords[ 0 ];
+            return new FloatingArrayCoord( meta, isRequired, true ) {
+                public Object inputToStorage( Object[] values,
+                                              DomainMapper[] mappers ) {
+                    Object a = values[ 0 ];
                     final float[] fa;
                     if ( a instanceof float[] ) {
                         fa = (float[]) a;

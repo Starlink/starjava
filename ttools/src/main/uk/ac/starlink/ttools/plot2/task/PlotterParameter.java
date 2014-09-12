@@ -6,7 +6,6 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
@@ -19,6 +18,7 @@ import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.CoordGroup;
+import uk.ac.starlink.ttools.plot2.data.Input;
 import uk.ac.starlink.ttools.plot2.layer.ShapeForm;
 import uk.ac.starlink.ttools.plot2.layer.ShapeMode;
 import uk.ac.starlink.ttools.plot2.layer.ShapePlotter.ShapeModePlotter;
@@ -446,13 +446,10 @@ public class PlotterParameter extends Parameter<Plotter>
     private static List<String> getCoordsUsage( Coord[] coords,
                                                 String suffix ) {
         List<String> wordList = new ArrayList<String>();
-        for ( int ic = 0; ic < coords.length; ic++ ) {
-            Coord coord = coords[ ic ];
-            ValueInfo[] infos = coord.getUserInfos();
-            int nuc = infos.length;
-            for ( int iuc = 0; iuc < nuc; iuc++ ) {
-                Parameter param = AbstractPlot2Task
-                                 .createDataParameter( infos[ iuc ], suffix );
+        for ( Coord coord : Arrays.asList( coords ) ) {
+            for ( Input input : Arrays.asList( coord.getInputs() ) ) {
+                Parameter param =
+                    AbstractPlot2Task.createDataParameter( input, suffix );
                 param.setNullPermitted( ! coord.isRequired() );
                 wordList.add( usageWord( param ) );
             }

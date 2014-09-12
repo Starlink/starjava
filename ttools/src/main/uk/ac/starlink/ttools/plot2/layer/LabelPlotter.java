@@ -33,6 +33,7 @@ import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.CoordGroup;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
+import uk.ac.starlink.ttools.plot2.data.InputMeta;
 import uk.ac.starlink.ttools.plot2.data.StringCoord;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 import uk.ac.starlink.ttools.plot2.geom.CubeSurface;
@@ -50,10 +51,16 @@ import uk.ac.starlink.ttools.plot2.paper.PaperType3D;
 public class LabelPlotter extends AbstractPlotter<LabelStyle> {
 
     private static final StringCoord LABEL_COORD =
-        new StringCoord( "Text",
-                         "Column or expression giving the text "
-                       + "to be written near the position being labelled",
-                         true );
+        new StringCoord(
+            new InputMeta( "label", "Label" )
+           .setShortDescription( "Content of label" )
+           .setXmlDescription( new String[] {
+                "<p>Column or expression giving the text of the label",
+                "to be written near the position being labelled.",
+                "Label values may be of any type (string or numeric)",
+                "</p>",
+            } )
+        , true );
     private static final CoordGroup LABEL_CGRP =
         CoordGroup.createCoordGroup( 1, new Coord[] { LABEL_COORD } );
     private static final int MAX_CROWDLIMIT = Byte.MAX_VALUE / 2 - 1;

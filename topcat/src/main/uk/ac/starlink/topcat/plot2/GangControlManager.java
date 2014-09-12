@@ -13,7 +13,6 @@ import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.Icon;
 import uk.ac.starlink.table.ColumnData;
-import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.ColumnDataComboBoxModel;
 import uk.ac.starlink.topcat.ResourceIcon;
@@ -28,6 +27,7 @@ import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
+import uk.ac.starlink.ttools.plot2.data.Input;
 
 /**
  * Control manager that uses FormLayerControls to provide
@@ -221,9 +221,9 @@ public class GangControlManager implements ControlManager {
         /* Must have the same positional coordinates.
          * This test currently requires all the coordinates to be the same,
          * I think that could be relaxed to just the positional ones. */
-        if ( ! lcmd.getCoordValues()
+        if ( ! lcmd.getInputValues()
                    .equals( GuiCoordContent
-                           .getCoordValues( control.getPositionCoordPanel()
+                           .getInputValues( control.getPositionCoordPanel()
                                                    .getContents() ) ) ) {
             return false;
         }
@@ -280,12 +280,12 @@ public class GangControlManager implements ControlManager {
         /* Set up the positional coordinates. */
         PositionCoordPanel posCoordPanel = control.getPositionCoordPanel();
         Coord[] posCoords = posCoordPanel.getCoords();
-        Map<String,String> coordValues = lcmd.getCoordValues();
+        Map<String,String> inputValues = lcmd.getInputValues();
         for ( int ic = 0; ic < posCoords.length; ic++ ) {
-            ValueInfo[] infos = posCoords[ ic ].getUserInfos();
-            for ( int iu = 0; iu < infos.length; iu++ ) {
-                String name = infos[ iu ].getName();
-                String value = coordValues.get( name );
+            Input[] inputs = posCoords[ ic ].getInputs();
+            for ( int iu = 0; iu < inputs.length; iu++ ) {
+                String name = LayerCommand.getInputName( inputs[ iu ] );
+                String value = inputValues.get( name );
                 if ( value != null ) {
                     ColumnDataComboBoxModel colModel =
                         posCoordPanel.getColumnSelector( ic, iu );

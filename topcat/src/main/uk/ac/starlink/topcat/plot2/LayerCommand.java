@@ -5,6 +5,7 @@ import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
+import uk.ac.starlink.ttools.plot2.data.Input;
 
 /**
  * Specifies the characteristics of a new plot layer to add to a plot.
@@ -16,7 +17,7 @@ public class LayerCommand {
 
     private final Plotter plotter_;
     private final TopcatModel tcModel_;
-    private final Map<String,String> coordValues_;
+    private final Map<String,String> inputValues_;
     private final ConfigMap config_;
     private final RowSubset rset_;
 
@@ -25,18 +26,18 @@ public class LayerCommand {
      *
      * @param   plotter   plotter
      * @param   tcModel   table providing plot data
-     * @param   coordValues  string values to be entered into column input
-     *          fields, keyed by coordinate name
+     * @param   inputValues  string values to be entered into column input
+     *          fields, keyed by coordinate input short name
      * @param   config    configuration options to apply to the plot;
      *                    default values will be used for any not supplied
      * @param   rset     row subset for which the plot will be made
      */
     public LayerCommand( Plotter plotter, TopcatModel tcModel,
-                         Map<String,String> coordValues, ConfigMap config,
+                         Map<String,String> inputValues, ConfigMap config,
                          RowSubset rset ) {
         plotter_ = plotter;
         tcModel_ = tcModel;
-        coordValues_ = coordValues;
+        inputValues_ = inputValues;
         config_ = config;
         rset_ = rset;
     }
@@ -61,18 +62,17 @@ public class LayerCommand {
     }
 
     /**
-     * Returns a mapping which gives the values of the coordinates used
-     * by the layer.
-     * The map keys are the names of the user coordinates
-     * (<code>Coord.getUserInfos()[i].getName()</code>).
+     * Returns a mapping which gives the values of the input
+     * coordinates used by the layer.
+     * The map keys are obtained from {@link #getInputName}.
      * The map values are the strings that appear in column selectors
      * or on a command line to specify the column value - generally a
      * column name or JEL expression.
      *
      * @return   user coordinate name->specification map
      */
-    public Map<String,String> getCoordValues() {
-        return coordValues_;
+    public Map<String,String> getInputValues() {
+        return inputValues_;
     }
 
     /**
@@ -102,11 +102,21 @@ public class LayerCommand {
               .append( "; " )
               .append( tcModel_.toString() )
               .append( "; " )
-              .append( coordValues_ )
+              .append( inputValues_ )
               .append( "; " )
               .append( config_ )
               .append( "; " )
               .append( rset_ )
               .toString();
+    }
+
+    /**
+     * Obtains a unique name for an input coordinate specifier.
+     *
+     * @param  input   input coordinate specifier
+     * @return  name suitable as map key
+     */
+    public static String getInputName( Input input ) {
+        return input.getMeta().getShortName();
     }
 }
