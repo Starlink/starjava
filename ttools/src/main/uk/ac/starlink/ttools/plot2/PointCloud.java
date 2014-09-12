@@ -136,7 +136,7 @@ public class PointCloud {
         }
         else {
             List<Object> l2 = new ArrayList<Object>( Arrays.asList( array2 ) );
-            for ( Object item : Arrays.asList( array1 ) ) {
+            for ( Object item : array1 ) {
                 if ( ! l2.remove( item ) ) {
                     return false;
                 }

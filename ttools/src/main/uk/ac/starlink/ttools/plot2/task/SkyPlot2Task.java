@@ -1,6 +1,5 @@
 package uk.ac.starlink.ttools.plot2.task;
 
-import java.util.Arrays;
 import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
@@ -29,7 +28,7 @@ public class SkyPlot2Task extends TypedPlot2Task {
     public SkyPlot2Task() {
         super( SkyPlotType.getInstance(), new SkyPlotContext() );
         Parameter<SkySys> viewsysParam = null;
-        for ( Parameter param : Arrays.asList( super.getParameters() ) ) {
+        for ( Parameter param : super.getParameters() ) {
             if ( viewsysName_.equals( param.getName() ) ) {
                 viewsysParam = param;
             }

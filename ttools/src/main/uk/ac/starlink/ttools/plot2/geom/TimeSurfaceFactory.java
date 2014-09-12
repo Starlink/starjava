@@ -250,7 +250,7 @@ public class TimeSurfaceFactory
         StringBuffer sbuf = new StringBuffer();
         double unixSec = 1331613420;
         double secPrecision = 60 * 60 * 4;
-        for ( TimeFormat format : Arrays.asList( formats ) ) {
+        for ( TimeFormat format : formats ) {
             sbuf.append( "<li>" )
                 .append( "<code>" )
                 .append( format.getFormatName() )

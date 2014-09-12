@@ -302,7 +302,7 @@ public class SkySurfaceFactory
         Projection[] projs = SkyAspect.getProjections();
         meta.setShortDescription( "Sky coordinate projection" );
         StringBuffer sbuf = new StringBuffer();
-        for ( Projection proj : Arrays.asList( projs ) ) {
+        for ( Projection proj : projs ) {
             sbuf.append( "<li>" )
                 .append( "<code>" )
                 .append( proj.getProjectionName() )
@@ -356,7 +356,7 @@ public class SkySurfaceFactory
             .append( " policy according to whether " )
             .append( "the sky fills the plot bounds or not" )
             .append( "</li>\n" );
-        for ( SkyAxisLabeller labeller : Arrays.asList( labellers ) ) {
+        for ( SkyAxisLabeller labeller : labellers ) {
             if ( labeller != null ) {
                 sbuf.append( "<li>" )
                     .append( "<code>" )
