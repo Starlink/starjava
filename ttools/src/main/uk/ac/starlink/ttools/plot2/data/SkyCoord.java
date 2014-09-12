@@ -47,10 +47,12 @@ public abstract class SkyCoord implements Coord {
     }
 
     public List<Class<? extends DomainMapper>> getUserDomains() {
+        int nuc = getUserInfos().length;
         List<Class<? extends DomainMapper>> list =
-            new ArrayList<Class<? extends DomainMapper>>( 2 );
-        list.add( null );
-        list.add( null );
+            new ArrayList<Class<? extends DomainMapper>>( nuc );
+        for ( int iuc = 0; iuc < nuc; iuc++ ) {
+            list.add( null );
+        }
         return list;
     }
 
