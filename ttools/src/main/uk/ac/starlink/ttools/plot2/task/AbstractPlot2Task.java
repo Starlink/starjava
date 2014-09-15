@@ -244,10 +244,10 @@ public abstract class AbstractPlot2Task implements Task {
             "axis labels will not be affected - they are still drawn as",
             "vector text.",
             "Note that in some cases",
-            "(e.g. <code>" + PlotterParameter.SHADING_PREFIX
+            "(e.g. <code>" + ShapeFamilyLayerType.SHADING_PREFIX
                            + EXAMPLE_LAYER_SUFFIX + "="
                            + ShapeMode.AUTO.getModeName() + "</code>",
-            "or    <code>" + PlotterParameter.SHADING_PREFIX
+            "or    <code>" + ShapeFamilyLayerType.SHADING_PREFIX
                            + EXAMPLE_LAYER_SUFFIX + "="
                            + ShapeMode.DENSITY.getModeName() + "</code>)",
             "this kind of pixellisation will happen in any case.",
@@ -773,7 +773,9 @@ public abstract class AbstractPlot2Task implements Task {
         int nl = layers.length;
         final DataSpec[] dataSpecs = new DataSpec[ nl ];
         for ( int il = 0; il < nl; il++ ) {
-            dataSpecs[ il ] = layers[ il ].getDataSpec();
+            dataSpecs[ il ] = layers[ il ] == null
+                            ? null
+                            : layers[ il ].getDataSpec();
         }
         return new PlotExecutor() {
 
@@ -894,8 +896,9 @@ public abstract class AbstractPlot2Task implements Task {
             if ( name != null &&
                  name.toLowerCase().startsWith( prefix.toLowerCase() ) ) {
                 String suffix = name.substring( prefix.length() );
-                Plotter plotter = createPlotterParameter( suffix, context )
+                LayerType ltype = createLayerTypeParameter( suffix, context )
                                  .objectValue( env );
+                Plotter plotter = ltype.getPlotter( env, suffix );
                 map.put( suffix, plotter );
             }
         }
@@ -1112,9 +1115,9 @@ public abstract class AbstractPlot2Task implements Task {
      * @param   context  plot context
      * @return   plotter parameter
      */
-    public static Parameter<Plotter>
-            createPlotterParameter( String suffix, PlotContext context ) {
-        return new PlotterParameter( PLOTTER_PREFIX, suffix, context );
+    public static Parameter<LayerType>
+            createLayerTypeParameter( String suffix, PlotContext context ) {
+        return new LayerTypeParameter( PLOTTER_PREFIX, suffix, context );
     }
 
     /**
