@@ -181,6 +181,7 @@ public class LayerTypeParameter extends ChoiceParameter<LayerType>
                 usageWords.add( shadeUsage );
             }
             sbuf.append( Formatter.formatWords( usageWords, 6 ) );
+
             /* Positional and extra coordinate parameter usage. */
             if ( hasData ) {
                 List<String> coordWords = new ArrayList<String>();
@@ -191,15 +192,16 @@ public class LayerTypeParameter extends ChoiceParameter<LayerType>
                     if ( npos > 1 ) {
                         suffix = PlotUtil.getIndexSuffix( ipos ) + suffix;
                     }
-                    coordWords.addAll( getCoordsUsage( posCoords, suffix ) );
+                    coordWords.addAll( usageWords( getCoordParams( posCoords,
+                                                                   suffix ) ) );
                 }
                 if ( npos > 0 ) {
                     for ( int i = 0; i < geomParams_.length; i++ ) {
                         coordWords.add( usageWord( geomParams_[ i ] ) );
                     }
                 }
-                coordWords.addAll( getCoordsUsage( extraCoords,
-                                                   layerSuffix_ ) );
+                coordWords.addAll(
+                    usageWords( getCoordParams( extraCoords, layerSuffix_ ) ) );
                 sbuf.append( Formatter.formatWords( coordWords, 9 ) );
             }
 
@@ -211,7 +213,8 @@ public class LayerTypeParameter extends ChoiceParameter<LayerType>
                       ltype.getAssociatedParameters( layerSuffix_ ) ) {
                      styleWords.add( usageWord( param ) );
                 }
-                styleWords.addAll( getConfigUsage( styleKeys, layerSuffix_ ) );
+                styleWords.addAll(
+                    usageWords( getConfigParams( styleKeys, layerSuffix_ ) ) );
                 sbuf.append( Formatter.formatWords( styleWords, 9 ) );
             }
         }
@@ -222,7 +225,7 @@ public class LayerTypeParameter extends ChoiceParameter<LayerType>
             .append( " (Table parameters):" )
             .append( "\n" );
         List<String> tuWords = new ArrayList<String>();
-        tuWords.addAll( getInputUsage( layerSuffix_ ) );
+        tuWords.addAll( usageWords( getInputParams( layerSuffix_ ) ) );
         sbuf.append( Formatter.formatWords( tuWords, 6 ) );
 
         /* Shading (ShapeMode) parameters. */
@@ -244,10 +247,12 @@ public class LayerTypeParameter extends ChoiceParameter<LayerType>
                 List<String> modeWords = new ArrayList<String>();
                 modeWords.add( shapemodeParam.getName() + "="
                              + mode.getModeName() );
-                modeWords.addAll( getCoordsUsage( mode.getExtraCoords(),
-                                                  layerSuffix_ ) );
-                modeWords.addAll( getConfigUsage( mode.getConfigKeys(),
-                                                  layerSuffix_ ) );
+                modeWords.addAll(
+                    usageWords( getCoordParams( mode.getExtraCoords(),
+                                                layerSuffix_ ) ) );
+                modeWords.addAll(
+                    usageWords( getConfigParams( mode.getConfigKeys(),
+                                                 layerSuffix_ ) ) );
                 sbuf.append( Formatter.formatWords( modeWords, 6 ) );
             }
         }
@@ -279,63 +284,70 @@ public class LayerTypeParameter extends ChoiceParameter<LayerType>
     }
 
     /**
-     * Generates parameter usage for specifying a table with
+     * Gets parameters used for specifying a table with
      * input data for a plot.
      *
      * @param  suffix  layer suffix
-     * @param  words giving input table parameter usage
+     * @return  input table parameters
      */
-    private static List<String> getInputUsage( String suffix ) {
+    public static Parameter[] getInputParams( String suffix ) {
         InputTableParameter inParam =
             AbstractPlot2Task.createTableParameter( suffix );
-        Parameter fmtParam = inParam.getFormatParameter();
-        Parameter istrmParam = inParam.getStreamParameter();
-        Parameter filterParam =
-            AbstractPlot2Task.createFilterParameter( suffix );
-        List<String> wordList = new ArrayList<String>();
-        wordList.add( usageWord( inParam ) );
-        wordList.add( usageWord( fmtParam ) );
-        wordList.add( usageWord( istrmParam ) );
-        wordList.add( usageWord( filterParam ) );
-        return wordList;
+        return new Parameter[] {
+            inParam,
+            inParam.getFormatParameter(),
+            inParam.getStreamParameter(),
+            AbstractPlot2Task.createFilterParameter( suffix ),
+        };
     }
             
     /**     
-     * Generates parameter usage for specifying coordinate values for a plot.
+     * Gets parameters used for specifying coordinate values for a plot.
      *  
      * @param  coords  coordinates required
      * @param  suffix  layer suffix
-     * @return  words giving coord parameter usage
+     * @return  coord parameters
      */
-    private static List<String> getCoordsUsage( Coord[] coords,
-                                                String suffix ) {
-        List<String> wordList = new ArrayList<String>();
+    public static Parameter[] getCoordParams( Coord[] coords, String suffix ) {
+        List<Parameter> paramList = new ArrayList<Parameter>();
         for ( Coord coord : coords ) {
             for ( Input input : coord.getInputs() ) {
                 Parameter param =
                     AbstractPlot2Task.createDataParameter( input, suffix );
                 param.setNullPermitted( ! coord.isRequired() );
-                wordList.add( usageWord( param ) );
+                paramList.add( param );
             }
         }
-        return wordList;
+        return paramList.toArray( new Parameter[ 0 ] );
     }
 
     /**
-     * Generates parameter usage for speciyfing ConfigKey-based parameters
+     * Gets parameters used for speciyfing ConfigKey-based values
      * for a plot.
      *
      * @param  configKeys  configuration keys
      * @param  suffix   layer suffix
-     * @return  words giving config parameter usage
+     * @return  config parameters
      */
-    private static List<String> getConfigUsage( ConfigKey[] configKeys,
-                                                String suffix ) {
-        List<String> wordList = new ArrayList<String>();
-        for ( int ik = 0; ik < configKeys.length; ik++ ) {
-            ConfigParameter param = ConfigParameter
-                                   .createSuffixedParameter( configKeys[ ik ],
-                                                             suffix );
+    public static Parameter[] getConfigParams( ConfigKey[] configKeys,
+                                               String suffix ) {
+        List<Parameter> paramList = new ArrayList<Parameter>();
+        for ( ConfigKey key : configKeys ) {
+            paramList.add( ConfigParameter
+                          .createSuffixedParameter( key, suffix ) );
+        }
+        return paramList.toArray( new Parameter[ 0 ] );
+    }
+
+    /**
+     * List of name=usage strings for a given set of parameters.
+     *
+     * @param  params  parameter list
+     * @return  list of name=usage strings, one for each param
+     */
+    public static List<String> usageWords( Parameter[] params ) {
+        List<String> wordList = new ArrayList<String>( params.length );
+        for ( Parameter param : params ) {
             wordList.add( usageWord( param ) );
         }
         return wordList;
@@ -347,7 +359,7 @@ public class LayerTypeParameter extends ChoiceParameter<LayerType>
      * @param   param  parameter
      * @return  usage string
      */
-    private static String usageWord( Parameter param ) {
+    public static String usageWord( Parameter param ) {
         return new StringBuffer()
               .append( param.getName() )
               .append( '=' )

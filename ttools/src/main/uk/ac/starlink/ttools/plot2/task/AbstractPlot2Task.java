@@ -108,7 +108,7 @@ public abstract class AbstractPlot2Task implements Task {
     private final IntegerParameter parallelParam_;
     private final Parameter[] basicParams_;
 
-    private static final String PLOTTER_PREFIX = "layer";
+    public static final String PLOTTER_PREFIX = "layer";
     private static final String TABLE_PREFIX = "in";
     private static final String FILTER_PREFIX = "cmd";
     public static final String EXAMPLE_LAYER_SUFFIX = "N";
@@ -1115,7 +1115,7 @@ public abstract class AbstractPlot2Task implements Task {
      * @param   context  plot context
      * @return   plotter parameter
      */
-    public static Parameter<LayerType>
+    public static LayerTypeParameter
             createLayerTypeParameter( String suffix, PlotContext context ) {
         return new LayerTypeParameter( PLOTTER_PREFIX, suffix, context );
     }
