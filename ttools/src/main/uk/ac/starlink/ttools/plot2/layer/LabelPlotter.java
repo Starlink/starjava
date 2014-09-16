@@ -66,16 +66,45 @@ public class LabelPlotter extends AbstractPlotter<LabelStyle> {
     private static final int MAX_CROWDLIMIT = Byte.MAX_VALUE / 2 - 1;
 
     /** Config key to control minimum pixel label spacing. */
-    private static final ConfigKey<Integer> SPACING_KEY =
-        IntegerConfigKey
-       .createSliderKey( new ConfigMeta( "spacing", "Spacing Threshold" ),
-                         12, 0.5, 200, true );
+    public static final ConfigKey<Integer> SPACING_KEY =
+        IntegerConfigKey.createSliderKey(
+            new ConfigMeta( "spacing", "Spacing Threshold" )
+           .setStringUsage( "<pixels>" )
+           .setShortDescription( "Minimum size in pixels for label group" )
+           .setXmlDescription( new String[] {
+                "<p>Determines the closest that labels can be spaced.",
+                "If a group of labels is closer to another group",
+                "than the value of this parameter,",
+                "they will not be drawn, to avoid the display becoming",
+                "too cluttered.",
+                "The effect is that you can see individual labels",
+                "when you zoom in, but not when there are many labelled points",
+                "plotted close together on the screen.",
+                "Set the value higher for less cluttered labelling.",
+                "</p>",
+            } )
+        , 12, 0.5, 200, true );
 
     /** Config key to control max label count in spacing region. */
-    private static final ConfigKey<Integer> CROWDLIMIT_KEY =
-        IntegerConfigKey
-       .createSpinnerKey( new ConfigMeta( "crowdlimit", "Crowding Limit" ),
-                          2, 1, MAX_CROWDLIMIT );
+    public static final ConfigKey<Integer> CROWDLIMIT_KEY =
+        IntegerConfigKey.createSpinnerKey(
+            new ConfigMeta( "crowdlimit", "Crowding Limit" )
+           .setStringUsage( "<n>" )
+           .setShortDescription( "Maximum labels per group" )
+           .setXmlDescription( new String[] {
+                "<p>Sets the maximum number of labels in a label group.",
+                "This many labels can appear closely spaced without being",
+                "affected by the label spacing parameter.",
+                "</p>",
+                "<p>It is useful for instance if you are looking at",
+                "pairs of points, which will always be close together;",
+                "if you set this value to 2, an isolated pair of labels",
+                "can be seen, but if it's 1 then they will only be plotted",
+                "when they are distant from each other,",
+                "which may only happen at very high magnifications.",
+                "</p>",
+            } )
+        , 2, 1, MAX_CROWDLIMIT );
 
     /** Config key set for configuring text font. */
     public static final CaptionerKeySet CAPTIONER_KEYSET =

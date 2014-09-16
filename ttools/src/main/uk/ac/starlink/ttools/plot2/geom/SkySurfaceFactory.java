@@ -78,7 +78,7 @@ public class SkySurfaceFactory
                 "and the coordinates are converted from data to view system",
                 "before being plotted.",
                 "</p>",
-                SkySysConfigKey.getOptionsXml(),
+                SkySysConfigKey.getDescribedOptionsXml(),
             } )
             , false ).setOptionUsage();
 

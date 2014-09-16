@@ -190,12 +190,14 @@ public class SubrangeConfigKey extends ConfigKey<Subrange> {
      * Returns a metadata object to describe a SubrangeConfigKey for use
      * with a coordinate axis.
      *
-     * @param  axisName  axis name
+     * @param  axname  abbreviated axis name (for CLI)
+     * @param  axisName  full axis name (for GUI)
      * @return   metadata object describing a subrange config key for an axis
      */
-    public static ConfigMeta createAxisMeta( String axisName ) {
+    public static ConfigMeta createAxisSubMeta( String axname,
+                                                String axisName ) {
         ConfigMeta meta =
-            new ConfigMeta( axisName.substring( 0, 1 ).toLowerCase() + "sub",
+            new ConfigMeta( axname + "sub",
                             ConfigMeta.capitalise( axisName ) + " Subrange" );
         meta.setStringUsage( "<lo>,<hi>" );
         meta.setXmlDescription( new String[] {
@@ -214,6 +216,36 @@ public class SubrangeConfigKey extends ConfigKey<Subrange> {
             "no effect.",
             "The range could be restricted to its lower half",
             "with the value <code>0,0.5</code>.",
+            "</p>",
+        } );
+        return meta;
+    }
+
+    /**
+     * Returns a metadaa object to describe a SubrangeConfigKey for use
+     * as a restriction on a colour ramp (Shader).
+     *
+     * @param  axname  abbreviated axis name (for CLI)
+     * @param  axisName  full axis name (for GUI)
+     * @return   metadata object describing a subrange config key for a shader
+     */
+    public static ConfigMeta createShaderClipMeta( String axname,
+                                                   String axisName ) {
+        ConfigMeta meta = new ConfigMeta( axname + "clip", "Shader Clip" );
+        meta.setStringUsage( "<lo>,<hi>" );
+        meta.setShortDescription( axisName + " shader clip range" );
+        meta.setXmlDescription( new String[] {
+            "<p>Defines a subrange of the colour ramp to be used for",
+            axisName + " shading.",
+            "The is specified as a (low,high) comma-separated pair",
+            "of two numbers between 0 and 1.",
+            "</p>",
+            "<p>If the full range <code>0,1</code> (the default) is used,",
+            "the whole range of colours specified by the selected",
+            "shader will be used.",
+            "But if, for instance a value of <code>0,0.5</code> is given,",
+            "only those colours at the left hand end of the ramp",
+            "will be seen.",
             "</p>",
         } );
         return meta;

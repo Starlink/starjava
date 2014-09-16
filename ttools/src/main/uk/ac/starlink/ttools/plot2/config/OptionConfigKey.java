@@ -154,6 +154,41 @@ public class OptionConfigKey<T> extends ConfigKey<T> {
     }
 
     /**
+     * Convenience method to add the result of {@link #getOptionsXml}
+     * to the XML documentation of this key.
+     *
+     * @return  this object, as a convenience
+     */
+    public OptionConfigKey<T> addOptionsXml() {
+        ConfigMeta meta = getMeta();
+        meta.setXmlDescription( new StringBuffer()
+                               .append( meta.getXmlDescription() )
+                               .append( getOptionsXml() )
+                               .toString() );
+        return this;
+    }
+
+    /**
+     * Returns an XML list of the available options for this config key.
+     * Descriptions are not included.
+     *
+     * @return  p element
+     */
+    public String getOptionsXml() {
+        StringBuffer sbuf = new StringBuffer();
+        sbuf.append( "<p>The available options are:\n" )
+            .append( "<ul>\n" );
+        for ( T option : getOptions() ) {
+            sbuf.append( "<li><code>" )
+                .append( valueToString( option ) )
+                .append( "</code></li>\n" );
+        }
+        sbuf.append( "</ul>\n" )
+            .append( "</p>\n" );
+        return sbuf.toString();
+    }
+
+    /**
      * Option specifier that uses horizontally laid out
      * radio buttons to present the options.
      * There had better not be too many of them.

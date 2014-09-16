@@ -43,7 +43,7 @@ public class PlaneSurfaceFactory
 
     /** Config key for X axis subrange. */
     public static final ConfigKey<Subrange> XSUBRANGE_KEY =
-        new SubrangeConfigKey( SubrangeConfigKey.createAxisMeta( "X" ) );
+        createAxisSubrangeKey( "X" );
 
     /** Config key for Y axis lower bound, before subranging. */
     public static final ConfigKey<Double> YMIN_KEY =
@@ -55,7 +55,7 @@ public class PlaneSurfaceFactory
 
     /** Config key for Y axis subrange. */
     public static final ConfigKey<Subrange> YSUBRANGE_KEY =
-        new SubrangeConfigKey( SubrangeConfigKey.createAxisMeta( "Y" ) );
+        createAxisSubrangeKey( "Y" );
 
     /** Config key for X axis log scale flag. */
     public static final ConfigKey<Boolean> XLOG_KEY =
@@ -348,6 +348,19 @@ public class PlaneSurfaceFactory
             "</p>",
         } );
         return new BooleanConfigKey( meta );
+    }
+
+    /**
+     * Creates a config key for selecting a subrange on a named Cartesian axis.
+     *
+     * @param  axname  axis name
+     * @return  new config key
+     */
+    public static ConfigKey<Subrange> createAxisSubrangeKey( String axname ) {
+        ConfigMeta meta = 
+            SubrangeConfigKey.createAxisSubMeta( axname.toLowerCase(),
+                                                 axname.toUpperCase() );
+        return new SubrangeConfigKey( meta );
     }
 
     /**

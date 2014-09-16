@@ -22,7 +22,6 @@ import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
 import uk.ac.starlink.ttools.plot2.config.DoubleConfigKey;
 import uk.ac.starlink.ttools.plot2.config.HiddenConfigKey;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
-import uk.ac.starlink.ttools.plot2.config.SubrangeConfigKey;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 
 /**
@@ -131,7 +130,7 @@ public class CubeSurfaceFactory
 
     /** Config key for X axis subrange. */
     public static final ConfigKey<Subrange> XSUBRANGE_KEY =
-        new SubrangeConfigKey( SubrangeConfigKey.createAxisMeta( "X" ) );
+        PlaneSurfaceFactory.createAxisSubrangeKey( "X" );
 
     /** Config key for Y axis lower bound, before subranging. */
     public static final ConfigKey<Double> YMIN_KEY =
@@ -143,7 +142,7 @@ public class CubeSurfaceFactory
 
     /** Config key for Y axis subrange. */
     public static final ConfigKey<Subrange> YSUBRANGE_KEY =
-        new SubrangeConfigKey( SubrangeConfigKey.createAxisMeta( "Y" ) );
+        PlaneSurfaceFactory.createAxisSubrangeKey( "Y" );
 
     /** Config key for Z axis lower bound, before subranging. */
     public static final ConfigKey<Double> ZMIN_KEY =
@@ -155,7 +154,7 @@ public class CubeSurfaceFactory
 
     /** Config key for Z axis subrange. */
     public static final ConfigKey<Subrange> ZSUBRANGE_KEY =
-        new SubrangeConfigKey( SubrangeConfigKey.createAxisMeta( "Z" ) );
+        PlaneSurfaceFactory.createAxisSubrangeKey( "Z" );
 
     /** Config key for X axis central position key (isotropic only). */
     public static final ConfigKey<Double> XC_KEY =

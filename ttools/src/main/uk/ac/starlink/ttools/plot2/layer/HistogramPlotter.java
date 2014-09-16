@@ -57,15 +57,55 @@ public class HistogramPlotter
     private final int icX_;
     private final int icWeight_;
 
+    /** Config key for bar line thickness. */
     public static final ConfigKey<Integer> THICK_KEY =
         StyleKeys.createThicknessKey( 2 );
+
+    /** Config key for bar phase. */
     public static final ConfigKey<Double> PHASE_KEY =
-        DoubleConfigKey.createSliderKey( new ConfigMeta( "phase", "Bin Phase" ),
-                                                         0, 0, 1, false );
+        DoubleConfigKey.createSliderKey(
+            new ConfigMeta( "phase", "Bin Phase" )
+           .setShortDescription( "Horizontal zero point" )
+           .setXmlDescription( new String[] {
+                "<p>Controls where the horizontal zero point for binning",
+                "is set.",
+                "For instance if your bin size is 1,",
+                "this value controls whether bin boundaries are at",
+                "0, 1, 2, .. or 0.5, 1.5, 2.5, ... etc.",
+                "</p>",
+                "<p>A value of 0 (or any integer) will result in",
+                "a bin boundary at X=0 (linear X axis)",
+                "or X=1 (logarithmic X axis).",
+                "A fractional value will give a bin boundary at",
+                "that value multiplied by the bin width.",
+                "</p>",
+            } )
+        , 0, 0, 1, false );
+
+    /** Config key for cumulative histogram flag. */
     public static final ConfigKey<Boolean> CUMULATIVE_KEY =
-        new BooleanConfigKey( new ConfigMeta( "cumulative", "Cumulative" ) );
+        new BooleanConfigKey(
+            new ConfigMeta( "cumulative", "Cumulative" )
+           .setShortDescription( "Cumulative histogram?" )
+           .setXmlDescription( new String[] {
+                "<p>If true, the histogram bars plotted are calculated",
+                "cumulatively;",
+                "each bin includes the counts from all previous bins.",
+                "</p>",
+            } )
+        );
+
+    /** Config key for normalised histogram flag. */
     public static final ConfigKey<Boolean> NORM_KEY =
-        new BooleanConfigKey( new ConfigMeta( "norm", "Normalised" ) );
+        new BooleanConfigKey(
+            new ConfigMeta( "norm", "Normalised" )
+           .setShortDescription( "Normalised histogram?" )
+           .setXmlDescription( new String[] {
+                "<p>If true, the counts in each plotted histogram are",
+                "normalised so that the sum of all bars is 1.",
+                "</p>",
+            } )
+        );
 
     /**
      * Constructor.
