@@ -275,7 +275,8 @@ public class DalResourceXMLFilter extends XMLFilterImpl {
         }
       
         ArrayList <VOElement>  serviceEl =
-                locateAllElements( voEl, "RESOURCE", "type", "service" );
+        //        locateAllElements( voEl, "RESOURCE", "type", "service" );
+                locateAllElements( voEl, "RESOURCE", "type", "meta", "utype", "adhoc:service" );
         if ( serviceEl == null || serviceEl.size() == 0) {
             return null;    // don't complain, as the presence of datalink services is not mandatory
         }
@@ -403,43 +404,52 @@ public class DalResourceXMLFilter extends XMLFilterImpl {
     }
 
 /**
- * Returns all element distinguished by a tag name, and the value of
- * a given attribute.
+ * Returns all element distinguished by one or two tag names, and the values of
+ * the given attributes.
  * The immediate children are searched first, followed by all descendants.
  * Null is returned if none is found.
  *
  * @param   parentEl  element within which element is sought
  * @param   voTagName  unqualified tag name of sought element
- * @param   attName  attribute name
- * @param   attValue attribute value
+ * @param   attName{1,2}  attribute name(s)
+ * @param   attValue{1,2} attribute value(s)
  * @return   element within parentEl with element name voTagName and
  *           attribute attName=attValue
  */
-private static ArrayList<VOElement> locateAllElements( VOElement parentEl,
-                                        String voTagName, String attName,
-                                        String attValue ) {
+    private static ArrayList<VOElement> locateAllElements( VOElement parentEl,
+            String voTagName, String attName1,
+            String attValue1, String attName2, 
+            String attValue2) {
 
-/* Search immediate children. */
-ArrayList  <VOElement> elList = new ArrayList <VOElement>();
-VOElement[] children = parentEl.getChildrenByName( voTagName );
-for ( int ii = 0; ii < children.length; ii++ ) {
-    VOElement el = children[ ii ];
-    if ( attValue.equals( el.getAttribute( attName ) ) ) {
-        elList.add( el );
+        /* Search immediate children. */
+        ArrayList  <VOElement> elList = new ArrayList <VOElement>();
+        VOElement[] children = parentEl.getChildrenByName( voTagName );
+
+        for ( int ii = 0; ii < children.length; ii++ ) {
+            VOElement el = children[ ii ];
+            if ( attValue1.equals( el.getAttribute( attName1 ) ) ) {
+                if (( attName2 != null && attValue2 != null) && 
+                        attValue2.equals( el.getAttribute( attName2 ) ) )
+                    elList.add( el );
+            }
+        }
+        if (elList.size() > 0) {
+            return elList;
+        }
+        /* Failing that, search all descendants. */
+        NodeList nodes = parentEl.getElementsByVOTagName( voTagName );
+        int nNode = nodes.getLength();
+        for ( int in = 0; in < nNode; in++ ) {
+            VOElement el = (VOElement) nodes.item( in );
+            if ( attValue1.equals( el.getAttribute( attName1 ) ) ) {
+                if (( attName2 != null && attValue2 != null) && 
+                        attValue2.equals( el.getAttribute( attName2 ) ) )
+                    elList.add( el );
+            }
+        }
+        if (elList.size() > 0) {
+            return elList;
+        }
+        else return null;
     }
-}
-if (elList != null) {
-    return elList;
-}
-/* Failing that, search all descendants. */
-NodeList nodes = parentEl.getElementsByVOTagName( voTagName );
-int nNode = nodes.getLength();
-for ( int in = 0; in < nNode; in++ ) {
-    VOElement el = (VOElement) nodes.item( in );
-    if ( attValue.equals( el.getAttribute( attName ) ) ) {
-        elList.add( el );
-    }
-}
-return elList;
-}
 }
