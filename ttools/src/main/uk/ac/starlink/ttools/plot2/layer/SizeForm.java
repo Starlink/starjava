@@ -53,9 +53,16 @@ public class SizeForm implements ShapeForm {
         , false );
 
     private static ConfigKey<Double> SCALE_KEY =
-        DoubleConfigKey.createSliderKey( new ConfigMeta( "maxsize",
-                                                         "Max Marker Size" ),
-                                         16, 2, 64, false );
+        DoubleConfigKey.createSliderKey(
+            new ConfigMeta( "maxsize", "Max Marker Size" )
+           .setStringUsage( "<pixels>" )
+           .setShortDescription( "Maximum marker size in pixels" )
+           .setXmlDescription( new String[] {
+                "<p>Sets the maximum marker size in pixels.",
+                "This scales the sizes of all the plotted markers.",
+                "</p>",
+            } )
+        , 16, 2, 64, false );
     private static final AuxScale SIZE_SCALE = new AuxScale( "globalsize" );
 
     private static final SizeForm instance_ = new SizeForm();

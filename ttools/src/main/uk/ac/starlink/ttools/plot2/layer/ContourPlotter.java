@@ -38,16 +38,41 @@ import uk.ac.starlink.ttools.plot2.paper.PaperType;
 public class ContourPlotter extends AbstractPlotter<ContourStyle> {
 
     private static final ConfigKey<Integer> NLEVEL_KEY =
-        IntegerConfigKey.createSpinnerKey( new ConfigMeta( "nlevel",
-                                                           "Level Count" ),
-                                           5, 0, 999 );
+        IntegerConfigKey.createSpinnerKey(
+            new ConfigMeta( "nlevel", "Level Count" )
+           .setShortDescription( "Maximum number of contours" )
+           .setXmlDescription( new String[] {
+                "<p>Number of countour lines drawn.",
+                "In fact, this is an upper limit;",
+                "if there is not enough variation in the plot's density,",
+                "then fewer conrour lines will be drawn.",
+                "</p>",
+            } )
+        , 5, 0, 999 );
     private static final ConfigKey<Integer> SMOOTH_KEY =
-        IntegerConfigKey.createSpinnerKey( new ConfigMeta( "smooth",
-                                                           "Smoothing" ),
-                                           4, 1, 40 );
+        IntegerConfigKey.createSpinnerKey(
+            new ConfigMeta( "smooth", "Smoothing" )
+           .setStringUsage( "<pixels>" )
+           .setShortDescription( "Smoothing kernel size in pixels" )
+           .setXmlDescription( new String[] {
+                "<p>The size of the smoothing kernel applied to the",
+                "density before performing the contour determination.",
+                "If set too low the contours will be too crinkly,",
+                "and if too high they will lose definition.",
+                "</p>",
+            } )
+        , 4, 1, 40 );
     private static final ConfigKey<Double> OFFSET_KEY =
-        DoubleConfigKey.createSliderKey( new ConfigMeta( "zero", "Zero Point" ),
-                                         0, -2, +2, false );
+        DoubleConfigKey.createSliderKey(
+            new ConfigMeta( "zero", "Zero Point" )
+           .setShortDescription( "Level of first contour" )
+           .setXmlDescription( new String[] {
+                "<p>Determines the level at which the first contour",
+                "(and hence all the others, which are separated from it",
+                "by a fixed amount) are drawn.",
+                "</p>",
+            } )
+        , 0, -2, +2, false );
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.plot2" );
 

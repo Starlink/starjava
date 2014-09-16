@@ -135,6 +135,11 @@ public class ShapeFamilyLayerType implements LayerType {
         }
         param.setNullPermitted( false );
         param.setDefaultOption( param.getOptions()[ 0 ] );
+        param.setPrompt( "Colouring policy" );
+        param.setDescription( new String[] {
+            "<p>Determines how plotted objects are coloured.",
+            "</p>",
+        } );
         return param;
     }
 }

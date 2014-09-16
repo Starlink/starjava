@@ -34,7 +34,7 @@ public class SkySysConfigKey extends OptionConfigKey<SkySys> {
      *
      * @return   options description
      */
-    public static String getOptionsXml() {
+    public static String getDescribedOptionsXml() {
         StringBuffer sbuf = new StringBuffer()
             .append( "<p>" )
             .append( "Available options are:\n" )

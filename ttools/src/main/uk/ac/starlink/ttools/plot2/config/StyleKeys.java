@@ -22,6 +22,7 @@ import uk.ac.starlink.ttools.plot.Shaders;
 import uk.ac.starlink.ttools.plot.Styles;
 import uk.ac.starlink.ttools.plot2.Anchor;
 import uk.ac.starlink.ttools.plot2.Subrange;
+import uk.ac.starlink.ttools.plot2.geom.PlaneSurfaceFactory;
 import uk.ac.starlink.ttools.plot2.layer.LevelMode;
 import uk.ac.starlink.util.gui.RenderingComboBox;
 
@@ -38,18 +39,35 @@ public class StyleKeys {
 
     /** Config key for marker shape. */
     public static final ConfigKey<MarkShape> MARK_SHAPE =
-            new OptionConfigKey<MarkShape>( new ConfigMeta( "shape", "Shape" ),
-                                            MarkShape.class, SHAPES,
-                                            MarkShape.FILLED_CIRCLE ) {
+        new OptionConfigKey<MarkShape>(
+            new ConfigMeta( "shape", "Shape" )
+           .setShortDescription( "Marker shape" )
+           .setXmlDescription( new String[] {
+                "<p>Sets the shape of markers that are plotted at each",
+                "position of the scatter plot.",
+                "</p>",
+            } )
+        , MarkShape.class, SHAPES, MarkShape.FILLED_CIRCLE ) {
         public Specifier<MarkShape> createSpecifier() {
             return new ComboBoxSpecifier<MarkShape>( MarkStyleSelectors
                                                     .createShapeSelector() );
         }
-    }.setOptionUsage();
+    }.setOptionUsage()
+     .addOptionsXml();
 
     /** Config key for marker size. */
     public static final ConfigKey<Integer> SIZE =
-            new IntegerConfigKey( new ConfigMeta( "size", "Size" ), 1 ) {
+        new IntegerConfigKey(
+            new ConfigMeta( "size", "Size" )
+           .setStringUsage( "<pixels>" )
+           .setShortDescription( "Marker size in pixels" )
+           .setXmlDescription( new String[] {
+                "<p>Size of the scatter plot markers.",
+                "The unit is pixels, in most cases the marker is approximately",
+                "twice the size of the supplied value.",
+                "</p>",
+            } )
+        , 1 ) {
         public Specifier<Integer> createSpecifier() {
             return new ComboBoxSpecifier<Integer>( MarkStyleSelectors
                                                   .createSizeSelector() );
@@ -66,27 +84,61 @@ public class StyleKeys {
      *  This is the number of times a point has to be hit to result in
      *  a saturated (opaque) pixel. */
     public static final ConfigKey<Double> OPAQUE =
-        DoubleConfigKey
-       .createSliderKey( new ConfigMeta( "opaque", "Opaque limit" ),
-                         4, 1, 10000, true );
+        DoubleConfigKey.createSliderKey(
+            new ConfigMeta( "opaque", "Opaque limit" )
+           .setShortDescription( "Fraction of fully opaque" )
+           .setXmlDescription( new String[] {
+                "<p>The opacity of plotted points.",
+                "The value is the number of points which have to be",
+                "overplotted before the background is fully obscured.",
+                "</p>",
+            } )
+        , 4, 1, 10000, true );
 
     /** Config key for the opacity limit of auxiliary shaded plots. */
     public static final ConfigKey<Double> AUX_OPAQUE =
-        DoubleConfigKey
-       .createSliderKey( new ConfigMeta( "opaque", "Opaque limit" ),
-                         1, 1, 1000, true );
+        DoubleConfigKey.createSliderKey(
+            new ConfigMeta( "opaque", "Opaque limit" )
+           .setShortDescription( "Aux fraction of fully opaque" )
+           .setXmlDescription( new String[] {
+                "<p>The opacity of points plotted in the Aux colour.",
+                "The value is the number of points which have to be",
+                "overplotted before the background is fully obscured.",
+                "</p>",
+            } )
+        , 1, 1, 1000, true );
 
     /** Config key for transparency level of adaptive transparent plots. */
     public static final ConfigKey<Double> TRANSPARENT_LEVEL =
-        DoubleConfigKey
-       .createSliderKey( new ConfigMeta( "translevel", "Transparency Level" ),
-                         0.1, 0.001, 2, true );
+        DoubleConfigKey.createSliderKey(
+            new ConfigMeta( "translevel", "Transparency Level" )
+           .setShortDescription( "Transparency" )
+           .setXmlDescription( new String[] {
+                "<p>Sets the level of automatically controlled transparency. ",
+                "The higher this value the more transparent points are.",
+                "Exactly how transparent points are depends on how many",
+                "are currently being plotted on top of each other and",
+                "the value of this parameter.",
+                "The idea is that you can set it to some fixed value,",
+                "and then get something which looks similarly",
+                "transparent while you zoom in and out.",
+                "</p>",
+            } )
+        , 0.1, 0.001, 2, true );
 
     /** Config key for "normal" transparency - it's just 1-alpha. */
     public static final ConfigKey<Double> TRANSPARENCY =
-        DoubleConfigKey.createSliderKey( new ConfigMeta( "transparency",
-                                                         "Transparency" ),
-                                         0, 0, 1, false );
+        DoubleConfigKey.createSliderKey(
+            new ConfigMeta( "transparency", "Transparency" )
+           .setShortDescription( "Fractional transparency" )
+           .setXmlDescription( new String[] {
+                "<p>Transparency with which compoents are plotted,",
+                "in the range 0 (opaque) to 1 (invisible).",
+                "The value is 1-alpha.",
+                "</p>",
+            } )
+           .setStringUsage( "0..1" )
+        , 0, 0, 1, false );
 
     /** Config key for line thickness. */
     private static final ConfigKey<Integer> THICKNESS = createThicknessKey( 1 );
@@ -118,24 +170,38 @@ public class StyleKeys {
 
     /** Config key for histogram bar style. */
     public static final ConfigKey<BarStyle.Form> BAR_FORM =
-            new OptionConfigKey<BarStyle.Form>( new ConfigMeta( "barform",
-                                                                "Bar Form" ),
-                                                BarStyle.Form.class,
-                                                BARFORMS ) {
-        public Specifier<BarStyle.Form> createSpecifier() {
-            JComboBox formSelector = new RenderingComboBox( BARFORMS ) {
-                protected Icon getRendererIcon( Object form ) {
-                    return BarStyles.getIcon( (BarStyle.Form) form );
-                }
-            };
-            return new ComboBoxSpecifier<BarStyle.Form>( formSelector );
-        }
-    }.setOptionUsage();
+        new OptionConfigKey<BarStyle.Form>(
+            new ConfigMeta( "barform", "Bar Form" )
+           .setShortDescription( "Histogram bar shape" )
+           .setXmlDescription( new String[] {
+                "<p>How histogram bars are represented.",
+                "</p>",
+            } )
+        , BarStyle.Form.class, BARFORMS ) {
+            public Specifier<BarStyle.Form> createSpecifier() {
+                JComboBox formSelector = new RenderingComboBox( BARFORMS ) {
+                    protected Icon getRendererIcon( Object form ) {
+                        return BarStyles.getIcon( (BarStyle.Form) form );
+                    }
+                };
+                return new ComboBoxSpecifier<BarStyle.Form>( formSelector );
+            }
+        }.setOptionUsage()
+         .addOptionsXml();
 
     /** Config key for line antialiasing. */
     public static final ConfigKey<Boolean> ANTIALIAS =
-        new BooleanConfigKey( new ConfigMeta( "antialias", "Antialiasing" ),
-                              false );
+        new BooleanConfigKey(
+            new ConfigMeta( "antialias", "Antialiasing" )
+           .setShortDescription( "Antialias lines?" )
+           .setXmlDescription( new String[] {
+                "<p>If true, plotted lines are drawn with antialising.",
+                "Antialised lines look smoother, but may take",
+                "perceptibly longer to draw.",
+                "Only has any effect for bitmapped output formats.",
+                "</p>",
+            } )
+        , false );
 
     /** Config key for axis grid antialiasing. */
     public static final ConfigKey<Boolean> GRID_ANTIALIAS =
@@ -153,51 +219,65 @@ public class StyleKeys {
 
     /** Config key for text anchor positioning. */
     public static final ConfigKey<Anchor> ANCHOR =
-        new OptionConfigKey<Anchor>( new ConfigMeta( "anchor", "Anchor" ),
-                                     Anchor.class,
-                                     new Anchor[] {
-                                         Anchor.W, Anchor.E, Anchor.N, Anchor.S,
-                                     } ).setOptionUsage();
+        new OptionConfigKey<Anchor>(
+            new ConfigMeta( "anchor", "Anchor" )
+           .setShortDescription( "Text label anchor position" )
+           .setXmlDescription( new String[] {
+                "<p>Determines where the text appears",
+                "in relation to the plotted points.",
+                "Values are points of the compass.",
+                "</p>",
+            } )
+        , Anchor.class, new Anchor[] { Anchor.W, Anchor.E, Anchor.N, Anchor.S, }
+        ).setOptionUsage()
+         .addOptionsXml();
 
     /** Config key for scaling level mode. */ 
     public static final ConfigKey<LevelMode> LEVEL_MODE =
-        new OptionConfigKey<LevelMode>( new ConfigMeta( "scaling", "Scaling" ),
-                                        LevelMode.class, LevelMode.MODES,
-                                        LevelMode.LINEAR ).setOptionUsage();
+        new OptionConfigKey<LevelMode>(
+            new ConfigMeta( "scaling", "Scaling" )
+           .setShortDescription( "Level scaling" )
+           .setXmlDescription( new String[] {
+                "<p>How the smoothed density is treated before",
+                "contour levels are determined.",
+                "</p>",
+            } )
+            , LevelMode.class, LevelMode.MODES, LevelMode.LINEAR
+        ).setOptionUsage()
+         .addOptionsXml();
 
     /** Config key for vector marker style. */
     public static final MultiPointConfigKey VECTOR_SHAPE =
-        new MultiPointConfigKey( new ConfigMeta( "arrow", "Arrow" ),
-                                 ErrorRenderer.getOptionsVector(),
-                                 new ErrorMode[] { ErrorMode.UPPER } );
+        createMultiPointKey( "arrow", "Arrow", ErrorRenderer.getOptionsVector(),
+                             new ErrorMode[] { ErrorMode.UPPER } );
 
     /** Config key for ellipse marker style. */
     public static final MultiPointConfigKey ELLIPSE_SHAPE =
-        new MultiPointConfigKey( new ConfigMeta( "ellipse", "Ellipse" ),
-                                 ErrorRenderer.getOptionsEllipse(),
-                                 new ErrorMode[] { ErrorMode.SYMMETRIC,
-                                                   ErrorMode.SYMMETRIC } );
+        createMultiPointKey( "ellipse", "Ellipse",
+                             ErrorRenderer.getOptionsEllipse(),
+                             new ErrorMode[] { ErrorMode.SYMMETRIC,
+                                               ErrorMode.SYMMETRIC } );
 
     /** Config key for 1d (vertical) error marker style. */
     public static final MultiPointConfigKey ERROR_SHAPE_1D =
-        new MultiPointConfigKey( new ConfigMeta( "errorbar", "Error Bar" ),
-                                 ErrorRenderer.getOptions1d(),
-                                 new ErrorMode[] { ErrorMode.SYMMETRIC } );
+        createMultiPointKey( "errorbar", "Error Bar",
+                             ErrorRenderer.getOptions1d(),
+                             new ErrorMode[] { ErrorMode.SYMMETRIC } );
 
     /** Config key for 2d error marker style. */
     public static final MultiPointConfigKey ERROR_SHAPE_2D =
-        new MultiPointConfigKey( new ConfigMeta( "errorbar", "Error Bar" ),
-                                 ErrorRenderer.getOptions2d(),
-                                 new ErrorMode[] { ErrorMode.SYMMETRIC,
-                                                   ErrorMode.SYMMETRIC } );
+        createMultiPointKey( "errorbar", "Error Bar",
+                             ErrorRenderer.getOptions2d(),
+                             new ErrorMode[] { ErrorMode.SYMMETRIC,
+                                               ErrorMode.SYMMETRIC } );
 
     /** Config key for 3d error marker style. */
     public static final MultiPointConfigKey ERROR_SHAPE_3D =
-        new MultiPointConfigKey( new ConfigMeta( "errorbar", "Error Bar" ),
-                                 ErrorRenderer.getOptions3d(),
-                                 new ErrorMode[] { ErrorMode.SYMMETRIC,
-                                                   ErrorMode.SYMMETRIC,
-                                                   ErrorMode.SYMMETRIC } );
+        createMultiPointKey( "errorbar", "Error Bar",
+                             ErrorRenderer.getOptions3d(),
+                             new ErrorMode[] { ErrorMode.SYMMETRIC,
+                                               ErrorMode.SYMMETRIC,
+                                               ErrorMode.SYMMETRIC } );
 
     /** Config key for aux shader colour ramp. */
     public static final ConfigKey<Shader> AUX_SHADER =
@@ -208,28 +288,31 @@ public class StyleKeys {
                 "<p>Color map used for aux axis shading.",
                 "</p>",
             } )
-            , createAuxShaders(), Shaders.LUT_RAINBOW );
+            , createAuxShaders(), Shaders.LUT_RAINBOW
+        ).appendShaderDescription()
+         .setOptionUsage();
 
     /** Config key for restricting the range of an aux shader colour map. */
     public static final ConfigKey<Subrange> AUX_SHADER_CLIP =
-        new SubrangeConfigKey( new ConfigMeta( "shadeclip", "Shade Clip" ) );
+        new SubrangeConfigKey( SubrangeConfigKey
+                              .createShaderClipMeta( "aux", "Aux" ) );
 
     /** Config key for aux shader logarithmic flag. */
     public static final ConfigKey<Boolean> SHADE_LOG =
-        new BooleanConfigKey( new ConfigMeta( "shadelog", "Shade Log" ) );
+        PlaneSurfaceFactory.createAxisLogKey( "Aux" );
 
     /** Config key for aux shader axis inversion flag. */
     public static final ConfigKey<Boolean> SHADE_FLIP =
-        new BooleanConfigKey( new ConfigMeta( "shadeflip", "Shade Flip" ) );
+        PlaneSurfaceFactory.createAxisFlipKey( "Aux" );
 
     /** Config key for aux shader null colour. */
     public static final ConfigKey<Color> SHADE_NULL_COLOR =
         new ColorConfigKey(
             ColorConfigKey.createColorMeta( "null",
                                             "points with a null value "
-                                          + "of the aux coordinate" )
+                                          + "of the Aux coordinate" )
            .appendXmlDescription( new String[] {
-                "<p>If the value is null, then points with a null aux value",
+                "<p>If the value is null, then points with a null Aux value",
                 "will not be plotted at all.",
                 "</p>",
             } )
@@ -237,66 +320,136 @@ public class StyleKeys {
 
     /** Config key for aux shader lower limit. */
     public static final ConfigKey<Double> SHADE_LOW =
-        DoubleConfigKey
-       .createTextKey( new ConfigMeta( "auxmin", "Aux Lower Limit" ) );
+        PlaneSurfaceFactory.createAxisLimitKey( "Aux", false );
 
     /** Config key for aux shader upper limit. */
     public static final ConfigKey<Double> SHADE_HIGH =
-        DoubleConfigKey
-       .createTextKey( new ConfigMeta( "auxmax", "Aux Upper Limit" ) );
+        PlaneSurfaceFactory.createAxisLimitKey( "Aux", true );
 
     /** Config key for aux shader subrange. */
     public static final ConfigKey<Subrange> SHADE_SUBRANGE =
-        new SubrangeConfigKey( new ConfigMeta( "auxscale", "Aux Sub-range" ) );
+        new SubrangeConfigKey( SubrangeConfigKey
+                              .createAxisSubMeta( "aux", "Aux" ) );
 
     /** Config key for density shader colour map. */
     public static final ConfigKey<Shader> DENSITY_SHADER =
         new ShaderConfigKey(
-            new ConfigMeta( "densemap", "Map")
+            new ConfigMeta( "densemap", "Map" )
            .setShortDescription( "Color map for density shading" )
            .setXmlDescription( new String[] {
                 "<p>Color map used to indicate point density.",
                 "</p>",
             } )
-            , DENSITY_SHADERS, DENSITY_SHADERS[ 0 ] );
+            , DENSITY_SHADERS, DENSITY_SHADERS[ 0 ]
+        ).appendShaderDescription()
+         .setOptionUsage();
 
     /** Config key for restricting the range of a density shader colour map. */
     public static final ConfigKey<Subrange> DENSITY_SHADER_CLIP =
-        new SubrangeConfigKey( new ConfigMeta( "denseclip", "Map clip" ) );
+        new SubrangeConfigKey( SubrangeConfigKey
+                              .createShaderClipMeta( "dense", "Density" ) );
                              
     /** Config key for density shader subrange. */
     public static final ConfigKey<Subrange> DENSITY_SUBRANGE =
-        new SubrangeConfigKey( new ConfigMeta( "densescale",
-                                               "Sub-range" ) );
+        new SubrangeConfigKey( SubrangeConfigKey
+                              .createAxisSubMeta( "dense", "Density" ) );
 
     /** Config key for density shader log flag. */
     public static final ConfigKey<Boolean> DENSITY_LOG =
-        new BooleanConfigKey( new ConfigMeta( "denselog", "Log" ),
-                              Boolean.TRUE );
+        new BooleanConfigKey(
+            new ConfigMeta( "denselog", "Log" )
+           .setShortDescription( "Logarithmic density scale?" )
+           .setXmlDescription( new String[] {
+                "<p>If true, the scale used for shading points according",
+                "to density is logarithmic, if false, it's linear.",
+                "</p>",
+            } )
+        , Boolean.TRUE );
 
     /** Config key for density shader flip flag. */
     public static final ConfigKey<Boolean> DENSITY_FLIP =
-        new BooleanConfigKey( new ConfigMeta( "denseflip", "Flip" ),
-                              Boolean.FALSE );
+        new BooleanConfigKey(
+            new ConfigMeta( "denseflip", "Flip" )
+           .setShortDescription( "Flip density scale?" )
+           .setXmlDescription( new String[] {
+                "<p>If true, the sense of the scale used for shading points",
+                "according to density is reversed",
+                "(the colour ramp is flipped).",
+                "</p>",
+            } )
+        , Boolean.FALSE );
+
+    private static final String SCALE_NAME = "scale";
 
     /** Config key for sized marker scaling. */
     public static final ConfigKey<Double> SCALE =
-        DoubleConfigKey.createSliderKey( new ConfigMeta( "scale", "Scale" ),
-                                         1, 1e-7, 1e7, true );
+        DoubleConfigKey
+       .createSliderKey(
+            new ConfigMeta( SCALE_NAME, "Scale" )
+           .setStringUsage( "<factor>" )
+           .setShortDescription( "Marker size multiplier" )
+           .setXmlDescription( new String[] {
+                "<p>Affects the size of variable-sized markers",
+                "like vectors and ellipes.",
+                "The default value is 1, smaller or larger values",
+                "multiply the visible sizes accordingly.",
+                "</p>",
+            } )
+        , 1, 1e-7, 1e7, true );
 
     /** Config key for sized marker autoscale flag. */
     public static final ConfigKey<Boolean> AUTOSCALE =
-        new BooleanConfigKey( new ConfigMeta( "autoscale", "Auto Scale" ),
-                              Boolean.TRUE );
+        new BooleanConfigKey(
+            new ConfigMeta( "autoscale", "Auto Scale" )
+           .setShortDescription( "Scale marker sizes automatically?" )
+           .setXmlDescription( new String[] {
+                "<p>Determines whether the default size of variable-sized",
+                "markers like vectors and ellipses are automatically",
+                "scaled to have a sensible size.",
+                "If true, then the sizes of all the plotted markers",
+                "are examined, and some dynamically calculated factor is",
+                "applied to them all to make them a sensible size",
+                "(by default, the larges ones will be a few tens of pixels).",
+                "If false, the sizes will be the actual input values",
+                "interpreted in data coordinates.",
+                "</p>",
+                "<p>If auto-scaling is on, then markers will keep",
+                "approximately the same screen size during zoom operations;",
+                "if it's off, they will keep the same size",
+                "in data coordinates.",
+                "</p>",
+                "<p>Marker size is also affected by the",
+                "<code>" + SCALE_NAME + "</code> parameter.",
+                "</p>",
+            } )
+        , Boolean.TRUE );
 
-    /** Config key for a label string. */
+    /** Config key for a layer label string. */
     public static final ConfigKey<String> LABEL =
-        new StringConfigKey( new ConfigMeta( "label", "Label" ), null );
+        new StringConfigKey(
+            new ConfigMeta( "label", "Label" )
+           .setStringUsage( "<txt>" )
+           .setShortDescription( "Plot layer label" )
+           .setXmlDescription( new String[] {
+                "<p>Supplies a text label for a plot layer.",
+                "This may be used for identifying it in the legend.",
+                "If not supplied, a label will be generated automatically",
+                "where required.",
+                "</p>",
+            } )
+        , null );
 
     /** Config key for legend inclusion flag. */
     public static final ConfigKey<Boolean> SHOW_LABEL =
-        new BooleanConfigKey( new ConfigMeta( "inlegend", "In Legend" ),
-                              true );
+        new BooleanConfigKey(
+            new ConfigMeta( "inlegend", "In Legend" )
+           .setShortDescription( "Show layer in legend?" )
+           .setXmlDescription( new String[] {
+                "<p>Determines whether the layer has an entry in the",
+                "plot legend, if shown.",
+                "</p>",
+            } )
+        , true );
 
     /** Config key for minor tick drawing key. */
     public static final ConfigKey<Boolean> MINOR_TICKS =
@@ -410,8 +563,14 @@ public class StyleKeys {
      * @return   new config key
      */
     public static ConfigKey<Integer> createThicknessKey( int dfltThick ) {
-        return new IntegerConfigKey( new ConfigMeta( "thick", "Thickness" ),
-                                     dfltThick ) {
+        ConfigMeta meta = new ConfigMeta( "thick", "Thickness" );
+        meta.setStringUsage( "<pixels>" );
+        meta.setShortDescription( "Line thickness in pixels" );
+        meta.setXmlDescription( new String[] {
+            "<p>Thickness of plotted line in pixels.",
+            "</p>",
+        } );
+        return new IntegerConfigKey( meta, dfltThick ) {
             public Specifier<Integer> createSpecifier() {
                 return new ComboBoxSpecifier<Integer>(
                                new ThicknessComboBox( 5 ) );
@@ -439,6 +598,32 @@ public class StyleKeys {
              ? shader
              : Shaders.stretch( shader,
                                 (float) clip.getLow(), (float) clip.getHigh() );
+    }
+
+    /**
+     * Creates a config key for a multipoint shape.
+     *
+     * @param   shortName   one-word name
+     * @parma   longName   GUI name
+     * @param   renderers   renderer options
+     * @param   modes   error mode objects, used with renderers to draw icon
+     * @return  new key
+     */
+    private static MultiPointConfigKey
+            createMultiPointKey( String shortName, String longName,
+                                 ErrorRenderer[] renderers,
+                                 ErrorMode[] modes ) {
+        ConfigMeta meta = new ConfigMeta( shortName, longName );
+        meta.setShortDescription( longName + " shape" );
+        meta.setXmlDescription( new String[] {
+            "<p>How " + shortName + "s are represented.",
+            "</p>",
+        } );
+        MultiPointConfigKey key =
+            new MultiPointConfigKey( meta, renderers, modes );
+        key.setOptionUsage();
+        key.addOptionsXml();
+        return key;
     }
 
     /**

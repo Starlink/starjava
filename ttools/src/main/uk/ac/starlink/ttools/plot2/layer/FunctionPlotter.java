@@ -63,12 +63,37 @@ public class FunctionPlotter extends
             new FunctionPlotter( PlaneAxis.values() );
 
     private static final ConfigKey<String> XNAME_KEY =
-        new StringConfigKey( new ConfigMeta( "xname",
-                                             "Independent Variable Name" ),
-                             "x" );
+        new StringConfigKey(
+            new ConfigMeta( "xname", "Independent Variable Name" )
+           .setStringUsage( "<name>" )
+           .setShortDescription( "Independent variable name" )
+           .setXmlDescription( new String[] {
+                "<p>Name of the independent variable for use in the",
+                "function expression.",
+                "This is typically",
+                "<code>x</code> for a horizontal independent variable and",
+                "<code>y</code> for a vertical independent variable,",
+                "but any string that is a legal expression language identifier",
+                "(starts with a letter, continues with letters, numbers,",
+                "underscores) can be used.",
+                "</p>",
+            } )
+        , "x" );
     private static final ConfigKey<String> FEXPR_KEY =
-        new StringConfigKey( new ConfigMeta( "fexpr", "Function Expression" ),
-                             null );
+        new StringConfigKey(
+            new ConfigMeta( "fexpr", "Function Expression" )
+           .setStringUsage( "<expr>" )
+           .setShortDescription( "Expression for function" )
+           .setXmlDescription( new String[] {
+                "<p>An expression using TOPCAT's",
+                "<ref id='jel'>expression language</ref>",
+                "in terms of the independent variable",
+                "to define the function.",
+                "This expression must be standalone -",
+                "it cannot reference any tables.",
+                "</p>",
+            } )
+        , null );
     private final ConfigKey<FuncAxis> axisKey_;
 
     /**
@@ -80,12 +105,20 @@ public class FunctionPlotter extends
         super( "Function", ResourceIcon.PLOT_FUNCTION );
         axes_ = axes;
         axisKey_ = new OptionConfigKey<FuncAxis>(
-                       new ConfigMeta( "axis", "Independent Axis" ),
-                                       FuncAxis.class, axes_, axes_[ 0 ] ) {
+                new ConfigMeta( "axis", "Independent Axis" )
+               .setShortDescription( "Axis of independent variable" )
+               .setXmlDescription( new String[] {
+                    "<p>Which axis the independent variable varies along.",
+                    "Options are currently",
+                    "<code>" + PlaneAxis.X.getAxisName() + "</code> and",
+                    "<code>" + PlaneAxis.Y.getAxisName() + "</code>.",
+                    "</p>",
+                } )
+                , FuncAxis.class, axes_, axes_[ 0 ] ) {
             public String valueToString( FuncAxis axis ) {
                 return axis.getAxisName();
             }
-        };
+        }.setOptionUsage();
     }
 
     public ConfigKey[] getStyleKeys() {

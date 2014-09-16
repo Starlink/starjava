@@ -134,7 +134,7 @@ public class SkyPlot2Task extends TypedPlot2Task {
                 "If not supplied explicitly,",
                 "<code>" + datasysName + "</code> defaults to the same value",
                 "as <code>" + viewsysName_ + "</code>.",
-                SkySysConfigKey.getOptionsXml(),
+                SkySysConfigKey.getDescribedOptionsXml(),
             } );
             return param;
         }
