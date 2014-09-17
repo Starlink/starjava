@@ -1,5 +1,7 @@
 package uk.ac.starlink.ttools.plot2.config;
 
+import uk.ac.starlink.ttools.plot2.PlotUtil;
+
 /**
  * Contains metadata about configuration items.
  *
@@ -136,7 +138,7 @@ public class ConfigMeta {
      * @return  this object, as a convenience
      */
     public ConfigMeta setXmlDescription( String[] lines ) {
-        setXmlDescription( concatLines( lines ) );
+        setXmlDescription( PlotUtil.concatLines( lines ) );
         return this;
     }
 
@@ -150,7 +152,7 @@ public class ConfigMeta {
     public ConfigMeta appendXmlDescription( String[] moreXml ) {
         String descrip = new StringBuffer()
             .append( getXmlDescription() )
-            .append( concatLines( moreXml ) )
+            .append( PlotUtil.concatLines( moreXml ) )
             .toString();
         setXmlDescription( descrip );
         return this;
@@ -173,21 +175,6 @@ public class ConfigMeta {
         }
         if ( leng > 1 ) {
             sbuf.append( word.substring( 1 ) );
-        }
-        return sbuf.toString();
-    }
-
-    /**
-     * Concatentates lines, adding a newline character at the end of each.
-     *
-     * @param   lines  lines of text
-     * @return  concatenation
-     */
-    public static String concatLines( String[] lines ) {
-        StringBuffer sbuf = new StringBuffer();
-        for ( int i = 0; i < lines.length; i++ ) {
-            sbuf.append( lines[ i ] )
-                .append( '\n' );
         }
         return sbuf.toString();
     }

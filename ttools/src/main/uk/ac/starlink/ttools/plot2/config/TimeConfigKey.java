@@ -3,6 +3,7 @@ package uk.ac.starlink.ttools.plot2.config;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import uk.ac.starlink.ttools.func.Times;
+import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.geom.TimeFormat;
 
 /**
@@ -17,7 +18,7 @@ public class TimeConfigKey extends ConfigKey<Double> {
 
     /** XML &lt;p&gt; element describing the text input format. */
     public static final String FORMAT_XML =
-        ConfigMeta.concatLines( new String[] {
+        PlotUtil.concatLines( new String[] {
             "<p>The value may be set with a string that can be interpreted as",
             "a decimal year",
             "(e.g. \"<code>2007.521</code>\")",

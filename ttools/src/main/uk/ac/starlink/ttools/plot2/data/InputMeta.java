@@ -1,6 +1,6 @@
 package uk.ac.starlink.ttools.plot2.data;
 
-import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
+import uk.ac.starlink.ttools.plot2.PlotUtil;
 
 /**
  * Contains user-directed metadata to describe
@@ -152,7 +152,7 @@ public class InputMeta {
      * @return  this object, as a convenience
      */
     public InputMeta setXmlDescription( String[] lines ) {
-        setXmlDescription( ConfigMeta.concatLines( lines ) );
+        setXmlDescription( PlotUtil.concatLines( lines ) );
         return this;
     }
 }
