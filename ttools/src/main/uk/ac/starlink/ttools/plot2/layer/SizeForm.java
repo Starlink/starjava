@@ -85,6 +85,31 @@ public class SizeForm implements ShapeForm {
         return ResourceIcon.FORM_SIZE;
     }
 
+    public String getFormDescription() {
+        return PlotUtil.concatLines( new String[] {
+            "<p>Plots a marker of fixed shape but variable size",
+            "at each postion.",
+            "The size is determined by an additional input data value.",
+            "</p>",
+            "<p>The marker size is scaled according to the values",
+            "of the data.",
+            "The data range in the visible part of the plot is determined,",
+            "the maximum value is assigned to the maximum marker size,",
+            "and the size of each marker is determined as",
+            "(data value)/(max data value).",
+            "Currently data values of zero always correspond to",
+            "marker size of zero, negative data values are not represented,",
+            "and the mapping is linear.",
+            "Other options may be introduced in future.",
+            "</p>",
+            "<p>Note the scaling to size is in terms of screen dimensions",
+            "(pixels).",
+            "For sizes that correspond to actual data values,",
+            "Error plotting may be more appropriate.",
+            "</p>",
+        } );
+    }
+
     public Coord[] getExtraCoords() {
         return new Coord[] {
             SIZE_COORD,

@@ -17,6 +17,7 @@ import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Glyph;
 import uk.ac.starlink.ttools.plot2.Pixer;
+import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.PointCloud;
 import uk.ac.starlink.ttools.plot2.SubCloud;
 import uk.ac.starlink.ttools.plot2.Surface;
@@ -78,6 +79,14 @@ public abstract class MarkForm implements ShapeForm {
         return icon_;
     }
 
+    public String getFormDescription() {
+        return PlotUtil.concatLines( new String[] {
+            "<p>Plots a marker of fixed size and shape",
+            "at each position.",
+            "</p>",
+        } );
+    }
+
     public Coord[] getExtraCoords() {
         return new Coord[ 0 ];
     }
@@ -121,9 +130,18 @@ public abstract class MarkForm implements ShapeForm {
             };
         }
         else {
-            return new MarkForm( npos, "Marks",
+            return new MarkForm( npos, "Mark" + npos,
                                  npos == 2 ? ResourceIcon.FORM_MARKS2
                                            : ResourceIcon.FORM_MARKS3 ) {
+                public String getFormDescription() {
+                    return PlotUtil.concatLines( new String[] {
+                        "<p>Plots " + npos + "similar markers",
+                        "of fixed size and shape",
+                        "representing " + npos + " separate positions",
+                        "from the same input table row.",
+                        "</p>",
+                    } );
+                }
                 public ConfigKey[] getConfigKeys() {
                     return new ConfigKey[] {
                         StyleKeys.MARK_SHAPE,

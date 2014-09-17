@@ -20,6 +20,7 @@ import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Glyph;
 import uk.ac.starlink.ttools.plot2.Pixer;
+import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
@@ -51,6 +52,7 @@ public class MultiPointForm implements ShapeForm {
 
     private final String name_;
     private final Icon icon_;
+    private final String description_;
     private final MultiPointCoordSet extraCoordSet_;
     private final boolean canScale_;
     private final MultiPointConfigKey rendererKey_;
@@ -60,6 +62,7 @@ public class MultiPointForm implements ShapeForm {
      *
      * @param  name   shapeform name
      * @param  icon   shapeform icon
+     * @param  description  XML description
      * @param  extraCoordSet  defines the extra positional coordinates 
      *                        used to plot multipoint shapes
      * @param  canScale  true if a configuration option to scale the shapes
@@ -69,11 +72,12 @@ public class MultiPointForm implements ShapeForm {
      *                      must be expecting data corresponding to the
      *                      <code>extraCoordSet</code> parameter
      */
-    public MultiPointForm( String name, Icon icon,
+    public MultiPointForm( String name, Icon icon, String description,
                            MultiPointCoordSet extraCoordSet, boolean canScale,
                            MultiPointConfigKey rendererKey ) {
         name_ = name;
         icon_ = icon;
+        description_ = description;
         extraCoordSet_ = extraCoordSet;
         canScale_ = canScale;
         rendererKey_ = rendererKey;
@@ -89,6 +93,10 @@ public class MultiPointForm implements ShapeForm {
 
     public Icon getFormIcon() {
         return icon_;
+    }
+
+    public String getFormDescription() {
+        return description_;
     }
 
     public Coord[] getExtraCoords() {
@@ -127,8 +135,28 @@ public class MultiPointForm implements ShapeForm {
     public static MultiPointForm
                   createVectorForm( MultiPointCoordSet extraCoordSet,
                                     boolean canScale ) {
+        String descrip = PlotUtil.concatLines( new String[] {
+            "<p>Plots directed lines from the data position",
+            "given delta values for the coordinates.",
+            "The plotted markers are typically little arrows,",
+            "but there are other options.",
+            "</p>",
+            "<p>In some cases such delta values may be",
+            "the actual magnitude required for the plot,",
+            "but often the vector data represents a value",
+            "which has a different magnitude or is in different units",
+            "to the positional data.",
+            "As a convenience for this case, the plotter can optionally",
+            "scale the magnitudes of all the vectors",
+            "to make them a sensible size,",
+            "so by default the largest ones are a few tens of pixels long.",
+            "This auto-scaling is in operation by default,",
+            "but it can be turned off or adjusted with the scaling and",
+            "auto-scaling options.",
+            "</p>",
+        } );
         return new MultiPointForm( "Vector", ResourceIcon.FORM_VECTOR,
-                                   extraCoordSet, canScale,
+                                   descrip, extraCoordSet, canScale,
                                    StyleKeys.VECTOR_SHAPE );
     }
 
@@ -145,8 +173,14 @@ public class MultiPointForm implements ShapeForm {
     public static MultiPointForm
                   createEllipseForm( MultiPointCoordSet extraCoordSet,
                                      boolean canScale ) {
+        String descrip = PlotUtil.concatLines( new String[] {
+            "<p>Plots an ellipse (or rectangle or other similar figure)",
+            "defined by two principal radii and",
+            "an optional rotation angle.",
+            "</p>",
+        } );
         return new MultiPointForm( "Ellipse", ResourceIcon.FORM_ELLIPSE,
-                                   extraCoordSet, canScale,
+                                   descrip, extraCoordSet, canScale,
                                    StyleKeys.ELLIPSE_SHAPE );
     }
 
@@ -160,7 +194,15 @@ public class MultiPointForm implements ShapeForm {
     public static MultiPointForm
                   createErrorForm( MultiPointCoordSet extraCoordSet,
                                    MultiPointConfigKey rendererKey ) {
-        return new MultiPointForm( "Error", ResourceIcon.FORM_ERROR,
+        String descrip = PlotUtil.concatLines( new String[] {
+            "<p>Plots symmetric or asymmetric error bars in some or",
+            "all of the plot dimensions.",
+            "The shape of the error \"bars\" is quite configurable,",
+            "including (for 2-d and 3-d errors)",
+            "ellipses, rectangles etc aligned with the axes.",
+            "</p>",
+        } );
+        return new MultiPointForm( "Error", ResourceIcon.FORM_ERROR, descrip,
                                    extraCoordSet, false, rendererKey );
     }
 

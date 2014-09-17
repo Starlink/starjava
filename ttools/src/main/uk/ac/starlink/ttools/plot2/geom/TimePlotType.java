@@ -3,6 +3,7 @@ package uk.ac.starlink.ttools.plot2.geom;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.PlotType;
+import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
@@ -41,8 +42,12 @@ public class TimePlotType implements PlotType {
     }
 
     public Plotter[] getPlotters() {
+        String descrip = PlotUtil.concatLines( new String[] {
+            "<p>Plots symmetric or asymmetric error bars in the Y direction.",
+            "</p>",
+        } );
         MultiPointForm errorForm =
-            new MultiPointForm( "Error", ResourceIcon.FORM_ERROR1,
+            new MultiPointForm( "Error", ResourceIcon.FORM_ERROR1, descrip,
                                 CartesianErrorCoordSet
                                .createSingleAxisErrorCoordSet( 2, 1, "Y" ),
                                 false, StyleKeys.ERROR_SHAPE_1D );

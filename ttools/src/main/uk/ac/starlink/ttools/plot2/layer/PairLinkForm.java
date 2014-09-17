@@ -13,6 +13,7 @@ import uk.ac.starlink.ttools.plot2.AuxReader;
 import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Glyph;
+import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
@@ -41,11 +42,19 @@ public class PairLinkForm implements ShapeForm {
     }
 
     public String getFormName() {
-        return "Link";
+        return "Link2";
     }
 
     public Icon getFormIcon() {
         return ResourceIcon.FORM_LINK2;
+    }
+
+    public String getFormDescription() {
+        return PlotUtil.concatLines( new String[] {
+            "<p>Plots a line linking two positions from the same",
+            "input table row.",
+            "</p>",
+        } );
     }
 
     public int getPositionCount() {
