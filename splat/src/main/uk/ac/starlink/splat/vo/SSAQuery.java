@@ -433,19 +433,19 @@ public class SSAQuery
         ArrayList<String> extp = new ArrayList <String>();
         //String sub = "";
         String[] paramdata = queryparams.split("&");
-        for ( int i = 1; i<paramdata.length; i++) { // the first one is thrown away
-            String param = paramdata[i].substring(0, paramdata[i].indexOf("="));
-            if ( !param.equals("TARGETNAME") && !param.equals("POS") && !param.equals("SIZE") && 
-                 !param.equals("BAND") && !param.equals("TIME") && !param.equals("FORMAT") && 
-                 !param.equals("WAVECALIB") && !param.equals("FLUXCALIB")) 
-                extp.add(param);
-        }
+        if (paramdata.length >1)
+            for ( int i = 1; i<paramdata.length; i++) { // the first one is thrown away
+                String param = paramdata[i].substring(0, paramdata[i].indexOf("="));
+                if ( !param.equals("TARGETNAME") && !param.equals("POS") && !param.equals("SIZE") && 
+                        !param.equals("BAND") && !param.equals("TIME") && !param.equals("FORMAT") && 
+                        !param.equals("WAVECALIB") && !param.equals("FLUXCALIB")) 
+                    extp.add(param);
+            }
         
-        
-        //ArrayList<String> extp = new ArrayList<String>();
         if (extp.isEmpty())
             return null;
-        else return extp;
+        else 
+            return extp;
     }
     
     
