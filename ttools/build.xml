@@ -1208,6 +1208,16 @@
           classpathref="classpath">
       <sysproperty key="java.awt.headless" value="true"/>
     </java>
+    <java classname="uk.ac.starlink.ttools.build.LayerTypeDoc"
+          failonerror="yes"
+          output="${build.docs}/layertype-docs.xml"
+          logerror="yes"
+          classpathref="classpath"/>
+    <java classname="uk.ac.starlink.ttools.build.ShapeModeDoc"
+          failonerror="yes"
+          output="${build.docs}/shapemode-docs.xml"
+          logerror="yes"
+          classpathref="classpath"/>
 
     <!-- Write XML files containing MatchEngine usage information
      !   for inclusion in the user document. -->

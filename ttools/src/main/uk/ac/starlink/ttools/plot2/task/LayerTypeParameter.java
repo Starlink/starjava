@@ -67,9 +67,14 @@ public class LayerTypeParameter extends ChoiceParameter<LayerType>
         setPrompt( "Plot type for layer " + suffix );
         String osfix = "&lt;" + AbstractPlot2Task.EXAMPLE_LAYER_SUFFIX + "&gt;";
         StringBuffer obuf = new StringBuffer();
-        for ( LayerType type : getOptions() ) {
+        for ( LayerType ltype : getOptions() ) {
+            String lname = stringifyOption( ltype );
             obuf.append( "<li><code>" )
-                .append( type.getName() )
+                .append( "<ref id='layer-" )
+                .append( lname )
+                .append( "' plaintextref='yes'>" )
+                .append( lname )
+                .append( "</ref>" )
                 .append( "</code></li>\n" );
         }
         String optlist = obuf.toString();
@@ -88,7 +93,8 @@ public class LayerTypeParameter extends ChoiceParameter<LayerType>
             "which configure that layer.",
             "Suffixes may be any string, including the empty string.",
             "</p>",
-            "<p>This parameter may take one of the following values:",
+            "<p>This parameter may take one of the following values,",
+            "described in more detail in <ref id='LayerType'/>:",
             "<ul>",
             optlist,
             "</ul>",

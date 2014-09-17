@@ -136,8 +136,26 @@ public class ShapeFamilyLayerType implements LayerType {
         param.setNullPermitted( false );
         param.setDefaultOption( param.getOptions()[ 0 ] );
         param.setPrompt( "Colouring policy" );
+        StringBuffer sbuf = new StringBuffer();
+        for ( ShapeMode mode : param.getOptions() ) {
+            String mname = mode.getModeName();
+            sbuf.append( "<li>" )
+                .append( "<code>" )
+                .append( "<ref id='shading-" )
+                .append( mname )
+                .append( "' plaintextref='yes'>" )
+                .append( mname )
+                .append( "</ref>" )
+                .append( "</code>" )
+                .append( "</li>\n" );
+        }
+        String items = sbuf.toString();
         param.setDescription( new String[] {
             "<p>Determines how plotted objects are coloured.",
+            "Available options are:",
+            "<ul>",
+            items,
+            "</ul>",
             "</p>",
         } );
         return param;

@@ -40,6 +40,10 @@
   <!-- Description of graphical output modes. -->
   <!ENTITY paintmode-docs SYSTEM 'paintmode-docs.xml'>
 
+  <!-- Description of plot2 objects. -->
+  <!ENTITY layertype-docs SYSTEM 'layertype-docs.xml'>
+  <!ENTITY shapemode-docs SYSTEM 'shapemode-docs.xml'>
+
   <!-- Summary paragraphs containing usage for each commmand. -->
   <!ENTITY calc-summary SYSTEM 'calc-summary.xml'>
   <!ENTITY cdsskymatch-summary SYSTEM 'cdsskymatch-summary.xml'>
@@ -2882,8 +2886,53 @@ in multi-object match contexts.
 
 </sect>
 
-<sect id="plot">
+<sect id="plot2">
 <subhead><title>Plotting</title></subhead>
+
+<subsect id="LayerType">
+<subhead><title>Layer Types</title></subhead>
+
+<p>A plot consists of a plotting surface (including axes, annotations etc)
+which has a geometry specific to the type of plot being done,
+and zero or more plot layers.
+The different plot layers and how to configure them with parameters
+is given in the following subsections.
+The layers which may be plotted on a particular surface depend on the
+plot type, so not all of these are available for every plot type.
+</p>
+
+&layertype-docs;
+
+</subsect>
+
+<subsect id="ShapeMode">
+<subhead><title>Shading Modes</title></subhead>
+
+<p>Some plot <ref id="LayerType">layer types</ref>
+have an associated <code>shading</code> parameter
+which determines how plotted markers are coloured.
+This is independent of the marker shapes
+(which may be points, vectors, ellipses, ...)
+but may be affected by how many markers are plotted on top of each other,
+additional input table values, selected colour maps etc.
+For the simplest shading types
+(e.g. <ref id="shading-flat"><code>flat</code></ref>)
+it's just a case of choosing a colour,
+but the more complex ones have several associated parameters.
+</p>
+
+<p>The various shading types and their usages are described in
+the following subsections.
+</p>
+
+&shapemode-docs;
+
+</subsect>
+
+</sect>
+
+<sect id="plot">
+<subhead><title>Old-Style Plotting</title></subhead>
 
 <p>As of Version 2.0 (October 2008), STILTS offers table plotting commands.
 These acquire a data point from each line of one or more input tables,
