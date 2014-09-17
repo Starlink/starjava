@@ -488,10 +488,10 @@ public class SSAQuery
         }
         
         
-        //ArrayList<String> extp = new ArrayList<String>();
         if (extp.isEmpty())
             return null;
-        else return extp;
+        else 
+            return extp;
     }
     
     
