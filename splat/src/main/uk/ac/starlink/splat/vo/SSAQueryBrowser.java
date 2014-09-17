@@ -1525,20 +1525,25 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                     if (slist.isServerSelected(server.getShortName())) {
 
                         SSAQuery ssaQuery =  new SSAQuery( server );
-                       // ssaQuery.setServer(server) ; //Parameters(queryLine); // copy the query parameters to the new query
+                        // ssaQuery.setServer(server) ; //Parameters(queryLine); // copy the query parameters to the new query
                         ssaQuery.setQuery(queryText.getText());
-                        ArrayList<String> extp = ssaQuery.getParamList(queryText.getText());
-                        
-                        boolean supportsAll = true;
-                        boolean supportsSome = false;
-                        for (int j=0; j<extp.size(); j++) {
-                           
+                        ArrayList<String> extp = ssaQuery.getParamList(queryText.getText()); 
+                        if ( extp != null ) {
+
+                            boolean supportsAll = true;
+                            boolean supportsSome = false;
+                            for (int j=0; j<extp.size(); j++) {
+
                                 supportsAll = supportsAll && serverParam.paramSupported(server.getShortName(), extp.get(j));
                                 supportsSome = supportsSome || serverParam.paramSupported(server.getShortName(), extp.get(j));
-                        }
-                        if (supportsSome) // or supportsAll...   
+                            }
+                            if (supportsSome ) // or supportsAll...  
+                                queryList.add(ssaQuery);
+                        } else  //  or the query has no extra parameters
                             queryList.add(ssaQuery);
+
                     }
+
                 } catch(Exception npe) {
                     ErrorDialog.showError( this, "Exception", npe );
                     npe.printStackTrace();
