@@ -139,6 +139,14 @@ public abstract class ShapeMode implements ModePlotter.Mode {
     }
 
     /**
+     * Returns a description of this mode as an XML string.
+     * The return value should be one or more &lt;p&gt; elements.
+     *
+     * @return  XML description of mode
+     */
+    public abstract String getModeDescription();
+
+    /**
      * Returns the additional coordinates associated with this mode.
      *
      * @return   array of non-positional coordinates associated with colouring
@@ -207,6 +215,28 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                    new Coord[ 0 ] );
             transparent_ = transparent;
             binThresh_ = binThresh;
+        }
+
+        public String getModeDescription() {
+            if ( transparent_ ) {
+                return PlotUtil.concatLines( new String[] {
+                    "<p>Paints markers in a transparent version of their",
+                    "selected colour.",
+                    "The degree of transparency is determined by",
+                    "how many points are plotted on top of each other",
+                    "and by the opaque limit.",
+                    "The opaque limit fixes how many points must be",
+                    "plotted on top of each other to completely obscure",
+                    "the background.  This is set to a fixed value,",
+                    "so a transparent level that works well for a crowded",
+                    "region (or low magnification) may not work so well",
+                    "for a sparse region (or when zoomed in).",
+                    "</p>",
+                } );
+            }
+            else {
+                return "<p>Paints markers in a single fixed colour.</p>";
+            }
         }
 
         public ConfigKey[] getConfigKeys() {
@@ -448,6 +478,22 @@ public abstract class ShapeMode implements ModePlotter.Mode {
         AutoTransparentMode() {
             super( "translucent", ResourceIcon.MODE_ALPHA,
                    new Coord[ 0 ] );
+        }
+
+        public String getModeDescription() {
+            return PlotUtil.concatLines( new String[] {
+                "<p>Paints markers in a transparent version of their",
+                "selected colour.",
+                "The degree of transparency is determined by how many points",
+                "are plotted on top of each other and by the transparency",
+                "level.",
+                "Unlike " + modeRef( TRANSPARENT2D ) + " mode,",
+                "the transparency varies according to the average",
+                "point density in the plot,",
+                "so leaving the setting the same as you zoom in and out",
+                "usually has a sensible effect.",
+                "</p>",
+            } );
         }
 
         public ConfigKey[] getConfigKeys() {
@@ -827,6 +873,24 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             super( "auto", ResourceIcon.MODE_AUTO );
         }
 
+        public String getModeDescription() {
+            return PlotUtil.concatLines( new String[] {
+                "<p>Paints isolated points in their selected colour",
+                "but where multiple points",
+                "<em>in the same layer</em>",
+                "overlap it adjusts the clour by darkening it.",
+                "This means that for isolated points",
+                "(most or all points in a non-crowded plot,",
+                "or outliers in a crowded plot)",
+                "it behaves just like " + modeRef( FLAT2D ) + " mode,",
+                "but it's easy to see where overdense regions lie.",
+                "</p>",
+                "<p>This is like " + modeRef( DENSITY ) + " mode,",
+                "but with no user-configurable options.",
+                "</p>",
+            } );
+        }
+
         public ConfigKey[] getConfigKeys() {
             return new ConfigKey[] {
                 StyleKeys.COLOR,
@@ -853,6 +917,26 @@ public abstract class ShapeMode implements ModePlotter.Mode {
          */
         CustomDensityMode() {
             super( "density", ResourceIcon.MODE_DENSITY );
+        }
+
+        public String getModeDescription() {
+            return PlotUtil.concatLines( new String[] {
+                "<p>Paints markers using a configurable colour map",
+                "to indicate how many points are plotted over each other.",
+                "Specifically, it colours each pixel according to how many",
+                "times that pixel has has been covered by one of the markers",
+                "plotted by the layer in question.",
+                "To put it another way,",
+                "it generates a false-colour density map with pixel",
+                "granularity using a smoothing kernel of the form of the",
+                "markers plotted by the layer.",
+                "The upshot is that you can see the plot density",
+                "of points or other markers plotted.",
+                "</p>",
+                "<p>This is like " + modeRef( AUTO ) + " mode,",
+                "but with more user-configurable options.",
+                "</p>",
+            } );
         }
 
         public ConfigKey[] getConfigKeys() {
@@ -988,6 +1072,18 @@ public abstract class ShapeMode implements ModePlotter.Mode {
         AuxShadingMode( boolean transparent ) {
             super( "aux", ResourceIcon.MODE_AUX, new Coord[] { SHADE_COORD } );
             transparent_ = transparent;
+        }
+
+        public String getModeDescription() {
+            return PlotUtil.concatLines( new String[] {
+                "<p>Paints markers in a colour determined by the value",
+                "of an additional data coordinate.",
+                "The point colours then represent an additional dimension",
+                "of the plot.",
+                "There are additional options to adjust the colour map",
+                "and draw the points with fixed transparency.",
+                "</p>",
+            } );
         }
 
         public ConfigKey[] getConfigKeys() {
@@ -1290,6 +1386,17 @@ public abstract class ShapeMode implements ModePlotter.Mode {
         shader.adjustRgba( rgba, value );
         Color color = new Color( rgba[ 0 ], rgba[ 1 ], rgba[ 2 ], rgba[ 3 ] );
         return IconUtils.colorIcon( base, color );
+    }
+
+    /**
+     * Returns an XML reference to the given mode.
+     *
+     * @param  mode  shape mode
+     * @return  &lt;ref&gt; element with content <code>mode.getModeName()</code>
+     */
+    private static String modeRef( ShapeMode mode ) {
+        String mname = mode.getModeName().toString();
+        return "<ref id='shading-" + mname + "'>" + mname + "</ref>";
     }
 
     /**

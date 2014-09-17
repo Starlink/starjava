@@ -67,6 +67,9 @@ public class ShapeModeDoc {
             .append( mname )
             .append( "</code></title></subhead>\n" );
 
+        /* Description. */
+        sbuf.append( mode.getModeDescription() );
+
         /* Usage overview. */
         List<String> usageWords = new ArrayList<String>();
         usageWords.add( paramPrefix_ + suffix_ + "=" + mname );
