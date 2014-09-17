@@ -3,6 +3,7 @@ package uk.ac.starlink.task;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.util.Collection;
+import java.util.Comparator;
 
 /**
  * A Parameter describes the function of one of a task's parameters.
@@ -37,6 +38,14 @@ public abstract class Parameter<T> {
     private String stringValue_;
     private T objectValue_;
     private boolean gotValue_;
+
+    /** Compares parameters alphabetically by parameter name. */
+    public static final Comparator<Parameter> BY_NAME =
+            new Comparator<Parameter>() {
+        public int compare( Parameter p1, Parameter p2 ) {
+            return p1.getName().compareTo( p2.getName() );
+        }
+    };
 
     /**
      * Constructs a parameter with a given name.  This name should be unique

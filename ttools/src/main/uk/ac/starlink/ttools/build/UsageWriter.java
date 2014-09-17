@@ -6,7 +6,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -62,14 +61,7 @@ public class UsageWriter {
             outln( "</p>" );
             outln( "<p>" );
             outln( "<dl>" );
-            Arrays.sort( params, new Comparator() {
-                public int compare( Object o1, Object o2 ) {
-                    Parameter p1 = (Parameter) o1;
-                    Parameter p2 = (Parameter) o2;
-                    return ((Parameter) o1).getName()
-                          .compareTo( ((Parameter) o2).getName() );
-                }
-            } );
+            Arrays.sort( params, Parameter.BY_NAME );
             for ( int i = 0; i < params.length; i++ ) {
                 outln( xmlItem( params[ i ], false ) );
             }
