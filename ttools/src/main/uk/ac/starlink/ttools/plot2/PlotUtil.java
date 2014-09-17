@@ -193,6 +193,24 @@ public class PlotUtil {
     }
 
     /**
+     * Concatentates lines, adding a newline character at the end of each.
+     *
+     * @param   lines  lines of text
+     * @return  concatenation
+     */
+    public static String concatLines( String[] lines ) {
+        int leng = 0;
+        for ( String line : lines ) {
+            leng += line.length() + 1;
+        }
+        StringBuffer sbuf = new StringBuffer( leng );
+        for ( String line : lines ) {
+            sbuf.append( line ).append( '\n' );
+        }
+        return sbuf.toString();
+    }
+
+    /**
      * Turns an Icon into a Picture.
      *
      * @param   icon   icon
