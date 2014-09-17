@@ -19,6 +19,14 @@ import uk.ac.starlink.ttools.plot2.data.Coord;
 public interface ShapeForm extends ModePlotter.Form {
 
     /**
+     * Returns a description of this mode as an XML string.
+     * The return value should be one or more &lt;p&gt; elements.
+     *
+     * @return  XML description of form
+     */
+    String getFormDescription();
+
+    /**
      * Returns the number of data positions per tuple used by this form.
      *
      * @return   number of sets of positional coordinates
