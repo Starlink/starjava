@@ -8,17 +8,19 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.ttools.Formatter;
 import uk.ac.starlink.ttools.Stilts;
 import uk.ac.starlink.ttools.plot2.DataGeom;
-import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.data.Coord;
+import uk.ac.starlink.ttools.plot2.layer.ShapeMode;
 import uk.ac.starlink.ttools.plot2.task.AbstractPlot2Task;
 import uk.ac.starlink.ttools.plot2.task.LayerType;
 import uk.ac.starlink.ttools.plot2.task.LayerTypeParameter;
+import uk.ac.starlink.ttools.plot2.task.ShapeFamilyLayerType;
 import uk.ac.starlink.ttools.plot2.task.TypedPlot2Task;
 import uk.ac.starlink.util.LoadException;
 import uk.ac.starlink.util.ObjectFactory;
@@ -35,21 +37,25 @@ public class LayerTypeDoc {
 
     private final boolean basicXml_;
     private final String suffix_;
-    private final String tableUsage_;
     private final String posUsage_;
     private final String extraUsage_;
     private final String styleUsage_;
+    private final String shadeUsage_;
+    private final String tableUsage_;
 
     /**
      * Constructor.
+     *
+     * @param  basicXml  avoid XML constructs that won't show up in text output
      */
     public LayerTypeDoc( boolean basicXml ) {
         basicXml_ = basicXml;
         suffix_ = AbstractPlot2Task.EXAMPLE_LAYER_SUFFIX;
-        tableUsage_ = "<table-params" + suffix_ + ">";
         posUsage_ = "<pos-coord-params" + suffix_ + ">";
         extraUsage_ = "<extra-coord-params" + suffix_ + ">";
         styleUsage_ = "<style-params" + suffix_ + ">";
+        shadeUsage_ = "<shade-params" + suffix_ + ">";
+        tableUsage_ = "<table-params" + suffix_ + ">";
     }
 
     /**
@@ -70,28 +76,35 @@ public class LayerTypeDoc {
         /* Work out what groups of auxiliary parameters it has. */
         boolean hasPos = npos > 0;
         boolean hasExtra = extraCoords.length > 0;
-        boolean hasTable = hasPos | hasExtra;
         boolean hasStyle = styleKeys.length > 0;
+        boolean hasShade = layerType instanceof ShapeFamilyLayerType;
+        boolean hasTable = hasPos | hasExtra;
 
         /* Start output. */
         StringBuffer sbuf = new StringBuffer()
-            .append( "<subsubsect id='layer-" + lname + "'>\n" )
-            .append( "<subhead><title><code>" + lname
-                                            + "</code></title></subhead>\n" );
+            .append( "<subsubsect id='layer-" )
+            .append( lname )
+            .append( "'>\n" )
+            .append( "<subhead><title><code>" )
+            .append( lname )
+            .append( "</code></title></subhead>\n" );
 
         /* Usage overview. */
         List<String> usageWords = new ArrayList<String>();
         usageWords.add( AbstractPlot2Task.PLOTTER_PREFIX + suffix_
                       + "=" + lname );
-        if ( hasStyle ) {
-            usageWords.add( styleUsage_ );
+        if ( hasPos ) {
+            String mult = npos > 1 ? ( "*" + npos ) : "";
+            usageWords.add( posUsage_ + mult );
         }
         if ( hasExtra ) {
             usageWords.add( extraUsage_ );
         }
-        if ( hasPos ) {
-            String mult = npos > 1 ? ( "*" + npos ) : "";
-            usageWords.add( posUsage_ + mult );
+        if ( hasStyle ) {
+            usageWords.add( styleUsage_ );
+        }
+        if ( hasShade ) {
+            usageWords.add( shadeUsage_ );
         }
         if ( hasTable ) {
             usageWords.add( tableUsage_ );
@@ -106,19 +119,29 @@ public class LayerTypeDoc {
         /* Start list of stanzas for each parameter group. */
         sbuf.append( "<p><dl>\n" );
 
-        /* Style parameters. */
-        if ( hasStyle ) {
-            Parameter[] styleParams = PlotUtil.arrayConcat(
-                layerType.getAssociatedParameters( suffix_ ),
-                LayerTypeParameter.getConfigParams( styleKeys, suffix_ )
-            );
-            String[] styleComments = new String[] {
-                "<p>Gives configuration values for the options",
-                "that affect the details of the plot layer's appearance.",
+        /* Positional coordinate parameters. */
+        if ( hasPos ) {
+            String[] posComments = new String[] {
+                "<p>Positional coordinates give a position for each row",
+                "of the input table.",
+                "Their form depends on the plot geometry",
+                "(which plotting command is used).",
+                "For a plane plot",
+                "the parameters would be",
+                "<code>x" + suffix_ + "</code> and",
+                "<code>y" + suffix_ + "</code>,",
+                "for the horizontal and vertical coordinates respectively.",
+                "</p>",
+                "<p>The parameter values are in all cases strings interpreted",
+                "as numeric expressions based on column names.",
+                "These can be column names, fixed values or algebraic",
+                "expressions as described in <ref id='jel'/>.",
                 "</p>",
             };
-            sbuf.append( usageStanza( styleUsage_, "Style parameters",
-                                      styleComments, styleParams ) );
+            sbuf.append( usageStanza( posUsage_,
+                                      "Positional coordinate parameters",
+                                      posComments, new Parameter[ 0 ],
+                                      new String[ 0 ] ) );
         }
 
         /* Non-positional coordinate parameters. */
@@ -135,32 +158,47 @@ public class LayerTypeDoc {
             };
             sbuf.append( usageStanza( extraUsage_,
                                       "Non-positional coordinate parameters",
-                                      extraComments, extraParams ) );
+                                      extraComments, extraParams,
+                                      new String[ 0 ] ) );
         }
 
-        /* Positional coordinate parameters. */
-        if ( hasPos ) {
-            String[] posComments = new String[] {
-                "<p>Positional coordinates give a position for each row",
-                "of the input table.",
-                "Their form depends on the plot geometry",
-                "(which plotting command is used).",
-                "For a plane plot",
-                "(<ref id='plot2plane'><code>plot2plane</code></ref>)",
-                "the parameters would be",
-                "<code>x" + suffix_ + "</code> and",
-                "<code>y" + suffix_ + "</code>,",
-                "for the horizontal and vertical coordinates respectively.",
-                "</p>",
-                "<p>The parameter values are in all cases strings interpreted",
-                "as numeric expressions based on column names.",
-                "These can be column names, fixed values or algebraic",
-                "expressions as described in <ref id='jel'/>.",
+        /* Style parameters. */
+        if ( hasStyle ) {
+            Parameter[] styleParams =
+                LayerTypeParameter.getConfigParams( styleKeys, suffix_ );
+            String[] styleComments = new String[] {
+                "<p>Gives configuration values for the options",
+                "that affect the details of the plot layer's appearance.",
                 "</p>",
             };
-            sbuf.append( usageStanza( posUsage_,
-                                      "Positional coordinate parameters",
-                                      posComments, new Parameter[ 0 ] ) );
+            sbuf.append( usageStanza( styleUsage_, "Style parameters",
+                                      styleComments, styleParams,
+                                      new String[ 0 ] ) );
+        }
+
+        /* Shading parameters. */
+        if ( hasShade ) {
+            ChoiceParameter<ShapeMode> shapeModeParam =
+                ((ShapeFamilyLayerType) layerType)
+               .createShapeModeParameter( suffix_ );
+            Parameter[] shadeParams = new Parameter[] { shapeModeParam };
+            String[] shadeComments = new String[] {
+                "<p>Shading parameters determine how the plotted markers",
+                "are coloured.",
+                "The value supplied for",
+                "<code>" + shapeModeParam.getName() + "</code>",
+                "determines what other configuration parameters",
+                "if any, are required for the shading.",
+                "The details are given in the relevant shading subsections",
+                "in <ref id='ShapeMode'/>.",
+                "</p>",
+            };
+            String[] moreUsageWords = new String[] {
+                "<shade-params" + suffix_ + ">",
+            };
+            sbuf.append( usageStanza( shadeUsage_, "Shading parameters",
+                                      shadeComments, shadeParams,
+                                      moreUsageWords ) );
         }
 
         /* Input table parameters. */
@@ -175,7 +213,8 @@ public class LayerTypeDoc {
                 "</p>",
             };
             sbuf.append( usageStanza( tableUsage_, "Table parameters",
-                                      tableComments, tableParams ) );
+                                      tableComments, tableParams,
+                                      new String[ 0 ] ) );
         }
 
         /* End parameter group list. */
@@ -198,7 +237,8 @@ public class LayerTypeDoc {
      * @return   &lt;dt&gt;&lt;dd&gt; element pair
      */
     private String usageStanza( String usageForm, String txt,
-                                String[] commentLines, Parameter[] params ) {
+                                String[] commentLines, Parameter[] params,
+                                String[] moreUsageWords ) {
         StringBuffer sbuf = new StringBuffer();
 
         /* <dt>. */
@@ -212,10 +252,11 @@ public class LayerTypeDoc {
         List<String> words = new ArrayList<String>();
 
         /* Add usage summary. */
-        words.add( usageForm + ":" );
+        words.add( usageForm + ( params.length > 0 ? ":" : "" ) );
         for ( Parameter param : params ) {
             words.add( LayerTypeParameter.usageWord( param ) );
         }
+        words.addAll( Arrays.asList( moreUsageWords ) );
         sbuf.append( "<p><verbatim><![CDATA[\n" )
             .append( Formatter.formatWords( words, 3 ) )
             .append( "]]></verbatim></p>\n" );
