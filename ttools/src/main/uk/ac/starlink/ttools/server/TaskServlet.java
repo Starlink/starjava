@@ -6,7 +6,6 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import javax.servlet.ServletConfig;
@@ -303,14 +302,7 @@ public class TaskServlet extends HttpServlet {
 
         out.println( "<h3>Parameters</h3>" );
         out.println( "<dl>" );
-        Arrays.sort( params, new Comparator() {
-            public int compare( Object o1, Object o2 ) {
-                Parameter p1 = (Parameter) o1;
-                Parameter p2 = (Parameter) o2;
-                return ((Parameter) o1).getName()
-                      .compareTo( ((Parameter) o2).getName() ); 
-            }
-        } );
+        Arrays.sort( params, Parameter.BY_NAME );
         for ( int i = 0; i < params.length; i++ ) {
             Parameter param = params[ i ];
             out.println( "<dt><b><a name='" + param.getName() + "'>"
