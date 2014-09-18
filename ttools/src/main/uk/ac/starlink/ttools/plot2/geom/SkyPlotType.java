@@ -43,8 +43,6 @@ public class SkyPlotType implements PlotType {
     private SkyPlotType() {
         dataGeoms_ = new DataGeom[] {
             SkyDataGeom.GENERIC,
-            SkyDataGeom.createGeom( SkySys.EQUATORIAL, SkySys.GALACTIC ),
-            SkyDataGeom.createGeom( SkySys.GALACTIC, SkySys.EQUATORIAL ),
         };
     }
 
