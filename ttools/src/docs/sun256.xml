@@ -51,6 +51,11 @@
   <!ENTITY funcs-summary SYSTEM 'funcs-summary.xml'>
   <!ENTITY pixfoot-summary SYSTEM 'pixfoot-summary.xml'>
   <!ENTITY pixsample-summary SYSTEM 'pixsample-summary.xml'>
+  <!ENTITY plot2cube-summary SYSTEM 'plot2cube-summary.xml'>
+  <!ENTITY plot2plane-summary SYSTEM 'plot2plane-summary.xml'>
+  <!ENTITY plot2sky-summary SYSTEM 'plot2sky-summary.xml'>
+  <!ENTITY plot2sphere-summary SYSTEM 'plot2sphere-summary.xml'>
+  <!ENTITY plot2time-summary SYSTEM 'plot2time-summary.xml'>
   <!ENTITY plot2d-summary SYSTEM 'plot2d-summary.xml'>
   <!ENTITY plot3d-summary SYSTEM 'plot3d-summary.xml'>
   <!ENTITY plothist-summary SYSTEM 'plothist-summary.xml'>
@@ -2889,16 +2894,23 @@ in multi-object match contexts.
 <sect id="plot2">
 <subhead><title>Plotting</title></subhead>
 
-<subsect id="LayerType">
-<subhead><title>Layer Types</title></subhead>
-
 <p>A plot consists of a plotting surface (including axes, annotations etc)
 which has a geometry specific to the type of plot being done,
 and zero or more plot layers.
-The different plot layers and how to configure them with parameters
+There is a specific plot command for each geometry,
+and the layers are described in <ref id="LayerType"/> below.
+<ref id="ShapeMode"/> describes the shading modes which affect
+how colouring is performed for some of the layer types.
+</p>
+
+<subsect id="LayerType">
+<subhead><title>Layer Types</title></subhead>
+
+<p>The different plot layers and how to configure them with parameters
 is given in the following subsections.
-The layers which may be plotted on a particular surface depend on the
-plot type, so not all of these are available for every plot type.
+The layers which may be plotted on a particular surface depend on
+the plot geometry,
+so not all of these are available for every plot command.
 </p>
 
 &layertype-docs;
@@ -4674,6 +4686,130 @@ stilts pixsample in=messier.xml pixdata=lambda_sfd_ebv.fits
 </p>
 
 </subsubsect>
+
+</subsect>
+
+<subsect id="plot2plane" tocleaf="yes">
+<subhead><title><code>plot2plane</code>: &plot2plane-purpose;</title></subhead>
+
+<p><code>plot2plane</code> draws plots on a Cartesian 2-dimensional surface.
+It can do scatter plots, contours, text labelling analytic functions,
+error bars, vectors, histograms and more with a variety of colouring
+options.
+</p>
+
+<p>Positional coordinates are specified as <code>x</code>, <code>y</code> pairs,
+e.g.:
+<verbatim>
+   plot2plane layer1=mark in1=cat.fits x1=RMAG y1=RMAG-BMAG
+</verbatim> 
+</p>
+
+&plot2plane-summary;
+
+</subsect>
+
+<subsect id="plot2sky" tocleaf="yes">
+<subhead><title><code>plot2sky</code>: &plot2sky-purpose;</title></subhead>
+
+<p><code>plot2sky</code> draws plots on the celestial sphere.
+This can be represented in a number of ways, controlled by the
+<code>projection</code> parameter; by default the view is of a rotatable
+sphere seen from the outside
+(which approximates to a tangent projection for small regions of the sky),
+but Aitoff and Plate Car&#x00e9;e projections are also available.
+A number of options are also provided for drawing and labelling the
+grid showing celestial coordinates.
+</p>
+
+<p>Positional coordinates are specified as <code>lon</code>, <code>lat</code>
+pairs giving longitude and latitude in decimal degrees.
+By default these are represented in the output in the same, unlabelled,
+coordinate system.
+However the command can can also transform between different coordinate
+systems if you specify the data and view systems e.g.:
+<verbatim>
+   plot2sky viewsys=galactic
+            layer1=mark in1=cat.fits lon1=RA2000 lat1=DEC2000 datasys1=equatorial
+</verbatim>
+</p>
+
+&plot2sky-summary;
+
+</subsect>
+
+<subsect id="plot2cube" tocleaf="yes">
+<subhead><title><code>plot2cube</code>: &plot2cube-purpose;</title></subhead>
+
+<p><code>plot2cube</code> draws plots in a Cartesian 3-dimensional space.
+The plotting volume is a cube,
+which is viewed from the outside and usually bounded by
+an annotated wire frame.
+</p>
+
+<p>Positional coordinates are specified as
+<code>x</code>, <code>y</code>, <code>z</code> triples,
+e.g.:
+<verbatim>
+   plot2cube layer1=mark in1=sim.fits x1=XPOS y1=YPOS z1=ZPOS
+</verbatim>
+</p>
+
+&plot2cube-summary;
+
+</subsect>
+
+<subsect id="plot2sphere" tocleaf="yes">
+<subhead><title><code>plot2sphere</code>:
+                &plot2sphere-purpose;</title></subhead>
+
+<p><code>plot2sphere</code> draws plots in an isotropic 3-dimensional space
+using spherical polar coordinates.
+The plotting volume is a cube,
+which is viewed from the outside and usually bounded by a
+wire frame annotated by Cartesian coordinates.
+This viewing cube is not necessarily centered on the coordinate origin.
+</p>
+
+<p>This plotting geometry is like that used by
+<ref id="plot2cube"><code>plot2cube</code></ref>,
+but the coordinate unit size is always the same in the three dimensions,
+and the coordinates are specified differently.
+</p>
+
+<p>Positional coordinates are specified as
+<code>lon</code>, <code>lat</code>, <code>r</code> triples,
+e.g.:
+<verbatim>
+   plot2sphere layer1=mark in1=survey.fits lon1=RA lat1=DEC r1=REDSHIFT
+</verbatim>
+</p>
+
+&plot2sphere-summary;
+
+</subsect>
+
+<subsect id="plot2time" tocleaf="yes">
+<subhead><title><code>plot2time</code>: &plot2time-purpose;</title></subhead>
+
+<p><code>plot2time</code> draws plots where the horizontal axis represents time.
+The time axis can be labelled in various different ways including
+MJD, decimal year and ISO-8601 form.
+</p>
+
+<p>Positional coordinates are specified as <code>t</code>, <code>y</code> pairs,
+e.g.:
+<verbatim>
+   plot2time in1=series.cdf layer1=line t1=EPOCH y1=ENERGY
+</verbatim>
+</p>
+
+<p><em><strong>Note:</strong> this plot type is experimental.
+As currently implemented it lacks some important features.
+It may be improved or withdrawn in a future version.
+</em></p>
+
+&plot2time-summary;
 
 </subsect>
 
