@@ -53,9 +53,11 @@ public class ShapeModeDoc {
     public String getXmlDoc( ShapeMode mode ) {
         String mname = mode.getModeName();
         Parameter[] coordParams =
-            LayerTypeParameter.getCoordParams( mode.getExtraCoords(), suffix_ );
+            LayerTypeParameter
+           .getCoordParams( mode.getExtraCoords(), suffix_, true );
         Parameter[] styleParams =
-            LayerTypeParameter.getConfigParams( mode.getConfigKeys(), suffix_ );
+            LayerTypeParameter
+           .getConfigParams( mode.getConfigKeys(), suffix_, false );
         Parameter[] params = PlotUtil.arrayConcat( coordParams, styleParams );
         StringBuffer sbuf = new StringBuffer();
 
@@ -81,6 +83,13 @@ public class ShapeModeDoc {
             .append( "<verbatim><![CDATA[\n" )
             .append( Formatter.formatWords( usageWords, 3 ) )
             .append( "]]></verbatim>\n" )
+            .append( "</p>\n" )
+            .append( "<p>All the parameters listed here\n" )
+            .append( "affect only the relevant layer,\n" )
+            .append( "identified by the suffix\n" ) 
+            .append( "<code>" )
+            .append( suffix_ )
+            .append( "</code>.\n" )
             .append( "</p>\n" );
 
         /* Parameter details. */

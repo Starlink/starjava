@@ -24,9 +24,11 @@ public class ConfigParameter<T> extends Parameter<T> {
      * @param  key  config key
      * @param  baseName   parameter name excluding suffix
      * @param  layerSuffix    layer suffix, may be empty
+     * @param  fullDetail  if true, adds additional description
      */
     private ConfigParameter( ConfigKey<T> key,
-                             String baseName, String layerSuffix ) {
+                             String baseName, String layerSuffix,
+                             boolean fullDetail ) {
         super( baseName + layerSuffix, key.getValueClass(), true );
         key_ = key;
         setStringDefault( key.valueToString( key.getDefaultValue() ) );
@@ -44,19 +46,21 @@ public class ConfigParameter<T> extends Parameter<T> {
         String usage = meta.getStringUsage();
         String prompt = meta.getShortDescription();
         String descrip = meta.getXmlDescription();
-        if ( layerSuffix != null && layerSuffix.length() > 0 ) {
-            if ( prompt != null && prompt.length() > 0 ) {
-                prompt += " for layer " + layerSuffix;
-            }
-            if ( descrip != null && descrip.length() > 0 ) {
-                descrip = new StringBuffer()
-                    .append( descrip )
-                    .append( "<p>This parameter affects layer " )
-                    .append( layerSuffix )
-                    .append( "." )
-                    .append( "</p>" )
-                    .append( "\n" )
-                    .toString();
+        if ( fullDetail ) {
+            if ( layerSuffix != null && layerSuffix.length() > 0 ) {
+                if ( prompt != null && prompt.length() > 0 ) {
+                    prompt += " for layer " + layerSuffix;
+                }
+                if ( descrip != null && descrip.length() > 0 ) {
+                    descrip = new StringBuffer()
+                        .append( descrip )
+                        .append( "<p>This parameter affects layer " )
+                        .append( layerSuffix )
+                        .append( "." )
+                        .append( "</p>" )
+                        .append( "\n" )
+                        .toString();
+                }
             }
         }
         if ( usage != null ) {
@@ -72,7 +76,7 @@ public class ConfigParameter<T> extends Parameter<T> {
      * @param  key  config key
      */
     public ConfigParameter( ConfigKey<T> key ) {
-        this( key, key.getMeta().getShortName(), "" );
+        this( key, key.getMeta().getShortName(), "", true );
     }
 
     public T stringToObject( Environment env, String stringval )
@@ -96,11 +100,13 @@ public class ConfigParameter<T> extends Parameter<T> {
      *
      * @param  key  config key
      * @param  layerSuffix   suffix part of name
+     * @param  fullDetail  if true, adds additional description
      * @return   new parameter
      */
     public static <T> ConfigParameter<T>
-            createSuffixedParameter( ConfigKey<T> key, String layerSuffix ) {
+            createSuffixedParameter( ConfigKey<T> key, String layerSuffix,
+                                     boolean fullDetail ) {
         return new ConfigParameter<T>( key, key.getMeta().getShortName(),
-                                       layerSuffix );
+                                       layerSuffix, fullDetail );
     }
 }

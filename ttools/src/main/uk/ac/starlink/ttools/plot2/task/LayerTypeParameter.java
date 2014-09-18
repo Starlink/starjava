@@ -198,8 +198,9 @@ public class LayerTypeParameter extends ChoiceParameter<LayerType>
                     if ( npos > 1 ) {
                         suffix = PlotUtil.getIndexSuffix( ipos ) + suffix;
                     }
-                    coordWords.addAll( usageWords( getCoordParams( posCoords,
-                                                                   suffix ) ) );
+                    coordWords.addAll(
+                        usageWords( getCoordParams( posCoords, suffix,
+                                                    false ) ) );
                 }
                 if ( npos > 0 ) {
                     for ( int i = 0; i < geomParams_.length; i++ ) {
@@ -207,7 +208,8 @@ public class LayerTypeParameter extends ChoiceParameter<LayerType>
                     }
                 }
                 coordWords.addAll(
-                    usageWords( getCoordParams( extraCoords, layerSuffix_ ) ) );
+                    usageWords( getCoordParams( extraCoords, layerSuffix_,
+                                                false ) ) );
                 sbuf.append( Formatter.formatWords( coordWords, 9 ) );
             }
 
@@ -220,7 +222,8 @@ public class LayerTypeParameter extends ChoiceParameter<LayerType>
                      styleWords.add( usageWord( param ) );
                 }
                 styleWords.addAll(
-                    usageWords( getConfigParams( styleKeys, layerSuffix_ ) ) );
+                    usageWords( getConfigParams( styleKeys, layerSuffix_,
+                                                 false ) ) );
                 sbuf.append( Formatter.formatWords( styleWords, 9 ) );
             }
         }
@@ -255,10 +258,10 @@ public class LayerTypeParameter extends ChoiceParameter<LayerType>
                              + mode.getModeName() );
                 modeWords.addAll(
                     usageWords( getCoordParams( mode.getExtraCoords(),
-                                                layerSuffix_ ) ) );
+                                                layerSuffix_, false ) ) );
                 modeWords.addAll(
                     usageWords( getConfigParams( mode.getConfigKeys(),
-                                                 layerSuffix_ ) ) );
+                                                 layerSuffix_, false ) ) );
                 sbuf.append( Formatter.formatWords( modeWords, 6 ) );
             }
         }
@@ -312,14 +315,18 @@ public class LayerTypeParameter extends ChoiceParameter<LayerType>
      *  
      * @param  coords  coordinates required
      * @param  suffix  layer suffix
+     * @param  fullDetail  if true, extra detail is appended to the parameter
+     *                     descriptions
      * @return  coord parameters
      */
-    public static Parameter[] getCoordParams( Coord[] coords, String suffix ) {
+    public static Parameter[] getCoordParams( Coord[] coords, String suffix,
+                                              boolean fullDetail ) {
         List<Parameter> paramList = new ArrayList<Parameter>();
         for ( Coord coord : coords ) {
             for ( Input input : coord.getInputs() ) {
                 Parameter param =
-                    AbstractPlot2Task.createDataParameter( input, suffix );
+                    AbstractPlot2Task
+                   .createDataParameter( input, suffix, fullDetail );
                 param.setNullPermitted( ! coord.isRequired() );
                 paramList.add( param );
             }
@@ -333,14 +340,17 @@ public class LayerTypeParameter extends ChoiceParameter<LayerType>
      *
      * @param  configKeys  configuration keys
      * @param  suffix   layer suffix
+     * @param  fullDetail  if true, extra detail is appended to the parameter
+     *                     descriptions
      * @return  config parameters
      */
     public static Parameter[] getConfigParams( ConfigKey[] configKeys,
-                                               String suffix ) {
+                                               String suffix,
+                                               boolean fullDetail ) {
         List<Parameter> paramList = new ArrayList<Parameter>();
         for ( ConfigKey key : configKeys ) {
             paramList.add( ConfigParameter
-                          .createSuffixedParameter( key, suffix ) );
+                          .createSuffixedParameter( key, suffix, fullDetail ) );
         }
         return paramList.toArray( new Parameter[ 0 ] );
     }

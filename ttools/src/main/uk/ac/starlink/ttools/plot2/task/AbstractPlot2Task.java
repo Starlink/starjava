@@ -956,8 +956,8 @@ public abstract class AbstractPlot2Task implements Task {
         }
         StarTable table = getInputTable( env, suffix );
         List<CoordValue> cvlist = new ArrayList<CoordValue>();
+        Coord[] posCoords = geom.getPosCoords();
         for ( int ipos = 0; ipos < npos; ipos++ ) {
-            Coord[] posCoords = geom.getPosCoords();
             String posSuffix = npos > 1 ? PlotUtil.getIndexSuffix( ipos ) : "";
             for ( int ic = 0; ic < posCoords.length; ic++ ) {
                 cvlist.add( getCoordValue( env, posCoords[ ic ],
@@ -988,7 +988,7 @@ public abstract class AbstractPlot2Task implements Task {
             final Input input = inputs[ ii ];
             Parameter param = new ParameterFinder<Parameter>() {
                 protected Parameter createParameter( String sfix ) {
-                    return createDataParameter( input, sfix );
+                    return createDataParameter( input, sfix, true );
                 }
             }.getParameter( env, suffix );
             param.setNullPermitted( ! coord.isRequired() );
@@ -1041,7 +1041,8 @@ public abstract class AbstractPlot2Task implements Task {
             throws TaskException {
         ConfigParameter<T> param = new ParameterFinder<ConfigParameter<T>>() {
             protected ConfigParameter<T> createParameter( String sfix ) {
-                return ConfigParameter.createSuffixedParameter( key, sfix );
+                return ConfigParameter
+                      .createSuffixedParameter( key, sfix, true );
             }
         }.getParameter( env, suffix );
         T value = param.objectValue( env );
@@ -1125,10 +1126,12 @@ public abstract class AbstractPlot2Task implements Task {
      *
      * @param  input  specifies input value required from user
      * @param  suffix  layer-specific suffix
+     * @param  fullDetail  if true, extra detail is appended to the description
      * @return   data parameter
      */
     public static StringParameter createDataParameter( Input input,
-                                                       String suffix ) {
+                                                       String suffix,
+                                                       boolean fullDetail ) {
         InputMeta meta = input.getMeta();
         boolean hasSuffix = suffix.length() > 0;
         String cName = meta.getShortName();
@@ -1154,20 +1157,36 @@ public abstract class AbstractPlot2Task implements Task {
         }
 
         StringParameter param = new StringParameter( cName + suffix );
-        param.setPrompt( meta.getShortDescription()
-                       + ( hasSuffix ? ( " for layer " + suffix )
-                                     : " for plot layers" ) );
-        param.setDescription( new String[] {
-            meta.getXmlDescription(),
-            "<p>This parameter gives a column name, fixed value,",
-            "or algebraic expression for the",
-            "<code>" + cName + "</code> coordinate",
-            ( hasSuffix ? ( "for layer <code>" + suffix + "</code>" )
-                        : ( "for all plot layers" ) ) + ".",
-            "The value is a " + typeTxt + " algebraic expression",
-            "based on column names as described in <ref id='jel'/>.",
-            "</p>",
-        } );
+        String prompt = meta.getShortDescription();
+        if ( fullDetail ) {
+            prompt += hasSuffix ? ( " for layer " + suffix )
+                                : " for plot layers";
+        }
+        param.setPrompt( prompt );
+        StringBuffer dbuf = new StringBuffer()
+            .append( meta.getXmlDescription() );
+        if ( fullDetail ) {
+            dbuf.append( "<p>This parameter gives a column name, " )
+                .append( "fixed value, or algebraic expression for the\n" )
+                .append( "<code>" )
+                .append( cName )
+                .append( "</code> coordinate\n" );
+            if ( hasSuffix ) {
+                dbuf.append( "for layer <code>" )
+                    .append( suffix )
+                    .append( "</code>" );
+            }
+            else {
+                dbuf.append( "for all plot layers" );
+            }
+            dbuf.append( ".\n" );
+            dbuf.append( "The value is a " )
+                .append( typeTxt )
+                .append( " algebraic expression based on column names\n" )
+                .append( "as described in <ref id='jel'/>.\n" )
+                .append( "</p>\n" );
+        }
+        param.setDescription( dbuf.toString() );
         String vUsage = meta.getValueUsage();
         if ( vUsage == null ) {
             vUsage = typeUsage;
