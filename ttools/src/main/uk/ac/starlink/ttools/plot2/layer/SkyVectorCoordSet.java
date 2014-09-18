@@ -34,10 +34,8 @@ public class SkyVectorCoordSet implements MultiPointCoordSet {
                 "<p>Change in the longitude coordinate represented by",
                 "the plotted vector.",
                 "The supplied value is an angle in degrees, and",
-                "<strong>",
-                ( preMultCosLat ? "must" : "must not" ) + " be premultiplied",
-                "</strong>",
-                "by cos(Latitude).",
+                "<strong>" + ( preMultCosLat ? "is" : "is not" ) + "</strong>",
+                "considered to be premultiplied by cos(Latitude).",
                 "</p>",
             } )
            .setValueUsage( "deg" )

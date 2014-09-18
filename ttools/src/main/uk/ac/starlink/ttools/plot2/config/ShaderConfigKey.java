@@ -63,8 +63,8 @@ public class ShaderConfigKey extends OptionConfigKey<Shader> {
                 .append( is < ns - 1 ? "," : "." )
                 .append( "\n" );
         }
-        sbuf.append( "<em>Note:</em>" )
-            .append( "many of these, including rainbow-like ones," )
+        sbuf.append( "<em>Note:</em>\n" )
+            .append( "many of these, including rainbow-like ones,\n" )
             .append( "are frowned upon by the visualisation community.\n" );
         sbuf.append( "</p>\n" );
         getMeta().appendXmlDescription( new String[] { sbuf.toString() } );
