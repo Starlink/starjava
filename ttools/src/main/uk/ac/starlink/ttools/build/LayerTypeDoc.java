@@ -130,6 +130,7 @@ public class LayerTypeDoc {
                 "Their form depends on the plot geometry",
                 "(which plotting command is used).",
                 "For a plane plot",
+                "(<ref id='plot2plane'><code>plot2plane</code></ref>)",
                 "the parameters would be",
                 "<code>x" + suffix_ + "</code> and",
                 "<code>y" + suffix_ + "</code>,",

@@ -157,6 +157,9 @@ public class SpectrogramPlotter
             "1-d images, each one plotted at a different horizontal",
             "coordinate.",
             "</p>",
+            "<p>This specialised layer is only available for",
+            "<ref id='plot2time'><code>time</code></ref> plots.",
+            "</p>",
         } );
     }
 
