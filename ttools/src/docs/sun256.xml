@@ -102,6 +102,13 @@
   <!ENTITY matcher-2d_ellipse-usage SYSTEM 'matcher-2d_ellipse-usage.xml'>
   <!ENTITY matcher-sky.1d-usage SYSTEM 'matcher-sky.1d-usage.xml'>
 
+  <!-- Layer type descriptions for plot2 commands. -->
+  <!ENTITY plot2plane-layers SYSTEM 'plot2plane-layers.xml'>
+  <!ENTITY plot2sky-layers SYSTEM 'plot2sky-layers.xml'>
+  <!ENTITY plot2cube-layers SYSTEM 'plot2cube-layers.xml'>
+  <!ENTITY plot2sphere-layers SYSTEM 'plot2sphere-layers.xml'>
+  <!ENTITY plot2time-layers SYSTEM 'plot2time-layers.xml'>
+
   <!-- Automatically generated plot example text. -->
   <!ENTITY plot2d-examples SYSTEM 'plot2d-examples.xml'>
   <!ENTITY plot3d-examples SYSTEM 'plot3d-examples.xml'>
@@ -4693,9 +4700,6 @@ stilts pixsample in=messier.xml pixdata=lambda_sfd_ebv.fits
 <subhead><title><code>plot2plane</code>: &plot2plane-purpose;</title></subhead>
 
 <p><code>plot2plane</code> draws plots on a Cartesian 2-dimensional surface.
-It can do scatter plots, contours, text labelling analytic functions,
-error bars, vectors, histograms and more with a variety of colouring
-options.
 </p>
 
 <p>Positional coordinates are specified as <code>x</code>, <code>y</code> pairs,
@@ -4704,6 +4708,8 @@ e.g.:
    plot2plane layer1=mark in1=cat.fits x1=RMAG y1=RMAG-BMAG
 </verbatim> 
 </p>
+
+&plot2plane-layers;
 
 &plot2plane-summary;
 
@@ -4734,6 +4740,8 @@ systems if you specify the data and view systems e.g.:
 </verbatim>
 </p>
 
+&plot2sky-layers;
+
 &plot2sky-summary;
 
 </subsect>
@@ -4754,6 +4762,8 @@ e.g.:
    plot2cube layer1=mark in1=sim.fits x1=XPOS y1=YPOS z1=ZPOS
 </verbatim>
 </p>
+
+&plot2cube-layers;
 
 &plot2cube-summary;
 
@@ -4785,6 +4795,8 @@ e.g.:
 </verbatim>
 </p>
 
+&plot2sphere-layers;
+
 &plot2sphere-summary;
 
 </subsect>
@@ -4808,6 +4820,8 @@ e.g.:
 As currently implemented it lacks some important features.
 It may be improved or withdrawn in a future version.
 </em></p>
+
+&plot2time-layers;
 
 &plot2time-summary;
 

@@ -16,9 +16,8 @@ import uk.ac.starlink.ttools.task.LineInvoker;
 import uk.ac.starlink.util.LoadException;
 
 /**
- * Writes a usage paragraph specific to one of the STILTS tasks.
- * Output is to standard output.  This class is designed to be used
- * from its {@link #main} method.
+ * Write usage paragraphs specific to the STILTS tasks.
+ * This class is designed to be used from its <code>main</code> method.
  *
  * @author   Mark Taylor
  * @since    17 Aug 2005

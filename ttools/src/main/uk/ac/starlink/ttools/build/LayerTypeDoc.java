@@ -330,6 +330,24 @@ public class LayerTypeDoc {
     }
 
     /**
+     * Returns XML text that can be used to reference a LayerType
+     * description in the user document.
+     *
+     * @param   ltype  layer type
+     * @return  &lt;ref&gt; element
+     */
+    public static String layerTypeRef( LayerType ltype ) {
+        String ltname = ltype.getName().toLowerCase();
+        return new StringBuffer()
+            .append( "<ref id='layer-" )
+            .append( ltname )
+            .append( "' plaintextref='yes'><code>" )
+            .append( ltname )
+            .append( "</code></ref>" )
+            .toString();
+    }
+
+    /**
      * Main method.  Try <code>-help</code>.
      */
     public static void main( String[] args ) throws LoadException {
