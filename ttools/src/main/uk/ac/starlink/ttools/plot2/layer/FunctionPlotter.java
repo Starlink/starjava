@@ -121,6 +121,15 @@ public class FunctionPlotter extends
         }.setOptionUsage();
     }
 
+    public String getPlotterDescription() {
+        return PlotUtil.concatLines( new String[] {
+            "<p>Plots an analytic function.",
+            "This layer is currently only available for the Plane plots",
+            "(including histogram).",
+            "</p>",
+        } );
+    }
+
     public ConfigKey[] getStyleKeys() {
         List<ConfigKey> list = new ArrayList<ConfigKey>();
         list.addAll( Arrays.asList( getFunctionStyleKeys() ) );

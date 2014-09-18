@@ -19,6 +19,7 @@ import uk.ac.starlink.ttools.plot2.Glyph;
 import uk.ac.starlink.ttools.plot2.LayerOpt;
 import uk.ac.starlink.ttools.plot2.Pixer;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
+import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.PointCloud;
 import uk.ac.starlink.ttools.plot2.SubCloud;
 import uk.ac.starlink.ttools.plot2.Surface;
@@ -115,6 +116,16 @@ public class LabelPlotter extends AbstractPlotter<LabelStyle> {
      */
     public LabelPlotter() {
         super( "Label", ResourceIcon.PLOT_LABEL, LABEL_CGRP );
+    }
+
+    public String getPlotterDescription() {
+        return PlotUtil.concatLines( new String[] {
+            "<p>Draws a text label at each position.",
+            "You can select the font,",
+            "where the labels appear in relation to the point positions, and",
+            "how crowded the points have to get before they are suppressed.",
+            "</p>",
+        } );
     }
 
     public ConfigKey[] getStyleKeys() {

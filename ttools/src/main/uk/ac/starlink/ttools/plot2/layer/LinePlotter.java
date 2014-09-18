@@ -11,6 +11,7 @@ import java.util.List;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.LayerOpt;
+import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
@@ -34,6 +35,16 @@ public class LinePlotter extends SimpleDecalPlotter<LineStyle> {
     public LinePlotter() {
         super( "Line", ResourceIcon.PLOT_LINE,
                CoordGroup.createSinglePositionCoordGroup() );
+    }
+
+    public String getPlotterDescription() {
+        return PlotUtil.concatLines( new String[] {
+            "<p>Plots a point-to-point line joining",
+            "up the positions of data points.",
+            "Note that for a large and unordered data set",
+            "this can lead to a big scribble on the screen.",
+            "</p>",
+        } );
     }
 
     public ConfigKey[] getStyleKeys() {

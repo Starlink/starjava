@@ -16,6 +16,7 @@ import uk.ac.starlink.ttools.plot2.Glyph;
 import uk.ac.starlink.ttools.plot2.LayerOpt;
 import uk.ac.starlink.ttools.plot2.Pixer;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
+import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
@@ -52,6 +53,16 @@ public class SpotPlotter extends AbstractPlotter<SpotPlotter.SpotStyle> {
      */
     public SpotPlotter() {
         super( "Spot", createSpotIcon( Color.RED ), 1, new Coord[ 0 ] );
+    }
+
+    public String getPlotterDescription() {
+        return PlotUtil.concatLines( new String[] {
+            "<p>Plots a fixed sized marker at each data point.",
+            "This is a minimal plotter implementation,",
+            "intended as an implementation example.",
+            "More capable plotters exist which do the same thing.",
+            "</p>",
+        } );
     }
 
     public ConfigKey[] getStyleKeys() {

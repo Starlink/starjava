@@ -29,6 +29,10 @@ public class SimpleLayerType implements LayerType {
         return plotter_.getPlotterName();
     }
 
+    public String getXmlDescription() {
+        return plotter_.getPlotterDescription();
+    }
+
     public Parameter[] getAssociatedParameters( String suffix ) {
         return new Parameter[ 0 ];
     }

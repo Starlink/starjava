@@ -150,6 +150,16 @@ public class SpectrogramPlotter
         return ResourceIcon.PLOT_SPECTRO;
     }
 
+    public String getPlotterDescription() {
+        return PlotUtil.concatLines( new String[] {
+            "<p>Plots spectrograms.",
+            "A spectrogram is a sequence of spectra plotted as vertical",
+            "1-d images, each one plotted at a different horizontal",
+            "coordinate.",
+            "</p>",
+        } );
+    }
+
     public CoordGroup getCoordGroup() {
         return spectroCoordGrp_;
     }

@@ -162,6 +162,10 @@ public class HistogramPlotter
         return ResourceIcon.PLOT_HISTO;
     }
 
+    public String getPlotterDescription() {
+        return "<p>Plots a histogram.</p>";
+    }
+
     public CoordGroup getCoordGroup() {
         return histoCoordGrp_;
     }

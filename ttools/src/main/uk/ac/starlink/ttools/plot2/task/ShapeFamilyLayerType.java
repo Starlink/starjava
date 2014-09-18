@@ -64,6 +64,10 @@ public class ShapeFamilyLayerType implements LayerType {
         return form_.getFormName();
     }
 
+    public String getXmlDescription() {
+        return form_.getFormDescription();
+    }
+
     public Parameter[] getAssociatedParameters( String suffix ) {
         return new Parameter[] { createShapeModeParameter( suffix ) };
     }

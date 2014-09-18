@@ -1394,7 +1394,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
      * @param  mode  shape mode
      * @return  &lt;ref&gt; element with content <code>mode.getModeName()</code>
      */
-    private static String modeRef( ShapeMode mode ) {
+    public static String modeRef( ShapeMode mode ) {
         String mname = mode.getModeName().toString();
         return "<ref id='shading-" + mname + "'>" + mname + "</ref>";
     }
