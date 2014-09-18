@@ -1191,6 +1191,13 @@
           classpathref="classpath">
       <sysproperty key="java.awt.headless" value="true"/>
     </java>
+    <java classname="uk.ac.starlink.ttools.build.LayersWriter"
+          failonerror="yes"
+          fork="yes"
+          dir="${build.docs}"
+          classpathref="classpath">
+      <sysproperty key="java.awt.headless" value="true"/>
+    </java>
     <java classname="uk.ac.starlink.ttools.build.FilterDoc"
           failonerror="yes"
           output="${build.docs}/filter-docs.xml"
