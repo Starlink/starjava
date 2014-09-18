@@ -66,10 +66,12 @@ public class CubePlotType implements PlotType {
             MarkForm.SINGLE,
             SizeForm.getInstance(),
             MultiPointForm
-           .createVectorForm( new CartesianVectorCoordSet( axisNames_ ),
+           .createVectorForm( "XYZVector",
+                              new CartesianVectorCoordSet( axisNames_ ),
                               true ),
             MultiPointForm
-           .createErrorForm( CartesianErrorCoordSet
+           .createErrorForm( "XYZError",
+                             CartesianErrorCoordSet
                             .createAllAxesErrorCoordSet( axisNames_ ),
                              StyleKeys.ERROR_SHAPE_3D ),
             PairLinkForm.getInstance(),
