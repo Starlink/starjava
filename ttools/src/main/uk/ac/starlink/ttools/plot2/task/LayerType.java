@@ -31,6 +31,13 @@ public interface LayerType {
     String getName();
 
     /**
+     * Returns an XML description of this layer type.
+     *
+     * @return   one or more &lt;p&gt; elements
+     */
+    String getXmlDescription();
+
+    /**
      * Returns a list of zero or more additional parameters associated
      * with this layer type that may be required to turn it into the
      * specification of an actual Plotter object.

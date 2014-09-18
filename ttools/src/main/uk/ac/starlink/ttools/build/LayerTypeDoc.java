@@ -89,6 +89,9 @@ public class LayerTypeDoc {
             .append( lname )
             .append( "</code></title></subhead>\n" );
 
+        /* Description text. */
+        sbuf.append( layerType.getXmlDescription() );
+
         /* Usage overview. */
         List<String> usageWords = new ArrayList<String>();
         usageWords.add( AbstractPlot2Task.PLOTTER_PREFIX + suffix_

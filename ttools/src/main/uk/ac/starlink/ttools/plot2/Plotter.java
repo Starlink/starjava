@@ -40,6 +40,15 @@ public interface Plotter<S extends Style> {
     Icon getPlotterIcon();
 
     /**
+     * Returns an XML description of this plotter.
+     *
+     * <p>Note: really this should appear at the LayerType level.
+     *
+     * @return   one or more &lt;p&gt; elements
+     */
+    String getPlotterDescription();
+
+    /**
      * Returns an object describing which data coordinates are used for
      * this plotter and how they are arranged in supplied DataSpec objects.
      *

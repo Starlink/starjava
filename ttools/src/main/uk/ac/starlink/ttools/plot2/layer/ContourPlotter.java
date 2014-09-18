@@ -14,6 +14,7 @@ import uk.ac.starlink.ttools.plot2.Decal;
 import uk.ac.starlink.ttools.plot2.Drawing;
 import uk.ac.starlink.ttools.plot2.LayerOpt;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
+import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.PointCloud;
 import uk.ac.starlink.ttools.plot2.SubCloud;
 import uk.ac.starlink.ttools.plot2.Surface;
@@ -81,6 +82,27 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
      */
     public ContourPlotter() {
         super( "Contour", ResourceIcon.PLOT_CONTOUR, 1, new Coord[ 0 ] );
+    }
+
+    public String getPlotterDescription() {
+        return PlotUtil.concatLines( new String[] {
+            "<p>Plots position density contours.",
+            "This provides another way",
+            "(alongside the",
+            ShapeMode.modeRef( ShapeMode.AUTO ),
+            "and",
+            ShapeMode.modeRef( ShapeMode.DENSITY ),
+            "shading modes)",
+            "to visualise the characteristics of overdense regions",
+            "in a crowded plot.",
+            "It's not very useful if you just have a few points.",
+            "</p>",
+            "<p>The contours are currently drawn as pixels rather than lines",
+            "so they don't look very beautify in exported vector",
+            "output formats (PDF, PostScript).",
+            "This may be improved in the future.",
+            "</p>",
+        } );
     }
 
     public ConfigKey[] getStyleKeys() {
