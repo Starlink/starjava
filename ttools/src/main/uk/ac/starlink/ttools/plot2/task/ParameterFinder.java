@@ -32,13 +32,9 @@ public abstract class ParameterFinder<P extends Parameter> {
     protected abstract P createParameter( String suffix );
 
     /**
-     * Returns a parameter to use for obtaining a value associated
-     * with the given layer suffix from the given environment.
-     * If the environment contains a value for the parameter
-     * with the given suffix, or of any shortened form of that suffix
-     * (including the empty string), that parameter is returned.
-     * Otherwise, a parameter with the full suffix is returned.
-     * In the latter case, the environment doesn't already have a
+     * Calls {@link #findParameter}, but if the result is null,
+     * a parameter with the full suffix is returned.
+     * In that case, the environment doesn't already have a
      * value for the parameter, but it may take steps to obtain one
      * (like asking the user).
      *
@@ -46,9 +42,28 @@ public abstract class ParameterFinder<P extends Parameter> {
      * @param  fullSuffix  suffix associated with the layer for which
      *                     the value is required
      * @return  parameter for obtaining a value associated with the
-     *          layer suffix
+     *          layer suffix, not null
      */
-    P getParameter( Environment env, String fullSuffix ) {
+    public P getParameter( Environment env, String fullSuffix ) {
+        P param = findParameter( env, fullSuffix );
+        return param != null ? param : createParameter( fullSuffix );
+    }
+
+    /**
+     * Returns an existing parameter to use for obtaining a value associated
+     * with the given layer suffix from the given environment.
+     * If the environment contains a value for the parameter
+     * with the given suffix, or of any shortened form of that suffix
+     * (including the empty string), that parameter is returned.
+     * Otherwise, null is returned.
+     *
+     * @param  env  execution environment, possibly populated with values
+     * @param  fullSuffix  suffix associated with the layer for which
+     *                     the value is required
+     * @return  parameter for obtaining a value associated with the
+     *          layer suffix, or null
+     */
+    public P findParameter( Environment env, String fullSuffix ) {
         Collection<String> names =
             new HashSet<String>( Arrays.asList( env.getNames() ) );
         for ( int i = fullSuffix.length(); i >= 0; i-- ) {
@@ -57,7 +72,25 @@ public abstract class ParameterFinder<P extends Parameter> {
                 return param;
             }
         }
-        return createParameter( fullSuffix );
+        return null;
+    }
+
+    /**
+     * Attempts to locate a parameter known by this finder with the given name.
+     * If it can't be found, return null.
+     *
+     * @param  target  required parameter name (not case-sensitive)
+     * @param  fullSuffix  suffix associated with the layer for which
+     *                     the value is required
+     * @return   parameter with name <code>target</code>, or null
+     */
+    public P findParameterByName( String target, String fullSuffix ) {
+        for ( int i = fullSuffix.length(); i >= 0; i-- ) {
+            P param = createParameter( fullSuffix.substring( 0, i ) );
+            if ( target.equalsIgnoreCase( param.getName() ) ) {
+                return param;
+            }
+        }
+        return null;
     }
 }
-

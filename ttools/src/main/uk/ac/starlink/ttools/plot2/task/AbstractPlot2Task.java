@@ -79,6 +79,7 @@ import uk.ac.starlink.ttools.plottask.Painter;
 import uk.ac.starlink.ttools.plottask.SwingPainter;
 import uk.ac.starlink.ttools.task.AddEnvironment;
 import uk.ac.starlink.ttools.task.ConsumerTask;
+import uk.ac.starlink.ttools.task.DynamicTask;
 import uk.ac.starlink.ttools.task.FilterParameter;
 import uk.ac.starlink.ttools.task.InputTableParameter;
 import uk.ac.starlink.ttools.task.StringMultiParameter;
@@ -92,7 +93,7 @@ import uk.ac.starlink.ttools.task.TableProducer;
  * @author   Mark Taylor
  * @since    22 Aug 2014
  */
-public abstract class AbstractPlot2Task implements Task {
+public abstract class AbstractPlot2Task implements Task, DynamicTask {
 
     private final boolean allowAnimate_;
     private final IntegerParameter xpixParam_;
@@ -685,6 +686,135 @@ public abstract class AbstractPlot2Task implements Task {
                                              true, caching );
     }
 
+    public Parameter getParameterByName( Environment env, String paramName )
+            throws TaskException {
+
+        /* Find each layer that has been set in the environment
+         * (by a layerN setting).  Find its layer type and suffix.
+         * Then it's a case of going through all the parameters that
+         * come with that layer type to see if any of them match the
+         * requested on by name. */
+        PlotContext context = getPlotContext( env );
+        for ( Map.Entry<String,LayerType> entry :
+              getLayers( env, context ).entrySet() ) {
+            String suffix = entry.getKey();
+            final LayerType layer = entry.getValue();
+
+            /* Layer type associated parameters. */
+            int nassoc = layer.getAssociatedParameters( suffix ).length;
+            for ( int ia = 0; ia < nassoc; ia++ ) {
+                final int iassoc = ia;
+                Parameter param = new ParameterFinder<Parameter>() {
+                    protected Parameter createParameter( String sfix ) {
+                        return layer.getAssociatedParameters( sfix )[ iassoc ];
+                    }
+                }.findParameterByName( paramName, suffix );
+                if ( param != null ) {
+                    return param;
+                }
+            }
+
+            /* Layer positional parameters. */
+            int npos = layer.getPositionCount();
+            DataGeom geom = context.getGeom( env, suffix );
+            Coord[] posCoords = geom.getPosCoords();
+            for ( int ipos = 0; ipos < npos; ipos++ ) {
+                final String posSuffix = npos > 1
+                                       ? PlotUtil.getIndexSuffix( ipos )   
+                                       : "";
+                for ( Coord coord : posCoords ) {
+                    for ( final Input input : coord.getInputs() ) {
+                        Parameter param = new ParameterFinder<Parameter>() {
+                            protected Parameter createParameter( String sfix ) {
+                                return createDataParameter( input,
+                                                            posSuffix + sfix,
+                                                            true );
+                            }
+                        }.findParameterByName( paramName, suffix );
+                        if ( param != null ) {
+                            return param;
+                        }
+                    }
+                }
+            }
+
+            /* Layer non-positional parameters. */
+            Coord[] extraCoords = layer.getExtraCoords();
+            for ( Coord coord : extraCoords ) {
+                for ( final Input input : coord.getInputs() ) {
+                    Parameter param = new ParameterFinder<Parameter>() {
+                        protected Parameter createParameter( String sfix ) {
+                            return createDataParameter( input, sfix, true );
+                        }
+                    }.findParameterByName( paramName, suffix );
+                    if ( param != null ) {
+                        return param;
+                    }
+                }
+            }
+
+            /* Layer style parameters. */
+            ConfigKey[] styleKeys = layer.getStyleKeys();
+            for ( final ConfigKey key : styleKeys ) {
+                Parameter param = new ParameterFinder<Parameter>() {
+                    protected Parameter createParameter( String sfix ) {
+                        return ConfigParameter
+                              .createSuffixedParameter( key, sfix, true );
+                    }
+                }.findParameterByName( paramName, suffix );
+                if ( param != null ) {
+                    return param;
+                }
+            }
+
+            /* Now try shading parameters if appropriate. */
+            if ( layer instanceof ShapeFamilyLayerType ) {
+                final ShapeFamilyLayerType shadeLayer =
+                    (ShapeFamilyLayerType) layer;
+                ShapeMode shapeMode =
+                        new ParameterFinder<Parameter<ShapeMode>>() {
+                    protected Parameter<ShapeMode>
+                            createParameter( String sfix ) {
+                        return shadeLayer.createShapeModeParameter( sfix );
+                    }
+                }.getParameter( env, suffix )
+                 .objectValue( env );
+
+                /* Shading coordinate parameters. */
+                Coord[] shadeCoords = shapeMode.getExtraCoords();
+                for ( Coord coord : shadeCoords ) {
+                    for ( final Input input : coord.getInputs() ) {
+                        Parameter param = new ParameterFinder<Parameter>() {
+                            protected Parameter createParameter( String sfix ) {
+                                return createDataParameter( input, sfix, true );
+                            }
+                        }.findParameterByName( paramName, suffix );
+                        if ( param != null ) {
+                            return param;
+                        }
+                    }
+                }
+
+                /* Shading config parameters. */
+                ConfigKey[] shadeKeys = shapeMode.getConfigKeys();
+                for ( final ConfigKey key : shadeKeys ) {
+                    Parameter param = new ParameterFinder<Parameter>() {
+                        protected Parameter createParameter( String sfix ) {
+                            return ConfigParameter
+                                  .createSuffixedParameter( key, sfix, true );
+                        }
+                    }.findParameterByName( paramName, suffix );
+                    if ( param != null ) {
+                        return param;
+                    }
+                }
+            }
+        } 
+
+        /* No luck. */
+        return null;
+    }
+
     /**
      * Gets a painter value from an environment.
      *
@@ -877,6 +1007,32 @@ public abstract class AbstractPlot2Task implements Task {
     }
 
     /**
+     * Returns a map of suffix strings to LayerType objects.
+     * Each suffix string is appended to parameters associated with the
+     * relevant LayerType as a namespacing device on the command line.
+     *
+     * @param  env  execution environment
+     * @param  context  plot context
+     * @return  mapping from suffixes to layer types for the environment
+     */
+    private Map<String,LayerType> getLayers( Environment env,
+                                             PlotContext context )
+            throws TaskException {
+        String prefix = PLOTTER_PREFIX;
+        Map<String,LayerType> map = new LinkedHashMap<String,LayerType>();
+        for ( String pname : env.getNames() ) {
+            if ( pname != null &&
+                 pname.toLowerCase().startsWith( prefix.toLowerCase() ) ) {
+                String suffix = pname.substring( prefix.length() );
+                LayerType ltype = createLayerTypeParameter( suffix, context )
+                                 .objectValue( env );
+                map.put( suffix, ltype );
+            }
+        }
+        return map;
+    }
+
+    /**
      * Returns a map of suffix strings to Plotter objects.
      * Each suffix string is appended to parameters associated with the
      * relevant plotter as a namespacing device on the command line.
@@ -888,21 +1044,14 @@ public abstract class AbstractPlot2Task implements Task {
     private Map<String,Plotter> getPlotters( Environment env,
                                              PlotContext context )
             throws TaskException {
-        String prefix = PLOTTER_PREFIX;
-        Map<String,Plotter> map = new LinkedHashMap<String,Plotter>();
-        String[] pnames = env.getNames();
-        for ( int in = 0; in < pnames.length; in++ ) {
-            String name = pnames[ in ];
-            if ( name != null &&
-                 name.toLowerCase().startsWith( prefix.toLowerCase() ) ) {
-                String suffix = name.substring( prefix.length() );
-                LayerType ltype = createLayerTypeParameter( suffix, context )
-                                 .objectValue( env );
-                Plotter plotter = ltype.getPlotter( env, suffix );
-                map.put( suffix, plotter );
-            }
+        Map<String,Plotter> plotterMap = new LinkedHashMap<String,Plotter>();
+        for ( Map.Entry<String,LayerType> entry :
+              getLayers( env, context ).entrySet() ) {
+            String suffix = entry.getKey();
+            LayerType ltype = entry.getValue();
+            plotterMap.put( suffix, ltype.getPlotter( env, suffix ) );
         }
-        return map;
+        return plotterMap;
     }
 
     /**
