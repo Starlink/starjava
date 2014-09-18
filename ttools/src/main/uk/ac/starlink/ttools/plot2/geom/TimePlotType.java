@@ -47,7 +47,7 @@ public class TimePlotType implements PlotType {
             "</p>",
         } );
         MultiPointForm errorForm =
-            new MultiPointForm( "Error", ResourceIcon.FORM_ERROR1, descrip,
+            new MultiPointForm( "YError", ResourceIcon.FORM_ERROR1, descrip,
                                 CartesianErrorCoordSet
                                .createSingleAxisErrorCoordSet( 2, 1, "Y" ),
                                 false, StyleKeys.ERROR_SHAPE_1D );

@@ -57,9 +57,11 @@ public class SkyPlotType implements PlotType {
         ShapeForm[] forms = new ShapeForm[] {
             MarkForm.SINGLE,
             SizeForm.getInstance(),
-            MultiPointForm.createVectorForm( new SkyVectorCoordSet( true ),
+            MultiPointForm.createVectorForm( "SkyVector",
+                                             new SkyVectorCoordSet( true ),
                                              true ),
-            MultiPointForm.createEllipseForm( new SkyEllipseCoordSet(), true ),
+            MultiPointForm.createEllipseForm( "SkyEllipse",
+                                              new SkyEllipseCoordSet(), true ),
             PairLinkForm.getInstance(),
             MarkForm.PAIR,
         };

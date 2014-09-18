@@ -126,6 +126,7 @@ public class MultiPointForm implements ShapeForm {
      * Returns a MultiPointForm instance for drawing arrows from the
      * central position to another position.
      *
+     * @param  name  form name
      * @param  extraCoordSet  nDataDim-element coord set that defines one
      *                        extra data position, the (unscaled) endpoint
      *                        of the vector
@@ -133,7 +134,8 @@ public class MultiPointForm implements ShapeForm {
      * @return  new vector form instance
      */
     public static MultiPointForm
-                  createVectorForm( MultiPointCoordSet extraCoordSet,
+                  createVectorForm( String name,
+                                    MultiPointCoordSet extraCoordSet,
                                     boolean canScale ) {
         String descrip = PlotUtil.concatLines( new String[] {
             "<p>Plots directed lines from the data position",
@@ -155,7 +157,7 @@ public class MultiPointForm implements ShapeForm {
             "auto-scaling options.",
             "</p>",
         } );
-        return new MultiPointForm( "Vector", ResourceIcon.FORM_VECTOR,
+        return new MultiPointForm( name, ResourceIcon.FORM_VECTOR,
                                    descrip, extraCoordSet, canScale,
                                    StyleKeys.VECTOR_SHAPE );
     }
@@ -164,6 +166,7 @@ public class MultiPointForm implements ShapeForm {
      * Returns a MultiPointForm instance for drawing ellipses around the
      * central position.
      *
+     * @param  name  form name
      * @param  extraCoordSet  3-element coord set containing major/minor
      *                        radius (order not significant) and
      *                        position angle in degrees
@@ -171,7 +174,8 @@ public class MultiPointForm implements ShapeForm {
      * @return  new vector form instance
      */
     public static MultiPointForm
-                  createEllipseForm( MultiPointCoordSet extraCoordSet,
+                  createEllipseForm( String name,
+                                     MultiPointCoordSet extraCoordSet,
                                      boolean canScale ) {
         String descrip = PlotUtil.concatLines( new String[] {
             "<p>Plots an ellipse (or rectangle or other similar figure)",
@@ -179,7 +183,7 @@ public class MultiPointForm implements ShapeForm {
             "an optional rotation angle.",
             "</p>",
         } );
-        return new MultiPointForm( "Ellipse", ResourceIcon.FORM_ELLIPSE,
+        return new MultiPointForm( name, ResourceIcon.FORM_ELLIPSE,
                                    descrip, extraCoordSet, canScale,
                                    StyleKeys.ELLIPSE_SHAPE );
     }
@@ -187,12 +191,14 @@ public class MultiPointForm implements ShapeForm {
     /**
      * Returns a MultiPointForm for drawing error bars.
      *
+     * @param  name  form name
      * @param  extraCoordSet  coord set specifying error bar position endpoints
      * @param  rendererKey   config key for specifying error renderers
      * @return  new error form instance
      */
     public static MultiPointForm
-                  createErrorForm( MultiPointCoordSet extraCoordSet,
+                  createErrorForm( String name,
+                                   MultiPointCoordSet extraCoordSet,
                                    MultiPointConfigKey rendererKey ) {
         String descrip = PlotUtil.concatLines( new String[] {
             "<p>Plots symmetric or asymmetric error bars in some or",
@@ -202,7 +208,7 @@ public class MultiPointForm implements ShapeForm {
             "ellipses, rectangles etc aligned with the axes.",
             "</p>",
         } );
-        return new MultiPointForm( "Error", ResourceIcon.FORM_ERROR, descrip,
+        return new MultiPointForm( name, ResourceIcon.FORM_ERROR, descrip,
                                    extraCoordSet, false, rendererKey );
     }
 

@@ -66,13 +66,15 @@ public class PlanePlotType implements PlotType {
             MarkForm.SINGLE,
             SizeForm.getInstance(),
             MultiPointForm
-           .createVectorForm( new CartesianVectorCoordSet( axisNames_ ), true ),
+           .createVectorForm( "XYVector",
+                              new CartesianVectorCoordSet( axisNames_ ), true ),
             MultiPointForm
-           .createErrorForm( CartesianErrorCoordSet
+           .createErrorForm( "XYError",
+                             CartesianErrorCoordSet
                             .createAllAxesErrorCoordSet( axisNames_ ),
                              StyleKeys.ERROR_SHAPE_2D ),
             MultiPointForm
-           .createEllipseForm( new PlaneEllipseCoordSet(), true ),
+           .createEllipseForm( "XYEllipse", new PlaneEllipseCoordSet(), true ),
             PairLinkForm.getInstance(),
             MarkForm.PAIR,
         };
