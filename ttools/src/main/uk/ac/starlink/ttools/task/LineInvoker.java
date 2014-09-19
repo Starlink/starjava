@@ -252,17 +252,17 @@ public class LineInvoker {
                 task = taskFactory_.createObject( taskName );
                 String[] taskArgs = (String[])
                                     argList.toArray( new String[ 0 ] );
+                LineWord[] words = new LineWord[ taskArgs.length ];
+                for ( int i = 0; i < taskArgs.length; i++ ) {
+                    words[ i ] = new LineWord( taskArgs[ i ] );
+                }
+                env.setWords( words );
                 String helpText = helpMessage( env, task, taskName, taskArgs );
                 if ( helpText != null ) {
                     out.println( "\n" + helpText );
                     return 0;
                 }
                 else {
-                    LineWord[] words = new LineWord[ taskArgs.length ];
-                    for ( int i = 0; i < taskArgs.length; i++ ) {
-                        words[ i ] = new LineWord( taskArgs[ i ] );
-                    }
-                    env.setWords( words );
                     long start = System.currentTimeMillis();
                     Executable exec = task.createExecutable( env );
                     String[] unused = env.getUnused();
@@ -421,7 +421,8 @@ public class LineInvoker {
      * @return  help text, or null
      */
     private String helpMessage( LineTableEnvironment env, Task task,
-                                String taskName, String[] taskArgs ) {
+                                String taskName, String[] taskArgs )
+            throws TaskException {
         for ( int i = 0; i < taskArgs.length; i++ ) {
             String arg = taskArgs[ i ];
             String helpFor = null;
@@ -456,6 +457,15 @@ public class LineInvoker {
                 for ( int j = 0; j < params.length; j++ ) {
                     Parameter param = params[ j ];
                     if ( env.paramNameMatches( helpFor, param ) ) {
+                        return getParamHelp( env, taskName, param );
+                    }
+                }
+
+                /* If that fails, look for environment-sensitive parameters. */
+                if ( task instanceof DynamicTask ) {
+                    Parameter param =
+                        ((DynamicTask) task).getParameterByName( env, helpFor );
+                    if ( param != null ) {
                         return getParamHelp( env, taskName, param );
                     }
                 }
