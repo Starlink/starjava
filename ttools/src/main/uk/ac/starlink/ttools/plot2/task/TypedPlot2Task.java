@@ -49,6 +49,7 @@ public class TypedPlot2Task extends AbstractPlot2Task {
         paramList.addAll( getKeyParams( surfFact.getNavigatorKeys() ) );
 
         /* Layer parameter, which defines what plotters are available. */
+        paramList.add( createLabelParameter( EXAMPLE_LAYER_SUFFIX ) );
         paramList.add( createLayerTypeParameter( EXAMPLE_LAYER_SUFFIX,
                                                  context ) );
 
