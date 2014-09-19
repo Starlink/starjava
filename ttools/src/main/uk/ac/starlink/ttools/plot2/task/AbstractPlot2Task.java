@@ -1,6 +1,7 @@
 package uk.ac.starlink.ttools.plot2.task;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Insets;
 import java.awt.Rectangle;
@@ -47,9 +48,12 @@ import uk.ac.starlink.ttools.plot.GraphicExporter;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot.Style;
 import uk.ac.starlink.ttools.plot2.AuxScale;
+import uk.ac.starlink.ttools.plot2.Captioner;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Decoration;
 import uk.ac.starlink.ttools.plot2.LayerOpt;
+import uk.ac.starlink.ttools.plot2.LegendEntry;
+import uk.ac.starlink.ttools.plot2.LegendIcon;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotPlacement;
 import uk.ac.starlink.ttools.plot2.PlotType;
@@ -60,6 +64,7 @@ import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
+import uk.ac.starlink.ttools.plot2.config.KeySet;
 import uk.ac.starlink.ttools.plot2.config.LoggingConfigMap;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
@@ -79,6 +84,7 @@ import uk.ac.starlink.ttools.plottask.Painter;
 import uk.ac.starlink.ttools.plottask.SwingPainter;
 import uk.ac.starlink.ttools.task.AddEnvironment;
 import uk.ac.starlink.ttools.task.ConsumerTask;
+import uk.ac.starlink.ttools.task.DoubleArrayParameter;
 import uk.ac.starlink.ttools.task.DynamicTask;
 import uk.ac.starlink.ttools.task.FilterParameter;
 import uk.ac.starlink.ttools.task.InputTableParameter;
@@ -101,7 +107,12 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
     private final InsetsParameter insetsParam_;
     private final PaintModeParameter painterParam_;
     private final DataStoreParameter dstoreParam_;
-    private final StringMultiParameter orderParam_;
+    private final StringMultiParameter seqParam_;
+    private final BooleanParameter legendParam_;
+    private final BooleanParameter legborderParam_;
+    private final BooleanParameter legopaqueParam_;
+    private final DoubleArrayParameter legposParam_;
+    private final StringMultiParameter legseqParam_;
     private final BooleanParameter bitmapParam_;
     private final Parameter<Compositor> compositorParam_;
     private final InputTableParameter animateParam_;
@@ -198,11 +209,11 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         } );
         plist.add( dstoreParam_ );
 
-        orderParam_ = new StringMultiParameter( "sequence", ',' );
-        orderParam_.setUsage( "<suffix>[,...]" );
-        orderParam_.setPrompt( "Order in which to plot layers" );
+        seqParam_ = new StringMultiParameter( "seq", ',' );
+        seqParam_.setUsage( "<suffix>[,...]" );
+        seqParam_.setPrompt( "Order in which to plot layers" );
         String osfix = "&lt;" + EXAMPLE_LAYER_SUFFIX + "&gt;";
-        orderParam_.setDescription( new String[] {
+        seqParam_.setDescription( new String[] {
             "<p>Contains a comma-separated list of layer suffixes",
             "to determine the order in which layers are drawn on the plot.",
             "This can affect which symbol are plotted on top of,",
@@ -227,8 +238,82 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
             "but missing or repeated elements are allowed.",
             "</p>",
         } );
-        orderParam_.setNullPermitted( true );
-        plist.add( orderParam_ );
+        seqParam_.setNullPermitted( true );
+        plist.add( seqParam_ );
+
+        legendParam_ = new BooleanParameter( "legend" );
+        legendParam_.setPrompt( "Show legend?" );
+        legendParam_.setDescription( new String[] {
+            "<p>Whether to draw a legend or not.",
+            "If no value is supplied, the decision is made automatically:",
+            "a legend is drawn only if it would have more than one entry.",
+            "</p>",
+        } );
+        legendParam_.setNullPermitted( true );
+        plist.add( legendParam_ );
+
+        legborderParam_ = new BooleanParameter( "legborder" );
+        legborderParam_.setPrompt( "Border around legend?" );
+        legborderParam_.setDescription( new String[] {
+            "<p>If true, a line border is drawn around the legend.",
+            "</p>",
+        } );
+        legborderParam_.setBooleanDefault( true );
+        plist.add( legborderParam_ );
+
+        legopaqueParam_ = new BooleanParameter( "legopaque" );
+        legopaqueParam_.setPrompt( "Legend background opaque?" );
+        legopaqueParam_.setDescription( new String[] {
+            "<p>If true, the background of the legend is opaque,",
+            "and the legend obscures any plot components behind it.",
+            "Otherwise, it's transparent.",
+            "</p>",
+        } );
+        legopaqueParam_.setBooleanDefault( true );
+        plist.add( legopaqueParam_ );
+
+        legposParam_ = new DoubleArrayParameter( "legpos", 2 );
+        legposParam_.setUsage( "<xfrac>,<yfrac>" );
+        legposParam_.setPrompt( "X,Y fractional internal legend position" );
+        legposParam_.setDescription( new String[] {
+            "<p>Determines the position of the legend on the plot,",
+            "if present.",
+            "The value is a comma-separated pair of values giving the",
+            "X and Y positions of the legend within the plotting bounds,",
+            "so for instance \"<code>0.5,0.5</code>\" will put the legend",
+            "right in the middle of the plot.",
+            "If no value is supplied, the legend will appear outside",
+            "the plot boundary.",
+            "</p>",
+        } );
+        legposParam_.setNullPermitted( true );
+        plist.add( legposParam_ );
+
+        legseqParam_ = new StringMultiParameter( "legseq", ',' );
+        legseqParam_.setUsage( "<suffix>[,...]" );
+        legseqParam_.setPrompt( "Order in which to add layers to legend" );
+        legseqParam_.setDescription( new String[] {
+            "<p>Determines which layers are represented in the legend",
+            "(if present) and in which order they appear.", 
+            "The legend has a line for each layer label",
+            "(as determined by the",
+            "<code>" + createLabelParameter( EXAMPLE_LAYER_SUFFIX ) + "</code>",
+            "parameter).",
+            "If multiple layers have the same label,",
+            "they will contribute to the same entry in the legend,",
+            "with style icons plotted over each other.",
+            "The value of this parameter is a sequence of layer suffixes,",
+            "which determines the order in which the legend entries appear.",
+            "Layers with suffixes missing from this list",
+            "do not show up in the legend at all.",
+            "</p>",
+            "<p>If no value is supplied (the default),",
+            "the sequence is the same as the layer plotting sequence",
+            "(see <code>" + seqParam_.getName() + "</code>).",
+            "</p>",
+        } );
+        legseqParam_.setNullPermitted( true );
+        plist.add( legseqParam_ );
 
         bitmapParam_ = new BooleanParameter( "forcebitmap" );
         bitmapParam_.setPrompt( "Force non-vector graphics output?" );
@@ -880,8 +965,6 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         final Compositor compositor = compositorParam_.objectValue( env );
 
         /* Leave out some optional extras for now. */
-        final Icon legend = null;
-        final float[] legpos = null;
         final ShadeAxis shadeAxis = null;
 
         /* Get surface factory and configuration. */
@@ -898,8 +981,23 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
             new Range( surfConfig.get( StyleKeys.SHADE_LOW ),
                        surfConfig.get( StyleKeys.SHADE_HIGH ) );
 
-        /* Gather the requested plot layers from the environment. */
-        final PlotLayer[] layers = createLayers( env, context );
+        /* Gather the defined plot layers from the environment. */
+        Map<String,PlotLayer> layerMap = createLayerMap( env, context );
+
+        /* Get the sequence of layers, then of legend entries, to plot. */
+        String[] layerSeq = seqParam_.stringsValue( env );
+        if ( layerSeq.length == 0 ) {
+            layerSeq = layerMap.keySet().toArray( new String[ 0 ] );
+        }
+        String[] legendSeq = legseqParam_.stringsValue( env );
+        if ( legendSeq.length == 0 ) {
+            legendSeq = layerSeq;
+        }
+
+        /* Get an ordered list of layers to plot. */
+        final PlotLayer[] layers = getLayerSequence( layerMap, layerSeq );
+
+        /* Assemble the list of DataSpecs required for the plot. */
         int nl = layers.length;
         final DataSpec[] dataSpecs = new DataSpec[ nl ];
         for ( int il = 0; il < nl; il++ ) {
@@ -907,6 +1005,15 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                             ? null
                             : layers[ il ].getDataSpec();
         }
+
+        /* Get the legend. */
+        final Icon legend = createLegend( env, layerMap, legendSeq );
+        final float[] legpos = legend == null
+                             ? null
+                             : legposParam_.floatsValue( env );
+
+        /* We have all we need.  Construct and return the object
+         * that can do the plot. */
         return new PlotExecutor() {
 
             public DataStore createDataStore( DataStore prevStore )
@@ -948,10 +1055,11 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      *
      * @param   env  execution environment
      * @param   context  plot context
-     * @return   plot layers specified by the environment
-     *           for the given plot type
+     * @return   suffix->layer map for all the layers specified
+     *           by the environment
      */
-    private PlotLayer[] createLayers( Environment env, PlotContext context )
+    private Map<String,PlotLayer> createLayerMap( Environment env,
+                                                  PlotContext context )
             throws TaskException {
 
         /* Work out what plotters/layers are requested. */
@@ -960,10 +1068,10 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         /* For each plotter, create a PlotLayer based on it using the
          * appropriately suffix-coded parameters in the environment.
          * In this step we deliberately create all the specified layers
-         * and possibly discard some rather than only creating the
-         * required layers.  This is to make sure that the parameter
-         * system does not report specified but unplotted layer parameters
-         * as unused.  Creating layer objects is in any case cheap. */
+         * though some might not be used in future.
+         * It's important to do it that way, so that the parameter system
+         * does not report specified but unplotted layer parameters as unused.
+         * Creating layer objects is in any case cheap. */
         Map<String,PlotLayer> layerMap = new LinkedHashMap<String,PlotLayer>();
         for ( Map.Entry<String,Plotter> entry : plotterMap.entrySet() ) {
             String suffix = entry.getKey();
@@ -974,36 +1082,118 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
             PlotLayer layer = createPlotLayer( env, suffix, plotter, geom );
             layerMap.put( suffix, layer );
         }
+        return layerMap;
+    }
 
-        /* Get the order of layers to plot as implicitly or
-         * explicitly supplied. */
-        String[] suffixOrder = orderParam_.stringsValue( env );
-        final Collection<PlotLayer> layers;
-        if ( suffixOrder.length == 0 ) {
-            layers = layerMap.values();
-        }
-        else {
-            layers = new ArrayList<PlotLayer>();
-            for ( int il = 0; il < suffixOrder.length; il++ ) {
-                PlotLayer layer = layerMap.get( suffixOrder[ il ] );
-                if ( layer == null ) {
-                    String msg = new StringBuffer()
-                        .append( "No specification for layer \"" )
-                        .append( suffixOrder[ il ] )
-                        .append( "\"" )
-                        .append( "; known layers: " )
-                        .append( layerMap.keySet() )
-                        .toString();
-                    throw new ParameterValueException( orderParam_, msg );
-                }
-                else {
-                    layers.add( layer );
-                }
+    /**
+     * Turns the map of defined layers into an ordered sequence of layers
+     * to plot.
+     *
+     * @param  layerMap  suffix->layer map for all defined layers
+     * @return   ordered list of layers to be actually plotted
+     */
+    private PlotLayer[] getLayerSequence( Map<String,PlotLayer> layerMap,
+                                          String[] suffixSeq )
+            throws TaskException {
+        int nl = suffixSeq.length;
+        PlotLayer[] layers = new PlotLayer[ nl ];
+        for ( int il = 0; il < nl; il++ ) {
+            String suffix = suffixSeq[ il ];
+            PlotLayer layer = layerMap.get( suffix );
+            if ( layer == null ) {
+                String msg = new StringBuffer()
+                    .append( "No specification for layer \"" )
+                    .append( suffix )
+                    .append( "\"" )
+                    .append( "; known layers: " )
+                    .append( layerMap.keySet() )
+                    .toString();
+                throw new ParameterValueException( seqParam_, msg );
+            }
+            else {
+                layers[ il ] = layer;
             }
         }
+        return layers;
+    }
 
-        /* Return the plot layers in the chosen order. */
-        return layers.toArray( new PlotLayer[ 0 ] );
+    /**
+     * Turns the map of defined layers into a legend icon.
+     *
+     * @param  env  execution environment
+     * @param  layerMap  suffix->layer map for all defined layers
+     * @return  legend icon, may be null
+     */
+    private Icon createLegend( Environment env, Map<String,PlotLayer> layerMap,                                String[] suffixSeq )
+            throws TaskException {
+
+        /* Make a map from layer labels to arrays of styles.
+         * Each entry in this map will correspond to a legend entry. */
+        Map<String,List<Style>> labelMap =
+            new LinkedHashMap<String,List<Style>>();
+        for ( String suffix : suffixSeq ) {
+            PlotLayer layer = layerMap.get( suffix );
+            if ( layer == null ) {
+                String msg = new StringBuffer()
+                    .append( "No specification for layer \"" )
+                    .append( suffix )
+                    .append( "\"" )
+                    .append( "; known layers: " )
+                    .append( layerMap.keySet() )
+                    .toString();
+                throw new ParameterValueException( legseqParam_, msg );
+            }
+            String label = new ParameterFinder<Parameter<String>>() {
+                protected Parameter<String> createParameter( String sfix ) {
+                    return createLabelParameter( sfix );
+                }
+            }.getParameter( env, suffix )
+             .objectValue( env );
+            if ( label == null ) {
+                label = suffix.length() == 0 ? "data" : suffix;
+            }
+            if ( ! labelMap.containsKey( label ) ) {
+                labelMap.put( label, new ArrayList<Style>() );
+            }
+            labelMap.get( label ).add( layer.getStyle() );
+        }
+
+        /* Turn the map into a list of LegendEntry objects. */
+        List<LegendEntry> entryList = new ArrayList<LegendEntry>();
+        for ( Map.Entry<String,List<Style>> entry : labelMap.entrySet() ) {
+            String label = entry.getKey();
+            Style[] styles = entry.getValue().toArray( new Style[ 0 ] );
+            entryList.add( new LegendEntry( label, styles ) );
+        }
+        LegendEntry[] legEntries = entryList.toArray( new LegendEntry[ 0 ] );
+ 
+        /* Work out if we are actually going to use a legend. */
+        Boolean hasLegObj = legendParam_.objectValue( env );
+        boolean hasLegend = hasLegObj == null ? legEntries.length > 1
+                                              : hasLegObj.booleanValue();
+
+        /* Construct and return the legend, or return null, as required. */
+        if ( hasLegend ) {
+
+            /* Acquire a captioner for the legend.
+             * This uses the StyleKeys.CAPTIONER key set, which means it
+             * will use the same captioner as that used by (all current)
+             * SurfaceFactories, i.e. those used for labelling axes.
+             * You could use a different set of key names here to set
+             * legend captioning independently of axis labelling. */
+            KeySet<Captioner> capKeys = StyleKeys.CAPTIONER;
+            ConfigMap capConfig = createConfigMap( env, "", capKeys.getKeys() );
+            Captioner captioner = capKeys.createValue( capConfig );
+
+            /* Get other legend options and construct legend accordingly. */
+            boolean hasBorder = legborderParam_.booleanValue( env );
+            boolean isOpaque = legopaqueParam_.booleanValue( env );
+            Color bgColor = isOpaque ? Color.WHITE : null;
+            return new LegendIcon( legEntries, captioner, hasBorder, bgColor );
+        }
+        else {
+            return null;
+        }
     }
 
     /**
@@ -1256,6 +1446,32 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      */
     public static FilterParameter createFilterParameter( String suffix ) {
         return new FilterParameter( FILTER_PREFIX + suffix );
+    }
+
+    /**
+     * Returns a parameter to get a textual label corresponding to the layer
+     * identified by a given layer suffix.  This label is displayed in
+     * the legend.
+     *
+     * @param  suffix  layer suffix
+     * @return  parameter to get legend label for layer
+     */
+    public static Parameter<String> createLabelParameter( String suffix ) {
+        StringParameter param = new StringParameter( "leglabel" + suffix );
+        param.setUsage( "<text>" );
+        param.setPrompt( "Legend label for layer " + suffix );
+        param.setDescription( new String[] { 
+            "<p>Sets the presentation label for the layer with a given suffix.",
+            "This is the text which is displayed in the legend, if present.",
+            "Multiple layers may use the same label, in which case",
+            "they will be combined to form a single legend entry.",
+            "</p>",
+            "<p>If no value is supplied (the default),",
+            "the suffix itself is used as the label.",
+            "</p>",
+        } );
+        param.setNullPermitted( true );
+        return param;
     }
 
     /**
