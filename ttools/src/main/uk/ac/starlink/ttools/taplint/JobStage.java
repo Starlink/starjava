@@ -812,14 +812,19 @@ public class JobStage implements Stage {
          */
         private String readTextContent( URL url, boolean mustExist ) {
             byte[] buf = readContent( url, "text/plain", mustExist );
+            if ( buf == null ) {
+                return null;
+            }
+            final String txt;
             try {
-                return buf == null ? null : new String( buf, "UTF-8" );
+                txt = new String( buf, "UTF-8" );
             }
             catch ( UnsupportedEncodingException e ) {
                 reporter_.report( FixedCode.F_UTF8,
                                   "Unknown encoding UTF-8??", e );
                 return null;
             }
+            return UwsJob.TRIM_TEXT ? txt.trim() : txt;
         }
 
         /**
