@@ -23,7 +23,8 @@ public interface DynamicTask {
     /**
      * Attempts to find a parameter with a given name that might be used
      * by this task in the content of the given environment.
-     * This ought not to result in additional prompts to the user.
+     *
+     * <p>This ought not to result in additional prompts to the user.
      *
      * @param   env  execution environment
      * @param   paramName  requested parameter name
@@ -31,4 +32,19 @@ public interface DynamicTask {
      */
     Parameter getParameterByName( Environment env, String paramName )
             throws TaskException;
+
+    /**
+     * Returns the parameters for this task in the context of a given
+     * execution environment.
+     * If the environment is empty, this should give the same result as
+     * {@link uk.ac.starlink.task.Task#getParameters}, but found
+     * settings of parameters in the presented environment may lead to
+     * parameters being added to or removed from the list.
+     *
+     * <p>This ought not to result in additional prompts to the user.
+     *
+     * @param  env  execution environment
+     * @return   list of known parameters
+     */
+    Parameter[] getContextParameters( Environment env ) throws TaskException;
 }

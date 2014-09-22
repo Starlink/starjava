@@ -429,7 +429,7 @@ public class LineInvoker {
             if ( arg.equals( "-help" ) ||
                  arg.equals( "-h" ) ||
                  arg.equalsIgnoreCase( "help" ) ) {
-                return getTaskUsage( task, taskName );
+                return getTaskUsage( env, task, taskName );
             }
             else if ( arg.toLowerCase().startsWith( "-help=" ) ) {
                 helpFor = arg.substring( 6 ).trim().toLowerCase();
@@ -623,29 +623,48 @@ public class LineInvoker {
      * @return   usage string
      */
     private static String getTaskUsage( Task task, String taskName ) {
-        String prefix = "Usage: " + taskName;
-        StringBuffer usage = new StringBuffer();
-        usage.append( getPrefixedTaskUsage( task, prefix ) );
-        String pad = prefix.replaceAll( ".", " " );
-     // usage.append( pad )
-     //      .append( " [help=<arg-name>]" )
-     //      .append( '\n' );
-        return usage.toString();
+        try {
+            return getTaskUsage( null, task, taskName );
+        }
+        catch ( TaskException e ) {
+            throw new AssertionError( e );
+        }
     }
 
     /**
-     * Returns a usage string for a task, prefixed by a given string.
+     * Returns a usage string for a task known to this application,
+     * including with environment-sensitive adjustments if applicable.
      *
+     * @param   env   optionally partially populated execution environment,
+     *                or null
      * @param   task   task object
+     * @param   taskName  task nickname (the one by which it is known to
+     *          the user)
+     * @return   usage string
+     */
+    private static String getTaskUsage( Environment env, Task task,
+                                        String taskName )
+            throws TaskException {
+        Parameter[] params = task instanceof DynamicTask && env != null
+                           ? ((DynamicTask) task).getContextParameters( env )
+                           : task.getParameters();
+        return getPrefixedParameterUsage( params, "Usage: " + taskName );
+    }
+
+    /**
+     * Returns a usage string for a set of parameters,
+     * prefixed by a given string.
+     *
+     * @param   params   parameter array
      * @param   prefix   string to prepend to the first line
      * @return   usage string
      */
-    public static String getPrefixedTaskUsage( Task task, String prefix ) {
+    public static String getPrefixedParameterUsage( Parameter[] params,
+                                                    String prefix ) {
 
         /* Assemble two lists of usage elements: one for parameters 
          * which must be specified by name, and another for parameters
          * which can be specified only by position. */
-        Parameter[] params = task.getParameters();
         List namedWords = new ArrayList();
         List numberedWords = new ArrayList();
         int iPos = 0;

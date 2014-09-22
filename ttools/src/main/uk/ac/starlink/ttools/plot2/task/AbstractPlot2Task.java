@@ -771,6 +771,29 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                                              true, caching );
     }
 
+    public Parameter[] getContextParameters( Environment env )
+            throws TaskException {
+
+        /* Initialise list with non-context-sensitive parameters. */
+        List<Parameter> paramList = new ArrayList<Parameter>();
+        paramList.addAll( Arrays.asList( getParameters() ) );
+
+        /* Go through each layer that has been set in the environment
+         * (by a layerN setting).  Get all the parameters associated
+         * with that layer type and suffix. */
+        PlotContext context = getPlotContext( env );
+        for ( Map.Entry<String,LayerType> entry :
+              getLayers( env, context ).entrySet() ) {
+            String suffix = entry.getKey();
+            LayerType layer = entry.getValue();
+            for ( ParameterFinder finder :
+                  getLayerParameterFinders( env, context, layer, suffix ) ) {
+                paramList.add( finder.createParameter( suffix ) );
+            }
+        }
+        return paramList.toArray( new Parameter[ 0 ] );
+    }
+
     public Parameter getParameterByName( Environment env, String paramName )
             throws TaskException {
 
@@ -783,121 +806,128 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         for ( Map.Entry<String,LayerType> entry :
               getLayers( env, context ).entrySet() ) {
             String suffix = entry.getKey();
-            final LayerType layer = entry.getValue();
-
-            /* Layer type associated parameters. */
-            int nassoc = layer.getAssociatedParameters( suffix ).length;
-            for ( int ia = 0; ia < nassoc; ia++ ) {
-                final int iassoc = ia;
-                Parameter param = new ParameterFinder<Parameter>() {
-                    protected Parameter createParameter( String sfix ) {
-                        return layer.getAssociatedParameters( sfix )[ iassoc ];
-                    }
-                }.findParameterByName( paramName, suffix );
-                if ( param != null ) {
-                    return param;
+            LayerType layer = entry.getValue();
+            for ( ParameterFinder finder :
+                  getLayerParameterFinders( env, context, layer, suffix ) ) {
+                Parameter p = finder.findParameterByName( paramName, suffix );
+                if ( p != null ) {
+                    return p;
                 }
             }
-
-            /* Layer positional parameters. */
-            int npos = layer.getPositionCount();
-            DataGeom geom = context.getGeom( env, suffix );
-            Coord[] posCoords = geom.getPosCoords();
-            for ( int ipos = 0; ipos < npos; ipos++ ) {
-                final String posSuffix = npos > 1
-                                       ? PlotUtil.getIndexSuffix( ipos )   
-                                       : "";
-                for ( Coord coord : posCoords ) {
-                    for ( final Input input : coord.getInputs() ) {
-                        Parameter param = new ParameterFinder<Parameter>() {
-                            protected Parameter createParameter( String sfix ) {
-                                return createDataParameter( input,
-                                                            posSuffix + sfix,
-                                                            true );
-                            }
-                        }.findParameterByName( paramName, suffix );
-                        if ( param != null ) {
-                            return param;
-                        }
-                    }
-                }
-            }
-
-            /* Layer non-positional parameters. */
-            Coord[] extraCoords = layer.getExtraCoords();
-            for ( Coord coord : extraCoords ) {
-                for ( final Input input : coord.getInputs() ) {
-                    Parameter param = new ParameterFinder<Parameter>() {
-                        protected Parameter createParameter( String sfix ) {
-                            return createDataParameter( input, sfix, true );
-                        }
-                    }.findParameterByName( paramName, suffix );
-                    if ( param != null ) {
-                        return param;
-                    }
-                }
-            }
-
-            /* Layer style parameters. */
-            ConfigKey[] styleKeys = layer.getStyleKeys();
-            for ( final ConfigKey key : styleKeys ) {
-                Parameter param = new ParameterFinder<Parameter>() {
-                    protected Parameter createParameter( String sfix ) {
-                        return ConfigParameter
-                              .createSuffixedParameter( key, sfix, true );
-                    }
-                }.findParameterByName( paramName, suffix );
-                if ( param != null ) {
-                    return param;
-                }
-            }
-
-            /* Now try shading parameters if appropriate. */
-            if ( layer instanceof ShapeFamilyLayerType ) {
-                final ShapeFamilyLayerType shadeLayer =
-                    (ShapeFamilyLayerType) layer;
-                ShapeMode shapeMode =
-                        new ParameterFinder<Parameter<ShapeMode>>() {
-                    protected Parameter<ShapeMode>
-                            createParameter( String sfix ) {
-                        return shadeLayer.createShapeModeParameter( sfix );
-                    }
-                }.getParameter( env, suffix )
-                 .objectValue( env );
-
-                /* Shading coordinate parameters. */
-                Coord[] shadeCoords = shapeMode.getExtraCoords();
-                for ( Coord coord : shadeCoords ) {
-                    for ( final Input input : coord.getInputs() ) {
-                        Parameter param = new ParameterFinder<Parameter>() {
-                            protected Parameter createParameter( String sfix ) {
-                                return createDataParameter( input, sfix, true );
-                            }
-                        }.findParameterByName( paramName, suffix );
-                        if ( param != null ) {
-                            return param;
-                        }
-                    }
-                }
-
-                /* Shading config parameters. */
-                ConfigKey[] shadeKeys = shapeMode.getConfigKeys();
-                for ( final ConfigKey key : shadeKeys ) {
-                    Parameter param = new ParameterFinder<Parameter>() {
-                        protected Parameter createParameter( String sfix ) {
-                            return ConfigParameter
-                                  .createSuffixedParameter( key, sfix, true );
-                        }
-                    }.findParameterByName( paramName, suffix );
-                    if ( param != null ) {
-                        return param;
-                    }
-                }
-            }
-        } 
+        }
 
         /* No luck. */
         return null;
+    }
+
+    /**
+     * Returns a list of parameter finders for parameters specific to
+     * a given layer.  These can be used to find all the parameters
+     * which are only present in virtue of the existence of a given
+     * plot layer.
+     *
+     * @param   env  execution environment
+     * @param   context  plot context
+     * @param   layer   plot layer for which parameters are required
+     * @param   suffix  suffix associated with layer
+     * @return  array of plot finder for layer-specific parameters
+     */
+    private ParameterFinder[] getLayerParameterFinders( Environment env,
+                                                        PlotContext context,
+                                                        final LayerType layer,
+                                                        final String suffix )
+            throws TaskException {
+        List<ParameterFinder> finderList = new ArrayList<ParameterFinder>();
+
+        /* Layer type associated parameters. */
+        int nassoc = layer.getAssociatedParameters( "dummy" ).length;
+        for ( int ia = 0; ia < nassoc; ia++ ) {
+            final int iassoc = ia;
+            finderList.add( new ParameterFinder<Parameter>() {
+                public Parameter createParameter( String sfix ) {
+                    return layer.getAssociatedParameters( sfix )[ iassoc ];
+                }
+            } );
+        }
+
+        /* Layer positional parameters. */
+        int npos = layer.getPositionCount();
+        DataGeom geom = context.getGeom( env, suffix );
+        Coord[] posCoords = geom.getPosCoords();
+        for ( int ipos = 0; ipos < npos; ipos++ ) {
+            final String posSuffix = npos > 1
+                                   ? PlotUtil.getIndexSuffix( ipos )   
+                                   : "";
+            for ( Coord coord : posCoords ) {
+                for ( final Input input : coord.getInputs() ) {
+                    finderList.add( new ParameterFinder<Parameter>() {
+                        public Parameter createParameter( String sfix ) {
+                            return createDataParameter( input, posSuffix + sfix,
+                                                        true );
+                        }
+                    } );
+                }
+            }
+        }
+
+        /* Layer non-positional parameters. */
+        Coord[] extraCoords = layer.getExtraCoords();
+        for ( Coord coord : extraCoords ) {
+            for ( final Input input : coord.getInputs() ) {
+                finderList.add( new ParameterFinder<Parameter>() {
+                    public Parameter createParameter( String sfix ) {
+                        return createDataParameter( input, sfix, true );
+                    }
+                } );
+            }
+        }
+
+        /* Layer style parameters. */
+        ConfigKey[] styleKeys = layer.getStyleKeys();
+        for ( final ConfigKey key : styleKeys ) {
+            finderList.add( new ParameterFinder<Parameter>() {
+                public Parameter createParameter( String sfix ) {
+                    return ConfigParameter
+                          .createSuffixedParameter( key, sfix, true );
+                }
+            } );
+        }
+
+        /* Now try shading parameters if appropriate. */
+        if ( layer instanceof ShapeFamilyLayerType ) {
+            final ShapeFamilyLayerType shadeLayer =
+                (ShapeFamilyLayerType) layer;
+            ShapeMode shapeMode = new ParameterFinder<Parameter<ShapeMode>>() {
+                public Parameter<ShapeMode> createParameter( String sfix ) {
+                    return shadeLayer.createShapeModeParameter( sfix );
+                }
+            }.getParameter( env, suffix )
+             .objectValue( env );
+
+            /* Shading coordinate parameters. */
+            Coord[] shadeCoords = shapeMode.getExtraCoords();
+            for ( Coord coord : shadeCoords ) {
+                for ( final Input input : coord.getInputs() ) {
+                    finderList.add( new ParameterFinder<Parameter>() {
+                        public Parameter createParameter( String sfix ) {
+                            return createDataParameter( input, sfix, true );
+                        }
+                    } );
+                }
+            }
+
+            /* Shading config parameters. */
+            ConfigKey[] shadeKeys = shapeMode.getConfigKeys();
+            for ( final ConfigKey key : shadeKeys ) {
+                finderList.add( new ParameterFinder<Parameter>() {
+                    public Parameter createParameter( String sfix ) {
+                        return ConfigParameter
+                              .createSuffixedParameter( key, sfix, true );
+                    }
+                } ); 
+            }
+        }
+        return finderList.toArray( new ParameterFinder[ 0 ] );
     }
 
     /**
@@ -1144,7 +1174,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                 throw new ParameterValueException( legseqParam_, msg );
             }
             String label = new ParameterFinder<Parameter<String>>() {
-                protected Parameter<String> createParameter( String sfix ) {
+                public Parameter<String> createParameter( String sfix ) {
                     return createLabelParameter( sfix );
                 }
             }.getParameter( env, suffix )
@@ -1326,7 +1356,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         for ( int ii = 0; ii < ni; ii++ ) {
             final Input input = inputs[ ii ];
             Parameter param = new ParameterFinder<Parameter>() {
-                protected Parameter createParameter( String sfix ) {
+                public Parameter createParameter( String sfix ) {
                     return createDataParameter( input, sfix, true );
                 }
             }.getParameter( env, suffix );
@@ -1379,7 +1409,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                                      final ConfigKey<T> key, ConfigMap map )
             throws TaskException {
         ConfigParameter<T> param = new ParameterFinder<ConfigParameter<T>>() {
-            protected ConfigParameter<T> createParameter( String sfix ) {
+            public ConfigParameter<T> createParameter( String sfix ) {
                 return ConfigParameter
                       .createSuffixedParameter( key, sfix, true );
             }
@@ -1401,13 +1431,13 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
     private StarTable getInputTable( Environment env, String suffix )
             throws TaskException {
         FilterParameter filterParam = new ParameterFinder<FilterParameter>() {
-            protected FilterParameter createParameter( String sfix ) {
+            public FilterParameter createParameter( String sfix ) {
                 return createFilterParameter( sfix );
             }
         }.getParameter( env, suffix );
         InputTableParameter tableParam =
                 new ParameterFinder<InputTableParameter>() {
-            protected InputTableParameter createParameter( String sfix ) {
+            public InputTableParameter createParameter( String sfix ) {
                 return createTableParameter( sfix );
             }
         }.getParameter( env, suffix );
