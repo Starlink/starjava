@@ -47,6 +47,16 @@ public class UwsJob {
     public static int HTTP_CHUNK_SIZE = 1024 * 1024;
 
     /**
+     * Whether to trim whitespace from line text responses (like job/phase).
+     * I'm not sure whether (trailing) whitespace is permitted in service
+     * responses in this context, but the ESAC GACS service appends "\r\n"
+     * to its phase endpoint result.
+     * I asked (17-Sep-2014) on the grid@ivoa.net mailing list what's the
+     * right answer, but no response, so accept trailing whitespace for now.
+     */
+    public static boolean TRIM_TEXT = true;
+
+    /**
      * Constructor.
      *
      * @param   jobUrl  the UWS {jobs}/(job-id) URL containing 
@@ -171,6 +181,9 @@ public class UwsJob {
         }
         in.close();
         String phase = sbuf.toString();
+        if ( TRIM_TEXT ) {
+            phase = phase.trim();
+        }
         logger_.info( phaseUrl + " phase: " + phase );
         phase_ = phase;
         phaseTime_ = System.currentTimeMillis();
