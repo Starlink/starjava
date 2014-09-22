@@ -29,7 +29,7 @@ public abstract class ParameterFinder<P extends Parameter> {
      * @param  suffix  arbitrary suffix
      * @return  parameter of with the given suffix
      */ 
-    protected abstract P createParameter( String suffix );
+    public abstract P createParameter( String suffix );
 
     /**
      * Calls {@link #findParameter}, but if the result is null,

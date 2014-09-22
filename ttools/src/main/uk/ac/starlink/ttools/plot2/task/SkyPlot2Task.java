@@ -81,8 +81,7 @@ public class SkyPlot2Task extends TypedPlot2Task {
             SkySys viewsys = viewsysParam_.objectValue( env );
             ChoiceParameter<SkySys> datasysParam =
                     new ParameterFinder<ChoiceParameter<SkySys>>() {
-                protected ChoiceParameter<SkySys>
-                        createParameter( String sfix ) {
+                public ChoiceParameter<SkySys> createParameter( String sfix ) {
                     return createDataSysParameter( sfix );
                 }
             }.getParameter( env, suffix );
