@@ -461,6 +461,10 @@
          <include name="**"/>
       </packageset>
 
+      <packageset dir="cdf/build/java" defaultexcludes="yes">
+         <include name="**"/>
+      </packageset>
+
       <packageset dir="ttools/build/java" defaultexcludes="yes">
          <include name="**"/>
       </packageset>
