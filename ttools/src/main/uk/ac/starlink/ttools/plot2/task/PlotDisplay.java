@@ -67,6 +67,14 @@ public class PlotDisplay<P,A> extends JComponent {
     private A aspect_;
     private Icon icon_;
 
+    /**
+     * Name of property that changes when plot Aspect is reset.
+     * Can be monitored by use of a PropertyChangeListener.
+     * The property object type is an aspect, that is of this class's
+     * parameterised type A.
+     */
+    public static final String ASPECT_PROPERTY = "Plot2Aspect";
+
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.plot2" );
 
@@ -244,9 +252,11 @@ public class PlotDisplay<P,A> extends JComponent {
      */
     public void setAspect( A aspect ) {
         if ( aspect != null && ! aspect.equals( aspect_ ) ) {
+            A oldAspect = aspect_;
             aspect_ = aspect;
             clearPlot();
             repaint();
+            firePropertyChange( ASPECT_PROPERTY, oldAspect, aspect );
         }
     }
 
