@@ -762,7 +762,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      *                  at every repaint
      * @return  active plot view component
      */
-    public JComponent createPlotComponent( Environment env, boolean caching )
+    public PlotDisplay createPlotComponent( Environment env, boolean caching )
             throws TaskException, IOException, InterruptedException {
         dstoreParam_.setDefaultCaching( caching );
         PlotExecutor executor =
@@ -1770,9 +1770,9 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
          *                   applicable, if false it will be regenerated
          *                   from the data on every repaint
          */
-        JComponent createPlotComponent( DataStore dataStore,
-                                        boolean navigable,
-                                        boolean caching );
+        PlotDisplay createPlotComponent( DataStore dataStore,
+                                         boolean navigable,
+                                         boolean caching );
 
         /**
          * Generates an icon which will draw the plot.
