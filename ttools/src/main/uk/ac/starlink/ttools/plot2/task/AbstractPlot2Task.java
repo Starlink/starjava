@@ -1358,7 +1358,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         }
         StarTable table = getInputTable( env, suffix );
         List<CoordValue> cvlist = new ArrayList<CoordValue>();
-        Coord[] posCoords = geom.getPosCoords();
+        Coord[] posCoords = geom == null ? new Coord[ 0 ] : geom.getPosCoords();
         for ( int ipos = 0; ipos < npos; ipos++ ) {
             String posSuffix = npos > 1 ? PlotUtil.getIndexSuffix( ipos ) : "";
             for ( int ic = 0; ic < posCoords.length; ic++ ) {
