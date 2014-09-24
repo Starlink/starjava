@@ -2,7 +2,9 @@ package uk.ac.starlink.ttools.plot2.task;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
@@ -11,6 +13,7 @@ import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.PlotType;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
+import uk.ac.starlink.ttools.plot2.data.Input;
 
 /**
  * Plot2 task specialised for a fixed PlotType.
@@ -25,18 +28,32 @@ public class TypedPlot2Task extends AbstractPlot2Task {
 
     private final PlotType plotType_;
     private final PlotContext context_;
+    private final Map<ConfigKey<String>,Input> axlabelMap_;
     private final Parameter[] params_;
 
     /**
      * Constructs a plot task with a supplied PlotContext.
      *
+     * <p>The <code>axlabelMap</code> parameter gives the chance to set
+     * up a correspondence between axis label config keys and the coordinates
+     * to which they correspond.  If this is done, then the names of the
+     * data values actually supplied to the task can be used as defaults
+     * for the axis labels.
+     *
      * @param  plotType  fixed plot type
+     * @param  axlabelMap  mapping from axis label keys to corresponding
+     *                     common data input coordinates, or null
      * @param  context   fixed plot context
      */
-    public TypedPlot2Task( PlotType plotType, PlotContext context ) {
+    public TypedPlot2Task( PlotType plotType,
+                           Map<ConfigKey<String>,Input> axlabelMap,
+                           PlotContext context ) {
         super();
         plotType_ = plotType;
         context_ = context;
+        axlabelMap_ = axlabelMap == null
+                    ? new HashMap<ConfigKey<String>,Input>()
+                    : axlabelMap;
         List<Parameter> paramList = new ArrayList<Parameter>();
 
         /* Standard parameters applicable to all plot tasks. */
@@ -62,10 +79,19 @@ public class TypedPlot2Task extends AbstractPlot2Task {
      * is allowed, otherwise there is a per-layer geom selection
      * parameter.
      *
+     * <p>The <code>axlabelMap</code> parameter gives the chance to set
+     * up a correspondence between axis label config keys and the coordinates
+     * to which they correspond.  If this is done, then the names of the
+     * data values actually supplied to the task can be used as defaults
+     * for the axis labels.
+     *
      * @param  plotType  fixed plot type
+     * @param  axlabelMap  mapping from axis label keys to corresponding
+     *                     common data input coordinates, or null
      */
-    public TypedPlot2Task( PlotType plotType ) {
-        this( plotType, createDefaultPlotContext( plotType ) );
+    public TypedPlot2Task( PlotType plotType,
+                           Map<ConfigKey<String>,Input> axlabelMap ) {
+        this( plotType, axlabelMap, createDefaultPlotContext( plotType ) );
     }
 
     public String getPurpose() {
@@ -87,6 +113,49 @@ public class TypedPlot2Task extends AbstractPlot2Task {
      */
     public PlotContext getPlotContext() {
         return context_;
+    }
+
+    protected <T> ConfigParameter<T>
+            createConfigParameter( Environment env, ConfigKey<T> key,
+                                   String[] suffixes )
+            throws TaskException {
+        ConfigParameter<T> param = new ConfigParameter<T>( key );
+        final Input dataInput = axlabelMap_.get( key );
+        if ( dataInput != null ) {
+            String dataName = getAxisDataName( env, dataInput, suffixes );
+            if ( dataName != null ) {
+                param.setStringDefault( dataName );
+            }
+        }
+        return param;
+    }
+
+    /**
+     * Attempts to locate the value of a parameter corresponding to a
+     * particular input data coordinate.  This value may provide
+     * suitable text for labelling a corresponding axis. 
+     * Supplied suffixes are tried in turn until one comes up with the goods.
+     *
+     * @param  env  execution environment
+     * @param  input  input data coordinate
+     * @param  suffixes  suffixes of layers being plotted
+     * @return  suitable name for input data axis, or null if none found
+     */
+    private static String getAxisDataName( Environment env, final Input input,
+                                           String[] suffixes )
+            throws TaskException {
+        for ( String suffix : suffixes ) {
+            Parameter<String> dataParam =
+                    new ParameterFinder<Parameter<String>>() {
+                public Parameter<String> createParameter( String sfix ) {
+                    return createDataParameter( input, sfix, false );
+                }
+            }.findParameter( env, suffix );
+            if ( dataParam != null ) {
+                return dataParam.stringValue( env );
+            }
+        }
+        return null;
     }
 
     /**

@@ -26,7 +26,7 @@ public class SkyPlot2Task extends TypedPlot2Task {
      * Constructor.
      */
     public SkyPlot2Task() {
-        super( SkyPlotType.getInstance(), new SkyPlotContext() );
+        super( SkyPlotType.getInstance(), null, new SkyPlotContext() );
         Parameter<SkySys> viewsysParam = null;
         for ( Parameter param : super.getParameters() ) {
             if ( viewsysName_.equals( param.getName() ) ) {

@@ -10,6 +10,6 @@ import uk.ac.starlink.ttools.plot2.geom.SpherePlotType;
  */
 public class SpherePlot2Task extends TypedPlot2Task {
     public SpherePlot2Task() {
-        super( SpherePlotType.getInstance() );
+        super( SpherePlotType.getInstance(), null );
     }
 }

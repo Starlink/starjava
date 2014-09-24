@@ -15,9 +15,14 @@ import uk.ac.starlink.ttools.plot2.data.TupleSequence;
  */
 public class CubeDataGeom implements DataGeom {
 
-    private static final FloatingCoord X_COORD = posCoord( "X" );
-    private static final FloatingCoord Y_COORD = posCoord( "Y" );
-    private static final FloatingCoord Z_COORD = posCoord( "Z" );
+    /** X coordinate. */
+    public static final FloatingCoord X_COORD = posCoord( "X" );
+
+    /** Y coordinate. */
+    public static final FloatingCoord Y_COORD = posCoord( "Y" );
+
+    /** Z coordinate. */
+    public static final FloatingCoord Z_COORD = posCoord( "Z" );
 
     /** Singleton instance. */
     public static CubeDataGeom INSTANCE = new CubeDataGeom();

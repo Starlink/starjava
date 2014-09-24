@@ -1,6 +1,13 @@
 package uk.ac.starlink.ttools.plot2.task;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import uk.ac.starlink.ttools.plot2.config.ConfigKey;
+import uk.ac.starlink.ttools.plot2.data.Input;
+import uk.ac.starlink.ttools.plot2.geom.TimeDataGeom;
 import uk.ac.starlink.ttools.plot2.geom.TimePlotType;
+import uk.ac.starlink.ttools.plot2.geom.TimeSurfaceFactory;
 
 /**
  * Task for time plots.
@@ -9,7 +16,27 @@ import uk.ac.starlink.ttools.plot2.geom.TimePlotType;
  * @since    11 Sep 2014
  */
 public class TimePlot2Task extends TypedPlot2Task {
+
+    private static final Map<ConfigKey<String>,Input> AXLABEL_MAP =
+        createAxisLabelMap();
+
+    /**
+     * Constructor.
+     */
     public TimePlot2Task() {
-        super( TimePlotType.getInstance() );
+        super( TimePlotType.getInstance(), AXLABEL_MAP );
+    }
+
+    /**
+     * Constructs a map of axis label keys to data input coordinates.
+     *
+     * @return mapping
+     */ 
+    private static Map<ConfigKey<String>,Input> createAxisLabelMap() {
+        Map<ConfigKey<String>,Input> map =
+            new HashMap<ConfigKey<String>,Input>();
+        map.put( TimeSurfaceFactory.YLABEL_KEY,
+                 TimeDataGeom.Y_COORD.getInput() );
+        return Collections.unmodifiableMap( map );
     }
 }
