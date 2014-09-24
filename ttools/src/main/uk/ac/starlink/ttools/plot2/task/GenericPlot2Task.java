@@ -9,6 +9,7 @@ import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.PlotType;
+import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.geom.CubePlotType;
 import uk.ac.starlink.ttools.plot2.geom.PlanePlotType;
 import uk.ac.starlink.ttools.plot2.geom.SpherePlotType;
@@ -60,5 +61,11 @@ public class GenericPlot2Task extends AbstractPlot2Task {
     public PlotContext getPlotContext( Environment env ) throws TaskException {
         return PlotContext
               .createStandardContext( typeParam_.objectValue( env ) );
+    }
+
+    protected <T> ConfigParameter createConfigParameter( Environment env,
+                                                         ConfigKey<T> key,
+                                                         String[] suffixes ) {
+        return new ConfigParameter<T>( key );
     }
 }

@@ -411,6 +411,23 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
             throws TaskException;
 
     /**
+     * Returns a config parameter for a given config key that may be
+     * sensitive to the content of the execution environment.
+     * This is here to provide a hook for subclasses to set up defaults
+     * for some config parameters on the basis of what layers are present.
+     *
+     * @param   env  execution environment
+     * @param   key  config key for which a parameter is required
+     * @param   suffixes  ordered list of the plot layer suffixes
+     *          in use for the plot being performed
+     * @return   parameter to get the value of <code>key</code>
+     */
+    protected abstract <T> ConfigParameter
+            createConfigParameter( Environment env, ConfigKey<T> key,
+                                   String[] suffixes )
+            throws TaskException;
+
+    /**
      * Returns the list of parameters supplied by the AbstractPlot2Task
      * implementation.  Subclasses should include these alongside any
      * they want to add for presentation to the user.
@@ -997,20 +1014,6 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         /* Leave out some optional extras for now. */
         final ShadeAxis shadeAxis = null;
 
-        /* Get surface factory and configuration. */
-        final SurfaceFactory<?,?> surfFact = plotType.getSurfaceFactory();
-        List<ConfigKey> keyList = new ArrayList<ConfigKey>();
-        keyList.addAll( Arrays.asList( surfFact.getProfileKeys() ) );
-        keyList.addAll( Arrays.asList( surfFact.getAspectKeys() ) );
-        keyList.addAll( Arrays.asList( surfFact.getNavigatorKeys() ) );
-        keyList.add( StyleKeys.SHADE_LOW );
-        keyList.add( StyleKeys.SHADE_HIGH );
-        ConfigKey[] surfKeys = keyList.toArray( new ConfigKey[ 0 ] );
-        final ConfigMap surfConfig = createConfigMap( env, "", surfKeys );
-        final Range shadeFixRange =
-            new Range( surfConfig.get( StyleKeys.SHADE_LOW ),
-                       surfConfig.get( StyleKeys.SHADE_HIGH ) );
-
         /* Gather the defined plot layers from the environment. */
         Map<String,PlotLayer> layerMap = createLayerMap( env, context );
 
@@ -1027,6 +1030,32 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         /* Get an ordered list of layers to plot. */
         final PlotLayer[] layers = getLayerSequence( layerMap, layerSeq );
 
+        /* Prepare to acquire parameters based on config keys. */
+        final String[] suffixes = layerSeq;
+        ConfigParameterFactory cpFact = new ConfigParameterFactory() {
+            public <T> ConfigParameter<T>
+                    getParameter( Environment env, final ConfigKey<T> key )
+                    throws TaskException {
+                return createConfigParameter( env, key, suffixes );
+            }
+        };
+
+        /* Get surface factory. */
+        final SurfaceFactory<?,?> surfFact = plotType.getSurfaceFactory();
+
+        /* Get the surface configuration. */
+        List<ConfigKey> keyList = new ArrayList<ConfigKey>();
+        keyList.addAll( Arrays.asList( surfFact.getProfileKeys() ) );
+        keyList.addAll( Arrays.asList( surfFact.getAspectKeys() ) );
+        keyList.addAll( Arrays.asList( surfFact.getNavigatorKeys() ) );
+        keyList.add( StyleKeys.SHADE_LOW );
+        keyList.add( StyleKeys.SHADE_HIGH );
+        ConfigKey[] surfKeys = keyList.toArray( new ConfigKey[ 0 ] );
+        final ConfigMap surfConfig = createConfigMap( env, surfKeys, cpFact );
+        final Range shadeFixRange =
+            new Range( surfConfig.get( StyleKeys.SHADE_LOW ),
+                       surfConfig.get( StyleKeys.SHADE_HIGH ) );
+
         /* Assemble the list of DataSpecs required for the plot. */
         int nl = layers.length;
         final DataSpec[] dataSpecs = new DataSpec[ nl ];
@@ -1037,7 +1066,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         }
 
         /* Get the legend. */
-        final Icon legend = createLegend( env, layerMap, legendSeq );
+        final Icon legend = createLegend( env, layerMap, legendSeq, cpFact );
         final float[] legpos = legend == null
                              ? null
                              : legposParam_.floatsValue( env );
@@ -1152,9 +1181,12 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      *
      * @param  env  execution environment
      * @param  layerMap  suffix->layer map for all defined layers
+     * @param  suffixSeq  ordered array of suffixes for layers to be plotted
+     * @param  cpFact   gets parameters for config keys
      * @return  legend icon, may be null
      */
-    private Icon createLegend( Environment env, Map<String,PlotLayer> layerMap,                                String[] suffixSeq )
+    private Icon createLegend( Environment env, Map<String,PlotLayer> layerMap,                                String[] suffixSeq,
+                               ConfigParameterFactory cpFact )
             throws TaskException {
 
         /* Make a map from layer labels to arrays of styles.
@@ -1212,7 +1244,8 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
              * You could use a different set of key names here to set
              * legend captioning independently of axis labelling. */
             KeySet<Captioner> capKeys = StyleKeys.CAPTIONER;
-            ConfigMap capConfig = createConfigMap( env, "", capKeys.getKeys() );
+            ConfigMap capConfig =
+                createConfigMap( env, capKeys.getKeys(), cpFact );
             Captioner captioner = capKeys.createValue( capConfig );
 
             /* Get other legend options and construct legend accordingly. */
@@ -1297,7 +1330,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
 
         /* Work out the requested Style. */
         ConfigMap config =
-            createConfigMap( env, suffix, plotter.getStyleKeys() );
+            createSuffixedConfigMap( env, plotter.getStyleKeys(), suffix );
         @SuppressWarnings("unchecked")
         Plotter<S> splotter = (Plotter<S>) plotter;
         S style = splotter.createStyle( config );
@@ -1373,22 +1406,48 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * are the config names plus a supplied suffix.
      *
      * @param  env  execution environment bearing the parameter values
+     * @param  configKeys  configuration keys to find values for
      * @param  suffix  trailer applied to config key shortnames to make
      *                 env parameter names
-     * @param  configKeys  configuration keys to find values for
      * @return  config map with values for the supplied keys
      */
-    private ConfigMap createConfigMap( Environment env, String suffix,
-                                       ConfigKey[] configKeys )
+    private ConfigMap createSuffixedConfigMap( Environment env,
+                                               ConfigKey[] configKeys,
+                                               final String suffix )
+            throws TaskException {
+        ConfigParameterFactory cpFact = new ConfigParameterFactory() {
+            public <T> ConfigParameter<T>
+                    getParameter( Environment env, final ConfigKey<T> key ) {
+                return new ParameterFinder<ConfigParameter<T>>() {
+                    public ConfigParameter<T> createParameter( String sfix ) {
+                        return ConfigParameter
+                              .createSuffixedParameter( key, sfix, true );
+                    }
+                }.getParameter( env, suffix );
+            }
+        };
+        return createConfigMap( env, configKeys, cpFact );
+    }
+
+    /**
+     * Returns a ConfigMap derived from the assignments made in a given
+     * execution environment.
+     *
+     * @param  env  execution environment bearing the parameter values
+     * @param  configKeys  configuration keys to find values for
+     * @param  cpFact  turns config keys into Parameters
+     * @return  config map with values for the supplied keys
+     */
+    private ConfigMap createConfigMap( Environment env, ConfigKey[] configKeys,
+                                       ConfigParameterFactory cpFact )
             throws TaskException {
         Level level = Level.CONFIG;
         ConfigMap config = new ConfigMap();
         if ( Logger.getLogger( getClass().getName() ).isLoggable( level ) ) {
             config = new LoggingConfigMap( config, level );
         }
-        for ( int ic = 0; ic < configKeys.length; ic++ ) {
-            ConfigKey<?> key = configKeys[ ic ];
-            putConfigValue( env, suffix, key, config );
+        for ( ConfigKey<?> key : configKeys ) {
+            putConfigValue( env, key, cpFact, config );
         }
         return config;
     }
@@ -1396,24 +1455,17 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
     /**
      * Extracts a parameter corresponding to a given config key from a
      * given execution environment, and puts the result into a config map.
-     * Parameter names specified in the environment
-     * are the config names plus a supplied suffix.
      *
      * @param  env  execution environment bearing the parameter values
-     * @param  suffix  trailer applied to config key shortnames to make
-     *                 env parameter names
      * @param  key   key to find value for
+     * @param  cpFact  turns config keys into Parameters
      * @param  map   map into which key/value pair will be written
      */
-    private <T> void putConfigValue( Environment env, String suffix,
-                                     final ConfigKey<T> key, ConfigMap map )
+    private <T> void putConfigValue( Environment env, ConfigKey<T> key,
+                                     ConfigParameterFactory cpFact,
+                                     ConfigMap map )
             throws TaskException {
-        ConfigParameter<T> param = new ParameterFinder<ConfigParameter<T>>() {
-            public ConfigParameter<T> createParameter( String sfix ) {
-                return ConfigParameter
-                      .createSuffixedParameter( key, sfix, true );
-            }
-        }.getParameter( env, suffix );
+        ConfigParameter<T> param = cpFact.getParameter( env, key );
         T value = param.objectValue( env );
         if ( key.getValueClass().equals( Double.class ) && value == null ) {
             value = key.cast( Double.NaN );
@@ -1683,6 +1735,22 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                             : ptsel.getVectorPaperType( opts );
         return PlotDisplay.createIcon( placer, layers, auxRanges, dataStore,
                                        paperType, false );
+    }
+
+    /**
+     * Object that can turn a ConfigKey into a Parameter.
+     */
+    private interface ConfigParameterFactory {
+
+        /**
+         * Produces a parameter to find the value for a given config key.
+         *
+         * @param   key  config key
+         * @param   env  execution environment
+         * @return   parameter that can get a value for <code>key</code>
+         */
+        <T> ConfigParameter<T> getParameter( Environment env, ConfigKey<T> key )
+                 throws TaskException;
     }
 
     /**
