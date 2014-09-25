@@ -15,6 +15,7 @@ import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.Captioner;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.ShadeAxis;
+import uk.ac.starlink.ttools.plot2.ShadeAxisFactory;
 import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.config.BooleanConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
@@ -125,13 +126,16 @@ public class ShaderControl extends ConfigControl {
      *
      * @return   shade axis factory
      */
-    public AxisFactory createShadeAxisFactory() {
+    public ShadeAxisFactory createShadeAxisFactory() {
         final ConfigMap config = getConfig();
         final boolean visible = config.get( AUXVISIBLE_KEY );
         if ( ! visible ) {
-            return new AxisFactory() {
+            return new ShadeAxisFactory() {
                 public ShadeAxis createShadeAxis( Range range ) {
                     return null;
+                }
+                public boolean isLog() {
+                    return false;
                 }
             };
         }
@@ -144,7 +148,7 @@ public class ShaderControl extends ConfigControl {
         final Color nullColor = config.get( StyleKeys.SHADE_NULL_COLOR );
         final Captioner captioner =
             StyleKeys.CAPTIONER.createValue( configger_.getConfig() );
-        return new AxisFactory() {
+        return new ShadeAxisFactory() {
             public ShadeAxis createShadeAxis( Range range ) {
                 if ( range == null ) {
                     range = new Range();
@@ -154,6 +158,9 @@ public class ShaderControl extends ConfigControl {
                 double hi = bounds[ 1 ];
                 return new ShadeAxis( shader, log, flip, lo, hi,
                                       label, captioner );
+            }
+            public boolean isLog() {
+                return log;
             }
         };
     }
@@ -210,19 +217,5 @@ public class ShaderControl extends ConfigControl {
      */
     private static double toDouble( Double dval ) {
         return dval == null ? Double.NaN : dval.doubleValue();
-    }
-
-    /**
-     * Defines how to get a ShadeAxis for a shader range.
-     */
-    public interface AxisFactory {
-
-        /**
-         * Returns a shade axis for a given range.
-         *
-         * @param   range  data range
-         * @return   shader axis
-         */
-        ShadeAxis createShadeAxis( Range range );
     }
 }

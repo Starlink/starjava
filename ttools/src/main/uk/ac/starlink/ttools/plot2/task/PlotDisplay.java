@@ -23,6 +23,7 @@ import uk.ac.starlink.ttools.plot2.PlotPlacement;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.PointCloud;
 import uk.ac.starlink.ttools.plot2.ShadeAxis;
+import uk.ac.starlink.ttools.plot2.ShadeAxisFactory;
 import uk.ac.starlink.ttools.plot2.Slow;
 import uk.ac.starlink.ttools.plot2.SubCloud;
 import uk.ac.starlink.ttools.plot2.Subrange;
@@ -53,7 +54,7 @@ public class PlotDisplay<P,A> extends JComponent {
     private final P profile_;
     private final Icon legend_;
     private final float[] legPos_;
-    private final ShadeAxis shadeAxis_;
+    private final ShadeAxisFactory shadeFact_;
     private final Range shadeFixRange_;
     private final PaperTypeSelector ptSel_;
     private final boolean surfaceAuxRange_;
@@ -89,7 +90,7 @@ public class PlotDisplay<P,A> extends JComponent {
      * @param  legPos   2-element array giving x,y fractional legend placement
      *                  position within plot (elements in range 0..1),
      *                  or null for external legend
-     * @param  shadeAxis  shader axis, or null if not required
+     * @param  shadeFact  makes shader axes, or null if not required
      * @param  shadeFixRange  fixed shader range,
      *                        or null for auto-range where required
      * @param  ptSel    paper type selector
@@ -105,7 +106,7 @@ public class PlotDisplay<P,A> extends JComponent {
      */
     public PlotDisplay( PlotLayer[] layers, SurfaceFactory<P,A> surfFact,
                         P profile, A aspect, Icon legend, float[] legPos,
-                        ShadeAxis shadeAxis, Range shadeFixRange,
+                        ShadeAxisFactory shadeFact, Range shadeFixRange,
                         PaperTypeSelector ptSel, Compositor compositor,
                         DataStore dataStore, boolean surfaceAuxRange,
                         final Navigator<A> navigator, boolean caching ) {
@@ -115,7 +116,7 @@ public class PlotDisplay<P,A> extends JComponent {
         aspect_ = aspect;
         legend_ = legend;
         legPos_ = legPos;
-        shadeAxis_ = shadeAxis;
+        shadeFact_ = shadeFact;
         shadeFixRange_ = shadeFixRange;
         ptSel_ = ptSel;
         compositor_ = compositor;
@@ -178,25 +179,16 @@ public class PlotDisplay<P,A> extends JComponent {
         Icon icon = icon_;
         if ( icon == null ) {
 
-            /* Work out data bounds to use for the actual plot,
-             * and also some nominal bounds that can be used to tell
-             * whether the plot has changed in a way that may require
-             * re-ranging of aux axes. */
-            final Rectangle dataBounds;
-            final Rectangle approxBounds;
-            if ( dataInsets_ != null ) {
-                dataBounds = PlotUtil.subtractInsets( extBounds, dataInsets_ );
-                approxBounds = dataBounds;
-            }
-            else {
-                boolean withScroll = true;
-                dataBounds =
-                    PlotPlacement
-                   .calculateDataBounds( extBounds, surfFact_, profile_,
-                                         aspect_, withScroll, legend_,
-                                         legPos_, shadeAxis_ );
-                approxBounds = extBounds;
-            }
+            /* Get the data bounds if we can. */
+            Rectangle dataBounds =
+                  dataInsets_ != null
+                ? PlotUtil.subtractInsets( extBounds, dataInsets_ )
+                : null;
+
+            /* Acquire nominal plot bounds that are good enough for working
+             * out aux data ranges. */
+            Rectangle approxBounds = dataBounds != null ? dataBounds
+                                                        : extBounds;
 
             /* (Re)calculate aux ranges if required. */
             Surface approxSurf =
@@ -208,16 +200,33 @@ public class PlotDisplay<P,A> extends JComponent {
             }
             else {
                 auxRanges = getAuxRanges( layers_, approxSurf, shadeFixRange_,
-                                          shadeAxis_, dataStore_ );
+                                          shadeFact_, dataStore_ );
             }
             auxRanges_ = auxRanges;
             approxSurf_ = approxSurf;
+
+            /* Get aux axis component if applicable. */
+            Range shadeRange = auxRanges.get( AuxScale.COLOR );
+            ShadeAxis shadeAxis = shadeRange != null && shadeFact_ != null
+                                ? shadeFact_.createShadeAxis( shadeRange )
+                                : null;
+
+            /* If we don't already have data bounds to use for the actual
+             * plot, we have enough information to work them out now. */
+            if ( dataBounds == null ) {
+                boolean withScroll = true;
+                dataBounds =
+                    PlotPlacement
+                   .calculateDataBounds( extBounds, surfFact_, profile_,
+                                         aspect_, withScroll, legend_,
+                                         legPos_, shadeAxis );
+            }
 
             /* Work out plot positioning. */
             surface_ = surfFact_.createSurface( dataBounds, profile_, aspect_ );
             Decoration[] decs =
                 PlotPlacement.createPlotDecorations( dataBounds, legend_,
-                                                     legPos_, shadeAxis_ );
+                                                     legPos_, shadeAxis );
             PlotPlacement placer =
                 new PlotPlacement( extBounds, surface_, decs );
 
@@ -319,7 +328,7 @@ public class PlotDisplay<P,A> extends JComponent {
      * @param  legPos   2-element array giving x,y fractional legend placement
      *                  position within plot (elements in range 0..1),
      *                  or null for external legend
-     * @param  shadeAxis  shader axis, or null if not required
+     * @param  shadeFact  makes shader axis, or null if not required
      * @param  shadeFixRange  fixed shader range,
      *                        or null for auto-range where required
      * @param  ptSel    paper type selector
@@ -337,7 +346,7 @@ public class PlotDisplay<P,A> extends JComponent {
     public static <P,A> PlotDisplay
             createPlotDisplay( PlotLayer[] layers, SurfaceFactory<P,A> surfFact,
                                ConfigMap config, Icon legend, float[] legPos,
-                               ShadeAxis shadeAxis, Range shadeFixRange,
+                               ShadeAxisFactory shadeFact, Range shadeFixRange,
                                PaperTypeSelector ptSel, Compositor compositor,
                                DataStore dataStore, boolean surfaceAuxRange,
                                boolean navigable, boolean caching ) {
@@ -359,7 +368,7 @@ public class PlotDisplay<P,A> extends JComponent {
      
         /* Create and return the component. */
         return new PlotDisplay<P,A>( layers, surfFact, profile, aspect,
-                                     legend, legPos, shadeAxis, shadeFixRange,
+                                     legend, legPos, shadeFact, shadeFixRange,
                                      ptSel, compositor, dataStore,
                                      surfaceAuxRange, navigator, caching );
     }
@@ -403,14 +412,14 @@ public class PlotDisplay<P,A> extends JComponent {
      * @param  layers  plot layers
      * @param  surface  plot surface
      * @param  shadeFixRange  fixed shade range limits, if any
-     * @param  shadeAxis   shade axis, if any
+     * @param  shadeFact  makes shader axis, or null
      * @param  dataStore  data storage object
      */
     @Slow
     public static Map<AuxScale,Range> getAuxRanges( PlotLayer[] layers,
                                                     Surface surface,
                                                     Range shadeFixRange,
-                                                    ShadeAxis shadeAxis,
+                                                    ShadeAxisFactory shadeFact,
                                                     DataStore dataStore ) {
 
         /* Work out what ranges have been requested by plot layers. */
@@ -424,8 +433,8 @@ public class PlotDisplay<P,A> extends JComponent {
 
         /* Prepare list of ranges known to be logarithmic. */
         Map<AuxScale,Boolean> auxLogFlags = new HashMap<AuxScale,Boolean>();
-        if ( shadeAxis != null ) {
-            auxLogFlags.put( AuxScale.COLOR, shadeAxis.isLog() );
+        if ( shadeFact != null ) {
+            auxLogFlags.put( AuxScale.COLOR, shadeFact.isLog() );
         }
 
         /* We will not be using subranges, so prepare an empty map. */
