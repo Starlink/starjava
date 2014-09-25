@@ -171,7 +171,7 @@ public class PlotDisplay<P,A> extends JComponent {
     protected void paintComponent( Graphics g ) {
         super.paintComponent( g );
         Rectangle extBounds =
-            PlotUtil.subtractInsets( getBounds(), getInsets() );
+            PlotUtil.subtractInsets( new Rectangle( getSize() ), getInsets() );
 
         /* If we already have a cached image, it is for the right plot,
          * just draw that.  If not, generate a new one. */
