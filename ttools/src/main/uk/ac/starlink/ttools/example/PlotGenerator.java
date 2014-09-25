@@ -2,29 +2,24 @@ package uk.ac.starlink.ttools.example;
 
 import java.awt.Dimension;
 import java.awt.Insets;
-import java.awt.Rectangle;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Map;
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.plot.GraphicExporter;
 import uk.ac.starlink.ttools.plot.Picture;
 import uk.ac.starlink.ttools.plot.Range;
-import uk.ac.starlink.ttools.plot2.AuxScale;
-import uk.ac.starlink.ttools.plot2.Decoration;
-import uk.ac.starlink.ttools.plot2.LayerOpt;
 import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
-import uk.ac.starlink.ttools.plot2.PlotPlacement;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.ShadeAxis;
-import uk.ac.starlink.ttools.plot2.Surface;
+import uk.ac.starlink.ttools.plot2.ShadeAxisFactory;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.paper.Compositor;
 import uk.ac.starlink.ttools.plot2.paper.PaperType;
 import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
+import uk.ac.starlink.ttools.plot2.task.AbstractPlot2Task;
 import uk.ac.starlink.ttools.plot2.task.PlotDisplay;
 
 /**
@@ -51,7 +46,7 @@ public class PlotGenerator<P,A> {
     private final A aspect_;
     private final Icon legend_;
     private final float[] legPos_;
-    private final ShadeAxis shadeAxis_;
+    private final ShadeAxisFactory shadeFact_;
     private final Range shadeFixRange_;
     private final PaperTypeSelector ptSel_;
     private final Compositor compositor_;
@@ -71,7 +66,7 @@ public class PlotGenerator<P,A> {
      * @param  legPos   2-element array giving x,y fractional legend placement
      *                  position within plot (elements in range 0..1),
      *                  or null for external legend
-     * @param  shadeAxis  shader axis, or null if not required
+     * @param  shadeFact creates shader axis, or null if not required
      * @param  shadeFixRange  fixed shader range,
      *                        or null for auto-range where required
      * @param  ptSel    paper type selector
@@ -88,7 +83,7 @@ public class PlotGenerator<P,A> {
     public PlotGenerator( PlotLayer[] layers,
                           SurfaceFactory<P,A> surfFact, P profile, A aspect,
                           Icon legend, float[] legPos,
-                          ShadeAxis shadeAxis, Range shadeFixRange,
+                          ShadeAxisFactory shadeFact, Range shadeFixRange,
                           PaperTypeSelector ptSel, Compositor compositor,
                           DataStore dataStore, int xpix, int ypix,
                           Insets dataInsets ) {
@@ -98,7 +93,7 @@ public class PlotGenerator<P,A> {
         aspect_ = aspect;
         legend_ = legend;
         legPos_ = legPos;
-        shadeAxis_ = shadeAxis;
+        shadeFact_ = shadeFact;
         shadeFixRange_ = shadeFixRange;
         ptSel_ = ptSel;
         compositor_ = compositor;
@@ -125,7 +120,7 @@ public class PlotGenerator<P,A> {
                                           boolean caching ) {
         PlotDisplay display = 
             new PlotDisplay( layers_, surfFact_, profile_, aspect_, legend_,
-                             legPos_, shadeAxis_, shadeFixRange_,
+                             legPos_, shadeFact_, shadeFixRange_,
                              ptSel_, compositor_, dataStore_,
                              surfaceAuxRange, navigator, caching );
         display.setPreferredSize( new Dimension( xpix_, ypix_ ) );
@@ -160,36 +155,10 @@ public class PlotGenerator<P,A> {
      * @return  icon to paint plot; it may be painted in a headless context
      */
     public Icon createIcon( boolean forceBitmap ) {
-        Rectangle extBounds = new Rectangle( 0, 0, xpix_, ypix_ );
-        final Rectangle dataBounds;
-        if ( dataInsets_ != null ) {
-            dataBounds = PlotUtil.subtractInsets( extBounds, dataInsets_ );
-        }
-        else {
-            boolean withScroll = false;
-            dataBounds =
-                PlotPlacement
-               .calculateDataBounds( extBounds, surfFact_, profile_, aspect_,
-                                     withScroll, legend_, legPos_, shadeAxis_ );
-            dataBounds.x += 2;
-            dataBounds.y += 2;
-            dataBounds.width -= 4;
-            dataBounds.height -= 4;
-        }
-        Surface surf = surfFact_.createSurface( dataBounds, profile_, aspect_ );
-        Decoration[] decs =
-            PlotPlacement.createPlotDecorations( dataBounds, legend_, legPos_,
-                                                 shadeAxis_ );
-        PlotPlacement placer = new PlotPlacement( extBounds, surf, decs );
-        Map<AuxScale,Range> auxRanges =
-            PlotDisplay.getAuxRanges( layers_, surf, shadeFixRange_, shadeAxis_,
-                                      dataStore_ );
-        LayerOpt[] opts = PaperTypeSelector.getOpts( layers_ );
-        PaperType paperType =
-              forceBitmap ? ptSel_.getPixelPaperType( opts, compositor_, null )
-                          : ptSel_.getVectorPaperType( opts );
-        boolean cached = false;
-        return PlotDisplay.createIcon( placer, layers_, auxRanges, dataStore_,
-                                       paperType, cached );
+        return AbstractPlot2Task
+              .createPlotIcon( layers_, surfFact_, profile_, aspect_,
+                               legend_, legPos_, shadeFact_, shadeFixRange_,
+                               ptSel_, compositor_, dataStore_,
+                               xpix_, ypix_, dataInsets_, forceBitmap );
     }
 }

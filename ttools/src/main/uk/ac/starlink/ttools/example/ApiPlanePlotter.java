@@ -15,7 +15,7 @@ import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.Plotter;
-import uk.ac.starlink.ttools.plot2.ShadeAxis;
+import uk.ac.starlink.ttools.plot2.ShadeAxisFactory;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
@@ -120,7 +120,7 @@ public class ApiPlanePlotter implements SinePlot.PlanePlotter {
         /* We will not use optional decorations for this plot. */
         Icon legend = null;
         float[] legPos = null;
-        ShadeAxis shadeAxis = null;
+        ShadeAxisFactory shadeFact = null;
         Range shadeFixRange = null;
 
         /* Prepare the list of plot layers; in this case there is only one. */
@@ -146,7 +146,7 @@ public class ApiPlanePlotter implements SinePlot.PlanePlotter {
 
         /* Construct and return the plot generator. */
         return new PlotGenerator( layers, surfFact, profile, aspect,
-                                  legend, legPos, shadeAxis, shadeFixRange,
+                                  legend, legPos, shadeFact, shadeFixRange,
                                   ptSel, compositor, dataStore, xpix, ypix,
                                   dataInsets );
     }

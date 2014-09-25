@@ -53,6 +53,7 @@ import uk.ac.starlink.ttools.plot2.PlotPlacement;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.ShadeAxis;
+import uk.ac.starlink.ttools.plot2.ShadeAxisFactory;
 import uk.ac.starlink.ttools.plot2.Slow;
 import uk.ac.starlink.ttools.plot2.SubCloud;
 import uk.ac.starlink.ttools.plot2.Subrange;
@@ -496,8 +497,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         axisController_.configureForLayers( profile, layers );
         A fixAspect = axisController_.getAspect();
         Range[] geomFixRanges = axisController_.getRanges();
-        ShaderControl.AxisFactory shadeFact =
-            shaderControl_.createShadeAxisFactory();
+        ShadeAxisFactory shadeFact = shaderControl_.createShadeAxisFactory();
         Boolean shadeLog = shaderControl_.getConfig()
                                          .get( StyleKeys.SHADE_LOG );
         assert shadeLog != null;
@@ -716,7 +716,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         private final A fixAspect_;
         private final Range[] geomFixRanges_;
         private final ConfigMap aspectConfig_;
-        private final ShaderControl.AxisFactory shadeFact_;
+        private final ShadeAxisFactory shadeFact_;
         private final Map<AuxScale,Range> auxFixRanges_;
         private final Map<AuxScale,Subrange> auxSubranges_;
         private final Map<AuxScale,Boolean> auxLogFlags_;
@@ -759,7 +759,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         PlotJob( Workings<A> oldWorkings, PlotLayer[] layers,
                  SurfaceFactory<P,A> surfFact, P profile, A fixAspect,
                  Range[] geomFixRanges, ConfigMap aspectConfig,
-                 ShaderControl.AxisFactory shadeFact,
+                 ShadeAxisFactory shadeFact,
                  Map<AuxScale,Range> auxFixRanges,
                  Map<AuxScale,Subrange> auxSubranges,
                  Map<AuxScale,Boolean> auxLogFlags,

@@ -60,6 +60,7 @@ import uk.ac.starlink.ttools.plot2.PlotType;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.ShadeAxis;
+import uk.ac.starlink.ttools.plot2.ShadeAxisFactory;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
@@ -1012,7 +1013,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         final Compositor compositor = compositorParam_.objectValue( env );
 
         /* Leave out some optional extras for now. */
-        final ShadeAxis shadeAxis = null;
+        final ShadeAxisFactory shadeFact = null;
 
         /* Gather the defined plot layers from the environment. */
         Map<String,PlotLayer> layerMap = createLayerMap( env, context );
@@ -1090,7 +1091,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                 PlotDisplay panel =
                     PlotDisplay
                    .createPlotDisplay( layers, surfFact, surfConfig,
-                                       legend, legpos, shadeAxis, shadeFixRange,
+                                       legend, legpos, shadeFact, shadeFixRange,
                                        ptsel, compositor, dataStore,
                                        surfaceAuxRange, navigable, caching );
                 panel.setPreferredSize( new Dimension( xpix, ypix ) );
@@ -1101,7 +1102,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
             public Icon createPlotIcon( DataStore dataStore ) {
                 return AbstractPlot2Task
                       .createPlotIcon( layers, surfFact, surfConfig,
-                                       legend, legpos, shadeAxis, shadeFixRange,
+                                       legend, legpos, shadeFact, shadeFixRange,
                                        ptsel, compositor, dataStore,
                                        xpix, ypix, insets, forceBitmap );
             }
@@ -1665,7 +1666,59 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * @param  legPos   2-element array giving x,y fractional legend placement
      *                  position within plot (elements in range 0..1),
      *                  or null for external legend
-     * @param  shadeAxis  shader axis, or null if not required
+     * @param  shadeFact  gets shader axis from range, or null if not required
+     * @param  shadeFixRange  fixed shader range,
+     *                        or null for auto-range where required
+     * @param  ptsel   paper type selector
+     * @param  compositor   compositor for pixel composition
+     * @param  dataStore   data storage object
+     * @param  xpix    horizontal size of icon in pixels
+     * @param  ypix    vertical size of icon in pixels
+     * @param  insets  may supply the inset space to be used for
+     *                 axis decoration etc; if null, this will be worked out
+     *                 automatically
+     * @param  forceBitmap   true to force bitmap output of vector graphics,
+     *                       false to use default behaviour
+     * @return  icon  icon for plotting
+     */
+    private static <P,A> Icon createPlotIcon( PlotLayer[] layers,
+                                              SurfaceFactory<P,A> surfFact,
+                                              ConfigMap config,
+                                              Icon legend, float[] legPos,
+                                              ShadeAxisFactory shadeFact,
+                                              Range shadeFixRange,
+                                              PaperTypeSelector ptsel,
+                                              Compositor compositor,
+                                              DataStore dataStore,
+                                              int xpix, int ypix, Insets insets,
+                                              boolean forceBitmap ) {
+        P profile = surfFact.createProfile( config );
+        long t0 = System.currentTimeMillis();
+        Range[] ranges = surfFact.useRanges( profile, config )
+                       ? surfFact.readRanges( profile, layers, dataStore )
+                       : null;
+        PlotUtil.logTime( logger_, "Range", t0 );
+        A aspect = surfFact.createAspect( profile, config, ranges );
+        return createPlotIcon( layers, surfFact, profile, aspect,
+                               legend, legPos, shadeFact, shadeFixRange,
+                               ptsel, compositor, dataStore, xpix, ypix,
+                               insets, forceBitmap );
+    }
+
+    /**
+     * Creates an icon which will paint the content of a plot.
+     * This icon is expected to be painted once and then discarded,
+     * so it's not cached.
+     *
+     * @param  layers   layers constituting plot content
+     * @param  surfFact   surface factory
+     * @param  profile   surface profile
+     * @param  aspect    surface aspect
+     * @param  legend   legend icon, or null if none required
+     * @param  legPos   2-element array giving x,y fractional legend placement
+     *                  position within plot (elements in range 0..1),
+     *                  or null for external legend
+     * @param  shadeFact  gets shader axis from range, or null if not required
      * @param  shadeFixRange  fixed shader range,
      *                        or null for auto-range where required
      * @param  ptsel   paper type selector
@@ -1682,59 +1735,48 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      */
     public static <P,A> Icon createPlotIcon( PlotLayer[] layers,
                                              SurfaceFactory<P,A> surfFact,
-                                             ConfigMap config,
+                                             P profile, A aspect,
                                              Icon legend, float[] legPos,
-                                             ShadeAxis shadeAxis,
+                                             ShadeAxisFactory shadeFact,
                                              Range shadeFixRange,
                                              PaperTypeSelector ptsel,
                                              Compositor compositor,
                                              DataStore dataStore,
                                              int xpix, int ypix, Insets insets,
                                              boolean forceBitmap ) {
-        P profile = surfFact.createProfile( config );
-        long t0 = System.currentTimeMillis();
-        Range[] ranges = surfFact.useRanges( profile, config )
-                       ? surfFact.readRanges( profile, layers, dataStore )
-                       : null;
-        PlotUtil.logTime( logger_, "Range", t0 );
-        A aspect = surfFact.createAspect( profile, config, ranges );
-
         Rectangle extBounds = new Rectangle( 0, 0, xpix, ypix );
-        final Rectangle dataBounds;
-        if ( insets != null ) {
-            dataBounds = PlotUtil.subtractInsets( extBounds, insets );
-        }
-        else {
+        Rectangle dataBounds = insets != null        
+                             ? PlotUtil.subtractInsets( extBounds, insets )
+                             : null;
+        Rectangle approxBounds = dataBounds != null ? dataBounds : extBounds;
+        Surface approxSurf =
+            surfFact.createSurface( approxBounds, profile, aspect );
+        Map<AuxScale,Range> auxRanges =
+            PlotDisplay.getAuxRanges( layers, approxSurf, shadeFixRange,
+                                      shadeFact, dataStore );
+        Range shadeRange = auxRanges.get( AuxScale.COLOR );
+        ShadeAxis shadeAxis = shadeFact != null && shadeRange != null
+                            ? shadeFact.createShadeAxis( shadeRange )
+                            : null;
+        if ( dataBounds == null ) {
+            boolean withScroll = false;
             dataBounds = PlotPlacement
                         .calculateDataBounds( extBounds, surfFact, profile,
-                                              aspect, false, legend, legPos,
-                                              shadeAxis );
-            dataBounds.x += 2;
-            dataBounds.y += 2;
-            dataBounds.width -= 4;
-            dataBounds.height -= 4;
-            int top = dataBounds.y - extBounds.y;
-            int left = dataBounds.x - extBounds.x;
-            int bottom = extBounds.height - dataBounds.height - top;
-            int right = extBounds.width - dataBounds.width - left;
-            logger_.info( "Calculate plot insets: "
-                        + new Insets( top, left, bottom, right ) );
+                                              aspect, withScroll, legend,
+                                              legPos, shadeAxis );
         }
         Surface surf = surfFact.createSurface( dataBounds, profile, aspect );
         Decoration[] decs =
             PlotPlacement.createPlotDecorations( dataBounds, legend, legPos,
                                                  shadeAxis );
         PlotPlacement placer = new PlotPlacement( extBounds, surf, decs );
-        Map<AuxScale,Range> auxRanges =
-            PlotDisplay.getAuxRanges( layers, surf, shadeFixRange, shadeAxis,
-                                      dataStore );
-
         LayerOpt[] opts = PaperTypeSelector.getOpts( layers );
         PaperType paperType = forceBitmap
                             ? ptsel.getPixelPaperType( opts, compositor, null )
                             : ptsel.getVectorPaperType( opts );
+        boolean cached = false;
         return PlotDisplay.createIcon( placer, layers, auxRanges, dataStore,
-                                       paperType, false );
+                                       paperType, cached );
     }
 
     /**
