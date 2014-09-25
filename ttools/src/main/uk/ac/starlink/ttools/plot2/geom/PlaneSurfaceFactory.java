@@ -267,7 +267,7 @@ public class PlaneSurfaceFactory
     public static ConfigKey<Boolean> createAxisAnchorKey( String axname,
                                                           boolean dflt ) {
         String axl = axname.toLowerCase();
-        String axL = axname.toUpperCase();
+        String axL = ConfigMeta.capitalise( axname );
         ConfigMeta meta =
             new ConfigMeta( axl + "anchor", "Anchor " + axL + " axis" );
         meta.setShortDescription( "Fix " + axL + " zero point?" );
@@ -358,8 +358,9 @@ public class PlaneSurfaceFactory
      */
     public static ConfigKey<Subrange> createAxisSubrangeKey( String axname ) {
         ConfigMeta meta = 
-            SubrangeConfigKey.createAxisSubMeta( axname.toLowerCase(),
-                                                 axname.toUpperCase() );
+            SubrangeConfigKey
+           .createAxisSubMeta( axname.toLowerCase(),
+                               ConfigMeta.capitalise( axname ) );
         return new SubrangeConfigKey( meta );
     }
 
