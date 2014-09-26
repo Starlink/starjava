@@ -26,7 +26,7 @@ public class CaptionerKeySet implements KeySet<Captioner> {
      * Constructor.
      */
     public CaptionerKeySet() {
-        ConfigMeta syntaxMeta = new ConfigMeta( "syntax", "Text Syntax" );
+        ConfigMeta syntaxMeta = new ConfigMeta( "texttype", "Text Type" );
         syntaxMeta.setShortDescription( "Text interpretation" );
         syntaxMeta.setXmlDescription( new String[] {
             "<p>Determines how to turn label text into characters",
