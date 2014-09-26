@@ -279,45 +279,6 @@ public class StyleKeys {
                                                ErrorMode.SYMMETRIC,
                                                ErrorMode.SYMMETRIC } );
 
-    /** Config key for aux shader colour ramp. */
-    public static final ConfigKey<Shader> AUX_SHADER =
-        new ShaderConfigKey(
-            new ConfigMeta( "auxmap", "Map" )
-           .setShortDescription( "Color map for aux shading" )
-           .setXmlDescription( new String[] {
-                "<p>Color map used for aux axis shading.",
-                "</p>",
-            } )
-            , createAuxShaders(), Shaders.LUT_RAINBOW
-        ).appendShaderDescription()
-         .setOptionUsage();
-
-    /** Config key for restricting the range of an aux shader colour map. */
-    public static final ConfigKey<Subrange> AUX_SHADER_CLIP =
-        new SubrangeConfigKey( SubrangeConfigKey
-                              .createShaderClipMeta( "aux", "Aux" ) );
-
-    /** Config key for aux shader logarithmic flag. */
-    public static final ConfigKey<Boolean> SHADE_LOG =
-        PlaneSurfaceFactory.createAxisLogKey( "Aux" );
-
-    /** Config key for aux shader axis inversion flag. */
-    public static final ConfigKey<Boolean> SHADE_FLIP =
-        PlaneSurfaceFactory.createAxisFlipKey( "Aux" );
-
-    /** Config key for aux shader null colour. */
-    public static final ConfigKey<Color> SHADE_NULL_COLOR =
-        new ColorConfigKey(
-            ColorConfigKey.createColorMeta( "null",
-                                            "points with a null value "
-                                          + "of the Aux coordinate" )
-           .appendXmlDescription( new String[] {
-                "<p>If the value is null, then points with a null Aux value",
-                "will not be plotted at all.",
-                "</p>",
-            } )
-            , Color.GRAY, true );
-
     /** Config key for aux shader lower limit. */
     public static final ConfigKey<Double> SHADE_LOW =
         PlaneSurfaceFactory.createAxisLimitKey( "Aux", false );
@@ -483,6 +444,9 @@ public class StyleKeys {
     /** Config key set for axis and general captioner. */
     public static final CaptionerKeySet CAPTIONER = new CaptionerKeySet();
 
+    /** Config key set for global Aux axis colour ramp. */
+    public static final RampKeySet AUX_RAMP = new RampKeySet( "aux", "Aux" );
+
     /**
      * Private constructor prevents instantiation.
      */
@@ -646,53 +610,6 @@ public class StyleKeys {
             MarkShape.FILLED_TRIANGLE_UP,
             MarkShape.FILLED_TRIANGLE_DOWN,
         };
-    }
-
-    /**
-     * Returns a list of shaders suitable for aux axis shading.
-     *
-     * @return  shaders
-     */
-    private static Shader[] createAuxShaders() {
-        List<Shader> shaderList = new ArrayList<Shader>();
-        shaderList.addAll( Arrays.asList( new Shader[] {
-            Shaders.LUT_RAINBOW,
-            Shaders.LUT_GLNEMO2,
-            Shaders.LUT_PASTEL,
-            Shaders.LUT_ACCENT,
-            Shaders.LUT_GNUPLOT,
-            Shaders.LUT_GNUPLOT2,
-            Shaders.LUT_CUBEHELIX,
-            Shaders.LUT_SPECXB2Y,
-            Shaders.CYAN_MAGENTA,
-            Shaders.RED_BLUE,
-            Shaders.LUT_HEAT,
-            Shaders.LUT_COLD,
-            Shaders.LUT_LIGHT,
-            Shaders.LUT_COLOR,
-            Shaders.WHITE_BLACK,
-            Shaders.LUT_STANDARD,
-            Shaders.createMaskShader( "Mask", 0f, 1f, true ),
-            Shaders.FIX_HUE,
-            Shaders.TRANSPARENCY,
-            Shaders.FIX_INTENSITY,
-            Shaders.FIX_RED,
-            Shaders.FIX_GREEN,
-            Shaders.FIX_BLUE,
-            Shaders.HSV_H,
-            Shaders.HSV_S,
-            Shaders.HSV_V,
-            Shaders.FIX_Y,
-            Shaders.FIX_U,
-            Shaders.FIX_V,
-            Shaders.BREWER_BUGN,
-            Shaders.BREWER_BUPU,
-            Shaders.BREWER_ORRD,
-            Shaders.BREWER_PUBU,
-            Shaders.BREWER_PURD,
-        } ) );
-        shaderList.addAll( Arrays.asList( Shaders.getCustomShaders() ) );
-        return shaderList.toArray( new Shader[ 0 ] );
     }
 
     /**

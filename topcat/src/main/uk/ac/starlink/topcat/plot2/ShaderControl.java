@@ -21,6 +21,7 @@ import uk.ac.starlink.ttools.plot2.config.BooleanConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
+import uk.ac.starlink.ttools.plot2.config.RampKeySet;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.config.StringConfigKey;
 
@@ -38,13 +39,7 @@ public class ShaderControl extends ConfigControl {
     private final AutoSpecifier<Boolean> visibleSpecifier_;
     private final ConfigSpecifier rangeSpecifier_;
     private static final AuxScale SCALE = AuxScale.COLOR;
-    private static final ConfigKey[] SHADER_KEYS = new ConfigKey[] {
-        StyleKeys.AUX_SHADER,
-        StyleKeys.AUX_SHADER_CLIP,
-        StyleKeys.SHADE_LOG,
-        StyleKeys.SHADE_FLIP,
-        StyleKeys.SHADE_NULL_COLOR,
-    };
+    private static final RampKeySet RAMP_KEYS = StyleKeys.AUX_RAMP;
     private static final ConfigKey<String> AUXLABEL_KEY =
         new StringConfigKey( new ConfigMeta( "auxlabel", "Aux Axis Label" ),
                              null );
@@ -87,7 +82,7 @@ public class ShaderControl extends ConfigControl {
         } );
         rangeSpecifier_.addActionListener( forwarder );
 
-        addSpecifierTab( "Map", new ConfigSpecifier( SHADER_KEYS ) );
+        addSpecifierTab( "Map", new ConfigSpecifier( RAMP_KEYS.getKeys() ) );
         addSpecifierTab( "Ramp", axisSpecifier );
         addSpecifierTab( "Range", rangeSpecifier_ );
     }
@@ -140,29 +135,14 @@ public class ShaderControl extends ConfigControl {
             };
         }
         final String label = config.get( AUXLABEL_KEY );
-        final Shader shader =
-           StyleKeys.createShader( config, StyleKeys.AUX_SHADER,
-                                           StyleKeys.AUX_SHADER_CLIP );
-        final boolean log = config.get( StyleKeys.SHADE_LOG );
-        final boolean flip = config.get( StyleKeys.SHADE_FLIP );
-        final Color nullColor = config.get( StyleKeys.SHADE_NULL_COLOR );
         final Captioner captioner =
             StyleKeys.CAPTIONER.createValue( configger_.getConfig() );
-        return new ShadeAxisFactory() {
-            public ShadeAxis createShadeAxis( Range range ) {
-                if ( range == null ) {
-                    range = new Range();
-                }
-                double[] bounds = range.getFiniteBounds( log );
-                double lo = bounds[ 0 ];
-                double hi = bounds[ 1 ];
-                return new ShadeAxis( shader, log, flip, lo, hi,
-                                      label, captioner );
-            }
-            public boolean isLog() {
-                return log;
-            }
-        };
+        RampKeySet.Ramp ramp = RAMP_KEYS.createValue( config );
+        return ramp.createShadeAxisFactory( captioner, label );
+    }
+
+    public boolean isLog() {
+        return RAMP_KEYS.createValue( getConfig() ).isLog();
     }
 
     /**

@@ -10,6 +10,7 @@ import java.awt.image.BufferedImage;
 import java.awt.image.IndexColorModel;
 import java.awt.image.WritableRaster;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +33,7 @@ import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
+import uk.ac.starlink.ttools.plot2.config.RampKeySet;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
@@ -1056,6 +1058,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
         private final boolean transparent_;
 
         private static final AuxScale SCALE = AuxScale.COLOR;
+        private static final RampKeySet rampKeys_ = StyleKeys.AUX_RAMP;
         private static final String scaleName = SCALE.getName();
         private static final FloatingCoord SHADE_COORD =
             FloatingCoord.createCoord(
@@ -1088,29 +1091,24 @@ public abstract class ShapeMode implements ModePlotter.Mode {
 
         public ConfigKey[] getConfigKeys() {
             List<ConfigKey> list = new ArrayList<ConfigKey>();
-            list.add( StyleKeys.AUX_SHADER );
-            list.add( StyleKeys.AUX_SHADER_CLIP );
+            list.addAll( Arrays.asList( rampKeys_.getKeys() ) );
             if ( transparent_ ) {
                 list.add( StyleKeys.AUX_OPAQUE );
             }
-            list.add( StyleKeys.SHADE_LOG );
-            list.add( StyleKeys.SHADE_FLIP );
-            list.add( StyleKeys.SHADE_NULL_COLOR );
             return list.toArray( new ConfigKey[ 0 ] );
         }
 
         public Stamper createStamper( ConfigMap config ) {
-            Shader shader =
-                StyleKeys.createShader( config, StyleKeys.AUX_SHADER,
-                                                StyleKeys.AUX_SHADER_CLIP );
+            RampKeySet.Ramp ramp = rampKeys_.createValue( config );
+            Shader shader = ramp.getShader();
+            boolean shadeLog =  ramp.isLog();
+            boolean shadeFlip = ramp.isFlip();
+            Color nullColor = ramp.getNullColor();
             double opaque = transparent_
                           ? config.get( StyleKeys.AUX_OPAQUE )
                           : 1;
             float scaleAlpha = 1f / (float) opaque;
-            boolean shadeLog = config.get( StyleKeys.SHADE_LOG );
-            boolean shadeFlip = config.get( StyleKeys.SHADE_FLIP );
             Color baseColor = config.get( StyleKeys.COLOR );
-            Color nullColor = config.get( StyleKeys.SHADE_NULL_COLOR );
             return new ShadeStamper( shader, shadeLog, shadeFlip, baseColor,
                                      nullColor, scaleAlpha );
         }

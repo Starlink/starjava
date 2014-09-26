@@ -25,7 +25,7 @@ import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
-import uk.ac.starlink.ttools.plot2.config.StyleKeys;
+import uk.ac.starlink.ttools.plot2.config.RampKeySet;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.CoordGroup;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
@@ -60,6 +60,8 @@ public class SpectrogramPlotter
     private final int icSpectrum_;
 
     private static final AuxScale SPECTRO_SCALE = new AuxScale( "Spectral" );
+    private static final RampKeySet RAMP_KEYS =
+        new RampKeySet( "spectro", "Spectro" );
     private static final ChannelGrid DEFAULT_CHANGRID =
         new AssumedChannelGrid();
     private static final int MAX_SAMPLE = 100;
@@ -168,19 +170,15 @@ public class SpectrogramPlotter
     }
 
     public ConfigKey[] getStyleKeys() {
-        return new ConfigKey[] {
-            StyleKeys.AUX_SHADER,
-            StyleKeys.SHADE_LOG,
-            StyleKeys.SHADE_FLIP,
-            StyleKeys.SHADE_NULL_COLOR,
-        };
+        return RAMP_KEYS.getKeys();
     }
 
     public SpectroStyle createStyle( ConfigMap config ) {
-        Shader shader = config.get( StyleKeys.AUX_SHADER );
-        boolean shadeLog = config.get( StyleKeys.SHADE_LOG );
-        boolean shadeFlip = config.get( StyleKeys.SHADE_FLIP );
-        Color nullColor = config.get( StyleKeys.SHADE_NULL_COLOR );
+        RampKeySet.Ramp ramp = RAMP_KEYS.createValue( config );
+        Shader shader = ramp.getShader();
+        boolean shadeLog = ramp.isLog();
+        boolean shadeFlip = ramp.isFlip();
+        Color nullColor = ramp.getNullColor();
         ChannelGrid grid = DEFAULT_CHANGRID;
         return new SpectroStyle( shader, shadeLog, shadeFlip, nullColor, grid );
     }
