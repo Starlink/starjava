@@ -67,6 +67,7 @@ import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.KeySet;
 import uk.ac.starlink.ttools.plot2.config.LoggingConfigMap;
+import uk.ac.starlink.ttools.plot2.config.RampKeySet;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.CoordGroup;
@@ -114,6 +115,8 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
     private final BooleanParameter legopaqueParam_;
     private final DoubleArrayParameter legposParam_;
     private final StringMultiParameter legseqParam_;
+    private final StringParameter auxlabelParam_;
+    private final BooleanParameter auxvisibleParam_;
     private final BooleanParameter bitmapParam_;
     private final Parameter<Compositor> compositorParam_;
     private final InputTableParameter animateParam_;
@@ -315,6 +318,33 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         } );
         legseqParam_.setNullPermitted( true );
         plist.add( legseqParam_ );
+
+        plist.addAll( getKeyParams( StyleKeys.AUX_RAMP.getKeys() ) );
+
+        auxlabelParam_ = new StringParameter( "auxlabel" );
+        auxlabelParam_.setUsage( "<text>" );
+        auxlabelParam_.setPrompt( "Label for aux axis" );
+        auxlabelParam_.setDescription( new String[] {
+            "<p>Sets the label used to annotate the aux axis,",
+            "if it is visible.",
+            "</p>",
+        } );
+        auxlabelParam_.setNullPermitted( true );
+        plist.add( auxlabelParam_ );
+
+        auxvisibleParam_ = new BooleanParameter( "auxvisible" );
+        auxvisibleParam_.setPrompt( "Display aux colour ramp?" );
+        auxvisibleParam_.setDescription( new String[] {
+            "<p>Determines whether the aux axis colour ramp",
+            "is displayed alongside the plot.",
+            "</p>",
+            "<p>If not supplied (the default),",
+            "the aux axis will be visible when aux shading is used",
+            "in any of the plotted layers.",
+            "</p>",
+        } );
+        auxvisibleParam_.setNullPermitted( true );
+        plist.add( auxvisibleParam_ );
 
         bitmapParam_ = new BooleanParameter( "forcebitmap" );
         bitmapParam_.setPrompt( "Force non-vector graphics output?" );
@@ -1012,9 +1042,6 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         final DataStoreFactory storeFact = dstoreParam_.objectValue( env );
         final Compositor compositor = compositorParam_.objectValue( env );
 
-        /* Leave out some optional extras for now. */
-        final ShadeAxisFactory shadeFact = null;
-
         /* Gather the defined plot layers from the environment. */
         Map<String,PlotLayer> layerMap = createLayerMap( env, context );
 
@@ -1031,11 +1058,17 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         /* Get an ordered list of layers to plot. */
         final PlotLayer[] layers = getLayerSequence( layerMap, layerSeq );
 
-        /* Prepare to acquire parameters based on config keys. */
+        /* Prepare to draw aux axis. */
+        final ShadeAxisFactory shadeFact =
+            createShadeAxisFactory( env, layers );
+
+        /* Prepare to acquire parameters based on config keys.
+         * This can use subclass functionality to default axis names
+         * from data coodinate parameter values. */
         final String[] suffixes = layerSeq;
-        ConfigParameterFactory cpFact = new ConfigParameterFactory() {
-            public <T> ConfigParameter<T>
-                    getParameter( Environment env, final ConfigKey<T> key )
+        ConfigParameterFactory surfCpFact = new ConfigParameterFactory() {
+            public <T> ConfigParameter<T> getParameter( Environment env,
+                                                        ConfigKey<T> key )
                     throws TaskException {
                 return createConfigParameter( env, key, suffixes );
             }
@@ -1052,7 +1085,8 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         keyList.add( StyleKeys.SHADE_LOW );
         keyList.add( StyleKeys.SHADE_HIGH );
         ConfigKey[] surfKeys = keyList.toArray( new ConfigKey[ 0 ] );
-        final ConfigMap surfConfig = createConfigMap( env, surfKeys, cpFact );
+        final ConfigMap surfConfig =
+            createConfigMap( env, surfKeys, surfCpFact );
         final Range shadeFixRange =
             new Range( surfConfig.get( StyleKeys.SHADE_LOW ),
                        surfConfig.get( StyleKeys.SHADE_HIGH ) );
@@ -1067,7 +1101,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         }
 
         /* Get the legend. */
-        final Icon legend = createLegend( env, layerMap, legendSeq, cpFact );
+        final Icon legend = createLegend( env, layerMap, legendSeq );
         final float[] legpos = legend == null
                              ? null
                              : legposParam_.floatsValue( env );
@@ -1183,11 +1217,9 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * @param  env  execution environment
      * @param  layerMap  suffix->layer map for all defined layers
      * @param  suffixSeq  ordered array of suffixes for layers to be plotted
-     * @param  cpFact   gets parameters for config keys
      * @return  legend icon, may be null
      */
-    private Icon createLegend( Environment env, Map<String,PlotLayer> layerMap,                                String[] suffixSeq,
-                               ConfigParameterFactory cpFact )
+    private Icon createLegend( Environment env, Map<String,PlotLayer> layerMap,                                String[] suffixSeq )
             throws TaskException {
 
         /* Make a map from layer labels to arrays of styles.
@@ -1237,19 +1269,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
 
         /* Construct and return the legend, or return null, as required. */
         if ( hasLegend ) {
-
-            /* Acquire a captioner for the legend.
-             * This uses the StyleKeys.CAPTIONER key set, which means it
-             * will use the same captioner as that used by (all current)
-             * SurfaceFactories, i.e. those used for labelling axes.
-             * You could use a different set of key names here to set
-             * legend captioning independently of axis labelling. */
-            KeySet<Captioner> capKeys = StyleKeys.CAPTIONER;
-            ConfigMap capConfig =
-                createConfigMap( env, capKeys.getKeys(), cpFact );
-            Captioner captioner = capKeys.createValue( capConfig );
-
-            /* Get other legend options and construct legend accordingly. */
+            Captioner captioner = getCaptioner( env );
             boolean hasBorder = legborderParam_.booleanValue( env );
             boolean isOpaque = legopaqueParam_.booleanValue( env );
             Color bgColor = isOpaque ? Color.WHITE : null;
@@ -1309,6 +1329,71 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
     }
 
     /**
+     * Acquires a captioner from the environment.
+     * At present, a single captioner is used for labelling the legend
+     * and any axes; this is also the one that will be used by default
+     * for any label-type plot layers.  However you could refine it to
+     * use different parameter sets for different purposes.
+     *
+     * @param   env  execution environment
+     * @return   captioner
+     */
+    private Captioner getCaptioner( Environment env ) throws TaskException {
+        KeySet<Captioner> capKeys = StyleKeys.CAPTIONER;
+        ConfigMap capConfig = createBasicConfigMap( env, capKeys.getKeys() );
+        return capKeys.createValue( capConfig );
+    }
+
+    /**
+     * Acquires a ShadeAxisFactory from the environment.
+     *
+     * @param  env  execution environment
+     * @param  layers  layers that will be plotted
+     * @return   shade axis factory, may be null
+     */
+    private ShadeAxisFactory createShadeAxisFactory( Environment env,
+                                                     PlotLayer[] layers )
+            throws TaskException {
+        Boolean auxvis = auxvisibleParam_.objectValue( env );
+        boolean hasAux = auxvis == null
+                       ? Arrays.asList( AuxScale.getAuxScales( layers ) )
+                               .contains( AuxScale.COLOR )
+                       : auxvis.booleanValue();
+        if ( ! hasAux ) {
+            return null;
+        }
+        RampKeySet rampKeys = StyleKeys.AUX_RAMP;
+        Captioner captioner = getCaptioner( env );
+        ConfigMap auxConfig = createBasicConfigMap( env, rampKeys.getKeys() );
+        RampKeySet.Ramp ramp = rampKeys.createValue( auxConfig );
+
+        /* Really, I should default this from the value of the first
+         * layer aux data value. */
+        String label = auxlabelParam_.objectValue( env );
+        return ramp.createShadeAxisFactory( captioner, label );
+    }
+
+    /**
+     * Returns a config map based on given keys with values derived from
+     * the execution environment.  There no funny business with appending
+     * suffixes etc.
+     *
+     * @param  env  execution environment
+     * @param  keys  config keys
+     * @return  config map
+     */
+    private ConfigMap createBasicConfigMap( Environment env, ConfigKey[] keys )
+            throws TaskException {
+        ConfigParameterFactory cpFact = new ConfigParameterFactory() {
+            public <T> ConfigParameter<T> getParameter( Environment env,
+                                                        ConfigKey<T> key ) {
+                return new ConfigParameter<T>( key );
+            }
+        };
+        return createConfigMap( env, keys, cpFact );
+    }
+
+    /**
      * Creates a PlotLayer from the environment given a plotter, suffix
      * and geom.
      *
@@ -1329,9 +1414,21 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
             createDataSpec( env, suffix, geom, cgrp.getPositionCount(),
                             cgrp.getExtraCoords() );
 
-        /* Work out the requested Style. */
+        /* Prepare a config map with entries for all the config keys
+         * required by the plotter.  All the config keys reported
+         * by the plotter are included.  We also add keys for the
+         * aux axis, if used, since these are global.
+         * This is a bit questionable, the plotter is using unreported
+         * config options, but if it didn't, it would report per-layer
+         * aux axis options (colour maps etc) which the plot surface
+         * decorations can't reflect (there's only one aux colour ramp
+         * displayed).  Maybe look at this again one day. */
         ConfigMap config =
             createSuffixedConfigMap( env, plotter.getStyleKeys(), suffix );
+        config.putAll( createBasicConfigMap( env,
+                                             StyleKeys.AUX_RAMP.getKeys() ) );
+
+        /* Work out the requested style. */
         @SuppressWarnings("unchecked")
         Plotter<S> splotter = (Plotter<S>) plotter;
         S style = splotter.createStyle( config );
@@ -1777,6 +1874,21 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         boolean cached = false;
         return PlotDisplay.createIcon( placer, layers, auxRanges, dataStore,
                                        paperType, cached );
+    }
+
+    /**
+     * Returns a list of non-suffixed parameters based on a list of
+     * ConfigKeys.
+     *
+     * @param  keys  config keys
+     * @return  parameters for acquiring config key values
+     */
+    public static List<Parameter> getKeyParams( ConfigKey[] keys ) {
+        List<Parameter> plist = new ArrayList<Parameter>();
+        for ( int ik = 0; ik < keys.length; ik++ ) {
+            plist.add( new ConfigParameter( keys[ ik ] ) );
+        }
+        return plist;
     }
 
     /**

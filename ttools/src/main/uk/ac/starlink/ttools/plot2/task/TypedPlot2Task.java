@@ -159,21 +159,6 @@ public class TypedPlot2Task extends AbstractPlot2Task {
     }
 
     /**
-     * Returns a list of non-suffixed parameters based on a list of
-     * ConfigKeys.
-     *
-     * @param  keys  config keys
-     * @return  parameters for acquiring config key values
-     */
-    private static List<Parameter> getKeyParams( ConfigKey[] keys ) {
-        List<Parameter> plist = new ArrayList<Parameter>();
-        for ( int ik = 0; ik < keys.length; ik++ ) {
-            plist.add( new ConfigParameter( keys[ ik ] ) );
-        }
-        return plist;
-    }
-
-    /**
      * Returns a default plot context for a given PlotType.
      * If the plot type has only a single DataGeom no geom selection
      * is allowed, otherwise there is a per-layer geom selection
