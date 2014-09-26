@@ -97,7 +97,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
     public static final ShapeMode DENSITY = new CustomDensityMode();
 
     /** Aux variable colouring mode. */
-    public static final ShapeMode AUX = new AuxShadingMode( true );
+    public static final ShapeMode AUX = new AuxShadingMode( true, false );
 
     /** List of modes suitable for use with 2D plotting. */
     public static final ShapeMode[] MODES_2D = new ShapeMode[] {
@@ -1056,6 +1056,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
      */
     private static class AuxShadingMode extends ShapeMode {
         private final boolean transparent_;
+        private final boolean reportAuxKeys_;
 
         private static final AuxScale SCALE = AuxScale.COLOR;
         private static final RampKeySet rampKeys_ = StyleKeys.AUX_RAMP;
@@ -1069,29 +1070,49 @@ public abstract class ShapeMode implements ModePlotter.Mode {
 
         /**
          * Constructor.
+         * The reportAuxKeys flag ought normally to be false, since
+         * the same global aux colour ramp should be used for all layers,
+         * as only one ramp will be drawn on the axes.
+         * But in principle you could have different maps for different layers.
          *
          * @param   transparent   if true, allow variable transparency
+         * @param   reportAuxKeys  if true, report global aux ramp config keys
          */
-        AuxShadingMode( boolean transparent ) {
+        AuxShadingMode( boolean transparent, boolean reportAuxKeys ) {
             super( "aux", ResourceIcon.MODE_AUX, new Coord[] { SHADE_COORD } );
             transparent_ = transparent;
+            reportAuxKeys_ = reportAuxKeys;
         }
 
         public String getModeDescription() {
-            return PlotUtil.concatLines( new String[] {
-                "<p>Paints markers in a colour determined by the value",
-                "of an additional data coordinate.",
-                "The point colours then represent an additional dimension",
-                "of the plot.",
-                "There are additional options to adjust the colour map",
-                "and draw the points with fixed transparency.",
-                "</p>",
-            } );
+            StringBuffer sbuf = new StringBuffer()
+                .append( "<p>Paints markers in a colour determined by\n" )
+                .append( "the value of an additional data coordinate.\n" )
+                .append( "The marker colours then represent an additional\n" )
+                .append( "dimension of the plot.\n" );
+            if ( transparent_ ) {
+                sbuf.append( "You can also adjust the transparency\n" )
+                    .append( "of the colours used.\n" );
+            }
+            if ( reportAuxKeys_ ) {
+                sbuf.append( "There are additional options to adjust\n" )
+                    .append( "the way data values are mapped to colours.\n" );
+            }
+            else {
+                sbuf.append( "The way that data values are mapped\n" )
+                    .append( "to colours is usually controlled by options\n" )
+                    .append( "at the level of the plot itself,\n" )
+                    .append( "rather than by per-layer configuration.\n" );
+            }
+            sbuf.append( "</p>\n" );
+            return sbuf.toString();
         }
 
         public ConfigKey[] getConfigKeys() {
             List<ConfigKey> list = new ArrayList<ConfigKey>();
-            list.addAll( Arrays.asList( rampKeys_.getKeys() ) );
+            if ( reportAuxKeys_ ) {
+                list.addAll( Arrays.asList( rampKeys_.getKeys() ) );
+            }
             if ( transparent_ ) {
                 list.add( StyleKeys.AUX_OPAQUE );
             }
