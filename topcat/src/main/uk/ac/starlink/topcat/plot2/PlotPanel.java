@@ -498,15 +498,12 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         A fixAspect = axisController_.getAspect();
         Range[] geomFixRanges = axisController_.getRanges();
         ShadeAxisFactory shadeFact = shaderControl_.createShadeAxisFactory();
-        Boolean shadeLog = shaderControl_.getConfig()
-                                         .get( StyleKeys.SHADE_LOG );
-        assert shadeLog != null;
         Map<AuxScale,Range> auxFixRanges = new HashMap<AuxScale,Range>();
         Map<AuxScale,Subrange> auxSubranges = new HashMap<AuxScale,Subrange>();
         Map<AuxScale,Boolean> auxLogFlags = new HashMap<AuxScale,Boolean>();
         auxFixRanges.put( AuxScale.COLOR, shaderControl_.getFixRange() );
         auxSubranges.put( AuxScale.COLOR, shaderControl_.getSubrange() );
-        auxLogFlags.put( AuxScale.COLOR, shadeLog );
+        auxLogFlags.put( AuxScale.COLOR, shaderControl_.isLog() );
         Icon legend = legendFact_.getItem();
         assert legend == null || legendFact_.getItem().equals( legend );
         float[] legpos = legendPosFact_.getItem();
