@@ -275,8 +275,11 @@ public class PlotPlacement {
             else {
                 lx = gxlo + Math.round( ( gxhi - gxlo - legend.getIconWidth() )
                                       * legPos[ 0 ] );
+
+                /* Invert the sense of the y component so that up is positive,
+                 * like for data coordinates. */
                 ly = gylo + Math.round( ( gyhi - gylo - legend.getIconHeight() )
-                                      * legPos[ 1 ] );
+                                      * ( 1f - legPos[ 1 ] ) );
             }
             decList.add( new Decoration( legend, lx, ly ) );
         }

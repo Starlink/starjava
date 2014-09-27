@@ -168,7 +168,8 @@ public class LegendControl extends TabberControl {
      */
     public float[] getLegendPosition() {
         return insideModel_.isSelected()
-             ? new float[] { pusher_.getXPosition(), pusher_.getYPosition() }
+             ? new float[] { pusher_.getXPosition(),
+                             1f - pusher_.getYPosition() }
              : null;
     }
 
