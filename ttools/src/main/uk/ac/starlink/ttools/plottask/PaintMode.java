@@ -114,7 +114,15 @@ public abstract class PaintMode {
         }
 
         public String getDescription( PaintModeParameter modeParam ) {
-            return "Plot will be displayed in a window on the screen.";
+            StringBuffer sbuf = new StringBuffer();
+            return new StringBuffer()
+                .append( "Plot will be displayed in a window on the screen.\n" )
+                .append( "This plot is \"live\"; " )
+                .append( "it can be resized and " )
+                .append( "(except for old-style plots)\n" )
+                .append( "navigated around with mouse actions " )
+                .append( "in the same way as plots in TOPCAT." )
+                .toString();
         }
 
         public String getModeUsage( PaintModeParameter modeParam ) {
@@ -311,9 +319,11 @@ public abstract class PaintMode {
 
         public String getDescription( PaintModeParameter modeParam ) {
             return "Behaves as "
-                 + "<code>" + SWING_MODE + "</code> or "
-                 + "<code>" + outMode_ + "</code> mode"
-                 + " depending on presence of "
+                 + "<code><ref id='paintmode-swing'>" + SWING_MODE
+                                                      + "</ref></code> or "
+                 + "<code><ref id='paintmode-out'>" + outMode_
+                                                    + "</ref></code> "
+                 + " mode depending on presence of "
                  + "<code>" + modeParam.getOutputParameter().getName()
                             + "</code> parameter";
         }
