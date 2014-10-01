@@ -49,14 +49,8 @@ public class HomogeneousTablesInput implements TablesInput {
         /* Input filter parameter. */
         if ( useInFilter ) {
             inFilterParam_ = new FilterParameter( "icmd" );
-            inFilterParam_.setPrompt( "Processing command(s) "
-                                    + "for each input table" );
-            inFilterParam_.setDescription( new String[] {
-                "<p>Commands which will operate on each of the input tables,",
-                "before any other processing takes place.",
-                "</p>",
-                inFilterParam_.getDescription(),
-            } );
+            inFilterParam_.setTableDescription( "each input table",
+                                                inTablesParam_, Boolean.TRUE );
             paramList.add( inFilterParam_ );
         }
         else {

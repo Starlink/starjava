@@ -306,7 +306,7 @@ public class LayerTypeParameter extends ChoiceParameter<LayerType>
             inParam,
             inParam.getFormatParameter(),
             inParam.getStreamParameter(),
-            AbstractPlot2Task.createFilterParameter( suffix ),
+            AbstractPlot2Task.createFilterParameter( suffix, inParam ),
         };
     }
             

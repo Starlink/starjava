@@ -289,12 +289,8 @@ public class PixSample extends MapperTask {
         PixSampleTablesInput() {
             inTableParam_ = new InputTableParameter( "in" );
             inFilterParam_ = new FilterParameter( "icmd" );
-            inFilterParam_.setDescription( new String[] {
-                "<p>Commands to operate on the input table,",
-                "before any other processing takes place.",
-                "</p>",
-                inFilterParam_.getDescription(),
-            } );
+            inFilterParam_.setTableDescription( "the input table",
+                                                inTableParam_, Boolean.TRUE );
 
             pixTableParam_ = new InputTableParameter( pixdataName_ );
             pixTableParam_.setUsage( "<pix-table>" );
@@ -327,14 +323,8 @@ public class PixSample extends MapperTask {
             pixFmtParam.setStringDefault( "fits" );
 
             pixFilterParam_ = new FilterParameter( "pcmd" );
-            pixFilterParam_.setPrompt( "Processing command(s)"
-                                     + " for pixel data table" );
-            pixFilterParam_.setDescription( new String[] {
-                "<p>Commands to operate on the pixel data table,",
-                "before any other processing takes place.",
-                "</p>",
-                pixFilterParam_.getDescription(),
-            } );
+            pixFilterParam_.setTableDescription( "pixel data table", 
+                                                 pixTableParam_, Boolean.TRUE );
         }
 
         public Parameter[] getParameters() {

@@ -398,6 +398,9 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
             plist.add( animateParam_.getFormatParameter() );
             plist.add( animateParam_.getStreamParameter() );
             animateFilterParam_ = new FilterParameter( "acmd" );
+            animateFilterParam_
+               .setTableDescription( "the animation control table",
+                                     animateParam_, Boolean.TRUE );
             plist.add( animateFilterParam_ );
             parallelParam_ = new IntegerParameter( "parallel" );
             parallelParam_.setPrompt( "Parallelism for animation frames" );
@@ -1582,7 +1585,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
             throws TaskException {
         FilterParameter filterParam = new ParameterFinder<FilterParameter>() {
             public FilterParameter createParameter( String sfix ) {
-                return createFilterParameter( sfix );
+                return createFilterParameter( sfix, null );
             }
         }.getParameter( env, suffix );
         InputTableParameter tableParam =
@@ -1619,13 +1622,20 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
     }
 
     /**
-     * Returns a parameter for acquiring a data filter.
+     * Returns a parameter for acquiring a filter applied to the table input
+     * for a given layer.
      *
      * @param  suffix  layer-specific suffix
+     * @param  tableParam input table parameter associated with the layer
      * @return   filter parameter
      */
-    public static FilterParameter createFilterParameter( String suffix ) {
-        return new FilterParameter( FILTER_PREFIX + suffix );
+    public static FilterParameter
+            createFilterParameter( String suffix,
+                                   InputTableParameter tableParam ) {
+        FilterParameter param = new FilterParameter( FILTER_PREFIX + suffix );
+        param.setTableDescription( "the layer " + suffix + " input table",
+                                   tableParam, null );
+        return param;
     }
 
     /**

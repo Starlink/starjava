@@ -49,14 +49,8 @@ public abstract class ConsumerTask implements Task {
         /* Output filter. */
         if ( useOutFilter ) {
             outFilterParam_ = new FilterParameter( "ocmd" );
-            outFilterParam_.setPrompt( "Processing command(s) " 
-                                     + "for output table" );
-            outFilterParam_.setDescription( new String[] {
-                "<p>Commands to operate on the output table,",
-                "after all other processing has taken place.",
-                "</p>",
-                outFilterParam_.getDescription(),
-            } );
+            outFilterParam_.setTableDescription( "the output table", null,
+                                                 Boolean.FALSE );
             paramList_.add( outFilterParam_ );
         }
         else {
