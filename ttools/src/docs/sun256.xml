@@ -2944,14 +2944,430 @@ in multi-object match contexts.
 <sect id="plot2">
 <subhead><title>Plotting</title></subhead>
 
-<p>A plot consists of a plotting surface (including axes, annotations etc)
-which has a geometry specific to the type of plot being done,
-and zero or more plot layers.
-There is a specific plot command for each geometry,
-and the layers are described in <ref id="LayerType"/> below.
+<p>As of version 3.0 (October 2014), STILTS offers plotting commands
+corresponding to the new-style plots in
+version 4 of the
+<webref url="http://www.starlink.ac.uk/topcat/">TOPCAT</webref> application.
+The commands are currently:
+<ul>
+<li><ref id="plot2plane" plaintextref="yes"><code>plot2plane</code></ref>:
+    &plot2plane-purpose;
+    </li>
+<li><ref id="plot2sky" plaintextref="yes"><code>plot2sky</code></ref>:
+    &plot2sky-purpose;
+    </li>
+<li><ref id="plot2cube" plaintextref="yes"><code>plot2cube</code></ref>:
+    &plot2cube-purpose;
+    </li>
+<li><ref id="plot2sphere" plaintextref="yes"><code>plot2sphere</code></ref>:
+    &plot2sphere-purpose;
+    </li>
+<li><ref id="plot2time" plaintextref="yes"><code>plot2time</code></ref>:
+    &plot2time-purpose;
+    </li>
+</ul>
+(In previous versions the less capable commands
+<code>plot2d</code>,
+<code>plot3d</code> and
+<code>plothist</code>
+were available -
+these are now deprecated, but described in <ref id="plot"/>).
+</p>
+
+<p>These commands all have a similar structure.
+The <em>plot surface</em>, or geometry of the plot,
+is defined by which command you use
+(for instance, if you want to plot longitude/latitude data on
+the celestial sphere, use <code>plot2sky</code>).
+Content is added to the plot by specifying zero or more
+<em>plot layers</em>,
+as described in <ref id="LayerType"/> below.
 <ref id="ShapeMode"/> describes the shading modes which affect
 how colouring is performed for some of the layer types.
+Once a plot has been specified, it can be displayed on
+the screen or exported in some way according to
+a selected output mode (<ref id="paintMode"/>)
+and perhaps export format (<ref id="graphicExporter"/>).
+Plots displayed to the screen are by default "live" - they can be
+resized and navigated around (pan, zoom, rotate, ...) using the mouse
+in the same way as in a TOPCAT window.
 </p>
+
+<p>These commands allow you to make all the plots that can be produced
+with TOPCAT, in some cases with more flexibility in configuration.
+Unlike TOPCAT, the size of table you can plot is not limited by
+the size of table you can load into the application.
+In most cases, STILTS will generate plots from arbitrarily large
+data sets with fixed (and modest) memory requirements.
+Performance is of course highly dependent on the details of the plot,
+but for instance an all-sky density plot for 2 billion points can
+be produced in the order of 30 minutes.
+</p>
+
+<subsect id="TypedPlot2Task">
+<subhead><title>Plot Parameters</title></subhead>
+
+<p>The plotting commands offer a great deal of control over what is plotted
+and how it is represented, and thus unavoidably have lots of parameters.
+When looking at the command documentation in <ref id="cmdUsage"/>
+the <ref id="plot2plane-usage">Usage</ref> sections may look rather daunting.
+However, the discussion below and the 
+<ref id="plot2plane-examples">Examples</ref> sections should help.
+Generating a simple plot is straightforward and can be done with only
+four or five parameters; if you want to represent more complicated data
+or have specific preferences for
+appearance then you can consult the documentation for the additional options.
+</p>
+
+<p>As a simple example, 
+if a file "cat.fits" contains the columns RMAG and BMAG for red and 
+blue magnitudes,
+you can draw a two-dimensional colour-magnitude scatter plot with
+the command:
+<verbatim>
+   stilts plot2plane layer_1=mark in_1=cat.fits x_1=BMAG-RMAG y_1=BMAG
+</verbatim>
+Since an output file is not specified, the plot is shown in a window
+on the screen.
+This plot window is "live" - you can resize the window,
+or pan and zoom around it using the same mouse controls as in TOPCAT.
+To send the output to a PNG file, do instead:
+<verbatim>
+   stilts plot2plane layer_1=mark in_1=cat.fits x_1=BMAG-RMAG y_1=BMAG out=fig.png
+</verbatim>
+</p>
+
+<p>We can adjust the plot by inverting the Y axis so it
+increases downwards instead of upwards:
+<verbatim>
+   stilts plot2plane
+              yflip=true
+              layer_1=mark in_1=cat.fits x_1=BMAG-RMAG y_1=BMAG
+</verbatim>
+The parameters of the plot now fall into two groups.
+Global parameters, without suffixes,
+make global adjustments to the plot.
+In this example <code>yflip=true</code> inverts the Y axis.
+<strong>Layer parameters</strong>, with suffixes,
+are introduced by a <code>layer</code> parameter
+and grouped together by a given suffix.
+Each layer group defines a plot layer with content
+to be drawn on the plot surface.
+In this case the layer is of type <code>mark</code> (draw markers)
+and the suffix is "<code>_1</code>".
+Global and Layer parameters are described separately in the following
+subsections.
+</p>
+
+<subsubsect>
+<subhead><title>Global Parameters</title></subhead>
+
+<p>The global plot parameters are documented in
+the usage sections of the various plot commands
+(e.g. <ref id="plot2plane-usage"/>).
+They deal with things like positioning the plot axes,
+fixing the data bounds, selecting font types and sizes,
+adjusting grids and tickmarks, configuring how interactive
+navigation works, managing data storage, and so on.
+They are all optional,
+since they all have sensible defaults, for instance data bounds
+will be determined from the supplied data if they are not given
+explicitly.
+</p>
+
+</subsubsect>
+
+<subsubsect>
+<subhead><title>Layer Parameters</title></subhead>
+
+<p>The layer parameters come in groups, each specifying the
+details of one plot layer.
+Each layer type has its own list of parameters.
+A plot layer is introduced on the command line with a parameter
+of the form
+<verbatim>
+   layer&lt;suffix&gt;=&lt;layer-type&gt;
+</verbatim>
+and any other parameters with the same <code>&lt;suffix&gt;</code>
+are considered to apply to the same layer.
+In the basic example we considered:
+<verbatim>
+   stilts plot2plane layer_1=mark in_1=cat.fits x_1=BMAG-RMAG y_1=BMAG
+</verbatim>
+the suffix is "<code>_1</code>" and the layer type associated with it is 
+<code>mark</code> (plotting markers to make a scatter plot).
+The different layer types are documented in <ref id="LayerType"/>,
+and each has its own set of parameters, some of which are mandatory
+and some which are optional with sensible defaults.
+In the documentation, the suffix is represented as "<code>N</code>".
+For instance the <code><ref id="layer-mark">mark</ref></code> layer type
+requires you to specify an input table (<code>inN</code>) and
+point positions (<code>xN</code> and <code>yN</code>).
+Since the suffix we have used in the example for the
+<code>layerN</code> parameter is "<code>_1</code>",
+we have written <code>in_1</code>, <code>x_1</code> and <code>y_1</code>.
+The <code>mark</code> layer has some optional style parameters as well,
+so we could adjust the plot's appearance by adding
+<code>shape_1=cross size_1=4 color_1=blue</code>.
+</p>
+
+<p>You can have as many layers as you like (even none),
+so we could overplot two datasets from different input files like this:
+<verbatim>
+   stilts plot2plane
+       layer_1=mark in_1=cat1.fits x_1=BMAG-RMAG   y_1=BMAG  color_1=magenta size_1=5
+       layer_2=mark in_2=cat2.fits x_2=mag_b-mag_r y_2=mag_b color_2=cyan    size_2=5
+</verbatim>
+We have assigned different colours to the different layers
+and boosted the marker size to 5 pixels.
+</p>
+
+<p>As a convenience, if the same value is used for all the layers,
+you can omit the suffix.  So to avoid having to specify the same
+markers size for both layers, you can write instead:
+<verbatim>
+   stilts plot2plane
+       size=5
+       layer_1=mark in_1=cat1.fits x_1=BMAG-RMAG   y_1=BMAG  color_1=magenta
+       layer_2=mark in_2=cat2.fits x_2=mag_b-mag_r y_2=mag_b color_2=cyan
+</verbatim>
+Although the <code>size</code> parameter no longer has an explicit suffix,
+it's still a layer parameter, it just applies to multiple layers.
+This shorthand works for all layer parameters.
+Here is another example which also shows how you can use the
+<code>icmdN</code> parameter to <ref id="pipes">pre-process</ref>
+input data prior to performing the plot.
+Here, we make two different selections of the input rows to plot
+two different data sets.
+<verbatim>
+   stilts plot2plane
+          in=cat.fits x=BMAG-RMAG y=BMAG
+          layer_1=mark icmd_1='select vel&lt;1000'  color_1=blue
+          layer_2=mark icmd_2='select vel&gt;=1000' color_2=red
+</verbatim>
+The input tables and data values are the same for both datasets,
+so we can just supply the parameters
+<code>in</code>, <code>x</code> and <code>y</code>,
+rather than
+<code>in_1</code>, <code>in_2</code> etc.
+</p>
+
+<p>Any string can be used as a suffix, including the empty string
+(though an empty string can cause confusion if there are multiple layers).
+The suffixing is also slightly more sophisticated than described above;
+to find parameters relating to a layer with a given suffix, the
+parameter looks first using the whole suffix, and strips single
+characters off it until it has none left.
+So if a layer is introduced with the parameter <code>layer_ab</code>,
+you can give the marker shape using any of the parameters
+<code>shape_ab</code>, <code>shape_a</code>, <code>shape_</code>
+or <code>shape</code>.  If more than one of these is present,
+the first one in that list will be used
+(the order in which they appear on the command line is not significant).
+This can be used to group sets of layers.
+</p>
+
+<p>By default, if multiple layers are specified, they are plotted
+in the order in which the introducing <code>layerN</code> parameters
+appear on the command line.  This may be relevant, since layers
+plotted later sometimes obscure ones plotted earlier.
+You can alter the order of plotting with the <code>seq</code> (global)
+parameter, which is a comma-separated list of layer suffixes giving
+the sequence in which layers should be plotted.
+So adding "<code>seq=_2,_1</code>" would cause layer _2 to be plotted
+before layer _1, instead of the other way round.
+</p>
+
+<p>By default, if more than one layer is plotted, a legend will
+appear labelling the datasets.
+The dataset labels appearing in the legend are by default
+the layer suffixes specified on the command line.
+However, the labels can be given explicitly with the <code>legendN</code>
+parameter, so for instance in the example above
+<code>leglabel_1=Slow leglabel_2=Fast</code> would adjust the
+legend accordingly.
+Legend appearance and positioning can be adjusted by various
+<code>leg*</code> global parameters.
+</p>
+
+</subsubsect>
+
+<subsubsect>
+<subhead><title>Animation</title></subhead>
+
+<p>The plotting commands can be used to produce animations.
+This is done by supplying an <em>animation control table</em>
+using the <code>animate</code> parameter
+(which has associated <code>afmt</code> and <code>acmd</code> parameters
+for specifying its file format and applying filters).
+One output image is produced for each row of the control table.
+The columns of the table have names which correspond to plot command
+parameters, and for each row, the basic plot command is executed
+with the parameters on the command line supplied or replaced by
+those from the table.
+This is most commonly used for providing a movie of the kind of
+navigation you can do interactively with the mouse,
+but other applications are possible.
+</p>
+
+<p>For instance, given the following animation control table
+with the name "bounds.txt", in ASCII format:
+<verbatim>
+  #  xmax  ymax
+      4.0   2.0
+      3.0   1.5
+      2.0   1.0
+      1.0   0.5
+</verbatim>
+then this command:
+<verbatim>
+   stilts plot2plane xmin=0 ymin=0
+                     layer_1=mark in_1=gums_smc.fits x_1=ag y_1=av
+                     animate=bounds.txt afmt=ascii
+</verbatim>
+would produce a 4-frame animation zooming in towards the origin.
+</p>
+
+<p>If output is to the screen
+(<code>omode=<ref id="paintmode-swing">swing</ref></code>)
+the animation can be seen directly.
+If it is to an output file
+(<code>omode=<ref id="paintmode-out">out</ref></code>)
+then a number of output files is written with sequence numbers,
+so adding the parameter "<code>out=x.png</code>" to the above command
+would produce 4 files,
+<code>x-1.png</code>,
+<code>x-2.png</code>,
+<code>x-3.png</code> and
+<code>x-4.png</code>.
+Padding zeros are used to keep the files in alphanumeric sequence,
+so for instance in a 500-frame animation the first one would be named
+<code>x-001.png</code>.
+STILTS does not actually turn these files into a single animated output file,
+but you can use other tools to do this, for instance using ImageMagick:
+<verbatim>
+   convert x-*.png xmovie.gif
+</verbatim>
+will produce an animated gif from the input frames.
+</p>
+
+<p>You can create the animation control table any way you like,
+but you may find the <code><ref id="tloop">tloop</ref></code>
+command convenient.  For instance the above table can be
+written like this:
+<verbatim>
+   stilts tloop xmax 4 0 -1 ocmd='addcol ymax xmax*0.5' ofmt=ascii
+</verbatim>
+You can pipe the output of tloop (or any other command)
+as the animation table on the unix command line by specifying
+<code>animate=-</code> (the "<code>-</code>" character stands for
+standard input).  Note however that in this case you 
+must explicitly give the file format (using the <code>afmt</code> parameter)
+and it must be a format which STILTS is capable of streaming
+(VOTable is suitable; ASCII is not).
+</p>
+
+<p>A common requirement is to produce an animation of rotating a 3-d plot.
+Here's an example of how to do it from a unix shell:
+<verbatim>
+     stilts tloop phi 15 375 2 ofmt=votable \
+   | stilts plot2sphere layer_1=mark in_1=hip_main.fits lon_1=radeg lat_1=dedeg r_1=plx \
+                        animate=- afmt=votable
+</verbatim>
+The <code>phi</code> parameter controls the angle from which the
+3D plot is viewed, and here it is incremented by 2 degrees
+for each frame.
+The same thing would work for <code>plot2cube</code>
+as well as <code>plot2sphere</code>.
+</p>
+
+<p>Note that producing animations in this way is usually much more
+efficient than writing a shell script which invokes STILTS multiple times.
+The plot commands also employ multi-threading when animating to
+output files, so should make efficient use of multi-core machines
+(though currently animations to the screen are not multi-threaded).
+</p>
+
+</subsubsect>
+
+</subsect>
+
+<subsect id="PlotType">
+<subhead><title>Surface Types</title></subhead>
+
+<p>The different <code>plot2*</code> commands correspond to
+different plot surface geometries.
+The different commands come with their own specific
+axis configuration parameters.
+Some of the plot layer types are specific to certain surface types.
+When supplying data from input tables to plot layers,
+the coordinate values you need to supply
+(and hence the corresponding parameter names)
+are determined not by the layer type, but by the surface type.
+For instance, point positions for layer N on
+a 2-d Cartesian surface (<code>plot2plane</code> command)
+are given using parameters <code>xN</code> and <code>yN</code>,
+but when plotting to the celestial sphere
+(<code>plot2sky</code> command) you supply
+<code>lonN</code> and <code>latN</code>).
+</p>
+
+<p>The following list summarises the available surface types and
+their corresponding positional coordinates.
+
+<dl>
+<dt>Plane (<code><ref id="plot2plane">plot2plane</ref></code>)</dt>
+<dd><p>2-dimensional Cartesian axes.
+    Positional coordinates are supplied as
+    <code>x</code>, <code>y</code> pairs.
+    Note that this command can also be used to draw histograms.
+    </p></dd>
+
+<dt>Sky (<code><ref id="plot2sky">plot2sky</ref></code>)</dt>
+<dd><p>Celestial sphere.
+    Positional coordinates are supplied as
+    <code>lon</code>, <code>lat</code> pairs,
+    giving longitude and latitude in decimal degrees.
+    A number of different projections are available,
+    and conversion between different celestial coordinate systems can
+    also be performed.
+    You could use it for other spherical coordinate systems too
+    (like the surface of a planet).
+    </p></dd>
+
+<dt>Cube (<code><ref id="plot2cube">plot2cube</ref></code>)</dt>
+<dd><p>3-dimensional Cartesian axes.
+    Positional coordinates are supplied as
+    <code>x</code>, <code>y</code>, <code>z</code> triples.
+    </p></dd>
+
+<dt>Sphere (<code><ref id="plot2sphere">plot2sphere</ref></code></dt>
+<dd><p>3-dimensional isotropic space with spherical polar coordinates.
+    Positional coordinates are supplied as
+    <code>lon</code>, <code>lat</code>, <code>r</code> triples,
+    giving longitude and latitude in decimal degrees, and radius in
+    an arbitrary unit.
+    The plotting surface (space) is similar to Cube,
+    except that the unit distance is always
+    the same in all three directions.
+    </p></dd>
+
+<dt>Time (<code><ref id="plot2time">plot2time</ref></code></dt>
+<dd><p>2-dimensional axes, but the horizontal axis represents time.
+    The axis may be labelled in various ways
+    (ISO-8601 dates, decimal year, MJD etc). 
+    Positional coordinates are supplied as
+    <code>t</code>, <code>y</code> pairs.
+    How to provide a data value representing a time is somewhat
+    under-documented, but reading data from a time-sensitive format
+    such as CDF will give column values that can be used as times.
+    This surface type is somewhat experimental, and the
+    <code>plot2time</code> command currently lacks some important features.
+    </p></dd>
+</dl>
+</p>
+
+</subsect>
 
 <subsect id="LayerType">
 <subhead><title>Layer Types</title></subhead>
@@ -2991,37 +3407,185 @@ the following subsections.
 
 </subsect>
 
+
+<subsect id="paintMode">
+<subhead><title>Output Modes</title></subhead>
+
+<p>The plots generated by the plotting commands can be used in various
+different ways.  One thing you might want to do is to write the
+output to a file in a given graphics format 
+(<ref id="paintmode-out"><code>out</code></ref>);
+another is to preview it directly on the screen
+(<ref id="paintmode-swing"><code>swing</code></ref>).
+By default one or other of these will happen depending on whether you
+specify an output file.  However there are other possibilities;
+these are listed in the following subsections.
+</p>
+
+<p>Except for display to the screen, these modes should work happily
+on a headless machine (one with no graphics display, as may be the case
+for a web server).
+When running headless, you may find it necessary to 
+set the java system property
+"<code>java.awt.headless</code>" to <code>true</code>
+- see <ref id="sysProperties"/>.
+</p>
+
+<p>The default output mode is <ref id="paintmode-auto"><code>auto</code></ref>,
+which means that output is to a file if an output file is specified,
+or to the screen if it is not.  So in most cases you don't need to specify the
+<code>omode</code> parameter explicitly.
+</p>
+
+&paintmode-docs;
+
+</subsect>
+
+
+<subsect id="graphicExporter">
+<subhead><title>Export Formats</title></subhead>
+
+<p>Several of the plot output <ref id="paintMode">modes</ref>
+write the plot in some graphics format or other.
+When selecting an output format it is important to understand the 
+distinction between <em>bitmapped</em> and <em>vector</em> formats;
+basically bitmapped formats represent the image as a grid of finite-sized
+pixels while vector formats notionally draw smooth lines.
+Bitmapped formats are fine for a computer screen, but for high quality
+paper printouts you will want a vector format.
+You can convert from vector to bitmapped but not (usefully) in the
+other direction.  There are a couple of subtleties to this distinction
+specific to STILTS graphical output as discussed below.
+</p>
+
+<p>The following formats are the available values for the
+<code>ofmt</code> parameter of the various plot commands:
+<dl>
+<dt><code>png</code></dt>
+<dd><p>PNG format.
+    This is a flexible bitmapped format providing transparency 
+    and an unlimited number of colours with good lossless compression.
+    It is widely supported by non-ancient browsers and other image viewers,
+    and is generally recommended for bitmapped output.
+    </p></dd>
+
+<dt><code>gif</code></dt>
+<dd><p>GIF format.
+    This is a bitmapped format providing transparency and lossless
+    compression.
+    The number of colours is limited to 255 however, so if you are using
+    auxiliary axes (colour variation to represent higher dimensionality)
+    or other plot features which use a wide range of colours you may see
+    image degradation.
+    It has long been widely supported by browsers and other image viewers.
+    </p></dd>
+
+<dt><code>jpeg</code></dt>
+<dd><p>JPEG format.
+    This is a bitmapped format with lossy compression
+    intended primarily for photographs.
+    Transparency is not supported, and although there is no limit on the
+    maximum number of colours, its lossiness means that plots generated
+    using it generally look a bit smudged.
+    </p></dd>
+
+<dt><code>pdf</code></dt>
+<dd><p>Portable Document Format.
+    This is the format which can be read by Adobe's Acrobat Reader.
+    It is a widely portable vector format, and is suitable for printing
+    at high resolution, either standalone or imported into some other 
+    presentation format.
+    However, there are a couple of caveats when it comes to using it with
+    STILTS plots.
+    <ol>
+    <li>If used to plot a very large number of points, the output PDF file
+        can get quite large, though it's much better than for
+        <code>eps</code> output (see below).
+        </li>
+    <li>For certain colour shading options
+        (<ref id="shading-auto">auto</ref>,
+         <ref id="shading-density">density</ref>,
+         and in some circumstances transparency),
+        the body of the plot will
+        be drawn as a bitmap rather than vector graphics.
+        This is sometimes a blessing in disguise since with very large numbers
+        of points a vector PDF file could get unmanageably large in any case.
+        In this case the interior of the plot will be pixellated.
+        The axes and annotations outside of the
+        plot will still be drawn in vector format however.
+        </li>
+    </ol>
+    </p></dd>
+
+<dt><code>eps</code></dt>
+<dd><p>Encapsulated Postscript.
+    This is a vector format which is suitable for printing at high resolution
+    either standalone or imported into some other presentation format
+    (you may need to convert it via PDF depending on the intended destination).
+    However, there are a couple of caveats when it comes to using it with
+    STILTS plots.
+    <ol>
+    <li>Unfortunately the postscript driver used by STILTS is not very 
+        efficient and can result in large, sometimes very large, postscript
+        output files.  This is likely to be a problem for plots with a large
+        number of non-transparent points.
+        For this reason <code>eps-gzip</code> or <code>pdf</code> may be
+        a better choice.
+        </li>
+    <li>Postscript has no support for partial transparency, so if plots 
+        are drawn with partially transparent points (common for very large
+        data sets) the only way they can be rendered is by drawing the body
+        of the plot as a bitmap rather than as vector graphics.
+        This is sometimes a blessing in disguise since with very large numbers
+        of points a vector postscript file would likely be unmanageably 
+        large in any case.
+        So if there is any transparency in the plot, the interior of the
+        plot will be pixellated.  The axes and annotations outside of the
+        plot will still be drawn in vector format however.
+        </li>
+    </ol>
+    </p></dd>
+
+<dt><code>eps-gzip</code></dt>
+<dd><p>Just like the <code>eps</code> format above except that the output
+    is automatically compressed using the GZIP format as it is written.
+    Postscript compresses well (typically a factor of 5-10).
+    </p></dd>
+
+</dl>
+</p>
+
+</subsect>
+
 </sect>
 
 <sect id="plot">
 <subhead><title>Old-Style Plotting</title></subhead>
 
-<p>As of Version 2.0 (October 2008), STILTS offers table plotting commands.
-These acquire a data point from each line of one or more input tables,
-perhaps influenced by the pipelining operations described in <ref id="pipes"/>,
-and generate some kind of graphical plot from the result.
-At time of writing, the following plot types are available:
+<p><em>This section describes deprecated commands.
+For recommended plotting commands, see <ref id="plot2"/>.
+</em></p>
+
+<p>From version 2.0 (October 2008), STILTS incorporated three table
+plotting commands:
 <ul>
-<li><ref id="plot2d"><code>plot2d</code></ref>: &plot2d-purpose;</li>
+<li><ref id="plot2d"><code>plot2d</code></ref>: &plot3d-purpose;</li>
 <li><ref id="plot3d"><code>plot3d</code></ref>: &plot3d-purpose;</li>
 <li><ref id="plothist"><code>plothist</code></ref>: &plothist-purpose;</li>
 </ul>
-but see also <ref id="tcube"><code>tcube</code></ref> for generating
-N-dimensional histograms as FITS files.
-It is hoped to add more plot types in future releases.
+These provided command-line access to some, though not all,
+of the plotting capabilities offered by TOPCAT.
 </p>
 
-<p>The plotting commands offer considerable control over what is plotted
-and how it is represented, and thus unavoidably have rather a large
-number of parameters.  When looking at the command documentation in
-<ref id="cmdUsage"/>
-the <ref id="plot2d-usage">Usage</ref> sections may look rather daunting.
-However, the discussion below and the 
-<ref id="plot2d-examples">Examples</ref> sections should help.
-Generating a simple plot is straightforward and can be done with only
-three or four parameters; if you have more complicated
-requirements for data selection or specific preferences for
-appearance then you can consult the documentation for the additional options.
+<p>Since version 3.0 (October 2014), these commands are deprecated
+in favour of the more powerful ones described in <ref id="plot2"/>.
+The rest of this section describes some aspects of the deprecated
+commands for the benefit of legacy code.
+The output modes and formats are the same in old- and new-style plots,
+and are discussed in <ref id="paintMode"/> and <ref id="graphicExporter"/>.
+The handling of parameters and suffixes for these commands
+is not quite the same as for new-style plots,
+and is documented in the next subsection.
 </p>
 
 <p>As a simple example, 
@@ -3030,12 +3594,12 @@ blue magnitudes,
 you can draw a two-dimensional colour-magnitude scatter plot with
 the command:
 <verbatim>
-   stilts plot2d in=cat.fits xdata=RMAG ydata=BMAG-RMAG
+   stilts plot2d in=cat.fits xdata=BMAG-RMAG ydata=BMAG
 </verbatim>
 Since an output file is not specified, the plot is shown on the screen for
 convenience.  To send the output to a PNG file, do instead:
 <verbatim>
-   stilts plot2d in=cat.fits xdata=RMAG ydata=BMAG out=plot.png ofmt=png
+   stilts plot2d in=cat.fits xdata=BMAG-RMAG ydata=BMAG out=plot.png ofmt=png
 </verbatim>
 in some cases (including the above), the <code>ofmt</code> parameter is not
 required since STILTS may be able to guess the format from the output
@@ -3053,6 +3617,10 @@ Some other plotting-specific topics are also discussed below.
 
 <subsect id="plotSuffixes">
 <subhead><title>Parameter Suffixes</title></subhead>
+
+<p><em>This section describes deprecated commands.
+For recommended plotting commands, see <ref id="plot2"/>.
+</em></p>
 
 <p>Some of the parameters for the plotting tasks behave a little bit
 differently to other parameters in STILTS, in order to accommodate
@@ -3183,180 +3751,6 @@ in the plot, do the following:
 <p>More examples can be found in the <label>Examples</label>
 subsections of the individual plotting command descriptions in
 <ref id="cmdUsage"/>.
-</p>
-
-</subsect>
-
-
-<subsect id="paintMode">
-<subhead><title>Output Modes</title></subhead>
-
-<p>The plots generated by the plotting commands can be used in various
-different ways.  One thing you might want to do is to write the
-output to a file in a given graphics format 
-(<ref id="paintmode-out"><code>out</code></ref>);
-another is to preview it directly on the screen
-(<ref id="paintmode-swing"><code>swing</code></ref>).
-By default one or other of these will happen depending on whether you
-specify an output file.  However there are other possibilities;
-these are listed in the following subsections.
-</p>
-
-<p>Except for display to the screen, these modes should work happily
-on a headless machine (one with no graphics display, as may be the case
-for a web server).
-When running headless, you may find it necessary to 
-set the java system property
-"<code>java.awt.headless</code>" to <code>true</code>
-- see <ref id="sysProperties"/>.
-</p>
-
-<p>The default output mode is <ref id="paintmode-auto"><code>auto</code></ref>,
-which means that output is to a file if an output file is specified,
-or to the screen if it is not.  So often you don't need to specify the
-<code>omode</code> parameter explicitly.
-</p>
-
-&paintmode-docs;
-
-</subsect>
-
-<subsect id="graphicExporter">
-<subhead><title>Output Formats</title></subhead>
-
-<p>Several of the plot output <ref id="paintMode">modes</ref>
-write the plot in some graphics format or other.
-When selecting an output format it is important to understand the 
-distinction between <em>bitmapped</em> and <em>vector</em> formats;
-basically bitmapped formats represent the image as a grid of finite-sized
-pixels while vector formats notionally draw smooth lines.
-Bitmapped formats are fine for a computer screen, but for high quality
-paper printouts you will want a vector format.
-You can convert from vector to bitmapped but not (usefully) in the
-other direction.  There are a couple of subtleties to this distinction
-specific to STILTS graphical output as discussed below.
-</p>
-
-<p>The following formats are the available values for the
-<code>ofmt</code> parameter of the various plot commands:
-<dl>
-<dt><code>png</code></dt>
-<dd><p>PNG format.
-    This is a flexible bitmapped format providing transparency 
-    and an unlimited number of colours with good compression.
-    It is fairly widely supported by browsers and other image viewers,
-    but perhaps not as widely as GIF.
-    </p></dd>
-
-<dt><code>gif</code></dt>
-<dd><p>GIF format.
-    This is a very widely-supported bitmapped format providing transparency.
-    The number of colours is limited to 255 however, so if you are using
-    auxiliary axes (colour variation to represent higher dimensionality)
-    or other plot features which use a wide range of colours you may see
-    image degradation.
-    </p></dd>
-
-<dt><code>jpeg</code></dt>
-<dd><p>JPEG format.
-    This is a bitmapped format intended primarily for photographs.
-    Transparency is not supported, and although there is no limit on the
-    maximum number of colours, its lossiness means that plots generated
-    using it generally look a bit smudged.
-    </p></dd>
-
-<dt><code>pdf</code></dt>
-<dd><p>Portable Document Format.
-    This is the format which can be read by Adobe's Acrobat Reader.
-    It is a widely portable vector format, and is suitable for printing
-    at high resolution, either standalone or imported into some other 
-    presentation format.
-    However, there are a couple of caveats when it comes to using it with
-    STILTS plots.
-    <ol>
-    <li>If used to plot a very large number of points, the output PDF file
-        can get quite large, though it's much better than for
-        <code>eps</code> output (see below).
-        </li>
-    <li>Because of the way that STILTS does its transparency rendering,
-        the only way that plots with partially transparent points can 
-        be rendered is to draw the body
-        of the plot as a bitmap rather than as vector graphics.
-        This is probably a blessing in disguise since with very large numbers
-        of points a vector PDF file could get unmanageably large in any case.
-        So if there is any transparency in the plot, the interior of the
-        plot will be pixellated.  The axes and annotations outside of the
-        plot will still be drawn in vector format however.
-        </li>
-    </ol>
-    </p></dd>
-
-<dt><code>eps</code></dt>
-<dd><p>Encapsulated Postscript.
-    This is a vector format which is suitable for printing at high resolution
-    either standalone or imported into some other presentation format
-    (you may need to convert it via PDF depending on the intended destination).
-    However, there are a couple of caveats when it comes to using it with
-    STILTS plots.
-    <ol>
-    <li>Unfortunately the postscript driver used by STILTS is not very 
-        efficient and can result in large, sometimes very large, postscript
-        output files.  This is likely to be a problem for plots with a large
-        number of non-transparent points.
-        For this reason <code>eps-gzip</code> or <code>pdf</code> may be
-        a better choice.
-        </li>
-    <li>Postscript has no support for partial transparency, so if plots 
-        are drawn with partially transparent points (common for very large
-        data sets) the only way they can be rendered is by drawing the body
-        of the plot as a bitmap rather than as vector graphics.
-        This is probably a blessing in disguise since with very large numbers
-        of points a vector postscript file would likely be unmanageably 
-        large in any case.
-        So if there is any transparency in the plot, the interior of the
-        plot will be pixellated.  The axes and annotations outside of the
-        plot will still be drawn in vector format however.
-        </li>
-    </ol>
-    </p></dd>
-
-<dt><code>eps-gzip</code></dt>
-<dd><p>Just like the <code>eps</code> format above except that the output
-    is automatically compressed using the GZIP format as it is written.
-    Postscript compresses well (typically a factor of 5-10).
-    </p></dd>
-
-</dl>
-</p>
-
-</subsect>
-
-<subsect>
-<subhead><title>Comparison with TOPCAT plotting</title></subhead>
-
-<p>The intention is in future releases for STILTS to provide all 
-the plot types and facilities which are available from
-<webref url="http://www.starlink.ac.uk/topcat/">TOPCAT</webref>.
-STILTS may additionally offer more detailed options for
-controlling plot appearance, for instance of
-font and colour selection and tick mark placement.
-At time of writing however, only the 
-<ref id="plot2d">2d scatter plot</ref>, 
-<ref id="plot3d">3d Cartesian scatter plot</ref> and
-<ref id="plothist">histogram</ref> plot types are available,
-though these do include the most useful plot types and the most of the 
-options from TOPCAT for these plot types are available from STILTS too.
-</p>
-
-<p>As well as the advantage (in some contexts) of being able to generate
-plots in a scriptable fashion rather than from a graphical interactive
-interface, STILTS allows plots to be made from datasets of unlimited size.
-While TOPCAT has an effective limit of a few million rows,
-STILTS can stream data from tables to do its plotting,
-so a plot can be made representing an unlimited number of rows
-without large memory requirements.  In some cases this might lead to
-plotting times which are a bit slower than TOPCAT - if this becomes an
-issue something may be done about it.
 </p>
 
 </subsect>
@@ -4773,6 +5167,11 @@ e.g.:
 &plot2plane-layers;
 
 &plot2plane-summary;
+
+<subsubsect id="plot2plane-examples">
+<subhead><title>Examples</title></subhead>
+
+</subsubsect>
 
 </subsect>
 
@@ -8977,13 +9376,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <dt>New plotting commands:</dt>
     <dd><p>A set of new plotting commands are provided which give
         comprehensive access to all the new-style visualisation capabilities
-        available in TOPCAT v4.  The commands are
-        <ref id="plot2plane"><code>plot2plane</code></ref>,
-        <ref id="plot2sky"><code>plot2sky</code></ref>,
-        <ref id="plot2cube"><code>plot2cube</code></ref>,
-        <ref id="plot2sphere"><code>plot2sphere</code></ref> and
-        <ref id="plot2time"><code>plot2time</code></ref>
-        and are discussed in more detail in <ref id="plot2"/>.
+        available in TOPCAT v4.  These commands are
+        documented in <ref id="plot2"/>.
         These commands, and the underlying visualisation facilities,
         are considerably more capable than the, now deprecated,
         old-style plot commands
