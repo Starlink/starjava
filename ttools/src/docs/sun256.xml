@@ -8811,118 +8811,118 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </dl>
     </p></dd>
 
-    <dt>Version 2.5-2 (7 March 2014)</dt>
+<dt>Version 2.5-2 (7 March 2014)</dt>
+<dd><p>
+    <ul>
+    <li>Add some more colour maps.</li>
+    <li>Fix some broken and misdocumented non-table-output JyStilts
+        commands (<code>tcube</code>, <code>pixfoot</code>).</li>
+    <li>Fix bug which prevented access to long integer array elements
+        from expression language.</li>
+    <li>The Exact matcher now considers scalar numeric values equal if
+        they have the same numeric value; they are no longer required
+        to have the same type.</li>
+    <li>Fixed a registry client bug which means that the
+        <code>regquery</code> command can now successfully talk to
+        the NVO/VAO/STSci registry.
+        That has been broken since mid-2010.</li>
+    <li>Add new command <code>tloop</code> for generating single-column
+        tables from a numeric loop variable.</li>
+    <li><code>taplint</code> now checks for the right ObsCore ID,
+        though still recognises the wrong one (got from TAPRegExt),
+        and warns if found.</li>
+    <li>Fix TST input handler so TST files with fewer than 3 columns
+        can be read.</li>
+    <li>Add <code>Nd_cuboid</code> matcher option to match commands.</li>
+    </ul>
+    </p></dd>
+
+<dt>Version 2.5-3 (4 July 2014)</dt>
+<dd><p>
+    <dl>
+    <dt>New and improved functionality:</dt>
     <dd><p>
         <ul>
-        <li>Add some more colour maps.</li>
-        <li>Fix some broken and misdocumented non-table-output JyStilts
-            commands (<code>tcube</code>, <code>pixfoot</code>).</li>
-        <li>Fix bug which prevented access to long integer array elements
-            from expression language.</li>
-        <li>The Exact matcher now considers scalar numeric values equal if
-            they have the same numeric value; they are no longer required
-            to have the same type.</li>
-        <li>Fixed a registry client bug which means that the
-            <code>regquery</code> command can now successfully talk to
-            the NVO/VAO/STSci registry.
-            That has been broken since mid-2010.</li>
-        <li>Add new command <code>tloop</code> for generating single-column
-            tables from a numeric loop variable.</li>
-        <li><code>taplint</code> now checks for the right ObsCore ID,
-            though still recognises the wrong one (got from TAPRegExt),
-            and warns if found.</li>
-        <li>Fix TST input handler so TST files with fewer than 3 columns
-            can be read.</li>
-        <li>Add <code>Nd_cuboid</code> matcher option to match commands.</li>
+        <li>Add new command
+            <ref id="cdsskymatch"><code>cdsskymatch</code></ref>.
+            In most cases (for querying tables that can be found in VizieR)
+            this can and should be used instead of
+            <code>coneskymatch</code> - it's <em>much</em> faster.</li>
+        <li>Commands <code>coneskymatch</code>, <code>sqlskymatch</code>
+            and <code>pixfoot</code> will now guess RA/Dec columns
+            if relevant parameters are left blank.</li>
+        <li>Added new graphics output format <code>png-transp</code>
+            to generate PNG files with transparent backgrounds.</li>
+        <li>Upgraded Gregory Mantelet's ADQL library to version 1.2.
+            Better ADQL parsing.</li>
+        </ul>
+        </p></dd>
+    <dt>Improvements and adjustments to
+        <ref id="taplint"><code>taplint</code></ref>:</dt>
+    <dd><p>
+        <ul>
+        <li>Rework <code>taplint</code>
+            API to facilitate static acquisition of
+            report codes during programmatic use.
+            A few error codes have changed.</li>
+        <li>Add new "duff query" test to <code>taplint</code>.</li>
+        <li>Avoid <code>taplint</code> MDQ stage data type mismatch error
+            report for BOOLEAN/boolean declared/returned data.</li>
+        <li><code>taplint</code> now takes steps to ensure that TAP_SCHEMA
+            column list query is not truncated.</li>
+        <li><code>taplint</code> now flags absence of ObsCore table with
+            I[nfo] not F[ailure] status.</li>
+        <li>Change the implementation of <code>taplint</code> stages which
+            perform validation against XSD schemas.
+            Schemas from external namespaces may now be imported and used.
+            The CPV stage, which was previously broken and disabled
+            by default, is now fixed and enabled by default.
+            Known/expected schemas are stored locally, and a warning is
+            reported if external ones are used.  Schema validation seems
+            remarkably complicated, so it's possible there are still errors
+            in this implementation - if you suspect so,
+            please report it.</li>
+        <li>Add missing geometric reserved words to ADQL reserved word
+            list.  This fixes some problems with column names like
+            "DISTANCE" in taplint tests.</li>
+        <li>Fixed some bugs related to TAP table uploads.
+            In particular these could cause incorrect table upload error
+            reports in <code>taplint</code>.</li>
         </ul>
         </p></dd>
 
-    <dt>Version 2.5-3 (4 July 2014)</dt>
-    <dd><p>
-        <dl>
-        <dt>New and improved functionality:</dt>
-        <dd><p>
-            <ul>
-            <li>Add new command
-                <ref id="cdsskymatch"><code>cdsskymatch</code></ref>.
-                In most cases (for querying tables that can be found in VizieR)
-                this can and should be used instead of
-                <code>coneskymatch</code> - it's <em>much</em> faster.</li>
-            <li>Commands <code>coneskymatch</code>, <code>sqlskymatch</code>
-                and <code>pixfoot</code> will now guess RA/Dec columns
-                if relevant parameters are left blank.</li>
-            <li>Added new graphics output format <code>png-transp</code>
-                to generate PNG files with transparent backgrounds.</li>
-            <li>Upgraded Gregory Mantelet's ADQL library to version 1.2.
-                Better ADQL parsing.</li>
-            </ul>
-            </p></dd>
-        <dt>Improvements and adjustments to
-            <ref id="taplint"><code>taplint</code></ref>:</dt>
-        <dd><p>
-            <ul>
-            <li>Rework <code>taplint</code>
-                API to facilitate static acquisition of
-                report codes during programmatic use.
-                A few error codes have changed.</li>
-            <li>Add new "duff query" test to <code>taplint</code>.</li>
-            <li>Avoid <code>taplint</code> MDQ stage data type mismatch error
-                report for BOOLEAN/boolean declared/returned data.</li>
-            <li><code>taplint</code> now takes steps to ensure that TAP_SCHEMA
-                column list query is not truncated.</li>
-            <li><code>taplint</code> now flags absence of ObsCore table with
-                I[nfo] not F[ailure] status.</li>
-            <li>Change the implementation of <code>taplint</code> stages which
-                perform validation against XSD schemas.
-                Schemas from external namespaces may now be imported and used.
-                The CPV stage, which was previously broken and disabled
-                by default, is now fixed and enabled by default.
-                Known/expected schemas are stored locally, and a warning is
-                reported if external ones are used.  Schema validation seems
-                remarkably complicated, so it's possible there are still errors
-                in this implementation - if you suspect so,
-                please report it.</li>
-            <li>Add missing geometric reserved words to ADQL reserved word
-                list.  This fixes some problems with column names like
-                "DISTANCE" in taplint tests.</li>
-            <li>Fixed some bugs related to TAP table uploads.
-                In particular these could cause incorrect table upload error
-                reports in <code>taplint</code>.</li>
-            </ul>
-            </p></dd>
+    </dl>
+    </p></dd>
 
-        </dl>
-        </p></dd>
-
-    <dt>Next version</dt>
-    <dd><p>
-        <ul>
-        <li>Add new output mode
-            <code><ref id="mode-gui">gui</ref></code>,
-            which displays the table data in a scrollable
-            window on the screen.</li>
-        <li>taplint: downgrade unknown post-table QUERY_STATUS value message
-            from Error to Warning.</li>
-        <li>Attempting to write FITS tables with &gt;999 columns now fails
-            with a more helpful error message.</li>
-        <li>Improved Unicode handling in VOTables.
-            Fixed a serious bug in <code>votcopy</code>
-            that generated unreadable output to BINARY or BINARY2 serialization
-            if any non-empty column had datatype="unicodeChar".
-            Also improved behaviour when copying between tables with
-            unicodeChar columns; these are usually preserved now, rather
-            than being squashed to datatype char.
-            Some lurking Unicode-related issues remain.</li>
-        <li>Reworked the <code>Parameter</code> class to use generics.
-            The API has changed, so if you're using the <code>ttools</code>
-            classes programatically you may notice the difference.
-            This should not have user-visible changes to the STILTS package,
-            but a fair bit of code changed, so unexpected problems
-            are possible.</li>
-        <li>Task parameters now report their data types in the documentation.
-            </li>
-        </ul>
-        </p></dd>
+<dt>Next version</dt>
+<dd><p>
+    <ul>
+    <li>Add new output mode
+        <code><ref id="mode-gui">gui</ref></code>,
+        which displays the table data in a scrollable
+        window on the screen.</li>
+    <li>taplint: downgrade unknown post-table QUERY_STATUS value message
+        from Error to Warning.</li>
+    <li>Attempting to write FITS tables with &gt;999 columns now fails
+        with a more helpful error message.</li>
+    <li>Improved Unicode handling in VOTables.
+        Fixed a serious bug in <code>votcopy</code>
+        that generated unreadable output to BINARY or BINARY2 serialization
+        if any non-empty column had datatype="unicodeChar".
+        Also improved behaviour when copying between tables with
+        unicodeChar columns; these are usually preserved now, rather
+        than being squashed to datatype char.
+        Some lurking Unicode-related issues remain.</li>
+    <li>Reworked the <code>Parameter</code> class to use generics.
+        The API has changed, so if you're using the <code>ttools</code>
+        classes programatically you may notice the difference.
+        This should not have user-visible changes to the STILTS package,
+        but a fair bit of code changed, so unexpected problems
+        are possible.</li>
+    <li>Task parameters now report their data types in the documentation.
+        </li>
+    </ul>
+    </p></dd>
 
 </dl>
 </p>
