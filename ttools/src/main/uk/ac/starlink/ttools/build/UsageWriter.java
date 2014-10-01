@@ -32,7 +32,7 @@ public class UsageWriter {
             throws LoadException {
         out_ = out;
         taskName_ = taskName;
-        task_ = (Task) Stilts.getTaskFactory().createObject( taskName_ );
+        task_ = Stilts.getTaskFactory().createObject( taskName_ );
     }
 
     private void writeXml() throws IOException {
@@ -50,6 +50,8 @@ public class UsageWriter {
         outln( "\"<code>stilts</code>\" - see <ref id=\"invoke\"/>." );
         outln( "The available <code>&lt;stilts-flags&gt;</code> are listed" );
         outln( "in <ref id=\"stilts-flags\"/>." );
+        outln( "For programmatic invocation, the Task class for this" );
+        outln( "command is <code>" + task_.getClass().getName() + "</code>." );
         outln( "</p>" );
         outln();
 
