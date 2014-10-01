@@ -36,7 +36,7 @@ public class MultiPointConfigKey extends OptionConfigKey<ErrorRenderer> {
     }
 
     public String valueToString( ErrorRenderer renderer ) {
-        return renderer.getName();
+        return renderer.getName().toLowerCase().replaceAll( " ", "_" );
     }
 
     /**

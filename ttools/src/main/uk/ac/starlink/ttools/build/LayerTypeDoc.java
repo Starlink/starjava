@@ -8,7 +8,6 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.ttools.Formatter;
@@ -44,11 +43,6 @@ public class LayerTypeDoc {
 
     private final boolean basicXml_;
     private final String suffix_;
-    private final String posUsage_;
-    private final String extraUsage_;
-    private final String styleUsage_;
-    private final String shadeUsage_;
-    private final String tableUsage_;
 
     /**
      * Constructor.
@@ -58,11 +52,6 @@ public class LayerTypeDoc {
     public LayerTypeDoc( boolean basicXml ) {
         basicXml_ = basicXml;
         suffix_ = AbstractPlot2Task.EXAMPLE_LAYER_SUFFIX;
-        posUsage_ = "<pos-coord-params" + suffix_ + ">";
-        extraUsage_ = "<extra-coord-params" + suffix_ + ">";
-        styleUsage_ = "<style-params" + suffix_ + ">";
-        shadeUsage_ = "<shade-params" + suffix_ + ">";
-        tableUsage_ = "<table-params" + suffix_ + ">";
     }
 
     /**
@@ -118,26 +107,85 @@ public class LayerTypeDoc {
         /* Description text. */
         sbuf.append( layerType.getXmlDescription() );
 
-        /* Usage overview. */
+        /* Prepare lists of usage words and parameters. */
         List<String> usageWords = new ArrayList<String>();
-        usageWords.add( AbstractPlot2Task.PLOTTER_PREFIX + suffix_
+        List<Parameter> paramList = new ArrayList<Parameter>();
+        usageWords.add( AbstractPlot2Task.LAYER_PREFIX + suffix_
                       + "=" + lname );
-        if ( hasPos ) {
-            String mult = npos > 1 ? ( "*" + npos ) : "";
-            usageWords.add( posUsage_ + mult );
-        }
-        if ( hasExtra ) {
-            usageWords.add( extraUsage_ );
-        }
         if ( hasStyle ) {
-            usageWords.add( styleUsage_ );
+            Parameter[] styleParams =
+                LayerTypeParameter.getConfigParams( styleKeys, suffix_, false );
+            paramList.addAll( Arrays.asList( styleParams ) );
+            usageWords.addAll( LayerTypeParameter.usageWords( styleParams ) );
         }
         if ( hasShade ) {
-            usageWords.add( shadeUsage_ );
+            Parameter<ShapeMode> shapeModeParam =
+                ((ShapeFamilyLayerType) layerType)
+               .createShapeModeParameter( suffix_ );
+            paramList.add( shapeModeParam );
+            usageWords.add( LayerTypeParameter.usageWord( shapeModeParam ) );
+        }
+        final String[] posPlaceholderWords;
+        if ( hasPos ) {
+            
+            /* If we know what kind of plot it is, we can be specific about
+             * the positional coordinates. */ 
+            if ( plotType != null ) {
+                DataGeom[] geoms = plotType.getPointDataGeoms();
+                assert geoms.length == 1;
+                DataGeom geom = geoms[ 0 ];
+                List<Parameter> posParamList = new ArrayList<Parameter>();
+                for ( int ipos = 0; ipos < npos; ipos++ ) {
+                    String posSuffix = npos == 1
+                                     ? ""
+                                     : PlotUtil.getIndexSuffix( ipos );
+                    for ( Coord posCoord : geom.getPosCoords() ) {
+                        String sfix = posSuffix + suffix_;
+                        for ( Input input : posCoord.getInputs() ) {
+                            posParamList.add( AbstractPlot2Task
+                                             .createDataParameter( input, sfix,
+                                                                   false ) );
+                        }
+                    }
+                }
+                paramList.addAll( posParamList );
+                Parameter[] posParams =
+                    posParamList.toArray( new Parameter[ 0 ] );
+                usageWords.addAll( LayerTypeParameter.usageWords( posParams ) );
+                posPlaceholderWords = new String[ 0 ];
+            }
+
+            /* Otherwise, just add placeholders to the usage list. */
+            else {
+                posPlaceholderWords = new String[ npos ];
+                for ( int ipos = 0; ipos < npos; ipos++ ) {
+                    String posSuffix = npos == 1
+                                     ? ""
+                                     : PlotUtil.getIndexSuffix( ipos );
+                    posPlaceholderWords[ ipos ] = 
+                        "<pos-coord-params" + posSuffix + suffix_ + ">";
+                }
+                usageWords.addAll( Arrays.asList( posPlaceholderWords ) );
+            }
+        }
+        else {
+            posPlaceholderWords = new String[ 0 ];
+        }
+        if ( hasExtra ) {
+            Parameter[] extraParams =
+                LayerTypeParameter
+               .getCoordParams( extraCoords, suffix_, false );
+            paramList.addAll( Arrays.asList( extraParams ) );
+            usageWords.addAll( LayerTypeParameter.usageWords( extraParams ) );
         }
         if ( hasTable ) {
-            usageWords.add( tableUsage_ );
+            Parameter[] tableParams =
+                LayerTypeParameter.getInputParams( suffix_ );
+            paramList.addAll( Arrays.asList( tableParams ) );
+            usageWords.addAll( LayerTypeParameter.usageWords( tableParams ) );
         }
+
+        /* Write usage summary. */
         sbuf.append( "<p>\n" )
             .append( "<strong>Usage Overview:</strong>\n" )
             .append( "<verbatim><![CDATA[\n" )
@@ -152,227 +200,72 @@ public class LayerTypeDoc {
             .append( "</code>.\n" )
             .append( "</p>\n" );
 
-        /* Start list of stanzas for each parameter group. */
-        sbuf.append( "<p><dl>\n" );
-
-        /* Positional coordinate parameters. */
-        if ( hasPos ) {
-            final String usageWord;
-            final Parameter[] posParams;
-            StringBuffer cbuf = new StringBuffer();
-            cbuf.append( "<p>" );
-            if ( npos == 1 ) {
-                usageWord = posUsage_;
-                cbuf.append( "Positional coordinates give a position\n" )
-                    .append( "for each row of the input table.\n" );
-            }
-            else {
-                usageWord = posUsage_ + "*" + npos;
-                cbuf.append( "The positional coordinates give " )
-                    .append( npos )
-                    .append( " positions for each row of the input table.\n" );
-            }
-
-            /* If we know what kind of plot it is, we can be specific about
-             * the positional coorinates. */
-            if ( plotType != null ) {
-                DataGeom[] geoms = plotType.getPointDataGeoms();
-                assert geoms.length == 1;
-                DataGeom geom = geoms[ 0 ];
-                List<Parameter> paramList = new ArrayList<Parameter>();
-                for ( int ipos = 0; ipos < npos; ipos++ ) {
-                    String posSuffix = npos == 1
-                                     ? ""
-                                     : PlotUtil.getIndexSuffix( ipos );
-                    for ( Coord posCoord : geom.getPosCoords() ) {
-                        String sfix = posSuffix + suffix_;
-                        for ( Input input : posCoord.getInputs() ) {
-                            paramList.add( AbstractPlot2Task
-                                          .createDataParameter( input, sfix,
-                                                                false ) );
-                        }
-                    }
+        /* If we have not been able to give the positional parameters
+         * explicitly, explain how to supply them here. */
+        int nppw = posPlaceholderWords.length;
+        if ( nppw > 0 ) {
+            sbuf.append( "<p><dl>\n" )
+                .append( "<dt>Positional Coordinate Parameters:</dt>\n" );
+            sbuf.append( "<dd>" )
+                .append( "<p>The positional coordinates\n" );
+            for ( int i = 0; i < nppw; i++ ) {
+                if ( i > 0 ) {
+                    sbuf.append( ", " );
                 }
-                posParams = paramList.toArray( new Parameter[ 0 ] );
+                sbuf.append( "<code><![CDATA[" )
+                    .append( posPlaceholderWords[ i ] )
+                    .append( "]]></code>\n" );
             }
-
-            /* Otherwise, just give an example. */
-            else {
-                cbuf.append( "Their form depends on the plot geometry\n" )
-                    .append( "(which plotting command is used).\n" )
-                    .append( "For a plane plot\n" )
-                    .append( "(<ref id='plot2plane'><code>plot2plane"
-                                                       + "</code></ref>)\n" )
-                    .append( "the parameters would be\n" );
-                for ( int ipos = 0; ipos < npos; ipos++ ) {
-                    String posSuffix = npos == 1
-                                     ? ""
-                                     : PlotUtil.getIndexSuffix( ipos );
-                    String sfix = posSuffix + suffix_;
-                    boolean isMid = ipos < npos - 1;
-                    cbuf.append( "<code>x" )
-                        .append( sfix )
-                        .append( "</code>" )
-                        .append( isMid ? ", " : " and " )
-                        .append( "<code>y" )
-                        .append( sfix )
-                        .append( "</code>" )
-                        .append( isMid ? ", " : "." );
-                }
-                cbuf.append( ".\n" );
-                posParams = new Parameter[ 0 ];
+            sbuf.append( "give " )
+                .append( npos == 1 ? "a position " : ( npos + " positions " ) )
+                .append( "for each row of the input table.\n" )
+                .append( "Their form depends on the plot geometry,\n" )
+                .append( "i.e. which plotting command is used.\n" )
+                .append( "For a plane plot " )
+                .append( "(<ref id='plot2plane'><code>plot2plane"
+                                             + "</code></ref>)\n" )
+                .append( "the parameters would be\n" );
+            for ( int ipos = 0; ipos < npos; ipos++ ) {
+                String posSuffix = npos == 1
+                                 ? ""
+                                 : PlotUtil.getIndexSuffix( ipos );
+                String sfix = posSuffix + suffix_;
+                boolean isMid = ipos < npos - 1;
+                sbuf.append( "<code>x" )
+                    .append( sfix )
+                    .append( "</code>" )
+                    .append( isMid ? ", " : " and " )
+                    .append( "<code>y" )
+                    .append( sfix )
+                    .append( "</code>" )
+                    .append( isMid ? "," : "." )
+                    .append( "\n" );
             }
-
-            cbuf.append( "</p>\n" );
-            cbuf.append( PlotUtil.concatLines( new String[] {
-                "<p>The parameter values are in all cases strings interpreted",
-                "as numeric expressions based on column names.",
+            sbuf.append( PlotUtil.concatLines( new String[] {
+                "The coordinate parameter values are in all cases strings",
+                "interpreted as numeric expressions based on column names.",
                 "These can be column names, fixed values or algebraic",
                 "expressions as described in <ref id='jel'/>.",
                 "</p>",
             } ) );
-            String posComment = cbuf.toString();
-            sbuf.append( usageStanza( usageWord,
-                                      "Positional coordinate parameters",
-                                      posComment, posParams,
-                                      new String[ 0 ] ) );
+            sbuf.append( "</dd>\n" )
+                .append( "</dl>\n" )
+                .append( "</p>\n" );
         }
 
-        /* Non-positional coordinate parameters. */
-        if ( hasExtra ) {
-            Parameter[] extraParams =
-                LayerTypeParameter
-               .getCoordParams( extraCoords, suffix_, false );
-            String extraComment = PlotUtil.concatLines( new String[] {
-                "<p>Coordinate values other than the actual point positions.",
-                "The parameter values are in all cases strings interpreted",
-                "as expressions based on column names.",
-                "These can be column names, fixed values or algebraic",
-                "expressions as described in <ref id='jel'/>.",
-                "</p>",
-            } );
-            sbuf.append( usageStanza( extraUsage_,
-                                      "Non-positional coordinate parameters",
-                                      extraComment, extraParams,
-                                      new String[ 0 ] ) );
-        }
-
-        /* Style parameters. */
-        if ( hasStyle ) {
-            Parameter[] styleParams =
-                LayerTypeParameter.getConfigParams( styleKeys, suffix_, false );
-            String styleComment = PlotUtil.concatLines( new String[] {
-                "<p>Gives configuration values for the options",
-                "that affect the details of the plot layer's appearance.",
-                "</p>",
-            } );
-            sbuf.append( usageStanza( styleUsage_, "Style parameters",
-                                      styleComment, styleParams,
-                                      new String[ 0 ] ) );
-        }
-
-        /* Shading parameters. */
-        if ( hasShade ) {
-            ChoiceParameter<ShapeMode> shapeModeParam =
-                ((ShapeFamilyLayerType) layerType)
-               .createShapeModeParameter( suffix_ );
-            Parameter[] shadeParams = new Parameter[] { shapeModeParam };
-            String shadeComment = PlotUtil.concatLines( new String[] {
-                "<p>Shading parameters determine how the plotted markers",
-                "are coloured.",
-                "The value supplied for",
-                "<code>" + shapeModeParam.getName() + "</code>",
-                "determines what other configuration parameters",
-                "if any, are required for the shading.",
-                "The details are given in the relevant shading subsections",
-                "in <ref id='ShapeMode'/>.",
-                "</p>",
-            } );
-            String[] moreUsageWords = new String[] {
-                "<shade-params" + suffix_ + ">",
-            };
-            sbuf.append( usageStanza( shadeUsage_, "Shading parameters",
-                                      shadeComment, shadeParams,
-                                      moreUsageWords ) );
-        }
-
-        /* Input table parameters. */
-        if ( hasTable ) {
-            Parameter[] tableParams =
-                LayerTypeParameter.getInputParams( suffix_ );
-            String tableComment = PlotUtil.concatLines( new String[] {
-                "<p>The table parameters define the table from which",
-                "the input coordinate values will be obtained.",
-                "They have the same form as table input parameters",
-                "elsewhere in STILTS.",
-                "</p>",
-            } );
-            sbuf.append( usageStanza( tableUsage_, "Table parameters",
-                                      tableComment, tableParams,
-                                      new String[ 0 ] ) );
-        }
-
-        /* End parameter group list. */
-        sbuf.append( "</dl></p>\n" );
-
-        /* End top-level element. */
-        sbuf.append( "</subsubsect>\n" );
-        return sbuf.toString();
-    }
-
-    /**
-     * Constructs XML text describing usage of a group of parameters.
-     *
-     * @param  usageForm   formal usage template string
-     * @param  txt    short description of parameter group
-     * @param  comment   XML text to serve as a textual commentary
-     *                   on these parameters
-     * @param  params   list of parameters for which to provide detailed
-     *                  usage information
-     * @return   &lt;dt&gt;&lt;dd&gt; element pair
-     */
-    private String usageStanza( String usageForm, String txt,
-                                String comment, Parameter[] params,
-                                String[] moreUsageWords ) {
-        StringBuffer sbuf = new StringBuffer();
-
-        /* <dt>. */
-        sbuf.append( "<dt>" )
-            .append( txt )
-            .append( ":" )
-            .append( "</dt>\n" )
-
-        /* <dd>. */
-            .append( "<dd>\n" );
-        List<String> words = new ArrayList<String>();
-
-        /* Add usage summary. */
-        words.add( usageForm + ( params.length > 0 ? ":" : "" ) );
-        for ( Parameter param : params ) {
-            words.add( LayerTypeParameter.usageWord( param ) );
-        }
-        words.addAll( Arrays.asList( moreUsageWords ) );
-        sbuf.append( "<p><verbatim><![CDATA[\n" )
-            .append( Formatter.formatWords( words, 3 ) )
-            .append( "]]></verbatim></p>\n" );
-
-        /* Add text comments. */
-        sbuf.append( comment );
-
-        /* Sort parameter list. */
-        params = params.clone();
-        Arrays.sort( params, Parameter.BY_NAME );
-
-        /* Add detailed per-parameter usage. */
-        if ( params.length > 0 ) {
+        /* Add detailed per-parameter usage list. */
+        Collections.sort( paramList, Parameter.BY_NAME );
+        if ( paramList.size() > 0 ) {
             sbuf.append( "<p><dl>\n" );
-            for ( Parameter param : params ) {
+            for ( Parameter param : paramList ) {
                 sbuf.append( UsageWriter.xmlItem( param, basicXml_ ) )
                     .append( "\n" );
             }
             sbuf.append( "</dl></p>\n" );
         }
-        sbuf.append( "</dd>" );
+
+        /* End top-level element and return. */
+        sbuf.append( "</subsubsect>\n" );
         return sbuf.toString();
     }
 
@@ -448,7 +341,7 @@ public class LayerTypeDoc {
            .append( " [<layer-name> ...]" )
            .append( "\n" )
            .toString();
-           
+
         /* Parse arguments. */
         List<String> argList = new ArrayList( Arrays.asList( args ) );
         boolean doc = false;
