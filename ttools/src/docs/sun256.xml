@@ -130,7 +130,7 @@
 
 <docnumber>256</docnumber>
 
-<docdate>4 July 2014</docdate>
+<docdate>3 October 2014</docdate>
 
 <contactlist>
 <contact>STILTS web page:
@@ -227,10 +227,16 @@ same ground as the STIL and TOPCAT user documents
     </p></dd>
 <dt>Plotting</dt>
 <dd><p>
+    <ref id="plot2plane"><code>plot2plane</code></ref>,
+    <ref id="plot2sky"><code>plot2sky</code></ref>,
+    <ref id="plot2cube"><code>plot2cube</code></ref>,
+    <ref id="plot2sphere"><code>plot2sphere</code></ref> and
+    <ref id="plot2time"><code>plot2time</code></ref>
+    (also deprecated old-style plot commands
     <ref id="plot2d"><code>plot2d</code></ref>,
     <ref id="plot3d"><code>plot3d</code></ref> and
-    <ref id="plothist"><code>plothist</code></ref>
-    (see <ref id="plot" plaintextref="yes"/>).
+    <ref id="plothist"><code>plothist</code></ref>)
+    (see <ref id="plot2" plaintextref="yes"/>).
     </p></dd>
 <dt>Sky Pixel Operations</dt>
 <dd><p>
@@ -470,6 +476,11 @@ the available tasks are:
 <li><code>funcs</code></li>
 <li><code>pixfoot</code></li>
 <li><code>pixsample</code></li>
+<li><code>plot2cube</code></li>
+<li><code>plot2plane</code></li>
+<li><code>plot2sphere</code></li>
+<li><code>plot2sky</code></li>
+<li><code>plot2time</code></li>
 <li><code>plot2d</code></li>
 <li><code>plot3d</code></li>
 <li><code>plothist</code></li>
@@ -1147,7 +1158,7 @@ The following functions are defined by JyStilts:
           <code>mode_samp</code>),
     </li>
 <li>A function for each STILTS <ref id="cmdUsage">task</ref> 
-    (e.g. <code>tmatch2</code>, <code>tcat</code>, <code>plot2d</code>)
+    (e.g. <code>tmatch2</code>, <code>tcat</code>, <code>plot2sky</code>)
     </li>
 <li>A number of table methods which make table objects integrate nicely into
     the python environment</li>
@@ -1840,6 +1851,11 @@ or Unix <code>compress</code> and the program will uncompress it on the fly.
            <ref id="tskymatch2"><code>tskymatch2</code></ref>,
            <ref id="pixfoot"><code>pixfoot</code></ref>,
            <ref id="pixsample"><code>pixsample</code></ref>,
+           <ref id="plot2cube"><code>plot2cube</code></ref>,
+           <ref id="plot2plane"><code>plot2plane</code></ref>,
+           <ref id="plot2sky"><code>plot2sky</code></ref>,
+           <ref id="plot2sphere"><code>plot2sphere</code></ref>,
+           <ref id="plot2time"><code>plot2time</code></ref>,
            <ref id="plot2d"><code>plot2d</code></ref>,
            <ref id="plot3d"><code>plot3d</code></ref>,
            <ref id="plothist"><code>plothist</code></ref>,
@@ -4039,13 +4055,31 @@ Detailed descriptions and examples for each command can be found in
 <dt>Plotting:</dt>
 <dd><p>
     <ul>
-    <li><ref id="plot2d" plaintextref="yes"><code>plot2d</code></ref>:
+    <li><ref id="plot2plane" plaintextref="yes"><code>plot2plane</code></ref>:
+        &plot2plane-purpose;
+        </li>
+    <li><ref id="plot2sky" plaintextref="yes"><code>plot2sky</code></ref>:
+        &plot2sky-purpose;
+        </li>
+    <li><ref id="plot2cube" plaintextref="yes"><code>plot2cube</code></ref>:
+        &plot2cube-purpose;
+        </li>
+    <li><ref id="plot2sphere" plaintextref="yes"><code>plot2sphere</code></ref>:
+        &plot2sphere-purpose;
+        </li>
+    <li><ref id="plot2time" plaintextref="yes"><code>plot2time</code></ref>:
+        &plot2time-purpose;
+        </li>
+    <li><ref id="plot2d" plaintextref="yes"><code>plot2d</code></ref>
+        <em>(deprecated)</em>:
         &plot2d-purpose;
         </li>
-    <li><ref id="plot3d" plaintextref="yes"><code>plot3d</code></ref>:
+    <li><ref id="plot3d" plaintextref="yes"><code>plot3d</code></ref>
+        <em>(deprecated)</em>:
         &plot3d-purpose;
         </li>
-    <li><ref id="plothist" plaintextref="yes"><code>plothist</code></ref>:
+    <li><ref id="plothist" plaintextref="yes"><code>plothist</code></ref>
+        <em>(deprecated)</em>:
         &plothist-purpose;
         </li>
     </ul>
@@ -4830,6 +4864,11 @@ It may be improved or withdrawn in a future version.
 <subsect id="plot2d" tocleaf="yes">
 <subhead><title><code>plot2d</code>: &plot2d-purpose;</title></subhead>
 
+<p><em>This section describes a deprecated command.
+It still works, but you are advised to use the more capable
+<code><ref id="plot2plane">plot2plane</ref></code> instead.
+</em></p>
+
 <p><code>plot2d</code> performs two-dimensional scatter plots,
 sending the output to a graphical display or writing it to a file
 in some vector or bitmapped graphics format.
@@ -4858,6 +4897,12 @@ See <ref id="plot"/> for more discussion on use of the plotting commands.
 <subsect id="plot3d" tocleaf="yes">
 <subhead><title><code>plot3d</code>: &plot3d-purpose;</title></subhead>
 
+<p><em>This section describes a deprecated command.
+It still works, but you are advised to use the more capable
+<code><ref id="plot2cube">plot2cube</ref></code> or
+<code><ref id="plot2sphere">plot2sphere</ref></code> instead.
+</em></p>
+
 <p><code>plot3d</code> performs three-dimensional scatter plots,
 sending the output to a graphical display or writing it to a file
 in some vector or bitmapped graphics format.
@@ -4885,6 +4930,11 @@ See <ref id="plot"/> for more discussion on use of the plotting commands.
 
 <subsect id="plothist" tocleaf="yes">
 <subhead><title><code>plothist</code>: &plothist-purpose;</title></subhead>
+
+<p><em>This section describes a deprecated command.
+It still works, but you are advised to use the more capable
+<code><ref id="plot2plane">plot2plane</ref></code> instead.
+</em></p>
 
 <p><code>plothist</code> performs histogram plots,
 sending the output to a graphical display or writing it to a file
@@ -8894,34 +8944,57 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </dl>
     </p></dd>
 
-<dt>Next version</dt>
+<dt>Version 3.0 (3 October 2014)</dt>
 <dd><p>
-    <ul>
-    <li>Add new output mode
-        <code><ref id="mode-gui">gui</ref></code>,
-        which displays the table data in a scrollable
-        window on the screen.</li>
-    <li>taplint: downgrade unknown post-table QUERY_STATUS value message
-        from Error to Warning.</li>
-    <li>Attempting to write FITS tables with &gt;999 columns now fails
-        with a more helpful error message.</li>
-    <li>Improved Unicode handling in VOTables.
-        Fixed a serious bug in <code>votcopy</code>
-        that generated unreadable output to BINARY or BINARY2 serialization
-        if any non-empty column had datatype="unicodeChar".
-        Also improved behaviour when copying between tables with
-        unicodeChar columns; these are usually preserved now, rather
-        than being squashed to datatype char.
-        Some lurking Unicode-related issues remain.</li>
-    <li>Reworked the <code>Parameter</code> class to use generics.
-        The API has changed, so if you're using the <code>ttools</code>
-        classes programatically you may notice the difference.
-        This should not have user-visible changes to the STILTS package,
-        but a fair bit of code changed, so unexpected problems
-        are possible.</li>
-    <li>Task parameters now report their data types in the documentation.
-        </li>
-    </ul>
+    <dl>
+    <dt>New plotting commands:</dt>
+    <dd><p>A set of new plotting commands are provided which give
+        comprehensive access to all the new-style visualisation capabilities
+        available in TOPCAT v4.  The commands are
+        <ref id="plot2plane"><code>plot2plane</code></ref>,
+        <ref id="plot2sky"><code>plot2sky</code></ref>,
+        <ref id="plot2cube"><code>plot2cube</code></ref>,
+        <ref id="plot2sphere"><code>plot2sphere</code></ref> and
+        <ref id="plot2time"><code>plot2time</code></ref>
+        and are discussed in more detail in <ref id="plot2"/>.
+        These commands, and the underlying visualisation facilities,
+        are considerably more capable than the, now deprecated,
+        old-style plot commands
+        <code>plot2d</code>, <code>plot3d</code> and <code>plothist</code>.
+        </p></dd>
+    <dt>Other items:</dt>
+    <dd><p>
+        <ul>
+        <li>Add new output mode
+            <code><ref id="mode-gui">gui</ref></code>,
+            which displays the table data in a scrollable
+            window on the screen.</li>
+        <li>taplint: downgrade unknown post-table QUERY_STATUS value message
+            from Error to Warning.</li>
+        <li>Attempting to write FITS tables with &gt;999 columns now fails
+            with a more helpful error message.</li>
+        <li>Improved Unicode handling in VOTables.
+            Fixed a serious bug in <code>votcopy</code>
+            that generated unreadable output to BINARY or BINARY2 serialization
+            if any non-empty column had datatype="unicodeChar".
+            Also improved behaviour when copying between tables with
+            unicodeChar columns; these are usually preserved now, rather
+            than being squashed to datatype char.
+            Some lurking Unicode-related issues remain.</li>
+        <li>Reworked the <code>Parameter</code> class to use generics.
+            The API has changed, so if you're using the <code>ttools</code>
+            classes programatically you may notice the difference.
+            This should not have user-visible changes to the STILTS package,
+            but a fair bit of code changed, so unexpected problems
+            are possible.</li>
+        <li>Task parameters now report their data types in the documentation,
+            and commands report their classnames.
+            This provides support for programmatic invocation of STILTS
+            commands from external java applications.
+            </li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>

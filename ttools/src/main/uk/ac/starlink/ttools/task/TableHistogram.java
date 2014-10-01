@@ -13,7 +13,7 @@ import uk.ac.starlink.ttools.plottask.PlotTask;
  */
 public class TableHistogram extends PlotTask {
     public TableHistogram() {
-        super( "Histogram",
+        super( "Old-style Histogram",
                new HistogramPlotStateFactory(),
                new Histogram( new PtPlotSurface() ) );
     }

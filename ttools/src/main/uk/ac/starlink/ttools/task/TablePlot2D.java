@@ -13,7 +13,7 @@ import uk.ac.starlink.ttools.plottask.PlotStateFactory;
  */
 public class TablePlot2D extends PlotTask {
     public TablePlot2D() {
-        super( "2D Scatter Plot",
+        super( "Old-style 2D Scatter Plot",
                new PlotStateFactory( new String[] { "X", "Y" }, true, true, 2 ),
                new ScatterPlot( new PtPlotSurface() ) );
     }
