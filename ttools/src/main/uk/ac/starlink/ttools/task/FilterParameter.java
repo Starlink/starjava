@@ -25,10 +25,47 @@ public class FilterParameter extends Parameter<ProcessingStep[]>
         super( name, ProcessingStep[].class, true );
         setUsage( "<cmds>" );
         setNullPermitted( true );
+        setTableDescription( "the table", null, null );
+    }
 
+    /**
+     * Sets the wording used to refer to the target table for the filters
+     * this parameter acquires.  The description and prompt are set.
+     * If not set, the wording "the table" is used to describe the table.
+     *
+     * @param  shortDescrip  text to replace "the table"
+     * @param  tableParam  if supplied, gives the table parameter on behalf
+     *                     of which this format parameter is operating;
+     *                     may be null
+     * @param  isBefore    TRUE means filter is applied before any other
+     *                     processing, FALSE means after, null don't know
+     */
+    public final void
+            setTableDescription( String shortDescrip,
+                                 AbstractInputTableParameter tableParam,
+                                 Boolean isBefore ) {
+        setPrompt( "Processing command(s) for " + shortDescrip );
+        StringBuffer dbuf = new StringBuffer();
+        dbuf.append( shortDescrip );
+        if ( tableParam != null ) {
+            dbuf.append( " as specified by parameter <code>" )
+                .append( tableParam.getName() )
+                .append( "</code>" );
+        }
+        String longDescrip = dbuf.toString();
+        StringBuffer seqBuf = new StringBuffer();
+        if ( isBefore != null ) {
+            seqBuf.append( ",\n" )
+                  .append( isBefore.booleanValue() ? "before any"
+                                                   : "after all" )
+                  .append( " other processing has taken place" );
+        }
+        String seqTxt = seqBuf.toString();
         String indir = String.valueOf( LineEnvironment.INDIRECTION_CHAR );
         setDescription( new String[] {
-            "<p>The value of this parameter is one or more of the filter",
+            "<p>Specifies processing to be performed on",
+            longDescrip + seqTxt + ".",
+            "The value of this parameter is one or more of the filter",
             "commands described in <ref id=\"filterSteps\"/>.",
             "If more than one is given, they must be separated by",
             "semicolon characters (\";\").",

@@ -50,14 +50,10 @@ public class FixedTablesInput implements TablesInput {
             for ( int i = 0; i < nIn; i++ ) {
                 int i1 = i + 1;
                 FilterParameter fp = new FilterParameter( "icmd" + i1 );
+                String ord = getOrdinal( i1 );
+                fp.setTableDescription( "the " + ord + " input table",
+                                        inTableParams_[ i ], Boolean.TRUE );
                 inFilterParams_[ i ] = fp;
-                fp.setPrompt( "Processing command(s) for input table " + i1 );
-                fp.setDescription( new String[] {
-                    "<p>Commands to operate on the " + getOrdinal( i1 ),
-                    "input table, before any other processing takes place.",
-                    "</p>",
-                    fp.getDescription(),
-                } );
                 paramList.add( fp );
             }
         }
