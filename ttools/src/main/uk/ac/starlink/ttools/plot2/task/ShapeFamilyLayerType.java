@@ -7,12 +7,15 @@ import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.TaskException;
+import uk.ac.starlink.ttools.Formatter;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.layer.ShapeForm;
 import uk.ac.starlink.ttools.plot2.layer.ShapeMode;
 import uk.ac.starlink.ttools.plot2.layer.ShapePlotter.ShapeModePlotter;
+import uk.ac.starlink.ttools.task.ExtraParameter;
+import uk.ac.starlink.ttools.task.TableEnvironment;
 
 /**
  * LayerType that represents a family of ShapeModePlotters.
@@ -126,42 +129,94 @@ public class ShapeFamilyLayerType implements LayerType {
      */
     public ChoiceParameter<ShapeMode>
             createShapeModeParameter( String suffix ) {
-        ChoiceParameter<ShapeMode> param =
-                new ChoiceParameter<ShapeMode>( SHADING_PREFIX + suffix,
-                                                ShapeMode.class ) {
-            @Override
-            public String stringifyOption( ShapeMode mode ) {
-                return mode.getModeName().toLowerCase();
-            }
-        };
-        for ( ShapeModePlotter plotter : plotters_ ) {
-            param.addOption( plotter.getMode() );
+        int nmode = plotters_.size();
+        ShapeMode[] modes = new ShapeMode[ nmode ];
+        for ( int im = 0; im < nmode; im++ ) {
+            modes[ im ] = plotters_.get( im ).getMode();
         }
+        ShapeModeParameter param =
+            new ShapeModeParameter( SHADING_PREFIX, suffix, modes );
         param.setNullPermitted( false );
         param.setDefaultOption( param.getOptions()[ 0 ] );
-        param.setPrompt( "Colouring policy" );
-        StringBuffer sbuf = new StringBuffer();
-        for ( ShapeMode mode : param.getOptions() ) {
-            String mname = mode.getModeName();
-            sbuf.append( "<li>" )
-                .append( "<code>" )
-                .append( "<ref id='shading-" )
-                .append( mname )
-                .append( "' plaintextref='yes'>" )
-                .append( mname )
-                .append( "</ref>" )
-                .append( "</code>" )
-                .append( "</li>\n" );
-        }
-        String items = sbuf.toString();
-        param.setDescription( new String[] {
-            "<p>Determines how plotted objects are coloured.",
-            "Available options are:",
-            "<ul>",
-            items,
-            "</ul>",
-            "</p>",
-        } );
         return param;
+    }
+
+    /**
+     * Parameter for selecting a shading option.
+     */
+    private static class ShapeModeParameter extends ChoiceParameter<ShapeMode>
+                                            implements ExtraParameter {
+
+        private final String suffix_;
+
+        /**
+         * Constructor.
+         *
+         * @param  prefix  body of parameter name
+         * @param  suffix  layer suffix
+         * @param  modes   available value options
+         */
+        public ShapeModeParameter( String prefix, String suffix,
+                                   ShapeMode[] modes ) {
+            super( prefix + suffix, ShapeMode.class, modes );
+            suffix_ = suffix;
+            setPrompt( "Colouring policy" );
+            setUsage( super.getUsage() + " <shade-params" + suffix + ">" );
+            StringBuffer sbuf = new StringBuffer();
+            for ( ShapeMode mode : modes ) {
+                String mname = mode.getModeName();
+                sbuf.append( "<li>" )
+                    .append( "<code>" )
+                    .append( "<ref id='shading-" )
+                    .append( mname )
+                    .append( "' plaintextref='yes'>" )
+                    .append( mname )
+                    .append( "</ref>" )
+                    .append( "</code>" )
+                    .append( "</li>\n" );
+            }
+            String items = sbuf.toString();
+            setDescription( new String[] {
+                "<p>Determines how plotted objects in layer " + suffix,
+                "are coloured.",
+                "This may be influenced by how many objects are plotted",
+                "over each other as well as the values of other parameters.",
+                "Available options (<ref id='ShapeMode'/>) are:",
+                "<ul>",
+                items,
+                "</ul>",
+                "Each of these options comes with its own set of parameters",
+                "to specify the details of how colouring is done.",
+                "</p>",
+            } );
+        }
+
+        @Override
+        public String stringifyOption( ShapeMode mode ) {
+            return mode.getModeName().toLowerCase();
+        }
+
+        public String getExtraUsage( TableEnvironment env ) {
+            StringBuffer sbuf = new StringBuffer()
+                .append( "\n   " )
+                .append( "Available shading types, " )
+                .append ( "with associated parmeters:\n" );
+            for ( ShapeMode mode : getOptions() ) {
+                List<String> modeWords = new ArrayList<String>();
+                modeWords.add( getName() + "=" + mode.getModeName() );
+                Parameter[] coordParams =
+                    LayerTypeParameter
+                   .getCoordParams( mode.getExtraCoords(), suffix_, false );
+                Parameter[] configParams =
+                    LayerTypeParameter
+                   .getConfigParams( mode.getConfigKeys(), suffix_, false );
+                modeWords.addAll( LayerTypeParameter
+                                 .usageWords( coordParams ) );
+                modeWords.addAll( LayerTypeParameter
+                                 .usageWords( configParams ) );
+                sbuf.append( Formatter.formatWords( modeWords, 6 ) );
+            }
+            return sbuf.toString();
+        }
     }
 }

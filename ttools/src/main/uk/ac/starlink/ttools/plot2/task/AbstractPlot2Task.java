@@ -124,9 +124,9 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
     private final IntegerParameter parallelParam_;
     private final Parameter[] basicParams_;
 
-    public static final String PLOTTER_PREFIX = "layer";
+    public static final String LAYER_PREFIX = "layer";
     private static final String TABLE_PREFIX = "in";
-    private static final String FILTER_PREFIX = "cmd";
+    private static final String FILTER_PREFIX = "icmd";
     public static final String EXAMPLE_LAYER_SUFFIX = "N";
     private static final GraphicExporter[] EXPORTERS =
         GraphicExporter.getKnownExporters( PlotUtil.LATEX_PDF_EXPORTER );
@@ -225,20 +225,20 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
             "</p>",
             "<p>When specifying a plot, multiple layers may be specified,",
             "each introduced by a parameter",
-            "<code>" + PLOTTER_PREFIX + osfix + "</code>,",
+            "<code>" + LAYER_PREFIX + osfix + "</code>,",
             "where <code>" + osfix + "</code> is a different (arbitrary)",
             "suffix labelling the layer,",
             "and is appended to all the parameters",
             "specific to defining that layer.",
             "</p>",
             "<p>By default the layers are drawn on the plot in the order",
-            "in which the <code>" + PLOTTER_PREFIX + "*</code> parameters",
+            "in which the <code>" + LAYER_PREFIX + "*</code> parameters",
             "appear on the command line.",
             "However if this parameter is specified, each comma-separated",
             "element is interpreted as a layer suffix,",
             "giving the ordered list of layers to plot.",
             "Every element of the list must be a suffix with a corresponding",
-            "<code>" + PLOTTER_PREFIX + "</code> parameter,",
+            "<code>" + LAYER_PREFIX + "</code> parameter,",
             "but missing or repeated elements are allowed.",
             "</p>",
         } );
@@ -379,7 +379,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         if ( allowAnimate ) {
             animateParam_ = new InputTableParameter( "animate" );
             animateParam_.setNullPermitted( true );
-            animateParam_.setTableDescription( "the animation table" );
+            animateParam_.setTableDescription( "the animation control table" );
             animateParam_.setDescription( new String[] {
                 "<p>If not null, this parameter causes the command",
                 "to create a sequence of plots instead of just one.",
@@ -837,6 +837,16 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
               getLayers( env, context ).entrySet() ) {
             String suffix = entry.getKey();
             LayerType layer = entry.getValue();
+
+            /* Add an entry for the layer parameter itself, with a fixed
+             * value. */
+            LayerTypeParameter layerParam =
+                createLayerTypeParameter( suffix, context );
+            layerParam.setUsage( layerParam.stringifyOption( layer ) );
+            paramList.add( layerParam );
+
+            /* Add entries for the parameters associated with that
+             * layer type. */
             for ( ParameterFinder finder :
                   getLayerParameterFinders( env, context, layer, suffix ) ) {
                 paramList.add( finder.createParameter( suffix ) );
@@ -848,7 +858,15 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
     public Parameter getParameterByName( Environment env, String paramName )
             throws TaskException {
 
-        /* Find each layer that has been set in the environment
+        /* Check if the parameter is a layer parameter itself. */
+        if ( paramName.toLowerCase()
+                      .startsWith( LAYER_PREFIX.toLowerCase() ) ) {
+            String suffix = paramName.substring( LAYER_PREFIX.length() );
+            PlotContext context = getPlotContext( env );
+            return createLayerTypeParameter( suffix, context );
+        }
+
+        /* Otherwise, find each layer that has been set in the environment
          * (by a layerN setting).  Find its layer type and suffix.
          * Then it's a case of going through all the parameters that
          * come with that layer type to see if any of them match the
@@ -1295,7 +1313,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
     private Map<String,LayerType> getLayers( Environment env,
                                              PlotContext context )
             throws TaskException {
-        String prefix = PLOTTER_PREFIX;
+        String prefix = LAYER_PREFIX;
         Map<String,LayerType> map = new LinkedHashMap<String,LayerType>();
         for ( String pname : env.getNames() ) {
             if ( pname != null &&
@@ -1673,7 +1691,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      */
     public static LayerTypeParameter
             createLayerTypeParameter( String suffix, PlotContext context ) {
-        return new LayerTypeParameter( PLOTTER_PREFIX, suffix, context );
+        return new LayerTypeParameter( LAYER_PREFIX, suffix, context );
     }
 
     /**
@@ -1710,7 +1728,6 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
             typeTxt = "<code>" + cClazz.getSimpleName() + "</code>";
             typeUsage = null;
         }
-
         StringParameter param = new StringParameter( cName + suffix );
         String prompt = meta.getShortDescription();
         if ( fullDetail ) {
@@ -1720,8 +1737,9 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         param.setPrompt( prompt );
         StringBuffer dbuf = new StringBuffer()
             .append( meta.getXmlDescription() );
+        dbuf.append( "<p>" );
         if ( fullDetail ) {
-            dbuf.append( "<p>This parameter gives a column name, " )
+            dbuf.append( "This parameter gives a column name, " )
                 .append( "fixed value, or algebraic expression for the\n" )
                 .append( "<code>" )
                 .append( cName )
@@ -1735,12 +1753,12 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                 dbuf.append( "for all plot layers" );
             }
             dbuf.append( ".\n" );
-            dbuf.append( "The value is a " )
-                .append( typeTxt )
-                .append( " algebraic expression based on column names\n" )
-                .append( "as described in <ref id='jel'/>.\n" )
-                .append( "</p>\n" );
         }
+        dbuf.append( "The value is a " )
+            .append( typeTxt )
+            .append( " algebraic expression based on column names\n" )
+            .append( "as described in <ref id='jel'/>.\n" )
+            .append( "</p>\n" );
         param.setDescription( dbuf.toString() );
         String vUsage = meta.getValueUsage();
         if ( vUsage == null ) {
