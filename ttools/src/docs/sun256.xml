@@ -382,6 +382,43 @@ follows:
     further.
     </p></dd>
 
+<dt><code>-allowunused</code></dt>
+<dd><p>Causes unused parameter settings on the command line to be tolerated.
+    Normally, any unused parameters on the command line cause a usage
+    message to be output and the command to fail, on the assumption
+    that if you've supplied a parameter setting that's not doing anything
+    it is probably a mistake and you should be given a chance to correct it.
+    But if this flag is set, you just get a warning through the logging
+    system about any unused parameters, and the command is executed as
+    if they weren't there.
+    </p></dd>
+
+<dt><code>-prompt</code></dt>
+<dd><p>Most of the STILTS commands have a number of parameters which
+    will assume sensible defaults if you do not give them explicit
+    values on the command line.  If you use the <code>-prompt</code> flag,
+    then you will be prompted for every parameter you have not 
+    explicitly specified to give you an opportunity to enter a value
+    other than the default.
+    </p></dd>
+
+<dt><code>-bench</code></dt>
+<dd><p>Outputs the elapsed time taken by the task to standard error on
+    successful completion.
+    </p></dd>
+
+<dt><code>-debug</code></dt>
+<dd><p>Sets up output suitable for debugging.  The most visible consequence
+    of this is that if an error occurs then a full stacktrace is output, 
+    rather than just a user-friendly report.
+    </p></dd>
+
+<dt><code>-batch</code></dt>
+<dd><p>Some parameters will prompt you for their values, even if they 
+    offer legal defaults.  If you use the <code>-batch</code> flag,
+    then you won't be prompted at all.
+    </p></dd>
+
 <dt><code>-memory</code></dt>
 <dd><p>Encourages the command to use java heap memory for caching
     large amounts of data rather than using temporary disk files.
@@ -397,32 +434,6 @@ follows:
     Using this flag may help if you are running out of memory.
     This flag is in most cases equivalent to specifying the system
     property <code>-Dstartable.storage=disk</code>.
-    </p></dd>
-
-<dt><code>-debug</code></dt>
-<dd><p>Sets up output suitable for debugging.  The most visible consequence
-    of this is that if an error occurs then a full stacktrace is output, 
-    rather than just a user-friendly report.
-    </p></dd>
-
-<dt><code>-prompt</code></dt>
-<dd><p>Most of the STILTS commands have a number of parameters which
-    will assume sensible defaults if you do not give them explicit
-    values on the command line.  If you use the <code>-prompt</code> flag,
-    then you will be prompted for every parameter you have not 
-    explicitly specified to give you an opportunity to enter a value
-    other than the default.
-    </p></dd>
-
-<dt><code>-batch</code></dt>
-<dd><p>Some parameters will prompt you for their values, even if they 
-    offer legal defaults.  If you use the <code>-batch</code> flag,
-    then you won't be prompted at all.
-    </p></dd>
-
-<dt><code>-bench</code></dt>
-<dd><p>Outputs the elapsed time taken by the task to standard error on
-    successful completion.
     </p></dd>
 
 <dt><code>-memgui</code></dt>
@@ -526,7 +537,8 @@ the task which is specified in the <code>&lt;task-name&gt;</code> part.
    <param-name>=<param-value>
 ]]></verbatim>
 If you want to set the parameter to the null value, which is legal for
-some but not all parameters, use the special string "<code>null</code>".
+some but not all parameters, use the special string "<code>null</code>",
+or just leave the value blank ("<code>&lt;param-name&gt;=</code>").
 In some cases you can optionally leave out the <code>&lt;param-name&gt;</code>
 part of the assignment (i.e. the parameter is positionally determined); 
 this is indicated in the task's usage description if the parameter
@@ -591,6 +603,21 @@ command:
    % stilts -verbose tcopy cat.fits cat.vot ifmt=fits
    INFO: tcopy in=cat.fits out=cat.vot ifmt=fits ofmt=(auto)
 ]]></verbatim>
+</p>
+
+<p>If you make a parameter assignment on the command line for a
+parameter which is not used by the task in question, STILTS
+will issue an error message and the task will fail.
+Note some parameters are only used dependent on the presence or
+values of other parameters, so even supplying a parameter which is
+documented in the task's usage can have this effect.
+This is done on the assumption that if you have supplied a spurious
+parameter it's probably a mistake and you should be given the
+opportunity to correct it.
+But if you want to be free to make these mistakes without the
+task failing, you can supply the <code>-allowunused</code> flag
+as described in <ref id="stilts-flags"/>, in which case they will
+just result in a warning.
 </p>
 
 <p>Extensive help is available from <code>stilts</code> 
@@ -8969,6 +8996,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
             <code><ref id="mode-gui">gui</ref></code>,
             which displays the table data in a scrollable
             window on the screen.</li>
+        <li>Add new <code>-allowunused</code> flag to the stilts command.
+            If this is set, then unused parameter settings on the command line
+            just result in a warning, not failure of the command.</li>
         <li>taplint: downgrade unknown post-table QUERY_STATUS value message
             from Error to Warning.</li>
         <li>Attempting to write FITS tables with &gt;999 columns now fails

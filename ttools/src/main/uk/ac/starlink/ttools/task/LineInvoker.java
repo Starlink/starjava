@@ -69,6 +69,7 @@ public class LineInvoker {
         int verbosity = 0;
         boolean bench = false;
         boolean memgui = false;
+        boolean allowunused = false;
         PrintStream out = System.out;
         PrintStream err = System.err;
 
@@ -157,6 +158,14 @@ public class LineInvoker {
                 else if ( arg.equals( "-memgui" ) ) {
                     it.remove();
                     memgui = true;
+                }
+                else if ( arg.equals( "-allowunused" ) ) {
+                    it.remove();
+                    allowunused = true;
+                }
+                else if ( arg.equals( "-noallowunused" ) ) {
+                    it.remove();
+                    allowunused = false;
                 }
                 else if ( arg.equals( "-checkversion" ) && it.hasNext() ) {
                     it.remove();
@@ -266,27 +275,33 @@ public class LineInvoker {
                     long start = System.currentTimeMillis();
                     Executable exec = task.createExecutable( env );
                     String[] unused = env.getUnused();
-                    if ( unused.length == 0 ) {
+                    if ( unused.length > 0 ) {
                         logParameterValues( taskName, env );
-                        JFrame monwin = memgui ? startMemoryMonitor( "STILTS" )
-                                               : null;
-                        exec.execute();
-                        if ( monwin != null ) {
-                            monwin.dispose();
+                        if ( allowunused ) {
+                            logger_.warning( getUnusedWarning( unused ) );
                         }
-                        if ( bench ) {
-                            long millis = System.currentTimeMillis() - start;
-                            String secs =
-                                Float.toString( ( millis / 100L ) * 0.1f );
-                            err.println( "Elapsed time: " + secs + "s" );
+                        else {
+                            err.println( "\n" + getUnusedWarning( unused ) );
+                            err.println( getTaskUsage( task, taskName ) );
+                            return 1;
                         }
-                        return 0;
                     }
                     else {
-                        err.println( "\n" + getUnusedWarning( unused ) );
-                        err.println( getTaskUsage( task, taskName ) );
-                        return 1;
+                        logParameterValues( taskName, env );
                     }
+                    JFrame monwin = memgui ? startMemoryMonitor( "STILTS" )
+                                           : null;
+                    exec.execute();
+                    if ( monwin != null ) {
+                        monwin.dispose();
+                    }
+                    if ( bench ) {
+                        long millis = System.currentTimeMillis() - start;
+                        String secs =
+                            Float.toString( ( millis / 100L ) * 0.1f );
+                        err.println( "Elapsed time: " + secs + "s" );
+                    }
+                    return 0;
                 }
             }
             catch ( TaskException e ) {
@@ -578,18 +593,19 @@ public class LineInvoker {
             .append( " [-help]" )
             .append( " [-version]" )
             .append( " [-verbose]" )
+            .append( " [-allowunused]" )
+            .append( " [-prompt]" )
+            .append( " [-bench]" )
+            .append( '\n' )
+            .append( pad )
+            .append( " [-debug]" )
+            .append( " [-batch]" )
             .append( " [-memory]" )
             .append( " [-disk]" )
-            .append( " [-debug]" )
-            .append( '\n' )
-            .append( pad )
-            .append( " [-prompt]" )
-            .append( " [-batch]" )
-            .append( " [-bench]" )
             .append( " [-memgui]" )
-            .append( " [-checkversion <vers>]" )
             .append( '\n' )
             .append( pad )
+            .append( " [-checkversion <vers>]" )
             .append( " [-stdout <file>]" )
             .append( " [-stderr <file>]" )
             .append( '\n' )
