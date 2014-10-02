@@ -3193,7 +3193,7 @@ Legend appearance and positioning can be adjusted by various
 
 </subsubsect>
 
-<subsubsect>
+<subsubsect id="animate">
 <subhead><title>Animation</title></subhead>
 
 <p>The plotting commands can be used to produce animations.
@@ -5268,6 +5268,93 @@ e.g.:
 <subsubsect id="plot2plane-examples">
 <subhead><title>Examples</title></subhead>
 
+<p>Here are some examples of <code>plot2plane</code>:
+<dl>
+
+<dt><verbatim>
+stilts plot2plane yflip=true layer_1=mark in_1=cat.fits x_1=BMAG-RMAG y_1=BMAG 
+</verbatim></dt>
+<dd><p>This is a colour-magnitude diagram where the input table
+    has columns named RMAG and BMAG.
+    The Y axis is inverted so that the magnitude values increase
+    downwards not up.
+    The plot is displayed in a window on the screen, and may be
+    panned and zoomed with the mouse.
+    </p></dd>
+
+<dt><verbatim>
+stilts plot2plane layer=histogram in=hip_main.fits x=plx xlog=true
+                  xlabel=Parallax ylabel=
+</verbatim></dt>
+<dd><p>Plots a histogram of parallaxes for Hipparcos data,
+    with a logarithmic X axis.  The axes are labelled explicitly.
+    </p></dd>
+
+<dt><verbatim>
+stilts plot2plane xpix=600 ypix=500
+                  in=gavo_g2.fits x=X y=Y
+                  shading=aux aux='atan2(vely,velx)' auxmap=hue auxvisible=false
+                  layer_m=mark shape_m=cross size_m=4
+                  layer_v=xyvector xdelta_v=velx ydelta_v=vely scale_v=2
+                  out=velocities.pdf
+</verbatim></dt>
+<dd><p>Two layers are plotted, point markers representing position
+    (4 pixels radius, shaped like crosses)
+    and vectors representing velocity.
+    Both markers and vectors are coloured according to the direction
+    (arctan(vely/velx)) of the arrows,
+    so it's easy to see points moving in similar directions;
+    the "hue" colour map is good for this, since it's periodic,
+    so values of +Pi and -Pi have the same colour.
+    Since it's not very revealing in this case, display of the aux
+    axis colour ramp beside the plot has been turned off.
+    Since the X and Y coordinates and the colouring is common to both
+    layers, the relevant parameters can given without suffixes to avoid
+    having to repeat them.
+    Output is to a PDF file.
+    </p></dd>
+
+<dt><verbatim>
+stilts plot2plane xmin=0 xmax=6.283 ymin=-1 ymax=1 xlabel=Time
+                  layer=function axis=horizontal xname=time fexpr='sin(time)'
+                  dash=3,2 thick=4 color=ee6aa7
+</verbatim></dt>
+<dd><p>Plots a sine curve to the screen.  Initially the view is of one
+    period, but you can pan and zoom interactively to see any range.
+    The line is plotted in hot pink, four pixels wide, with a custom dash
+    pattern.
+    Since the <ref id="layer-function">function</ref> layer type has no
+    data coordinates, no input table is required.
+    The layer suffix here is the empty string; since there's only one
+    layer, it doesn't cause any problems.
+    </p></dd>
+
+<dt><verbatim>
+stilts plot2plane ylog=true xflip=true xmin=-5.2 xmax=3.8 ymin=250 ymax=3.5e5
+           in1=6dfgs_E7.fits x1=bmag-rmag y1=vel
+           layer1a=mark color1a=cyan
+           layer1b=contour color1b=yellow smooth1b=9 scaling1b=log
+           layer1c=mark icmd1c='every 35;select star'
+                        shape1c=filled_triangle_down size1c=5 color1c=red
+                        shading1c=transparent opaque1c=3
+           layer2=function fexpr2='exp(x*2+12)' color2=black antialias2=true
+                           dash2=dash thick2=3
+           leglabel1a=Population leglabel1c=Sample legpos=.95,.95 legseq=1a,1c
+           fontsize=16 texttype=latex ylabel="v\,/\,km.s^{-1}" xlabel=colour
+</verbatim></dt>
+<dd><p>There are four layers: 1a, 1b and 1c use the same positional data
+    from the same input file, so the positional coordinates common to them
+    are given the suffix "1".
+    Layer "2" is unrelated, and has no input data, since it's just an
+    analytic function.
+    The legend is positioned to taste, and its content
+    is manipulated so that only datasets 1a and 1c are described,
+    and they are given custom names (the default would be their suffix names).
+    </p></dd>
+
+</dl>
+</p>
+
 </subsubsect>
 
 </subsect>
@@ -5301,6 +5388,67 @@ systems if you specify the data and view systems e.g.:
 
 &plot2sky-summary;
 
+<subsubsect id="plot2sky-examples">
+<subhead><title>Examples</title></subhead>
+
+<p>Here are some examples of <code>plot2sky</code>:
+<dl>
+
+<dt><verbatim>
+stilts plot2sky in=messier.xml lon=RA lat=DEC
+                layer.pos=mark size.pos=4
+                layer.txt=label label.txt=Name layer.color=grey
+</verbatim></dt>
+<dd><p>Plots the positions of all the Messier objects on the sky,
+    with text labels giving their object names.
+    This displays a sphere on the screen that you can rotate/zoom using
+    the mouse.
+    </p></dd>
+
+
+<dt><verbatim>
+stilts plot2sky projection=aitoff
+                xpix=600 ypix=300
+                gridcolour=green labelcolour=black
+                fontsize=10 gridaa=true texttype=antialias
+                sex=true crowd=4
+</verbatim></dt>
+<dd><p>This just plots a celestial coordinate grid with no data.
+    Various options are tweaked to adjust the appearance of the grid.
+    </p></dd>
+
+<dt><verbatim>
+stilts plot2sky xpix=1000 ypix=500 fontsize=18 crowd=2
+                projection=aitoff viewsys=galactic
+                layer1=mark size1=0
+                shading1=density densemap1=gnuplot2 denselog1=true
+                densesub1=0.5,.95 denseclip1=0.02,1
+                in1=gums_mw_all.fits
+                lon1=alpha lat1=delta datasys1=equatorial 
+                icmd1=progress out=mw.pdf
+</verbatim></dt>
+<dd><p>Makes an all-sky plot using an Aitoff projection into
+    galactic coordinates of a large dataset.
+    <ref id="shading-density">Density</ref> shading
+    means that the colour at each point is dependent on
+    how many points are plotted; the density colour map has been fine-tuned
+    here to get a specific visual effect.
+    The sky coordinates in the input file (alpha and delta) are equatorial,
+    but these are transformed to galactic coordinates for plotting.
+    The <ref id="progress">progress</ref> filter applied to the input table
+    displays a progress indicator on the console to see how far it's got.
+    The result is written to a PDF file.
+    </p>
+    <p>This command was used to plot the GUMS-10 MW dataset, a simulation
+    of the milky way stars seen by the Gaia satellite;
+    The 2.1 billion row plot took about 45 minutes.
+    </p></dd>
+
+</dl>
+</p>
+
+</subsubsect>
+
 </subsect>
 
 <subsect id="plot2cube" tocleaf="yes">
@@ -5323,6 +5471,53 @@ e.g.:
 &plot2cube-layers;
 
 &plot2cube-summary;
+
+<subsubsect id="plot2cube-examples">
+<subhead><title>Examples</title></subhead>
+
+<p>Some examples of <code>plot2cube</code> are shown below.
+See <ref id="animate"/> for some examples of producing
+animations, for instance of a rotating cube.
+<dl>
+
+<dt><verbatim>
+stilts plot2cube
+</verbatim></dt>
+<dd><p>Just displays a unit cube wireframe in a window.
+    You can rotate it with the mouse.
+    </p></dd>
+
+<dt><verbatim>
+stilts plot2cube layer.1=mark in.1=sim.fits x.1=x y.1=y z.1=z
+                 shading.1=density densemap.1=pastel
+</verbatim></dt>
+<dd><p>Plots markers with x,y,z positions on the screen.
+    You can rotate, zoom and pan the cube on the window this produces.
+    Density shading is used, which means you can see the lines of sight
+    along which most objects fall, though single points are still visible.
+    Density shading is usually a good choice if there is just one dataset,
+    though it can get confusing with more than one.
+    </p></dd>
+
+<dt><verbatim>
+stilts plot2cube in=gavo_g2.fits
+                 x=X y=Y z=Z
+                 shading=aux aux=HALOID opaque=2.5 auxmap=red-blue
+                 layer_m=mark shape_m=open_circle size_m=2
+                 layer_v=xyzvector xdelta_v=velX ydelta_v=velY zdelta_v=velZ
+</verbatim></dt>
+<dd><p>Plots points in three dimensions with little arrows representing
+    velocity as well as position markers; layer <code>_m</code> draws the
+    markers and layer <code>_v</code> draws the arrows.
+    Points and vectors are coloured according to the HALOID data value.
+    The positional coordinates (x, y, z) and the shading options are
+    common to both layers, so they can be specified without a prefix.
+    </p></dd>
+
+</dl>
+</p>
+
+</subsubsect>
 
 </subsect>
 
@@ -5356,6 +5551,41 @@ e.g.:
 
 &plot2sphere-summary;
 
+<subsubsect id="plot2sphere-examples">
+<subhead><title>Examples</title></subhead>
+
+<p>Here are some examples of <code>plot2sphere</code>:
+<dl>
+
+<dt><verbatim>
+stilts plot2sphere in=hip_main.fits lon=radeg lat=dedeg r=plx
+                   layer1=mark shading1=density densemap1=cyan-magenta
+</verbatim></dt>
+<dd><p>Plots points with RA, Dec and parallax coordinates in 3D.
+    Density shading is used, which means you can see the lines of sight
+    along which most objects fall, though single points are still visible.
+    Density shading is usually a good choice if there is just one dataset,
+    though it can get confusing with more than one.
+    </p></dd>
+
+<dt><verbatim>
+stilts plot2sphere in=hip_main.fits lon=radeg lat=dedeg r=plx
+                   layer1=mark shading1=density densemap1=cyan-magenta
+                   cx=0 cy=0 cz=0 scale=38 texttype=antialias gridaa=true
+</verbatim></dt>
+<dd><p>The same as the previous example but with some more configuration
+    of the axes.  The data origin is placed at the centre of the visible cube
+    (this is the position around which the cube will rotate when
+    you drag the mouse), and the size of the cube sides in data coordinates
+    is set explicitly.
+    </p></dd>
+
+</dl>
+</p>
+
+
+</subsubsect>
+
 </subsect>
 
 <subsect id="plot2time" tocleaf="yes">
@@ -5381,6 +5611,40 @@ It may be improved or withdrawn in a future version.
 &plot2time-layers;
 
 &plot2time-summary;
+
+<subsubsect id="plot2time-examples">
+<subhead><title>Examples</title></subhead>
+
+<p>Here are some examples of <code>plot2time</code>:
+<dl>
+
+<dt><verbatim>
+stilts plot2time xpix=1000 ypix=300
+                 in=ACE_data.vot t=epoch
+                 layer.r=line y.r=Br color.r=grey
+                 layer.t=line y.t=Bt color.t=cyan 
+                 layer.n=line y.n=Bn color.n=pink
+</verbatim></dt>
+<dd><p>Three time series are plotted on the same axes as lines in different
+    colours.
+    </p></dd>
+
+<dt><verbatim>
+stilts plot2time tmin=2007-06-07T02:40 tmax=2007-06-07T06:20 tformat=mjd
+                 in=STEREO_STA_L1_SEPT_20070607_V05.cdf t=epoch_ns
+                 ylabel=Channel
+                 layer_3=spectrogram spectrum_3=Spec_0_NS
+                 spectromap_3=accent spectrolog_3=true
+</verbatim></dt>
+<dd><p>Plots a spectrogram from a CDF file.
+    The range along the horizontal axis is specified explicitly using
+    ISO-8601 date strings, but it is labelled in Modified Julian Date.
+    </p></dd>
+
+</dl>
+</p>
+
+</subsubsect>
 
 </subsect>
 
