@@ -61,6 +61,7 @@ import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.ShadeAxis;
 import uk.ac.starlink.ttools.plot2.ShadeAxisFactory;
+import uk.ac.starlink.ttools.plot2.SubCloud;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
@@ -1245,6 +1246,8 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
 
         /* Make a map from layer labels to arrays of styles.
          * Each entry in this map will correspond to a legend entry. */
+        Map<List<SubCloud>,String> cloudMap =
+            new LinkedHashMap<List<SubCloud>,String>();
         Map<String,List<Style>> labelMap =
             new LinkedHashMap<String,List<Style>>();
         for ( String suffix : suffixSeq ) {
@@ -1259,14 +1262,29 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                     .toString();
                 throw new ParameterValueException( legseqParam_, msg );
             }
+
+            /* If a legend label has been explicitly given for this layer,
+             * use that. */
             String label = new ParameterFinder<Parameter<String>>() {
                 public Parameter<String> createParameter( String sfix ) {
                     return createLabelParameter( sfix );
                 }
             }.getParameter( env, suffix )
              .objectValue( env );
+
+            /* Otherwise, work one out.  We don't give every layer its own
+             * entry, but instead group layers together by their data
+             * coordinates, since you may well have multiple layers with the
+             * same data overplotted to achieve some visual effect.
+             * The SubCloud is an object which can tell (testing by equality)
+             * whether layers have the same positional coordinates. */
             if ( label == null ) {
-                label = suffix.length() == 0 ? "data" : suffix;
+                List<SubCloud> dataClouds = getPointClouds( layer );
+                if ( ! cloudMap.containsKey( dataClouds ) ) {
+                    String suffixLabel = suffix.length() == 0 ? "data" : suffix;
+                    cloudMap.put( dataClouds, suffixLabel );
+                }
+                label = cloudMap.get( dataClouds );
             }
             if ( ! labelMap.containsKey( label ) ) {
                 labelMap.put( label, new ArrayList<Style>() );
@@ -1299,6 +1317,28 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         else {
             return null;
         }
+    }
+
+    /**
+     * Returns a list of point clouds representing the positional coordinates
+     * used to plot a layer.  The result is an object that can be compared
+     * for equality to test whether layers are representing the same
+     * positional data set.
+     *
+     * @return  layer  plot layer
+     * @return   list of positional dataset identifiers
+     */
+    private static List<SubCloud> getPointClouds( PlotLayer layer ) {
+        DataSpec dataSpec = layer.getDataSpec();
+        DataGeom geom = layer.getDataGeom();
+        CoordGroup cgrp = layer.getPlotter().getCoordGroup();
+        int npos = cgrp.getPositionCount();
+        List<SubCloud> cloudList = new ArrayList<SubCloud>( npos );
+        for ( int ipos = 0; ipos < npos; ipos++ ) {
+            int iposCoord = cgrp.getPosCoordIndex( ipos, geom );
+            cloudList.add( new SubCloud( geom, dataSpec, iposCoord ) );
+        }
+        return cloudList;
     }
 
     /**
