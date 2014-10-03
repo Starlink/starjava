@@ -3342,7 +3342,7 @@ their corresponding positional coordinates.
     <code>x</code>, <code>y</code>, <code>z</code> triples.
     </p></dd>
 
-<dt>Sphere (<code><ref id="plot2sphere">plot2sphere</ref></code></dt>
+<dt>Sphere (<code><ref id="plot2sphere">plot2sphere</ref></code>)</dt>
 <dd><p>3-dimensional isotropic space with spherical polar coordinates.
     Positional coordinates are supplied as
     <code>lon</code>, <code>lat</code>, <code>r</code> triples,
@@ -3353,7 +3353,7 @@ their corresponding positional coordinates.
     the same in all three directions.
     </p></dd>
 
-<dt>Time (<code><ref id="plot2time">plot2time</ref></code></dt>
+<dt>Time (<code><ref id="plot2time">plot2time</ref></code>)</dt>
 <dd><p>2-dimensional axes, but the horizontal axis represents time.
     The axis may be labelled in various ways
     (ISO-8601 dates, decimal year, MJD etc). 
@@ -4408,76 +4408,95 @@ to API stability between releases.
 
 <p>With this in mind, there are facilities for invoking the
 STILTS commands programmatically from third-party java code.
-Of course it is possible to do this by just callng the
+Of course it is possible to do this by just calling the
 static <code>main(String[])</code> method of the application
 Main-Class
 (<javadoc docset="&stiltsjavadocs;" class="uk.ac.starlink.ttools.Stilts"/>)
 but we document here how it can be done in a way which
-allows more control.
+allows more control, using the
+<javadoc docset="&stiltsjavadocs;" class="uk.ac.starlink.task."/>
+parameter handling framework.
 </p>
 
 <p>Each of the STILTS tasks listed in <ref id="cmdUsage"/>
-is represented by a subclass of the 
-<javadoc docset="&stiltsjavadocs;" class="uk.ac.starlink.task.Task"/> class;
+is represented by a class implementing the 
+<javadoc docset="&stiltsjavadocs;" class="uk.ac.starlink.task.Task"/> interface;
 these all have no-arg constructors.
 To run it, you need to create an instance of the class,
 pass it an
+<javadoc docset="&stiltsjavadocs;" class="uk.ac.starlink.task.Environment"/>
+object which can acquire values for parameters by name, and then execute it.
+The
 <javadoc docset="&stiltsjavadocs;"
          class="uk.ac.starlink.ttools.task.MapEnvironment"/>
-containing parameter name/value pairs, and then execute it.
-Here is a simple example for converting 
-a table file between formats:
+class, based on a Map containing name/value pairs,
+is provided for this purpose.
+As well as managing parameter values, MapEnvironment captures
+table and text output in a way that lets you retrieve it after
+the task has executed.
+Here is a simple example for invoking the <ref id="calc">calc</ref> task
+to perform a simple calcation:
 <verbatim>
     MapEnvironment env = new MapEnvironment();
-    env.setValue( "in", "cat.txt" );
-    env.setValue( "ifmt", "ascii" );
-    env.setValue( "out", "cat.fits" );
-    Task convertTask = new TablePipe();
-    task.createExecutable( env ).execute();
+    env.setValue( "expression", "sqrt(3*3+4*4)" );
+    Task calcTask = new uk.ac.starlink.ttools.task.Calc();
+    calcTask.createExecutable( env ).execute();
+    String result = env.getOutputText();
 </verbatim>
-which corresponds exactly to the command-line:
+The execution corresponds exactly to the command-line:
 <verbatim>
-    stilts tpipe in=cat.txt ifmt=ascii out=cat.fits
+    stilts calc expression="sqrt(3*3+4*4)"
 </verbatim>
-The <ref id="tpipe-usage">Usage</ref> section for the <code>tpipe</code>
+The <ref id="calc-usage">Usage</ref> section for the <code>calc</code>
 task notes that the corresponding Task subclass is
-<javadoc docset="&stiltsjavadocs;"
-         class="uk.ac.starlink.ttools.task.TablePipe"/>.
+<javadoc docset="&stiltsjavadocs;" class="uk.ac.starlink.ttools.task.Calc"/>.
 </p>
 
 <p>Also in the usage section, each parameter reports the data type that
 it may take, and objects of this type may be used as the parameter
-value passed in the <code>MapEnvironment</code>.
-For the case of the <code>in</code> parameter,
+value passed in the <code>MapEnvironment</code> as an alternative
+to passing string values.
+For the case of the input table parameters,
 this is
 <javadoc docset="&stiltsjavadocs;" class="uk.ac.starlink.table.StarTable"/>,
-so you could alternatively write
+so in a task like
+<ref id="tpipe">tpipe</ref>
+(<javadoc docset="&stiltsjavadocs;"
+          class="uk.ac.starlink.ttools.task.TablePipe"/>),
+if you want to read a file "data.fits",
+you can either write
 <verbatim>
-    StarTable table = new StarTableFactory().readStarTable( "cat.txt" );
+    env.setValue( "in", "data.fits" );
+</verbatim>
+or
+<verbatim>
+    StarTable table = new StarTableFactory().readStarTable( "data.fits" );
     env.setValue( "in", table );
 </verbatim>
 That doesn't buy you much, but the table could equally be obtained
 from any other source, including being a user-defined iterable
 over existing data structures.
-Similarly, the type of the <code>out</code> parameter is documented as
-<javadoc docset="&stiltsjavadocs;"
-         class="uk.ac.starlink.ttools.TableConsumer"/>,
-an interface which you can implement yourself using a callback
-to receive the output table.
+See <docxref doc="sun252"/> for more information on
+<code>StarTable</code> handling.
 </p>
 
-<p>The <code>MapEnvironment</code> class also provides methods for
-manipulating the standard output and standard error streams.
+<p>For some short examples of programs which invoke STILTS tasks
+in this way, see the source code of some of the examples in the
+<code>uk.ac.starlink.ttools.example</code> directory:
+<webref url="&starjavasrc;ttools/src/main/uk/ac/starlink/ttools/example/Calculator.java">Calculator</webref> and
+<webref url="&starjavasrc;ttools/src/main/uk/ac/starlink/ttools/example/Head10.java">Head10</webref>.
 </p>
 
 <p>Some commands provide additional methods for use with parameter-based
 invocation.  In particular the plotting commands can be used to
 create JComponent objects that can be incorporated into an
 existing GUI.
-A working example of this can be found in the
-source code for the
+A working example of this
+can be found in the source code for the example
 <webref url="&starjavasrc;ttools/src/main/uk/ac/starlink/ttools/example/EnvPlanePlotter.java">EnvPlanePlotter</webref>
-class.
+class
+(see also the <code>SinePlot</code> and <code>ApiPlanePlotter</code>
+example classes in the same place).
 </p>
 
 </sect>
@@ -5287,7 +5306,8 @@ stilts plot2plane layer=histogram in=hip_main.fits x=plx xlog=true
                   xlabel=Parallax ylabel=
 </verbatim></dt>
 <dd><p>Plots a histogram of parallaxes for Hipparcos data,
-    with a logarithmic X axis.  The axes are labelled explicitly.
+    with a logarithmic X axis.  The axes are labelled explicitly,
+    with an empty string in the case of the Y axis.
     </p></dd>
 
 <dt><verbatim>
@@ -5477,7 +5497,7 @@ e.g.:
 
 <p>Some examples of <code>plot2cube</code> are shown below.
 See <ref id="animate"/> for some examples of producing
-animations, for instance of a rotating cube.
+<strong>animations</strong>, for instance of a rotating cube.
 <dl>
 
 <dt><verbatim>
@@ -5554,7 +5574,9 @@ e.g.:
 <subsubsect id="plot2sphere-examples">
 <subhead><title>Examples</title></subhead>
 
-<p>Here are some examples of <code>plot2sphere</code>:
+<p>Some examples of <code>plot2cube</code> are shown below.
+See <ref id="animate"/> for some examples of producing
+<strong>animations</strong>, for instance of a rotating cube.
 <dl>
 
 <dt><verbatim>
@@ -8247,11 +8269,12 @@ the <webref url="http://www.astrogrid.org/">AstroGrid</webref> project
     (from PPARC/STFC),
 the <webref url="http://cds.u-strasbg.fr/twikiAIDA/bin/view/EuroVOAIDA/WebHome"
             >AIDA</webref> project (from EU FP7),
-grant ST/H008470/1 from the UK's Science and Technology Facilities Council
-(STFC),
-and the <webref url="http://www.g-vo.org/">GAVO</webref> project
+grants ST/H008470/1, ST/I00176X/1, ST/J001414/1 and ST/L002388/1
+from the UK's Science and Technology Facilities Council (STFC),
+the <webref url="http://www.g-vo.org/">GAVO</webref> project
 (BMBF Bewilligungsnummer 05A08VHA),
-and grants ST/H008470/1, ST/I00176X/1 and ST/J001414/1 from STFC.
+the European Space Agency,
+and the EU FP7-2013-Space project GENIUS.
 All of this support is gratefully acknowledged.
 </p>
 
@@ -8274,8 +8297,10 @@ functionality:
     (CDS) for ADQL parsing in TAP query preparation</li>
 <li><webref url="http://heasarc.gsfc.nasa.gov/docs/heasarc/fits/java/"
             >nom.tam.fits</webref> (NASA) for parts of FITS I/O</li>
-<li><webref url="http://trac.us-vo.org/project/nvo/wiki/IVOARegistry"
-            >IVOARegistry</webref> (NVO) for parts of IVOA registry access</li>
+<li><webref url="http://skyview.gsfc.nasa.gov/jar/jar.html"
+            >Skyview in a Jar</webref> (NASA) for sky axis drawing</li>
+<li><webref url="http://forge.scilab.org/index.php/p/jlatexmath/"
+            >JLaTeXMath</webref> (Scilab) for LaTeX typesetting in plots</li>
 <li><webref
      url="http://www.acme.com/java/software/Acme.JPM.Encoders.GifEncoder.html"
             >GifEncoder</webref>
@@ -9749,7 +9774,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         is now officially sanctioned and documented in the new
         <ref id="taskApi"/>.
         To support this changes have been made to the parameter system 
-        (Parameter now supports generics) and there are some visible
+        (<code>Parameter</code> class now supports generics)
+        and there are some visible
         changes to the user documentation as well
         (parameters now report their data type,
         and tasks report their classname).
@@ -9767,8 +9793,6 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <li>Add new <code>-allowunused</code> flag to the stilts command.
             If this is set, then unused parameter settings on the command line
             just result in a warning, not failure of the command.</li>
-        <li>taplint: downgrade unknown post-table QUERY_STATUS value message
-            from Error to Warning.</li>
         <li>Attempting to write FITS tables with &gt;999 columns now fails
             with a more helpful error message.</li>
         <li>Improved Unicode handling in VOTables.
@@ -9779,17 +9803,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
             unicodeChar columns; these are usually preserved now, rather
             than being squashed to datatype char.
             Some lurking Unicode-related issues remain.</li>
-        <li>Reworked the <code>Parameter</code> class to use generics.
-            The API has changed, so if you're using the <code>ttools</code>
-            classes programatically you may notice the difference.
-            This should not have user-visible changes to the STILTS package,
-            but a fair bit of code changed, so unexpected problems
-            are possible.</li>
-        <li>Task parameters now report their data types in the documentation,
-            and commands report their classnames.
-            This provides support for programmatic invocation of STILTS
-            commands from external java applications.
-            </li>
+        <li>The TAP client now tolerates whitespace around
+            UWS status codes.</li>
+        <li>taplint: downgrade unknown post-table QUERY_STATUS value message
+            from Error to Warning.</li>
         </ul>
         </p></dd>
     </dl>
