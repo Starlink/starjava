@@ -222,7 +222,8 @@
             <xsl:value-of select="$JAVADOCS"/>
           </xsl:otherwise>
         </xsl:choose>
-        <xsl:value-of select="translate(@class, '.', '/')"/>
+        <xsl:value-of
+             select="translate(translate(@class, '.', '/'), '$', '.')"/>
         <xsl:choose>
           <xsl:when test="@class='.'">
             <xsl:value-of select="'index.html'"/>
