@@ -20,6 +20,7 @@
   <!ENTITY corejavadocs "http://java.sun.com/j2se/1.5.0/docs/api/">
   <!ENTITY stiljavadocs "http://www.starlink.ac.uk/stil/javadocs/">
   <!ENTITY stiltsjavadocs "http://andromeda.star.bris.ac.uk/starjavadocs/">
+  <!ENTITY starjavasrc "https://github.com/Starlink/starjava/blob/master/">
 
   <!ENTITY flag-verbose '
      <dt><code>-v[erbose]</code></dt>
@@ -4382,6 +4383,102 @@ but it might involve doing something like the following:
 </subsubsect>
 
 </subsect>
+
+</sect>
+
+<sect id="taskApi">
+<subhead><title>Programmatic Invocation</title></subhead>
+
+<p>The STILTS package provides some capabilities,
+for instance plotting, that might be useful
+as part of other Java applications.
+The code that forms STILTS is fully documented at the API level;
+there are comprehensive javadocs throughout for the
+<code>uk.ac.starlink.ttools</code> package, its subpackages,
+and most of the other classes in the <code>uk.ac.starlink</code>
+tree on which it relies.
+Anybody is welcome to use these classes at their own risk,
+but the code does not form a stable API intended for public use:
+the javadocs are not distributed as part of the package
+(though you may be able to find them
+<webref url="http://andromeda.star.bris.ac.uk/starjavadocs/">here</webref>),
+tutorial documentation is not provided, and there is no commitment
+to API stability between releases.
+</p>
+
+<p>With this in mind, there are facilities for invoking the
+STILTS commands programmatically from third-party java code.
+Of course it is possible to do this by just callng the
+static <code>main(String[])</code> method of the application
+Main-Class
+(<javadoc docset="&stiltsjavadocs;" class="uk.ac.starlink.ttools.Stilts"/>)
+but we document here how it can be done in a way which
+allows more control.
+</p>
+
+<p>Each of the STILTS tasks listed in <ref id="cmdUsage"/>
+is represented by a subclass of the 
+<javadoc docset="&stiltsjavadocs;" class="uk.ac.starlink.task.Task"/> class;
+these all have no-arg constructors.
+To run it, you need to create an instance of the class,
+pass it an
+<javadoc docset="&stiltsjavadocs;"
+         class="uk.ac.starlink.ttools.task.MapEnvironment"/>
+containing parameter name/value pairs, and then execute it.
+Here is a simple example for converting 
+a table file between formats:
+<verbatim>
+    MapEnvironment env = new MapEnvironment();
+    env.setValue( "in", "cat.txt" );
+    env.setValue( "ifmt", "ascii" );
+    env.setValue( "out", "cat.fits" );
+    Task convertTask = new TablePipe();
+    task.createExecutable( env ).execute();
+</verbatim>
+which corresponds exactly to the command-line:
+<verbatim>
+    stilts tpipe in=cat.txt ifmt=ascii out=cat.fits
+</verbatim>
+The <ref id="tpipe-usage">Usage</ref> section for the <code>tpipe</code>
+task notes that the corresponding Task subclass is
+<javadoc docset="&stiltsjavadocs;"
+         class="uk.ac.starlink.ttools.task.TablePipe"/>.
+</p>
+
+<p>Also in the usage section, each parameter reports the data type that
+it may take, and objects of this type may be used as the parameter
+value passed in the <code>MapEnvironment</code>.
+For the case of the <code>in</code> parameter,
+this is
+<javadoc docset="&stiltsjavadocs;" class="uk.ac.starlink.table.StarTable"/>,
+so you could alternatively write
+<verbatim>
+    StarTable table = new StarTableFactory().readStarTable( "cat.txt" );
+    env.setValue( "in", table );
+</verbatim>
+That doesn't buy you much, but the table could equally be obtained
+from any other source, including being a user-defined iterable
+over existing data structures.
+Similarly, the type of the <code>out</code> parameter is documented as
+<javadoc docset="&stiltsjavadocs;"
+         class="uk.ac.starlink.ttools.TableConsumer"/>,
+an interface which you can implement yourself using a callback
+to receive the output table.
+</p>
+
+<p>The <code>MapEnvironment</code> class also provides methods for
+manipulating the standard output and standard error streams.
+</p>
+
+<p>Some commands provide additional methods for use with parameter-based
+invocation.  In particular the plotting commands can be used to
+create JComponent objects that can be incorporated into an
+existing GUI.
+A working example of this can be found in the
+source code for the
+<webref url="&starjavasrc;ttools/src/main/uk/ac/starlink/ttools/example/EnvPlanePlotter.java">EnvPlanePlotter</webref>
+class.
+</p>
 
 </sect>
 
@@ -9382,6 +9479,19 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         are considerably more capable than the, now deprecated,
         old-style plot commands
         <code>plot2d</code>, <code>plot3d</code> and <code>plothist</code>.
+        </p></dd>
+    <dt>Programmatic invocation:</dt>
+    <dd><p>Programmatic invocation of STILTS tasks from third-party java code
+        is now officially sanctioned and documented in the new
+        <ref id="taskApi"/>.
+        To support this changes have been made to the parameter system 
+        (Parameter now supports generics) and there are some visible
+        changes to the user documentation as well
+        (parameters now report their data type,
+        and tasks report their classname).
+        Normal (e.g. command-line) usage should not undergo any changes,
+        but a fair bit of UI code has changed, so unexpected problems
+        are possible.
         </p></dd>
     <dt>Other items:</dt>
     <dd><p>
