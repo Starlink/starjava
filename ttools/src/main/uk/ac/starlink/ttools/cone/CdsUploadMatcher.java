@@ -17,13 +17,9 @@ import java.util.logging.Logger;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.xml.sax.SAXException;
-import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.ColumnInfo;
-import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.TableSink;
-import uk.ac.starlink.table.UnrepeatableSequenceException;
-import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.util.CgiQuery;
 import uk.ac.starlink.vo.HttpStreamParam;
 import uk.ac.starlink.vo.TapQuery;
@@ -58,9 +54,11 @@ public class CdsUploadMatcher implements UploadMatcher {
     /** Whether it is safe/recommended to upload empty tables to match. */
     public static final boolean UPLOAD_EMPTY = false;
 
+    /* Names of columns in uploaded table. */
+    private static final String ID_NAME = "__UPLOAD_ID__";
     private static final String RA_NAME = "__UPLOAD_RA__";
     private static final String DEC_NAME = "__UPLOAD_DEC__";
-    private static final String ID_NAME = "__UPLOAD_ID__";
+
     private static Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.cone" );
 
@@ -122,7 +120,9 @@ public class CdsUploadMatcher implements UploadMatcher {
         headerMap.put( "Content-Type", "application/x-votable+xml" );
         final VOTableWriter vowriter =
             new VOTableWriter( DataFormat.BINARY, true, VOTableVersion.V12 );
-        final StarTable coneTable = new UploadConeTable( coneSeq, rowMapper );
+        final StarTable coneTable =
+            new UploadConeTable( coneSeq, rowMapper,
+                                 ID_NAME, RA_NAME, DEC_NAME );
         HttpStreamParam param = new HttpStreamParam() {
             public Map<String,String> getHttpHeaders() {
                 return headerMap;
@@ -362,106 +362,6 @@ public class CdsUploadMatcher implements UploadMatcher {
         URL url = new URL( urltxt );
         return new BufferedReader( new InputStreamReader( url.openStream(),
                                                           "utf8" ) );
-    }
-
-    /**
-     * Table suitable for uploading based on a sequence of positional queries
-     * and an RowMapper.
-     * The resulting table contains just three columns: ID, RA, Dec.
-     *
-     * <p>This is a one-shot sequential table - only one row sequence
-     * may be taken out from it.
-     */
-    private static class UploadConeTable extends AbstractStarTable {
-        private ConeQueryRowSequence coneSeq_;
-        private final RowMapper<?> rowMapper_;
-        private final ColumnInfo[] colInfos_;
-
-        /**
-         * Constructor.
-         *
-         * @param  coneSeq  sequence of positional queries
-         * @param  rowMapper  maps index of query to an identifier object
-         */
-        UploadConeTable( ConeQueryRowSequence coneSeq, RowMapper rowMapper ) {
-            coneSeq_ = coneSeq;
-            rowMapper_ = rowMapper;
-            colInfos_ = new ColumnInfo[] {
-                new ColumnInfo( ID_NAME, rowMapper_.getIdClass(),
-                                "Row identifier" ),
-                new ColumnInfo( RA_NAME, Double.class, "ICRS Right Ascension" ),
-                new ColumnInfo( DEC_NAME, Double.class, "ICRS Declination" ),
-            };
-        }
-
-        public int getColumnCount() {
-            return colInfos_.length;
-        }
-
-        public ColumnInfo getColumnInfo( int icol ) {
-            return colInfos_[ icol ];
-        }
-
-        public long getRowCount() {
-            return -1;
-        }
-
-        public synchronized RowSequence getRowSequence() throws IOException {
-            if ( coneSeq_ == null ) {
-                throw new UnrepeatableSequenceException();
-            }
-            final ConeQueryRowSequence coneSeq = coneSeq_;
-            coneSeq_ = null;
-            return new RowSequence() {
-                private Object[] row_;
-                public boolean next() throws IOException {
-                    boolean hasNext = coneSeq.next();
-                    row_ = hasNext
-                         ? new Object[] {
-                               rowMapper_.rowIndexToId( coneSeq.getIndex() ),
-                               new Double( coneSeq.getRa() ),
-                               new Double( coneSeq.getDec() ),
-                           }
-                         : null;
-                    assert ! hasNext || isRowCompatible( row_, colInfos_ );
-                    return hasNext;
-                }
-                public Object[] getRow() {
-                    return row_;
-                }
-                public Object getCell( int icol ) {
-                    return row_[ icol ];
-                }
-                public void close() throws IOException {
-                    coneSeq.close();
-                }
-            };
-        }
-
-        /**
-         * Determines whether the contents of a given row are
-         * compatible with a given list of column metadata objects.
-         * Used for assertions.
-         *
-         * @param  row  tuple of values
-         * @param  infos  matching tuple of value metadata objects
-         * @return  true iff compatible
-         */
-        private boolean isRowCompatible( Object[] row, ValueInfo[] infos ) {
-            int n = row.length;
-            if ( infos.length != n ) {
-                return false;
-            }
-            for ( int i = 0; i < n; i++ ) {
-                Object cell = row[ i ];
-                if ( cell != null &&
-                     ! infos[ i ].getContentClass()
-                      .isAssignableFrom( cell.getClass() ) ) {
-                    return false;
-                }
-            }
-            return true;
-        }
     }
 
     /**
