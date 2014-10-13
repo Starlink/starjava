@@ -416,14 +416,17 @@ public class TablePipeTest extends TableTestCase {
         assertTrue( nrow > 2 );
         assertSameData( inTable_, apply( "repeat 1" ) );
         assertSameData( inTable_, apply( "repeat 1000000; head " + nrow ) );
-        assertSameData( inTable_, apply( "repeat 999; tail " + nrow ) );
+        assertSameData( inTable_, apply( "repeat -table 999; tail " + nrow ) );
         assertSameData( inTable_,
                         apply( "repeat 10; rowrange " + ( nrow + 1 )
                                                       + " +" + nrow ) );
         assertSameData( inTable_,
                         apply( "repeat 10; rowrange " + ( nrow * 4 + 1 )
                                                       + " +" + nrow ) );
-        assertEquals( nrow * 99, apply( "repeat 99" ).getRowCount() );
+        assertSameData( inTable_,
+                        apply( "repeat -row 3*3; every 9" ) );
+        assertEquals( nrow * 99, apply( "repeat -table 99" ).getRowCount() );
+        assertEquals( nrow * 99, apply( "repeat -row 99" ).getRowCount() );
         assertEquals( 0, apply( "repeat 0" ).getRowCount() );
     }
 

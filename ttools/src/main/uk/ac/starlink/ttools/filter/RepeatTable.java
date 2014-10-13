@@ -4,6 +4,7 @@ import java.io.IOException;
 import uk.ac.starlink.table.EmptyRowSequence;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.WrapperRowSequence;
 import uk.ac.starlink.table.WrapperStarTable;
 
 /**
@@ -15,16 +16,20 @@ import uk.ac.starlink.table.WrapperStarTable;
 public class RepeatTable extends WrapperStarTable {
 
     private final long count_;
+    private final boolean byrow_;
 
     /**
      * Constructor.
      *
      * @param  base  base table
      * @param  count  number of repeats
+     * @param  byrow  if false, input table with rows 123 gives output table
+     *                123123; if true, it's 112233 
      */
-    public RepeatTable( StarTable base, long count ) {
+    public RepeatTable( StarTable base, long count, boolean byrow ) {
         super( base );
         count_ = count;
+        byrow_ = byrow;
     }
 
     public long getRowCount() {
@@ -42,37 +47,52 @@ public class RepeatTable extends WrapperStarTable {
     }
 
     public RowSequence getRowSequence() throws IOException {
-        return new RowSequence() {
-            private long remaining_ = count_;
-            private RowSequence rseq_ = EmptyRowSequence.getInstance();
-
-            public boolean next() throws IOException {
-                if ( rseq_.next() ) {
-                    return true;
+        if ( byrow_ ) {
+            return new WrapperRowSequence( super.getRowSequence() ) {
+                private long iseq_ = 0;
+                @Override
+                public boolean next() throws IOException {
+                    boolean hasNext = iseq_ > 0 || super.next();
+                    if ( hasNext ) {
+                        iseq_ = ( iseq_ + 1 ) % count_;
+                    }
+                    return hasNext;
                 }
-                else if ( remaining_ > 0 ) {
-                    remaining_--;
+            };
+        }
+        else {
+            return new RowSequence() {
+                private long remaining_ = count_;
+                private RowSequence rseq_ = EmptyRowSequence.getInstance();
+
+                public boolean next() throws IOException {
+                    if ( rseq_.next() ) {
+                        return true;
+                    }
+                    else if ( remaining_ > 0 ) {
+                        remaining_--;
+                        rseq_.close();
+                        rseq_ = getBaseTable().getRowSequence();
+                        return rseq_.next();
+                    }
+                    else {
+                        return false;
+                    }
+                }
+
+                public Object getCell( int icol ) throws IOException {
+                    return rseq_.getCell( icol );
+                }
+
+                public Object[] getRow() throws IOException {
+                    return rseq_.getRow();
+                }
+
+                public void close() throws IOException {
                     rseq_.close();
-                    rseq_ = getBaseTable().getRowSequence();
-                    return rseq_.next();
                 }
-                else {
-                    return false;
-                }
-            }
-
-            public Object getCell( int icol ) throws IOException {
-                return rseq_.getCell( icol );
-            }
-
-            public Object[] getRow() throws IOException {
-                return rseq_.getRow();
-            }
-
-            public void close() throws IOException {
-                rseq_.close();
-            }
-        };
+            };
+        }
     }
 
     /**
@@ -92,7 +112,8 @@ public class RepeatTable extends WrapperStarTable {
         }
         else {
             if ( irow / baseNrow < count_ ) {
-                return irow % baseNrow;
+                return byrow_ ? irow / count_
+                              : irow % baseNrow;
             }
             else {
                 throw new IllegalArgumentException( "No such row " + irow );

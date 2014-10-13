@@ -1,7 +1,17 @@
 package uk.ac.starlink.ttools.filter;
 
+import gnu.jel.CompilationException;
+import gnu.jel.CompiledExpression;
+import gnu.jel.Evaluator;
+import gnu.jel.Library;
+import java.io.IOException;
 import java.util.Iterator;
+import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.task.TaskException;
+import uk.ac.starlink.ttools.jel.JELRowReader;
+import uk.ac.starlink.ttools.jel.JELUtils;
+import uk.ac.starlink.ttools.task.Calc;
 
 /**
  * Filter for repeating a table's rows multiple times.
@@ -15,7 +25,7 @@ public class RepeatFilter extends BasicFilter {
      * Constructor.
      */
     public RepeatFilter() {
-        super( "repeat", "<count>" );
+        super( "repeat", "[-row|-table] <count>" );
     }
 
     protected String[] getDescriptionLines() {
@@ -25,31 +35,101 @@ public class RepeatFilter extends BasicFilter {
             "The output table will have <code>&lt;count&gt;</code> times",
             "as many rows as the input table.",
             "</p>",
+            "<p>The optional flag determines the sequence of the output rows.",
+            "If <code>&lt;count&gt;</code>=2 and there are three rows,",
+            "the output sequence will be 112233 for <code>-row</code>",
+            "and 123123 for <code>-table</code>.",
+            "The default behaviour is currently <code>-table</code>.",
+            "</p>",
+            "<p>The <code>&lt;count&gt;</code> value will usually",
+            "be a constant integer value, but it can be an expression",
+            "evaluated in the context of the table.",
+            "</p>",
         };
     }
 
     public ProcessingStep createStep( Iterator argIt ) throws ArgException {
-        if ( argIt.hasNext() ) {
-            String countStr = (String) argIt.next();
-            argIt.remove();
-            final long count;
-            try {
-                count = Long.parseLong( countStr );
+        boolean byrow = false;
+        String countStr = null;
+        while ( argIt.hasNext() && countStr == null ) {
+            String arg = (String) argIt.next();
+            if ( arg.equals( "-row" ) ) {
+                argIt.remove();
+                byrow = true;
             }
-            catch ( NumberFormatException e ) {
-                throw new ArgException( "Count " + countStr + " not numeric" );
+            else if ( arg.equals( "-table" ) ) {
+                argIt.remove();
+                byrow = false;
             }
-            if ( count < 0 ) {
-                throw new ArgException( "count must be >= 0" );
+            else if ( arg.startsWith( "-" ) ) {
+                argIt.remove();
+                throw new ArgException( "Unknown flag " + arg );
             }
-            return new ProcessingStep() {
-                public StarTable wrap( StarTable base ) {
-                    return new RepeatTable( base, count );
-                }
-            };
+            else {
+                argIt.remove();
+                countStr = arg;
+            }
+        }
+        if ( countStr == null ) {
+            throw new ArgException( "No count given" );
+        }
+        final String countStr0 = countStr;
+        final boolean byrow0 = byrow;
+        return new ProcessingStep() {
+            public StarTable wrap( StarTable base ) throws IOException {
+                long count = getCount( countStr0, base );
+                return new RepeatTable( base, count, byrow0 );
+            }
+        };
+    }
+
+    /**
+     * Returns a non-negative long value given by a JEL expression
+     * in the context of a given table.
+     *
+     * @param  countExpr   expression
+     * @param  table       evaluation context
+     * @return   requested row count
+     */
+    private long getCount( String countExpr, StarTable table )
+            throws IOException {
+        DescribedValue[] params =
+            (DescribedValue[])
+            table.getParameters().toArray( new DescribedValue[ 0 ] );
+        JELRowReader rdr = Calc.createParameterReader( params );
+        Library lib = JELUtils.getLibrary( rdr );
+        String qexpr = "\"" + countExpr + "\"";
+        CompiledExpression compex;
+        try {
+            compex = Evaluator.compile( countExpr, lib, long.class );
+        }
+        catch ( CompilationException e ) {
+            throw (IOException)
+                  new IOException( "Bad expression " + qexpr + ": "
+                                 +  e.getMessage() )
+                 .initCause( e );
+        }
+        Object countObj;
+        try {
+            countObj = rdr.evaluate( compex );
+        }
+        catch ( Throwable e ) {
+            throw (IOException)
+                  new IOException( "Evaluation error for " + qexpr )
+                 .initCause( e );
+        }
+        if ( countObj instanceof Number ) {
+            long count = ((Number) countObj).longValue();
+            if ( count >= 0 ) {
+                return count;
+            }
+            else {
+                throw new IOException( "Count " + count + " is negative" );
+            }
         }
         else {
-            throw new ArgException( "No count argument given" );
+            assert false : "Should be a long!";
+            throw new IOException( "Not numeric " + qexpr );
         }
     }
 }
