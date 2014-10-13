@@ -9812,6 +9812,15 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </dl>
     </p></dd>
 
+<dt>Next version</dt>
+<dd><p>
+    <ul>
+    <li>For <code>repeat</code> filter,
+        add <code>-row|-table</code> flags to control sequence of output rows. 
+        Also allow repeat count to be an expression not just a constant.</li>
+    </ul>
+    </p></dd>
+
 </dl>
 </p>
 </subsect>
