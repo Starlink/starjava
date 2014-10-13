@@ -4,7 +4,8 @@ import uk.ac.starlink.table.StarTable;
 
 /**
  * JELRowReader which can't actually read any rows.  It's only good for
- * identifying columns, checking JEL expressions, etc.
+ * identifying columns, checking or evaluating JEL expressions in a
+ * per-table (not per-row) context, etc.
  *
  * @author   Mark Taylor (Starlink)
  * @since    3 Mar 2005

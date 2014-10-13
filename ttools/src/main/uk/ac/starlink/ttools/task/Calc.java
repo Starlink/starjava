@@ -5,12 +5,8 @@ import gnu.jel.CompiledExpression;
 import gnu.jel.Evaluator;
 import gnu.jel.Library;
 import java.io.PrintStream;
-import java.util.Arrays;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import uk.ac.starlink.table.ColumnStarTable;
-import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Executable;
@@ -18,7 +14,6 @@ import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.StringParameter;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.task.TaskException;
-import uk.ac.starlink.ttools.jel.DummyJELRowReader;
 import uk.ac.starlink.ttools.jel.JELRowReader;
 import uk.ac.starlink.ttools.jel.JELUtils;
 import uk.ac.starlink.ttools.jel.StarTableJELRowReader;
@@ -84,12 +79,10 @@ public class Calc implements Task {
          * was given on the command line then that table's parameters
          * may be used for expression evaluation. */
         String tname = tableParam_.stringValue( env );
-        DescribedValue[] params =
-              tname == null || tname.trim().length() == 0
-            ? new DescribedValue[ 0 ]
-            : (DescribedValue[]) tableParam_.tableValue( env ).getParameters()
-                                .toArray( new DescribedValue[ 0 ] );
-        final JELRowReader rdr = createParameterReader( params );
+        StarTable table = tname == null || tname.trim().length() == 0
+                        ? null
+                        : tableParam_.tableValue( env );
+        final JELRowReader rdr = JELUtils.createDatalessRowReader( table );
 
         /* Compile the expression. */
         Library lib = JELUtils.getLibrary( rdr );
@@ -131,21 +124,5 @@ public class Calc implements Task {
                 }
             }
         };
-    }
-
-    /**
-     * Returns a row reader with no row data, but which can access
-     * table parameter values by name (or UCD).
-     *
-     * @param  params  parameter list
-     * @return  row reader
-     */
-    public static JELRowReader
-            createParameterReader( DescribedValue[] params ) {
-        StarTable table = ColumnStarTable.makeTableWithRows( 0 );
-        List paramList = table.getParameters();
-        paramList.clear();
-        paramList.addAll( Arrays.asList( params ) );
-        return new DummyJELRowReader( table );
     }
 }
