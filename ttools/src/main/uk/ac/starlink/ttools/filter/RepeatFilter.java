@@ -6,12 +6,10 @@ import gnu.jel.Evaluator;
 import gnu.jel.Library;
 import java.io.IOException;
 import java.util.Iterator;
-import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.jel.JELRowReader;
 import uk.ac.starlink.ttools.jel.JELUtils;
-import uk.ac.starlink.ttools.task.Calc;
 
 /**
  * Filter for repeating a table's rows multiple times.
@@ -93,10 +91,7 @@ public class RepeatFilter extends BasicFilter {
      */
     private long getCount( String countExpr, StarTable table )
             throws IOException {
-        DescribedValue[] params =
-            (DescribedValue[])
-            table.getParameters().toArray( new DescribedValue[ 0 ] );
-        JELRowReader rdr = Calc.createParameterReader( params );
+        JELRowReader rdr = JELUtils.createDatalessRowReader( table );
         Library lib = JELUtils.getLibrary( rdr );
         String qexpr = "\"" + countExpr + "\"";
         CompiledExpression compex;

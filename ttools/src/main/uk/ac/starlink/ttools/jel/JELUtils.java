@@ -12,7 +12,10 @@ import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.logging.Logger;
+import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.WrapperStarTable;
 import uk.ac.starlink.ttools.func.Arithmetic;
 import uk.ac.starlink.ttools.func.Conversions;
 import uk.ac.starlink.ttools.func.CoordsDegrees;
@@ -51,18 +54,56 @@ public class JELUtils {
      * Returns a JEL Library suitable for expression evaluation.
      * 
      * @param    reader  object which can read rows from the table to
-     *           be used for expression evaluation
+     *           be used for expression evaluation; may be null if
+     *           there are no references to table-related expressions
      * @return   a JEL library
      */
     public static Library getLibrary( JELRowReader reader ) {
         Class[] staticLib =
             (Class[]) getStaticClasses().toArray( new Class[ 0 ] );
-        Class[] dynamicLib = new Class[] { reader.getClass() };
+        Class[] dynamicLib = reader == null
+                           ? new Class[ 0 ]
+                           : new Class[] { reader.getClass() };
         Class[] dotClasses = new Class[ 0 ];
         DVMap resolver = reader;
         Hashtable cnmap = null;
         return new Library( staticLib, dynamicLib, dotClasses,
                             resolver, cnmap );
+    }
+
+    /**
+     * Returns a row reader that can be used for expression evaluation,
+     * optionally in the context of the non-data parts of a given context
+     * table.  If the table is non-null, things like its parameters and
+     * row counts are available for reference.  If the table is null,
+     * those things won't be available.  In any case, references to table
+     * columns will not be recognised.
+     *
+     * @param  table  context table, or null
+     * @return  row reader
+     */
+    public static JELRowReader createDatalessRowReader( StarTable table ) {
+        if ( table == null ) {
+            return new TablelessJELRowReader();
+        }
+        else {
+            return new DummyJELRowReader( new WrapperStarTable( table ) {
+                public ColumnInfo getColumnInfo( int icol ) {
+                    ColumnInfo baseInfo = super.getColumnInfo( icol );
+                    return new ColumnInfo( "", baseInfo.getContentClass(),
+                                           null );
+                }
+                public Object[] getRow( long irow ) {
+                    throw new UnsupportedOperationException();
+                }
+                public Object getCell( long irow, int icol ) {
+                    throw new UnsupportedOperationException();
+                }
+                public RowSequence getRowSequence() {
+                    throw new UnsupportedOperationException();
+                }
+            } );
+        }
     }
 
     /**
