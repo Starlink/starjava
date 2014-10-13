@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import org.astrogrid.samp.SampUtils;
 import org.mortbay.http.HttpContext;
 import org.mortbay.http.HttpRequest;
 import org.mortbay.http.HttpResponse;
@@ -165,7 +166,7 @@ public class StiltsServer implements Task {
                 try {
                     server.start();
                     String url = "http://"
-                               + InetAddress.getLocalHost().getHostName()
+                               + SampUtils.getLocalhost()
                                + ":" + port + base + "/";
                     out.println( "Server running at " + url );
                 }
