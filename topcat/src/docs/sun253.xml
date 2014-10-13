@@ -2573,13 +2573,20 @@ You can do this in three ways:
 
 </dl>
 </p>
-<p>There is a special column whose name is "Index" and whose 
-&column.id.char;ID is "&column.id.char;0".
-The value of this is the same as the row number in the unsorted table
-(the grey numbers on the left of the grid in the 
-<ref id="TableViewerWindow">Data Window</ref>),
-so for the first column in the unsorted table it's 1, for the second 
-it's 2, and so on.
+
+<p>There is also a special column:
+<dl>
+<dt><code>$index</code></dt>
+<dd><p>The value of this is the current row number in the unsorted
+    table (the first row is 1).
+    This is the value seen in the grey numbers at the left of the grid in the 
+    <ref id="TableViewerWindow">Data Window</ref>).
+    You can alternatively use the form
+    <strong><code>&column.id.char;0</code></strong>.
+    (The form <strong><code>index</code></strong> is also permitted,
+    but deprecated).
+    </p></dd>
+</dl>
 </p>
 
 <p>The value of the variables so referenced will be a primitive
@@ -2671,6 +2678,22 @@ as follows:
 Note that if a parameter has a name in an unsuitable form (e.g. containing
 spaces) and has no UCD then it cannot be referenced in an expression.
 </p>
+
+<p>There are also a couple of special values:
+<dl>
+<dt>$ncol</dt>
+<dd><p>The number of columns in the table.
+    This figure refers to the underlying table, not the apparent table,
+    so it is not affected by hiding columns.
+    </p></dd>
+<dt>$nrow</dt>
+<dd><p>The number of rows in the table.
+    This figure refers to the underlying table, not the apparent table,
+    so it is not affected by the value of the current subset.
+    </p></dd>
+</dl>
+</p>
+
 
 </subsect>
 
@@ -20390,6 +20413,11 @@ introduced since the last version:
         This change also breaks use of ISO-8601 times in non-time plots,
         but that didn't work particularly well before.
         Please complain if this change of functionality causes a problem.</li>
+    <li>Add special variables <code>$ncol</code> and <code>$nrow</code> to
+        the expression language to refer to the column and row counts
+        in the underlying table.
+        The special variable <code>index</code> is also deprecated in favour
+        of <code>$index</code> or <code>$0</code>.</li>
     </ul>
     </p></dd>
 
