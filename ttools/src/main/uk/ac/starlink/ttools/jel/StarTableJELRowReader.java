@@ -18,8 +18,15 @@ import uk.ac.starlink.table.Tables;
  * symbols are understood:
  * <dl>
  * 
- * <dt>"$0" or "Index" (case insensitive):
- * <dd>the 1-based index of the current row
+ * <dt>"$0" or "$Index" or (deprecated) "index" (case insensitive):
+ * <dd>the 1-based index of the current row.
+ *
+ * <dt>"$ncol"</dt>
+ * <dd>Number of columns in the table.
+ *
+ * <dt>"$nrow"</dt>
+ * <dd>Number of rows in the table.  If this is not known, a null value
+ *     is returned.
  *
  * <dt>Parameter names:
  * <dd>The string {@link #PARAM_PREFIX} followed by the name of a table
@@ -237,6 +244,29 @@ public abstract class StarTableJELRowReader extends JELRowReader {
             return null;
         }
 
+        /* Try special values for row and column count. */
+        if ( name.equalsIgnoreCase( "$nrow" ) ) {
+            return new Constant() {
+                public Class getContentClass() {
+                    return Long.class;
+                }
+                public Object getValue() {
+                    return new Long( table_.getRowCount() );
+                }
+            };
+        }
+        if ( name.equalsIgnoreCase( "$ncol" ) ) {
+            return new Constant() {
+                public Class getContentClass() {
+                    return Integer.class;
+                }
+                public Object getValue() {
+                    int ncol = table_.getColumnCount();
+                    return ncol >= 0 ? new Integer( ncol ) : null;
+                }
+            };
+        }
+
         /* Not a parameter. */
         return null;
     }
@@ -244,15 +274,17 @@ public abstract class StarTableJELRowReader extends JELRowReader {
     /**
      * Adds to the superclass implementation the following:
      * <ul>
-     * <li>"$0" or "index" returns INDEX_ID, which refers to the
-     *     (1-based) row number
+     * <li>"$0", "index" or "$index" gives the (1-based) row number
+     * <li>"$ncol" gives the number of columns in the table
+     * <li>"$nrow" gives the number of rows in the table (null if unknown)
      * <li>"RANDOM" returns a double random number, always the same for a
      *     given row
      * </ul>
      */
     protected Constant getSpecialByName( String name ) {
         if ( name.equals( COLUMN_ID_CHAR + "0" ) ||
-             name.equalsIgnoreCase( "Index" ) ) {
+             name.equalsIgnoreCase( "Index" ) ||
+             name.equalsIgnoreCase( "$index" ) ) {
             return new Constant() {
                 public Class getContentClass() {
                     return Long.class;
@@ -273,6 +305,7 @@ public abstract class StarTableJELRowReader extends JELRowReader {
                 }
             };
         }
+
         else {
             return super.getSpecialByName( name );
         }

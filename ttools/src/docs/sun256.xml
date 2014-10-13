@@ -3893,9 +3893,17 @@ You can do this in three ways:
 
 </dl>
 </p>
-<p>There is a special column whose name is "Index" and whose ID is
-"&column.id.char;0". 
-The value of this is the same as the row number (the first row is 1).
+
+<p>There is also a special column:
+<dl>
+<dt><code>$index</code></dt>
+<dd><p>The value of this is the current row number (the first row is 1).
+    You can alternatively use the form
+    <strong><code>&column.id.char;0</code></strong>.
+    (The form <strong><code>index</code></strong> is also permitted,
+    but deprecated).
+    </p></dd>
+</dl>
 </p>
 
 <p>The value of the variables so referenced will be a primitive
@@ -3949,6 +3957,19 @@ in STILTS algebraic expressions as follows:
 </dl>
 Note that if a parameter has a name in an unsuitable form (e.g. containing
 spaces) and has no UCD then it cannot be referenced in an expression.
+</p>
+
+<p>There are also a couple of special values:
+<dl>
+<dt>$ncol</dt>
+<dd><p>The number of columns in the table.
+    </p></dd>
+<dt>$nrow</dt>
+<dd><p>The number of rows in the table.  Note in some cases this is
+    not known (e.g. if the table is being streamed), in which case
+    the value of this variable is null.
+    </p></dd>
+</dl>
 </p>
 
 </subsect>
@@ -9818,6 +9839,11 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>For <code>repeat</code> filter,
         add <code>-row|-table</code> flags to control sequence of output rows. 
         Also allow repeat count to be an expression not just a constant.</li>
+    <li>Add special values <code>$ncol</code> and <code>$nrow</code> to
+        the expression language to refer to the column and row counts
+        in a table.
+        The special variable <code>index</code> is also deprecated in favour
+        of <code>$index</code> or <code>$0</code>.</li>
     </ul>
     </p></dd>
 
