@@ -1,11 +1,17 @@
 package uk.ac.starlink.ttools.filter;
 
+import gnu.jel.CompilationException;
+import gnu.jel.CompiledExpression;
+import gnu.jel.Evaluator;
+import gnu.jel.Library;
 import java.io.IOException;
 import java.util.Iterator;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.ttools.jel.JELRowReader;
+import uk.ac.starlink.ttools.jel.JELUtils;
 
 /**
  * Filter which sets a parameter on the table.
@@ -20,36 +26,39 @@ public class SetParameterFilter extends BasicFilter {
                "[-type byte|short|int|long|float|double|boolean|string]\n" +
                "[-desc <descrip>] [-unit <units>] [-ucd <ucd>] " +
                "[-utype <utype>]\n" +
-               "<pname> <pval>" );
+               "<pname> <pexpr>" );
     }
 
     protected String[] getDescriptionLines() {
         return new String[] {
             "<p>Sets a named parameter in the table to a given value.",
             "The parameter named <code>&lt;pname&gt;</code> is set",
-            "to the value <code>&lt;pval&gt;</code>.",
-            "By default the type of the parameter is determined automatically",
-            "(if it looks like an integer it's an integer etc)", 
+            "to the value <code>&lt;pexpr&gt;</code>,",
+            "which may be a literal value or an expression involving",
+            "mathematical operations and other parameter names",
+            "(using the <code>param$&lt;name&gt;</code> syntax).",
+            "By default, the data type of the parameter is determined",
+            "by the type of the supplied expression,",
             "but this can be overridden using the <code>-type</code> flag.",
-            "The parameter description may be set using the",
-            "<code>-desc</code> flag.",
+            "The parameter description, units, UCD and Utype attributes",
+            "may optionally be set using the other flags.",
             "</p>",
         };
     }
 
     public ProcessingStep createStep( Iterator argIt ) throws ArgException {
-        String type = null;
+        String ptype = null;
         String pname = null;
-        String pval = null;
+        String pexpr = null;
         String pdesc = null;
         String pucd = null;
         String putype = null;
         String punits = null;
         while ( argIt.hasNext() ) {
             String arg = (String) argIt.next();
-            if ( "-type".equals( arg ) && type == null && argIt.hasNext() ) {
+            if ( "-type".equals( arg ) && ptype == null && argIt.hasNext() ) {
                 argIt.remove();
-                type = (String) argIt.next();
+                ptype = (String) argIt.next();
                 argIt.remove();
             }
             else if ( arg.startsWith( "-desc" ) && pdesc == null &&
@@ -80,19 +89,20 @@ public class SetParameterFilter extends BasicFilter {
                 pname = arg;
                 argIt.remove();
             }
-            else if ( pval == null ) {
-                pval = arg;
+            else if ( pexpr == null ) {
+                pexpr = arg;
                 argIt.remove();
             }
         }
         if ( pname == null ) {
             throw new ArgException( "No parameter name specified" );
         }
-        else if ( pval == null ) {
+        else if ( pexpr == null ) {
             throw new ArgException( "No parameter value specified" );
         }
         final String name = pname;
-        final String value = pval;
+        final String expr = pexpr;
+        final String type = ptype;
         final String descrip = pdesc;
         final String ucd = pucd;
         final String utype = putype;
@@ -100,6 +110,7 @@ public class SetParameterFilter extends BasicFilter {
         final Class clazz = type == null ? null : getClass( type );
         return new ProcessingStep() {
             public StarTable wrap( StarTable base ) throws IOException {
+                Object value = evaluate( expr, base, clazz, type );
                 base.setParameter( createDescribedValue( name, value, descrip,
                                                          ucd, utype, units,
                                                          clazz ) );
@@ -109,7 +120,8 @@ public class SetParameterFilter extends BasicFilter {
     }
 
     /**
-     * Turns a string such as "int" or "float" into a (non-primitive) class.  
+     * Turns a string such as "int" or "float" into a class.  
+     * A primitive class is returned if one is available.
      *
      * @param  type  data type
      * @return  class matching <code>type</code>
@@ -117,22 +129,22 @@ public class SetParameterFilter extends BasicFilter {
     private static Class getClass( String type ) throws ArgException {
         type = type.toLowerCase().trim();
         if ( "byte".equals( type ) ) {
-            return Byte.class;
+            return byte.class;
         }
         else if ( "short".equals( type ) ) {
-            return Short.class;
+            return short.class;
         }
         else if ( "int".equals( type ) ) {
-            return Integer.class;
+            return int.class;
         }
         else if ( "long".equals( type ) ) {
-            return Long.class;
+            return long.class;
         }
         else if ( "float".equals( type ) ) {
-            return Float.class;
+            return float.class;
         }
         else if ( "double".equals( type ) ) {
-            return Double.class;
+            return double.class;
         }
         else if ( "string".equals( type ) ) {
             return String.class;
@@ -143,106 +155,105 @@ public class SetParameterFilter extends BasicFilter {
     }
 
     /**
-     * Turns a (name, value, type) triplet into a DescribedValue.
+     * Evaluates an expression in the context of a table.
+     * If a class is specified, the result is guaranteed to be of the type
+     * indicated by that class (or an error will be thrown).
+     * If no JEL expression can be evaluated, the supplied expression itself
+     * will be returned as a string, as long as that is not inconsistent
+     * with the requested class.
+     *
+     * @param  expr  expression to evaluate
+     * @param  table  evaluation context
+     * @param  clazz  required class of result, or null;
+     *                a primitive, rather than wrapper, class
+     *                should be supplied if available
+     * @param  type   user-supplied string corresponding to clazz, or null
+     *                (used for error messages only)
+     */
+    public static Object evaluate( String expr, StarTable table,
+                                   Class clazz, String type )
+            throws IOException {
+        String qexpr = "\"" + expr + "\"";
+
+        /* We need to do some manual casting in some cases,
+         * otherwise JEL complains about requiring explicit narrowing casts. */
+        String cexpr = clazz == null
+                     ? expr
+                     : "(" + clazz.getCanonicalName() + ") (" + expr + ")";
+        
+        /* Compile and evaluate the expression. */
+        JELRowReader rdr = JELUtils.createDatalessRowReader( table );
+        Library lib = JELUtils.getLibrary( rdr );
+        CompiledExpression compex;
+        try {
+            compex = Evaluator.compile( cexpr, lib, clazz );
+        }
+        catch ( CompilationException e ) {
+            if ( clazz == null || clazz.equals( String.class ) ) {
+                return expr;
+            }
+            else {
+                String msg = "Bad expression " + qexpr + " for type "
+                           + ( type == null ? clazz.getName() : type )
+                           + ": " + e.getMessage();
+                throw (IOException) new IOException( msg ).initCause( e );
+            }
+        }
+        final Object value;
+        try {
+            value = rdr.evaluate( compex );
+        }
+        catch ( Throwable e ) {
+            if ( clazz == null || clazz.equals( String.class ) ) {
+                return expr;
+            }
+            else {
+                String msg = "Evaluation error for " + qexpr
+                           + ": " + e.getMessage();
+                throw (IOException) new IOException( msg ).initCause( e );
+            }
+        }
+
+        /* If the value is a byte or a short and no explicit class was
+         * required, promote it to an int.
+         * The most likely reason for finding a byte or short here is that
+         * the expression was a small literal, and in this case an integer
+         * is likely to be less surprising. */
+        if ( clazz == null &&
+             ( value instanceof Short || value instanceof Byte ) ) {
+            return new Integer( ((Number) value).intValue() );
+        }
+        else {
+            return value;
+        }
+    }
+
+    /**
+     * Turns a value plus metadata into a DescribedValue.
      *
      * @param   name  parameter name
-     * @param   sval  string representation of parameter value
+     * @param   sexpr   expression giving parameter value
      * @param   descrip  parameter description, or null
      * @param   ucd   parameter UCD, or null
      * @param   utype  parameter Utype, or null
      * @param   units  parameter units, or null
-     * @param   clazz  class of parameter type, or null for automatic
+     * @param   type   user-supplied type string, or null
+     * @param   clazz  class (possibly primitive) of parameter type,
+     *                 or null for automatic
      *          determination
+     * @param   table  table
      */
     private static DescribedValue createDescribedValue( String name,
-                                                        String sval,
+                                                        Object value,
                                                         String descrip,
                                                         String ucd,
                                                         String utype,
                                                         String units,
                                                         Class clazz )
             throws IOException {
-        Object value = null;
-
-        /* If a class has been set, try to force the value to be of the
-         * correct type, throwing an exception if it doesn't work. */
-        if ( clazz != null ) {
-            try {
-                if ( clazz == Boolean.class ) {
-                    value = Boolean.valueOf( sval );
-                }
-                else if ( clazz == Byte.class ) {
-                    value = Byte.valueOf( sval );
-                }
-                else if ( clazz == Short.class ) {
-                    value = Short.valueOf( sval );
-                }
-                else if ( clazz == Integer.class ) {
-                    value = Integer.valueOf( sval );
-                }
-                else if ( clazz == Long.class ) {
-                    value = Long.valueOf( sval );
-                }
-                else if ( clazz == Float.class ) {
-                    value = Float.valueOf( sval );
-                }
-                else if ( clazz == Double.class ) {
-                    value = Double.valueOf( sval );
-                }
-                else if ( clazz == String.class ) {
-                    value = sval;
-                }
-                else {
-                    assert false;
-                    value = sval;
-                    clazz = String.class;
-                }
-            }
-            catch ( NumberFormatException e ) {
-                throw (IOException)
-                      new IOException( "Value \"" + sval + "\" is not of type "
-                                      + clazz.getName() )
-                     .initCause( e );
-            }
-        }
-
-        /* Otherwise, just see what we can get to work. */
-        else {
-            if ( clazz == null ) {
-                try {
-                    value = Integer.valueOf( sval );
-                    clazz = Integer.class;
-                }
-                catch ( NumberFormatException e ) {
-                }
-            }
-            if ( clazz == null ) {
-                try {
-                    value = Double.valueOf( sval );
-                    clazz = Double.class;
-                }
-                catch ( NumberFormatException e ) {
-                }
-            }
-            if ( clazz == null ) {
-                if ( sval.equalsIgnoreCase( "true" ) ) {
-                    value = Boolean.TRUE;
-                    clazz = Boolean.class;
-                }
-                else if ( sval.equalsIgnoreCase( "false" ) ) {
-                    value = Boolean.FALSE;
-                    clazz = Boolean.class;
-                }
-            }
-            if ( clazz == null ) {
-                value = sval;
-                clazz = String.class;
-            }
-        }
-        assert clazz != null;
-
-        /* Construct and return the described value. */
-        DefaultValueInfo info = new DefaultValueInfo( name, clazz, descrip );
+        Class pclazz = clazz == null ? value.getClass()
+                                     : JELUtils.getWrapperType( clazz );
+        DefaultValueInfo info = new DefaultValueInfo( name, pclazz, descrip );
         if ( ucd != null && ucd.trim().length() > 0 ) {
             info.setUCD( ucd );
         }
