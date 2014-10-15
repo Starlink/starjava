@@ -9836,9 +9836,11 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
 <dt>Next version</dt>
 <dd><p>
     <ul>
-    <li>For <code>repeat</code> filter,
-        add <code>-row|-table</code> flags to control sequence of output rows. 
-        Also allow repeat count to be an expression not just a constant.</li>
+    <li>For <code>setparam</code> and <code>repeat</code> filters,
+        allow use of an algebraic expression for values,
+        not just a literal value.</li>
+    <li>For <code>repeat</code> filter, add <code>-row|-table</code>
+        flags to control sequence of output rows.</li>
     <li>Add special values <code>$ncol</code> and <code>$nrow</code> to
         the expression language to refer to the column and row counts
         in a table.
