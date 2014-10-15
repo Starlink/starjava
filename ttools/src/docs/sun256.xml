@@ -3902,6 +3902,10 @@ You can do this in three ways:
     <strong><code>&column.id.char;0</code></strong>.
     (The form <strong><code>index</code></strong> is also permitted,
     but deprecated).
+    Note that this value is a <code>long</code> (8-byte integer);
+    when using it in certain expressions you may find it necessary to convert
+    it to an <code>int</code> (4-byte integer) using the
+    <code>toInteger()</code> function.
     </p></dd>
 </dl>
 </p>
@@ -3968,6 +3972,10 @@ spaces) and has no UCD then it cannot be referenced in an expression.
 <dd><p>The number of rows in the table.  Note in some cases this is
     not known (e.g. if the table is being streamed), in which case
     the value of this variable is null.
+    Note also that this value is a <code>long</code> (8-byte integer);
+    when using it in certain expressions you may find it necessary to convert
+    it to an <code>int</code> (4-byte integer) using the
+    <code>toInteger()</code> function.
     </p></dd>
 </dl>
 </p>
