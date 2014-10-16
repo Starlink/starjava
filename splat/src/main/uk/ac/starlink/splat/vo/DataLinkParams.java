@@ -4,31 +4,18 @@
 package uk.ac.starlink.splat.vo;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
-
-import uk.ac.starlink.splat.iface.SpectrumIO;
 import uk.ac.starlink.table.ColumnInfo;
-import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.util.DataSource;
-import uk.ac.starlink.util.FileDataSource;
 import uk.ac.starlink.util.URLDataSource;
-import uk.ac.starlink.votable.FieldElement;
 import uk.ac.starlink.votable.ParamElement;
-import uk.ac.starlink.votable.TableElement;
-import uk.ac.starlink.votable.TabularData;
 import uk.ac.starlink.votable.VOElement;
-import uk.ac.starlink.votable.VOElementFactory;
 import uk.ac.starlink.votable.VOTableBuilder;
-import uk.ac.starlink.votable.ValuesElement;
 
 /**
  * @author Margarida Castro Neves

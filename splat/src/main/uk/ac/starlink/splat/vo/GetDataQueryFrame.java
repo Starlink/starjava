@@ -1,9 +1,7 @@
 package uk.ac.starlink.splat.vo;
 
-import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -12,19 +10,15 @@ import java.util.logging.Logger;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.BoxLayout;
 import javax.swing.JTextField;
 import javax.swing.border.Border;
-
-//import jsky.util.Logger;
-
-import com.lowagie.text.List;
 
 import uk.ac.starlink.votable.ParamElement;
 import uk.ac.starlink.votable.ValuesElement;

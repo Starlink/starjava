@@ -1,8 +1,6 @@
 package uk.ac.starlink.splat.vo;
 
 import java.awt.BorderLayout;
-import java.awt.Checkbox;
-import java.awt.CheckboxGroup;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -13,10 +11,8 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.XMLDecoder;
@@ -28,52 +24,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URL;
-
-import javax.swing.AbstractAction;
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.ButtonGroup;
-import javax.swing.DefaultListModel;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
-import javax.swing.JTabbedPane;
-import javax.swing.JTree;
-import javax.swing.KeyStroke;
-import javax.swing.ListSelectionModel;
-import javax.swing.ScrollPaneConstants;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeCellRenderer;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreeNode;
-import javax.swing.tree.TreeSelectionModel;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.SAXParserFactory;
-import javax.xml.transform.Source;
-import javax.xml.transform.sax.SAXSource;
-
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-import org.xml.sax.SAXNotRecognizedException;
-import org.xml.sax.SAXNotSupportedException;
-import org.xml.sax.XMLReader;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -84,22 +34,33 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.logging.Logger;
 
-import uk.ac.starlink.splat.iface.HelpFrame;
-import uk.ac.starlink.splat.iface.ProgressPanel;
+import javax.swing.AbstractAction;
+import javax.swing.BorderFactory;
+import javax.swing.DefaultListModel;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JTree;
+import javax.swing.ListSelectionModel;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeCellRenderer;
+import javax.swing.tree.DefaultTreeModel;
+
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.Utilities;
-/*import uk.ac.starlink.splat.vo.SSAServerFrame.AddNewAction;
-import uk.ac.starlink.splat.vo.SSAServerFrame.CloseAction;
-import uk.ac.starlink.splat.vo.SSAServerFrame.DeleteAction;
-import uk.ac.starlink.splat.vo.SSAServerFrame.ProxyAction;
-import uk.ac.starlink.splat.vo.SSAServerFrame.QueryNewAction;
-import uk.ac.starlink.splat.vo.SSAServerFrame.ReadAction;
-import uk.ac.starlink.splat.vo.SSAServerFrame.RemoveAction;
-import uk.ac.starlink.splat.vo.SSAServerFrame.RemoveUnAction;
-import uk.ac.starlink.splat.vo.SSAServerFrame.SaveAction;
-import uk.ac.starlink.splat.vo.SSAServerFrame.SelectAllAction;
-*/
 import uk.ac.starlink.table.BeanStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
@@ -109,14 +70,6 @@ import uk.ac.starlink.util.gui.BasicFileChooser;
 import uk.ac.starlink.util.gui.BasicFileFilter;
 import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.util.gui.ProxySetupFrame;
-import uk.ac.starlink.vo.RegCapabilityInterface;
-import uk.ac.starlink.vo.RegResource;
-import uk.ac.starlink.vo.RegistryTable;
-import uk.ac.starlink.vo.ResourceTableModel;
-import uk.ac.starlink.votable.ParamElement;
-import uk.ac.starlink.votable.VOElement;
-import uk.ac.starlink.votable.VOElementFactory;
-import javax.swing.SwingConstants;
 
 
 
@@ -1387,11 +1340,12 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
             DefaultTreeModel model = (DefaultTreeModel) serverTree.getModel();
             ServerTreeNode root = (ServerTreeNode)  model.getRoot();
          
-          
+            
         
             while ( true ) {
                 try {
-                    st = (ServerTags) decoder.readObject();
+                    Object ob =  decoder.readObject();
+                    st = (ServerTags)  ob;
                     // search for shortname
                     for (int i=0; i<root.getChildCount(); i++) { 
                         

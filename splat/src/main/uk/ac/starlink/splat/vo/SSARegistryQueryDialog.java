@@ -21,8 +21,6 @@ import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.TableSequence;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.gui.TableLoader;
-import uk.ac.starlink.vo.RegResource;
-//import uk.ac.starlink.vo.RegistryQuery;
 import uk.ac.starlink.vo.Ri1RegistryTableLoadDialog;
 
 /**
