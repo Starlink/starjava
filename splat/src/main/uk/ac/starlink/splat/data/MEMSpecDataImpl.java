@@ -294,7 +294,15 @@ public class MEMSpecDataImpl
         //  Create an AST lutmap that relates the index of the data
         //  counts to the coordinates.
         if ( coords == null ) {
-            createCoords();
+            if ( astref != null )
+                createCoords();
+            else {
+                //  Generate positions along the data array
+                coords = new double[data.length];
+                for ( int i = 0; i < data.length; i++ ) {
+                    coords[i] = (double) ( i + 1 );
+                }
+            }
         }
         if ( coords.length == 1 ) {
             //  Single point LutMaps are not allowed.

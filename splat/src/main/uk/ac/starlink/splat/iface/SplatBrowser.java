@@ -2143,9 +2143,13 @@ public class SplatBrowser
             try {      
                 String specstr = props.getSpectrum();
                 SpecData spectrum;
-                if ( specstr.contains("REQUEST=getData") && props.getGetDataFormat() != null )
+                List<SpecData> spectra;
+                if ( specstr.contains("REQUEST=getData") && props.getGetDataFormat() != null ) { 
                     spectrum = specDataFactory.get( props.getSpectrum(), props.getGetDataFormat() );
+                    addSpectrum( spectrum );
+                    props.apply( spectrum );
                 // if the access_url is a datalink, then we have to get first the Datalink VOTable to get the real access_url of the spectrum.
+                } 
                 else { 
                     if (props.getType() == SpecDataFactory.DATALINK) {
                         DataLinkParams dlparams = new DataLinkParams(props.getSpectrum());
@@ -2155,12 +2159,20 @@ public class SplatBrowser
                         else if ( dlparams.getQueryContentType(0) == null || dlparams.getQueryContentType(0).isEmpty()) //if not, use contenttype
                             props.setType(SpecDataFactory.GUESS);
                         else 
-                            props.setType(SpecDataFactory.mimeToSPLATType(dlparams.getQueryContentType(0)));
+                            props.setType(SpecDataFactory.mimeToSPLATType(dlparams.getQueryContentType(0))); 
                     }
-                    spectrum = specDataFactory.get( props.getSpectrum(), props.getType() );
+                    spectra = specDataFactory.get( props.getSpectrum(), props.getType() ); ///!!! IF it's a list???
+                    for (int s=0; s < spectra.size(); s++ ){
+                        spectrum=spectra.get(s);
+                        String sname = spectrum.getShortName();
+                        if (sname != null && ! sname.isEmpty())
+                            props.setShortName(sname);
+                        addSpectrum( spectrum );
+                        props.apply( spectrum );
+                        
+                    }
                 }
-                addSpectrum( spectrum );
-                props.apply( spectrum );
+                
             }
            // catch (Exception e ) {
             catch (SEDSplatException se) {
