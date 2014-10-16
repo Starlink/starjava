@@ -3,19 +3,19 @@ package uk.ac.starlink.splat.vo;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.logging.Logger;
+
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
 import javax.xml.transform.Source;
 import javax.xml.transform.sax.SAXSource;
+
 import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
-import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.XMLFilterImpl;
-import org.xml.sax.helpers.XMLReaderFactory;
+
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.util.DOMUtils;
 import uk.ac.starlink.votable.Namespacing;

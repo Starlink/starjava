@@ -16,8 +16,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.net.URL;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 
 import javax.swing.BorderFactory;
@@ -29,18 +31,6 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import javax.swing.border.Border;
-
-import com.sun.tools.javac.util.List;
-
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
-
-//import uk.ac.starlink.util.gui.ErrorDialog;
-import uk.ac.starlink.table.DescribedValue;
-import uk.ac.starlink.table.StarTable;
-import uk.ac.starlink.vo.RegResource;
-import uk.ac.starlink.votable.VOStarTable;
 
 /**
  * Class AddNewServerFrame

@@ -10,22 +10,17 @@
 package uk.ac.starlink.splat.vo;
 
 import java.io.UnsupportedEncodingException;
-import java.net.URL;
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 
 import jsky.coords.DMS;
 import jsky.coords.HMS;
-
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
-import uk.ac.starlink.util.gui.ErrorDialog;
-
-import uk.ac.starlink.vo.RegCapabilityInterface;
-import uk.ac.starlink.vo.RegResource;
 
 /**
  * Construct a URL query for contacting an SSA server. Also hold various
