@@ -196,7 +196,7 @@ public class SplatDataNode
                     file = (File) obj;
                 }
                 if ( file != null ) {
-                    specDataList.add(specFactory.get( file.getPath(),
+                    specDataList.add(specFactory.get1( file.getPath(),
                             SpecDataFactory.TABLE ));
                     return specDataList;
                 }
@@ -220,7 +220,7 @@ public class SplatDataNode
                     file = (File) datsrc;
                 }
                 if ( file != null ) {
-                    specDataList.add(specFactory.get( file.getPath(),
+                    specDataList.add(specFactory.get1( file.getPath(),
                             SpecDataFactory.TEXT ));
                     return specDataList;
                 }

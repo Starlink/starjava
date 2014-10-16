@@ -240,19 +240,45 @@ public class SpecDataFactory
      *  @param specspec the specification of the spectrum to be opened.
      *  @param type the type of the spectrum (one of types defined in
      *              this class).
+     *  @return the list of SpecData objects created from the given
+     *          specification.
+     *  @exception SplatException thrown if specification does not
+     *             specify a spectrum that can be accessed.
+     */
+    public List<SpecData> get( String specspec, int type ) 
+    		throws SplatException {
+    	List<SpecData> spectra = getAll(specspec, type);
+    	
+    	if (spectra != null && !spectra.isEmpty())
+    	//	return spectra.get(0);
+    	    return spectra;
+    	else
+    		return null;
+    }
+    
+    /**
+     *  Attempt to open a given specification as a known type. If this
+     *  fails then a SplatException will be thrown. Note that if the
+     *  type is DEFAULT then this is equivalent to calling
+     *  {@link #get(String)}.
+     *
+     *  @param specspec the specification of the spectrum to be opened.
+     *  @param type the type of the spectrum (one of types defined in
+     *              this class).
      *  @return the first SpecData object created from the given
      *          specification.
      *  @exception SplatException thrown if specification does not
      *             specify a spectrum that can be accessed.
      */
-    public SpecData get( String specspec, int type ) 
-    		throws SplatException {
-    	List<SpecData> spectra = getAll(specspec, type);
-    	
-    	if (spectra != null && !spectra.isEmpty())
-    		return spectra.get(0);
-    	else
-    		return null;
+    public SpecData get1( String specspec, int type ) 
+            throws SplatException {
+        List<SpecData> spectra = getAll(specspec, type);
+        
+        if (spectra != null && !spectra.isEmpty())
+          return spectra.get(0);
+           // return spectra;
+        else
+            return null;
     }
     
     /**
@@ -695,6 +721,7 @@ public class SpecDataFactory
     	SpecDataImpl implGlobal = null;
     	
         implGlobal = new FITSSpecDataImpl( specspec );
+    //    if (is_sdfits(implGlobal))
         
         for (int i = 0; i < ((FITSSpecDataImpl)implGlobal).hdurefs.length; i++) {
 
@@ -706,14 +733,44 @@ public class SpecDataFactory
             if ( exttype.equals( "TABLE" ) || exttype.equals( "BINTABLE" ) ||
                  dims == null || dims[0] == 0 ) {
                 try {
-                   // File specfile = new File (specspec); // MCN: trying to skip first HDU
-                  //  DataSource datsrc = new FileDataSource( specfile , "1");
+                    // skip first HDU???
                     DataSource datsrc = new FileDataSource( specspec );
                     StarTable starTable = new FitsTableBuilder().makeStarTable( datsrc, true, storagePolicy );
-                    if ( starTable.getRowCount() == 0 )
+                    long rowCount = starTable.getRowCount();
+                    if ( rowCount == 0 )
                         throw new Exception( "The TABLE is empty");
-                    impl = new TableSpecDataImpl( starTable, specspec, datsrc.getURL().toString(),
-                    		((FITSSpecDataImpl)impl).getFitsHeaders());
+
+                    if (starTable.getName().equals("SINGLE DISH") /*&& i==1*/) { 
+                        if ( i == 1) {// skip first header
+                            String url = datsrc.getURL().toString();
+                            Header header = ((FITSSpecDataImpl)impl).getFitsHeaders();
+
+                            for (int row=0;  row<rowCount; row++) {  // SDFITS: each row is a spectrum
+                                impl = new SDFitsTableSpecDataImpl( starTable, url, header, row );
+                                /* add only if data array size is not 0 */
+
+                                if (dims == null || (dims !=null && dims[0] != 0))
+                                    specDataImpls.add(impl);
+                                else
+                                    logger.info(String.format("Ignoring row #%d in '%s' (data array size 0)", row, impl.getFullName()));
+
+                            }
+                        }
+
+                    } else {
+                        
+                        impl = new TableSpecDataImpl( starTable, specspec, datsrc.getURL().toString(),
+                                ((FITSSpecDataImpl)impl).getFitsHeaders());
+                        /* add only if data array size is not 0 
+                         * (we can do this since we loop over all
+                         * found HDUs so any relevant, non-zero HDUs
+                         * will be treated correctly)
+                         */
+                        if (dims == null || (dims !=null && dims[0] != 0))
+                            specDataImpls.add(impl);
+                        else
+                            logger.info(String.format("Ignoring HDU #%d in '%s' (data array size 0)", i, impl.getFullName()));
+                   }
                 }
                 catch (SEDSplatException se) {
                     se.setType(FITS);
@@ -730,15 +787,6 @@ public class SpecDataFactory
                 }
             }
             
-            /* add only if data array size is not 0 
-             * (we can do this since we loop over all
-             * found HDUs so any relevant, non-zero HDUs
-             * will be treated correctly)
-             */
-            if (dims == null || (dims !=null && dims[0] != 0))
-            	specDataImpls.add(impl);
-            else
-            	logger.info(String.format("Ignoring HDU #%d in '%s' (data array size 0)", i, impl.getFullName()));
     	}
         
         return specDataImpls;
