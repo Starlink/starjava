@@ -9854,6 +9854,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         in a table.
         The special variable <code>index</code> is also deprecated in favour
         of <code>$index</code> or <code>$0</code>.</li>
+    <li>Fix <code>stilts</code> invocation script to pick up classes from
+        <code>stilts.jar</code> in script directory in preference to
+        other places (e.g. topcat-full.jar).</li>
     </ul>
     </p></dd>
 

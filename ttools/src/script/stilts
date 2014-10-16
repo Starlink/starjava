@@ -26,11 +26,13 @@
 #     - relative to the directory in which this script is installed,
 #       one of the following jar files should exist and contain the
 #       STILTS classes:
+#          ./stilts.jar
 #          ../../lib/ttools/stilts-app.jar
 #          ./stilts-app.jar
 #          ./topcat-full.jar
 #          ./topcat-lite.jar
-#          ./stilts.jar
+#       (on a Mac it looks in the resource bundle expected from a dmg
+#       installation as well)
 
 #  Authors:
 #     MBT: Mark Taylor (Starlink)
@@ -38,11 +40,11 @@
 
 #  Set locations of acceptable jar files (relative to this script).
 stilts_jars="\
+ stilts.jar\
  ../lib/ttools/stilts-app.jar\
  stilts-app.jar\
  topcat-full.jar\
  topcat-lite.jar\
- stilts.jar\
 "
 
 # If we're on a Mac, look for the jar in the resource bundle.
