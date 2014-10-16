@@ -9,12 +9,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import org.xml.sax.Attributes;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
-import uk.ac.starlink.registry.ResourceSink;
+
 import uk.ac.starlink.registry.AbstractRegistryClient;
+import uk.ac.starlink.registry.ResourceSink;
 import uk.ac.starlink.registry.SoapClient;
 
 /**

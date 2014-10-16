@@ -25,6 +25,7 @@ import java.util.NoSuchElementException;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.table.BeanStarTable;
+import uk.ac.starlink.table.gui.StarJTable;
 import uk.ac.starlink.vo.RegResource;
 
 /**

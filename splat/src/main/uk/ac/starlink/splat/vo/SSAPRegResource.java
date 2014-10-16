@@ -1,6 +1,5 @@
 package uk.ac.starlink.splat.vo;
 
-import uk.ac.starlink.vo.RegCapabilityInterface;
 import uk.ac.starlink.vo.RegResource;
 
 /**

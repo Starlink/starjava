@@ -12,12 +12,12 @@ import java.util.TreeSet;
 import java.util.logging.Logger;
 
 import uk.ac.starlink.registry.RegistryRequestFactory;
-import uk.ac.starlink.registry.RegistryQueryException;
 import uk.ac.starlink.registry.SoapClient;
 import uk.ac.starlink.registry.SoapRequest;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.vo.RegResource;
 
 /**
  * Describes a query on a registry.

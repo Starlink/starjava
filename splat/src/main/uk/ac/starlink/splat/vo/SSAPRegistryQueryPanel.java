@@ -1,9 +1,9 @@
 package uk.ac.starlink.splat.vo;
 
 import java.awt.BorderLayout;
-import java.awt.Dimension;
 import java.net.MalformedURLException;
 import java.net.URL;
+
 import javax.swing.Box;
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
@@ -12,6 +12,7 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.MutableComboBoxModel;
+
 import uk.ac.starlink.vo.RegistrySelector;
 /**
  * Component which allows the user to select a registry to interrogate
