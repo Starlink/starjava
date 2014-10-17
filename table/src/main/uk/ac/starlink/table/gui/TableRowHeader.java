@@ -78,12 +78,14 @@ public class TableRowHeader extends JTable {
          * events on this table when the master model changes. */
         listener = new TableModelListener() {
             public void tableChanged( TableModelEvent evt ) {
-                TableModel mmodel = masterTable.getModel();
-                if ( mmodel != masterModel ) {
-                    masterModel.removeTableModelListener( this );
-                    masterModel = mmodel;
-                    masterModel.addTableModelListener( this );
-                }
+
+                /* Probably one could be more conservative about how the
+                 * TableModelEvents are propagated here, since some of them
+                 * will not affect the content of the row model.
+                 * However, TableModelEvent seems to be a bit underdocumented,
+                 * so play it safe for now.  I don't *think* this is causing
+                 * performance problems anywhere.  */
+                rowModel.fireTableDataChanged();
             }
         };
         masterModel.addTableModelListener( listener );
@@ -165,7 +167,13 @@ public class TableRowHeader extends JTable {
      * master table's TableModel has been changed.
      */
     public void modelChanged() {
-        listener.tableChanged( null );
+        TableModel mmodel = masterTable.getModel();
+        if ( mmodel != masterModel ) {
+            masterModel.removeTableModelListener( listener );
+            masterModel = mmodel;
+            masterModel.addTableModelListener( listener );
+        }
+        rowModel.fireTableDataChanged();
     }
 
     /**

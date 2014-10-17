@@ -62,6 +62,7 @@ public class TableViewerWindow extends AuxWindow {
     private final ListSelectionModel rowSelectionModel_;
     private final TableColumnModel dummyColModel_;
     private final PropertyChangeListener viewbaseListener_;
+    private final TableRowHeader rowHeader_;
     private RowManager rowManager_;
     private int lastViewRowCount_;
     private boolean selfHighlighting_;
@@ -112,21 +113,21 @@ public class TableViewerWindow extends AuxWindow {
         getMainArea().add( scroller_, BorderLayout.CENTER );
 
         /* Set up row header panel. */
-        final TableRowHeader rowHeader = new TableRowHeader( jtable_ ) {
+        rowHeader_ = new TableRowHeader( jtable_ ) {
             public long rowNumber( int jRow ) {
                 int irow = rowManager_.getViewTableRow( jRow );
                 return viewModel_.getBaseRow( irow ) + 1;
             }
         };
-        rowHeader.setLongestNumber( (int) Math.min( tcModel.getDataModel()
-                                                           .getRowCount(),
-                                                    Integer.MAX_VALUE ) );
-        rowHeader.installOnScroller( scroller_ );
+        rowHeader_.setLongestNumber( (int) Math.min( tcModel.getDataModel()
+                                                            .getRowCount(),
+                                                     Integer.MAX_VALUE ) );
+        rowHeader_.installOnScroller( scroller_ );
         viewbaseListener_ = new PropertyChangeListener() {
             public void propertyChange( PropertyChangeEvent evt ) {
                 if ( ViewHugeTableModel.VIEWBASE_PROPERTY
                                        .equals( evt.getPropertyName() ) ) {
-                    rowHeader.repaint();
+                    rowHeader_.repaint();
                 }
             }
         };
@@ -220,7 +221,7 @@ public class TableViewerWindow extends AuxWindow {
                 if ( evt.isPopupTrigger() ) {
                     Component comp = evt.getComponent();
                     int jcol = jtable_.columnAtPoint( evt.getPoint() );
-                    if ( comp == rowHeader ) {
+                    if ( comp == rowHeader_ ) {
                         jcol = -1;
                     }
                     if ( jcol >= -1 ) {
@@ -234,7 +235,7 @@ public class TableViewerWindow extends AuxWindow {
         };
         jtable_.addMouseListener( mousey );
         jtable_.getTableHeader().addMouseListener( mousey );
-        rowHeader.addMouseListener( mousey );
+        rowHeader_.addMouseListener( mousey );
 
         /* Arrange for column widths to be set from the data. */
         StarJTable.configureColumnWidths( jtable_, MAX_COLUMN_WIDTH,
@@ -338,6 +339,11 @@ public class TableViewerWindow extends AuxWindow {
 
         /* Restore the column model we want. */
         jtable_.setColumnModel( tcModel_.getColumnModel() );
+
+        /* Make sure the row header is up to date. */
+        if ( tm0 != tm1 ) {
+            rowHeader_.modelChanged();
+        }
 
         /* Sensible default position. */
         scroller_.getViewport().setViewPosition( new Point( 0, 0 ) );
