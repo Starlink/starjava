@@ -33,8 +33,6 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.Border;
 
-import com.sun.tools.javac.util.List;
-
 /**
  * Class AddNewServerFrame
  * 
@@ -64,11 +62,7 @@ implements ActionListener, ItemListener
     private JPanel bandPanel;
     private JLabel statusLabel;
     private ButtonGroup srcGroup;
-
-    private String type="";
-    private String[] waveBandValue;
-    private String dataSourceValue="";
-
+    
     private String type="";
     private String[] waveBandValue;
     private String dataSourceValue="";
@@ -364,6 +358,21 @@ implements ActionListener, ItemListener
         JCheckBox cb = (JCheckBox) iev.getSource();
         String name = cb.getName();
 
+        if (name.equals("src")) {
+            dataSourceValue=cb.getText();
+
+        } else  if (name.equals("band")) {
+            ArrayList<String> wb = new ArrayList<String>();
+
+            for(Component c : bandPanel.getComponents()) {
+                if(c instanceof JCheckBox && ((JCheckBox) c).isSelected()) {  
+                    wb.add(((JCheckBox) c).getText());
+                }
+            }
+            waveBandValue=(String[]) wb.toArray(new String[wb.size()]);
+        }
+
+    }
     /**
      *  Reset all buttons
      */
@@ -474,7 +483,6 @@ implements ActionListener, ItemListener
         return newResource.getCapabilities()[0].getDataSource();
     }
     
-
     /**
      *  Register new Property Change Listener
      */

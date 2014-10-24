@@ -999,7 +999,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                 "(e.g 2008-10-15T20:48Z)" );
         
         //
-                // format and calibration options:
+        // format and calibration options:
         JPanel calibOptions = new JPanel(new GridLayout(3,2));
    //     calibOptions.setPreferredSize(new Dimension(100,200));
         // Formats
@@ -1545,7 +1545,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
     {
         // final serverlist
    
-        
         //  final ArrayList localQueryList = queryList;
         makeResultsDisplay( null );
         
@@ -1639,7 +1638,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                 logger.info( "Query string " + queryURL.toString() );
                 //queryURL = new URL(newURL);
            // }
-     
+
         }   
         catch ( MalformedURLException mue ) {
             progressPanel.logMessage( mue.getMessage() );
@@ -1728,7 +1727,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                 }
                 failed = true;
             }
-
+           
             //  Dump query results as VOTables.
             //uk.ac.starlink.table.StarTableOutput sto =
             //    new uk.ac.starlink.table.StarTableOutput();
@@ -1761,7 +1760,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         }
 
     } //runProcessQUery
-
  
     /**
      * Display the results of the queries to the SSA servers. The results can
@@ -1845,48 +1843,18 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                 if (dataLinkParams != null) { // if datalink services are present, create a frame
                     
                     if ( dataLinkFrame == null ) {
-                       //  getDataFrame=null;
                          dataLinkFrame = new DataLinkQueryFrame();
-                        // getDataFrame.setBandParams(lowerBandField.getText(), upperBandField.getText());
-                        
                     } 
                   
                     dataLinkFrame.addServer(shortName, dataLinkParams);  // associate this datalink service information to the current server
-                    /*
-                    getDataButton.setEnabled(true);
-                    getDataButton.setVisible(true);
-                    getDataButton.setForeground(Color.GRAY);
-                    */
-                    dataLinkButton.setEnabled(true);
-                    dataLinkButton.setVisible(true);
-                    dataLinkButton.setForeground(Color.GRAY);
-                    resultsPane.addTab( shortName, cutImage, scrollPane );
-                }
-                else if (getDataTable != null) {
-                    
-                    if ( getDataFrame == null ) {
-                       //  getDataFrame=null;
-                         getDataFrame = new GetDataQueryFrame();
-                        // getDataFrame.setBandParams(lowerBandField.getText(), upperBandField.getText());
-                        
-                    } 
-                  
-                    getDataFrame.addService(shortName, getDataTable);                    
-  //                  getDataButton.setEnabled(true);
-  //                  getDataButton.setVisible(true);
-  //                  getDataButton.setForeground(Color.GRAY);
                     dataLinkButton.setEnabled(true);
                     dataLinkButton.setVisible(true);
                     dataLinkButton.setForeground(Color.GRAY);
                     resultsPane.addTab( shortName, cutImage, scrollPane );
                 }
                 else if (getDataTable != null) { // if no dataLink services present, check if there are getData services
-                    
                     if ( getDataFrame == null ) {
-                       //  getDataFrame=null;
                          getDataFrame = new GetDataQueryFrame();
-                        // getDataFrame.setBandParams(lowerBandField.getText(), upperBandField.getText());
-                        
                     } 
                   
                     getDataFrame.addService(shortName, getDataTable);                    
@@ -1959,7 +1927,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             
             if (starJTables == null)  // avoids NPE if no results are present
                 return;
-
             //  Visit all the tabbed StarJTables.
             Iterator<StarJTable> i = starJTables.iterator();
             while ( i.hasNext() ) {
@@ -2991,60 +2958,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                 
             return;
         }
-        if ( source.equals( getDataButton ) ) {
-            if (getDataFrame == null || getDataFrame.getParams() == null)
-                return;
-            if (getDataFrame.isVisible()) { // deactivate
-                getDataFrame.setVisible(false);
-                //getDataButton.set.setEnabled(false);
-                deactivateGetDataSupport();
-            
-            } else {
-                getDataFrame.setVisible(true);
-               // getDataButton.setEnabled(true);
-                activateGetDataSupport();
-               
-            }
-            return;
-        }
-        */
-        if ( source.equals( dataLinkButton ) ) {
-            if (dataLinkFrame != null && dataLinkFrame.getParams() != null) {
-                if (dataLinkFrame.isVisible()) { // deactivate
-                    dataLinkFrame.setVisible(false);
-                    //getDataButton.set.setEnabled(false);
-                    deactivateDataLinkSupport();
-            
-                } else {
-                    dataLinkFrame.setVisible(true);
-                    // getDataButton.setEnabled(true);
-                    activateDataLinkSupport();
-                    if (resultsPane.isEnabledAt(resultsPane.getSelectedIndex()))
-                        dataLinkFrame.setVisible(true);
-                    // getDataButton.setEnabled(true);
-                  
-               
-                }
-            } else if (getDataFrame != null && getDataFrame.getParams() != null) {
-                if (getDataFrame == null || getDataFrame.getParams() == null)
-                    return;
-                if (getDataFrame.isVisible()) { // deactivate
-                    getDataFrame.setVisible(false);
-                    //getDataButton.set.setEnabled(false);
-                   // deactivateGetDataSupport();
-                    deactivateDataLinkSupport();
-                
-                } else {
-                    getDataFrame.setVisible(true);
-                   // getDataButton.setEnabled(true);
-                   // activateGetDataSupport();
-                    activateDataLinkSupport();
-                   
-                }
-            } 
-                
-            return;
-        }
 
     }
     /**
@@ -3127,8 +3040,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
   /*
    *   private void deactivateGetDataSupport() {
   
-    private void deactivateGetDataSupport() {
-        
         getDataEnabled=false;
         getDataButton.setForeground(Color.GRAY);
         int nrTabs = resultsPane.getTabCount();

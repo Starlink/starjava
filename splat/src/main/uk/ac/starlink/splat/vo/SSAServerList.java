@@ -73,7 +73,7 @@ public class SSAServerList
         String shortname = server.getShortName();
         if (shortname != null)
             shortname = shortname.trim();
-        serverList.put( server.getShortName(), server );
+        serverList.put( shortname, server );
         if ( save ) {
             try {
                 saveServers();
@@ -91,15 +91,16 @@ public class SSAServerList
      */
     public void removeServer( SSAPRegResource server )
     {
-	String shortname = server.getShortName();
+        String shortname = server.getShortName();
         if (shortname != null)
               shortname = shortname.trim();
         serverList.remove( shortname );
+      
     }
     public void removeServer( String shortName )
     {
         if (shortName != null)
-              shortName = shortName.trim();
+           shortName = shortName.trim();
         serverList.remove( shortName );
     }
 
@@ -176,7 +177,6 @@ public class SSAServerList
         SSAPRegCapability[] cap = res.getCapabilities();
         return cap[0].getAccessUrl();
     } 
-
 
 
     /**
@@ -302,10 +302,10 @@ public class SSAServerList
         while ( true ) {
             try {
                 server = (SSAPRegResource) decoder.readObject();
-                addServer(server, false);	
-
-                // serverList.put( name, server );
-                // selectionList.put(name, true );
+                addServer(server, false);
+                
+               // serverList.put( name, server );
+                //selectionList.put(name, true );
             }
             catch( ArrayIndexOutOfBoundsException e ) {
                 break; // End of list.
@@ -390,7 +390,7 @@ public class SSAServerList
      */
      public void selectServer(String shortname) {
          if (shortname != null)
-              shortname = shortname.trim();
+            shortname = shortname.trim();
          if (serverList.containsKey(shortname))
                  selectionList.put(shortname, true);
      }
@@ -398,19 +398,21 @@ public class SSAServerList
       * set selection tag
       */
       public void unselectServer(String shortname) {
-         if (shortname != null)
+          if (shortname != null)
               shortname = shortname.trim();
-         if (serverList.containsKey(shortname))
-              selectionList.put(shortname, false);
+          if (serverList.containsKey(shortname))
+                  selectionList.put(shortname, false);
       }
       /**
        * returns selection tag
        */
        public boolean isServerSelected(String shortname) {
-          if (shortname != null)
-              shortname = shortname.trim();
-          if (serverList.containsKey(shortname))
-              return selectionList.get(shortname);
+           if (shortname == null)
+               return false; //this should not happen! 
+           else
+               shortname = shortname.trim();
+           if (serverList.containsKey(shortname))
+                   return selectionList.get(shortname);
            return false;
        }
 }

@@ -28,7 +28,6 @@ import org.xml.sax.SAXNotSupportedException;
 import org.xml.sax.XMLReader;
 
 import uk.ac.starlink.splat.iface.ProgressPanel;
-import uk.ac.starlink.vo.RegResource;
 import uk.ac.starlink.votable.ParamElement;
 import uk.ac.starlink.votable.VOElement;
 import uk.ac.starlink.votable.VOElementFactory;
@@ -140,7 +139,7 @@ class SSAMetadataParser
             con.setConnectTimeout(10 * 1000); // 10 seconds
             con.setReadTimeout(30*1000);
             con.connect();
-            inSrc = new InputSource( con.getInputStream() );        
+            inSrc = new InputSource( con.getInputStream() );
         } catch (IOException ioe) {
             if ( progressPanel != null )
                 progressPanel.logMessage( ioe.getMessage() );

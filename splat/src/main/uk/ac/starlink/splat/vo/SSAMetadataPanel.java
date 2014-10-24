@@ -73,10 +73,6 @@ public class SSAMetadataPanel extends JPanel implements ActionListener, TableMod
      */
     protected BasicFileChooser fileChooser = null;
 
-    // used to trigger a new server metadata query by SSAQueryBrowser
-
-  //  private PropertyChangeSupport ////;
-
     private static JTable metadataTable;
 
     private static MetadataTableModel metadataTableModel;
@@ -120,9 +116,6 @@ public class SSAMetadataPanel extends JPanel implements ActionListener, TableMod
         initMetadataTable();
         initUI();
         initMenus();
-       // initFrame();
-   //     queryMetadata = new PropertyChangeSupport(this);
-
     } 
 
     /**
@@ -832,7 +825,12 @@ public class SSAMetadataPanel extends JPanel implements ActionListener, TableMod
      */
     public void tableChanged(TableModelEvent tme) {
       
-             //  queryMetadata.firePropertyChange("changeQuery", false, true);
+        if ( (tme.getColumn() != TableModelEvent.ALL_COLUMNS) && (tme.getColumn() == SELECTED_INDEX  || tme.getColumn() == VALUE_INDEX) )
+             this.firePropertyChange("changeQuery", false, true);      
+    }
+    // fire this only in certain events
+    public void fireProperty() 
+    {
         this.firePropertyChange("changeQuery", false, true);
     }
 

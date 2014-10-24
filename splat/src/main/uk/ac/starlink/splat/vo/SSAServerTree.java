@@ -84,19 +84,6 @@ import uk.ac.starlink.util.gui.ProxySetupFrame;
  */
 
 
-
-
-/**
- * SSAServerTree is a panel displaying the SSA servers as a tree, with the server capabilities as branches,
- * and information as leaves . Includes also selection options for the servers, as waveband and data source options
- * as well as user generated tags.
- *
- * @author Margarida Castro Neves 
- * @version $Id: SSAServerTree.java 10350 2012-11-15 13:27:36Z mcneves $
- *
- */
-
-
 public class SSAServerTree extends JPanel  implements PropertyChangeListener {
     
     
@@ -304,6 +291,10 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
        src_all = new JCheckBox("ALL", true);     
        srcPanel.add(src_all);
        
+       src_sur.setToolTipText("<html>A survey dataset, which typically covers some region of observational <br>" +
+       		                   "parameter space in a uniform fashion, with as complete as possible <br>" +
+       		                   "coverage in the region of parameter space observed.</html>");
+       src_tmod.setToolTipText("<html>Theory data, or any data generated from a theoretical model, <br>for example a synthetic spectrum.</html>");
        src_point.setToolTipText("<html>A pointed observation of a particular astronomical object or field. <br> " +
                " Typically these are instrumental observations taken as part of some PI observing program.<br> " +
                " The data quality and characteristics may be variable, but the observations of a particular <br>" +
@@ -538,6 +529,7 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
                     if (stn.isSelected())
                         serverList.selectServer(server.getShortName());
                     root.addsort( stn );
+                 
          }
     }
     
@@ -1196,7 +1188,6 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
                 newTag = false; // the tags will be added to the existing tag
         }
         
-        
         DefaultTreeModel model = (DefaultTreeModel) serverTree.getModel();
         ServerTreeNode root = (ServerTreeNode)  model.getRoot();
         int[] selected = serverTree.getSelectionRows();
@@ -1731,7 +1722,7 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
    
     }
     
-   
+            
     //Listens to the check boxes events
     class CheckBoxListener implements ItemListener {
         public void itemStateChanged(ItemEvent e) {
@@ -1868,7 +1859,6 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
     } // TagsListSelectionListener
 
             
-
     class resizeListener extends ComponentAdapter {
         public void componentResized(ComponentEvent e) {
             updateUI();
