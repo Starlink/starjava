@@ -46,6 +46,12 @@ public class CapabilityStage implements Stage, CapabilityHolder {
                        + ")/" + TOKEN_REGEX + "\\s*(;.*)?",
                          Pattern.CASE_INSENSITIVE );
 
+    // Copied from IdentifierURI type definition in VOResource-v1.0.xsd
+    private static final Pattern IDURI_REGEX =
+        Pattern.compile( "ivo://[\\w\\d][\\w\\d\\-_\\.!~\\*'\\(\\)\\+=]{2,}"
+                       + "(/[\\w\\d\\-_\\.!~\\*'\\(\\)\\+=]+"
+                       + "(/[\\w\\d\\-_\\.!~\\*'\\(\\)\\+=]+)*)?" );
+
     public String getDescription() {
         return "Check content of TAPRegExt capabilities record";
     }
@@ -153,6 +159,7 @@ public class CapabilityStage implements Stage, CapabilityHolder {
             checkLanguages();
             checkUploadMethods();
             checkOutputFormats();
+            checkDataModels();
         }
 
         /**
@@ -515,6 +522,33 @@ public class CapabilityStage implements Stage, CapabilityHolder {
                 }
             }
             return ofList.toArray( new OutputFormat[ 0 ] );
+        }
+
+        /**
+         * Checks that data model declarations are in order.
+         */
+        private void checkDataModels() {
+            for ( String dataModel : tcap_.getDataModels() ) {
+
+                /* Report if dataModel ivo-id attribute does not match the
+                 * content type vr:IdentifierURI.  In TAPRegExt-1.0 that
+                 * was originally required.  However, at time of writing
+                 * an Erratum is in progress changing that to the more
+                 * lenient xs:anyURI.  anyURI is OK really, but it's worth
+                 * noting if the content violated the original standard. */
+                if ( dataModel.length() > 0 &&
+                     ! IDURI_REGEX.matcher( dataModel ).matches() ) {
+                    String msg = new StringBuffer()
+                       .append( "DataModel ivo-id \"" )
+                       .append( dataModel )
+                       .append( "\"" )
+                       .append( " is not a vr:IdentifierURI;" )
+                       .append( " probably OK given TAPRegExt-1.0 Erratum" )
+                       .append( " #1(?)" )
+                       .toString();
+                    reporter_.report( FixedCode.W_CPID, msg );
+                }
+            }
         }
     }
 
