@@ -141,6 +141,7 @@ public enum FixedCode implements ReportCode {
     W_CEZZ( "Compression" ),
     W_CIDX( "Index flag mismatch" ),
     W_CLUN( "Columns content" ),
+    W_CPID( "Non-IdentifierURI dataModel" ),
     W_CTYP( "Datatype mismatch" ),
     W_CUCD( "UCD mismatch" ),
     W_CULF( "Custom language feature type" ),

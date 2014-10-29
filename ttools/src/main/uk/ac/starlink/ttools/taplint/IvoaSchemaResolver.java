@@ -65,7 +65,7 @@ public class IvoaSchemaResolver implements LSResourceResolver {
                  base.getResource( "VOResource-v1.0.xsd" ) );
         map.put( TAPREGEXT_URI =
                  "http://www.ivoa.net/xml/TAPRegExt/v1.0",
-                 base.getResource( "TAPRegExt-v1.0.xsd" ) );
+                 base.getResource( "TAPRegExt-v1.0-Erratum1.xsd" ) );
         map.put( STC_URI =
                  "http://www.ivoa.net/xml/STC/stc-v1.30.xsd",
                  base.getResource( "stc-v1.30.xsd" ) );
