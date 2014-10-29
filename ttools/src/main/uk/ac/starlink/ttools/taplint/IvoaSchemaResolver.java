@@ -36,6 +36,7 @@ public class IvoaSchemaResolver implements LSResourceResolver {
     /** Namespace URI for VOSI availability schema. */
     public static final String AVAILABILITY_URI;
 
+    private static final String TABLES_URI;
     private static final String VORESOURCE_URI;
     private static final String TAPREGEXT_URI;
     private static final String STC_URI;
@@ -56,6 +57,9 @@ public class IvoaSchemaResolver implements LSResourceResolver {
         map.put( AVAILABILITY_URI =
                  "http://www.ivoa.net/xml/VOSIAvailability/v1.0",
                  base.getResource( "VOSIAvailability-v1.0.xsd" ) );
+        map.put( TABLES_URI =
+                 "http://www.ivoa.net/xml/VOSITables/v1.0",
+                 base.getResource( "VOSITables-v1.0.xsd" ) );
         map.put( VORESOURCE_URI =
                  "http://www.ivoa.net/xml/VOResource/v1.0",
                  base.getResource( "VOResource-v1.0.xsd" ) );
