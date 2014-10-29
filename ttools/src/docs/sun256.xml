@@ -9870,6 +9870,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Add (experimental) read-only support for Gaia/DPAC GBIN format.</li>
     <li>Fix <code>taplint</code> to permit application/xml
         not just text/xml content-type where appropriate (UWS stage).</li>
+    <li>Fix <code>taplint</code> so it doesn't warn (W-TMV-UNSC) about
+        unknown VOSITables schema.</li>
     </ul>
     </p></dd>
 
