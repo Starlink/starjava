@@ -340,7 +340,7 @@ public class JobStage implements Stage {
 
             /* Check and read the job document. */
             URL jobUrl = job.getJobUrl();
-            readContent( jobUrl, "text/xml", true );
+            readContent( jobUrl, ContentType.XML, true );
             UwsJobInfo jobInfo;
             try {
                 jobInfo = job.readJob();
@@ -811,7 +811,7 @@ public class JobStage implements Stage {
          * @return   content string (assumed UTF-8), or null
          */
         private String readTextContent( URL url, boolean mustExist ) {
-            byte[] buf = readContent( url, "text/plain", mustExist );
+            byte[] buf = readContent( url, ContentType.PLAIN, mustExist );
             if ( buf == null ) {
                 return null;
             }
@@ -832,11 +832,11 @@ public class JobStage implements Stage {
          * MIME type.
          *
          * @param  url   URL to read
-         * @param  mimeType  required declared Content-Type
+         * @param  reqType  required declared Content-Type
          * @param  mustExist   true if non-existence should trigger error report
          * @return  content bytes, or null
          */
-        private byte[] readContent( URL url, String mimeType,
+        private byte[] readContent( URL url, ContentType reqType,
                                     boolean mustExist ) {
             if ( url == null ) {
                 return null;
@@ -901,24 +901,87 @@ public class JobStage implements Stage {
                     }
                 }
             }
-            String ctype = hconn.getContentType();
-            if ( ctype == null || ctype.trim().length() == 0 ) {
-                reporter_.report( FixedCode.W_NOCT,
-                                  "No Content-Type header for " + url );
-            }
-            else if ( ! ctype.startsWith( mimeType ) ) {
-                String msg = new StringBuilder()
-                   .append( "Incorrect Content-Type " )
-                   .append( ctype )
-                   .append( " != " )
-                   .append( mimeType )
-                   .append( " for " )
-                   .append( url )
-                   .toString();
-                reporter_.report( FixedCode.E_GMIM, msg );
-                return buf;
+            if ( reqType != null ) {
+                reqType.checkType( reporter_, hconn.getContentType(), url );
             }
             return buf;
+        }
+    }
+
+    /**
+     * Defines a permitted class of MIME types.
+     */
+    private static class ContentType {
+
+        private final String[] permittedTypes_;
+   
+        /** ContentType instance for plain text. */
+        public static final ContentType PLAIN =
+            new ContentType( new String[] { "text/plain", } );
+
+        /** ContentType instance for XML. */
+        public static final ContentType XML =
+            new ContentType( new String[] { "text/xml", "application/xml", } );
+
+        /**
+         * Constructor.
+         *
+         * @param  permittedTypes  array of MIME type/subtype strings allowed
+         */
+        ContentType( String[] permittedTypes ) {
+            permittedTypes_ = permittedTypes;
+        }
+
+        /**
+         * Checks a declared Content-Type string against the permitted
+         * values for this object.  Validation messages are reported in
+         * case of non-compliance.
+         *
+         * @param  reporter  destination for validation messages
+         * @param  declaredType  Content-Type to assess
+         * @param  url  source of content, used for report messages
+         */
+        public void checkType( Reporter reporter, String declaredType,
+                               URL url ) {
+            if ( declaredType == null || declaredType.trim().length() == 0 ) {
+                reporter.report( FixedCode.W_NOCT,
+                                 "No Content-Type header for " + url );
+            }
+            else if ( ! isPermitted( declaredType ) ) {
+                StringBuffer sbuf = new StringBuffer();
+                sbuf.append( "Incorrect Content-Type \"" )
+                    .append( declaredType )
+                    .append( "\"" )
+                    .append( ", should be " );
+                if ( permittedTypes_.length == 1 ) {
+                    sbuf.append( permittedTypes_[ 0 ] );
+                }
+                else {
+                    sbuf.append( "one of " )
+                        .append( Arrays.asList( permittedTypes_ ) );
+                }
+                sbuf.append( " for " )
+                    .append( url );
+                reporter.report( FixedCode.E_GMIM, sbuf.toString() );
+            }
+        }
+
+        /**
+         * Indicates whether the given content-type matches one of the
+         * ones permitted for this object.  Matching is currently startsWith,
+         * so parameter assignments (and possibly illegal suffixes)
+         * are ignored.
+         *
+         * @param  declaredType  content-type to assess
+         * @return  isPermitted  true iff it's OK
+         */
+        private boolean isPermitted( String declaredType ) {
+            for ( String typ : permittedTypes_ ) {
+                if ( declaredType.startsWith( typ ) ) {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 }
