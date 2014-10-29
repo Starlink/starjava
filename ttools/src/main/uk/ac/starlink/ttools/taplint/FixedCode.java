@@ -42,7 +42,7 @@ public enum FixedCode implements ReportCode {
     E_CNAM( "Query/result column name mismatch" ),
     E_CPIO( "Capabilities metadata read error" ),
     E_CPSX( "Capabilities metadata parse failure" ),
-    E_CTYP( "Declared/resut type mismatch" ),
+    E_CTYP( "Declared/result type mismatch" ),
     E_CUCD( "UCD mismatch" ),
     E_CUNI( "Unit mismatch" ),
     E_CUTP( "Utype mismatch" ),
