@@ -543,7 +543,7 @@ public class QueryStage implements Stage {
                       .compatibleDataTypes( qType, rType ) ) {
                     String msg = new StringBuffer()
                        .append( "Query/result column type mismatch " )
-                       .append( " for column " )
+                       .append( "for column " )
                        .append( columnId )
                        .append( "; " )
                        .append( qType )

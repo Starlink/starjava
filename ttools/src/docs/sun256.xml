@@ -9872,6 +9872,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         not just text/xml content-type where appropriate (UWS stage).</li>
     <li>Fix <code>taplint</code> so it doesn't warn (W-TMV-UNSC) about
         unknown VOSITables schema.</li>
+    <li>Fix <code>taplint</code> so that <code>unicodeChar</code>
+        matches CHAR/VARCHAR in the same way as <code>char</code>
+        for column type declaration purposes.</li>
     </ul>
     </p></dd>
 

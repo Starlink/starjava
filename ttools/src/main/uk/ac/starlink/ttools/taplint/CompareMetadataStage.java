@@ -258,7 +258,8 @@ public class CompareMetadataStage implements Stage {
                dt1.equals( "CLOB" ) ||
                dt1.equals( "TIMESTAMP" ) ||
                dt1.equals( "POINT" ) ||
-               dt1.equals( "REGION" ) ) && dt2.equals( "char" ) ||
+               dt1.equals( "REGION" ) ) && ( dt2.equals( "char" ) ||
+                                             dt2.equals( "unicodeChar" ) ) ||
              ( dt1.equals( "SMALLINT" ) ||
                dt1.equals( "INTEGER" ) ) && dt2.equals( "boolean" ) ) {
             return true;
