@@ -8,6 +8,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
@@ -25,12 +27,24 @@ public class TypeMappers {
      * TypeMapper implementation which performs generally useful conversions.
      * In particular, {@link java.util.Date} subclasses (including
      * <code>java.sql.Date</code>, <code>java.sql.Time</code> and
-     * <code>java.sql.Timestamp</code> are turned into Strings.
+     * <code>java.sql.Timestamp</code> are turned into Strings,
+     * using JDBC timestamp escape format (which is ISO-8601 with a space
+     * character separating date and time).
      * The intention is that by using this implementation you will get
      * an output table which can be written using non-specialist output
      * formats such as FITS and VOTable.
      */
-    public static final TypeMapper STANDARD = new StandardTypeMapper();
+    public static final TypeMapper STANDARD = new StandardTypeMapper( ' ' );
+
+    /**
+     * TypeMapper implementation like {@link #STANDARD}, but which uses
+     * a 'T' character as the separator between the date and time parts
+     * of timestamp serializations.  Use of the 'T' separator is
+     * mandated by the Data Access Layer Interface standard v1.0,
+     * section 3.1.2 (http://www.ivoa.net/documents/DALI/), and so is
+     * appropriate for output from VO services such as TAP.
+     */
+    public static final TypeMapper DALI = new StandardTypeMapper( 'T' );
 
     /**
      * TypeMapper implementation which performs no conversions.
@@ -49,6 +63,8 @@ public class TypeMappers {
     private static final ValueInfo JDBC_LABEL_INFO =
         new DefaultValueInfo( "JDBC_label", String.class,
                               "Label of column in JDBC database" );
+    private static final Pattern DATE_REGEX =
+        Pattern.compile( "([0-9]{4}-[01][0-9]-[0-3][0-9]) (.+)" );
 
     /**
      * Private constructor prevents instantiation.
@@ -76,6 +92,26 @@ public class TypeMappers {
     public static ValueHandler createStringValueHandler(
             ResultSetMetaData meta, int jcol1 ) throws SQLException {
         return new StringValueHandler( meta, jcol1 );
+    }
+
+    /**
+     * Constructs a new ValueHandler which converts JDBC Timestamp
+     * values to Strings, with a configurable date/time separator character.
+     * The input values are assumed to be of type {@link java.sql.Timestamp}.
+     *
+     * @param   meta   JDBC metadata object
+     * @param   jcol1  JDBC column index (first column is 1)
+     * @param   dateTimeSeparator  separator character between
+     *                             date and time parts of ISO-8601 string;
+     *                             usually either ' ' or 'T'
+     */
+    public static ValueHandler createTimestampValueHandler(
+            ResultSetMetaData meta, int jcol1, final char dateTimeSeparator )
+            throws SQLException {
+        return dateTimeSeparator == ' '
+             ? new StringValueHandler( meta, jcol1 )
+             : new DoctoredTimestampValueHandler( meta, jcol1,
+                                                  dateTimeSeparator );
     }
 
     /**
@@ -210,6 +246,56 @@ public class TypeMappers {
     }
 
     /**
+     * ValueHandler implementation which takes Timestamp instances
+     * and turns them into strings with a configurable date/time separator.
+     */
+    private static class DoctoredTimestampValueHandler
+            extends ForcedValueHandler {
+
+        private final char separator_;
+
+        /**
+         * Constructor.
+         *
+         * @param   meta   JDBC metadata object
+         * @param   jcol1  JDBC column index (first column is 1)
+         * @param   dateTimeSeparator  separator character between
+         *                             date and time parts of ISO-8601 string;
+         *                             usually either ' ' or 'T'
+         */
+        DoctoredTimestampValueHandler( ResultSetMetaData meta, int jcol1,
+                                       char dateTimeSeparator )
+                throws SQLException {
+            super( meta, jcol1, String.class );
+            separator_ = dateTimeSeparator;
+        }
+
+        public Object getValue( Object baseValue ) {
+            if ( baseValue == null ) {
+                return null;
+            }
+
+            /* Timestamp toString method is documented to generate
+             * JDBC escape format: YYYY-MM-DD hh:mm:ss...
+             * The code here just resets the space separator to the
+             * chosen character.  The original input ought to match
+             * the expected format, but if not just leave it as is. */
+            String isoTxt = baseValue.toString();
+            Matcher matcher = DATE_REGEX.matcher( isoTxt );
+            if ( matcher.matches() ) {
+                return new StringBuffer()
+                      .append( matcher.group( 1 ) )
+                      .append( separator_ )
+                      .append( matcher.group( 2 ) )
+                      .toString();
+            }
+            else {
+                return isoTxt;
+            }
+        }
+    }
+
+    /**
      * TypeMapper which performs no conversions.
      */
     private static class IdentityTypeMapper implements TypeMapper {
@@ -233,17 +319,37 @@ public class TypeMappers {
      * formats such as FITS and VOTable.
      */
     private static class StandardTypeMapper implements TypeMapper {
+        private final char dateTimeSeparator_;
+
+        /**
+         * Constructor.
+         *
+         * @param   dateTimeSeparator  separator character between
+         *                             date and time parts of ISO-8601 string;
+         *                             usually either ' ' or 'T'
+         */
+        public StandardTypeMapper( char dateTimeSeparator ) {
+            dateTimeSeparator_ = dateTimeSeparator;
+        }
+
         public ValueHandler createValueHandler( ResultSetMetaData meta,
                                                 int jcol1 )
                 throws SQLException {
             ValueHandler handler = createIdentityValueHandler( meta, jcol1 );
             Class clazz = handler.getColumnInfo().getContentClass();
 
-            /* java.sql.{Date,Time,Timestamp} are all java.util.Date
-             * subclasses. */
-            if ( java.util.Date.class.isAssignableFrom( clazz ) ) {
+            /* Timestamp. */
+            if ( java.sql.Timestamp.class.isAssignableFrom( clazz ) ) {
                 logger_.info( "JDBC table handler casting Date column "
                             + meta.getColumnName( jcol1 ) + " to String" );
+                return createTimestampValueHandler( meta, jcol1,
+                                                    dateTimeSeparator_ );
+            }
+
+            /* Time and Date can just use their own toString methods,
+             * which turn them into JDBC escape format (like ISO-8601). */
+            else if ( java.sql.Date.class.isAssignableFrom( clazz ) ||
+                      java.sql.Time.class.isAssignableFrom( clazz ) ) {
                 return createStringValueHandler( meta, jcol1 );
             }
 
