@@ -252,6 +252,59 @@ public class TapQuery {
 
     /**
      * Blocks until the TAP query represented by a given UWS job has completed,
+     * then returns the URL from which the successful result can be obtained.
+     * If the job does not complete successfully, an IOException is thrown
+     * instead.
+     *
+     * @param  uwsJob  started UWS job representing an async TAP query
+     * @param  pollMillis  polling interval in milliseconds
+     * @return   open URL connection to result stream
+     */
+    public static URL waitForResultUrl( UwsJob uwsJob, long pollMillis )
+            throws IOException, InterruptedException {
+        String phase = uwsJob.waitForFinish( pollMillis );
+        assert UwsStage.forPhase( phase ) == UwsStage.FINISHED;
+        if ( "COMPLETED".equals( phase ) ) {
+            return new URL( uwsJob.getJobUrl() + "/results/result" );
+        }
+        else if ( "ABORTED".equals( phase ) ) {
+            throw new IOException( "TAP query did not complete ("
+                                 + phase + ")" );
+        }
+        else if ( "ERROR".equals( phase ) ) {
+            String errText = null;
+
+            /* We read the error text from the /error job resource,
+             * which TAP says has to be a VOTable.  This is always
+             * present.  In some cases it might be better to read
+             * from the errorSummary element of the job resource
+             * (e.g. xpath /job/errorSummary/message/text()), since
+             * that might contain a shorter and more human-friendly
+             * message, but (a) many/most TAP servers do not supply
+             * this at time of writing and (b) it's difficult to
+             * navigate the UWS document in the presence of namespaces
+             * which often refer to different/older versions of the
+             * UWS protocol. */
+            URL errUrl = new URL( uwsJob.getJobUrl() + "/error" );
+            logger_.info( "Read error VOTable from " + errUrl );
+            try {
+                errText = readErrorInfo( errUrl.openStream() );
+            }
+            catch ( Throwable e ) {
+                throw (IOException)
+                      new IOException( "TAP Execution error"
+                                     + " (can't get detail)" )
+                     .initCause( e );
+            }
+            throw new IOException( "TAP execution error: " + errText );
+        }
+        else {
+            throw new IOException( "Unknown UWS execution phase " + phase );
+        }
+    }
+
+    /**
+     * Blocks until the TAP query represented by a given UWS job has completed,
      * then returns a table based on the result.
      * In case of job failure, an exception will be thrown instead.
      *
@@ -263,50 +316,14 @@ public class TapQuery {
     public static StarTable waitForResult( UwsJob uwsJob, StoragePolicy storage,
                                            long pollMillis )
             throws IOException, InterruptedException {
+        URL resultUrl;
         try {
-            String phase = uwsJob.waitForFinish( pollMillis );
-            assert UwsStage.forPhase( phase ) == UwsStage.FINISHED;
-            if ( "COMPLETED".equals( phase ) ) {
-                return getResult( uwsJob, storage );
-            }
-            else if ( "ABORTED".equals( phase ) ) {
-                throw new IOException( "TAP query did not complete ("
-                                     + phase + ")" );
-            }
-            else if ( "ERROR".equals( phase ) ) {
-                String errText = null;
-
-                /* We read the error text from the /error job resource,
-                 * which TAP says has to be a VOTable.  This is always
-                 * present.  In some cases it might be better to read
-                 * from the errorSummary element of the job resource
-                 * (e.g. xpath /job/errorSummary/message/text()), since
-                 * that might contain a shorter and more human-friendly
-                 * message, but (a) many/most TAP servers do not supply
-                 * this at time of writing and (b) it's difficult to
-                 * navigate the UWS document in the presence of namespaces
-                 * which often refer to different/older versions of the
-                 * UWS protocol. */
-                URL errUrl = new URL( uwsJob.getJobUrl() + "/error" );
-                logger_.info( "Read error VOTable from " + errUrl );
-                try {
-                    errText = readErrorInfo( errUrl.openStream() );
-                }
-                catch ( Throwable e ) {
-                    throw (IOException)
-                          new IOException( "TAP Execution error"
-                                         + " (can't get detail)" )
-                         .initCause( e );
-                }
-                throw new IOException( "TAP execution error: " + errText );
-            }
-            else {
-                throw new IOException( "Unknown UWS execution phase " + phase );
-            }
+            resultUrl = waitForResultUrl( uwsJob, pollMillis );
         }
         catch ( UwsJob.UnexpectedResponseException e ) {
             throw asIOException( e, null );
         }
+        return readResultVOTable( resultUrl.openConnection(), storage );
     }
 
     /**
