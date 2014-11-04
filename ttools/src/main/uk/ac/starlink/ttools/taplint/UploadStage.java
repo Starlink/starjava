@@ -8,6 +8,7 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.regex.Pattern;
 import uk.ac.starlink.table.ArrayColumn;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
@@ -38,6 +39,9 @@ public class UploadStage implements Stage {
 
     private final TapRunner tapRunner_;
     private final CapabilityHolder capHolder_;
+    private static final Pattern DALI_ISO_REGEX =
+        Pattern.compile( "[0-9]{4}-[01][0-9]-[0-3][0-9]"
+                       + "(T[0-2][0-9]:[0-5][0-9]:[0-6][0-9](\\.[0-9]+)?)?" );
 
     /**
      * Constructor.
@@ -215,9 +219,54 @@ public class UploadStage implements Stage {
             try {
                 for ( int ir = 0; ir < nrow; ir++ ) {
                     for ( int ic = 0; ic < ncol; ic++ ) {
-                        Object v1 = render( t1.getCell( ir, ic ) );
-                        Object v2 = render( t2.getCell( ir, ic ) );
-                        if ( ! v1.equals( v2 ) ) {
+                        Object o1 = t1.getCell( ir, ic );
+                        Object o2 = t2.getCell( ir, ic );
+                        String s1 = renderCell( o1 );
+                        String s2 = renderCell( o2 );
+                        final boolean reportMismatch;
+
+                        /* Treat non-null time columns specially. */
+                        boolean isTimeCol =
+                            "adql:TIMESTAMP"
+                           .equals( t1.getColumnInfo( ic )
+                                      .getAuxDatumValue( VOStarTable.XTYPE_INFO,
+                                                         String.class ) );
+                        if ( isTimeCol && s1.length() > 0 && s2.length() > 0 ) {
+
+                            /* See TAP 1.0 sec 2.3.4/2.5; also DALI 1.0
+                             * sec 3.1.2.  The main error this is likely to
+                             * catch is using a ' ' instead of 'T' to separate
+                             * time and date.  Now TAP doesn't explicitly say
+                             * that output must be in this format for timestamp
+                             * columns, but it's pretty much implied by the
+                             * fact that this format has to work for queries.
+                             * In any case, we can't assess value equality if
+                             * we don't have the returned values in a defined
+                             * format. */
+                            if ( ! DALI_ISO_REGEX.matcher( s2 ).matches() ) {
+                                String msg = new StringBuffer()
+                                    .append( "Incorrect time syntax: \"" )
+                                    .append( s2 )
+                                    .append( "\" does not match " )
+                                    .append( "yyyy-MM-dd['T'HH:mm:ss[.SSS]]" )
+                                    .toString();
+                                reporter_.report( FixedCode.W_TSDL, msg );
+                                reportMismatch = false;
+                            }
+
+                            /* Format is OK, so we can check value equality. */
+                            else {
+                                double d1 = Times.isoToMjd( s1 );
+                                double d2 = Times.isoToMjd( s2 );
+                                reportMismatch = d1 != d2;
+                            }
+                        }
+
+                        /* Other columns, just check display equality. */
+                        else {
+                            reportMismatch = ! s1.equals( s2 );
+                        }
+                        if ( reportMismatch ) {
                             String msg = new StringBuilder()
                                .append( "Upload result value mismatch" )
                                .append( " for column " )
@@ -225,9 +274,9 @@ public class UploadStage implements Stage {
                                .append( " in row " )
                                .append( ir ) 
                                .append( ": " )
-                               .append( v2 )
+                               .append( s2 )
                                .append( " != " )
-                               .append( v1 )
+                               .append( s1 )
                                .toString();
                             reporter_.report( FixedCode.E_TMCD, msg );
                         }
@@ -282,7 +331,7 @@ public class UploadStage implements Stage {
      * @param   cell   cell data
      * @return  strinigified value
      */
-    private static String render( Object cell ) {
+    private static String renderCell( Object cell ) {
         if ( Tables.isBlank( cell ) ) {
             return "";
         }
@@ -328,11 +377,11 @@ public class UploadStage implements Stage {
             shortData[ ir ] = (short) ir;
             intData[ ir ] = ir;
             longData[ ir ] = ir;
-            floatData[ ir ] = ir;
-            doubleData[ ir ] = ir;
+            floatData[ ir ] = 1.125f * ir;
+            doubleData[ ir ] = 1.125 * ir;
             charData[ ir ] = (char) ( 'A' + ir );
             stringData[ ir ] = Integer.toString( ir );
-            timeData[ ir ] = Times.mjdToIso( ir );
+            timeData[ ir ] = Times.mjdToIso( 51544 + 1.01 * ir );
         }
 
         /* Construct a table based on the data arrays. */
