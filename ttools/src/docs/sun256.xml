@@ -9879,6 +9879,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         TAPRegExt dataModel ivo-id elements with xs:anyURI rather than
         vr:IdentifierURI (only a warning is issued in the latter case),
         in anticipation of TAPRegExt-1.0 Erratum #1.</li>
+    <li>Adjust <code>taplint</code> to handle adql:TIMESTAMP columns more
+        carefully on upload and retrieval.</li>
     </ul>
     </p></dd>
 

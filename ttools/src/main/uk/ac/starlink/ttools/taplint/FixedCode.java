@@ -162,6 +162,7 @@ public enum FixedCode implements ReportCode {
     W_NSOP( "ObsCore value not in suggested set" ),
     W_RDIO( "Resource read error" ),
     W_TFMT( "Non-ISO-8601 result" ),
+    W_TSDL( "Bad time format in table data" ),
     W_TYPI( "ObsCore datatype mismatch" ),
     W_UNSC( "Foreign schema used in validation" ),
     W_UNPH( "UNKNOWN phase" ),
