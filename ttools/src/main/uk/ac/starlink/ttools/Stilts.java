@@ -104,6 +104,7 @@ public class Stilts {
         taskFactory_.register( "taplint", taskPkg + "TapLint" );
         taskFactory_.register( "tapquery", taskPkg + "TapQuerier" );
         taskFactory_.register( "tapresume", taskPkg + "TapResume" );
+        taskFactory_.register( "tapskymatch", taskPkg + "TapUploadSkyMatch" );
         taskFactory_.register( "tcat", taskPkg + "TableCat" );
         taskFactory_.register( "tcatn", taskPkg + "TableCatN" );
         taskFactory_.register( "tcopy", taskPkg + "TableCopy" );

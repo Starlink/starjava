@@ -37,6 +37,7 @@ public class ParameterTest extends TestCase {
         "select", "assign", "sql",
         "cdstable",
         "pixdata", "lon", "lat", "radius",
+        "inlon", "inlat", "taplon", "taplat", "taptable",
         "out", "ofmt",
         "legend",
         "xdataN", "ydataN", "zdataN", "auxdataN",
