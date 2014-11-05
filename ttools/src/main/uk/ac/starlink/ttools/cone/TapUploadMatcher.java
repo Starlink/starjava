@@ -3,12 +3,15 @@ package uk.ac.starlink.ttools.cone;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.TableSink;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.vo.TapQuery;
 import uk.ac.starlink.vo.UwsJob;
 import uk.ac.starlink.votable.DataFormat;
@@ -39,9 +42,9 @@ public class TapUploadMatcher implements UploadMatcher {
     private final int pollMillis_ = 10000;
 
     private static final String TABLE_ID = "up";
-    private static final String ID_NAME = "TAPUPLOAD_ID";
-    private static final String RA_NAME = "LON";
-    private static final String DEC_NAME = "LAT";
+    private static final String ID_NAME = "tapupload_id";
+    private static final String RA_NAME = "lon";
+    private static final String DEC_NAME = "lat";
 
     /**
      * Constructor.
@@ -67,15 +70,11 @@ public class TapUploadMatcher implements UploadMatcher {
         decExpr_ = decExpr;
         radiusDegExpr_ = radiusDegExpr;
         isSync_ = isSync;
-        switch ( serviceMode ) {
-            case ALL:
-            case ALL_SCORE:
-            case BEST_SCORE:
-                serviceMode_ = serviceMode;
-                break;  // supported
-            default:
-                throw new IllegalArgumentException( "Unsupported mode: "
-                                                  + serviceMode );
+        serviceMode_ = serviceMode;
+        if ( ! Arrays.asList( getSupportedServiceModes() )
+                     .contains( serviceMode ) ) {
+            throw new IllegalArgumentException( "Unsupported mode: "
+                                              + serviceMode );
         }
     }
 
@@ -114,6 +113,19 @@ public class TapUploadMatcher implements UploadMatcher {
             }
             conn = url.openConnection();
         }
+
+        /* There is, as far as I can tell, no way to write ADQL that gives
+         * you closest-only matches.  So to get that effect we have to do
+         * an ALL match, order the results by identifier,
+         * and then pick the best one per-identifier client-side.
+         * If the match radius is large, this will be much more expensive
+         * on data transfer than it should be, but I don't know any
+         * other way round it. */
+        if ( serviceMode_ == ServiceFindMode.BEST ) {
+            rawResultSink = new FilterBestSink( rawResultSink );
+        }
+
+        /* Pass the results to the output sink. */
         try {
             return TapQuery.streamResultVOTable( conn, rawResultSink );
         }
@@ -155,6 +167,7 @@ public class TapUploadMatcher implements UploadMatcher {
             .append( decExpr_ )
             .toString();
         boolean isBestScore = serviceMode_ == ServiceFindMode.BEST_SCORE;
+        boolean isBest = serviceMode_ == ServiceFindMode.BEST;
         StringBuffer sbuf = new StringBuffer();
         sbuf.append( "SELECT" );
         if ( maxrec >= 0 ) {
@@ -167,6 +180,8 @@ public class TapUploadMatcher implements UploadMatcher {
             sbuf.append( "r.*, " );
         }
         sbuf.append( "u." )
+            .append( ID_NAME )
+            .append( " AS " )
             .append( ID_NAME )
             .append( "," );
         sbuf.append( nl );
@@ -212,7 +227,34 @@ public class TapUploadMatcher implements UploadMatcher {
                 .append( "GROUP BY u." )
                 .append( ID_NAME );
         }
+        else if ( isBest ) {
+            sbuf.append( nl )
+                .append( "ORDER BY " )
+                .append( ID_NAME )
+                .append( " ASC" );
+        }
         return sbuf.toString();
+    }
+
+    /**
+     * Returns service modes supported by this class.
+     * Currently, all are supported apart from
+     * {@link ServiceFindMode#BEST_REMOTE}.
+     * That one is basically impossible to do using ADQL as far as I can tell,
+     * since there is in general no way to tell what remote table row
+     * a given row of a query result is referring to.
+     * You could do it in special cases if the table in question has a
+     * primary key. 
+     *
+     * @return  supported find modes
+     */
+    public static ServiceFindMode[] getSupportedServiceModes() {
+        return new ServiceFindMode[] {
+            ServiceFindMode.ALL,
+            ServiceFindMode.ALL_SCORE,
+            ServiceFindMode.BEST,
+            ServiceFindMode.BEST_SCORE,
+        };
     }
 
     /**
@@ -271,6 +313,76 @@ public class TapUploadMatcher implements UploadMatcher {
 
         public int getResultScoreColumnIndex() {
             return icDist_;
+        }
+    }
+
+    /**
+     * Wrapper TableSink implementation that turns an ALL-type match into
+     * a BEST-type match.
+     * From each contiguous group of input rows sharing a value of the
+     * identifier column, it forwards to its base sink only the row
+     * with the lowest value in the score column, discarding the rest.
+     * Of course this only works properly if the rows it receives are
+     * ordered in such a way that all rows sharing a single identifier
+     * are contiguous.
+     */
+    private static class FilterBestSink implements TableSink {
+        private final TableSink base_;
+        private int icId_;
+        private int icScore_;
+        private Object currentId_;
+        private double bestScore_;
+        private Object[] bestRow_;
+
+        /**
+         * Constructor.
+         *
+         * @param  base  base sink
+         */
+        public FilterBestSink( TableSink base ) {
+            base_ = base;
+        }
+
+        public void acceptMetadata( StarTable meta )
+                throws TableFormatException {
+            ColumnPlan cplan = new TapColumnPlan( Tables.getColumnInfos( meta ),
+                                                  new ColumnInfo[ 0 ] );
+            icId_ = cplan.getResultIdColumnIndex();
+            icScore_ = cplan.getResultScoreColumnIndex();
+            base_.acceptMetadata( meta );
+        }
+
+        public void acceptRow( Object[] row ) throws IOException {
+            Object id = row[ icId_ ];
+            Object scoreObj = row[ icScore_ ];
+            double score = scoreObj instanceof Number
+                         ? ((Number) scoreObj).doubleValue()
+                         : Double.NaN;
+            if ( ! id.equals( currentId_ ) ) {
+                flushBestRow();
+                currentId_ = id;
+                bestScore_ = Double.POSITIVE_INFINITY;
+            }
+            if ( score < bestScore_ ) {
+                bestScore_ = score;
+                bestRow_ = row.clone();
+            }
+        }
+
+        public void endRows() throws IOException {
+            flushBestRow();
+            base_.endRows();
+        }
+
+        /**
+         * If a row with the best score has been identified and not yet
+         * passed to the base sink, do it now.
+         */
+        private void flushBestRow() throws IOException {
+            if ( bestRow_ != null ) {
+                base_.acceptRow( bestRow_ );
+                bestRow_ = null;
+            }
         }
     }
 }
