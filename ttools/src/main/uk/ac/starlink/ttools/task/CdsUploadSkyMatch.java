@@ -79,7 +79,7 @@ public class CdsUploadSkyMatch extends SingleMapperTask {
         srParam_.setDescription( new String[] {
             "<p>Maximum distance from the local table (ra,dec) position",
             "at which counterparts from the remote table will be identified.",
-            "This is a fixed value is given in arcseconds,",
+            "This is a fixed value given in arcseconds,",
             "and must be in the range [0,180]",
             "(this limit is currently enforced by the CDS Xmatch service).",
             "</p>",
