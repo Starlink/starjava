@@ -43,6 +43,7 @@ public class TapUploadMatcher implements UploadMatcher {
 
     private static final String TABLE_ID = "up";
     private static final String ID_NAME = "tapupload_id";
+    private static final String ID_ALIAS = "tapupload_id_a";
     private static final String RA_NAME = "lon";
     private static final String DEC_NAME = "lat";
 
@@ -182,7 +183,7 @@ public class TapUploadMatcher implements UploadMatcher {
         sbuf.append( "u." )
             .append( ID_NAME )
             .append( " AS " )
-            .append( ID_NAME )
+            .append( ID_ALIAS )
             .append( "," );
         sbuf.append( nl );
         if ( isBestScore ) {
@@ -201,7 +202,7 @@ public class TapUploadMatcher implements UploadMatcher {
         if ( isBestScore ) {
             sbuf.append( ")" );
         }
-        sbuf.append( "*3600." )
+        sbuf.append( "*3600.0" )
             .append( " AS SEP_ARCSEC" )
             .append( nl )
             .append( "FROM " )
@@ -224,13 +225,13 @@ public class TapUploadMatcher implements UploadMatcher {
             .append( "))" );
         if ( isBestScore ) {
             sbuf.append( nl )
-                .append( "GROUP BY u." )
-                .append( ID_NAME );
+                .append( "GROUP BY " )
+                .append( ID_ALIAS );
         }
         else if ( isBest ) {
             sbuf.append( nl )
                 .append( "ORDER BY " )
-                .append( ID_NAME )
+                .append( ID_ALIAS )
                 .append( " ASC" );
         }
         return sbuf.toString();
