@@ -28,7 +28,7 @@ public interface UploadMatcher {
      * uploaded and written as received) so that progress can be logged
      * properly.
      *
-     * <p>The result is written to the given <code>rawResultSink<code>
+     * <p>The result is written to the given <code>rawResultSink</code>
      * (which will probably be a {@link uk.ac.starlink.table.RowStore}).
      * To make sense of the table thus written, it is necessary to
      * use the {@link RowMapper} supplied to this method and the
