@@ -38,6 +38,7 @@ public class TapUploadMatcher implements UploadMatcher {
     private final String decExpr_;
     private final String radiusDegExpr_;
     private final boolean isSync_;
+    private final String[] tapCols_;
     private final ServiceFindMode serviceMode_;
     private final int pollMillis_ = 10000;
 
@@ -59,18 +60,21 @@ public class TapUploadMatcher implements UploadMatcher {
      * @param  radiusDegExpr  ADQL expression (maybe constant) for search
      *                        radius in decimal degrees
      * @param  isSync     true for synchronous, false for asynchronous
+     * @param  tapCols    column names from the remote table to be included
+     *                    in the output table; if null, all are included
      * @param  serviceMode  type of match
      */
     public TapUploadMatcher( URL serviceUrl, String tableName,
                              String raExpr, String decExpr,
                              String radiusDegExpr, boolean isSync,
-                             ServiceFindMode serviceMode ) {
+                             String[] tapCols, ServiceFindMode serviceMode ) {
         serviceUrl_ = serviceUrl;
         tableName_ = tableName;
         raExpr_ = raExpr;
         decExpr_ = decExpr;
         radiusDegExpr_ = radiusDegExpr;
         isSync_ = isSync;
+        tapCols_ = tapCols;
         serviceMode_ = serviceMode;
         if ( ! Arrays.asList( getSupportedServiceModes() )
                      .contains( serviceMode ) ) {
@@ -184,7 +188,16 @@ public class TapUploadMatcher implements UploadMatcher {
         }
         sbuf.append( nl );
         if ( ! serviceMode_.isScoreOnly() ) {
-            sbuf.append( "r.*, " );
+            if ( tapCols_ == null ) {
+                sbuf.append( "r.*, " );
+            }
+            else {
+                for ( String colname : tapCols_ ) {
+                    sbuf.append( "r." )
+                        .append( colname )
+                        .append( ", " );
+                }
+            }
         }
         sbuf.append( "u." )
             .append( ID_NAME )
