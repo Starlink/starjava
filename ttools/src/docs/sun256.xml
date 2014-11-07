@@ -68,6 +68,7 @@
   <!ENTITY taplint-summary SYSTEM 'taplint-summary.xml'>
   <!ENTITY tapquery-summary SYSTEM 'tapquery-summary.xml'>
   <!ENTITY tapresume-summary SYSTEM 'tapresume-summary.xml'>
+  <!ENTITY tapskymatch-summary SYSTEM 'tapskymatch-summary.xml'>
   <!ENTITY tcat-summary SYSTEM 'tcat-summary.xml'>
   <!ENTITY tcatn-summary SYSTEM 'tcatn-summary.xml'>
   <!ENTITY tcopy-summary SYSTEM 'tcopy-summary.xml'>
@@ -253,8 +254,9 @@ same ground as the STIL and TOPCAT user documents
 <dd><p>
     <ref id="cdsskymatch"><code>cdsskymatch</code></ref>,
     <ref id="coneskymatch"><code>coneskymatch</code></ref>,
-    <ref id="tapquery"><code>tapquery</code></ref>
-    <ref id="tapresume"><code>tapresume</code></ref>
+    <ref id="tapquery"><code>tapquery</code></ref>,
+    <ref id="tapresume"><code>tapresume</code></ref>,
+    <ref id="tapskymatch"><code>tapskymatch</code></ref>,
     <ref id="taplint"><code>taplint</code></ref> and
     <ref id="regquery"><code>regquery</code></ref>.
     </p></dd>
@@ -504,6 +506,7 @@ the available tasks are:
 <li><code>taplint</code></li>
 <li><code>tapquery</code></li>
 <li><code>tapresume</code></li>
+<li><code>tapskymatch</code></li>
 <li><code>tcat</code></li>
 <li><code>tcatn</code></li>
 <li><code>tcopy</code></li>
@@ -1891,7 +1894,8 @@ or Unix <code>compress</code> and the program will uncompress it on the fly.
            <ref id="coneskymatch"><code>coneskymatch</code></ref>,
            <ref id="sqlskymatch"><code>sqlskymatch</code></ref>,
            <ref id="tapquery"><code>tapquery</code></ref>,
-           <ref id="tapresume"><code>tapresume</code></ref> and
+           <ref id="tapresume"><code>tapresume</code></ref>,
+           <ref id="tapskymatch"><code>tapskymatch</code></ref> and
            <ref id="regquery"><code>regquery</code></ref>)
 have no native format for table storage, they can process
 data in a number of formats equally well.  
@@ -4696,6 +4700,9 @@ Detailed descriptions and examples for each command can be found in
              plaintextref="yes"><code>coneskymatch</code></ref>:
         &coneskymatch-purpose;
         </li>
+    <li><ref id="tapskymatch" plaintextref="yes"><code>tapskymatch</code></ref>:
+        &tapskymatch-purpose;
+        </li>
     <li><ref id="tapquery" plaintextref="yes"><code>tapquery</code></ref>:
         &tapquery-purpose;
         </li>
@@ -4819,7 +4826,11 @@ The service is very fast, and in most cases it is the best way to
 match a local table against a large external table hosted by a service.
 It is almost certainly much better than using
 <ref id="coneskymatch"><code>coneskymatch</code></ref>,
-though it is less flexible than <ref id="tapquery">TAP</ref>.
+though it is less flexible than TAP
+(see the <ref id="tapquery"><code>tapquery</code></ref> task
+for flexible access to TAP services, and
+<ref id="tapskymatch"><code>tapskymatch</code></ref>
+for positional matches).
 </p>
 
 <p>The local table is uploaded to the X-Match service in chunks,
@@ -4891,7 +4902,7 @@ stilts cdsskymatch cdstable=simbad find=best
 <p><em>Note: this command is very inefficient for large tables,
 and in most cases
 <ref id="cdsskymatch"><code>cdsskymatch</code></ref> or
-<ref id="tapquery"><code>tapquery</code></ref>
+<ref id="tapskymatch"><code>tapskymatch</code></ref>
 provide better alternatives.
 </em></p>
 
@@ -6532,6 +6543,125 @@ stilts tapresume joburl='http://dc.zah.uni-heidelberg.de/__system__/tap/run/tap/
     <code>d4ENGR</code> which was previously started on the GAVO TAP server.
     When it has completed the output table will be written as a
     comma-separated value file.
+    </p></dd>
+
+</dl>
+</p>
+
+</subsubsect>
+
+</subsect>
+
+<subsect id="tapskymatch" tocleaf="yes">
+<subhead><title><code>tapskymatch:
+                      &tapskymatch-purpose;</code></title></subhead>
+
+<p><code>tapskymatch</code> allows you to perform a positional crossmatch
+of a local table with one held in a remote TAP service, as long as
+that TAP supports upload queries.
+This task does three main jobs.
+First, it prepares the ADQL queries and TAP negotiations for you
+so that you don't need to remember the syntax for performing
+positional crossmatches against a TAP service.
+Second, it organises data transfer so that only those columns
+required (basically the positional ones) are transmitted to and
+from the service, to save on bandwidth.
+And third it divides the job up into chunks,
+so that the TAP service only has to perform a manageable-sized
+query at a time.
+If the job is large this chunking can be useful to monitor
+progress of the job,
+and it also allows you to perform a match which would otherwise
+hit the upload or output limits imposed by the service.
+</p>
+
+<p>The positional match may be done in any spherical coordinate system,
+it's up to the user to ensure that the same coordinates are provided
+for the local and remote tables.
+</p>
+
+<p>Note that <ref id="cdsskymatch"><code>cdsskymatch</code></ref>
+provides similar functionality by accessing a different external service,
+which is usually much faster;
+if the table you wish to match is part of the VizieR database,
+you may wish to use that command instead.
+</p>
+
+&tapskymatch-summary;
+
+<subsubsect>
+<subhead><title>Examples</title></subhead>
+
+<p>Here are some examples of <code>tapskymatch</code>:
+<dl>
+
+<dt><verbatim>
+stilts tapskymatch tapurl=http://dc.g-vo.org/tap
+                   taptable=twomass.data taplon=raj2000 taplat=dej2000
+                   in=dr5qso.fits inlon=RA inlat=DEC sr=0.00027 find=all
+                   out=qso_2mass.fits
+</verbatim></dt>
+<dd><p>Matches a local catalogue <code>dr5qso.fits</code> against the
+    table named <code>twomass.data</code> in the GAVO TAP service.
+    The search radius is 1/3600 degrees (1 arcsecond) and all 2MASS
+    sources within the radius of each input source are returned.
+    </p>
+    <p>If you run the command with "<code>stilts -verbose ...</code>"
+    the text of the ADQL query submitted to the TAP service will
+    (amongst other things) be logged on the console, and you will also
+    see the number of rows uploaded and matched in each chunk.
+    </p></dd>
+
+<dt><verbatim>
+stilts tapskymatch tapurl=http://dc.g-vo.org/tap
+                   taptable=rave.dr3 taplon=raj2000 taplat=dej2000
+                   tapcols=name,raj2000,dej2000,pmra,pmde
+                   in=hip_main.fits inlon=RAdeg inlat=DEdeg
+                   icmd='keepcols "HIP RAdeg DEdeg pmra pmde"'
+                   sr=0.00027
+                   icmd='select nearMoc(\"III/265/ravedr3\",RAdeg,DEdeg,.00027)'
+                   icmd=cache icmd=progress
+                   blocksize=5000
+                   fixcols=all suffixin=_hip suffixremote=_rave
+                   find=best
+                   omode=topcat
+</verbatim></dt>
+<dd><p>This matches a local copy of the Hipparcos survey against
+    a remote copy of the RAVE survey with a 1-arcsecond radius.
+    The output table contains only the identifier, position and proper
+    motion columns from
+    both the input table (by using the <code>keepcols</code> filter)
+    and the remote table (by specifying <code>tapcols</code>);
+    the other columns are discarded.
+    The <code>fixcols</code> and <code>suffix</code>* parameters
+    ensure that a suffix is added to all the output column names,
+    <code>_hip</code> for the input (Hipparcos) columns and
+    <code>_rave</code> for the remote (RAVE) ones.
+    </p>
+    <p>Before uploading, the input table is preprocessed by selecting only
+    those rows that fall within the actual footprint of the RAVE survey,
+    by filtering with a MOC giving RAVE coverage
+    (the RAVE dr3 MOC is also available at
+    <webref url="http://alasky.u-strasbg.fr/footprints/tables/vizier/III_265_ravedr3/MOC"
+            >this URL</webref>).
+    This step reduces the amount of data that needs to be uploaded,
+    since only those rows in the given coverage region stand a chance of
+    having a match in the remote table.
+    Note use of the <code>nearMoc</code> function with the value of the
+    match radius as the fourth parameter; this includes those objects
+    which may be outside the actual MOC region but close enough that
+    a match could still result.
+    </p>
+    <p>The <code>blocksize</code> parameter determines the number of rows
+    uploaded at a time.  If you receive warnings that the output has
+    been truncated, you should decrease this number.
+    </p>
+    <p>Progress is displayed as the match continues.
+    The <code>cache</code> filter must be applied upstream of (before)
+    the <code>progress</code> filter itself for this to work,
+    since otherwise the match processing reads all the input rows 
+    before the actual work is done, and the progress monitor completes
+    before the match actually starts.
     </p></dd>
 
 </dl>
@@ -9881,6 +10011,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         in anticipation of TAPRegExt-1.0 Erratum #1.</li>
     <li>Adjust <code>taplint</code> to handle adql:TIMESTAMP columns more
         carefully on upload and retrieval.</li>
+    <li>Add new task <code>tapskymatch</code>.</li>
     <li>Coverage functions adjusted:
         new function <code>nearMoc</code>, and MOC can be identified by
         VizieR table IDs as well as by filename/URL.</li>
