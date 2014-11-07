@@ -45,6 +45,13 @@ public class ProgressFilter extends BasicFilter implements ProcessingStep {
             "an ASCII-art progress bar is updated, otherwise just the",
             "number of rows seen so far is written.",
             "</p>",
+            "<p>Note under some circumstances progress may appear to",
+            "complete before the actual work of the task is done",
+            "since part of the processing involves slurping up the whole",
+            "table to provide random access on it.",
+            "In this case, applying the",
+            "<ref id='cache'><code>cache</code></ref> upstream may help.",
+            "</p>",
         };
     }
 
