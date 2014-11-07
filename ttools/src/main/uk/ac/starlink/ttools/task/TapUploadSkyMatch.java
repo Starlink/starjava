@@ -40,6 +40,7 @@ public class TapUploadSkyMatch extends SingleMapperTask {
     private final StringParameter taptableParam_;
     private final StringParameter taplonParam_;
     private final StringParameter taplatParam_;
+    private final StringMultiParameter tapcolsParam_;
     private final ChoiceParameter<UserFindMode> findParam_;
     private final IntegerParameter chunkParam_;
     private final IntegerParameter maxrecParam_;
@@ -130,6 +131,19 @@ public class TapUploadSkyMatch extends SingleMapperTask {
             "</p>",
         } );
         paramList.add( taplatParam_ );
+
+        tapcolsParam_ = new StringMultiParameter( "tapcols", ',' );
+        tapcolsParam_.setUsage( "<colname,...>" );
+        tapcolsParam_.setPrompt( "List of columns from TAP table" );
+        tapcolsParam_.setDescription( new String[] {
+            "<p>Comma-separated list of column names",
+            "to retrieve from the remote table.",
+            "If no value is supplied (the default),",
+            "all columns from the remote table will be returned.",
+            "</p>",
+        } );
+        tapcolsParam_.setNullPermitted( true );
+        paramList.add( tapcolsParam_ );
 
         srParam_ = new StringParameter( "sr" );
         srParam_.setPrompt( "Search radius expression in degrees" );
@@ -250,6 +264,10 @@ public class TapUploadSkyMatch extends SingleMapperTask {
         String taptable = taptableParam_.stringValue( env );
         String taplonString = taplonParam_.stringValue( env );
         String taplatString = taplatParam_.stringValue( env );
+        String[] tapcols = tapcolsParam_.stringsValue( env );
+        if ( tapcols != null && tapcols.length == 0 ) {
+            tapcols = null;
+        }
         final String srString = srParam_.stringValue( env );
         UserFindMode userMode = findParam_.objectValue( env );
         ServiceFindMode serviceMode = userMode.getServiceMode();
@@ -259,7 +277,7 @@ public class TapUploadSkyMatch extends SingleMapperTask {
         boolean isSync = syncParam_.booleanValue( env );
         TapUploadMatcher umatcher =
             new TapUploadMatcher( tapurl, taptable, taplonString, taplatString,
-                                  srString, isSync, serviceMode );
+                                  srString, isSync, tapcols, serviceMode );
         final String adql = umatcher.getAdql( maxrec );
         final QuerySequenceFactory qsFact =
             new JELQuerySequenceFactory( inlonString, inlatString, "0" );
