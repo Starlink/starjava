@@ -124,11 +124,16 @@ public class TapUploadMatcher implements UploadMatcher {
          * other way round it. */
         if ( serviceMode_ == ServiceFindMode.BEST ) {
             rawResultSink = new FilterBestSink( rawResultSink );
+            if ( maxrec >= 0 ) {
+                rawResultSink = new LimitRowSink( rawResultSink, maxrec );
+            }
         }
 
         /* Pass the results to the output sink. */
         try {
-            return TapQuery.streamResultVOTable( conn, rawResultSink );
+            return TapQuery.streamResultVOTable( conn, rawResultSink )
+                || ( (rawResultSink instanceof LimitRowSink) &&
+                     ((LimitRowSink) rawResultSink).isTruncated() );
         }
         catch ( SAXException e ) {
             throw (IOException)
@@ -169,9 +174,10 @@ public class TapUploadMatcher implements UploadMatcher {
             .toString();
         boolean isBestScore = serviceMode_ == ServiceFindMode.BEST_SCORE;
         boolean isBest = serviceMode_ == ServiceFindMode.BEST;
+        boolean isClientFilter = serviceMode_ == ServiceFindMode.BEST;
         StringBuffer sbuf = new StringBuffer();
         sbuf.append( "SELECT" );
-        if ( maxrec >= 0 ) {
+        if ( maxrec >= 0 && ! isClientFilter ) {
             sbuf.append( nl )
                 .append( "TOP " )
                 .append( maxrec );
