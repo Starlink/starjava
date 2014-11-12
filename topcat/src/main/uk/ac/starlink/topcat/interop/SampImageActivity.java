@@ -12,6 +12,8 @@ import javax.swing.AbstractListModel;
 import javax.swing.ComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.ListModel;
+import javax.swing.event.ListDataEvent;
+import javax.swing.event.ListDataListener;
 import org.astrogrid.samp.Client;
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.client.HubConnection;
@@ -129,6 +131,31 @@ public class SampImageActivity implements ImageActivity {
          */
         ViewerComboBoxModel() {
             baseViewers_ = new ImageViewer[ 0 ];
+
+            /* Pass along changes in the list of subscribed clients
+             * to listeners to this model. */
+            clientModel_.addListDataListener( new ListDataListener() {
+                public void contentsChanged( ListDataEvent evt ) {
+                    clientsChanged();
+                }
+                public void intervalAdded( ListDataEvent evt ) {
+                    clientsChanged();
+                }
+                public void intervalRemoved( ListDataEvent evt ) {
+                    clientsChanged();
+                }
+
+                /**
+                 * Called when something changed in the client list.
+                 * We signal that the entire contents of this model
+                 * have changed, which is an overreaction, but in practice
+                 * not an expensive one - it would be much more fiddly to
+                 * forward exactly the right event to listeners.
+                 */
+                private void clientsChanged() {
+                    fireContentsChanged( this, -1, -1 );
+                }
+            } );
         }
 
         /**
