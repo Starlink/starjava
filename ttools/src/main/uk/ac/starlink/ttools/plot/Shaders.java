@@ -188,6 +188,18 @@ public class Shaders {
     /** Shader copied from SPECX blue2yellow lookup table. */
     public static final Shader LUT_SPECXB2Y;
 
+    /** Shader copied from Matplotlib BRG lookup table. */
+    public static final Shader LUT_BRG;
+
+    /** Shader copied from Matplotlib Paired lookup table. */
+    public static final Shader LUT_PAIRED;
+
+    /** Shader copied from Matplotlib gist_rainbow lookup table. */
+    public static final Shader LUT_RAINBOW3;
+
+    /** Shader copied from Matplotlib Set1 lookup table. */
+    public static final Shader LUT_SET1;
+
     /** Selection of lookup table-based shaders. */
     public final static Shader[] LUT_SHADERS = new Shader[] {
         LUT_AIPS0 = new ResourceLutShader( "AIPS0", "aips0.lut" ),
@@ -214,6 +226,10 @@ public class Shaders {
         LUT_GNUPLOT = new ResourceLutShader( "Gnuplot", "MPL_gnuplot.lut" ),
         LUT_GNUPLOT2 = new ResourceLutShader( "Gnuplot2", "MPL_gnuplot2.lut" ),
         LUT_SPECXB2Y = new ResourceLutShader( "SpecxBY", "specxbl2yel.lut" ),
+        LUT_BRG = new ResourceLutShader( "BRG", "brg.lut" ),
+        LUT_RAINBOW3 = new ResourceLutShader( "Rainbow3", "gist_rainbow.lut" ),
+        LUT_PAIRED = new ResourceLutShader( "Paired", "paired.lut" ),
+        LUT_SET1 = new ResourceLutShader( "Set1", "set1.lut" ),
     };
 
     /* ColorBrewer.
