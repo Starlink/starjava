@@ -132,7 +132,7 @@
 
 <docnumber>256</docnumber>
 
-<docdate>3 October 2014</docdate>
+<docdate>13 November 2014</docdate>
 
 <contactlist>
 <contact>STILTS web page:
@@ -9981,44 +9981,58 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </dl>
     </p></dd>
 
-<dt>Next version</dt>
+<dt>Version 3.0-1 (13 November 2014)</dt>
 <dd><p>
-    <ul>
-    <li>For <code>setparam</code> and <code>repeat</code> filters,
-        allow use of an algebraic expression for values,
-        not just a literal value.</li>
-    <li>For <code>repeat</code> filter, add <code>-row|-table</code>
-        flags to control sequence of output rows.</li>
-    <li>Add special values <code>$ncol</code> and <code>$nrow</code> to
-        the expression language to refer to the column and row counts
-        in a table.
-        The special variable <code>index</code> is also deprecated in favour
-        of <code>$index</code> or <code>$0</code>.</li>
-    <li>Fix <code>stilts</code> invocation script to pick up classes from
-        <code>stilts.jar</code> in script directory in preference to
-        other places (e.g. topcat-full.jar).</li>
-    <li>Add (experimental) read-only support for Gaia/DPAC GBIN format.</li>
-    <li>Fix <code>taplint</code> to permit application/xml
-        not just text/xml content-type where appropriate (UWS stage).</li>
-    <li>Fix <code>taplint</code> so it doesn't warn (W-TMV-UNSC) about
-        unknown VOSITables schema.</li>
-    <li>Fix <code>taplint</code> so that <code>unicodeChar</code>
-        matches CHAR/VARCHAR in the same way as <code>char</code>
-        for column type declaration purposes.</li>
-    <li>Fix <code>taplint</code> so that capabilities document can have
-        TAPRegExt dataModel ivo-id elements with xs:anyURI rather than
-        vr:IdentifierURI (only a warning is issued in the latter case),
-        in anticipation of TAPRegExt-1.0 Erratum #1.</li>
-    <li>Adjust <code>taplint</code> to handle adql:TIMESTAMP columns more
-        carefully on upload and retrieval.</li>
-    <li>Add new task <ref id="tapskymatch"><code>tapskymatch</code></ref>.</li>
-    <li>Functions in class
-        <ref id="uk.ac.starlink.ttools.func.Coverage">Coverage</ref>
-        adjusted:
-        new function <code>nearMoc</code>, and MOC can be identified by
-        VizieR table IDs as well as by filename/URL.</li>
-    <li>Add some more colour maps for aux/density shading.</li>
-    </ul>
+    <dl>
+    <dt>New functionality:</dt>
+    <dd><p>
+        <ul>
+        <li>Add (experimental) read-only support for Gaia/DPAC GBIN format.</li>
+        <li>Add new task
+            <ref id="tapskymatch"><code>tapskymatch</code></ref>.</li>
+        <li>Functions in class
+            <ref id="uk.ac.starlink.ttools.func.Coverage">Coverage</ref>
+            adjusted:
+            new function <code>nearMoc</code>, and MOC can be identified by
+            VizieR table IDs as well as by filename/URL.</li>
+        <li>For <ref id="repeat"><code>repeat</code></ref> filter,
+            add <code>-row|-table</code>
+            flags to control sequence of output rows.</li>
+        <li>For <ref id="setparam"><code>setparam</code></ref>
+            and <ref id="repeat"><code>repeat</code></ref> filters,
+            allow use of an algebraic expression for values,
+            not just a literal value.</li>
+        <li>Add special values <code>$ncol</code> and <code>$nrow</code> to
+            the 
+            <ref id="jel-paramref">expression language</ref>
+            to refer to the column and row counts in a table.
+            The special variable <code>index</code> is also deprecated in favour
+            of <code>$index</code> or <code>$0</code>.</li>
+        </ul>
+        </p></dd>
+    <dt>Bugfixes and minor improvements:</dt>
+    <dd><p>
+        <ul>
+        <li>Add some more colour maps for aux/density shading.</li>
+        <li>Fix <code>stilts</code> invocation script to pick up classes from
+            <code>stilts.jar</code> in script directory in preference to
+            other places (e.g. topcat-full.jar).</li>
+        <li>Fix <code>taplint</code> to permit application/xml
+            not just text/xml content-type where appropriate (UWS stage).</li>
+        <li>Fix <code>taplint</code> so it doesn't warn (W-TMV-UNSC) about
+            unknown VOSITables schema.</li>
+        <li>Fix <code>taplint</code> so that <code>unicodeChar</code>
+            matches CHAR/VARCHAR in the same way as <code>char</code>
+            for column type declaration purposes.</li>
+        <li>Fix <code>taplint</code> so that capabilities document can have
+            TAPRegExt dataModel ivo-id elements with xs:anyURI rather than
+            vr:IdentifierURI (only a warning is issued in the latter case),
+            in anticipation of TAPRegExt-1.0 Erratum #1.</li>
+        <li>Adjust <code>taplint</code> to handle adql:TIMESTAMP columns more
+            carefully on upload and retrieval.</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>
