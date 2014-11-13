@@ -20446,7 +20446,8 @@ introduced since the last version:
         in the underlying table.
         The special variable <code>index</code> is also deprecated in favour
         of <code>$index</code> or <code>$0</code>.</li>
-    <li>Add (experimental) read-only support for Gaia/DPAC GBIN format.</li>
+    <li>Add (experimental) read-only support for Gaia/DPAC 
+        <ref id="inGbin">GBIN format</ref>.</li>
     <li>Add some more colour maps for aux/density shading.</li>
     <li>Fix problem with activation action image viewer selection box.</li>
     </ul>
