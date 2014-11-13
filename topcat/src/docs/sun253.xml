@@ -264,7 +264,7 @@
 
 <docnumber>253</docnumber>
 
-<docdate>4 July 2014</docdate>
+<docdate>13 November 2014</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -20419,38 +20419,53 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Next version</dt>
+<dt>Version 4.2-1 (13 November 2014)</dt>
 <dd><p>
-    <ul>
-    <li>Support viewing tables up to 2^31 (2 billion) rows in the table
-        viewer window.  The previous limit was 2^27 (134 million) rows.</li>
-    <li>Attempting to write FITS tables with &gt;999 columns now fails
-        with a more helpful error message.</li>
-    <li>Somewhat improved Unicode handling in VOTables.
-        If you load a VOTable with columns marked datatype="unicodeChar"
-        and save it again, the columns now remain unicodeChar
-        instead of getting squashed to type char.
-        Some lurking Unicode-related issues remain.</li>
-    <li>Change the default RegTAP registry endpoint to
-        <code>http://reg.g-vo.org/tap</code>,
-        which should have good reliability,
-        since it can point to different RegTAP services as required.</li>
-    <li>Fix regression bug (introduced at v4.2) which caused authentication
-        to fail when using the SQL Query load dialogue.</li>
-    <li>Fix time plot to work for ISO-8601 times.
-        This change also breaks use of ISO-8601 times in non-time plots,
-        but that didn't work particularly well before.
-        Please complain if this change of functionality causes a problem.</li>
-    <li>Add special variables <code>$ncol</code> and <code>$nrow</code> to
-        the expression language to refer to the column and row counts
-        in the underlying table.
-        The special variable <code>index</code> is also deprecated in favour
-        of <code>$index</code> or <code>$0</code>.</li>
-    <li>Add (experimental) read-only support for Gaia/DPAC 
-        <ref id="inGbin">GBIN format</ref>.</li>
-    <li>Add some more colour maps for aux/density shading.</li>
-    <li>Fix problem with activation action image viewer selection box.</li>
-    </ul>
+    <dl>
+    <dt>New functionality:</dt>
+    <dd><p>
+        <ul>
+        <li>Add (experimental) read-only support for Gaia/DPAC 
+            <ref id="inGbin">GBIN format</ref>.</li>
+        <li>Add special variables <code>$ncol</code> and <code>$nrow</code> to
+            the <ref id="jelParams">expression language</ref>
+            to refer to the column and row counts in the underlying table.
+            The special variable <code>index</code> is also deprecated in favour
+            of <code>$index</code> or <code>$0</code>.</li>
+        <li>Support viewing tables up to 2<sup>31</sup>
+            (2 billion) rows in the table viewer window.
+            The previous limit was 2<sup>27</sup> (134 million) rows.
+            This does not necessarily mean that using TOPCAT on Gigarow tables
+            is a good idea!</li>
+        </ul>
+        </p></dd>
+    <dt>Minor improvements and bugfixes:</dt>
+    <dd><p>
+        <ul>
+        <li>Change the default RegTAP registry endpoint to
+            <code>http://reg.g-vo.org/tap</code>,
+            which should have good reliability,
+            since it can point to different RegTAP services as required.</li>
+        <li>Add some more colour maps for aux/density shading.</li>
+        <li>Fix regression bug (introduced at v4.2) which caused authentication
+            to fail when using the SQL Query load dialogue.</li>
+        <li>Attempting to write FITS tables with &gt;999 columns now fails
+            with a more helpful error message.</li>
+        <li>Somewhat improved Unicode handling in VOTables.
+            If you load a VOTable with columns marked
+            <code>datatype="unicodeChar"</code>
+            and save it again, the columns now remain <code>unicodeChar</code>
+            instead of getting squashed to type <code>char</code>.
+            Some lurking Unicode-related issues remain.</li>
+        <li>Fix time plot to work for ISO-8601 times.
+            This change also breaks use of ISO-8601 times in non-time plots,
+            but that didn't work particularly well before.
+            Please complain if this change of functionality
+            causes a problem.</li>
+        <li>Fix problem with activation action image viewer selection box.</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>
