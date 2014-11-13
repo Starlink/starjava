@@ -10011,8 +10011,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         in anticipation of TAPRegExt-1.0 Erratum #1.</li>
     <li>Adjust <code>taplint</code> to handle adql:TIMESTAMP columns more
         carefully on upload and retrieval.</li>
-    <li>Add new task <code>tapskymatch</code>.</li>
-    <li>Coverage functions adjusted:
+    <li>Add new task <ref id="tapskymatch"><code>tapskymatch</code></ref>.</li>
+    <li>Functions in class
+        <ref id="uk.ac.starlink.ttools.func.Coverage">Coverage</ref>
+        adjusted:
         new function <code>nearMoc</code>, and MOC can be identified by
         VizieR table IDs as well as by filename/URL.</li>
     <li>Add some more colour maps for aux/density shading.</li>
