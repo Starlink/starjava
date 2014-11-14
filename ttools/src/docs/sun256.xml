@@ -10030,6 +10030,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
             in anticipation of TAPRegExt-1.0 Erratum #1.</li>
         <li>Adjust <code>taplint</code> to handle adql:TIMESTAMP columns more
             carefully on upload and retrieval.</li>
+        <li>Update JSAMP to v1.3.5.</li>
         </ul>
         </p></dd>
     </dl>
