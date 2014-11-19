@@ -406,8 +406,7 @@ public class ColFitsStarTable extends ColumnStarTable {
                 info.setContentClass( boolean[].class );
                 return createColumnData( info, 1, itemShape, nrow, chan, pos,
                         new ValueReader() {
-                    protected synchronized Object readValue( ByteBuffer buf,
-                                                             int offset ) {
+                    protected Object readValue( ByteBuffer buf, int offset ) {
                         buf.position( offset );
                         boolean[] val = new boolean[ itemSize ];
                         for ( int i = 0; i < itemSize; i++ ) {
@@ -422,8 +421,7 @@ public class ColFitsStarTable extends ColumnStarTable {
                 info.setContentClass( short[].class );
                 return createColumnData( info, 1, itemShape, nrow, chan, pos,
                         new ValueReader() {
-                    protected synchronized Object readValue( ByteBuffer buf,
-                                                             int offset ) {
+                    protected Object readValue( ByteBuffer buf, int offset ) {
                         buf.position( offset );
                         short[] val = new short[ itemSize ];
                         for ( int i = 0; i < itemSize; i++ ) {
@@ -438,8 +436,7 @@ public class ColFitsStarTable extends ColumnStarTable {
                 info.setContentClass( short[].class );
                 return createColumnData( info, 1, itemShape, nrow, chan, pos,
                         new ValueReader() {
-                    protected synchronized Object readValue( ByteBuffer buf,
-                                                             int offset ) {
+                    protected Object readValue( ByteBuffer buf, int offset ) {
                         buf.position( offset );
                         short[] val = new short[ itemSize ];
                         for ( int i = 0; i < itemSize; i++ ) {
@@ -454,8 +451,7 @@ public class ColFitsStarTable extends ColumnStarTable {
                 info.setContentClass( short[].class );
                 return createColumnData( info, 2, itemShape, nrow, chan, pos,
                         new ValueReader() {
-                    protected synchronized Object readValue( ByteBuffer buf,
-                                                             int offset ) {
+                    protected Object readValue( ByteBuffer buf, int offset ) {
                         buf.position( offset );
                         short[] val = new short[ itemSize ];
                         for ( int i = 0; i < itemSize; i++ ) {
@@ -470,8 +466,7 @@ public class ColFitsStarTable extends ColumnStarTable {
                 info.setContentClass( int[].class );
                 return createColumnData( info, 4, itemShape, nrow, chan, pos,
                         new ValueReader() {
-                    protected synchronized Object readValue( ByteBuffer buf,
-                                                             int offset ) {
+                    protected Object readValue( ByteBuffer buf, int offset ) {
                         buf.position( offset );
                         int[] val = new int[ itemSize ];
                         for ( int i = 0; i < itemSize; i++ ) {
@@ -486,8 +481,7 @@ public class ColFitsStarTable extends ColumnStarTable {
                 info.setContentClass( long[].class );
                 return createColumnData( info, 8, itemShape, nrow, chan, pos,
                         new ValueReader() {
-                    protected synchronized Object readValue( ByteBuffer buf,
-                                                             int offset ) {
+                    protected Object readValue( ByteBuffer buf, int offset ) {
                         buf.position( offset );
                         long[] val = new long[ itemSize ];
                         for ( int i = 0; i < itemSize; i++ ) {
@@ -502,8 +496,7 @@ public class ColFitsStarTable extends ColumnStarTable {
                 info.setContentClass( float[].class );
                 return createColumnData( info, 4, itemShape, nrow, chan, pos,
                         new ValueReader() {
-                    protected synchronized Object readValue( ByteBuffer buf,
-                                                             int offset ) {
+                    protected Object readValue( ByteBuffer buf, int offset ) {
                         buf.position( offset );
                         float[] val = new float[ itemSize ];
                         for ( int i = 0; i < itemSize; i++ ) {
@@ -518,8 +511,7 @@ public class ColFitsStarTable extends ColumnStarTable {
                 info.setContentClass( double[].class );
                 return createColumnData( info, 8, itemShape, nrow, chan, pos,
                         new ValueReader() {
-                    protected synchronized Object readValue( ByteBuffer buf,
-                                                             int offset ) {
+                    protected Object readValue( ByteBuffer buf, int offset ) {
                         buf.position( offset );
                         double[] val = new double[ itemSize ];
                         for ( int i = 0; i < itemSize; i++ ) {
@@ -540,8 +532,8 @@ public class ColFitsStarTable extends ColumnStarTable {
                     return createColumnData( info, sleng, SCALAR, nrow,
                                              chan, pos,
                             new ValueReader() {
-                        protected synchronized Object readValue( ByteBuffer buf,
-                                                                 int offset ) {
+                        protected Object readValue( ByteBuffer buf,
+                                                    int offset ) {
                             buf.position( offset );
                             int iend = 0;
                             boolean end = false;
@@ -572,8 +564,8 @@ public class ColFitsStarTable extends ColumnStarTable {
                     return createColumnData( info, sleng, sshape, nrow,
                                              chan, pos,
                             new ValueReader() {
-                        protected synchronized Object readValue( ByteBuffer buf,
-                                                                 int offset ) {
+                        protected Object readValue( ByteBuffer buf,
+                                                    int offset ) {
                             buf.position( offset );
                             String[] val = new String[ nstring ];
                             for ( int is = 0; is < nstring; is++ ) {
