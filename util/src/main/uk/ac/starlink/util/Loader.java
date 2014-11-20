@@ -252,7 +252,7 @@ public class Loader {
      *                 from
      * @return  new <tt>className</tt> instance, or <tt>null</tt>
      */
-    public static Object getClassInstance( String className, Class type ) {
+    public static <T> T getClassInstance( String className, Class<T> type ) {
         if ( className == null || className.trim().length() == 0 ) {
             return null;
         }
@@ -277,7 +277,7 @@ public class Loader {
             return null;
         }
         try {
-            return clazz.newInstance();
+            return type.cast( clazz.newInstance() );
         }
         catch ( ExceptionInInitializerError e ) {
             warn( e.getCause() + " loading class " + className );
@@ -304,8 +304,9 @@ public class Loader {
      * @param   type   class which instantiated classes must be assignable from
      * @return  list of new <tt>type</tt> instances (may be empty, but not null)
      */
-    public static List getClassInstances( String propertyName, Class type ) {
-        List instances = new ArrayList();
+    public static <T> List<T> getClassInstances( String propertyName,
+                                                 Class<T> type ) {
+        List<T> instances = new ArrayList<T>();
 
         /* Get the property value, if possible. */
         String propVal;
@@ -323,7 +324,7 @@ public class Loader {
         for ( StringTokenizer stok = new StringTokenizer( propVal, ":" );
               stok.hasMoreElements(); ) {
             String cname = stok.nextToken().trim();
-            Object inst = getClassInstance( cname, type );
+            T inst = getClassInstance( cname, type );
             if ( inst != null ) {
                 instances.add( inst );
             }
@@ -342,12 +343,13 @@ public class Loader {
      *
      * @param  defaultNames  array of string
      */
-    public static List getClassInstances( String[] defaultNames, 
-                                          String propertyName, Class type ) {
+    public static <T> List<T> getClassInstances( String[] defaultNames, 
+                                                 String propertyName,
+                                                 Class<T> type ) {
         Loader.loadProperties();
-        List instances = new ArrayList();
+        List<T> instances = new ArrayList<T>();
         for ( int i = 0; i < defaultNames.length; i++ ) {
-            Object instance = getClassInstance( defaultNames[ i ], type );
+            T instance = getClassInstance( defaultNames[ i ], type );
             if ( instance != null ) {
                 instances.add( instance );
             }
