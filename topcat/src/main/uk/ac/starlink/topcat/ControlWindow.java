@@ -603,10 +603,9 @@ public class ControlWindow extends AuxWindow
             toolBar.add( interopAct );
         }
         toolBar.add( MethodWindow.getWindowAction( this, false ) );
-        List actList = Loader.getClassInstances( TOPCAT_TOOLS_PROP,
-                                                 TopcatToolAction.class );
-        for ( Iterator it = actList.iterator(); it.hasNext(); ) {
-            TopcatToolAction tact = (TopcatToolAction) it.next();
+        for ( TopcatToolAction tact :
+              Loader.getClassInstances( TOPCAT_TOOLS_PROP,
+                                        TopcatToolAction.class ) ) {
             tact.setParent( this );
             toolBar.add( tact );
         }

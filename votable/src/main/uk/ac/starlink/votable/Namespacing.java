@@ -136,8 +136,7 @@ public abstract class Namespacing {
                 }
             }
             if ( ns == null ) {
-                ns = (Namespacing)
-                     Loader.getClassInstance( policy, Namespacing.class );
+                ns = Loader.getClassInstance( policy, Namespacing.class );
             }
             if ( ns == null ) {
                 StringBuffer sbuf = new StringBuffer()

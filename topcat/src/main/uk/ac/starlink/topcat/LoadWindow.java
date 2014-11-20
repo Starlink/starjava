@@ -132,7 +132,6 @@ public class LoadWindow extends AuxWindow {
         /* Prepare actions for all known dialogues. */
         actList_ = new ArrayList<Action>();
         knownDialogs_ =
-            (TableLoadDialog[])
             Loader.getClassInstances( DIALOG_CLASSES, LOAD_DIALOGS_PROPERTY,
                                       TableLoadDialog.class )
            .toArray( new TableLoadDialog[ 0 ] );

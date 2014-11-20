@@ -498,9 +498,7 @@ public class MatchEngineParameter extends Parameter<MatchEngine>
                                                      ARC_SECOND );
             }
             else {
-                component =
-                    (MatchEngine) Loader.getClassInstance( cName,
-                                                           MatchEngine.class );
+                component = Loader.getClassInstance( cName, MatchEngine.class );
                 if ( component == null ) {
                     throw new UsageException( "Unknown matcher element: "
                                             + cName );

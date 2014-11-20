@@ -57,9 +57,11 @@ public abstract class StoragePolicy {
 
     /**
      * Name of the system property which can be set to indicate the
-     * initial setting of the default storage policy.
+     * initial setting of the default storage policy ({@value}).
      * Currently recognised values are "adaptive", "memory", "disk",
      * "sideways", and "discard".
+     * Alternatively, the classname of a StoragePolicy implementation
+     * with a no-arg constructor may be supplied.
      */
     public static final String PREF_PROPERTY = "startable.storage";
 
@@ -89,7 +91,6 @@ public abstract class StoragePolicy {
                 }
                 else {
                     StoragePolicy named =
-                        (StoragePolicy) 
                         Loader.getClassInstance( pref, StoragePolicy.class );
                     defaultInstance_ = named != null 
                                      ? named
