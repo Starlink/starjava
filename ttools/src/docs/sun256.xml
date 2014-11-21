@@ -10044,6 +10044,11 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Hide error bars (etc) that would extend to negative values
         on logarithmic axes; previously they were being drawn in anomalous
         places.</li>
+    <li>The <code>PlotDisplay</code> class that forms the result of
+        plot2 commands can now have <code>PointSelectionListener</code>s
+        registered on it.  This lets you determine what point a user
+        has clicked on if you're using the plotting classes from
+        third party java code.</li>
     </ul>
     </p></dd>
 

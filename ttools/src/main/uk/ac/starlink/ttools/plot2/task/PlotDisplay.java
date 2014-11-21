@@ -3,18 +3,30 @@ package uk.ac.starlink.ttools.plot2.task;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Insets;
+import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.Icon;
 import javax.swing.JComponent;
+import javax.swing.SwingUtilities;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.AuxScale;
+import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Decoration;
 import uk.ac.starlink.ttools.plot2.Drawing;
+import uk.ac.starlink.ttools.plot2.IndicatedRow;
 import uk.ac.starlink.ttools.plot2.LayerOpt;
 import uk.ac.starlink.ttools.plot2.NavigationListener;
 import uk.ac.starlink.ttools.plot2.Navigator;
@@ -31,6 +43,7 @@ import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
+import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 import uk.ac.starlink.ttools.plot2.paper.Compositor;
 import uk.ac.starlink.ttools.plot2.paper.PaperType;
 import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
@@ -60,6 +73,8 @@ public class PlotDisplay<P,A> extends JComponent {
     private final boolean surfaceAuxRange_;
     private final Compositor compositor_;
     private final boolean caching_;
+    private final List<PointSelectionListener> pslList_;
+    private final Executor clickExecutor_;
     private Insets dataInsets_;
     private Decoration navDecoration_;
     private Map<AuxScale,Range> auxRanges_;
@@ -123,8 +138,9 @@ public class PlotDisplay<P,A> extends JComponent {
         dataStore_ = dataStore;
         surfaceAuxRange_ = surfaceAuxRange;
         caching_ = caching;
+        pslList_ = new ArrayList<PointSelectionListener>();
 
-        /* Add mouse listeners if required. */
+        /* Add navigation mouse listeners if required. */
         if ( navigator != null ) {
             new NavigationListener<A>() {
                 public Surface getSurface() {
@@ -146,6 +162,42 @@ public class PlotDisplay<P,A> extends JComponent {
                 }
             }.addListeners( this );
         }
+
+        /* Add mouse listener for clicking to identify a point. */
+        addMouseListener( new MouseAdapter() {
+            @Override
+            public void mouseClicked( MouseEvent evt ) {
+                final Point p = evt.getPoint();
+                final Surface surface = surface_;
+                if ( pslList_.size() > 0 &&
+                     PlotUtil.getButtonChangedIndex( evt ) == 1 &&
+                     surface.getPlotBounds().contains( p ) ) {
+                    clickExecutor_.execute( new Runnable() {
+                        public void run() {
+                            final PointSelectionEvent evt =
+                                createClickEvent( surface, p );
+                            if ( evt != null ) {
+                                SwingUtilities.invokeLater( new Runnable() {
+                                    public void run() {
+                                        for ( PointSelectionListener psl :
+                                              pslList_ ) {
+                                            psl.pointSelected( evt );
+                                        }
+                                    }
+                                } );
+                            }
+                        }
+                    } );
+                }
+            }
+        } );
+        clickExecutor_ = Executors.newCachedThreadPool( new ThreadFactory() {
+            public Thread newThread( Runnable r ) {
+                Thread th = new Thread( r, "Point Identifier" );
+                th.setDaemon( true );
+                return th;
+            }
+        } );
     }
 
     /**
@@ -160,6 +212,25 @@ public class PlotDisplay<P,A> extends JComponent {
      */
     public void clearPlot() {
         icon_ = null;
+    }
+
+    /**
+     * Adds a listener which will be notified when the user clicks on
+     * the plot region to select a point.
+     *
+     * @param  psl  listener to add
+     */
+    public void addPointSelectionListener( PointSelectionListener psl ) {
+        pslList_.add( psl );
+    }
+
+    /**
+     * Removes a previously added point selection listener.
+     *
+     * @param  psl  listener to remove
+     */
+    public void removePointSelectionListener( PointSelectionListener psl ) {
+        pslList_.remove( psl );
     }
 
     @Override
@@ -313,6 +384,88 @@ public class PlotDisplay<P,A> extends JComponent {
     public void setDataInsets( Insets dataInsets ) {
         dataInsets_ = dataInsets;
         clearPlot();
+    }
+
+    /**
+     * Assembles and returns a PointSelectionEvent given a graphics position.
+     * May return null, if the thread is interrupted, or possibly under
+     * other circumstances.
+     *
+     * @param  surface  plot surface representing the state of the plot
+     * @param  point   graphics position to which the selection event refers
+     */
+    @Slow
+    private PointSelectionEvent createClickEvent( Surface surface,
+                                                  Point point ) {
+
+        /* The donkey work here is done by PlotUtil.getClosestRow.
+         * However, we need to do some disentangling in order to work out
+         * what tuple sequences to send it.  Sending one for each layer is
+         * not quite good enough: for one thing some layers may have multiple
+         * positions (e.g. pair links), and for another this would do the
+         * same work multiple times if the same position sets (point clouds)
+         * are represented in multiple layers, which is quite common.
+         * So there is not a 1:1 relationship between point clouds and
+         * layers. */
+
+        /* Get a list of point clouds for each layer.  Also store the same
+         * clouds as keys of a Map.  Since equality is implemented on
+         * SubClouds, and plots often have the same data plotted in
+         * different layers, this may may well have fewer entries
+         * than the number of layers. */
+        int nl = layers_.length;
+        SubCloud[][] layerClouds = new SubCloud[ nl ][];
+        Map<SubCloud,IndicatedRow> cloudMap =
+            new LinkedHashMap<SubCloud,IndicatedRow>();
+        for ( int il = 0; il < nl; il++ ) {
+            SubCloud[] clouds =
+                SubCloud
+               .createSubClouds( new PlotLayer[] { layers_[ il ] }, true );
+            layerClouds[ il ] = clouds;
+            for ( SubCloud cloud : clouds ) {
+                cloudMap.put( cloud, null );
+            }
+        }
+
+        /* For each distinct point cloud that we're dealing with,
+         * identify the closest plotted data point to the requested
+         * reference position. */
+        for ( SubCloud cloud : cloudMap.keySet() ) {
+            DataGeom geom = cloud.getDataGeom();
+            int iPosCoord = cloud.getPosCoordIndex();
+            TupleSequence tseq =
+                dataStore_.getTupleSequence( cloud.getDataSpec() );
+            cloudMap.put( cloud,
+                          PlotUtil.getClosestRow( surface, geom, iPosCoord,
+                                                  tseq, point ) );
+        }
+
+        /* Go back to the list of clouds per layer and work out the closest
+         * entry for each layer.  At the same time threshold the results,
+         * so that ones that are not within a few pixels (NEAR_PIXELS)
+         * of the reference point don't count. */
+        long[] closestRows = new long[ nl ];
+        for ( int il = 0; il < nl; il++ ) {
+            IndicatedRow bestRow = null;
+            for ( SubCloud cloud : layerClouds[ il ] ) {
+                IndicatedRow row = cloudMap.get( cloud );
+                if ( row != null ) {
+                    double dist = row.getDistance();
+                    if ( dist <= PlotUtil.NEAR_PIXELS &&
+                         ( bestRow == null || dist < bestRow.getDistance() ) ) {
+                        bestRow = row;
+                    }
+                }
+            }
+            closestRows[ il ] = bestRow == null ? -1 : bestRow.getIndex();
+        }
+
+        /* Return the result, unless we've been interrupted, which would
+         * have had the result of terminating the tuple sequences mid-run
+         * and hence generating invalid results. */
+        return Thread.currentThread().isInterrupted()
+             ? null
+             : new PointSelectionEvent( this, point, closestRows );
     }
 
     /**
