@@ -57,6 +57,7 @@ import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Decoration;
 import uk.ac.starlink.ttools.plot2.Gesture;
+import uk.ac.starlink.ttools.plot2.IndicatedRow;
 import uk.ac.starlink.ttools.plot2.NavigationListener;
 import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
@@ -665,9 +666,6 @@ public class StackPlotWindow<P,A> extends AuxWindow {
 
                 /* Prepare for iteration. */
                 TableCloud[] tclouds = pointCloud.getTableClouds();
-                double[] dpos = new double[ surface.getDataDimCount() ];
-                Point gp = new Point();
-                double thresh2 = 4 * 4;
                 Map<TopcatModel,Double> closeMap =
                     new HashMap<TopcatModel,Double>();
                 Map<TopcatModel,Long> indexMap =
@@ -678,26 +676,20 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                     TableCloud tcloud = tclouds[ ic ];
                     DataGeom geom = tcloud.getDataGeom();
                     int iPosCoord = tcloud.getPosCoordIndex();
-                    TopcatModel tcModel = tcloud.getTopcatModel();
                     TupleSequence tseq =
                         tcloud.createTupleSequence( dataStore );
-
-                    /* Iterate over each position in the cloud. */
-                    while ( tseq.next() ) {
-                        if ( geom.readDataPos( tseq, iPosCoord, dpos ) &&
-                             surface.dataToGraphics( dpos, true, gp ) ) {
-
-                            /* If the point is within a given threshold of our
-                             * reference point, and it's closer than any other
-                             * point we've encountered so far for the current
-                             * table, record it. */
-                            double dist2 = gp.distanceSq( point );
-                            if ( dist2 < thresh2 ) {
-                                Double c2 = closeMap.get( tcModel );
-                                if ( c2 == null || c2.doubleValue() > dist2 ) {
-                                    closeMap.put( tcModel, dist2 );
-                                    indexMap.put( tcModel, tseq.getRowIndex() );
-                                }
+                    IndicatedRow indicated =
+                        PlotUtil.getClosestRow( surface, geom, iPosCoord, tseq,
+                                                point );
+                    if ( indicated != null ) {
+                        long index = indicated.getIndex();
+                        double distance = indicated.getDistance();
+                        if ( distance <= PlotUtil.NEAR_PIXELS ) {
+                            TopcatModel tcModel = tcloud.getTopcatModel();
+                            Double closest = closeMap.get( tcModel );
+                            if ( closest == null || distance < closest ) {
+                                closeMap.put( tcModel, distance );
+                                indexMap.put( tcModel, index );
                             }
                         }
                     }
@@ -708,7 +700,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
 
                 /* Return a map of the closest row to the reference position
                  * for each visible table (only populated for each table if the
-                 * point is within a given threshold - currently 4 pixels). */
+                 * point is within a given threshold, NEAR_PIXELS. */
                 return indexMap;
             }
         };
