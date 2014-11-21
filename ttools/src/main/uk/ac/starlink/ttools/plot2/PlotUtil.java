@@ -63,6 +63,9 @@ public class PlotUtil {
        .createExternalFontExporter( PlotUtil.class
                                    .getResource( LATEX_FONT_PATHS ) );
 
+    /** Maximum distance from a click to a clicked-on position. */
+    public static final double NEAR_PIXELS = 4.0;
+
     /** Amount of padding added to data ranges for axis scaling. */
     private static final double PAD_FRACTION = 0.02;
 
@@ -331,6 +334,43 @@ public class PlotUtil {
                           ? 0
                           : scaleValue( lo, hi, 1 + padFrac, logFlag ) );
         }
+    }
+
+    /**
+     * Scans a tuple sequence to identify the data point which is
+     * plotted closest to a given graphics position.
+     * Note the result might still be a long way off - standard practice
+     * is to threshold the result against the value of {@link #NEAR_PIXELS}.
+     *
+     * @param  surface  plot surface
+     * @param  geom     maps data positions to graphics positions
+     * @param  iPosCoord   coordinate index of positional coords in tseq
+     * @param  tseq     tuple sequence positioned at start
+     * @param  point    reference graphics position
+     * @return   object giving row index and distance;
+     *           null is returned if no points are present
+     */
+    @Slow
+    public static IndicatedRow getClosestRow( Surface surface, DataGeom geom,
+                                              int iPosCoord, TupleSequence tseq,
+                                              Point point ) {
+        double[] dpos = new double[ surface.getDataDimCount() ];
+        Point gp = new Point();
+        long bestIndex = -1;
+        double bestDist2 = Double.POSITIVE_INFINITY;
+        while ( tseq.next() ) {
+            if ( geom.readDataPos( tseq, iPosCoord, dpos ) &&
+                 surface.dataToGraphics( dpos, true, gp ) ) {
+                double dist2 = gp.distanceSq( point );
+                if ( dist2 < bestDist2 ) {
+                    bestDist2 = dist2;
+                    bestIndex = tseq.getRowIndex();
+                }
+            }
+        }
+        return Thread.currentThread().isInterrupted() || bestIndex < 0
+             ? null
+             : new IndicatedRow( bestIndex, Math.sqrt( bestDist2 ) );
     }
 
     /**
