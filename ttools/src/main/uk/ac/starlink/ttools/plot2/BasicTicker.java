@@ -201,13 +201,12 @@ public abstract class BasicTicker implements Ticker {
         /* Use specifically logarithmic labelling only if the axes are
          * logarithmic and the range is greater than a factor of ten. */
         if ( log && Math.log10( dhi / dlo ) > 1 ) {
-            double approxMajorFactor =
-                Math.pow( dhi / dlo, 1. / approxMajorCount );
             LogSpacer[] spacers = LogSpacer.SPACERS;
             assert spacers.length == 2;
 
             /* Work out how many decades a single major tick interval covers. */
-            double nDecade = Math.log10( approxMajorFactor );
+            double nDecade = ( Math.log10( dhi ) - Math.log10( dlo ) )
+                           / approxMajorCount;
             int iSpacer;
 
             /* If it's more than about 1, ticks will all be 10**n. */

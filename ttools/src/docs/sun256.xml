@@ -10039,6 +10039,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
 <dt>Next version</dt>
 <dd><p>
     <ul>
+    <li>Fix some problems to do with zooming to very large/small
+        plot axis ranges.</li>
     </ul>
     </p></dd>
 
