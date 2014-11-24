@@ -359,11 +359,19 @@ public abstract class Axis {
                                 double d0, double d1, boolean isLog ) {
         if ( isLog ) {
             double d10 = d0 / d1;
-            return new double[] { dlo * d10, dhi * d10 };
+            double plo = dlo * d10;
+            double phi = dhi * d10;
+            return plo > Double.MIN_VALUE && phi < Double.MAX_VALUE
+                 ? new double[] { plo, phi }
+                 : new double[] { dlo, dhi };
         }
         else {
             double d10 = d1 - d0;
-            return new double[] { dlo - d10, dhi - d10 };
+            double plo = dlo - d10;
+            double phi = dhi - d10;
+            return plo > -Double.MAX_VALUE && phi < +Double.MAX_VALUE
+                 ? new double[] { plo, phi }
+                 : new double[] { dlo, dhi };
         }
     }
 
@@ -381,13 +389,19 @@ public abstract class Axis {
                                  double d0, double factor, boolean isLog ) {
         if ( isLog ) {
             double f1 = 1. / factor;
-            return new double[] { d0 * Math.pow( dlo / d0, f1 ),
-                                  d0 * Math.pow( dhi / d0, f1 ) };
+            double zlo = d0 * Math.pow( dlo / d0, f1 );
+            double zhi = d0 * Math.pow( dhi / d0, f1 );
+            return zlo > Double.MIN_VALUE && zhi < Double.MAX_VALUE
+                 ? new double[] { zlo, zhi }
+                 : new double[] { dlo, dhi };
         }
         else {
             double f1 = 1. / factor;
-            return new double[] { d0 + ( dlo - d0 ) * f1,
-                                  d0 + ( dhi - d0 ) * f1 };
+            double zlo = d0 + ( dlo - d0 ) * f1;
+            double zhi = d0 + ( dhi - d0 ) * f1;
+            return zlo > -Double.MAX_VALUE && zhi < +Double.MAX_VALUE
+                 ? new double[] { zlo, zhi }
+                 : new double[] { dlo, dhi };
         }
     }
 }
