@@ -41,7 +41,7 @@ public abstract class Axis {
      * @param   d  data coordinate
      * @return  graphics coordinate
      */
-    public abstract int dataToGraphics( double d );
+    public abstract double dataToGraphics( double d );
 
     /**
      * Converts a graphics position on this axis to a data coordinate.
@@ -137,7 +137,7 @@ public abstract class Axis {
         for ( int it = 0; it < ticks.length; it++ ) {
             Tick tick = ticks[ it ];
             String label = tick.getLabel();
-            double gx = dataToGraphics( tick.getValue() );
+            int gx = (int) dataToGraphics( tick.getValue() );
             double tx = invert ? ghi_ - gx : gx - glo_;
             AffineTransform tTrans =
                 AffineTransform.getTranslateInstance( tx, 0 );
@@ -280,8 +280,8 @@ public abstract class Axis {
             b_ = ( flip ? ghi : glo ) - a_ * dlo;
         }
 
-        public int dataToGraphics( double d ) {
-            return (int) ( b_ + a_ * d );
+        public double dataToGraphics( double d ) {
+            return b_ + a_ * d;
         }
 
         public double graphicsToData( int g ) {
@@ -328,8 +328,8 @@ public abstract class Axis {
             a1_ = 1.0 / a_;
         }
 
-        public int dataToGraphics( double d ) {
-            return (int) ( b_ + a_ * Math.log( d ) );
+        public double dataToGraphics( double d ) {
+            return b_ + a_ * Math.log( d );
         }
 
         public double graphicsToData( int g ) {

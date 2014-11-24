@@ -121,16 +121,23 @@ public class PlaneSurface implements Surface {
         if ( dpos == null ) {
             return false;
         }
-        int gx = xAxis_.dataToGraphics( dpos[ 0 ] );
-        int gy = yAxis_.dataToGraphics( dpos[ 1 ] );
-        if ( visibleOnly &&
-             ( gx < gxlo_ || gx >= gxhi_ || gy < gylo_ || gy >= gyhi_ ) ) {
+        double dx = xAxis_.dataToGraphics( dpos[ 0 ] );
+        double dy = yAxis_.dataToGraphics( dpos[ 1 ] );
+        if ( Double.isNaN( dx ) || Double.isNaN( dy ) ) {
             return false;
         }
         else {
-            gp.x = gx;
-            gp.y = gy;
-            return true;
+            int gx = (int) dx;
+            int gy = (int) dy;
+            if ( visibleOnly &&
+                 ( gx < gxlo_ || gx >= gxhi_ || gy < gylo_ || gy >= gyhi_ ) ) {
+                return false;
+            }
+            else {
+                gp.x = gx;
+                gp.y = gy;
+                return true;
+            }
         }
     }
 
@@ -162,14 +169,14 @@ public class PlaneSurface implements Surface {
             for ( int it = 0; it < xticks_.length; it++ ) {
                 Tick tick = xticks_[ it ];
                 if ( tick.getLabel() != null ) {
-                    int gx = xAxis_.dataToGraphics( tick.getValue() );
+                    int gx = (int) xAxis_.dataToGraphics( tick.getValue() );
                     g.drawLine( gx, gylo_, gx, gyhi_ );
                 }
             }
             for ( int it = 0; it < yticks_.length; it++ ) {
                 Tick tick = yticks_[ it ];
                 if ( tick.getLabel() != null ) {
-                    int gy = yAxis_.dataToGraphics( tick.getValue() );
+                    int gy = (int) yAxis_.dataToGraphics( tick.getValue() );
                     g.drawLine( gxlo_, gy, gxhi_, gy );
                 }
             }
@@ -480,7 +487,7 @@ public class PlaneSurface implements Surface {
      */
     public static String formatPosition( Axis axis, double dpos ) {
 
-        /* This could be implemented bettter.
+        /* This could be implemented better.
          * It would be better if the precision determination, and hence
          * the number of digits before and after the decimal point and
          * in the exponent, were determined by the axis (bounds and
@@ -489,7 +496,8 @@ public class PlaneSurface implements Surface {
 
         /* Work out pixel size in data coordinates by looking at the
          * data position of a point two pixels away. */
-        double dp2 = axis.graphicsToData( axis.dataToGraphics( dpos ) + 2 );
+        double dp2 =
+            axis.graphicsToData( (int) axis.dataToGraphics( dpos ) + 2 );
         double prec = Math.abs( dp2 - dpos ) / 2.;
 
         /* Work out the number of significant figures. */
