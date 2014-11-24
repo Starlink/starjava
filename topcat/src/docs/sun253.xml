@@ -20474,6 +20474,9 @@ introduced since the last version:
     <ul>
     <li>Fix some problems to do with zooming to very large/small
         plot axis ranges.</li>
+    <li>Hide error bars (etc) that would extend to negative values
+        on logarithmic axes; previously they were being drawn in anomalous
+        places.</li>
     </ul>
     </p></dd>
 

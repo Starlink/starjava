@@ -400,7 +400,7 @@ public abstract class BasicTicker implements Ticker {
             Tick tick = ticks[ i ];
             String label = tick.getLabel();
             if ( label != null ) {
-                int gx = axis.dataToGraphics( tick.getValue() );
+                int gx = (int) axis.dataToGraphics( tick.getValue() );
                 Rectangle cbounds = captioner.getCaptionBounds( label );
                 AffineTransform oTrans =
                     orient.captionTransform( cbounds, cpad );
