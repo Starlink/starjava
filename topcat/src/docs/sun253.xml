@@ -20472,6 +20472,8 @@ introduced since the last version:
 <dt>Next version</dt>
 <dd><p>
     <ul>
+    <li>Fix some problems to do with zooming to very large/small
+        plot axis ranges.</li>
     </ul>
     </p></dd>
 
