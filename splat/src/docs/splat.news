@@ -1,9 +1,15 @@
 1 Starlink SPLAT news.
 
+   3.10-7
+   ======
+
+   - Support for spectra in SDFITS format
+
+
    3.10-6
    ======
 
-   - New metadata selection panel. All metadata parameters are listedi and cam be ckecked.
+   - New metadata selection panel. All metadata parameters are listed and can be selected.
    - Update Datalink parser to changed syntax
 
    3.10-5
