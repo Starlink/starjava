@@ -398,7 +398,7 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
                  if (shortname == null)
                      shortname = s;
                
-                 tq = new TapQuery( new URL(s), query, null, null, 500 );
+                 tq = new TapQuery( new URL(s), query, null);//, null, 500 );
             } catch (Exception e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
@@ -504,13 +504,13 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
     private StarTable queryRegistry() {
         TapQuery tq=null;
         StarTableFactory tfact = new StarTableFactory();
-        try {
-            tq = new TapQuery( registry, regquery, null, null, 500 );
-        } catch (IOException e) {
+       // try {
+            tq = new TapQuery( registry, regquery, null);//, null, 500 );
+       // } catch (IOException e) {
             // TODO Auto-generated catch block
-            e.printStackTrace();
-            return null;
-        }
+         //   e.printStackTrace();
+           // return null;
+       // }
 
         StarTable table = null; 
         try {
@@ -602,13 +602,13 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
     private StarTable queryObscoreRegistry() {
         TapQuery tq=null;
         StarTableFactory tfact = new StarTableFactory();
-        try {
-            tq = new TapQuery( registry, regquery, null, null, 500 );
-        } catch (IOException e) {
+       // try {
+            tq = new TapQuery( registry, regquery, null);//, null, 500 );
+       // } catch (IOException e) {
             // TODO Auto-generated catch block
-            e.printStackTrace();
-            return null;
-        }
+         //   e.printStackTrace();
+           // return null;
+        //}
 
         StarTable table = null;
         try {
