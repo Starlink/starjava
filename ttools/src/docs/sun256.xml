@@ -10055,6 +10055,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <code>plot2plane</code>.</li>
     <li>Fix NullPointerException bug when null value was supplied to
         multi-word parameter (e.g. <code>tcube</code>).</li>
+    <li>Fixed error in fits-var output
+        (PCOUNT header card did not include block alignment gap).</li>
     </ul>
     </p></dd>
 

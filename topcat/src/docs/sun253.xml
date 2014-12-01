@@ -20577,6 +20577,8 @@ introduced since the last version:
         <ref id="HistogramPlotWindow">Histogram window</ref>
         allow you to export histogram bin data as a new table
         (this reinstates behaviour available from old plot windows).</li>
+    <li>Fixed error in fits-var output
+        (PCOUNT header card did not include block alignment gap).</li>
     </ul>
     </p></dd>
 
