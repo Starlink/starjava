@@ -47,7 +47,7 @@ public class VariableFitsTableSerializer extends StandardFitsTableSerializer {
         storagePolicy_ = storagePolicy;
         allowSignedByte_ = allowSignedByte;
         init( table );
-        set64BitMode( getPCount() > Integer.MAX_VALUE );
+        set64BitMode( getHeapSize() > Integer.MAX_VALUE );
     }
 
     /**
@@ -70,9 +70,11 @@ public class VariableFitsTableSerializer extends StandardFitsTableSerializer {
 
     public Header getHeader() throws HeaderCardException {
         Header hdr = super.getHeader();
-        long pcount = getPCount();
-        long theap = hdr.getIntValue( "NAXIS1" ) * hdr.getIntValue( "NAXIS2" );
-        theap = ( ( theap + 2880 - 1 ) / 2880 ) * 2880;
+        long heapSize = getHeapSize();
+        long datEnd = hdr.getIntValue( "NAXIS1" ) * hdr.getIntValue( "NAXIS2" );
+        long theap = ( ( datEnd + 2880 - 1 ) / 2880 ) * 2880;
+        long gap = theap - datEnd;
+        long pcount = gap + heapSize;
 
         /* Header manipulation methods leave a bit to be desired.
          * It is a bit fiddly to make sure these cards go in the right place. */
@@ -85,7 +87,8 @@ public class VariableFitsTableSerializer extends StandardFitsTableSerializer {
             HeaderCard card = (HeaderCard) it.next();
             String key = card.getKey();
             if ( "PCOUNT".equals( key ) ) {
-                cardList.add( new HeaderCard( "PCOUNT", pcount, "heap size" ) );
+                cardList.add( new HeaderCard( "PCOUNT", pcount,
+                                              "heap size + gap" ) );
             }
             else if ( "TFIELDS".equals( key ) ) {
                 cardList.add( card );
@@ -129,14 +132,14 @@ public class VariableFitsTableSerializer extends StandardFitsTableSerializer {
      *
      * @return   heap size
      */
-    private long getPCount() {
-        long pcount = 0L;
+    private final long getHeapSize() {
+        long count = 0L;
         VariableArrayColumnWriter[] vcws = getVariableArrayColumnWriters();
         for ( int iv = 0; iv < vcws.length; iv++ ) {
             VariableArrayColumnWriter vcw = vcws[ iv ];
-            pcount += vcw.totalElements_ * vcw.arrayWriter_.getByteCount();
+            count += vcw.totalElements_ * vcw.arrayWriter_.getByteCount();
         }
-        return pcount;
+        return count;
     }
 
     public void writeData( DataOutput out ) throws IOException {
@@ -161,7 +164,8 @@ public class VariableFitsTableSerializer extends StandardFitsTableSerializer {
         finally {
             byteStore.close();
         }
-        int over = (int) ( getPCount() % 2880 );
+        assert byteStore.getLength() == getHeapSize();
+        int over = (int) ( getHeapSize() % 2880 );
         if ( over > 0 ) {
             out.write( new byte[ 2880 - over ] );
         }
