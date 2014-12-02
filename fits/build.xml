@@ -930,6 +930,9 @@
            filtertrace="${junit.filtertrace}"
            fork="${junit.fork}">
       <classpath refid="tests-classpath"/>
+      <assertions>
+        <enable/>
+      </assertions>
 
       <sysproperty key="java.io.tmpdir" value="${build.tests.loc}"/>
       <sysproperty key="java.library.path" value="${star.lib.arch}"/>
@@ -966,6 +969,9 @@
                    value="${tests-classpath.value}"/>
       <sysproperty key="java.awt.headless" value="${java.awt.headless}"/>
       <classpath refid="tests-classpath"/>
+      <assertions>
+        <enable/>
+      </assertions>
       <formatter type="plain" usefile="false"/>
       <test name="${testcase}"/>
     </junit>
