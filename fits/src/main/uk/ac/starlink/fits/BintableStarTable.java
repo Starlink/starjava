@@ -1,55 +1,47 @@
 package uk.ac.starlink.fits;
 
-import java.io.BufferedInputStream;
-import java.io.DataInput;
-import java.io.DataInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.List;
-import java.util.NoSuchElementException;
 import nom.tam.fits.FitsException;
 import nom.tam.fits.Header;
-import nom.tam.util.RandomAccess;
 import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
-import uk.ac.starlink.table.RandomRowSequence;
 import uk.ac.starlink.table.RowSequence;
-import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
-import uk.ac.starlink.util.DataSource;
-import uk.ac.starlink.util.IOUtils;
 
 /**
  * An implementation of the StarTable interface which uses a FITS BINTABLE
- * extension.  Reading is done into the random access data (possibly
- * a mapped file); the nom.tam.fits classes are not used.
- * <p>
- * It is safe to read cells from different threads.
+ * extension.  The nom.tam.fits classes are used for header parsing,
+ * but not for data access.
+ *
+ * <p>The implementation varies according to whether random or sequential-only
+ * access is provided by the underlying data access.
+ * A factory method is provided to create an appropriate instance.
  *
  * @author   Mark Taylor
  */
 public abstract class BintableStarTable extends AbstractStarTable {
 
-    private final int ncol;
-    private final int nrow;
-    private final ColumnInfo[] colInfos;
-    private final ColumnReader[] colReaders;
-    private final int rowLength;
-    private final int[] colOffsets;
+    private final int ncol_;
+    private final long nrow_;
+    private final ColumnInfo[] colInfos_;
+    private final ColumnReader[] colReaders_;
+    private final int rowLength_;
+    private final int[] colOffsets_;
 
     /** Column aux metadata key for TNULLn cards. */
     public final static ValueInfo TNULL_INFO = new DefaultValueInfo(
         Tables.NULL_VALUE_INFO.getName(),
         Tables.NULL_VALUE_INFO.getContentClass(),
         "Bad value indicator (TNULLn card)" );
-
+    
     /** Column aux metadata key for TSCALn cards. */
     public final static ValueInfo TSCAL_INFO = new DefaultValueInfo(
         "Scale",
@@ -79,152 +71,24 @@ public abstract class BintableStarTable extends AbstractStarTable {
         "Format code",
         String.class,
         "Data type code (TFORMn card)" );
-    private final static List auxDataInfos = Arrays.asList( new ValueInfo[] {
+
+    /** Known aux data infos. */
+    private static final ValueInfo[] AUX_DATA_INFOS = new ValueInfo[] {
         TNULL_INFO, TSCAL_INFO, TZERO_INFO, TDISP_INFO, TBCOL_INFO, TFORM_INFO,
-    } );
+    };
 
     /** BigInteger equal to 2^63 (== Long.MAX_VALUE + 1). */
     static final BigInteger TWO63 = BigInteger.ONE.shiftLeft( 63 );
 
     /**
-     * Constructs a StarTable from a given random access stream.
+     * Constructor.
      *
-     * @param  hdr  FITS header descrbing the HDU
-     * @param  rstream   data stream positioned at the start of the data 
-     *                   section of the HDU
+     * @param   hdr   FITS header cards
+     * @param   isRandom  true if the data access will be random-access,
+     *                    false for sequential-only
      */
-    public static StarTable makeRandomStarTable( Header hdr, 
-                                                 final RandomAccess rstream )
-            throws FitsException, IOException {
-        if ( rstream instanceof CopyableRandomAccess ) {
-            final CopyableRandomAccess crstream =
-                ((CopyableRandomAccess) rstream).copyAccess();
-            final long startPos = crstream.getFilePointer();
-            return new RandomBintableStarTable( hdr, crstream ) {
-                public RowSequence getRowSequence() throws IOException {
-                    RandomAccess seqStream;
-                    synchronized ( crstream ) {
-                        crstream.seek( startPos );
-                        seqStream = crstream.copyAccess();
-                    }
-                    return createUnsafeRowSequence( seqStream );
-                }
-            };
-        }
-        else {
-            return new RandomBintableStarTable( hdr, rstream ) {
-                public RowSequence getRowSequence() {
-                    return new RandomRowSequence( this );
-                }
-            };
-        }
-    }
-
-    /**
-     * Constructs a sequential-only StarTable from a DataSource.
-     * Reading is deferred.
-     *
-     * @param  hdr  FITS header descrbing the HDU
-     * @param  datsrc  a data source which supplies the data stream 
-     *          containing the table data
-     * @param  offset  offset into the stream returned by <tt>datsrc</tt>
-     *         at which the table data (not the corresponding HDU header)
-     *         starts
-     */
-    public static StarTable makeSequentialStarTable( Header hdr, 
-                                                     final DataSource datsrc,
-                                                     final long offset ) 
+    protected BintableStarTable( Header hdr, boolean isRandom )
             throws FitsException {
-        final Object[] BEFORE_START = new Object[ 0 ];
-        return new BintableStarTable( hdr, -1L ) {
-            public RowSequence getRowSequence() throws IOException {
-                InputStream istrm = datsrc.getInputStream();
-                if ( ! ( istrm instanceof BufferedInputStream ) ) {
-                    istrm = new BufferedInputStream( istrm );
-                }
-                final DataInputStream stream = new DataInputStream( istrm );
-                IOUtils.skipBytes( stream, offset );
-                return new RowSequence() {
-                    final long nrow = getRowCount();
-                    final int ncol = getColumnCount();
-                    final int rowLength = getRowLength();
-                    long lrow = -1L;
-                    Object[] row = BEFORE_START;
-
-                    public boolean next() throws IOException {
-                        if ( lrow < nrow - 1 ) {
-                            if ( row == null ) {
-                                IOUtils.skipBytes( stream, (long) rowLength );
-                            }
-                            row = null;
-                            lrow++;
-                            return true;
-                        }
-                        else {
-                            return false;
-                        }
-                    }
-
-                    public Object getCell( int icol ) throws IOException {
-                        return getRow()[ icol ];
-                    }
-
-                    public Object[] getRow() throws IOException {
-                        if ( row == BEFORE_START ) {
-                            throw new IllegalStateException(
-                                "Attempted read before start of table" );
-                        }
-                        if ( row == null ) {
-                            row = readRow( stream );
-                        }
-                        return row;
-                    }
-
-                    public void close() throws IOException {
-                        stream.close();
-                    }
-                };
-            }
-        };
-    }
-
-    /**
-     * Reads a BINTABLE extension from a stream and writes the result to
-     * a table sink.
-     *
-     * @param   hdr  FITS header object describing the BINTABLE extension
-     * @param   stream  input stream positioned at the start of the 
-     *          data part of the BINTABLE extension
-     * @param   sink   destination for the table
-     */
-    public static void streamStarTable( Header hdr, DataInput stream, 
-                                        TableSink sink )
-            throws FitsException, IOException {
-        BintableStarTable meta = new BintableStarTable( hdr, -1L ) {
-            public RowSequence getRowSequence() {
-                throw new UnsupportedOperationException( "Metadata only" );
-            }
-        };
-        sink.acceptMetadata( meta );
-        long nrow = meta.getRowCount();
-        for ( long i = 0; i < nrow; i++ ) {
-            Object[] row = meta.readRow( stream );
-            sink.acceptRow( row );
-        }
-        sink.endRows();
-        long datasize = nrow * meta.getRowLength();
-        int over = (int) ( datasize % (long) 2880 );
-        if ( over > 0 ) {
-            IOUtils.skipBytes( stream, (long) ( 2880 - over ) );
-        }
-    }
-
-    /**
-     * Constructs a table.
-     *
-     * @param  hdr  FITS header cards describing this HDU
-     */
-    BintableStarTable( Header hdr, long dataStart ) throws FitsException {
         HeaderCards cards = new HeaderCards( hdr );
 
         /* Check we have a BINTABLE header. */
@@ -233,55 +97,54 @@ public abstract class BintableStarTable extends AbstractStarTable {
         }
 
         /* Get Table characteristics. */
-        ncol = cards.getIntValue( "TFIELDS" ).intValue();
-        nrow = cards.getIntValue( "NAXIS2" ).intValue();
+        ncol_ = cards.getIntValue( "TFIELDS" ).intValue();
+        nrow_ = cards.getLongValue( "NAXIS2" ).intValue();
 
-        /* Find heap start if available. */
-        long heapStart;
-        if ( dataStart >= 0 ) {
-            long theap = cards.containsKey( "THEAP" )
+        /* Record heap start if available. */
+        final long heapOffset;
+        if ( isRandom ) {
+            heapOffset = cards.containsKey( "THEAP" )
                        ? cards.getLongValue( "THEAP" ).longValue()
-                       : nrow * cards.getIntValue( "NAXIS1" ).intValue();
-            heapStart = dataStart + theap;
+                       : nrow_ * cards.getIntValue( "NAXIS1" ).intValue();
         }
         else {
-            heapStart = -1;
+            heapOffset = -1;
         }
 
         /* Get column characteristics. */
-        colInfos = new ColumnInfo[ ncol ];
-        colReaders = new ColumnReader[ ncol ];
-        for ( int icol = 0; icol < ncol; icol++ ) {
+        colInfos_ = new ColumnInfo[ ncol_ ];
+        colReaders_ = new ColumnReader[ ncol_ ];
+        for ( int icol = 0; icol < ncol_; icol++ ) {
             int jcol = icol + 1;
             ColumnInfo cinfo = new ColumnInfo( "col" + jcol );
             List auxdata = cinfo.getAuxData();
-            colInfos[ icol ] = cinfo;
+            colInfos_[ icol ] = cinfo;
 
             /* Name. */
             String ttype = cards.getStringValue( "TTYPE" + jcol );
             if ( ttype != null ) {
                 cinfo.setName( ttype );
             }
-
+    
             /* Units. */
             String tunit = cards.getStringValue( "TUNIT" + jcol );
             if ( tunit != null ) {
                 cinfo.setUnitString( tunit );
             }
-
+    
             /* Format string. */
             String tdisp = cards.getStringValue( "TDISP" + jcol );
             if ( tdisp != null ) {
                 auxdata.add( new DescribedValue( TDISP_INFO, tdisp ) );
             }
-
+            
             /* Blank value. */
             String blankKey = "TNULL" + jcol;
             long blank;
             boolean hasBlank;
             if ( cards.containsKey( blankKey ) ) {
                 blank = cards.getLongValue( blankKey ).longValue();
-                hasBlank = true;
+                hasBlank = true; 
                 auxdata.add( new DescribedValue( TNULL_INFO,
                                                  new Long( blank ) ) );
             }
@@ -290,12 +153,12 @@ public abstract class BintableStarTable extends AbstractStarTable {
                 blank = 0L;
                 hasBlank = false;
             }
-
-            /* Shape. */
+            
+            /* Shape. */ 
             int[] dims = null;
             String tdim = cards.getStringValue( "TDIM" + jcol );
             if ( tdim != null ) {
-                tdim = tdim.trim();
+                tdim = tdim.trim(); 
                 if ( tdim.charAt( 0 ) == '(' &&
                      tdim.charAt( tdim.length() - 1 ) == ')' ) {
                     tdim = tdim.substring( 1, tdim.length() - 1 ).trim();
@@ -401,7 +264,7 @@ public abstract class BintableStarTable extends AbstractStarTable {
             try {
                 reader = ColumnReader
                         .createColumnReader( tform, scale, zero, hasBlank,
-                                             blank, dims, ttype, heapStart );
+                                             blank, dims, ttype, heapOffset );
             }
             catch ( FitsException e ) {
                 throw (FitsException)
@@ -410,33 +273,33 @@ public abstract class BintableStarTable extends AbstractStarTable {
                      .initCause( e );
             }
 
-            /* Adjust nullability of strings - they can always be 
+            /* Adjust nullability of strings - they can always be
              * null, since an empty string (all spaces) is interpreted
              * as null. */
             if ( reader.getContentClass().equals( String.class ) ) {
                 cinfo.setNullable( true );
             }
 
-            /* Do additional column info configuration as directed 
+            /* Do additional column info configuration as directed
              * by the reader. */
             cinfo.setContentClass( reader.getContentClass() );
             cinfo.setShape( reader.getShape() );
             cinfo.setElementSize( reader.getElementSize() );
-            colReaders[ icol ] = reader;
+            colReaders_[ icol ] = reader;
         }
 
         /* Calculate offsets so we know where to look for each cell. */
         int leng = 0;
-        colOffsets = new int[ ncol ];
-        for ( int icol = 0; icol < ncol; icol++ ) {
-            colOffsets[ icol ] = leng;
-            leng += colReaders[ icol ].getLength();
+        colOffsets_ = new int[ ncol_ ];
+        for ( int icol = 0; icol < ncol_; icol++ ) {
+            colOffsets_[ icol ] = leng;
+            leng += colReaders_[ icol ].getLength();
         }
-        rowLength = leng;
+        rowLength_ = leng;
         int nax1 = cards.getIntValue( "NAXIS1" ).intValue();
-        if ( rowLength != nax1 ) {
-            throw new FitsException( "Got wrong row length: " + nax1 + 
-                                     " != " + rowLength );
+        if ( rowLength_ != nax1 ) {
+            throw new FitsException( "Got wrong row length: " + nax1 +
+                                     " != " + rowLength_ );
         }
 
         /* Get table name. */
@@ -453,31 +316,32 @@ public abstract class BintableStarTable extends AbstractStarTable {
     }
 
     public long getRowCount() {
-        return (long) nrow;
+        return nrow_;
     }
 
     public int getColumnCount() {
-        return ncol;
+        return ncol_;
     }
 
     public ColumnInfo getColumnInfo( int icol ) {
-        return colInfos[ icol ];
+        return colInfos_[ icol ];
     }
 
     public List getColumnAuxDataInfos() {
-        return auxDataInfos;
+        return Arrays.asList( AUX_DATA_INFOS );
     }
 
     /**
-     * Reads a cell from a given column from the current position in 
+     * Reads a cell from a given column from the current position in
      * a stream.
      *
      * @param  icol  the column index corresponding to the cell to be read
      * @param  stream  a stream containing the byte data, positioned to
      *                 the right place
      */
-    public Object readCell( DataInput stream, int icol ) throws IOException {
-        return colReaders[ icol ].readValue( stream );
+    protected Object readCell( BasicInput stream, int icol )
+            throws IOException {
+        return colReaders_[ icol ].readValue( stream );
     }
 
     /**
@@ -488,24 +352,12 @@ public abstract class BintableStarTable extends AbstractStarTable {
      *                the right place
      * @return  <tt>ncol</tt>-element array of cells for this row
      */
-    public Object[] readRow( DataInput stream ) throws IOException {
-        Object[] row = new Object[ ncol ];
-        readRow( stream, row );
-        return row;
-    }
-
-    /**
-     * Reads a whole row of the table into an existing array.
-     *
-     * @param  stream a stream containing the byte data, positioned to
-     *                the right place
-     * @param  row  <tt>ncol</tt>-element array, filled with row data
-     *              on completion
-     */
-    public void readRow( DataInput stream, Object[] row ) throws IOException {
-        for ( int icol = 0; icol < ncol; icol++ ) {
-            row[ icol ] = colReaders[ icol ].readValue( stream );
+    protected Object[] readRow( BasicInput stream ) throws IOException {
+        Object[] row = new Object[ ncol_ ];
+        for ( int icol = 0; icol < ncol_; icol++ ) {
+            row[ icol ] = colReaders_[ icol ].readValue( stream );
         }
+        return row;
     }
 
     /**
@@ -515,46 +367,183 @@ public abstract class BintableStarTable extends AbstractStarTable {
      * @return  row length in bytes
      */
     protected int getRowLength() {
-        return rowLength;
+        return rowLength_;
     }
 
     /**
-     * Returns the array of byte offsets from the start of the row at 
+     * Returns the array of byte offsets from the start of the row at
      * which each column starts.
-     * 
+     *
      * @return  <tt>ncol</tt>-element array of byte offsets
      */
     protected int[] getColumnOffsets() {
-        return colOffsets;
+        return colOffsets_;
     }
 
     /**
-     * Partial implementation of random-access BintableStarTable.
-     * Only the getRowSequence method remains to be implemented.
+     * Returns an instance of this class given a data access instance.
+     *
+     * @param  hdr  FITS header cards
+     * @param  inputFact  factory for access to the data part of the
+     *                    HDU representing a FITS BINTABLE extension
+     * @return  StarTable instance; it will be random-access according to
+     *                    whether the input factory is
      */
-    private static abstract class RandomBintableStarTable
-            extends BintableStarTable {
-        private final RandomAccess rstream_;
-        private final long dataStart_;
-        private final long rowLength_;
-        private final int[] colOffsets_;
-        private final int ncol_;
+    public static BintableStarTable createTable( Header hdr,
+                                                 InputFactory inputFact )
+            throws IOException, FitsException {
+        return inputFact.isRandom()
+             ? new RandomBintableStarTable( hdr, inputFact )
+             : new SequentialBintableStarTable( hdr, inputFact );
+    }
+
+    /**
+     * Reads a BINTABLE extension from a stream and writes the result to
+     * a table sink.
+     *
+     * @param   hdr  FITS header object describing the BINTABLE extension
+     * @param   input   input stream positioned at the start of the
+     *                  data part of the BINTABLE extension
+     * @param   sink   destination for the table
+     */
+    public static void streamStarTable( Header hdr, BasicInput input,
+                                        TableSink sink )
+            throws FitsException, IOException {
+        InputFactory dummyFact = new InputFactory() {
+            public boolean isRandom() {
+                return false;
+            }
+            public BasicInput createInput( boolean isSeq ) {
+                throw new UnsupportedOperationException( "Metadata only" );
+            }
+        };
+        BintableStarTable meta =
+            new SequentialBintableStarTable( hdr, dummyFact );
+        sink.acceptMetadata( meta );
+        long nrow = meta.getRowCount();
+        for ( long i = 0; i < nrow; i++ ) {
+            Object[] row = meta.readRow( input );
+            sink.acceptRow( row );
+        }
+        sink.endRows();
+        long datasize = nrow * meta.rowLength_;
+        int over = (int) ( datasize % (long) FitsConstants.FITS_BLOCK );
+        if ( over > 0 ) {
+            input.skip( over );
+        }
+    }
+
+    /**
+     * Sequential-only BintableStarTable concrete subclass.
+     */
+    private static class SequentialBintableStarTable extends BintableStarTable {
+        private final InputFactory inputFact_;
 
         /**
          * Constructor.
          *
-         * @param  hdr  FITS header descrbing the HDU
-         * @param  rstream   data stream positioned at the start of the data 
-         *                   section of the HDU
+         * @param   hdr  FITS header object describing the BINTABLE extension
+         * @param   inputFact   creates input streams positioned at the start
+         *                      of thedata part of the BINTABLE extension
          */
-        RandomBintableStarTable( Header hdr, RandomAccess rstream )
+        public SequentialBintableStarTable( Header hdr, InputFactory inputFact )
                 throws FitsException {
-            super( hdr, rstream.getFilePointer() );
-            rstream_ = rstream;
-            dataStart_ = rstream.getFilePointer();
+            super( hdr, false );
+            inputFact_ = inputFact;
+        }
+
+        public boolean isRandom() {
+            return false;
+        }
+
+        public Object getCell( long lrow, int icol ) throws IOException {
+            throw new UnsupportedOperationException();
+        }
+
+        public Object[] getRow( long lrow ) throws IOException {
+            throw new UnsupportedOperationException();
+        }
+
+        public RowSequence getRowSequence() throws IOException {
+            final BasicInput input = inputFact_.createInput( true );
+            final Object[] beforeStart = new Object[ 0 ];
+            final long nrow = getRowCount();
+            final int rowLength = getRowLength();
+            return new RowSequence() {
+                long lrow_ = -1;
+                Object[] row_ = beforeStart;
+                long nskip_ = 0;
+
+                public boolean next() throws IOException {
+                    if ( lrow_ < nrow - 1 ) {
+                        if ( row_ == null ) {
+                            nskip_ += rowLength;
+                        }
+                        row_ = null;
+                        lrow_++;
+                        return true;
+                    }
+                    else {
+                        return false;
+                    }
+                }
+
+                public Object getCell( int icol ) throws IOException {
+                    return getRow()[ icol ];
+                }
+
+                public Object[] getRow() throws IOException {
+                    if ( row_ == beforeStart ) {
+                        throw new IllegalStateException();
+                    }
+                    if ( row_ == null ) {
+                        if ( nskip_ != 0 ) {
+                            input.skip( nskip_ );
+                            nskip_ = 0;
+                        }
+                        row_ = readRow( input );
+                    }
+                    return row_;
+                }
+
+                public void close() throws IOException {
+                    if ( nskip_ != 0 ) {
+                        input.skip( nskip_ );
+                        nskip_ = 0;
+                    }
+                    input.close();
+                }
+            };
+        }
+    }
+
+    /**
+     * Random-access BintableStarTable concrete subclass.
+     */
+    private static class RandomBintableStarTable extends BintableStarTable {
+        private final InputFactory inputFact_;
+        private final BasicInput randomInput_;
+        private final int rowLength_;
+        private final int[] colOffsets_;
+
+        /**
+         * Constructor.
+         *
+         * @param   hdr  FITS header object describing the BINTABLE extension
+         * @param   inputFact   creates input streams positioned at the start
+         *                      of thedata part of the BINTABLE extension;
+         *                      must be random-access
+         */
+        RandomBintableStarTable( Header hdr, InputFactory inputFact )
+                throws IOException, FitsException {
+            super( hdr, true );
+            inputFact_ = inputFact;
+            if ( ! inputFact.isRandom() ) {
+                throw new IllegalArgumentException( "not random" );
+            }
             rowLength_ = getRowLength();
             colOffsets_ = getColumnOffsets();
-            ncol_ = getColumnCount();
+            randomInput_ = inputFact.createInput( false );
         }
 
         public boolean isRandom() {
@@ -562,58 +551,49 @@ public abstract class BintableStarTable extends AbstractStarTable {
         }
 
         public Object getCell( long lrow, int icol ) throws IOException {
-            synchronized ( rstream_ ) {
-                rstream_.seek( dataStart_ + lrow * rowLength_
-                                          + colOffsets_[ icol ] );
-                return readCell( rstream_, icol );
+            synchronized ( randomInput_ ) {
+                randomInput_.seek( lrow * rowLength_ + colOffsets_[ icol ] );
+                return readCell( randomInput_, icol );
             }
         }
 
         public Object[] getRow( long lrow ) throws IOException {
-            synchronized ( rstream_ ) {
-                rstream_.seek( dataStart_ + lrow * rowLength_ );
-                return readRow( rstream_ );
-            } 
+            synchronized ( randomInput_ ) {
+                randomInput_.seek( lrow * rowLength_ );
+                return readRow( randomInput_ );
+            }
         }
 
-        /**
-         * Returns a new RowSequence for this table based on a stream
-         * which will be used without synchronization.
-         * So, no other thread or code should use the supplied
-         * <code>seqStream</code> during the lifetime of the returned
-         * sequence.
-         *
-         * @param  seqStream  stream for exclusive use of the returned sequence
-         * @return  row sequence
-         */
-        RowSequence createUnsafeRowSequence( final RandomAccess seqStream ) {
-            final long startPos = seqStream.getFilePointer();
-            final long endPos = startPos + getRowCount() * rowLength_;
+        public RowSequence getRowSequence() throws IOException {
+            final BasicInput input = inputFact_.createInput( true );
+            assert input.isRandom();
+            final long endPos = getRowCount() * rowLength_;
             return new RowSequence() {
-                long pos = startPos - rowLength_;
+                long pos = -rowLength_;
                 public boolean next() {
                     pos += rowLength_;
                     return pos < endPos;
                 }
                 public Object getCell( int icol ) throws IOException {
-                    if ( pos >= startPos && pos < endPos ) {
-                        seqStream.seek( pos + colOffsets_[ icol ] );
-                        return readCell( seqStream, icol );
+                    if ( pos >= 0 && pos < endPos ) {
+                        input.seek( pos + colOffsets_[ icol ] );
+                        return readCell( input, icol );
                     }
                     else {
                         throw new IllegalStateException();
                     }
                 }
                 public Object[] getRow() throws IOException {
-                    if ( pos >= startPos && pos < endPos ) {
-                        seqStream.seek( pos );
-                        return readRow( seqStream );
+                    if ( pos >= 0 && pos < endPos ) {
+                        input.seek( pos );
+                        return readRow( input );
                     }
                     else {
                         throw new IllegalStateException();
                     }
                 }
-                public void close() {
+                public void close() throws IOException {
+                    input.close();
                 }
             };
         }

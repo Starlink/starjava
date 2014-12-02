@@ -60,13 +60,20 @@ public abstract class InputFactory {
     public static InputFactory createFactory( DataSource datsrc,
                                               long offset, long leng )
             throws IOException {
-        if ( datsrc instanceof FileDataSource &&
-             datsrc.getCompression() == Compression.NONE ) {
+        boolean isFile = datsrc instanceof FileDataSource;
+        if ( isFile && datsrc.getCompression() == Compression.NONE ) {
             File uncompressedFile = ((FileDataSource) datsrc).getFile();
             return createFileFactory( uncompressedFile, offset, leng );
         }
         else {
-            logger_.info( "Will read stream (not random-access): " + datsrc );
+            if ( isFile ) {
+                logger_.warning( "Can't map compressed file " + datsrc.getName()
+                               + " - uncompressing may improve performance" );
+            }
+            else {
+                logger_.info( "Will read stream (not random-access): "
+                            + datsrc );
+            }
             return createSequentialFactory( datsrc, offset, leng );
         }
     }
