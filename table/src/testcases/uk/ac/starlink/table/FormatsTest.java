@@ -453,17 +453,14 @@ public class FormatsTest extends TableCase {
                 default:
                     throw new AssertionError();
             }
-            if ( !( isSeq && ( reader instanceof ColFitsTableBuilder ||
-                               reader instanceof ColFitsPlusTableBuilder ) ) ) {
-                DataSource datsrc =
-                    isSeq ? (DataSource) new URLDataSource( loc.toURL() )
-                          : (DataSource) new FileDataSource( loc );
-                StarTable t2 =
-                    reader.makeStarTable( datsrc, true,
-                                          StoragePolicy.PREFER_MEMORY );;
-                checkStarTable( t2 );
-                assertTableEqualsMethod( t1, t2, equalMethod, isSeq );
-            }
+            DataSource datsrc =
+                isSeq ? (DataSource) new URLDataSource( loc.toURL() )
+                      : (DataSource) new FileDataSource( loc );
+            StarTable t2 =
+                reader.makeStarTable( datsrc, true,
+                                      StoragePolicy.PREFER_MEMORY );;
+            checkStarTable( t2 );
+            assertTableEqualsMethod( t1, t2, equalMethod, isSeq );
         }
     }
 
@@ -756,12 +753,19 @@ public class FormatsTest extends TableCase {
             }
         }
         long lrow = 0;
+        Object[] rrow = null;
         for ( RowSequence rseq = st.getRowSequence(); rseq.next(); ) {
+            if ( isRandom ) {
+                rrow = st.getRow( lrow );
+            }
+            Object[] row = rseq.getRow();
             for ( int icol = 0; icol < ncol; icol++ ) {
-                Object[] row = rseq.getRow();
                 Object cell = row[ icol ];
                 if ( isRandom ) {
                     assertScalarOrArrayEquals( cell, st.getCell( lrow, icol ) );
+                    for ( int ic = 0; ic < ncol; ic++ ) {
+                        assertScalarOrArrayEquals( cell, rrow[ icol ] );
+                    }
                 }
                 assertScalarOrArrayEquals( cell, rseq.getCell( icol ) );
                 if ( cell != null && cell.getClass().isArray() ) {
