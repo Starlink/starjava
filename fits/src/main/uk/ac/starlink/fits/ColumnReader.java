@@ -1,6 +1,5 @@
 package uk.ac.starlink.fits;
 
-import java.io.DataInput;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -8,7 +7,6 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import nom.tam.fits.FitsException;
-import nom.tam.util.RandomAccess;
 import uk.ac.starlink.table.Tables;
 
 /**
@@ -62,7 +60,7 @@ abstract class ColumnReader {
      * @return  an object read from the stream of type
      *          <tt>getContentClass</tt> (or <tt>null</tt>)
      */
-    abstract Object readValue( DataInput stream ) throws IOException;
+    abstract Object readValue( BasicInput stream ) throws IOException;
 
     /**
      * Returns the class which objects returned by <tt>readValue</tt>
@@ -116,8 +114,8 @@ abstract class ColumnReader {
      * @param   tdims  dimensions specified by TDIMS card, or null if none
      *                 given
      * @param   ttype  column name
-     * @param   heapStart  offset of heap into HDU data part, or -1 if no
-     *                     heap or no random access is available
+     * @param   heapStart   offset of heap into HDU data part, or -1 if no
+     *                      heap or no random access is available
      * @return  a reader suitable for reading this type of column
      */
     public static ColumnReader createColumnReader( String tform, double scale,
@@ -182,31 +180,25 @@ abstract class ColumnReader {
 
             /* If will be doing random access and know the start of the heap
              * we can cope with this. */
-            if ( heapStart > 0 ) {
+            if ( heapStart >= 0 ) {
                 char vtype = matchA.charAt( 0 );
                 final ArrayReader aReader =
                     createArrayReader( vtype, scale, zeroNum,
                                        hasBlank, blank, dims );
                 return new ColumnReader( aReader.getContentClass(),
                                          aReader.getShape(), 8 ) {
-                    Object readValue( DataInput stream ) throws IOException {
+                    Object readValue( BasicInput stream ) throws IOException {
                         int nel = stream.readInt();
-                        int offset = stream.readInt();
-                        if ( stream instanceof RandomAccess ) {
-                            if ( nel > 0 ) {
-                                RandomAccess rStream = (RandomAccess) stream;
-                                long point = rStream.getFilePointer();
-                                rStream.seek( heapStart + offset );
-                                Object array = aReader.readArray( stream, nel );
-                                rStream.seek( point );
-                                return array;
-                            }
-                            else {
-                                return aReader.readArray( stream, 0 );
-                            }
+                        int heapOffset = stream.readInt();
+                        if ( nel > 0 ) {
+                            long point = stream.getOffset();
+                            stream.seek( heapStart + heapOffset );
+                            Object array = aReader.readArray( stream, nel );
+                            stream.seek( point );
+                            return array;
                         }
                         else {
-                            return null;
+                            return aReader.readArray( stream, 0 );
                         }
                     }
                     int getElementSize() {
@@ -222,7 +214,7 @@ abstract class ColumnReader {
                                + "in sequential mode" );
                 final String value = "?";
                 return new ColumnReader( String.class, 8 ) {
-                    Object readValue( DataInput stream ) throws IOException {
+                    Object readValue( BasicInput stream ) throws IOException {
                         int nel = stream.readInt();
                         int offset = stream.readInt();
                         return nel > 0 ? value : "";
@@ -235,32 +227,26 @@ abstract class ColumnReader {
         }
 
         else if ( type == 'Q' ) {
-            if ( heapStart > 0 ) {
+            if ( heapStart >= 0 ) {
                 char vtype = matchA.charAt( 0 );
                 final ArrayReader aReader =
                     createArrayReader( vtype, scale, zeroNum,
                                        hasBlank, blank, dims );
                 return new ColumnReader( aReader.getContentClass(),
                                          aReader.getShape(), 16 ) {
-                    Object readValue( DataInput stream ) throws IOException {
+                    Object readValue( BasicInput stream ) throws IOException {
                         long lnel = stream.readLong();
-                        long offset = stream.readLong();
-                        if ( stream instanceof RandomAccess ) {
-                            int nel = Tables.checkedLongToInt( lnel );
-                            if ( nel > 0 ) {
-                                RandomAccess rStream = (RandomAccess) stream;
-                                long point = rStream.getFilePointer();
-                                rStream.seek( heapStart + offset );
-                                Object array = aReader.readArray( stream, nel );
-                                rStream.seek( point );
-                                return array;
-                            }
-                            else {
-                                return aReader.readArray( stream, 0 );
-                            }
+                        long heapOffset = stream.readLong();
+                        int nel = Tables.checkedLongToInt( lnel );
+                        if ( nel > 0 ) {
+                            long point = stream.getOffset();
+                            stream.seek( heapStart + heapOffset );
+                            Object array = aReader.readArray( stream, nel );
+                            stream.seek( point );
+                            return array;
                         }
                         else {
-                            return null;
+                            return aReader.readArray( stream, 0 );
                         }
                     }
                     int getElementSize() {
@@ -274,7 +260,7 @@ abstract class ColumnReader {
                                + "in sequential mode" );
                 final String value = "?";
                 return new ColumnReader( String.class, 16 ) {
-                    Object readValue( DataInput stream ) throws IOException {
+                    Object readValue( BasicInput stream ) throws IOException {
                         long nel = stream.readLong();
                         long offset = stream.readLong();
                         return nel > 0 ? value : "";
@@ -315,7 +301,7 @@ abstract class ColumnReader {
             return new ColumnReader( aReader.getContentClass(),
                                      aReader.getShape(),
                                      aReader.getByteCount( primCount ) ) {
-                Object readValue( DataInput stream ) throws IOException {
+                Object readValue( BasicInput stream ) throws IOException {
                     return aReader.readArray( stream, primCount );
                 }
                 int getElementSize() {
@@ -350,7 +336,7 @@ abstract class ColumnReader {
             /* Logical. */
             case 'L':
                 reader = new ColumnReader( Boolean.class, 1 ) {
-                    Object readValue( DataInput stream )
+                    Object readValue( BasicInput stream )
                             throws IOException {    
                         switch ( stream.readByte() ) {
                             case (byte) 'T':        
@@ -376,7 +362,7 @@ abstract class ColumnReader {
                                               && dZero < Short.MAX_VALUE - 256;
                 if ( dZero == -128.0 && scale == 1.0 ) {
                     reader = new ColumnReader( Byte.class, 1 ) {
-                        Object readValue( DataInput stream )
+                        Object readValue( BasicInput stream )
                                 throws IOException {
                             byte val = stream.readByte();
                             return ( hasBlank && val == (byte) blank )
@@ -389,7 +375,7 @@ abstract class ColumnReader {
                 else if ( shortable ) {
                     final short sZero = (short) lZero;
                     reader = new ColumnReader( Short.class, 1 ) {
-                        Object readValue( DataInput stream )
+                        Object readValue( BasicInput stream )
                                 throws IOException {
                             byte val = stream.readByte();
                             return ( hasBlank && val == (byte) blank )
@@ -402,7 +388,7 @@ abstract class ColumnReader {
                 }
                 else if ( isScaled ) {
                     reader = new ColumnReader( Float.class, 1 ) {
-                        Object readValue( DataInput stream )
+                        Object readValue( BasicInput stream )
                                 throws IOException {
                             byte val = stream.readByte();
                             return ( hasBlank && val == (byte) blank )
@@ -414,7 +400,7 @@ abstract class ColumnReader {
                 }
                 else {
                     reader = new ColumnReader( Short.class, 1 ) {
-                        Object readValue( DataInput stream )  
+                        Object readValue( BasicInput stream )  
                                 throws IOException {
                             byte val = stream.readByte();
                             return ( hasBlank && val == (byte) blank )
@@ -434,7 +420,7 @@ abstract class ColumnReader {
                 if ( intable ) {
                     final int iZero = (int) lZero;
                     reader = new ColumnReader( Integer.class, 2 ) {
-                        Object readValue( DataInput stream )
+                        Object readValue( BasicInput stream )
                                 throws IOException {
                             short val = stream.readShort();
                             return ( hasBlank && val == (short) blank )
@@ -445,7 +431,7 @@ abstract class ColumnReader {
                 }
                 else if ( isScaled ) {
                     reader = new ColumnReader( Float.class, 2 ) {
-                        Object readValue( DataInput stream )
+                        Object readValue( BasicInput stream )
                                 throws IOException {
                             short val = stream.readShort();
                             return ( hasBlank && val == (short) blank )
@@ -457,7 +443,7 @@ abstract class ColumnReader {
                 }
                 else {
                     reader = new ColumnReader( Short.class, 2 ) {
-                        Object readValue( DataInput stream )
+                        Object readValue( BasicInput stream )
                                 throws IOException {
                             short val = stream.readShort();
                             return ( hasBlank && val == (short) blank )
@@ -475,7 +461,7 @@ abstract class ColumnReader {
                                 && dZero < Long.MAX_VALUE - Integer.MAX_VALUE;
                 if ( longable ) {
                     reader = new ColumnReader( Long.class, 4 ) {
-                        Object readValue( DataInput stream )
+                        Object readValue( BasicInput stream )
                                 throws IOException {
                             long val = stream.readInt();
                             return ( hasBlank && val == (int) blank )
@@ -486,7 +472,7 @@ abstract class ColumnReader {
                 }
                 else if ( isScaled ) {
                     reader = new ColumnReader( Double.class, 4 ) {
-                        Object readValue( DataInput stream )
+                        Object readValue( BasicInput stream )
                                 throws IOException {
                             int val = stream.readInt();
                             return ( hasBlank && val == (int) blank )
@@ -497,7 +483,7 @@ abstract class ColumnReader {
                 }
                 else {
                     reader = new ColumnReader( Integer.class, 4 ) {
-                        Object readValue( DataInput stream )
+                        Object readValue( BasicInput stream )
                                 throws IOException {
                             int val = stream.readInt();
                             return ( hasBlank && val == (int) blank )
@@ -517,7 +503,7 @@ abstract class ColumnReader {
                     final LongRanger ranger =
                         new LongRanger( lMin, lMax, zeroNum, "null" );
                     reader = new ColumnReader( Long.class, 8 ) {
-                        Object readValue( DataInput stream )
+                        Object readValue( BasicInput stream )
                                 throws IOException {
                             long val = stream.readLong();
                             if ( hasBlank && val == (long) blank ) {
@@ -539,7 +525,7 @@ abstract class ColumnReader {
                     final LongRanger ranger =
                        new LongRanger( lMin, lMax, zeroNum, "null" );
                     reader = new ColumnReader( Long.class, 8 ) {
-                        Object readValue( DataInput stream )
+                        Object readValue( BasicInput stream )
                                 throws IOException {
                             long val = stream.readLong();
                             if ( hasBlank && val == (long) blank ) {
@@ -555,7 +541,7 @@ abstract class ColumnReader {
                 }
                 else if ( isScaled ) {
                     reader = new ColumnReader( Double.class, 8 ) {
-                        Object readValue( DataInput stream )
+                        Object readValue( BasicInput stream )
                                 throws IOException {
                             long val = stream.readLong();
                             return ( hasBlank && val == (long) blank )
@@ -566,7 +552,7 @@ abstract class ColumnReader {
                 }
                 else {
                     reader = new ColumnReader( Long.class, 8 ) {
-                        Object readValue( DataInput stream )
+                        Object readValue( BasicInput stream )
                                 throws IOException {
                             long val = stream.readLong();
                             return ( hasBlank && val == (long) blank )
@@ -580,7 +566,7 @@ abstract class ColumnReader {
             /* Character. */
             case 'A':
                 reader = new ColumnReader( Character.class, 1 ) {
-                    Object readValue( DataInput stream )
+                    Object readValue( BasicInput stream )
                             throws IOException {
                         char c = (char) ( stream.readByte() & 0xff );
                         return new Character( c );
@@ -592,7 +578,7 @@ abstract class ColumnReader {
             case 'E':
                 if ( isScaled ) {
                     reader = new ColumnReader( Float.class, 4 ) {
-                        Object readValue( DataInput stream )
+                        Object readValue( BasicInput stream )
                                 throws IOException {
                             float val = stream.readFloat();
                             return new Float( val * scale + dZero );
@@ -601,7 +587,7 @@ abstract class ColumnReader {
                 }
                 else {
                     reader = new ColumnReader( Float.class, 4 ) {
-                        Object readValue( DataInput stream )
+                        Object readValue( BasicInput stream )
                                 throws IOException {
                             float val = stream.readFloat();
                             return new Float( val );
@@ -614,7 +600,7 @@ abstract class ColumnReader {
             case 'D':
                 if ( isScaled ) {
                     reader = new ColumnReader( Double.class, 8 ) {
-                        Object readValue( DataInput stream )
+                        Object readValue( BasicInput stream )
                                 throws IOException {
                             double val = stream.readDouble();
                             return new Double( val * scale + dZero );
@@ -623,7 +609,7 @@ abstract class ColumnReader {
                 }
                 else {
                     reader = new ColumnReader( Double.class, 8 ) {
-                        Object readValue( DataInput stream )
+                        Object readValue( BasicInput stream )
                                 throws IOException {
                             double val = stream.readDouble();
                             return new Double( val );
@@ -643,7 +629,7 @@ abstract class ColumnReader {
                 return new ColumnReader( complexReader.getContentClass(),
                                          complexDims,
                                          complexReader.getByteCount( 2 ) ) {
-                    Object readValue( DataInput stream ) throws IOException {
+                    Object readValue( BasicInput stream ) throws IOException {
                         return complexReader.readArray( stream, 2 );
                     }
                     int getElementSize() {
@@ -685,7 +671,7 @@ abstract class ColumnReader {
             /* Logical. */
             case 'L':
                 reader = new ArrayReader( boolean[].class, dims, 1 ) {
-                    Object readArray( DataInput stream, int count )
+                    Object readArray( BasicInput stream, int count )
                             throws IOException {
                         boolean[] value = new boolean[ count ];
                         for ( int i = 0; i < count; i++ ) {
@@ -699,7 +685,7 @@ abstract class ColumnReader {
             /* Bits. */
             case 'X':
                 reader = new ArrayReader( boolean[].class, dims, -1 ) {
-                    Object readArray( DataInput stream, int count )
+                    Object readArray( BasicInput stream, int count )
                             throws IOException {
                         boolean[] value = new boolean[ count ];
                         int ibit = 0;
@@ -733,7 +719,7 @@ abstract class ColumnReader {
                                               && dZero < Short.MAX_VALUE - 256;
                 if ( dZero == -128.0 && scale == 1.0 ) {
                     reader = new ArrayReader( byte[].class, dims, 1 ) {
-                        Object readArray( DataInput stream, int count )
+                        Object readArray( BasicInput stream, int count )
                                 throws IOException {
                             byte[] value = new byte[ count ];
                             for ( int i = 0; i < count; i++ ) {
@@ -747,7 +733,7 @@ abstract class ColumnReader {
                 else if ( shortable ) {
                     final short sZero = (short) lZero;
                     reader = new ArrayReader( short[].class, dims, 1 ) {
-                        Object readArray( DataInput stream, int count )
+                        Object readArray( BasicInput stream, int count )
                                 throws IOException {
                             short[] value = new short[ count ];
                             for ( int i = 0; i < count; i++ ) {
@@ -760,7 +746,7 @@ abstract class ColumnReader {
                 }
                 else if ( isScaled ) {
                     reader = new ArrayReader( float[].class, dims, 1 ) {
-                        Object readArray( DataInput stream, int count )
+                        Object readArray( BasicInput stream, int count )
                                 throws IOException {
                             float[] value = new float[ count ];
                             for ( int i = 0; i < count; i++ ) {
@@ -777,7 +763,7 @@ abstract class ColumnReader {
                 }
                 else {
                     reader = new ArrayReader( short[].class, dims, 1 ) {
-                        Object readArray( DataInput stream, int count )
+                        Object readArray( BasicInput stream, int count )
                                 throws IOException {
                             short[] value = new short[ count ];
                             for ( int i = 0; i < count; i++ ) {
@@ -798,7 +784,7 @@ abstract class ColumnReader {
                 if ( intable ) {
                     final int iZero = (int) lZero;
                     reader = new ArrayReader( int[].class, dims, 2 ) {
-                        Object readArray( DataInput stream, int count )
+                        Object readArray( BasicInput stream, int count )
                                 throws IOException {
                             int[] value = new int[ count ];
                             for ( int i = 0; i < count; i++ ) {
@@ -811,7 +797,7 @@ abstract class ColumnReader {
                 }
                 else if ( isScaled ) {
                     reader = new ArrayReader( float[].class, dims, 2 ) {
-                        Object readArray( DataInput stream, int count )
+                        Object readArray( BasicInput stream, int count )
                                 throws IOException {
                             float[] value = new float[ count ];
                             for ( int i = 0; i < count; i++ ) {
@@ -827,7 +813,7 @@ abstract class ColumnReader {
                 }
                 else {
                     reader = new ArrayReader( short[].class, dims, 2 ) {
-                        Object readArray( DataInput stream, int count )
+                        Object readArray( BasicInput stream, int count )
                                 throws IOException {
                             short[] value = new short[ count ];
                             for ( int i = 0; i < count; i++ ) {
@@ -847,7 +833,7 @@ abstract class ColumnReader {
                                 && dZero < Long.MAX_VALUE - Integer.MAX_VALUE;
                 if ( longable ) {
                     reader = new ArrayReader( long[].class, dims, 4 ) {
-                        Object readArray( DataInput stream, int count )
+                        Object readArray( BasicInput stream, int count )
                                 throws IOException {
                             long[] value = new long[ count ];
                             for ( int i = 0; i < count; i++ ) {
@@ -860,7 +846,7 @@ abstract class ColumnReader {
                 }
                 else if ( isScaled ) {
                     reader = new ArrayReader( double[].class, dims, 4 ) {
-                        Object readArray( DataInput stream, int count )
+                        Object readArray( BasicInput stream, int count )
                                 throws IOException {
                             double[] value = new double[ count ];
                             for ( int i = 0; i < count; i++ ) {
@@ -876,7 +862,7 @@ abstract class ColumnReader {
                 }
                 else {
                     reader = new ArrayReader( int[].class, dims, 4 ) {
-                        Object readArray( DataInput stream, int count )
+                        Object readArray( BasicInput stream, int count )
                                 throws IOException {
                             int[] value = new int[ count ];
                             for ( int i = 0; i < count; i++ ) {
@@ -900,7 +886,7 @@ abstract class ColumnReader {
                         new LongRanger( lMin, lMax, zeroNum,
                                         Long.toString( Long.MIN_VALUE ) );
                     reader = new ArrayReader( long[].class, dims, 8 ) {
-                        Object readArray( DataInput stream, int count )
+                        Object readArray( BasicInput stream, int count )
                                 throws IOException {
                             long[] value = new long[ count ];
                             for ( int i = 0; i < count; i++ ) {
@@ -922,7 +908,7 @@ abstract class ColumnReader {
                         new LongRanger( lMin, lMax, zeroNum,
                                         Long.toString( Long.MIN_VALUE ) );
                     reader = new ArrayReader( long[].class, dims, 8 ) {
-                        Object readArray( DataInput stream, int count )
+                        Object readArray( BasicInput stream, int count )
                                 throws IOException {
                             long[] value = new long[ count ];
                             for ( int i = 0; i < count; i++ ) {
@@ -937,7 +923,7 @@ abstract class ColumnReader {
                 }
                 else if ( isScaled ) {
                     reader = new ArrayReader( double[].class, dims, 8 ) {
-                        Object readArray( DataInput stream, int count )
+                        Object readArray( BasicInput stream, int count )
                                 throws IOException {
                             double[] value = new double[ count ];
                             for ( int i = 0; i < count; i++ ) {
@@ -953,7 +939,7 @@ abstract class ColumnReader {
                 }
                 else {
                     reader = new ArrayReader( long[].class, dims, 8 ) {
-                        Object readArray( DataInput stream, int count )
+                        Object readArray( BasicInput stream, int count )
                                 throws IOException {
                             long[] value = new long[ count ];
                             for ( int i = 0; i < count; i++ ) {
@@ -971,7 +957,7 @@ abstract class ColumnReader {
             case 'A':
                 if ( dims.length == 1 ) {
                     reader = new ArrayReader( String.class, null, 1 ) {
-                        Object readArray( DataInput stream, int count )
+                        Object readArray( BasicInput stream, int count )
                                 throws IOException {
                             return readString( stream, count );
                         }
@@ -990,7 +976,7 @@ abstract class ColumnReader {
                     int[] shape = new int[ dims.length - 1 ];
                     System.arraycopy( dims, 1, shape, 0, dims.length - 1 );
                     reader = new ArrayReader( String[].class, shape, 1 ) {
-                        Object readArray( DataInput stream, int count )
+                        Object readArray( BasicInput stream, int count )
                                 throws IOException {
                             int nString =
                                 ( count + stringLength - 1 ) / stringLength;
@@ -1049,7 +1035,7 @@ abstract class ColumnReader {
         final boolean isScaled = scale != 1.0 || zero != 0.0;
         if ( isScaled ) {
             return new ArrayReader( float[].class, shape, 4 ) {
-                Object readArray( DataInput stream, int count ) 
+                Object readArray( BasicInput stream, int count ) 
                         throws IOException {
                     float[] value = new float[ count ];
                     for ( int i = 0; i < count; i++ ) {
@@ -1062,7 +1048,7 @@ abstract class ColumnReader {
         }
         else {
             return new ArrayReader( float[].class, shape, 4 ) {
-                Object readArray( DataInput stream, int count )
+                Object readArray( BasicInput stream, int count )
                         throws IOException {
                     float[] value = new float[ count ];
                     for ( int i = 0; i < count; i++ ) {
@@ -1089,7 +1075,7 @@ abstract class ColumnReader {
         final boolean isScaled = scale != 1.0 || zero != 0.0;
         if ( isScaled ) {
             return new ArrayReader( double[].class, shape, 8 ) {
-                Object readArray( DataInput stream, int count )
+                Object readArray( BasicInput stream, int count )
                         throws IOException {
                     double[] value = new double[ count ];
                     for ( int i = 0; i < count; i++ ) {
@@ -1102,7 +1088,7 @@ abstract class ColumnReader {
         }
         else {
             return new ArrayReader( double[].class, shape, 8 ) {
-                Object readArray( DataInput stream, int count )
+                Object readArray( BasicInput stream, int count )
                         throws IOException {
                     double[] value = new double[ count ];
                     for ( int i = 0; i < count; i++ ) {
@@ -1124,7 +1110,7 @@ abstract class ColumnReader {
      * @param  count  number of bytes to read from the stream
      * @return  string read
      */
-    private static String readString( DataInput stream, int count )
+    private static String readString( BasicInput stream, int count )
             throws IOException {
         char[] letters = new char[ count ];
         int last = -1;
@@ -1275,7 +1261,7 @@ abstract class ColumnReader {
          * @param  stream   stream to read from
          * @param  count   number of items to read
          */
-        abstract Object readArray( DataInput stream, int count )
+        abstract Object readArray( BasicInput stream, int count )
                 throws IOException;
 
         /** 

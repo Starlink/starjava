@@ -12,11 +12,11 @@ import nom.tam.fits.TableData;
 import nom.tam.fits.TableHDU;
 import nom.tam.fits.Header;
 import nom.tam.util.ArrayDataInput;
-import nom.tam.util.RandomAccess;
 import uk.ac.starlink.fits.BintableStarTable;
 import uk.ac.starlink.fits.FitsConstants;
 import uk.ac.starlink.fits.FitsStarTable;
 import uk.ac.starlink.fits.FitsTableBuilder;
+import uk.ac.starlink.fits.InputFactory;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.IOUtils;
@@ -189,19 +189,10 @@ public class TableHDUDataNode extends HDUDataNode {
           
         /* If it's a BINTABLE HDU, make a BintableStarTable out of it. */ 
         if ( "BINTABLE".equals( xtension ) ) {
-            if ( strm instanceof RandomAccess ) {
-                return BintableStarTable
-                      .makeRandomStarTable( hdr, (RandomAccess) strm );
-            }
-            else {
-                return BintableStarTable
-                      .makeSequentialStarTable( hdr, datsrc, datpos );
-            }
-
-            // BinaryTable tdata = new BinaryTable( hdr );
-            // tdata.read( strm );
-            // TableHDU thdu = new BinaryTableHDU( hdr, (Data) tdata );
-            // return new FitsStarTable( thdu );
+            IOUtils.skipBytes( strm, datasize );
+            InputFactory inFact =
+                InputFactory.createFactory( datsrc, datpos, datasize );
+            return BintableStarTable.createTable( hdr, inFact );
         }
 
         /* If it's a TABLE HDU (ASCII table), make a FitsStarTable. */

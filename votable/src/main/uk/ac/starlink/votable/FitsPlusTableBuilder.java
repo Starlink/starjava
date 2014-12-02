@@ -12,14 +12,15 @@ import nom.tam.fits.Header;
 import nom.tam.fits.HeaderCard;
 import nom.tam.util.ArrayDataInput;
 import nom.tam.util.BufferedDataInputStream;
-import nom.tam.util.RandomAccess;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+import uk.ac.starlink.fits.BasicInput;
 import uk.ac.starlink.fits.BintableStarTable;
 import uk.ac.starlink.fits.FitsConstants;
 import uk.ac.starlink.fits.FitsTableBuilder;
+import uk.ac.starlink.fits.InputFactory;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.MultiTableBuilder;
 import uk.ac.starlink.table.QueueTableSequence;
@@ -30,7 +31,6 @@ import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.TableSequence;
 import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.table.Tables;
-import uk.ac.starlink.util.DOMUtils;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.IOUtils;
 
@@ -174,7 +174,8 @@ public class FitsPlusTableBuilder implements TableBuilder, MultiTableBuilder {
              * sink. */
             Header hdr = new Header();
             FitsConstants.readHeader( hdr, strm );
-            BintableStarTable.streamStarTable( hdr, strm, wsink );
+            BasicInput input = InputFactory.createSequentialInput( strm );
+            BintableStarTable.streamStarTable( hdr, input, wsink );
         }
         catch ( FitsException e ) {
             throw new TableFormatException( e.getMessage(), e );
@@ -519,20 +520,6 @@ public class FitsPlusTableBuilder implements TableBuilder, MultiTableBuilder {
             /* Read each table HDU in turn. */
             for ( int itab = 0; itab < nTable; itab++ ) {
 
-                /* Make sure we have a usable stream positioned at the start
-                 * of the right HDU. */
-                if ( in == null ) {
-                    in = FitsConstants.getInputStreamStart( datsrc_ );
-                    if ( pos > 0 ) {
-                        if ( in instanceof RandomAccess ) {
-                            ((RandomAccess) in).seek( pos );
-                        }
-                        else {
-                            IOUtils.skipBytes( in, pos );
-                        }
-                    }
-                }
-
                 /* Read the HDU header. */
                 Header hdr = new Header();
                 int headsize = FitsConstants.readHeader( hdr, in );
@@ -544,23 +531,19 @@ public class FitsPlusTableBuilder implements TableBuilder, MultiTableBuilder {
                 }
 
                 /* Read the BINTABLE. */
-                final StarTable dataTable;
-                if ( in instanceof RandomAccess ) {
-                    dataTable = BintableStarTable
-                               .makeRandomStarTable( hdr, (RandomAccess) in );
-                }
-                else {
-                    dataTable = BintableStarTable
-                               .makeSequentialStarTable( hdr, datsrc_, datpos );
-                }
-                in = null;
+                InputFactory inFact =
+                    InputFactory.createFactory( datsrc_, datpos, datasize );
+                StarTable dataTable =
+                    BintableStarTable.createTable( hdr, inFact );
 
                 /* Combine the data from the BINTABLE with the header from
                  * the VOTable to create an output table. */
                 tqueue_.addTable( createFitsPlusTable( tabEls[ itab ],
                                                        dataTable ) );
+                IOUtils.skipBytes( in, datasize );
                 pos += headsize + datasize;
             }
+            in.close();
         }
     }
 }

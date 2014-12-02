@@ -20,7 +20,7 @@ public class MultiCopyTest extends TableTestCase {
 
     public MultiCopyTest( String name ) {
         super( name );
-        Logger.getLogger( "uk.ac.starlink.table" ).setLevel( Level.WARNING );
+        Logger.getLogger( "uk.ac.starlink" ).setLevel( Level.WARNING );
     }
 
     public void testMulti() throws Exception {
