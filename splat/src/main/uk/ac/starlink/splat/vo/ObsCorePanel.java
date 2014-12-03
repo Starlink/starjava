@@ -21,6 +21,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Logger;
 
@@ -187,7 +188,7 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
     
     private URL registry = null; 
 
-    private String regquery = "SELECT access_url, short_name, res_description, cap_type " /*intf_role, role_name, email */ +" FROM rr.interface NATURAL JOIN rr.resource NATURAL JOIN rr.capability NATURAL JOIN rr.res_detail " +
+    private String regquery = "SELECT access_url, short_name, res_description, cap_type " /*+", intf_role, role_name, email" */ +" FROM rr.interface NATURAL JOIN rr.resource NATURAL JOIN rr.capability NATURAL JOIN rr.res_detail " +
                                /* " NATURAL JOIN rr.res_role*/ " WHERE standard_id='ivo://ivoa.net/std/tap' " +
         ///    "AND intf_role='std'  "+
             "AND detail_xpath='/capability/dataModel/@ivo-id' "+
@@ -398,7 +399,7 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
                  if (shortname == null)
                      shortname = s;
                
-                 tq = new TapQuery( new URL(s), query, null);//, null, 500 );
+                 tq =  new TapQuery( new URL(s), query,  null );
             } catch (Exception e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
@@ -504,13 +505,13 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
     private StarTable queryRegistry() {
         TapQuery tq=null;
         StarTableFactory tfact = new StarTableFactory();
-       // try {
-            tq = new TapQuery( registry, regquery, null);//, null, 500 );
-       // } catch (IOException e) {
+        //try {
+            tq = new TapQuery( registry, regquery,  null );
+        //} catch (IOException e) {
             // TODO Auto-generated catch block
          //   e.printStackTrace();
-           // return null;
-       // }
+         //   return null;
+        //}
 
         StarTable table = null; 
         try {
@@ -602,13 +603,13 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
     private StarTable queryObscoreRegistry() {
         TapQuery tq=null;
         StarTableFactory tfact = new StarTableFactory();
-       // try {
-            tq = new TapQuery( registry, regquery, null);//, null, 500 );
-       // } catch (IOException e) {
+        //try {
+            tq = new TapQuery( registry, regquery,  null );
+        //} catch (IOException e) {
             // TODO Auto-generated catch block
          //   e.printStackTrace();
-           // return null;
-        //}
+          //  return null;
+       // }
 
         StarTable table = null;
         try {
@@ -1399,12 +1400,31 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
                 utype = colInfo.getUtype();
                
 
-                //  Version 1.0 utypes. XXX not sure if axes names
-                //  are in columns or are really parameters. Assume
-                //  these work like the old-style scheme and appear in
-                //  the columns.
-              
-                if ( utype != null ) {
+                if (colName != null) { 
+                    colName = colName.toLowerCase();
+                    if ( colName.endsWith( "access_url" ) ) {
+                        linkcol = k;
+                    }
+                    else if ( colName.endsWith( "access_format" ) ) {
+                        typecol = k;
+                    }
+                    else if ( colName.endsWith( "target_name" ) ) {
+                        namecol = k;
+                    }
+                    else if ( colName.endsWith( "obs_ucd" ) ) {
+                        ucdcol = k;
+                    }           
+                    else if ( colName.endsWith( "obs_publisher_did" ) ) {
+                        pubdidcol = k;
+                    }
+                    else if ( colName.endsWith( "em_min" ) ) {
+                        specstartcol = k;
+                    }
+                    else if ( colName.endsWith( "em_max" ) ) {
+                        specstopcol = k;
+                    }
+                } 
+                else if ( utype != null ) {
                     utype = utype.toLowerCase();
                     if ( utype.endsWith( "access.reference" ) ) {
                         linkcol = k;
@@ -1437,30 +1457,6 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
                         specstartcol = k;
                     }
                     else if ( utype.endsWith( "char.spectralAxis.coverage.bounds.stop" ) ) {
-                        specstopcol = k;
-                    }
-                }
-                else if (colName != null) {
-                    colName = colName.toLowerCase();
-                    if ( colName.endsWith( "access_url" ) ) {
-                        linkcol = k;
-                    }
-                    else if ( colName.endsWith( "access_format" ) ) {
-                        typecol = k;
-                    }
-                    else if ( colName.endsWith( "target_name" ) ) {
-                        namecol = k;
-                    }
-                    else if ( colName.endsWith( "obs_ucd" ) ) {
-                        ucdcol = k;
-                    }           
-                    else if ( colName.endsWith( "obs_publisher_did" ) ) {
-                        pubdidcol = k;
-                    }
-                    else if ( colName.endsWith( "em_min" ) ) {
-                        specstartcol = k;
-                    }
-                    else if ( colName.endsWith( "em_max" ) ) {
                         specstopcol = k;
                     }
                 }
