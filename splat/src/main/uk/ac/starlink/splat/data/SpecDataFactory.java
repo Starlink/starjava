@@ -106,6 +106,9 @@ public class SpecDataFactory
     // Enumeration of the "types" of spectrum that can be created.
     //
 
+    /** This type should be given to spectra with a defined type which is not supported */
+    public final static int NOT_SUPPORTED = -1;
+    
     /** The type should be determined only using file name rules */
     public final static int DEFAULT = 0;
 
@@ -143,6 +146,7 @@ public class SpecDataFactory
      * Short descriptions of each type.
      */
     public final static String[] shortNames = {
+        "notsupported",
         "default",
         "fits",
         "hds",
@@ -158,6 +162,7 @@ public class SpecDataFactory
      * Long descriptions of each type.
      */
     public final static String[] longNames = {
+        "Not supported format",
         "File extension rule",
         "FITS file (spectrum/table)",
         "HDS container file",
@@ -171,6 +176,7 @@ public class SpecDataFactory
      * File extensions for each type.
      */
     public final static String[][] extensions = {
+        {""}, //
         {"*"},
         {"fits", "fit"},
         {"sdf"},
@@ -371,6 +377,9 @@ public class SpecDataFactory
                 	//impl = new LineIDTXTSpecDataImpl( specspec );
                 }
                     break;
+              //  case NOT_SUPPORTED: {
+             //       throw new SplatException( "Format not supported by SPLAT in Spectrum '" + specspec );   
+             //   }
                 default: {
                     throw new SplatException( "Spectrum '" + specspec + 
                                               "' supplied with an unknown "+
@@ -451,7 +460,8 @@ public class SpecDataFactory
             isRemote = namer.isRemote();
      
             specurl = namer.getURL();
-            //  Remote HDX/VOTable-like files should be downloaded by the
+            //  Remote HDX/VOTable-like files should be downloaded by thile
+            
             //  library. A local copy loses the basename context.
             if ( isRemote && namer.getFormat().equals( "XML" ) ) {
                 //impl = makeXMLSpecDataImpl( specspec, true, specurl );
@@ -730,35 +740,31 @@ public class SpecDataFactory
             // (may be primary).
             String exttype = impl.getProperty( "XTENSION" ).trim().toUpperCase();
             int dims[] = impl.getDims();
+            DataSource datsrc;
+            StarTable starTable;
+            long rowCount = 0;
+            
             if ( exttype.equals( "TABLE" ) || exttype.equals( "BINTABLE" ) ||
-                 dims == null || dims[0] == 0 ) {
+                    dims == null || dims[0] == 0 ) {
                 try {
-                    // skip first HDU???
-                    DataSource datsrc = new FileDataSource( specspec );
-                    StarTable starTable = new FitsTableBuilder().makeStarTable( datsrc, true, storagePolicy );
-                    long rowCount = starTable.getRowCount();
+                    datsrc = new FileDataSource( specspec );
+                    starTable = new FitsTableBuilder().makeStarTable( datsrc, true, storagePolicy );
+                    rowCount = starTable.getRowCount();
                     if ( rowCount == 0 )
                         throw new Exception( "The TABLE is empty");
-
-                    if (starTable.getName().equals("SINGLE DISH") /*&& i==1*/) { 
+                    
+                    if (starTable.getName().equals("SINGLE DISH") /*&& i==1*/) { // SDFITS format
                         if ( i == 1) {// skip first header
                             String url = datsrc.getURL().toString();
                             Header header = ((FITSSpecDataImpl)impl).getFitsHeaders();
-
+                            
                             for (int row=0;  row<rowCount; row++) {  // SDFITS: each row is a spectrum
                                 impl = new SDFitsTableSpecDataImpl( starTable, url, header, row );
                                 /* add only if data array size is not 0 */
 
-                                if (dims == null || (dims !=null && dims[0] != 0))
-                                    specDataImpls.add(impl);
-                                else
-                                    logger.info(String.format("Ignoring row #%d in '%s' (data array size 0)", row, impl.getFullName()));
-
-                            }
-                        }
-
-                    } else {
-                        
+                            } //for 
+                        }// if i==1
+                    } else { 
                         impl = new TableSpecDataImpl( starTable, specspec, datsrc.getURL().toString(),
                                 ((FITSSpecDataImpl)impl).getFitsHeaders());
                         /* add only if data array size is not 0 
@@ -766,11 +772,11 @@ public class SpecDataFactory
                          * found HDUs so any relevant, non-zero HDUs
                          * will be treated correctly)
                          */
-                        if (dims == null || (dims !=null && dims[0] != 0))
-                            specDataImpls.add(impl);
-                        else
-                            logger.info(String.format("Ignoring HDU #%d in '%s' (data array size 0)", i, impl.getFullName()));
-                   }
+            //            if (dims == null || (dims !=null && dims[0] != 0))
+              //              specDataImpls.add(impl);
+                //        else
+                  //          logger.info(String.format("Ignoring HDU #%d in '%s' (data array size 0)", i, impl.getFullName()));
+                   } // not SDFITS
                 }
                 catch (SEDSplatException se) {
                     se.setType(FITS);
@@ -785,9 +791,23 @@ public class SpecDataFactory
                     }
                     else throw new SplatException( "Failed to open FITS table", e );
                 }
-            }
+            } 
+            /*
+            if (exttype.isEmpty() && (dims != null && dims[0]>0)) {
+                impl = new TableSpecDataImpl( starTable, specspec, datsrc.getURL().toString(),
+                        ((FITSSpecDataImpl)impl).getFitsHeaders());
+                /* add only if data array size is not 0 
+                 * (we can do this since we loop over all
+                 * found HDUs so any relevant, non-zero HDUs
+                 * will be treated correctly)
+                 */
             
-    	}
+                if (dims == null || (dims !=null && dims[0] != 0))
+                    specDataImpls.add(impl);
+                else
+                    logger.info(String.format("Ignoring HDU #%d in '%s' (data array size 0)", i, impl.getFullName()));                 
+            
+    	} // for 
         
         return specDataImpls;
     }
@@ -1887,10 +1907,8 @@ public class SpecDataFactory
                   simpleType.equals( "votable" ) ) {
             stype = SpecDataFactory.TABLE;
 
-            //  XXX this used to be SpecDataFactory.SED with some note about
-            //  the SDSS service requiring it. Don't see that service anymore
-            //  so go back to the standard behaviour.
-        }
+        } else if (!simpleType.isEmpty())
+            stype = SpecDataFactory.NOT_SUPPORTED;
         return stype;
     }
 
