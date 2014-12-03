@@ -196,7 +196,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
      */
     protected GridBagConstraints gbcentre;
 
-
     /**
      * Servers panel
      * @uml.property  name="leftPanel"
@@ -588,7 +587,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
     {
        
         JPanel contentPane = (JPanel) getContentPane();
-        
       
         contentPane.setPreferredSize(new Dimension(800,720));
         contentPane.setMinimumSize(new Dimension(600,400));
@@ -1002,7 +1000,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                 "(e.g 2008-10-15T20:48Z)" );
         
         //
-        
         // format and calibration options:
         JPanel calibOptions = new JPanel(new GridLayout(3,2));
    //     calibOptions.setPreferredSize(new Dimension(100,200));
@@ -1529,7 +1526,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
 
         }//while
 
-
         // Now actually do the queries, these are performed in a separate
         // Thread so we avoid locking the interface.
         if ( queryList.size() > 0 ) {
@@ -1643,7 +1639,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                 logger.info( "Query string " + queryURL.toString() );
                 //queryURL = new URL(newURL);
            // }
-            
+
         }   
         catch ( MalformedURLException mue ) {
             progressPanel.logMessage( mue.getMessage() );
@@ -1764,8 +1760,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             progressPanel.logMessage( "Completed download" );
         }
 
-} //runProcessQUery
-
+    } //runProcessQUery
  
     /**
      * Display the results of the queries to the SSA servers. The results can
@@ -1821,7 +1816,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                     logger.info( "Malformed base URL for " + baseurl );
                 } 
             }
-           
             
         }
         else if ( next instanceof StarTable) {
@@ -1847,35 +1841,21 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                 scrollPane = new JScrollPane( table );
               //  scrollPane.setPreferredSize(new Dimension(600,400));
                 
-                
-                
                 if (dataLinkParams != null) { // if datalink services are present, create a frame
                     
                     if ( dataLinkFrame == null ) {
-                       //  getDataFrame=null;
                          dataLinkFrame = new DataLinkQueryFrame();
-                        // getDataFrame.setBandParams(lowerBandField.getText(), upperBandField.getText());
-                        
                     } 
                   
                     dataLinkFrame.addServer(shortName, dataLinkParams);  // associate this datalink service information to the current server
-                    /*
-                    getDataButton.setEnabled(true);
-                    getDataButton.setVisible(true);
-                    getDataButton.setForeground(Color.GRAY);
-                    */
                     dataLinkButton.setEnabled(true);
                     dataLinkButton.setVisible(true);
                     dataLinkButton.setForeground(Color.GRAY);
                     resultsPane.addTab( shortName, cutImage, scrollPane );
                 }
-                else if (getDataTable != null) {
-                    
+                else if (getDataTable != null) { // if no dataLink services present, check if there are getData services
                     if ( getDataFrame == null ) {
-                       //  getDataFrame=null;
                          getDataFrame = new GetDataQueryFrame();
-                        // getDataFrame.setBandParams(lowerBandField.getText(), upperBandField.getText());
-                        
                     } 
                   
                     getDataFrame.addService(shortName, getDataTable);                    
@@ -1902,7 +1882,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         }
     }
 
-  
        
     /**
      * Deselect all spectra in the visible table, or deselect all tables.
@@ -1944,7 +1923,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         //  names etc.
         ArrayList<Props> specList = new ArrayList<Props>();
      
-       
         
         if ( table == null ) { 
             
@@ -2011,7 +1989,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             int row )
     {
         int[] selection = null;
-        
       
         HashMap< String, String > getDataParam = null;
         
@@ -2656,6 +2633,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
      */
     protected void closeWindowEvent()
     {
+       
         Utilities.saveFrameLocation( this, prefs, "SSAQueryBrowser" );
         this.dispose();
     }
@@ -3073,7 +3051,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
   /*
    *   private void deactivateGetDataSupport() {
   
-        
         getDataEnabled=false;
         getDataButton.setForeground(Color.GRAY);
         int nrTabs = resultsPane.getTabCount();
