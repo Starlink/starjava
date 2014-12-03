@@ -54,7 +54,7 @@ public class DataLinkParams {
     /**
      * Constructs the DataLink Parameters from an URL string  containing a
      *  VOTable with DataLink information
-     *  The VOTABLE must contain only Datalink info! ????? or?
+     *  The VOTABLE must contain only Datalink info! ????? 
      * @throws IOException 
      */
     public DataLinkParams( String dataLinksrc) throws IOException {
@@ -74,24 +74,27 @@ public class DataLinkParams {
                         StoragePolicy.getDefaultPolicy() );
       
         int ncol = starTable.getColumnCount();
+        long nrow = starTable.getRowCount();
+        String [] columnNames = new String[ncol];
 
-        for( int k = 0; k < ncol; k++ ) {
-            ColumnInfo colInfo = starTable.getColumnInfo( k );
-
-            //   String utype = colInfo.getUtype();
-            String name = colInfo.getName();
-            if ( name != null && starTable.getCell(0, k)!= null) {
-                 
-                thisService.addParam(name, (String) starTable.getCell(0, k).toString());
+        int semanticsColumn = -1; // semantics
+        
+        for ( int i = 0; i < columnNames.length; i++ ) {
+            ColumnInfo colInfo = starTable.getColumnInfo( i );
+            columnNames[i] = colInfo.getName().replaceAll( "\\s", "_" );
+            if (columnNames[i].equals("semantics") )
+                semanticsColumn = i;
+        }
+        
+        for( int j = 0; j < nrow; j++ ) {
+            String semantics = (String) starTable.getCell(j, semanticsColumn).toString();
+            if ( semantics.equalsIgnoreCase("#this") || semantics.equalsIgnoreCase("#self")) { // at the moment only the #self/#this is being retrieved
+                for (int k=0;k< ncol; k++) {
+                    if ( columnNames[k] != null && starTable.getCell(j, k)!= null) {
+                        thisService.addParam(columnNames[k], (String) starTable.getCell(j, k).toString());
+                    }
+                }
             }
-            //  if ( utype != null ) {
-            //     utype = utype.toLowerCase();
-            //     if ( utype.endsWith( "datalink.accessurl" ) ) {
-            //        thisService.addParam("accessURL", (String) starTable.getCell(0, k));
-            //     }
-            //     if ( utype.endsWith( "datalink.contenttype" ) ) {
-            //         thisService.addParam("contentType", (String) starTable.getCell(0, k));
-            // }
         }
         service.add(thisService);
     }
@@ -135,7 +138,8 @@ public class DataLinkParams {
             VOElement gel =  grpels[i];
             String name = gel.getAttribute("name");
            
-            if (name.equalsIgnoreCase("input")) { // InputParams
+            if (name.equalsIgnoreCase("input")||name.equalsIgnoreCase("inputparams")) { // InputParams
+                // TODO 2015 remove inputparams, accept only input
                 grpel = gel;
             }
             i++;
@@ -267,7 +271,10 @@ public class DataLinkParams {
     
     public String  getQueryFormat(int queryIndex) {   
         if (queryIndex >= 0 && queryIndex < getServiceCount()) {
-            return service.get(queryIndex).getQueryParam("FORMAT");
+            String format = service.get(queryIndex).getQueryParam("FORMAT");
+            if (format == null)
+               format = service.get(queryIndex).getQueryParam("content_type");
+            return format;
         }
         else return null;
     }
