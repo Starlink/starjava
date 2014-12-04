@@ -9,12 +9,12 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 import uk.ac.starlink.table.ArrayColumn;
 import uk.ac.starlink.table.ColumnStarTable;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.ttools.plot2.task.PlotDisplay;
 
 /**
  * Example programmatic use of stilts plot2 classes.
@@ -78,7 +78,7 @@ public class SinePlot {
         boolean dataWillChange = updateMillis >= 0;
 
         /* This does the work of turning the table into a plot. */
-        final JComponent plotComp =
+        final PlotDisplay plotComp =
             planePlotter_.createPlotComponent( table_, dataWillChange );
 
         /* If we are doing animation, set up a timer to change the table
@@ -139,7 +139,8 @@ public class SinePlot {
          * @param   dataMayChange  true if the table data may change during
          *                         the lifetime of the plot
          */
-        JComponent createPlotComponent( StarTable table, boolean dataMayChange )
+        PlotDisplay createPlotComponent( StarTable table,
+                                         boolean dataMayChange )
             throws Exception;
     }
 
@@ -208,7 +209,7 @@ public class SinePlot {
                                        Level.INFO,
                                        Level.CONFIG }[ verbLevel ] );
 
-        /* Prepare an object which turns a table into a JComponent.
+        /* Prepare an object which turns a table into a PlotDisplay component.
          * There are two choices, one which uses the MapEnvironment
          * and the other which uses the low-level API.  Both produce
          * just the same plot, it's a matter of taste which API you
