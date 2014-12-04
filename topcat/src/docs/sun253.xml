@@ -1052,8 +1052,9 @@ with (<code>colfits-plus</code>) and without (<code>colfits-basic</code>)
 metadata stored as a VOTable byte array in the primary HDU.
 </p>
 
-<p>Colfits format is only available for data which stored as an
-uncompressed file in the file system (not, for instance, from a URL).
+<p>For performance reasons, it is advisable to access colfits files
+uncompressed on disk. Reading them from a remote URL, or in gzipped form,
+may be rather slow (in earlier versions it was not supported at all).
 </p>
 
 </subsubsubsect>
@@ -20691,6 +20692,16 @@ introduced since the last version:
     <li>New <label>Size</label> tab is provided in plot window Axes
         control to allow explicit setting of output plot dimensions and
         alignment in pixels - useful for exporting plots.</li>
+    <li>Reworked part of the FITS input implementation,
+        in particular adjusting the way memory mapping is done to reduce
+        resource requirements on some platforms.
+        If you notice any difference, it should be reduced virtual and
+        perhaps resident memory usage, and some (~10%?) performance
+        improvements, when reading large FITS/colfits files.
+        However, please report anything that appears to be working worse
+        than before.</li>
+    <li>Colfits files can now be accessed from streams, not just uncompressed
+        disk files (though that's not necessarily a good idea).</li>
     </ul>
     </p></dd>
 
