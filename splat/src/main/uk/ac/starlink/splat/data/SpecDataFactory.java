@@ -1819,7 +1819,7 @@ public class SpecDataFactory
                                 if ( table.getRowCount() == 0 )
                                     throw new SplatException( "The table is empty: "+specspec);
                                 specData = new SpecData( new TableSpecDataImpl(table) );
-                                specData.setShortName(specData.getShortName() + " " + child[j].getAttribute("name"));
+                               // specData.setShortName(specData.getShortName() + " " + child[j].getAttribute("name"));
                                 specList.add( specData );
                                 } catch (IOException e) {
                                     throw new SplatException(e);
