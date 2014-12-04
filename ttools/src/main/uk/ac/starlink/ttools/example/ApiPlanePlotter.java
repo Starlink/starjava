@@ -4,7 +4,6 @@ import java.awt.Color;
 import java.awt.Insets;
 import java.io.IOException;
 import javax.swing.Icon;
-import javax.swing.JComponent;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.ttools.plot.BarStyle;
 import uk.ac.starlink.ttools.plot.MarkShape;
@@ -38,6 +37,7 @@ import uk.ac.starlink.ttools.plot2.layer.Stamper;
 import uk.ac.starlink.ttools.plot2.paper.Compositor;
 import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
 import uk.ac.starlink.ttools.plot2.task.ColumnDataSpec;
+import uk.ac.starlink.ttools.plot2.task.PlotDisplay;
 
 /**
  * PlanePlotter implementation that sets up a plot explicitly.
@@ -52,8 +52,8 @@ import uk.ac.starlink.ttools.plot2.task.ColumnDataSpec;
  */
 public class ApiPlanePlotter implements SinePlot.PlanePlotter {
 
-    public JComponent createPlotComponent( StarTable table,
-                                           boolean dataMayChange )
+    public PlotDisplay createPlotComponent( StarTable table,
+                                            boolean dataMayChange )
             throws InterruptedException, IOException {
 
         /* Prepare an object which knows how to draw the plot from the table. */

@@ -2,11 +2,11 @@ package uk.ac.starlink.ttools.example;
 
 import java.awt.Insets;
 import java.io.IOException;
-import javax.swing.JComponent;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.plot2.task.PlanePlot2Task;
+import uk.ac.starlink.ttools.plot2.task.PlotDisplay;
 import uk.ac.starlink.ttools.task.MapEnvironment;
 
 /**
@@ -25,8 +25,8 @@ import uk.ac.starlink.ttools.task.MapEnvironment;
  */
 public class EnvPlanePlotter implements SinePlot.PlanePlotter {
 
-    public JComponent createPlotComponent( StarTable table,
-                                           boolean dataMayChange )
+    public PlotDisplay createPlotComponent( StarTable table,
+                                            boolean dataMayChange )
             throws InterruptedException, IOException, TaskException {
 
         /* Prepare an execution environment consisting of a set of name/value
