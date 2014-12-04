@@ -1956,7 +1956,7 @@ The following list gives the values usually allowed for this
     in particular it may be considerably more efficient for very large, and
     especially very wide tables where not all of the columns are required
     at any one time.
-    Only available for uncompressed files on disk.
+    Only likely to be efficient for uncompressed files on disk.
     </p></dd>
 
 <dt><code>votable</code></dt>
@@ -10057,6 +10057,19 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         multi-word parameter (e.g. <code>tcube</code>).</li>
     <li>Fixed error in fits-var output
         (PCOUNT header card did not include block alignment gap).</li>
+    <li>Reworked part of the FITS input implementation, 
+        in particular adjusting the way memory mapping is done to reduce
+        resource requirements on some platforms.
+        If you notice any difference, it should be reduced virtual and
+        perhaps resident memory usage, and some (~10%?) performance 
+        improvements, when reading large FITS/colfits files.
+        If you were having problems with large memory allocations leading to
+        disk thrashing and system lockup when scanning files larger than RAM
+        (this didn't happen on all OSes), these will hopefully have gone away.
+        However, please report anything that appears to be working worse
+        than before, or continued memory usage issues.</li>
+    <li>Colfits files can now be accessed from streams, not just uncompressed
+        disk files (though that's not necessarily a good idea).</li>
     </ul>
     </p></dd>
 
