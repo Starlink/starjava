@@ -1006,7 +1006,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         // Formats
         String[] formats =  { "None", "ALL", "COMPLIANT", "votable", "fits", "xml", "native" };
         formatList = new JComboBox(formats);
-        formatList.setSelectedIndex(2);
+        formatList.setSelectedIndex(0);
         formatList.addActionListener(this);
         calibOptions.add(new JLabel("Query Format:"));
         
