@@ -16,3 +16,22 @@ web pages:
    jarbundler.sourceforge.net
    http://informagen.com/JarBundler/StubFile.html
 
+Update 4 Dec 2014:
+
+The stub described above works with Apple's Java (up to java 6, now
+deprecated) but not Oracle's java (supposed to be the one recommended
+for current and future OS versions).  Oracle provide the AppBundler
+package:
+
+   https://java.net/projects/appbundler/
+   http://docs.oracle.com/javase/7/docs/technotes/guides/jweb/packagingAppsForMac.html
+
+I haven't tried this (it says it needs ant 1.8.2, which I don't currently use).
+However, it would only work for Oracle java (this is intended to package
+the JRE in the bundle as well, which Apple recomments - oof).
+Instead, I'm experimenting with an item put together by somebody who
+seems to have the same issues as me:
+
+   https://github.com/tofi86/universalJavaApplicationStub/
+
+
