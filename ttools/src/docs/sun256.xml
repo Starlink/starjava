@@ -10049,6 +10049,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         registered on it.  This lets you determine what point a user
         has clicked on if you're using the plotting classes from
         third party java code.</li>
+    <li>Histogram normalisation option adjusted so that total area under bars,
+        rather than total height of bars, is fixed.</li>
     </ul>
     </p></dd>
 

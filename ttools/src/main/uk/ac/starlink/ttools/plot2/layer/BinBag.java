@@ -122,9 +122,15 @@ public class BinBag {
         }
 
         /* If normalised values are requested rescale them using the
-         * final total. */
+         * final total.  In the cumulative case fix it so that the
+         * final value is normalised to 1, and in the non-cumulative
+         * case so that the area covered by the bars is 1. */
         if ( normalised ) {
-            double scale = 1. / total;
+            double scale1 = total;
+            if ( ! cumulative ) {
+                scale1 *= log_ ? Math.log( binWidth_ ) : binWidth_;
+            }
+            double scale = 1.0 / scale1;
             for ( int ib = 0; ib < nbin; ib++ ) {
                 binValues[ ib ] *= scale;
             }
