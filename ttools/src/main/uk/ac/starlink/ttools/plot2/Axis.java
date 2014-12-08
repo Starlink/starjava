@@ -329,7 +329,13 @@ public abstract class Axis {
         }
 
         public double dataToGraphics( double d ) {
-            return b_ + a_ * Math.log( d );
+
+            /* Check explicitly for zero values and return a NaN rather than
+             * -Infinity.  This is a bit questionable, and there may be a
+             * case for changing the behaviour, but it avoids having to
+             * make a number of checks for infinite values downstream. */
+            return d > 0 ? b_ + a_ * Math.log( d )
+                         : Double.NaN;
         }
 
         public double graphicsToData( int g ) {
