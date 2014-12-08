@@ -44,6 +44,7 @@ public class ResourceIcon {
         FORM_ERROR = readIcon( "form-error.gif" ),
         FORM_ERROR1 = readIcon( "form-error1.gif" ),
         FORM_VECTOR = readIcon( "form-vector.gif" ),
+        FORM_LINEARFIT = readIcon( "form-linearfit.gif" ),
         FORM_LINK2 = readIcon( "form-link2.gif" ),
         FORM_LINK3 = readIcon( "form-link3.gif" ),
         FORM_MARKS2 = readIcon( "form-marks2.gif" ),
