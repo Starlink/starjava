@@ -727,14 +727,14 @@ public class SpecDataFactory
         throws SplatException
     {
     	List<SpecDataImpl> specDataImpls = new ConstrainedList<SpecDataImpl>(ConstraintType.DENY_NULL_VALUES, LinkedList.class);
-    	
+    	boolean singleDish = false;
     	SpecDataImpl implGlobal = null;
     	
         implGlobal = new FITSSpecDataImpl( specspec );
     //    if (is_sdfits(implGlobal))
         
         for (int i = 0; i < ((FITSSpecDataImpl)implGlobal).hdurefs.length; i++) {
-
+            singleDish = false;
         	SpecDataImpl impl = new FITSSpecDataImpl( specspec, i );
             // Table, if it is an table extension, or the data array size is 0
             // (may be primary).
@@ -754,28 +754,19 @@ public class SpecDataFactory
                         throw new Exception( "The TABLE is empty");
                     
                     if (starTable.getName().equals("SINGLE DISH") /*&& i==1*/) { // SDFITS format
+                        singleDish = true;
                         if ( i == 1) {// skip first header
                             String url = datsrc.getURL().toString();
                             Header header = ((FITSSpecDataImpl)impl).getFitsHeaders();
                             
                             for (int row=0;  row<rowCount; row++) {  // SDFITS: each row is a spectrum
                                 impl = new SDFitsTableSpecDataImpl( starTable, url, header, row );
-                                /* add only if data array size is not 0 */
-
-                            } //for 
+                                    specDataImpls.add(impl);   
+                            }
                         }// if i==1
                     } else { 
                         impl = new TableSpecDataImpl( starTable, specspec, datsrc.getURL().toString(),
                                 ((FITSSpecDataImpl)impl).getFitsHeaders());
-                        /* add only if data array size is not 0 
-                         * (we can do this since we loop over all
-                         * found HDUs so any relevant, non-zero HDUs
-                         * will be treated correctly)
-                         */
-            //            if (dims == null || (dims !=null && dims[0] != 0))
-              //              specDataImpls.add(impl);
-                //        else
-                  //          logger.info(String.format("Ignoring HDU #%d in '%s' (data array size 0)", i, impl.getFullName()));
                    } // not SDFITS
                 }
                 catch (SEDSplatException se) {
@@ -792,20 +783,18 @@ public class SpecDataFactory
                     else throw new SplatException( "Failed to open FITS table", e );
                 }
             } 
-            /*
-            if (exttype.isEmpty() && (dims != null && dims[0]>0)) {
-                impl = new TableSpecDataImpl( starTable, specspec, datsrc.getURL().toString(),
-                        ((FITSSpecDataImpl)impl).getFitsHeaders());
+           
                 /* add only if data array size is not 0 
                  * (we can do this since we loop over all
                  * found HDUs so any relevant, non-zero HDUs
                  * will be treated correctly)
                  */
-            
-                if (dims == null || (dims !=null && dims[0] != 0))
-                    specDataImpls.add(impl);
-                else
-                    logger.info(String.format("Ignoring HDU #%d in '%s' (data array size 0)", i, impl.getFullName()));                 
+                if ( ! singleDish ) { // single dish spectra have been added already
+                    if ((dims == null || (dims !=null && dims[0] != 0)))
+                        specDataImpls.add(impl);
+                    else
+                        logger.info(String.format("Ignoring HDU #%d in '%s' (data array size 0)", i, impl.getFullName()));
+                }
             
     	} // for 
         
