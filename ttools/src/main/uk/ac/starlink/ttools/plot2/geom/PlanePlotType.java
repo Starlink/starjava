@@ -84,7 +84,7 @@ public class PlanePlotType implements PlotType {
         list.addAll( Arrays.asList( shapePlotters ) );
         list.addAll( Arrays.asList( new Plotter[] {
             new LinePlotter(),
-            new LinearFitPlotter(),
+            new LinearFitPlotter( true ),
             new LabelPlotter(),
             new ContourPlotter(),
             new HistogramPlotter( PlaneDataGeom.X_COORD, true ),
