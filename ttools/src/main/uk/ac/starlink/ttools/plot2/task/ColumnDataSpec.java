@@ -102,4 +102,8 @@ public class ColumnDataSpec extends AbstractDataSpec {
             }
         };
     }
+
+    public boolean isCoordBlank( int icoord ) {
+        return false;
+    }
 }

@@ -341,7 +341,7 @@ public class HistogramPlotter
                              DataStore dataStore ) {
         BinBag binBag = new BinBag( xlog, binWidth, binPhase, point );
         TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
-        if ( weightCoord_ == null ) {
+        if ( weightCoord_ == null || dataSpec.isCoordBlank( icWeight_ ) ) {
             while ( tseq.next() ) {
                 double x = xCoord_.readDoubleCoord( tseq, icX_ );
                 binBag.addToBin( x, 1 );
@@ -351,7 +351,7 @@ public class HistogramPlotter
             while ( tseq.next() ) {
                 double x = xCoord_.readDoubleCoord( tseq, icX_ );
                 double w = weightCoord_.readDoubleCoord( tseq, icWeight_ );
-                double weight = Double.isNaN( w ) ? 1 : w;
+                double weight = Double.isNaN( w ) ? 0 : w;
                 binBag.addToBin( x, weight );
             }
         }
