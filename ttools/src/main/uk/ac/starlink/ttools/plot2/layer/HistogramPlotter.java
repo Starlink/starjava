@@ -389,6 +389,8 @@ public class HistogramPlotter
         boolean[] flipFlags = surface.getFlipFlags();
         final boolean xflip = flipFlags[ 0 ];
         final boolean yflip = flipFlags[ 1 ];
+        boolean ylog = surface.getLogFlags()[ 1 ];
+       
         Point p0 = new Point();
         Point p1 = new Point();
         double[] dpos0 = new double[ 2 ];
@@ -412,7 +414,7 @@ public class HistogramPlotter
 
                  /* Transform the corners of each bar to graphics coords. */
                  dpos0[ 0 ] = dxlo;
-                 dpos0[ 1 ] = 0;
+                 dpos0[ 1 ] = ylog ? Double.MIN_VALUE : 0;
                  dpos1[ 0 ] = dxhi;
                  dpos1[ 1 ] = dy;
                  if ( surface.dataToGraphics( dpos0, false, p0 ) &&
