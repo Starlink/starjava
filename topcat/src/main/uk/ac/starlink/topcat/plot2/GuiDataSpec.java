@@ -102,6 +102,15 @@ public class GuiDataSpec extends AbstractDataSpec {
         };
     }
 
+    public boolean isCoordBlank( int icoord ) {
+        for ( String expr : contents_[ icoord ].getDataLabels() ) {
+            if ( expr != null && expr.trim().length() > 0 ) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     /**
      * Returns the topcat model supplying the data for this data spec.
      *

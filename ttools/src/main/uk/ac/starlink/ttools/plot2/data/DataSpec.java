@@ -91,4 +91,19 @@ public interface DataSpec {
      * @return   new data reader
      */
     UserDataReader createUserDataReader();
+
+    /**
+     * Indicates whether the value for a given coord specified by this object
+     * is known to have a constant, blank value in all cases.
+     * Clients don't have to test this, since data stores will always dispense
+     * the relevant blank value based on this data spec, and should do so
+     * in an efficient manner, but it may be useful for clients to know
+     * in advance that a column is blank all the way down.
+     * False negatives are permitted: even if the result is false, the
+     * column may in fact have all blank values.
+     *
+     * @param  icoord  column index
+     * @return  true if all values in the column are always blank
+     */
+    boolean isCoordBlank( int icoord );
 }
