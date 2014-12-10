@@ -23,6 +23,7 @@ import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.LegendEntry;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
@@ -54,6 +55,7 @@ public abstract class FormLayerControl
     private final SubsetConfigManager subsetManager_;
     private final TopcatListener tcListener_;
     private final SubsetStack subStack_;
+    private final ReportLogger reportLogger_;
     private TopcatModel tcModel_;
 
     /**
@@ -77,6 +79,7 @@ public abstract class FormLayerControl
         super( null, controlIcon );
         posCoordPanel_ = posCoordPanel;
         autoPopulate_ = autoPopulate;
+        reportLogger_ = new ReportLogger( this );
         final TopcatListener externalTcListener = tcListener;
 
         /* Set up a selector for which table to plot. */
@@ -219,6 +222,10 @@ public abstract class FormLayerControl
             }
         }
         return entries.toArray( new LegendEntry[ 0 ] );
+    }
+
+    public void submitReports( Map<LayerId,ReportMap> reports ) {
+        reportLogger_.submitReports( reports );
     }
 
     /**

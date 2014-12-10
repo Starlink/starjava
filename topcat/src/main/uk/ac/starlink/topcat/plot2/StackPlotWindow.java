@@ -64,6 +64,7 @@ import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotPlacement;
 import uk.ac.starlink.ttools.plot2.PlotType;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.Slow;
 import uk.ac.starlink.ttools.plot2.SubCloud;
 import uk.ac.starlink.ttools.plot2.Surface;
@@ -1099,6 +1100,19 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             plotPanel_.createPartialGuiPointCloud().getTableClouds().length > 0;
         blobAction_.setEnabled( hasPoints );
         fromVisibleAction_.setEnabled( hasPoints || hasPartialPoints );
+
+        /* Update plot reports. */
+        PlotLayer[] layers = plotPanel_.getPlotLayers();
+        ReportMap[] reports = plotPanel_.getReports();
+        int nl = layers.length;
+        assert nl == reports.length;
+        Map<LayerId,ReportMap> rmap = new HashMap<LayerId,ReportMap>();
+        for ( int il = 0; il < nl; il++ ) {
+            rmap.put( LayerId.createLayerId( layers[ il ] ), reports[ il ] );
+        }
+        for ( LayerControl control : stackModel_.getLayerControls( false ) ) {
+            control.submitReports( rmap );
+        }
 
         /* Initiate updating point count, which may be slow. */
         final Factory<String> counter = createCounter();
