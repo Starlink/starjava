@@ -41,9 +41,7 @@ import javax.swing.event.ChangeListener;
 import uk.ac.starlink.topcat.ToggleButtonModel;
 import uk.ac.starlink.topcat.TopcatUtils;
 import uk.ac.starlink.ttools.plot.Range;
-import uk.ac.starlink.ttools.plot.Style;
 import uk.ac.starlink.ttools.plot2.AuxScale;
-import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Decoration;
 import uk.ac.starlink.ttools.plot2.Drawing;
 import uk.ac.starlink.ttools.plot2.Equality;
@@ -51,7 +49,6 @@ import uk.ac.starlink.ttools.plot2.LayerOpt;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotPlacement;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
-import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.ShadeAxis;
 import uk.ac.starlink.ttools.plot2.ShadeAxisFactory;
 import uk.ac.starlink.ttools.plot2.Slow;
@@ -489,8 +486,8 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
 
         /* Acquire state. */
         PlotLayer[] layers = layerFact_.getItem();
-        assert LayerId.layerListEquals( layers, layerFact_.getItem() );
-        assert LayerId.layerSetEquals( layers, layerFact_.getItem() );
+        assert layerListEquals( layers, layerFact_.getItem() );
+        assert layerSetEquals( layers, layerFact_.getItem() );
         SurfaceFactory<P,A> surfFact = axisController_.getSurfaceFactory();
         ConfigMap surfConfig = axisController_.getConfig();
         P profile = surfFact.createProfile( surfConfig );
@@ -611,6 +608,64 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             }
         }
         return list;
+    }
+
+    /**
+     * Returns a list of LayerIds corresponding to an array of plot layers.
+     *
+     * @param  layers   plot layers
+     * @return  list of layer ids
+     */
+    private static List<LayerId> layerList( PlotLayer[] layers ) {
+        List<LayerId> llist = new ArrayList<LayerId>( layers.length );
+        for ( int il = 0; il < layers.length; il++ ) {
+            llist.add( LayerId.createLayerId( layers[ il ] ) );
+        }
+        return llist;
+    }
+
+    /**
+     * Returns a list of LayerIds corresponding to an array of plot layers,
+     * but in which the layer styles are not recorded (are set to null).
+     *
+     * @param  layers  plot layers
+     * @return  list of style-less layer ids
+     */
+    private static List<LayerId> layerListNoStyle( PlotLayer[] layers ) {
+        List<LayerId> llist = new ArrayList<LayerId>( layers.length );
+        for ( int il = 0; il < layers.length; il++ ) {
+            PlotLayer layer = layers[ il ];
+            llist.add( new LayerId( layer.getPlotter(), layer.getDataSpec(),
+                                    layer.getDataGeom(), null ) );
+        }
+        return llist;
+    }
+
+    /**
+     * Determines whether two ordered lists of layers are effectively
+     * identical.
+     *
+     * @param  layers1   first list
+     * @param  layers2   second list
+     * @return  true iff both lists are the same
+     */
+    private static boolean layerListEquals( PlotLayer[] layers1,
+                                            PlotLayer[] layers2 ) {
+        return layerList( layers1 ).equals( layerList( layers2 ) );
+    }
+
+    /**
+     * Determines whether two unordered lists of layers contain the
+     * equivalent sets of layers.
+     *
+     * @param  layers1   first list
+     * @param  layers2   second list
+     * @return   true iff both lists contain the same unique layers
+     */
+    private static boolean layerSetEquals( PlotLayer[] layers1,
+                                          PlotLayer[] layers2 ) {
+        return new HashSet<LayerId>( layerList( layers1 ) )
+              .equals( new HashSet<LayerId>( layerList( layers2 ) ) );
     }
 
     /**
@@ -1005,7 +1060,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             Surface approxSurf =
                 surfFact_.createSurface( bounds_, profile_, aspect );
             Map<AuxScale,Range> auxDataRanges =
-                  LayerId.layerListEquals( layers, oldWorkings_.layers_ )
+                  layerListEquals( layers, oldWorkings_.layers_ )
                && PlotUtil.equals( approxSurf, oldWorkings_.approxSurf_ )
                 ? oldWorkings_.auxDataRanges_
                 : new HashMap<AuxScale,Range>();
@@ -1167,7 +1222,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
 
             AuxScale[] scales = AuxScale.getAuxScales( layers_ );
             Map<AuxScale,Range> auxDataRanges =
-                  LayerId.layerListEquals( layers_, oldWorkings_.layers_ )
+                  layerListEquals( layers_, oldWorkings_.layers_ )
                 ? oldWorkings_.auxDataRanges_
                 : new HashMap<AuxScale,Range>();
             AuxScale[] calcScales =
@@ -1271,7 +1326,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             if ( o instanceof DataIconId ) {
                 DataIconId other = (DataIconId) o;
                 return this.surface_.equals( other.surface_ )
-                    && LayerId.layerListEquals( this.layers_, other.layers_ )
+                    && layerListEquals( this.layers_, other.layers_ )
                     && this.auxClipRanges_.equals( other.auxClipRanges_ );
             }
             else {
@@ -1283,133 +1338,12 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         public int hashCode() {
             int code = 987;
             code = 23 * code + surface_.hashCode();
-            code = 23 * code + LayerId.layerList( layers_ ).hashCode();
+            code = 23 * code + layerList( layers_ ).hashCode();
             code = 23 * code + auxClipRanges_.hashCode();
             return code;
         }
     }
 
-    /**
-     * Identifier object for PlotLayers.
-     * Two plot layers which have equal LayerIds will produce the same
-     * plotting results.
-     */
-    @Equality
-    private static class LayerId {
-        private final Plotter plotter_;
-        private final DataSpec dataSpec_;
-        private final DataGeom dataGeom_;
-        private final Style style_;
-
-        /**
-         * Constructor.
-         *
-         * @param  plotter  plotter
-         * @param  dataSpec   data specification
-         * @param  dataGeom   mapping to graphics space
-         * @param  style    layer style
-         */
-        public LayerId( Plotter plotter, DataSpec dataSpec, DataGeom dataGeom,
-                        Style style ) {
-            plotter_ = plotter;
-            dataSpec_ = dataSpec;
-            dataGeom_ = dataGeom;
-            style_ = style;
-        }
-
-        @Override
-        public int hashCode() {
-            int code = 9901;
-            code = code * 23 + plotter_.hashCode();
-            code = code * 23 + PlotUtil.hashCode( dataSpec_ );
-            code = code * 23 + PlotUtil.hashCode( dataGeom_ );
-            code = code * 23 + PlotUtil.hashCode( style_ );
-            return code;
-        }
-
-        @Override
-        public boolean equals( Object o ) {
-            if ( o instanceof LayerId ) {
-                LayerId other = (LayerId) o;
-                return this.plotter_.equals( other.plotter_ )
-                    && PlotUtil.equals( this.dataSpec_, other.dataSpec_ )
-                    && PlotUtil.equals( this.dataGeom_, other.dataGeom_ )
-                    && PlotUtil.equals( this.style_, other.style_ );
-            }
-            else {
-                return false;
-            }
-        }
-
-        /**
-         * Returns a layerId characterising a given plot layer.
-         *
-         * @param  layer
-         * @return  layer id
-         */
-        static LayerId createLayerId( PlotLayer layer ) {
-            return new LayerId( layer.getPlotter(), layer.getDataSpec(),
-                                layer.getDataGeom(), layer.getStyle() );
-        }
-
-        /**
-         * Returns a list of LayerIds corresponding to an array of plot layers.
-         *
-         * @param  layers   plot layers
-         * @return  list of layer ids
-         */
-        static List<LayerId> layerList( PlotLayer[] layers ) {
-            List<LayerId> llist = new ArrayList<LayerId>( layers.length );
-            for ( int il = 0; il < layers.length; il++ ) {
-                llist.add( LayerId.createLayerId( layers[ il ] ) );
-            }
-            return llist;
-        }
-
-        /**
-         * Returns a list of LayerIds corresponding to an array of plot layers,
-         * but in which the layer styles are not recorded (are set to null).
-         *
-         * @param  layers  plot layers
-         * @return  list of style-less layer ids
-         */
-        static List<LayerId> layerListNoStyle( PlotLayer[] layers ) {
-            List<LayerId> llist = new ArrayList<LayerId>( layers.length );
-            for ( int il = 0; il < layers.length; il++ ) {
-                PlotLayer layer = layers[ il ];
-                llist.add( new LayerId( layer.getPlotter(), layer.getDataSpec(),
-                                        layer.getDataGeom(), null ) );
-            }
-            return llist;
-        }
-
-        /**
-         * Determines whether two ordered lists of layers are effectively
-         * identical.
-         *
-         * @param  layers1   first list
-         * @param  layers2   second list
-         * @return  true iff both lists are the same
-         */
-        public static boolean layerListEquals( PlotLayer[] layers1,
-                                               PlotLayer[] layers2 ) {
-            return layerList( layers1 ).equals( layerList( layers2 ) );
-        }
-
-        /**
-         * Determines whether two unordered lists of layers contain the
-         * equivalent sets of layers.
-         *
-         * @param  layers1   first list
-         * @param  layers2   second list
-         * @return   true iff both lists contain the same unique layers
-         */
-        public static boolean layerSetEquals( PlotLayer[] layers1,
-                                              PlotLayer[] layers2 ) {
-            return new HashSet<LayerId>( layerList( layers1 ) )
-                  .equals( new HashSet<LayerId>( layerList( layers2 ) ) );
-        }
-    }
 
     /**
      * Stores a reference to a Future in such a way that it can be
@@ -1676,9 +1610,8 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
          */
         @Equality
         private Object getSimilarityObject( PlotJob plotJob ) {
-            return LayerId.layerListNoStyle( plotJob == null
-                                                 ? new PlotLayer[ 0 ]
-                                                 : plotJob.layers_ );
+            return layerListNoStyle( plotJob == null ? new PlotLayer[ 0 ]
+                                                     : plotJob.layers_ );
         }
     }
 
