@@ -5,7 +5,9 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import uk.ac.starlink.ttools.plot2.LegendEntry;
+import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.config.ConfigException;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
@@ -25,6 +27,7 @@ public class FunctionLayerControl extends ConfigControl
                                   implements LayerControl {
 
     private final FunctionPlotter plotter_;
+    private final ReportLogger reportLogger_;
     private static final ConfigKey<String> FUNCLABEL_KEY =
         new StringConfigKey( new ConfigMeta( "label", "Label" ), "Function" );
 
@@ -36,6 +39,7 @@ public class FunctionLayerControl extends ConfigControl
     public FunctionLayerControl( FunctionPlotter plotter ) {
         super( plotter.getPlotterName(), plotter.getPlotterIcon() );
         plotter_ = plotter;
+        reportLogger_ = new ReportLogger( this );
         AutoConfigSpecifier legendSpecifier =
             new AutoConfigSpecifier( new ConfigKey[] { FUNCLABEL_KEY,
                                                        StyleKeys.SHOW_LABEL },
@@ -93,6 +97,10 @@ public class FunctionLayerControl extends ConfigControl
         return showLabel && style != null && label != null
              ? new LegendEntry[] { new LegendEntry( label, style ) }
              : new LegendEntry[ 0 ];
+    }
+
+    public void submitReports( Map<LayerId,ReportMap> reports ) {
+        reportLogger_.submitReports( reports );
     }
 
     public String getCoordLabel( String userCoordName ) {
