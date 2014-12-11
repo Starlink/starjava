@@ -21,7 +21,9 @@ import uk.ac.starlink.ttools.plot2.Drawing;
 import uk.ac.starlink.ttools.plot2.LayerOpt;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.Plotter;
+import uk.ac.starlink.ttools.plot2.ReportKey;
 import uk.ac.starlink.ttools.plot2.ReportMap;
+import uk.ac.starlink.ttools.plot2.ReportMeta;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.BooleanConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
@@ -57,6 +59,11 @@ public class HistogramPlotter
     private final CoordGroup histoCoordGrp_;
     private final int icX_;
     private final int icWeight_;
+
+    /** ReportKey for histogram bins. */
+    public static final ReportKey<BinBag> BINS_KEY =
+        new ReportKey<BinBag>( new ReportMeta( "bins", "Bins" ), BinBag.class,
+                               false );
 
     /** Config key for bar line thickness. */
     public static final ConfigKey<Integer> THICK_KEY =
@@ -280,7 +287,12 @@ public class HistogramPlotter
                             } );
                         }
                         public ReportMap getReport( Object plan ) {
-                            return null;
+                            ReportMap report = new ReportMap();
+                            if ( plan instanceof HistoPlan ) {
+                                report.set( BINS_KEY,
+                                            ((HistoPlan) plan).binBag_ );
+                            }
+                            return report;
                         }
                     };
                 }

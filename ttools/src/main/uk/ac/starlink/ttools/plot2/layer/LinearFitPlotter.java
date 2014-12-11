@@ -19,7 +19,9 @@ import uk.ac.starlink.ttools.plot2.Drawing;
 import uk.ac.starlink.ttools.plot2.LayerOpt;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.ReportKey;
 import uk.ac.starlink.ttools.plot2.ReportMap;
+import uk.ac.starlink.ttools.plot2.ReportMeta;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
@@ -42,6 +44,29 @@ import uk.ac.starlink.ttools.plot2.paper.PaperType;
  * @since    8 Dec 2014
  */
 public class LinearFitPlotter extends AbstractPlotter<LineStyle> {
+
+    /** Report key for coefficients of linear fit (2 element array (c, m)). */
+    public static final ReportKey<double[]> COEFFS_KEY =
+        new ReportKey<double[]>( new ReportMeta( "coeffs", "Coefficients" ),
+                                 double[].class, false );
+
+    /** Report key for text of linear fit equation. */
+    public static final ReportKey<String> EQUATION_KEY =
+        new ReportKey<String>( new ReportMeta( "equation", "Equation" ),
+                               String.class, true );
+
+    /** Report key for product moment correlation coefficient. */
+    public static final ReportKey<Double> CORRELATION_KEY =
+        new ReportKey<Double>( new ReportMeta( "correlation", "Correlation" ),
+                               Double.class, true );
+
+    /** Report key for order zero polynomial coefficient. */
+    private static final ReportKey<Double> C0_KEY =
+        new ReportKey<Double>( new ReportMeta( "c", "c" ), Double.class, true );
+
+    /** Report key for order one polynomial coefficient. */
+    private static final ReportKey<Double> C1_KEY =
+        new ReportKey<Double>( new ReportMeta( "m", "m" ), Double.class, true );
 
     private static final FloatingCoord WEIGHT_COORD =
         FloatingCoord.createCoord(
@@ -75,7 +100,7 @@ public class LinearFitPlotter extends AbstractPlotter<LineStyle> {
                CoordGroup
               .createCoordGroup( 1, hasWeights ? new Coord[] { WEIGHT_COORD }
                                                : new Coord[ 0 ] ),
-               false );
+               true );
     }
 
     public String getPlotterDescription() {
@@ -231,7 +256,7 @@ public class LinearFitPlotter extends AbstractPlotter<LineStyle> {
         }
 
         public ReportMap getReport( Object plan ) {
-            return null;
+            return ((LinearFitPlan) plan).getReport();
         }
     }
 
@@ -315,21 +340,29 @@ public class LinearFitPlotter extends AbstractPlotter<LineStyle> {
             return logFlags_[ 1 ] ? unlog( y ) : y;
         }
 
-        @Override
-        public String toString() {
+        /**
+         * Returns a plot report based on the state of this plan.
+         *
+         * @return  report
+         */
+        public ReportMap getReport() {
             double[] coeffs = stats_.getLinearCoefficients();
-            return new StringBuffer()
+            String equation = new StringBuffer()
                 .append( logFlags_[ 1 ] ? "log10(y)" : "y" )
                 .append( " = " )
-                .append( coeffs[ 1 ] )
+                .append( C1_KEY.getMeta().getShortName() )
                 .append( " * " )
                 .append( logFlags_[ 0 ] ? "log10(x)" : "x" )
                 .append( " + " )
-                .append( coeffs[ 0 ] )
-                .append( "; " )
-                .append( "correlation = " )
-                .append( stats_.getCorrelation() )
+                .append( C0_KEY.getMeta().getShortName() )
                 .toString();
+            ReportMap report = new ReportMap();
+            report.set( EQUATION_KEY, equation );
+            report.set( C0_KEY, coeffs[ 0 ] );
+            report.set( C1_KEY, coeffs[ 1 ] );
+            report.set( CORRELATION_KEY, stats_.getCorrelation() );
+            report.set( COEFFS_KEY, coeffs );
+            return report; 
         }
     }
 
