@@ -35,9 +35,11 @@ public abstract class SimpleDecalPlotter<S extends Style>
      * @param   name   plotter name
      * @param   icon   plotter icon
      * @param   cgrp   coordinate group
+     * @param   hasReports  whether plot reports are generated
      */
-    protected SimpleDecalPlotter( String name, Icon icon, CoordGroup cgrp ) {
-        super( name, icon, cgrp );
+    protected SimpleDecalPlotter( String name, Icon icon, CoordGroup cgrp,
+                                  boolean hasReports ) {
+        super( name, icon, cgrp, hasReports );
     }
 
     public PlotLayer createLayer( final DataGeom geom, final DataSpec dataSpec,

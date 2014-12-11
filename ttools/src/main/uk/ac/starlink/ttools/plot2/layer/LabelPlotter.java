@@ -21,6 +21,7 @@ import uk.ac.starlink.ttools.plot2.Pixer;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.PointCloud;
+import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.SubCloud;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.CaptionerKeySet;
@@ -115,7 +116,7 @@ public class LabelPlotter extends AbstractPlotter<LabelStyle> {
      * Constructor.
      */
     public LabelPlotter() {
-        super( "Label", ResourceIcon.PLOT_LABEL, LABEL_CGRP );
+        super( "Label", ResourceIcon.PLOT_LABEL, LABEL_CGRP, false );
     }
 
     public String getPlotterDescription() {
@@ -265,6 +266,10 @@ public class LabelPlotter extends AbstractPlotter<LabelStyle> {
             @SuppressWarnings("unchecked")
             LabelPlan<T> labelPlan = (LabelPlan<T>) plan;
             paintMap( labelPlan.map_, paper );
+        }
+
+        public ReportMap getReport( Object plan ) {
+            return null;
         }
     }
 

@@ -21,6 +21,7 @@ import uk.ac.starlink.ttools.plot2.Drawing;
 import uk.ac.starlink.ttools.plot2.LayerOpt;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.Plotter;
+import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.BooleanConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
@@ -202,6 +203,10 @@ public class HistogramPlotter
                                thick, dash, sizer, binPhase );
     }
 
+    public boolean hasReports() {
+        return false;
+    }
+
     /**
      * The supplied <code>geom</code> is ignored.
      */
@@ -273,6 +278,9 @@ public class HistogramPlotter
                                     return isOpaque;
                                 }
                             } );
+                        }
+                        public ReportMap getReport( Object plan ) {
+                            return null;
                         }
                     };
                 }

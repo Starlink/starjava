@@ -183,6 +183,10 @@ public class SpectrogramPlotter
         return new SpectroStyle( shader, shadeLog, shadeFlip, nullColor, grid );
     }
 
+    public boolean hasReports() {
+        return false;
+    }
+
     /**
      * The supplied <code>geom</code> is ignored.
      */
