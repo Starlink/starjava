@@ -23,33 +23,38 @@ public abstract class AbstractPlotter<S extends Style> implements Plotter<S> {
     private final String name_;
     private final Icon icon_;
     private final CoordGroup coordGrp_;
+    private final boolean hasReports_;
 
     /**
-     * Constructs a plotter given a coordinate group.
+     * Constructs a plotter with a given coordinate group and indication
+     * of reporting status.
      *
      * @param   name   plotter name
      * @param   icon   plotter icon
      * @param   coordGrp  coordinate group
+     * @param   hasReports  whether plot reports are generated
      */
-    protected AbstractPlotter( String name, Icon icon, CoordGroup coordGrp ) {
+    protected AbstractPlotter( String name, Icon icon, CoordGroup coordGrp,
+                               boolean hasReports ) {
         name_ = name;
         icon_ = icon;
         coordGrp_ = coordGrp;
+        hasReports_ = hasReports;
     }
 
     /**
-     * Constructs a plotter with no data coordinates.
+     * Constructs a plotter with no data coordinates or reports.
      *
      * @param   name   plotter name
      * @param   icon   plotter icon
      */
     protected AbstractPlotter( String name, Icon icon ) {
-        this( name, icon, CoordGroup.createEmptyCoordGroup() );
+        this( name, icon, CoordGroup.createEmptyCoordGroup(), false );
     }
 
     /**
      * Constructs a plotter with specified data positions and additional
-     * coordinates.
+     * coordinates, no report keys.
      *
      * @param   name   plotter name
      * @param   icon   plotter icon
@@ -58,7 +63,8 @@ public abstract class AbstractPlotter<S extends Style> implements Plotter<S> {
      */
     protected AbstractPlotter( String name, Icon icon, int npos,
                                Coord[] extraCoords ) {
-        this( name, icon, CoordGroup.createCoordGroup( npos, extraCoords ) );
+        this( name, icon, CoordGroup.createCoordGroup( npos, extraCoords ),
+              false );
     }
 
     public String getPlotterName() {
@@ -71,5 +77,9 @@ public abstract class AbstractPlotter<S extends Style> implements Plotter<S> {
 
     public CoordGroup getCoordGroup() {
         return coordGrp_;
+    }
+
+    public boolean hasReports() {
+        return hasReports_;
     }
 }

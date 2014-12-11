@@ -29,6 +29,7 @@ import uk.ac.starlink.ttools.plot2.Equality;
 import uk.ac.starlink.ttools.plot2.LayerOpt;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
@@ -407,6 +408,10 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                     binDrawing_.paintData( binPlan, paper, dataStore );
                 }
             }
+
+            public ReportMap getReport( Object plan ) {
+                return null;
+            }
         }
 
         /**
@@ -573,6 +578,10 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                 while ( tseq.next() ) {
                     painter.paintPoint( tseq, color, paper );
                 }
+            }
+
+            public ReportMap getReport( Object plan ) {
+                return null;
             }
 
             /**
@@ -1569,6 +1578,10 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                     return true;
                 }
             } );
+        }
+
+        public ReportMap getReport( Object plan ) {
+            return null;
         }
 
         /**

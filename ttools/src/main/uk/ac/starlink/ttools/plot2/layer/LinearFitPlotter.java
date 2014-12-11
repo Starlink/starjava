@@ -19,6 +19,7 @@ import uk.ac.starlink.ttools.plot2.Drawing;
 import uk.ac.starlink.ttools.plot2.LayerOpt;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
@@ -70,9 +71,11 @@ public class LinearFitPlotter extends AbstractPlotter<LineStyle> {
      * @param  hasWeights  true if points may be weighted
      */
     public LinearFitPlotter( boolean hasWeights ) {
-        super( "LinearFit", ResourceIcon.FORM_LINEARFIT, 1,
-                hasWeights ? new Coord[] { WEIGHT_COORD }
-                           : new Coord[ 0 ] );
+        super( "LinearFit", ResourceIcon.FORM_LINEARFIT,
+               CoordGroup
+              .createCoordGroup( 1, hasWeights ? new Coord[] { WEIGHT_COORD }
+                                               : new Coord[ 0 ] ),
+               false );
     }
 
     public String getPlotterDescription() {
@@ -216,7 +219,7 @@ public class LinearFitPlotter extends AbstractPlotter<LineStyle> {
         }
 
         public void paintData( final Object plan, Paper paper,
-                               final DataStore dataStore ) {
+                               DataStore dataStore ) {
             paperType_.placeDecal( paper, new Decal() {
                 public void paintDecal( Graphics g ) {
                     ((LinearFitPlan) plan).paintLine( g, surface_, style_ );
@@ -225,6 +228,10 @@ public class LinearFitPlotter extends AbstractPlotter<LineStyle> {
                     return true;
                 }
             } );
+        }
+
+        public ReportMap getReport( Object plan ) {
+            return null;
         }
     }
 

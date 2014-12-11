@@ -16,6 +16,7 @@ import uk.ac.starlink.ttools.plot2.LayerOpt;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.PointCloud;
+import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.SubCloud;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
@@ -200,6 +201,10 @@ public class ContourPlotter extends AbstractPlotter<ContourStyle> {
                     return true;
                 }
             } );
+        }
+
+        public ReportMap getReport( Object plan ) {
+            return null;
         }
 
         /**

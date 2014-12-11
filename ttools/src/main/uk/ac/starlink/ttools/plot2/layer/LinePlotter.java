@@ -34,7 +34,7 @@ public class LinePlotter extends SimpleDecalPlotter<LineStyle> {
      */
     public LinePlotter() {
         super( "Line", ResourceIcon.PLOT_LINE,
-               CoordGroup.createSinglePositionCoordGroup() );
+               CoordGroup.createSinglePositionCoordGroup(), false );
     }
 
     public String getPlotterDescription() {
