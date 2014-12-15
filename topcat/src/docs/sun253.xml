@@ -163,6 +163,7 @@
   <!ENTITY FIG.form_error '&figs;form_error.gif'>
   <!ENTITY FIG.form_ellipse '&figs;form_ellipse.gif'>
   <!ENTITY FIG.form_line '&figs;form_line.gif'>
+  <!ENTITY FIG.form_linearfit '&figs;form_linearfit.gif'>
   <!ENTITY FIG.form_label '&figs;form_label.gif'>
   <!ENTITY FIG.form_contour '&figs;form_contour.gif'>
   <!ENTITY FIG.form_marks2 '&figs;form_marks2.gif'>
@@ -234,6 +235,8 @@
   <!ENTITY FORM.ellipse '&IMG.FORM_ELLIPSE;
                         <ref id="form-ellipse">Ellipse</ref>'>
   <!ENTITY FORM.line '&IMG.PLOT_LINE; <ref id="form-line">Line</ref>'>
+  <!ENTITY FORM.linearfit '&IMG.FORM_LINEARFIT;
+                          <ref id="form-linearfit">Linear Fit</ref>'>
   <!ENTITY FORM.label '&IMG.PLOT_LABEL; <ref id="form-label">Text Label</ref>'>
   <!ENTITY FORM.contour '&IMG.PLOT_CONTOUR;
                         <ref id="form-contour">Contour</ref>'>
@@ -6775,7 +6778,6 @@ currently (v4.1) available in the new-style plots are:
 <li>true RGB density maps (though density shading modes will often do as good
     or a better job)</li>
 <li>fogging in 3D plots</li>
-<li>linear correlation</li>
 <li>plot titles</li>
 <li>histogram export as a table</li>
 </ul>
@@ -8392,6 +8394,72 @@ scribble on the screen.
 
 </subsubsubsect>
 
+<subsubsubsect id="form-linearfit">
+<subhead><title>Linear Fit Form</title></subhead>
+
+<figure>
+<caption><px>Linear Fit configuration panel</px></caption>
+<figureimage src="&FIG.form_linearfit;"/>
+<!-- Data from VizieR J/A+A/320/79/table4 -->
+</figure>
+
+<p>The <label>Linear Fit</label> form (&IMG.FORM_LINEARFIT;)
+determines a least-squares best fit of a line to the data points,
+optionally weighted by a given value, and plots the corresponding line.
+</p>
+
+<p>The configuration options are:
+<dl>
+<dt>Weight</dt>
+<dd><p>Weighting to apply to each point.
+    If left blank, no weighting (equivalent to unit weighting) is applied.
+    If independent sampling errors <code>E</code> are available for each point,
+    a suitable value for this may be <code>1./(E*E)</code>
+    (equivalently <code>pow(E,-2)</code>).
+    </p></dd>
+<dt>Thickness</dt>
+<dd><p>Line thickness in pixels.
+    </p></dd>
+<dt>Dash</dt>
+<dd><p>Dash pattern.  The line is solid by default.
+    </p></dd>
+<dt>Antialiasing</dt>
+<dd><p>If true, pixels are blurred to give the line a smoother appearance.
+    </p></dd>
+</dl>
+</p>
+
+<p>As well as drawing the line onto the plot,
+the calculated fitting coefficients are
+displayed at the bottom of the form configuration panel,
+under the heading <label>Report</label>.
+Note the coefficients are calculated by subset, and
+are only displayed for one subset at a time.
+To see the calculated values, select the subset of interest in
+the <label>Subset</label> selector.
+The reported items are:
+<dl>
+<dt>Equation</dt>
+<dd><p>The equation of the line.
+    The basic linear equation is <code>y=m*x+c</code>,
+    but if one or both of the axes are plotted logarithmically,
+    the fit is performed to take account of this, and the equation
+    is displayed accordingly.
+    </p></dd>
+<dt>c</dt>
+<dd><p>The constant intercept of the line on the Y axis.
+    </p></dd>
+<dt>m</dt>
+<dd><p>The line gradient.
+    </p></dd>
+<dt>Correlation</dt>
+<dd><p>Pearson's product moment correlation coefficient.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
 <subsubsubsect id="form-label">
 <subhead><title>Text Label Form</title></subhead>
 
@@ -9016,6 +9084,7 @@ The following subsections describe
     <li>&FORM.error;</li>
     <li>&FORM.ellipse;</li>
     <li>&FORM.line;</li>
+    <li>&FORM.linearfit;</li>
     <li>&FORM.label;</li>
     <li>&FORM.contour;</li>
     </ul></li>
@@ -20479,6 +20548,8 @@ introduced since the last version:
         places.</li>
     <li>Histogram normalisation option adjusted so that total area under bars,
         rather than total height of bars, is fixed.</li>
+    <li>New <ref id="form-linearfit">Linear Fitting</ref> form for
+        Plane plot.</li>
     </ul>
     </p></dd>
 
