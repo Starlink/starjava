@@ -111,6 +111,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     private final Action blobAction_;
     private final Action fromVisibleAction_;
     private final boolean canSelectPoints_;
+    private final JMenu exportMenu_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.plot2" );
 
@@ -511,11 +512,10 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         plotMenu.add( showProgressModel_.createMenuItem() );
         plotMenu.add( navdecModel.createMenuItem() );
         getJMenuBar().add( plotMenu );
-        JMenu exportMenu = new JMenu( "Export" );
-        exportMenu.setMnemonic( KeyEvent.VK_E );
-        exportMenu.add( exportAction );
-        getJMenuBar().add( exportMenu );
-
+        exportMenu_ = new JMenu( "Export" );
+        exportMenu_.setMnemonic( KeyEvent.VK_E );
+        exportMenu_.add( exportAction );
+        getJMenuBar().add( exportMenu_ );
 
         /* Set default component dimensions. */
         displayPanel.setMinimumSize( new Dimension( 150, 150 ) );
@@ -573,6 +573,24 @@ public class StackPlotWindow<P,A> extends AuxWindow {
      */
     public ControlManager getControlManager() {
         return controlManager_;
+    }
+
+    /**
+     * Returns this window's PlotPanel.
+     *
+     * @return  plot panel
+     */
+    public PlotPanel getPlotPanel() {
+        return plotPanel_;
+    }
+
+    /**
+     * Returns this window's Export menu.
+     *
+     * @return  export menu
+     */
+    public JMenu getExportMenu() {
+        return exportMenu_;
     }
 
     @Override

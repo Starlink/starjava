@@ -6779,7 +6779,6 @@ currently (v4.1) available in the new-style plots are:
     or a better job)</li>
 <li>fogging in 3D plots</li>
 <li>plot titles</li>
-<li>histogram export as a table</li>
 </ul>
 The intention is to introduce some of all of these in a future release,
 possibly informed by user demand.
@@ -8928,7 +8927,29 @@ and the scrolling works a bit differently.
 
 <p>See the <ref id="StackPlotWindow" plaintextref="yes">Window Overview</ref>
 for features common to all plotting windows.
-The following subsections describe
+In addition, the histogram window lets you export the binned data as
+a new table, either saving it or loading it directly into TOPCAT's
+table list.
+The following actions are available in the <label>Export</label> menu:
+<dl>
+
+<dt>&IMG.HISTO_SAVE; Save as Table</dt>
+<dd><p>The bin counts/sums corresponding to the currently plotted histogram
+    will be written to disk in tabular form.  The first two columns give
+    the lower and upper bounds of each bin, and the subsequent columns
+    give the occupancies of each bin for each plotted data set.
+    If only one dataset is plotted, there will only be three columns.
+    </p></dd>
+
+<dt>&IMG.HISTO_IMPORT; Import as Table</dt>
+<dd><p>Assembles a table as per the <label>Save</label> option above,
+    but rather than writing it to disk imports it directly into TOPCAT,
+    where it can be manipulated in all the usual ways.
+    </p></dd>
+</dl>
+</p>
+
+<p>The following subsections describe
 <ref id="histogramNavigation">navigation</ref>,
 <ref id="HistogramAxisControl">axis configuration</ref> and
 <ref id="ConfigControl_histobars">bar configuration</ref>.
@@ -20549,7 +20570,13 @@ introduced since the last version:
     <li>Histogram normalisation option adjusted so that total area under bars,
         rather than total height of bars, is fixed.</li>
     <li>New <ref id="form-linearfit">Linear Fitting</ref> form for
-        Plane plot.</li>
+        Plane plot.
+        This reinstates behaviour available from old plot windows,
+        but it provides some more options, like point weighting.</li>
+    <li>New Save/Import options in
+        <ref id="HistogramPlotWindow">Histogram window</ref>
+        allow you to export histogram bin data as a new table
+        (this reinstates behaviour available from old plot windows).</li>
     </ul>
     </p></dd>
 

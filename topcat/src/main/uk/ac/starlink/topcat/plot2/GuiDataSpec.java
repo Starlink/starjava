@@ -130,6 +130,17 @@ public class GuiDataSpec extends AbstractDataSpec {
     }
 
     /**
+     * Returns the strings supplied by the user to identify the user values
+     * corresponding to a particular coordinate.
+     *
+     * @param   ic   coord index
+     * @return   array of user input strings
+     */
+    public String[] getCoordDataLabels( int ic ) {
+        return contents_[ ic ].getDataLabels();
+    }
+
+    /**
      * Returns the number of rows associated with this dataspec if it
      * can be determined quickly.  If it would require a count, return -1.
      *
