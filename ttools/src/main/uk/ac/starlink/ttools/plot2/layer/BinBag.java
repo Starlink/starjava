@@ -192,6 +192,38 @@ public class BinBag {
     }
 
     /**
+     * Iterates over all the bins defined by this bin bag in a given
+     * data interval.  The contents of each bin, if any, are irrelevant
+     * to this operation.
+     *
+     * @param   lo   lower bound of interest
+     * @param   hi   upper bound of interest
+     * @return   iterator in sequence over 2-element (low,high) bin range
+     *           arrays that together cover the supplied (lo,hi) range
+     */
+    public Iterator<double[]> barIterator( double lo, double hi ) {
+        final int ibin0 = mapper_.getBinIndex( lo );
+        final int ibin1 = mapper_.getBinIndex( hi );
+        return new Iterator<double[]>() {
+            int ib = ibin0;
+            public boolean hasNext() {
+                return ib <= ibin1;
+            }
+            public double[] next() {
+                if ( ib <= ibin1 ) {
+                    return mapper_.getBinLimits( ib++ );
+                }
+                else {
+                    throw new NoSuchElementException();
+                }
+            }
+            public void remove() {
+                throw new UnsupportedOperationException();
+            }
+        };
+    }
+
+    /**
      * Indicates whether the bin boundaries used by this object are the
      * same as a given bin set specification.
      *

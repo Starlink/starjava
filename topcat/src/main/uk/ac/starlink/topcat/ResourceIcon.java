@@ -231,6 +231,8 @@ public class ResourceIcon implements Icon {
         PROGRESS = makeIcon( "plot_prog.gif" ),
         MATCHPLOT = makeIcon( "matchplot2.gif" ),
         CDSXMATCH = makeIcon( "xm3.png" ),
+        HISTO_SAVE = makeIcon( "histo-save.gif" ),
+        HISTO_IMPORT = makeIcon( "histo-import.gif" ),
 
         /* Plot2 icons. */
         UP_DOWN = makeIcon( "updown8.gif" ),

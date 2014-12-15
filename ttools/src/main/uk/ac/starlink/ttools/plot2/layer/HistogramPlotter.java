@@ -347,6 +347,17 @@ public class HistogramPlotter
     }
 
     /**
+     * Returns the DataSpec coord index used for the weighting data
+     * for this plotter.  If weighting is not supported, a negative
+     * value is returned.
+     *
+     * @return   weight coord index, or -1
+     */
+    public int getWeightCoordIndex() {
+        return icWeight_;
+    }
+
+    /**
      * Reads histogram data from a given data set.
      *
      * @param   xlog  false for linear scaling, true for logarithmic
