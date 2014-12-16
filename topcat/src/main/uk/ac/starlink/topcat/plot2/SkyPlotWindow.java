@@ -43,6 +43,7 @@ public class SkyPlotWindow
      */
     public SkyPlotWindow( Component parent ) {
         super( "Sky Plot", parent, PLOT_TYPE, new SkyPlotTypeGui() );
+        getToolBar().addSeparator();
         addHelp( "SkyPlotWindow" );
     }
 

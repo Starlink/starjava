@@ -36,6 +36,7 @@ public class HistogramPlotWindow
      */
     public HistogramPlotWindow( Component parent ) {
         super( "Histogram Plot", parent, PLOT_TYPE, PLOT_GUI );
+        getToolBar().addSeparator();
         addHelp( "HistogramPlotWindow" );
     }
 
