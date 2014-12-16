@@ -475,7 +475,6 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         getToolBar().add( sketchModel.createToolbarButton() );
         getToolBar().add( showProgressModel_.createToolbarButton() );
         getToolBar().add( exportAction );
-        getToolBar().addSeparator();
         for ( int i = 0; i < stackActions.length; i++ ) {
             stackToolbar.add( stackActions[ i ] );
         }
