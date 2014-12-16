@@ -10051,6 +10051,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         third party java code.</li>
     <li>Histogram normalisation option adjusted so that total area under bars,
         rather than total height of bars, is fixed.</li>
+    <li>Add <ref id="layer-linearfit">linearfit</ref> layer type for
+        <code>plot2plane</code>.</li>
     </ul>
     </p></dd>
 
