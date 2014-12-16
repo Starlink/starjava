@@ -10053,6 +10053,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         rather than total height of bars, is fixed.</li>
     <li>Add <ref id="layer-linearfit">linearfit</ref> layer type for
         <code>plot2plane</code>.</li>
+    <li>Fix NullPointerException bug when null value was supplied to
+        multi-word parameter (e.g. <code>tcube</code>).</li>
     </ul>
     </p></dd>
 
