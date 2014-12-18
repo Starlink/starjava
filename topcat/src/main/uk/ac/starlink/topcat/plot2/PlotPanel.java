@@ -112,6 +112,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
     private final DataStoreFactory storeFact_;
     private final AxisController<P,A> axisController_;
     private final Factory<PlotLayer[]> layerFact_;
+    private final Factory<PlotPosition> posFact_;
     private final Factory<Icon> legendFact_;
     private final Factory<float[]> legendPosFact_;
     private final ShaderControl shaderControl_;
@@ -159,6 +160,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      * @param  storeFact   data store factory implementation
      * @param  axisController  axis control GUI component
      * @param  layerFact   supplier of plot layers
+     * @param  posFact  supplier of plot position settings
      * @param  legendFact   supplier of legend icon
      * @param  legendPosFact    supplier of legend position
      *                          (2-element x,y fractional location in range 0-1,
@@ -174,8 +176,9 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      */
     public PlotPanel( DataStoreFactory storeFact,
                       AxisController<P,A> axisController,
-                      Factory<PlotLayer[]> layerFact, Factory<Icon> legendFact,
-                      Factory<float[]> legendPosFact,
+                      Factory<PlotLayer[]> layerFact,
+                      Factory<PlotPosition> posFact,
+                      Factory<Icon> legendFact, Factory<float[]> legendPosFact,
                       ShaderControl shaderControl,
                       ToggleButtonModel sketchModel,
                       PaperTypeSelector ptSel, Compositor compositor,
@@ -186,6 +189,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                    : new ProgressDataStoreFactory( storeFact, progModel );
         axisController_ = axisController;
         layerFact_ = layerFact;
+        posFact_ = posFact;
         legendFact_ = legendFact;
         legendPosFact_ = legendPosFact;
         shaderControl_ = shaderControl;
@@ -515,7 +519,9 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         Icon legend = legendFact_.getItem();
         assert legend == null || legendFact_.getItem().equals( legend );
         float[] legpos = legendPosFact_.getItem();
-        Rectangle bounds = getOuterBounds();
+        PlotPosition plotpos = posFact_.getItem();
+        Rectangle bounds = getOuterBounds( plotpos.getPlotSize() );
+        Insets insets = plotpos.getPlotInsets();
         LayerOpt[] opts = PaperTypeSelector.getOpts( layers );
         PaperType paperType =
             ptSel_.getPixelPaperType( opts, compositor_, this );
@@ -538,8 +544,8 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                                  fixAspect, geomFixRanges, surfConfig,
                                  shadeFact, auxFixRanges, auxSubranges,
                                  auxLogFlags, legend, legpos, storeFact_,
-                                 bounds, paperType, graphicsConfig, bgColor,
-                                 highlights );
+                                 bounds, insets, paperType, graphicsConfig,
+                                 bgColor, highlights );
     }
 
     /**
@@ -552,6 +558,18 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         if ( plotIcon != null ) {
             Insets insets = getInsets();
             plotIcon.paintIcon( this, g, insets.left, insets.top );
+
+            /* Draw a border around the outside of the plot icon.
+             * This will normally be invisible, since the plot icon is sized
+             * to fit this component.  However, if the size has been set
+             * explicitly (by supplying a PlotPosition object), it's useful
+             * to be able to see where the outline is. */
+            Color color0 = g.getColor();
+            g.setColor( Color.GRAY );
+            g.drawRect( insets.left - 1, insets.top - 1,
+                        plotIcon.getIconWidth() + 1,
+                        plotIcon.getIconHeight() + 1 );
+            g.setColor( color0 );
         }
         Decoration navdec = navDecoration_;
         if ( navdec != null ) {
@@ -563,13 +581,25 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      * Returns the bounds to use for the plot icon.
      * This includes axis decorations etc, but excludes component insets.
      *
+     * @param  sizeSetting  explicit settings for icon size, or null;
+     *                      negative members are ignored
      * @return   plot drawing bounds
      */
-    private Rectangle getOuterBounds() {
+    private Rectangle getOuterBounds( Dimension sizeSetting ) {
         Insets insets = getInsets();
-        return new Rectangle( insets.left, insets.top,
-                              getWidth() - insets.left - insets.right,
-                              getHeight() - insets.top - insets.bottom );
+        int x = insets.left;
+        int y = insets.top;
+        int width = getWidth() - insets.left - insets.right;;
+        int height = getHeight() - insets.top - insets.bottom;
+        if ( sizeSetting != null ) {
+            if ( sizeSetting.width > 0 ) {
+                width = sizeSetting.width;
+            }
+            if ( sizeSetting.height > 0 ) {
+                height = sizeSetting.height;
+            }
+        }
+        return new Rectangle( x, y, width, height );
     }
 
     /**
@@ -790,6 +820,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         private final float[] legpos_;
         private final DataStoreFactory storeFact_;
         private final Rectangle bounds_;
+        private final Insets insets_;
         private final PaperType paperType_;
         private final GraphicsConfiguration graphicsConfig_;
         private final Color bgColor_;
@@ -817,6 +848,8 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
          *                   positions (0-1), or null if legend absent/external
          * @param   storeFact  data store factory implementation
          * @param   bounds   plot data bounds
+         * @param   insets   space reserved for annotations between
+         *                   the plot data bounds and external bounds
          * @param   paperType  rendering implementation
          * @param   graphicsConfig  graphics configuration
          * @param   bgColor   background colour
@@ -830,7 +863,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                  Map<AuxScale,Subrange> auxSubranges,
                  Map<AuxScale,Boolean> auxLogFlags,
                  Icon legend, float[] legpos, DataStoreFactory storeFact,
-                 Rectangle bounds, PaperType paperType,
+                 Rectangle bounds, Insets insets, PaperType paperType,
                  GraphicsConfiguration graphicsConfig, Color bgColor,
                  double[][] highlights ) {
             oldWorkings_ = oldWorkings;
@@ -848,6 +881,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             legpos_ = legpos;
             storeFact_ = storeFact;
             bounds_ = bounds;
+            insets_ = insets;
             paperType_ = paperType;
             graphicsConfig_ = graphicsConfig;
             bgColor_ = bgColor;
@@ -1107,30 +1141,47 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             Range shadeRange = auxClipRanges.get( AuxScale.COLOR );
             ShadeAxis shadeAxis = shadeFact_.createShadeAxis( shadeRange );
 
-            /* Work out the plot placement and plot surface. */
-            PlotPlacement placer =
-                PlotPlacement.createPlacement( bounds_, surfFact_, profile_,
-                                               aspect, true, legend_,
-                                               legpos_, shadeAxis );
-            assert PlotPlacement
-                  .createPlacement( bounds_, surfFact_, profile_,
-                                    aspect, true, legend_,
-                                    legpos_, shadeAxis )
-                  .equals( placer );
-            Surface surface = placer.getSurface();
+            /* Work out the graphics bounds of the data region. */
+            final Rectangle dataBounds;
+            if ( isFixedInsets( insets_ ) ) {
+                dataBounds = PlotUtil.subtractInsets( bounds_, insets_ );
+            }
+            else {
+                Rectangle autoDataBounds =
+                    PlotPlacement
+                   .calculateDataBounds( bounds_, surfFact_, profile_, aspect,
+                                         true, legend_, legpos_, shadeAxis );
+                dataBounds = adjustDataBounds( bounds_, autoDataBounds,
+                                               insets_ );
+            }
 
-            /* Place highlighted point icons as plot decorations. */
+            /* Get the plot surface. */
+            Surface surface =
+                surfFact_.createSurface( dataBounds, profile_, aspect );
+
+            /* Get the basic plot decorations. */
+            Decoration[] basicDecs =
+                PlotPlacement.createPlotDecorations( dataBounds, legend_,
+                                                     legpos_, shadeAxis );
+            List<Decoration> decList = new ArrayList<Decoration>();
+            decList.addAll( Arrays.asList( basicDecs ) );
+
+            /* Place highlighted point icons as further plot decorations. */
             Icon highIcon = HIGHLIGHTER;
             int xoff = highIcon.getIconWidth() / 2;
             int yoff = highIcon.getIconHeight() / 2;
             Point gp = new Point();
             for ( int ih = 0; ih < highlights_.length; ih++ ) {
                 if ( surface.dataToGraphics( highlights_[ ih ], true, gp ) ) {
-                    placer.getDecorations()
-                          .add( new Decoration( highIcon,
-                                                gp.x - xoff, gp.y - yoff ) );
+                    decList.add( new Decoration( highIcon,
+                                                 gp.x - xoff, gp.y - yoff ) );
                 }
             }
+
+            /* Construct the plot placement. */
+            Decoration[] decs = decList.toArray( new Decoration[ 0 ] );
+            PlotPlacement placer = new PlotPlacement( bounds_, surface, decs );
+            assert placer.equals( new PlotPlacement( bounds_, surface, decs ) );
 
             /* Determine whether first the data part, then the entire
              * graphics, of the plot is the same as for the oldWorkings.
@@ -1138,7 +1189,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
              * expensive calculations (data scans), since the ranges
              * will have been picked up from the previous plot. */
             boolean sameDataIcon =
-                new DataIconId( placer.getSurface(), layers, auxClipRanges )
+                new DataIconId( surface, layers, auxClipRanges )
                .equals( oldWorkings_.getDataIconId() );
             boolean samePlot =
                 sameDataIcon &&
@@ -1286,6 +1337,63 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                 }
                 return true;
             }
+        }
+
+        /**
+         * Determines whether an Insets object contains full inset information.
+         *
+         * @param  insets   represents explicit inset settings
+         * @return  true iff insets is not null and all its members are &gt;=0
+         */
+        private static boolean isFixedInsets( Insets insets ) {
+            return insets != null
+                && insets.top >= 0
+                && insets.left >= 0
+                && insets.bottom >= 0
+                && insets.right >= 0;
+        }
+
+        /**
+         * Returns a data bounds rectangle based on given external plot bounds,
+         * automatically calculated data bounds, and an optional insets
+         * object providing preferred settings.  The values in the insets
+         * object are used to override those from the autoBounds input
+         * where present.
+         *
+         * @param  extBounds  fixed external bounds 
+         * @param  autoBounds   default data bounds
+         * @param  insets   may contain required insets between external and
+         *                  data bounds; members may be negative to indicate
+         *                  no setting, or the whole thing can be null
+         * @return   data bounds rectangle for actual use
+         */
+        private static Rectangle adjustDataBounds( Rectangle extBounds,
+                                                   Rectangle autoBounds,
+                                                   Insets insets ) {
+            if ( insets == null ) {
+                return new Rectangle( autoBounds );
+            }
+            int top =
+                  insets.top >= 0
+                ? insets.top
+                : autoBounds.y - extBounds.y;
+            int left =
+                  insets.left >= 0
+                ? insets.left
+                : autoBounds.x - extBounds.x;
+            int bottom =
+                  insets.bottom >= 0
+                ? insets.bottom
+                : extBounds.y + extBounds.height
+                - autoBounds.y - autoBounds.height;
+            int right =
+                  insets.right >= 0
+                ? insets.right
+                : extBounds.x + extBounds.width
+                - autoBounds.x - autoBounds.width;
+            return PlotUtil
+                  .subtractInsets( extBounds,
+                                   new Insets( top, left, bottom, right ) );
         }
 
         /**
