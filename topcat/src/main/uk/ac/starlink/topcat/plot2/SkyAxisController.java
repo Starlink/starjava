@@ -85,6 +85,9 @@ public class SkyAxisController
                                      new ConfigSpecifier( StyleKeys.CAPTIONER
                                                          .getKeys() ) );
 
+        /* Positioner tab. */
+        addPositionTab( true );
+
         assert assertHasKeys( surfFact.getProfileKeys() );
     }
 

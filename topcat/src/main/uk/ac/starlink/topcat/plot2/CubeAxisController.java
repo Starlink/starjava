@@ -153,6 +153,9 @@ public class CubeAxisController
                                      new ConfigSpecifier( StyleKeys.CAPTIONER
                                                          .getKeys() ) );
 
+        /* Positioner tab. */
+        addPositionTab( false );
+
         assert assertHasKeys( surfFact.getProfileKeys() );
     }
 

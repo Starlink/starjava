@@ -70,6 +70,7 @@ import uk.ac.starlink.ttools.plot2.SubCloud;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
+import uk.ac.starlink.ttools.plot2.config.Specifier;
 import uk.ac.starlink.ttools.plot2.data.CachedDataStoreFactory;
 import uk.ac.starlink.ttools.plot2.data.CoordGroup;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
@@ -159,9 +160,8 @@ public class StackPlotWindow<P,A> extends AuxWindow {
             }
         };
         Factory<PlotPosition> posFact = new Factory<PlotPosition>() {
-            private final PlotPosition pos = new PlotPosition();
             public PlotPosition getItem() {
-                return pos;
+                return axisController_.getPlotPosition();
             }
         };
         final LegendControl legendControl =

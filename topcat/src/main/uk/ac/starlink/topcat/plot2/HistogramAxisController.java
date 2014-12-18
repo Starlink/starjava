@@ -92,6 +92,9 @@ public class HistogramAxisController
         barControl.addSpecifierTab( "Bars", new ConfigSpecifier( BAR_KEYS ) );
         addControl( barControl );
 
+        /* Positioner tab. */
+        addPositionTab( true );
+
         assert assertHasKeys( surfFact.getProfileKeys() );
     }
 
