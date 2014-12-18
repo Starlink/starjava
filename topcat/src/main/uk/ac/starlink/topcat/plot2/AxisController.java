@@ -42,6 +42,7 @@ public abstract class AxisController<P,A> implements Configger {
     private final ActionForwarder actionForwarder_;
     private final List<ConfigControl> controlList_;
     private final Set<DataId> seenDataIdSet_;
+    private Specifier<PlotPosition> posSpecifier_;
     private ConfigMap aspectConfig_;
     private Range[] ranges_;
     private A aspect_;
@@ -240,6 +241,30 @@ public abstract class AxisController<P,A> implements Configger {
                          ? new ConfigMap()
                          : navSpecifier_.getSpecifiedValue();
         return surfFact_.createNavigator( config );
+    }
+
+    /**
+     * Adds a tab to the main control for specifying plot positioning.
+     *
+     * @param  hasInsets  true if the insets options are allowed;
+     *                    if false just the external dimensions are queried
+     */
+    protected void addPositionTab( boolean hasInsets ) {
+        posSpecifier_ = new PlotPositionSpecifier( hasInsets );
+        posSpecifier_.addActionListener( getActionForwarder() );
+        mainControl_.addControlTab( "Size", posSpecifier_.getComponent(),
+                                    true );
+    }
+
+    /**
+     * Returns an object that can provide explicit settings for plot icon
+     * dimensions and positioning.
+     *
+     * @return   plot position
+     */
+    public PlotPosition getPlotPosition() {
+        return posSpecifier_ == null ? new PlotPosition()
+                                     : posSpecifier_.getSpecifiedValue();
     }
 
     /**
