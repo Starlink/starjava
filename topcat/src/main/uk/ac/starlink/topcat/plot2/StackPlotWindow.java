@@ -158,6 +158,12 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                 return readPlotLayers( true );
             }
         };
+        Factory<PlotPosition> posFact = new Factory<PlotPosition>() {
+            private final PlotPosition pos = new PlotPosition();
+            public PlotPosition getItem() {
+                return pos;
+            }
+        };
         final LegendControl legendControl =
             new LegendControl( stackModel_, configger );
         Factory<Icon> legendFact = new Factory<Icon>() {
@@ -191,7 +197,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
          * requirements from the GUI.  This does the actual plotting. */
         plotPanel_ =
             new PlotPanel<P,A>( storeFact, axisController_, layerFact,
-                                legendFact, legendPosFact,
+                                posFact, legendFact, legendPosFact,
                                 shaderControl, sketchModel,
                                 plotType.getPaperTypeSelector(), compositor,
                                 placeProgressBar().getModel(),
