@@ -4,6 +4,7 @@ import java.lang.reflect.Method;
 import java.nio.MappedByteBuffer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import uk.ac.starlink.util.Loader;
 
 /**
  * Attempts to free resources from a MappedByteBuffer.
@@ -49,6 +50,17 @@ public abstract class Unmapper {
         Logger.getLogger( "uk.ac.starlink.fits" );
 
     /**
+     * Name of system property to control buffer unmapping ({@value}).
+     * Possible values are currently "<code>sun</code>" for
+     * <code>sun.misc.Cleaner</code>-based unmapping,
+     * and "<code>none</code>" for no explicit unmapping.
+     * The default is to use sun if available, else fall back to none.
+     * You can also give the classname of an <code>Unmapper</code>
+     * concrete subclass with a no-arg constructor.
+     */
+    public static final String UNMAP_PROPERTY = "startable.unmap";
+
+    /**
      * Attempts to release the resources (mapped memory) used by a given
      * MappedByteBuffer.  The buffer <strong>MUST NOT</strong> be read
      * after this call has been made.
@@ -76,15 +88,57 @@ public abstract class Unmapper {
      * @return  instance
      */
     private static Unmapper createInstance() {
+        String pref;
         try {
-            Unmapper unmapper = new SunUnmapper();
-            logger_.log( Level.CONFIG,
-                         "Explicit buffer unmapping should work" );
-            return unmapper;
+            pref = System.getProperty( UNMAP_PROPERTY );
         }
-        catch ( Exception e ) {
-            logger_.log( Level.CONFIG, "No explicit unmapping: " + e, e );
+        catch ( SecurityException e ) {
+            pref = null;
+        }
+        if ( "sun".equalsIgnoreCase( pref ) ) {
+            logger_.info( "Using Sun buffer unmapper by explicit request" );
+            try {
+                Unmapper unmapper = new SunUnmapper();
+                logger_.log( Level.CONFIG,
+                             "Explicit buffer unmapping should work" );
+                return unmapper;
+            }
+            catch ( Exception e ) {
+                logger_.log( Level.WARNING,
+                             "Can't use Sun unmapper, fall back to no-op", e );
+                return new NopUnmapper();
+            }
+        }
+        else if ( "none".equalsIgnoreCase( pref ) ) {
+            logger_.info( "Using no-op buffer unmapper by explicit request" );
+            logger_.config( "No explicit unmapping" );
             return new NopUnmapper();
+        }
+        else if ( pref == null ) {
+            try {
+                Unmapper unmapper = new SunUnmapper();
+                logger_.log( Level.CONFIG,
+                             "Explicit buffer unmapping should work" );
+                return unmapper;
+            }
+            catch ( Exception e ) {
+                logger_.log( Level.CONFIG, "No explicit unmapping: " + e, e );
+                return new NopUnmapper();
+            }
+        }
+        else {
+            Unmapper unmapper = Loader.getClassInstance( pref, Unmapper.class );
+            if ( unmapper != null ) {
+                logger_.info( "Using custom buffer unmapper " + pref
+                            + " by explicit request" );
+                return unmapper;
+            }
+            else {
+                logger_.log( Level.WARNING,
+                             "Can't use unknown unmapper " + pref
+                           + ", fall back to no-op" );
+                return new NopUnmapper();
+            }
         }
     }
 
