@@ -4358,6 +4358,14 @@ The following ones have special significance within TOPCAT:
     tables in memory, and larger ones on disk.
     </p></dd>
 
+<dt><code>startable.unmap</code></dt>
+<dd><p>Determines whether and how unmapping of memory mapped buffers is done.
+    Possible values are "<code>sun</code>" (the default) or "<code>none</code>".
+    In most cases you are advised to leave this alone, but in the event of
+    unmapping-related JVM crashes (not expected!), setting it to 
+    <code>none</code> may help.
+    </p></dd>
+
 <dt><code>startable.writers</code></dt>
 <dd><p>Can be set to a (colon-separated) list of custom table format output
     handler classes (see <ref id="customHandlers"/>).
