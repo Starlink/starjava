@@ -7809,7 +7809,7 @@ stilts tpipe omode=meta cmd=&indirection.char;commands.lis http://archive.org/da
 <dt><verbatim>
 stilts tpipe in=survey.fits 
              cmd='select "skyDistanceDegrees(hmsToDegrees(RA),dmsToDegrees(DEC), \
-                                             hmsToDegrees(2,28,11),dmsToDegrees(-6,49,45) \
+                                             hmsToDegrees(2,28,11),dmsToDegrees(-6,49,45)) \
                           &lt; 5./60."' \
              omode=count
 </verbatim></dt>
