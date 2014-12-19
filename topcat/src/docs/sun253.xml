@@ -169,6 +169,8 @@
   <!ENTITY FIG.form_marks2 '&figs;form_marks2.gif'>
   <!ENTITY FIG.form_link2 '&figs;form_link2.gif'>
   <!ENTITY FIG.font_tab '&figs;font_tab.gif'>
+  <!ENTITY FIG.size_tab_insets '&figs;size_tab_insets.gif'>
+  <!ENTITY FIG.size_tab_noinsets '&figs;size_tab_noinsets.gif'>
   <!ENTITY FIG.ConfigControl_histobars '&figs;ConfigControl_histobars.gif'>
   <!ENTITY FIG.PlaneAxisControl_coords '&figs;PlaneAxisControl_coords.gif'>
   <!ENTITY FIG.PlaneAxisControl_navigation
@@ -9341,6 +9343,29 @@ It also affects some other things like the legend.
 </dl>
 </p>
 
+<figure>
+<caption><px>Size tab</px></caption>
+<figureimage src="&FIG.size_tab_insets;"/>
+</figure>
+
+<p>The <label>Size</label> tab allows you to set the geometry of the
+generated plot in pixels.  By default, the plot is simply resized to
+fit the current size and shape of the window.  However, if you fill
+in the <label>Outer width</label> and/or <label>Outer height</label>
+fields, the size will instead be fixed to the given dimension in pixels.
+Note if you pick a large value, you may need to manually resize the
+window to see all of the plot.
+Similarly, the <label>Border</label> fields fix the number of pixels
+surrounding the data region of the plot; if these are left blank,
+as by default, these borders are sized to accommodate the things
+that have to fit in them (such as axis annotations).
+</p>
+
+<p>The main use for this panel is to fix the size and alignment
+of the generated images if you want to export a series of
+similar plots.
+</p>
+
 </subsubsubsect>
 
 </subsubsect>
@@ -9618,6 +9643,29 @@ It also affects some other things like the legend.
 <dd><p>Whether the font is plain, bold or italic.
     </p></dd>
 </dl>
+</p>
+
+<figure>
+<caption><px>Size tab</px></caption>
+<figureimage src="&FIG.size_tab_insets;"/>
+</figure>
+
+<p>The <label>Size</label> tab allows you to set the geometry of the
+generated plot in pixels.  By default, the plot is simply resized to
+fit the current size and shape of the window.  However, if you fill
+in the <label>Outer width</label> and/or <label>Outer height</label>
+fields, the size will instead be fixed to the given dimension in pixels.
+Note if you pick a large value, you may need to manually resize the
+window to see all of the plot.
+Similarly, the <label>Border</label> fields fix the number of pixels
+surrounding the data region of the plot; if these are left blank,
+as by default, these borders are sized to accommodate the things
+that have to fit in them (such as axis annotations).
+</p>
+
+<p>The main use for this panel is to fix the size and alignment
+of the generated images if you want to export a series of
+similar plots.
 </p>
 
 </subsubsubsect>
@@ -9929,6 +9977,25 @@ It also affects some other things like the legend.
 </dl>
 </p>
 
+<figure>
+<caption><px>Size tab</px></caption>
+<figureimage src="&FIG.size_tab_noinsets;"/>
+</figure>
+
+<p>The <label>Size</label> tab allows you to set the geometry of the
+generated plot in pixels.  By default, the plot is simply resized to
+fit the current size and shape of the window.  However, if you fill
+in the <label>Outer width</label> and/or <label>Outer height</label>
+fields, the size will instead be fixed to the given dimension in pixels.
+Note if you pick a large value, you may need to manually resize the
+window to see all of the plot.
+</p>
+
+<p>The main use for this panel is to fix the size
+of the generated images if you want to export a series of
+similar plots.
+</p>
+
 </subsubsubsect>
 
 </subsubsect>
@@ -10192,6 +10259,25 @@ It also affects some other things like the legend.
 <dd><p>Whether the font is plain, bold or italic.
     </p></dd>
 </dl>
+</p>
+
+<figure>
+<caption><px>Size tab</px></caption>
+<figureimage src="&FIG.size_tab_noinsets;"/>
+</figure>
+
+<p>The <label>Size</label> tab allows you to set the geometry of the
+generated plot in pixels.  By default, the plot is simply resized to
+fit the current size and shape of the window.  However, if you fill
+in the <label>Outer width</label> and/or <label>Outer height</label>
+fields, the size will instead be fixed to the given dimension in pixels.
+Note if you pick a large value, you may need to manually resize the
+window to see all of the plot.
+</p>
+
+<p>The main use for this panel is to fix the size
+of the generated images if you want to export a series of
+similar plots.
 </p>
 
 </subsubsubsect>
@@ -10460,6 +10546,29 @@ It also affects some other things like the legend.
 <dd><p>Whether the font is plain, bold or italic.
     </p></dd>
 </dl>
+</p>
+
+<figure>
+<caption><px>Size tab</px></caption>
+<figureimage src="&FIG.size_tab_insets;"/>
+</figure>
+
+<p>The <label>Size</label> tab allows you to set the geometry of the
+generated plot in pixels.  By default, the plot is simply resized to
+fit the current size and shape of the window.  However, if you fill
+in the <label>Outer width</label> and/or <label>Outer height</label>
+fields, the size will instead be fixed to the given dimension in pixels.
+Note if you pick a large value, you may need to manually resize the
+window to see all of the plot.
+Similarly, the <label>Border</label> fields fix the number of pixels
+surrounding the data region of the plot; if these are left blank,
+as by default, these borders are sized to accommodate the things
+that have to fit in them (such as axis annotations).
+</p>
+
+<p>The main use for this panel is to fix the size and alignment
+of the generated images if you want to export a series of
+similar plots.
 </p>
 
 </subsubsubsect>
@@ -20579,6 +20688,9 @@ introduced since the last version:
         (this reinstates behaviour available from old plot windows).</li>
     <li>Fixed error in fits-var output
         (PCOUNT header card did not include block alignment gap).</li>
+    <li>New <label>Size</label> tab is provided in plot window Axes
+        control to allow explicit setting of output plot dimensions and
+        alignment in pixels - useful for exporting plots.</li>
     </ul>
     </p></dd>
 
