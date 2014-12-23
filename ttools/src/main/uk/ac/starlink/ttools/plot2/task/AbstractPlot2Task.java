@@ -1127,6 +1127,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         final float[] legpos = legend == null
                              ? null
                              : legposParam_.floatsValue( env );
+        final String title = null;
 
         /* We have all we need.  Construct and return the object
          * that can do the plot. */
@@ -1146,8 +1147,8 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                                                     boolean caching ) {
                 PlotDisplay panel =
                     PlotDisplay
-                   .createPlotDisplay( layers, surfFact, surfConfig,
-                                       legend, legpos, shadeFact, shadeFixRange,
+                   .createPlotDisplay( layers, surfFact, surfConfig, legend,
+                                       legpos, title, shadeFact, shadeFixRange,
                                        ptsel, compositor, dataStore,
                                        surfaceAuxRange, navigable, caching );
                 panel.setPreferredSize( new Dimension( xpix, ypix ) );
@@ -1157,8 +1158,8 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
 
             public Icon createPlotIcon( DataStore dataStore ) {
                 return AbstractPlot2Task
-                      .createPlotIcon( layers, surfFact, surfConfig,
-                                       legend, legpos, shadeFact, shadeFixRange,
+                      .createPlotIcon( layers, surfFact, surfConfig, legend,
+                                       legpos, title, shadeFact, shadeFixRange,
                                        ptsel, compositor, dataStore,
                                        xpix, ypix, insets, forceBitmap );
             }
@@ -1831,6 +1832,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * @param  legPos   2-element array giving x,y fractional legend placement
      *                  position within plot (elements in range 0..1),
      *                  or null for external legend
+     * @param  title    plot title, or null
      * @param  shadeFact  gets shader axis from range, or null if not required
      * @param  shadeFixRange  fixed shader range,
      *                        or null for auto-range where required
@@ -1848,8 +1850,8 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      */
     private static <P,A> Icon createPlotIcon( PlotLayer[] layers,
                                               SurfaceFactory<P,A> surfFact,
-                                              ConfigMap config,
-                                              Icon legend, float[] legPos,
+                                              ConfigMap config, Icon legend,
+                                              float[] legPos, String title,
                                               ShadeAxisFactory shadeFact,
                                               Range shadeFixRange,
                                               PaperTypeSelector ptsel,
@@ -1865,7 +1867,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         PlotUtil.logTime( logger_, "Range", t0 );
         A aspect = surfFact.createAspect( profile, config, ranges );
         return createPlotIcon( layers, surfFact, profile, aspect,
-                               legend, legPos, shadeFact, shadeFixRange,
+                               legend, legPos, title, shadeFact, shadeFixRange,
                                ptsel, compositor, dataStore, xpix, ypix,
                                insets, forceBitmap );
     }
@@ -1883,6 +1885,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * @param  legPos   2-element array giving x,y fractional legend placement
      *                  position within plot (elements in range 0..1),
      *                  or null for external legend
+     * @param  title   plot title or null
      * @param  shadeFact  gets shader axis from range, or null if not required
      * @param  shadeFixRange  fixed shader range,
      *                        or null for auto-range where required
@@ -1900,8 +1903,8 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      */
     public static <P,A> Icon createPlotIcon( PlotLayer[] layers,
                                              SurfaceFactory<P,A> surfFact,
-                                             P profile, A aspect,
-                                             Icon legend, float[] legPos,
+                                             P profile, A aspect, Icon legend,
+                                             float[] legPos, String title,
                                              ShadeAxisFactory shadeFact,
                                              Range shadeFixRange,
                                              PaperTypeSelector ptsel,
@@ -1928,12 +1931,12 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
             dataBounds = PlotPlacement
                         .calculateDataBounds( extBounds, surfFact, profile,
                                               aspect, withScroll, legend,
-                                              legPos, shadeAxis );
+                                              legPos, title, shadeAxis );
         }
         Surface surf = surfFact.createSurface( dataBounds, profile, aspect );
         Decoration[] decs =
-            PlotPlacement.createPlotDecorations( dataBounds, legend, legPos,
-                                                 shadeAxis );
+            PlotPlacement.createPlotDecorations( surf, legend, legPos,
+                                                 title, shadeAxis );
         PlotPlacement placer = new PlotPlacement( extBounds, surf, decs );
         LayerOpt[] opts = PaperTypeSelector.getOpts( layers );
         PaperType paperType = forceBitmap

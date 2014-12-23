@@ -192,6 +192,10 @@ public class TimeSurface implements Surface {
         g.setColor( color0 );
     }
 
+    public Captioner getCaptioner() {
+        return captioner_;
+    }
+
     /**
      * Returns a plot aspect representing a view of this surface zoomed
      * in some or all dimensions around the given central position.

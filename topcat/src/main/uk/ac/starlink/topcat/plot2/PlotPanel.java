@@ -519,6 +519,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         Icon legend = legendFact_.getItem();
         assert legend == null || legendFact_.getItem().equals( legend );
         float[] legpos = legendPosFact_.getItem();
+        String title = null;
         PlotPosition plotpos = posFact_.getItem();
         Rectangle bounds = getOuterBounds( plotpos.getPlotSize() );
         Insets insets = plotpos.getPlotInsets();
@@ -543,7 +544,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         return new PlotJob<P,A>( workings_, layers, surfFact, profile,
                                  fixAspect, geomFixRanges, surfConfig,
                                  shadeFact, auxFixRanges, auxSubranges,
-                                 auxLogFlags, legend, legpos, storeFact_,
+                                 auxLogFlags, legend, legpos, title, storeFact_,
                                  bounds, insets, paperType, graphicsConfig,
                                  bgColor, highlights );
     }
@@ -818,6 +819,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         private final Map<AuxScale,Boolean> auxLogFlags_;
         private final Icon legend_;
         private final float[] legpos_;
+        private final String title_;
         private final DataStoreFactory storeFact_;
         private final Rectangle bounds_;
         private final Insets insets_;
@@ -846,6 +848,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
          * @param   legend   legend icon, or null
          * @param   legpos   legend position as (x,y) array of relative
          *                   positions (0-1), or null if legend absent/external
+         * @param   title    plot title, or null
          * @param   storeFact  data store factory implementation
          * @param   bounds   plot data bounds
          * @param   insets   space reserved for annotations between
@@ -862,10 +865,10 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                  Map<AuxScale,Range> auxFixRanges,
                  Map<AuxScale,Subrange> auxSubranges,
                  Map<AuxScale,Boolean> auxLogFlags,
-                 Icon legend, float[] legpos, DataStoreFactory storeFact,
-                 Rectangle bounds, Insets insets, PaperType paperType,
-                 GraphicsConfiguration graphicsConfig, Color bgColor,
-                 double[][] highlights ) {
+                 Icon legend, float[] legpos, String title,
+                 DataStoreFactory storeFact, Rectangle bounds, Insets insets,
+                 PaperType paperType, GraphicsConfiguration graphicsConfig,
+                 Color bgColor, double[][] highlights ) {
             oldWorkings_ = oldWorkings;
             layers_ = layers;
             surfFact_ = surfFact;
@@ -879,6 +882,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             auxLogFlags_ = auxLogFlags;
             legend_ = legend;
             legpos_ = legpos;
+            title_ = title;
             storeFact_ = storeFact;
             bounds_ = bounds;
             insets_ = insets;
@@ -1150,7 +1154,8 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                 Rectangle autoDataBounds =
                     PlotPlacement
                    .calculateDataBounds( bounds_, surfFact_, profile_, aspect,
-                                         true, legend_, legpos_, shadeAxis );
+                                         true, legend_, legpos_, title_,
+                                         shadeAxis );
                 dataBounds = adjustDataBounds( bounds_, autoDataBounds,
                                                insets_ );
             }
@@ -1161,8 +1166,8 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
 
             /* Get the basic plot decorations. */
             Decoration[] basicDecs =
-                PlotPlacement.createPlotDecorations( dataBounds, legend_,
-                                                     legpos_, shadeAxis );
+                PlotPlacement.createPlotDecorations( surface, legend_, legpos_,
+                                                     title_, shadeAxis );
             List<Decoration> decList = new ArrayList<Decoration>();
             decList.addAll( Arrays.asList( basicDecs ) );
 
@@ -1311,8 +1316,8 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             ShadeAxis shadeAxis = shadeFact_.createShadeAxis( shadeRange );
             PlotPlacement placer =
                 PlotPlacement.createPlacement( bounds_, surfFact_, profile_,
-                                               aspect, true, legend_,
-                                               legpos_, shadeAxis );
+                                               aspect, true, legend_, legpos_,
+                                               title_, shadeAxis );
             return placer.getSurface();
         }
 
