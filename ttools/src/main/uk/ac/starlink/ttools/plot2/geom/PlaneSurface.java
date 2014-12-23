@@ -160,6 +160,10 @@ public class PlaneSurface implements Surface {
             .toString();
     }
 
+    public Captioner getCaptioner() {
+        return captioner_;
+    }
+
     public void paintBackground( Graphics g ) {
         Color color0 = g.getColor();
         g.setColor( Color.WHITE );

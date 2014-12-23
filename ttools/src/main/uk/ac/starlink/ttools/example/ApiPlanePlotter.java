@@ -120,6 +120,7 @@ public class ApiPlanePlotter implements SinePlot.PlanePlotter {
         /* We will not use optional decorations for this plot. */
         Icon legend = null;
         float[] legPos = null;
+        String title = null;
         ShadeAxisFactory shadeFact = null;
         Range shadeFixRange = null;
 
@@ -146,9 +147,9 @@ public class ApiPlanePlotter implements SinePlot.PlanePlotter {
 
         /* Construct and return the plot generator. */
         return new PlotGenerator( layers, surfFact, profile, aspect,
-                                  legend, legPos, shadeFact, shadeFixRange,
-                                  ptSel, compositor, dataStore, xpix, ypix,
-                                  dataInsets );
+                                  legend, legPos, title, shadeFact,
+                                  shadeFixRange, ptSel, compositor,
+                                  dataStore, xpix, ypix, dataInsets );
     }
 
     /**

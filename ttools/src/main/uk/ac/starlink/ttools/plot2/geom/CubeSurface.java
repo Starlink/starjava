@@ -148,6 +148,10 @@ public class CubeSurface implements Surface {
         return new Insets( 0, 0, 0, 0 );
     }
 
+    public Captioner getCaptioner() {
+        return captioner_;
+    }
+
     public boolean dataToGraphics( double[] dataPos, boolean visibleOnly,
                                    Point gPos ) {
         return dataToGraphicZ( dataPos, visibleOnly, gPos, dummyZ_ );

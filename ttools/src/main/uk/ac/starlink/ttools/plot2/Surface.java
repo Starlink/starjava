@@ -141,4 +141,12 @@ public interface Surface {
      * @return   human-readable string representing position
      */
     String formatPosition( double[] dataPos );
+
+    /**
+     * Returns a captioner suitable for drawing general purpose labels
+     * annotating the plot.
+     *
+     * @return  captioner
+     */
+    Captioner getCaptioner();
 }

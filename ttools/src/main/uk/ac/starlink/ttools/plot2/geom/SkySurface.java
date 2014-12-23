@@ -219,6 +219,10 @@ public class SkySurface implements Surface {
         g2.setColor( color0 );
     }
 
+    public Captioner getCaptioner() {
+        return captioner_;
+    }
+
     /**
      * Attempts to constructs a GridLiner object which can
      * draw grid lines on this plot.

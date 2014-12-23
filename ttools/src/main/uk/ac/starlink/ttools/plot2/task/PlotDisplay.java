@@ -67,6 +67,7 @@ public class PlotDisplay<P,A> extends JComponent {
     private final P profile_;
     private final Icon legend_;
     private final float[] legPos_;
+    private final String title_;
     private final ShadeAxisFactory shadeFact_;
     private final Range shadeFixRange_;
     private final PaperTypeSelector ptSel_;
@@ -105,6 +106,7 @@ public class PlotDisplay<P,A> extends JComponent {
      * @param  legPos   2-element array giving x,y fractional legend placement
      *                  position within plot (elements in range 0..1),
      *                  or null for external legend
+     * @param  title    plot title, or null
      * @param  shadeFact  makes shader axes, or null if not required
      * @param  shadeFixRange  fixed shader range,
      *                        or null for auto-range where required
@@ -121,16 +123,18 @@ public class PlotDisplay<P,A> extends JComponent {
      */
     public PlotDisplay( PlotLayer[] layers, SurfaceFactory<P,A> surfFact,
                         P profile, A aspect, Icon legend, float[] legPos,
-                        ShadeAxisFactory shadeFact, Range shadeFixRange,
-                        PaperTypeSelector ptSel, Compositor compositor,
-                        DataStore dataStore, boolean surfaceAuxRange,
-                        final Navigator<A> navigator, boolean caching ) {
+                        String title, ShadeAxisFactory shadeFact,
+                        Range shadeFixRange, PaperTypeSelector ptSel,
+                        Compositor compositor, DataStore dataStore,
+                        boolean surfaceAuxRange, final Navigator<A> navigator,
+                        boolean caching ) {
         layers_ = layers;
         surfFact_ = surfFact;
         profile_ = profile;
         aspect_ = aspect;
         legend_ = legend;
         legPos_ = legPos;
+        title_ = title;
         shadeFact_ = shadeFact;
         shadeFixRange_ = shadeFixRange;
         ptSel_ = ptSel;
@@ -290,14 +294,15 @@ public class PlotDisplay<P,A> extends JComponent {
                     PlotPlacement
                    .calculateDataBounds( extBounds, surfFact_, profile_,
                                          aspect_, withScroll, legend_,
-                                         legPos_, shadeAxis );
+                                         legPos_, title_, shadeAxis );
             }
 
             /* Work out plot positioning. */
             surface_ = surfFact_.createSurface( dataBounds, profile_, aspect_ );
             Decoration[] decs =
-                PlotPlacement.createPlotDecorations( dataBounds, legend_,
-                                                     legPos_, shadeAxis );
+                PlotPlacement
+               .createPlotDecorations( surface_, legend_, legPos_, title_,
+                                       shadeAxis );
             PlotPlacement placer =
                 new PlotPlacement( extBounds, surface_, decs );
 
@@ -481,6 +486,7 @@ public class PlotDisplay<P,A> extends JComponent {
      * @param  legPos   2-element array giving x,y fractional legend placement
      *                  position within plot (elements in range 0..1),
      *                  or null for external legend
+     * @param  title    plot title, or null
      * @param  shadeFact  makes shader axis, or null if not required
      * @param  shadeFixRange  fixed shader range,
      *                        or null for auto-range where required
@@ -499,10 +505,11 @@ public class PlotDisplay<P,A> extends JComponent {
     public static <P,A> PlotDisplay
             createPlotDisplay( PlotLayer[] layers, SurfaceFactory<P,A> surfFact,
                                ConfigMap config, Icon legend, float[] legPos,
-                               ShadeAxisFactory shadeFact, Range shadeFixRange,
-                               PaperTypeSelector ptSel, Compositor compositor,
-                               DataStore dataStore, boolean surfaceAuxRange,
-                               boolean navigable, boolean caching ) {
+                               String title, ShadeAxisFactory shadeFact,
+                               Range shadeFixRange, PaperTypeSelector ptSel,
+                               Compositor compositor, DataStore dataStore,
+                               boolean surfaceAuxRange, boolean navigable,
+                               boolean caching ) {
         P profile = surfFact.createProfile( config );
 
         /* Read ranges from data if necessary. */
@@ -521,9 +528,10 @@ public class PlotDisplay<P,A> extends JComponent {
      
         /* Create and return the component. */
         return new PlotDisplay<P,A>( layers, surfFact, profile, aspect,
-                                     legend, legPos, shadeFact, shadeFixRange,
-                                     ptSel, compositor, dataStore,
-                                     surfaceAuxRange, navigator, caching );
+                                     legend, legPos, title, shadeFact,
+                                     shadeFixRange, ptSel, compositor,
+                                     dataStore, surfaceAuxRange, navigator,
+                                     caching );
     }
 
     /**

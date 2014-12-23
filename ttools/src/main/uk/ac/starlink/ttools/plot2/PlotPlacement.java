@@ -164,20 +164,21 @@ public class PlotPlacement {
      * @param   legend   legend icon if required, or null
      * @param   legPos  legend position if intenal legend is required;
      *                  2-element (x,y) array, each element in range 0-1
+     * @param   title   title text, or null
      * @param   shadeAxis  shader axis if required, or null
      * @return   new plot placement
      */
     public static <P,A> PlotPlacement
             createPlacement( Rectangle extBounds, SurfaceFactory<P,A> surfFact,
                              P profile, A aspect, boolean withScroll,
-                             Icon legend, float[] legPos,
+                             Icon legend, float[] legPos, String title,
                              ShadeAxis shadeAxis ) {
         Rectangle dataBounds =
             calculateDataBounds( extBounds, surfFact, profile, aspect,
-                                 withScroll, legend, legPos, shadeAxis );
+                                 withScroll, legend, legPos, title, shadeAxis );
         Surface surf = surfFact.createSurface( dataBounds, profile, aspect );
         Decoration[] decs =
-            createPlotDecorations( dataBounds, legend, legPos, shadeAxis );
+            createPlotDecorations( surf, legend, legPos, title, shadeAxis );
         return new PlotPlacement( extBounds, surf, decs );
     }
 
@@ -196,6 +197,7 @@ public class PlotPlacement {
      * @param   legend   legend icon if required, or null
      * @param   legPos  legend position if intenal legend is required;
      *                  2-element (x,y) array, each element in range 0-1
+     * @param   title   title text, or null
      * @param   shadeAxis  shader axis if required, or null
      * @return  data bounds rectangle
      */
@@ -203,7 +205,8 @@ public class PlotPlacement {
             calculateDataBounds( Rectangle extBounds,
                                  SurfaceFactory<P,A> surfFact, P profile,
                                  A aspect, boolean withScroll, Icon legend,
-                                 float[] legPos, ShadeAxis shadeAxis ) {
+                                 float[] legPos, String title,
+                                 ShadeAxis shadeAxis ) {
 
         /* This implementation currently places the legend in the top
          * right corner of the plot surface's requested insets,
@@ -237,6 +240,12 @@ public class PlotPlacement {
         insets.right = Math.max( insets.right, legExtWidth );
         insets.right = Math.max( insets.right, shadeExtWidth );
 
+        /* Make space for the title, if present. */
+        if ( title != null ) {
+            insets.top += new CaptionIcon( title, surf.getCaptioner() )
+                         .getIconHeight();
+        }
+
         /* Work out available space given padding required by first guess. */
         return PlotUtil.subtractInsets( extBounds, insets );
     }
@@ -245,17 +254,20 @@ public class PlotPlacement {
      * Returns a list of plot decorations for things like the legend
      * and shade colour ramp.
      *
-     * @param  dataBounds  bounds of the data part of the plot
+     * @param  surf  plot surface
      * @param   legend   legend icon if required, or null
      * @param   legPos  legend position if intenal legend is required;
      *                  2-element (x,y) array, each element in range 0-1
+     * @param   title   title text, or null
      * @param   shadeAxis  shader axis if required, or null
      * @return   list of decorations (may have zero elements)
      */
-    public static Decoration[] createPlotDecorations( Rectangle dataBounds,
+    public static Decoration[] createPlotDecorations( Surface surf,
                                                       Icon legend,
                                                       float[] legPos,
+                                                      String title,
                                                       ShadeAxis shadeAxis ) {
+        Rectangle dataBounds = surf.getPlotBounds();
         List<Decoration> decList = new ArrayList<Decoration>();
         int gxlo = dataBounds.x;
         int gylo = dataBounds.y;
@@ -294,6 +306,82 @@ public class PlotPlacement {
             decList.add( new Decoration( shadeIcon, sx, sy ) );
         }
 
+        /* Position title. */
+        if ( title != null ) {
+            Captioner captioner = surf.getCaptioner();
+            Icon titleIcon = new CaptionIcon( title, captioner );
+            Insets insets = surf.getPlotInsets( false );
+            int px = ( dataBounds.width + insets.left + insets.right ) / 2
+                     - titleIcon.getIconWidth() / 2;
+            int py = captioner.getPad();
+            decList.add( new Decoration( titleIcon, px, py ) );
+        }
+
         return decList.toArray( new Decoration[ 0 ] );
+    }
+
+    /**
+     * Icon which draws a caption.
+     */
+    @Equality
+    private static class CaptionIcon implements Icon {
+        private final String text_;
+        private final Captioner captioner_;
+        private final int width_;
+        private final int height_;
+        private final int x_;
+        private final int y_;
+
+        /**
+         * Constructor.
+         *
+         * @param  text  caption text
+         * @param  captioner   caption painter
+         */ 
+        CaptionIcon( String text, Captioner captioner ) {
+            text_ = text;
+            captioner_ = captioner;
+            Rectangle bounds = captioner.getCaptionBounds( text );
+            x_ = 0;
+            y_ = - bounds.y;
+            width_ = bounds.width;
+            height_ = bounds.height;
+        }
+
+        public int getIconWidth() {
+            return width_;
+        }
+
+        public int getIconHeight() {
+            return height_;
+        }
+
+        public void paintIcon( Component c, Graphics g, int x, int y ) {
+            int xoff = x + x_;
+            int yoff = y + y_;
+            g.translate( xoff, yoff );
+            captioner_.drawCaption( text_, g );
+            g.translate( -xoff, -yoff );
+        }
+
+        @Override
+        public int hashCode() {
+            int code = 4432;
+            code = 23 * text_.hashCode();
+            code = 23 * captioner_.hashCode();
+            return code;
+        }
+
+        @Override
+        public boolean equals( Object o ) {
+            if ( o instanceof CaptionIcon ) {
+                CaptionIcon other = (CaptionIcon) o;
+                return this.text_.equals( other.text_ )
+                    && this.captioner_.equals( other.captioner_ );
+            }
+            else {
+                return false;
+            }
+        }
     }
 }
