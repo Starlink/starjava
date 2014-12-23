@@ -116,6 +116,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
     private final BooleanParameter legopaqueParam_;
     private final DoubleArrayParameter legposParam_;
     private final StringMultiParameter legseqParam_;
+    private final StringParameter titleParam_;
     private final StringParameter auxlabelParam_;
     private final BooleanParameter auxvisibleParam_;
     private final BooleanParameter bitmapParam_;
@@ -319,6 +320,17 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         } );
         legseqParam_.setNullPermitted( true );
         plist.add( legseqParam_ );
+
+        titleParam_ = new StringParameter( "title" );
+        titleParam_.setPrompt( "Title for plot" );
+        titleParam_.setDescription( new String[] {
+            "<p>Text of a title to be displayed at the top of the plot.",
+            "If null, the default, no title is shown",
+            "and there's more space for the graphics.",
+            "</p>",
+        } );
+        titleParam_.setNullPermitted( true );
+        plist.add( titleParam_ );
 
         plist.addAll( getKeyParams( StyleKeys.AUX_RAMP.getKeys() ) );
 
@@ -1127,7 +1139,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         final float[] legpos = legend == null
                              ? null
                              : legposParam_.floatsValue( env );
-        final String title = null;
+        final String title = titleParam_.stringValue( env );
 
         /* We have all we need.  Construct and return the object
          * that can do the plot. */
