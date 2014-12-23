@@ -10078,6 +10078,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         than before, or continued memory usage issues.</li>
     <li>Colfits files can now be accessed from streams, not just uncompressed
         disk files (though that's not necessarily a good idea).</li>
+    <li>Add <code>title</code> parameter to plot2 tasks.</li>
     </ul>
     </p></dd>
 
