@@ -789,6 +789,16 @@
 
     </osxjarbundler>
 
+    <!-- Hack the Java section of the Info.plist file so that the section
+     !   key is headed JavaUJAS instead of Java.  This key is then used
+     !   by the (also hacked) TopcatUJAStub stub file to interrogate the plist.
+     !   This appears to be necessary to prevent OSX from doing something
+     !   magic with the Java section.
+     !   See https://github.com/tofi86/universalJavaApplicationStub/issues/9 -->
+    <replace file="${dist.osx}/${Name}.app/Contents/Info.plist"
+             token="&lt;key&gt;Java&lt;/key&gt;"
+             value="&lt;key&gt;JavaUJAS&lt;/key&gt;"/>
+
     <!-- Copy the docs into the release directory -->
     <mkdir dir="${dist.osx}/docs"/>
     <copy todir="${dist.osx}/docs">
