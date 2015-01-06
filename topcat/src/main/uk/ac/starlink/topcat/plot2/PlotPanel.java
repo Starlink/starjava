@@ -115,6 +115,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
     private final Factory<PlotPosition> posFact_;
     private final Factory<Icon> legendFact_;
     private final Factory<float[]> legendPosFact_;
+    private final Factory<String> titleFact_;
     private final ShaderControl shaderControl_;
     private final ToggleButtonModel sketchModel_;
     private final List<ChangeListener> changeListenerList_;
@@ -165,6 +166,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
      * @param  legendPosFact    supplier of legend position
      *                          (2-element x,y fractional location in range 0-1,
      *                          or null for legend external/unused)
+     * @param  titleFact    supplier of plot title text
      * @param  shaderControl   shader control GUI component
      * @param  sketchModel   model to decide whether intermediate sketch frames
      *                       are posted for slow plots
@@ -179,7 +181,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
                       Factory<PlotLayer[]> layerFact,
                       Factory<PlotPosition> posFact,
                       Factory<Icon> legendFact, Factory<float[]> legendPosFact,
-                      ShaderControl shaderControl,
+                      Factory<String> titleFact, ShaderControl shaderControl,
                       ToggleButtonModel sketchModel,
                       PaperTypeSelector ptSel, Compositor compositor,
                       BoundedRangeModel progModel,
@@ -192,6 +194,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         posFact_ = posFact;
         legendFact_ = legendFact;
         legendPosFact_ = legendPosFact;
+        titleFact_ = titleFact;
         shaderControl_ = shaderControl;
         sketchModel_ = sketchModel;
         ptSel_ = ptSel;
@@ -519,7 +522,7 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
         Icon legend = legendFact_.getItem();
         assert legend == null || legendFact_.getItem().equals( legend );
         float[] legpos = legendPosFact_.getItem();
-        String title = null;
+        String title = titleFact_.getItem();
         PlotPosition plotpos = posFact_.getItem();
         Rectangle bounds = getOuterBounds( plotpos.getPlotSize() );
         Insets insets = plotpos.getPlotInsets();
