@@ -111,15 +111,15 @@ CFBundleName=`/usr/libexec/PlistBuddy -c "print :CFBundleName" "${InfoPlistFile}
 CFBundleIconFile=`/usr/libexec/PlistBuddy -c "print :CFBundleIconFile" "${InfoPlistFile}"`
 
 
-# check Info.plist for Apple style Java keys -> if key :Java is present, parse in apple mode
-/usr/libexec/PlistBuddy -c "print :Java" "${InfoPlistFile}" > /dev/null 2>&1
+# check Info.plist for Apple style Java keys -> if key :JavaUJAS is present, parse in apple mode
+/usr/libexec/PlistBuddy -c "print :JavaUJAS" "${InfoPlistFile}" > /dev/null 2>&1
 exitcode=$?
 
-# read Info.plist in Apple style if exit code returns 0 (true, :Java key is present)
+# read Info.plist in Apple style if exit code returns 0 (true, :JavaUJAS key is present)
 if [ $exitcode -eq 0 ]; then
 
 	# read the Java WorkingDirectory
-	JVMWorkDir=`/usr/libexec/PlistBuddy -c "print :Java:WorkingDirectory" "${InfoPlistFile}" 2> /dev/null | xargs`
+	JVMWorkDir=`/usr/libexec/PlistBuddy -c "print :JavaUJAS:WorkingDirectory" "${InfoPlistFile}" 2> /dev/null | xargs`
 	
 	# set Working Directory based upon Plist info
 	if [ "${JVMWorkDir}" == "\$JAVAROOT" ]; then
@@ -148,22 +148,22 @@ if [ $exitcode -eq 0 ]; then
 	USER_HOME="`eval echo ~`"
 
 	# read the MainClass name
-	JVMMainClass=`/usr/libexec/PlistBuddy -c "print :Java:MainClass" "${InfoPlistFile}" 2> /dev/null`
+	JVMMainClass=`/usr/libexec/PlistBuddy -c "print :JavaUJAS:MainClass" "${InfoPlistFile}" 2> /dev/null`
 
 	# read the JVM Options
-	JVMOptions=`/usr/libexec/PlistBuddy -c "print :Java:Properties" "${InfoPlistFile}" 2> /dev/null | grep " =" | sed 's/^ */-D/g' | tr '\n' ' ' | sed 's/  */ /g' | sed 's/ = /=/g' | xargs`
+	JVMOptions=`/usr/libexec/PlistBuddy -c "print :JavaUJAS:Properties" "${InfoPlistFile}" 2> /dev/null | grep " =" | sed 's/^ */-D/g' | tr '\n' ' ' | sed 's/  */ /g' | sed 's/ = /=/g' | xargs`
 
 	# read StartOnMainThread
-	JVMStartOnMainThread=`/usr/libexec/PlistBuddy -c "print :Java:StartOnMainThread" "${InfoPlistFile}" 2> /dev/null`
+	JVMStartOnMainThread=`/usr/libexec/PlistBuddy -c "print :JavaUJAS:StartOnMainThread" "${InfoPlistFile}" 2> /dev/null`
 	if [ "${JVMStartOnMainThread}" == "true" ]; then
 		echo ${JVMStartOnMainThread} > ~/Desktop/test.txt
 		JVMOptions+=" -XstartOnFirstThread"
 	fi
 
 	# read the ClassPath in either Array or String style
-	JVMClassPath_RAW=`/usr/libexec/PlistBuddy -c "print :Java:ClassPath" "${InfoPlistFile}" 2> /dev/null`
+	JVMClassPath_RAW=`/usr/libexec/PlistBuddy -c "print :JavaUJAS:ClassPath" "${InfoPlistFile}" 2> /dev/null`
 	if [[ $JVMClassPath_RAW == *Array* ]] ; then
-		JVMClassPath=.`/usr/libexec/PlistBuddy -c "print :Java:ClassPath" "${InfoPlistFile}" 2> /dev/null | grep "    " | sed 's/^ */:/g' | tr -d '\n' | xargs`
+		JVMClassPath=.`/usr/libexec/PlistBuddy -c "print :JavaUJAS:ClassPath" "${InfoPlistFile}" 2> /dev/null | grep "    " | sed 's/^ */:/g' | tr -d '\n' | xargs`
 	else
 		JVMClassPath=${JVMClassPath_RAW}
 	fi
@@ -171,10 +171,10 @@ if [ $exitcode -eq 0 ]; then
 	JVMClassPath=`eval "echo ${JVMClassPath}"`
 
 	# read the JVM Default Options
-	JVMDefaultOptions=`/usr/libexec/PlistBuddy -c "print :Java:VMOptions" "${InfoPlistFile}" 2> /dev/null | xargs`
+	JVMDefaultOptions=`/usr/libexec/PlistBuddy -c "print :JavaUJAS:VMOptions" "${InfoPlistFile}" 2> /dev/null | xargs`
 
 	# read the JVM Arguments
-	JVMArguments=`/usr/libexec/PlistBuddy -c "print :Java:Arguments" "${InfoPlistFile}" 2> /dev/null | xargs`
+	JVMArguments=`/usr/libexec/PlistBuddy -c "print :JavaUJAS:Arguments" "${InfoPlistFile}" 2> /dev/null | xargs`
 
 
 # read Info.plist in Oracle style
