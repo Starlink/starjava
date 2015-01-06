@@ -176,6 +176,11 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                 return legendControl.getLegendPosition();
             }
         };
+        Factory<String> titleFact = new Factory<String>() {
+            public String getItem() {
+                return null;
+            }
+        };
         ToggleButtonModel sketchModel =
             new ToggleButtonModel( "Sketch Frames", ResourceIcon.SKETCH,
                                    "Draw intermediate frames from subsampled "
@@ -197,7 +202,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
          * requirements from the GUI.  This does the actual plotting. */
         plotPanel_ =
             new PlotPanel<P,A>( storeFact, axisController_, layerFact,
-                                posFact, legendFact, legendPosFact,
+                                posFact, legendFact, legendPosFact, titleFact,
                                 shaderControl, sketchModel,
                                 plotType.getPaperTypeSelector(), compositor,
                                 placeProgressBar().getModel(),
