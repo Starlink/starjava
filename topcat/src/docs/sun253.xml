@@ -6849,7 +6849,8 @@ adding and removing controls from the stack.
 <dt>Fixed controls:</dt>
 <dd><p>These control the overall plot appearance.
     In the above figure, the fixed controls
-    <label>Axes</label> (&IMG.AXIS_EDIT;) and
+    <label>Frame</label> (&IMG.FRAME_CONFIG;),
+    <label>Axes</label> (&IMG.AXIS_CONFIG;) and
     <label>Legend</label> (&IMG.LEGEND;) are visible.
     </p>
     <p>The different fixed controls are described in
@@ -7434,10 +7435,45 @@ Those common to all plot types are described in the following subsections,
 though some plot types may also have their own.
 </p>
 
+<subsubsubsect id="FrameControl">
+<subhead><title>Frame</title></subhead>
+
+<p>The <label>Frame</label> control (&IMG.FRAME_CONFIG;)
+controls the graphical area on which the plot graphic is drawn.
+It contains one tab, <label>Size</label>.
+</p>
+
+<figure>
+<caption><px>Size tab</px></caption>
+<figureimage src="&FIG.size_tab_insets;"/>
+</figure>
+
+<p>The <label>Size</label> tab allows you to set the geometry of the
+generated plot in pixels.  By default, the plot is simply resized to
+fit the current size and shape of the window.  However, if you fill
+in the <label>Outer width</label> and/or <label>Outer height</label>
+fields, the size will instead be fixed to the given dimension in pixels.
+Note if you pick a large value, you may need to manually resize the
+window to see all of the plot.
+Similarly, the <label>Border</label> fields fix the number of pixels
+surrounding the data region of the plot; if these are left blank,
+as by default, these borders are sized to accommodate the things
+that have to fit in them (such as axis annotations).
+For some plot types, there are no external axis annotations,
+in which case the <label>Border</label> fields will not appear.
+</p>
+
+<p>The main use for this panel is to fix the size and alignment
+of the generated images if you want to export a series of
+similar plots.
+</p>
+
+</subsubsubsect>
+
 <subsubsubsect id="AxesControl">
 <subhead><title>Axes</title></subhead>
 
-<p>The <label>Axes</label> control (&IMG.AXIS_EDIT;)
+<p>The <label>Axes</label> control (&IMG.AXIS_CONFIG;)
 has a number of tabs specific to the particular plot type.
 These tabs allow you to configure things like the axis ranges,
 linear/log axis scaling, axis labelling, grid drawing,
@@ -9193,8 +9229,8 @@ tab of the <ref id="PlaneAxisControl">Axes control</ref>.
 <subsubsubsect id="PlaneAxisControl">
 <subhead><title>Plane Axes Control</title></subhead>
 
-<p>The <label>Axes</label> control (&IMG.AXIS_EDIT;) for the
-plane plot window has six tabs.
+<p>The <label>Axes</label> control (&IMG.AXIS_CONFIG;) for the
+plane plot window has the following tabs:
 </p>
 
 <figure>
@@ -9352,29 +9388,6 @@ It also affects some other things like the legend.
 </dl>
 </p>
 
-<figure>
-<caption><px>Size tab</px></caption>
-<figureimage src="&FIG.size_tab_insets;"/>
-</figure>
-
-<p>The <label>Size</label> tab allows you to set the geometry of the
-generated plot in pixels.  By default, the plot is simply resized to
-fit the current size and shape of the window.  However, if you fill
-in the <label>Outer width</label> and/or <label>Outer height</label>
-fields, the size will instead be fixed to the given dimension in pixels.
-Note if you pick a large value, you may need to manually resize the
-window to see all of the plot.
-Similarly, the <label>Border</label> fields fix the number of pixels
-surrounding the data region of the plot; if these are left blank,
-as by default, these borders are sized to accommodate the things
-that have to fit in them (such as axis annotations).
-</p>
-
-<p>The main use for this panel is to fix the size and alignment
-of the generated images if you want to export a series of
-similar plots.
-</p>
-
 </subsubsubsect>
 
 </subsubsect>
@@ -9495,8 +9508,8 @@ tab of the <ref id="SkyAxisControl">Axes control</ref>.
 <subsubsubsect id="SkyAxisControl">
 <subhead><title>Sky Axes Control</title></subhead>
 
-<p>The <label>Axes</label> control (&IMG.AXIS_EDIT;) for the
-sky plot window has five tabs.
+<p>The <label>Axes</label> control (&IMG.AXIS_CONFIG;) for the
+sky plot window has the following tabs:
 </p>
 
 <figure>
@@ -9654,29 +9667,6 @@ It also affects some other things like the legend.
 </dl>
 </p>
 
-<figure>
-<caption><px>Size tab</px></caption>
-<figureimage src="&FIG.size_tab_insets;"/>
-</figure>
-
-<p>The <label>Size</label> tab allows you to set the geometry of the
-generated plot in pixels.  By default, the plot is simply resized to
-fit the current size and shape of the window.  However, if you fill
-in the <label>Outer width</label> and/or <label>Outer height</label>
-fields, the size will instead be fixed to the given dimension in pixels.
-Note if you pick a large value, you may need to manually resize the
-window to see all of the plot.
-Similarly, the <label>Border</label> fields fix the number of pixels
-surrounding the data region of the plot; if these are left blank,
-as by default, these borders are sized to accommodate the things
-that have to fit in them (such as axis annotations).
-</p>
-
-<p>The main use for this panel is to fix the size and alignment
-of the generated images if you want to export a series of
-similar plots.
-</p>
-
 </subsubsubsect>
 
 </subsubsect>
@@ -9812,8 +9802,8 @@ tab of the <ref id="CubeAxisControl">Axes control</ref>.
 <subsubsubsect id="CubeAxisControl">
 <subhead><title>Cube Axes Control</title></subhead>
 
-<p>The <label>Axes</label> control (&IMG.AXIS_EDIT;) for the
-cube plot window has seven tabs.
+<p>The <label>Axes</label> control (&IMG.AXIS_CONFIG;) for the
+cube plot window has the following tabs:
 </p>
 
 <figure>
@@ -9986,25 +9976,6 @@ It also affects some other things like the legend.
 </dl>
 </p>
 
-<figure>
-<caption><px>Size tab</px></caption>
-<figureimage src="&FIG.size_tab_noinsets;"/>
-</figure>
-
-<p>The <label>Size</label> tab allows you to set the geometry of the
-generated plot in pixels.  By default, the plot is simply resized to
-fit the current size and shape of the window.  However, if you fill
-in the <label>Outer width</label> and/or <label>Outer height</label>
-fields, the size will instead be fixed to the given dimension in pixels.
-Note if you pick a large value, you may need to manually resize the
-window to see all of the plot.
-</p>
-
-<p>The main use for this panel is to fix the size
-of the generated images if you want to export a series of
-similar plots.
-</p>
-
 </subsubsubsect>
 
 </subsubsect>
@@ -10135,8 +10106,8 @@ tab of the <ref id="SphereAxisControl">Axes control</ref>.
 <subsubsubsect id="SphereAxisControl">
 <subhead><title>Sphere Axes Control</title></subhead>
 
-<p>The <label>Axes</label> control (&IMG.AXIS_EDIT;) for the
-sphere plot window has five tabs.
+<p>The <label>Axes</label> control (&IMG.AXIS_CONFIG;) for the
+sphere plot window has the following tabs:
 </p>
 
 <figure>
@@ -10270,25 +10241,6 @@ It also affects some other things like the legend.
 </dl>
 </p>
 
-<figure>
-<caption><px>Size tab</px></caption>
-<figureimage src="&FIG.size_tab_noinsets;"/>
-</figure>
-
-<p>The <label>Size</label> tab allows you to set the geometry of the
-generated plot in pixels.  By default, the plot is simply resized to
-fit the current size and shape of the window.  However, if you fill
-in the <label>Outer width</label> and/or <label>Outer height</label>
-fields, the size will instead be fixed to the given dimension in pixels.
-Note if you pick a large value, you may need to manually resize the
-window to see all of the plot.
-</p>
-
-<p>The main use for this panel is to fix the size
-of the generated images if you want to export a series of
-similar plots.
-</p>
-
 </subsubsubsect>
 
 </subsubsect>
@@ -10408,8 +10360,8 @@ tab of the <ref id="PlaneAxisControl">Axes control</ref>.
 <subsubsubsect id="TimeAxisControl">
 <subhead><title>Time Axes Control</title></subhead>
 
-<p>The <label>Axes</label> (&IMG.AXIS_EDIT;) for the
-time plot window has six tabs.
+<p>The <label>Axes</label> (&IMG.AXIS_CONFIG;) for the
+time plot window has the following tabs:
 </p>
 
 <figure>
@@ -10555,29 +10507,6 @@ It also affects some other things like the legend.
 <dd><p>Whether the font is plain, bold or italic.
     </p></dd>
 </dl>
-</p>
-
-<figure>
-<caption><px>Size tab</px></caption>
-<figureimage src="&FIG.size_tab_insets;"/>
-</figure>
-
-<p>The <label>Size</label> tab allows you to set the geometry of the
-generated plot in pixels.  By default, the plot is simply resized to
-fit the current size and shape of the window.  However, if you fill
-in the <label>Outer width</label> and/or <label>Outer height</label>
-fields, the size will instead be fixed to the given dimension in pixels.
-Note if you pick a large value, you may need to manually resize the
-window to see all of the plot.
-Similarly, the <label>Border</label> fields fix the number of pixels
-surrounding the data region of the plot; if these are left blank,
-as by default, these borders are sized to accommodate the things
-that have to fit in them (such as axis annotations).
-</p>
-
-<p>The main use for this panel is to fix the size and alignment
-of the generated images if you want to export a series of
-similar plots.
 </p>
 
 </subsubsubsect>
@@ -20697,9 +20626,6 @@ introduced since the last version:
         (this reinstates behaviour available from old plot windows).</li>
     <li>Fixed error in fits-var output
         (PCOUNT header card did not include block alignment gap).</li>
-    <li>New <label>Size</label> tab is provided in plot window Axes
-        control to allow explicit setting of output plot dimensions and
-        alignment in pixels - useful for exporting plots.</li>
     <li>Reworked part of the FITS input implementation,
         in particular adjusting the way memory mapping is done to reduce
         resource requirements on some platforms.
@@ -20710,6 +20636,9 @@ introduced since the last version:
         than before.</li>
     <li>Colfits files can now be accessed from streams, not just uncompressed
         disk files (though that's not necessarily a good idea).</li>
+    <li>New <ref id="FrameControl">Frame</ref> fixed control in plot windows
+        allows explicit setting of output plot dimensions and alignment in
+        pixels - useful for exporting plots.</li>
     </ul>
     </p></dd>
 
