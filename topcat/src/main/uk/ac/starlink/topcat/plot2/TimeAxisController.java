@@ -25,7 +25,7 @@ public class TimeAxisController
      * @param  stack  control stack
      */
     public TimeAxisController( ControlStack stack ) {
-        super( new TimeSurfaceFactory(), "timeNavigation",
+        super( new TimeSurfaceFactory(), "timeNavigation", true,
                createAxisLabelKeys(), stack );
         SurfaceFactory surfFact = getSurfaceFactory();
         ConfigControl mainControl = getMainControl();
@@ -61,8 +61,6 @@ public class TimeAxisController
         mainControl.addSpecifierTab( "Font",
                                      new ConfigSpecifier( StyleKeys.CAPTIONER
                                                          .getKeys() ) );
-        /* Positioner tab. */
-        addPositionTab( true );
 
         assert assertHasKeys( surfFact.getProfileKeys() );
     }

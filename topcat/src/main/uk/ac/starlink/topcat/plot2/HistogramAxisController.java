@@ -39,7 +39,7 @@ public class HistogramAxisController
      * @param  stack  control stack
      */
     public HistogramAxisController( ControlStack stack ) {
-        super( new HistogramSurfaceFactory(), "histogramNavigation",
+        super( new HistogramSurfaceFactory(), "histogramNavigation", true,
                PlaneAxisController.createAxisLabelKeys(), stack );
         SurfaceFactory surfFact = getSurfaceFactory();
         ConfigControl mainControl = getMainControl();
@@ -91,9 +91,6 @@ public class HistogramAxisController
             new ConfigControl( "Bars", ResourceIcon.HISTOBARS );
         barControl.addSpecifierTab( "Bars", new ConfigSpecifier( BAR_KEYS ) );
         addControl( barControl );
-
-        /* Positioner tab. */
-        addPositionTab( true );
 
         assert assertHasKeys( surfFact.getProfileKeys() );
     }

@@ -36,7 +36,7 @@ public class CubeAxisController
     public CubeAxisController( boolean isIso, ControlStack stack ) {
         super( new CubeSurfaceFactory( isIso ),
                isIso ? "sphereNavigation" : "cubeNavigation",
-               createAxisLabelKeys(), stack );
+               false, createAxisLabelKeys(), stack );
         isIso_ = isIso;
         final SurfaceFactory<CubeSurfaceFactory.Profile,CubeAspect> surfFact =
             getSurfaceFactory();
@@ -152,9 +152,6 @@ public class CubeAxisController
         mainControl.addSpecifierTab( "Font",
                                      new ConfigSpecifier( StyleKeys.CAPTIONER
                                                          .getKeys() ) );
-
-        /* Positioner tab. */
-        addPositionTab( false );
 
         assert assertHasKeys( surfFact.getProfileKeys() );
     }
