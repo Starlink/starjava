@@ -43,7 +43,7 @@ public class SkyAxisController
      * Constructor.
      */
     public SkyAxisController() {
-        super( new SkySurfaceFactory(), "skyNavigation" );
+        super( new SkySurfaceFactory(), "skyNavigation", true );
         SurfaceFactory surfFact = getSurfaceFactory();
         ConfigControl mainControl = getMainControl();
 
@@ -84,9 +84,6 @@ public class SkyAxisController
         mainControl.addSpecifierTab( "Font",
                                      new ConfigSpecifier( StyleKeys.CAPTIONER
                                                          .getKeys() ) );
-
-        /* Positioner tab. */
-        addPositionTab( true );
 
         assert assertHasKeys( surfFact.getProfileKeys() );
     }

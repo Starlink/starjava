@@ -26,7 +26,7 @@ public class PlaneAxisController
      * @param  stack   control stack
      */
     public PlaneAxisController( ControlStack stack ) {
-        super( new PlaneSurfaceFactory(), "planeNavigation",
+        super( new PlaneSurfaceFactory(), "planeNavigation", true,
                createAxisLabelKeys(), stack );
         SurfaceFactory surfFact = getSurfaceFactory();
         ConfigControl mainControl = getMainControl();
@@ -66,9 +66,6 @@ public class PlaneAxisController
         mainControl.addSpecifierTab( "Font",
                                      new ConfigSpecifier( StyleKeys.CAPTIONER
                                                          .getKeys() ) );
-
-        /* Positioner tab. */
-        addPositionTab( true );
 
         assert assertHasKeys( surfFact.getProfileKeys() );
     }

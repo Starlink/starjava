@@ -251,6 +251,8 @@ public class ResourceIcon implements Icon {
         SMALL_CLOSE = makeIcon( "x9.gif" ),
         SMALL_HELP = makeIcon( "q9.gif" ),
         ADD_CONTROL = makeIcon( "addlayer4.png" ),
+        AXIS_CONFIG = makeIcon( "axed5.gif" ),
+        FRAME_CONFIG = makeIcon( "axframe.gif" ),
 
         /* Datanode (hierarchy browser) icons. */
         COLLAPSED = makeIcon( "handle1.gif" ),
