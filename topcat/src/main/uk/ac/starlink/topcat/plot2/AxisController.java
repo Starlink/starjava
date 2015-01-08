@@ -37,13 +37,12 @@ public abstract class AxisController<P,A> implements Configger {
 
     private final SurfaceFactory<P,A> surfFact_;
     private final String navHelpId_;
+    private final boolean hasFrameInsets_;
     private final ConfigControl mainControl_;
-    private final ConfigControl frameControl_;
     private final ToggleButtonModel stickyModel_;
     private final ActionForwarder actionForwarder_;
     private final List<ConfigControl> controlList_;
     private final Set<DataId> seenDataIdSet_;
-    private final Specifier<PlotPosition> posSpecifier_;
     private ConfigMap aspectConfig_;
     private Range[] ranges_;
     private A aspect_;
@@ -60,33 +59,20 @@ public abstract class AxisController<P,A> implements Configger {
      *
      * @param  surfFact  plot surface factory
      * @param  navHelpId  help ID for navigator actions, if any
-     * @param  hasFrameInsets  whether the Size control (PlotPositionSpecifier)
-     *                         supports insets or just external dimensions
+     * @param  hasFrameInsets  whether axes should allow specification of
+     *                         insets or just external dimensions
      */
     protected AxisController( SurfaceFactory<P,A> surfFact, String navHelpId,
                               boolean hasFrameInsets ) {
         surfFact_ = surfFact;
         navHelpId_ = navHelpId;
-        actionForwarder_ = new ActionForwarder();
-
-        /* Axes control. */
+        hasFrameInsets_ = hasFrameInsets;
         mainControl_ = new ConfigControl( "Axes", ResourceIcon.AXIS_CONFIG );
-
-        /* Frame control. */
-        frameControl_ = new ConfigControl( "Frame", ResourceIcon.FRAME_CONFIG );
-        posSpecifier_ = new PlotPositionSpecifier( hasFrameInsets );
-        posSpecifier_.addActionListener( actionForwarder_ );
-        frameControl_.addControlTab( "Size", posSpecifier_.getComponent(),
-                                     true );
-
-        /* Axis lock model. */
         stickyModel_ =
             new ToggleButtonModel( "Lock Axes", ResourceIcon.AXIS_LOCK,
                                    "Do not auto-rescale axes" );
-
-        /* Place controls. */
+        actionForwarder_ = new ActionForwarder();
         controlList_ = new ArrayList<ConfigControl>();
-        addControl( frameControl_ );
         addControl( mainControl_ );
         lastLayers_ = new PlotLayer[ 0 ];
         lastProfile_ = surfFact.createProfile( new ConfigMap() );
@@ -123,6 +109,16 @@ public abstract class AxisController<P,A> implements Configger {
      */
     public ToggleButtonModel getAxisLockModel() {
         return stickyModel_;
+    }
+
+    /**
+     * Indicates whether the axes should allow specification of insets
+     * or just external dimensions.
+     *
+     * @return  true iff useful information appears in external frame insets
+     */
+    public boolean hasFrameInsets() {
+        return hasFrameInsets_;
     }
 
     /**
@@ -259,16 +255,6 @@ public abstract class AxisController<P,A> implements Configger {
                          ? new ConfigMap()
                          : navSpecifier_.getSpecifiedValue();
         return surfFact_.createNavigator( config );
-    }
-
-    /**
-     * Returns an object that can provide explicit settings for plot icon
-     * dimensions and positioning.
-     *
-     * @return   plot position
-     */
-    public PlotPosition getPlotPosition() {
-        return posSpecifier_.getSpecifiedValue();
     }
 
     /**
