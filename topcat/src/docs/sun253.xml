@@ -7623,7 +7623,10 @@ It has the following options:
     The associated <label>Auto</label> option, if selected, uses the
     name of one of the coordinates supplying aux data;
     deselect Auto if you want to enter a label by hand.
-</p></dd>
+    </p></dd>
+<dt>Aux Tick Crowding</dt>
+<dd><p>The slider influences how many tick marks are drawn on the colour ramp.
+    </p></dd>
 </dl>
 </p>
 
@@ -20652,6 +20655,9 @@ introduced since the last version:
         Title lets you add a text title at the top of the plot.</li>
     <li>Fix Aux axis positioning for 3D plots so that the numeric labels
         don't get snipped off at top and bottom.</li>
+    <li>Add Tick Crowding configuration option to
+        <ref id="ShaderControl">Aux control</ref> Ramp tab.
+        Also changed default for Aux axis to use fewer ticks.</li>
     </ul>
     </p></dd>
 

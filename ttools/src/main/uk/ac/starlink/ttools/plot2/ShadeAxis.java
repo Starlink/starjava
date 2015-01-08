@@ -20,6 +20,7 @@ import uk.ac.starlink.ttools.plot.Shaders;
  * @since    13 Feb 2013
  */
 public class ShadeAxis {
+
     private final Shader shader_;
     private final boolean log_;
     private final boolean flip_;
@@ -27,6 +28,7 @@ public class ShadeAxis {
     private final double dhi_;
     private final String label_;
     private final Captioner captioner_;
+    private final double crowding_;
     private static final Orientation ORIENTATION = Orientation.ANTI_Y;
 
     /**
@@ -39,10 +41,12 @@ public class ShadeAxis {
      * @param  dhi   maximum data value
      * @param  label  axis label
      * @param  captioner   text rendering object
+     * @param  crowding   1 for normal tick density, lower for fewer labels,
+     *                    higher for more
      */
     public ShadeAxis( Shader shader, boolean log, boolean flip,
-                      double dlo, double dhi,
-                      String label, Captioner captioner ) {
+                      double dlo, double dhi, String label,
+                      Captioner captioner, double crowding ) {
         shader_ = shader;
         log_ = log;
         flip_ = flip;
@@ -50,6 +54,7 @@ public class ShadeAxis {
         dhi_ = dhi;
         label_ = label;
         captioner_ = captioner;
+        crowding_ = crowding;
     }
 
     /**
@@ -118,7 +123,7 @@ public class ShadeAxis {
     private ShaderIcon createShaderAxisIcon( Rectangle rampBounds ) {
         Tick[] ticks = ( log_ ? BasicTicker.LOG : BasicTicker.LINEAR )
                       .getTicks( dlo_, dhi_, false, captioner_, ORIENTATION,
-                                 rampBounds.height, 2 );
+                                 rampBounds.height, crowding_ );
         return new ShaderIcon( shader_, log_, flip_, dlo_, dhi_, label_,
                                captioner_, rampBounds, ticks );
     }

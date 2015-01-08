@@ -60,11 +60,11 @@ public class ShaderControl extends ConfigControl {
         configger_ = configger;
         ActionListener forwarder = getActionForwarder();
 
-        AutoConfigSpecifier axisSpecifier =
-                new AutoConfigSpecifier( new ConfigKey[] {
-            AUXVISIBLE_KEY,
-            AUXLABEL_KEY,
-        } );
+        AutoConfigSpecifier axisSpecifier = new AutoConfigSpecifier(
+            new ConfigKey[] { AUXVISIBLE_KEY, AUXLABEL_KEY,
+                              StyleKeys.AUX_CROWD },
+            new ConfigKey[] { AUXVISIBLE_KEY, AUXLABEL_KEY, }
+        );
         labelSpecifier_ = axisSpecifier.getAutoSpecifier( AUXLABEL_KEY );
         visibleSpecifier_ = axisSpecifier.getAutoSpecifier( AUXVISIBLE_KEY );
         labelSpecifier_.setAutoValue( null );
@@ -134,11 +134,12 @@ public class ShaderControl extends ConfigControl {
                 }
             };
         }
-        final String label = config.get( AUXLABEL_KEY );
-        final Captioner captioner =
+        String label = config.get( AUXLABEL_KEY );
+        double crowd = config.get( StyleKeys.AUX_CROWD ).doubleValue();
+        Captioner captioner =
             StyleKeys.CAPTIONER.createValue( configger_.getConfig() );
         RampKeySet.Ramp ramp = RAMP_KEYS.createValue( config );
-        return ramp.createShadeAxisFactory( captioner, label );
+        return ramp.createShadeAxisFactory( captioner, label, crowd );
     }
 
     public boolean isLog() {

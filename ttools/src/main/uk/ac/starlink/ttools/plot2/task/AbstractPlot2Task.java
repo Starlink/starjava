@@ -33,6 +33,7 @@ import uk.ac.starlink.table.WrapperRowSequence;
 import uk.ac.starlink.table.WrapperStarTable;
 import uk.ac.starlink.task.BooleanParameter;
 import uk.ac.starlink.task.ChoiceParameter;
+import uk.ac.starlink.task.DoubleParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Executable;
 import uk.ac.starlink.task.ExecutionException;
@@ -118,6 +119,7 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
     private final StringMultiParameter legseqParam_;
     private final StringParameter titleParam_;
     private final StringParameter auxlabelParam_;
+    private final DoubleParameter auxcrowdParam_;
     private final BooleanParameter auxvisibleParam_;
     private final BooleanParameter bitmapParam_;
     private final Parameter<Compositor> compositorParam_;
@@ -344,6 +346,24 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         } );
         auxlabelParam_.setNullPermitted( true );
         plist.add( auxlabelParam_ );
+
+        auxcrowdParam_ = new DoubleParameter( "auxcrowd" );
+        auxcrowdParam_.setUsage( "<factor>" );
+        auxcrowdParam_.setPrompt( "Tick crowding on aux axis" );
+        auxcrowdParam_.setDescription( new String[] {
+            "<p>Determines how closely the tick marks are spaced",
+            "on the Aux axis, if visible.",
+            "The default value is 1, meaning normal crowding.",
+            "Larger values result in more ticks,",
+            "and smaller values fewer ticks.",
+            "Tick marks will not however be spaced so closely that",
+            "the labels overlap each other,",
+            "so to get very closely spaced marks you may need to",
+            "reduce the font size as well.",
+            "</p>",
+        } );
+        auxcrowdParam_.setDoubleDefault( 1 );
+        plist.add( auxcrowdParam_ );
 
         auxvisibleParam_ = new BooleanParameter( "auxvisible" );
         auxvisibleParam_.setPrompt( "Display aux colour ramp?" );
@@ -1440,11 +1460,12 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         Captioner captioner = getCaptioner( env );
         ConfigMap auxConfig = createBasicConfigMap( env, rampKeys.getKeys() );
         RampKeySet.Ramp ramp = rampKeys.createValue( auxConfig );
+        double crowd = auxcrowdParam_.doubleValue( env );
 
         /* Really, I should default this from the value of the first
          * layer aux data value. */
         String label = auxlabelParam_.objectValue( env );
-        return ramp.createShadeAxisFactory( captioner, label );
+        return ramp.createShadeAxisFactory( captioner, label, crowd );
     }
 
     /**

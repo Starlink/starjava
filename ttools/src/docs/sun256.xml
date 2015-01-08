@@ -10081,6 +10081,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Add <code>title</code> parameter to plot2 tasks.</li>
     <li>Fix Aux axis positioning for 3D plots so that the numeric labels 
         don't get snipped off at top and bottom.</li>
+    <li>Add <code>auxcrowd</code> parameter to plot2 tasks to influence
+        tick crowding on aux axis colour ramp.  Also adjust default to use
+        fewer ticks.</li>
     </ul>
     </p></dd>
 
