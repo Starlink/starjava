@@ -279,6 +279,10 @@ public class StyleKeys {
                                                ErrorMode.SYMMETRIC,
                                                ErrorMode.SYMMETRIC } );
 
+    /** Config key for aux axis tick crowding. */
+    public static final ConfigKey<Double> AUX_CROWD =
+        PlaneSurfaceFactory.createAxisCrowdKey( "Aux" );
+
     /** Config key for aux shader lower limit. */
     public static final ConfigKey<Double> SHADE_LOW =
         PlaneSurfaceFactory.createAxisLimitKey( "Aux", false );

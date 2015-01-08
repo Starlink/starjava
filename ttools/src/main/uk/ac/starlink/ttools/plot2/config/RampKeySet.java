@@ -95,7 +95,8 @@ public class RampKeySet implements KeySet<RampKeySet.Ramp> {
             }
             public ShadeAxisFactory
                     createShadeAxisFactory( final Captioner captioner,
-                                            final String label ) {
+                                            final String label,
+                                            final double crowding ) {
                 return new ShadeAxisFactory() {
                     public boolean isLog() {
                         return log;
@@ -108,7 +109,7 @@ public class RampKeySet implements KeySet<RampKeySet.Ramp> {
                         double lo = bounds[ 0 ];
                         double hi = bounds[ 1 ];
                         return new ShadeAxis( shader, log, flip, lo, hi,
-                                              label, captioner );
+                                              label, captioner, crowding );
                     }
                 };
             }
@@ -128,10 +129,12 @@ public class RampKeySet implements KeySet<RampKeySet.Ramp> {
          *
          * @param  captioner  shader ramp captioner
          * @param  label   shader ramp label
+         * @param  crowding   tick crowding factor (1 is normal)
          * @return   new factory
          */
         ShadeAxisFactory createShadeAxisFactory( Captioner captioner,
-                                                 String label );
+                                                 String label,
+                                                 double crowding );
 
         /**
          * Returns this ramp's shader.
