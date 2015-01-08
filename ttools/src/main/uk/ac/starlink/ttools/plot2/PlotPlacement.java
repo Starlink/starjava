@@ -268,6 +268,7 @@ public class PlotPlacement {
                                                       String title,
                                                       ShadeAxis shadeAxis ) {
         Rectangle dataBounds = surf.getPlotBounds();
+        Insets insets = surf.getPlotInsets( false );
         List<Decoration> decList = new ArrayList<Decoration>();
         int gxlo = dataBounds.x;
         int gylo = dataBounds.y;
@@ -298,10 +299,13 @@ public class PlotPlacement {
 
         /* Work out shader axis position. */
         if ( shadeAxis != null ) {
+            int vpad = shadeAxis.getEndPadding();
+            int topPad = Math.max( 0, vpad - insets.top );
+            int botPad = Math.max( 0, vpad - insets.bottom );
             int sx = gxhi + EXTERNAL_LEGEND_GAP;
-            int sy = ylo1;
+            int sy = ylo1 + topPad;
             Rectangle rampBox =
-                new Rectangle( sx, sy, SHADE_RAMP_WIDTH, gyhi - sy );
+                new Rectangle( sx, sy, SHADE_RAMP_WIDTH, gyhi - sy - botPad );
             Icon shadeIcon = shadeAxis.createAxisIcon( rampBox );
             decList.add( new Decoration( shadeIcon, sx, sy ) );
         }
@@ -310,10 +314,11 @@ public class PlotPlacement {
         if ( title != null ) {
             Captioner captioner = surf.getCaptioner();
             Icon titleIcon = new CaptionIcon( title, captioner );
-            Insets insets = surf.getPlotInsets( false );
-            int px = ( dataBounds.width + insets.left + insets.right ) / 2
-                     - titleIcon.getIconWidth() / 2;
-            int py = captioner.getPad();
+            int px = dataBounds.x
+                   + dataBounds.width / 2
+                   - titleIcon.getIconWidth() / 2;
+            int py = dataBounds.y - titleIcon.getIconHeight()
+                                  - captioner.getPad();
             decList.add( new Decoration( titleIcon, px, py ) );
         }
 
