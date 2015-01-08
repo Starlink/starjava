@@ -145,6 +145,18 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         stackModel_ = stack_.getStackModel();
         MultiConfigger configger = new MultiConfigger();
         axisController_ = plotTypeGui.createAxisController( stack_ );
+        final FrameControl frameControl =
+            new FrameControl( axisController_.hasFrameInsets() );
+        Factory<PlotPosition> posFact = new Factory<PlotPosition>() {
+            public PlotPosition getItem() {
+                return frameControl.getPlotPosition();
+            }
+        };
+        Factory<String> titleFact = new Factory<String>() {
+            public String getItem() {
+                return null;
+            }
+        };
         ToggleButtonModel axlockModel = axisController_.getAxisLockModel();
         surfFact_ = axisController_.getSurfaceFactory();
         configger.addConfigger( axisController_ );
@@ -159,11 +171,6 @@ public class StackPlotWindow<P,A> extends AuxWindow {
                 return readPlotLayers( true );
             }
         };
-        Factory<PlotPosition> posFact = new Factory<PlotPosition>() {
-            public PlotPosition getItem() {
-                return axisController_.getPlotPosition();
-            }
-        };
         final LegendControl legendControl =
             new LegendControl( stackModel_, configger );
         Factory<Icon> legendFact = new Factory<Icon>() {
@@ -174,11 +181,6 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         Factory<float[]> legendPosFact = new Factory<float[]>() {
             public float[] getItem() {
                 return legendControl.getLegendPosition();
-            }
-        };
-        Factory<String> titleFact = new Factory<String>() {
-            public String getItem() {
-                return null;
             }
         };
         ToggleButtonModel sketchModel =
@@ -212,6 +214,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
          * that might change the plot appearance.  Each of these controls
          * is forwarding actions from all of its constituent controls. */
         stackModel_.addPlotActionListener( plotPanel_ );
+        frameControl.addActionListener( plotPanel_ );
         legendControl.addActionListener( plotPanel_ );
         axisController_.addActionListener( plotPanel_ );
         shaderControl.addActionListener( plotPanel_ );
@@ -369,6 +372,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         JToolBar stackToolbar = new JToolBar();
         final ControlStackPanel stackPanel =
             new ControlStackPanel( stack_, stackToolbar );
+        stackPanel.addFixedControl( frameControl );
         Control[] axisControls = axisController_.getControls();
         for ( int i = 0; i < axisControls.length; i++ ) {
             stackPanel.addFixedControl( axisControls[ i ] );
