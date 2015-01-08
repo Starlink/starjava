@@ -169,8 +169,8 @@
   <!ENTITY FIG.form_marks2 '&figs;form_marks2.gif'>
   <!ENTITY FIG.form_link2 '&figs;form_link2.gif'>
   <!ENTITY FIG.font_tab '&figs;font_tab.gif'>
-  <!ENTITY FIG.size_tab_insets '&figs;size_tab_insets.gif'>
-  <!ENTITY FIG.size_tab_noinsets '&figs;size_tab_noinsets.gif'>
+  <!ENTITY FIG.size_tab '&figs;size_tab.gif'>
+  <!ENTITY FIG.title_tab '&figs;title_tab.gif'>
   <!ENTITY FIG.ConfigControl_histobars '&figs;ConfigControl_histobars.gif'>
   <!ENTITY FIG.PlaneAxisControl_coords '&figs;PlaneAxisControl_coords.gif'>
   <!ENTITY FIG.PlaneAxisControl_navigation
@@ -6789,7 +6789,6 @@ currently (v4.1) available in the new-style plots are:
 <li>true RGB density maps (though density shading modes will often do as good
     or a better job)</li>
 <li>fogging in 3D plots</li>
-<li>plot titles</li>
 </ul>
 The intention is to introduce some of all of these in a future release,
 possibly informed by user demand.
@@ -7440,12 +7439,12 @@ though some plot types may also have their own.
 
 <p>The <label>Frame</label> control (&IMG.FRAME_CONFIG;)
 controls the graphical area on which the plot graphic is drawn.
-It contains one tab, <label>Size</label>.
+It contains two tabs, <label>Size</label> and <label>Title</label>.
 </p>
 
 <figure>
-<caption><px>Size tab</px></caption>
-<figureimage src="&FIG.size_tab_insets;"/>
+<caption><px>Frame control Size tab</px></caption>
+<figureimage src="&FIG.size_tab;"/>
 </figure>
 
 <p>The <label>Size</label> tab allows you to set the geometry of the
@@ -7463,9 +7462,20 @@ For some plot types, there are no external axis annotations,
 in which case the <label>Border</label> fields will not appear.
 </p>
 
-<p>The main use for this panel is to fix the size and alignment
+<p>The main use for this tab is to fix the size and alignment
 of the generated images if you want to export a series of
 similar plots.
+</p>
+
+<figure>
+<caption><px>Frame control Title tab</px></caption>
+<figureimage src="&FIG.title_tab;"/>
+</figure>
+
+<p>The <label>Title</label> tab allows you to give a title for the plot.
+If text is filled in the <label>Plot Title</label> field,
+and if the <label>Title Visible</label> checkbox is checked,
+then the given text will appear at the top of the plot.
 </p>
 
 </subsubsubsect>
@@ -20637,8 +20647,10 @@ introduced since the last version:
     <li>Colfits files can now be accessed from streams, not just uncompressed
         disk files (though that's not necessarily a good idea).</li>
     <li>New <ref id="FrameControl">Frame</ref> fixed control in plot windows
-        allows explicit setting of output plot dimensions and alignment in
-        pixels - useful for exporting plots.</li>
+        with two tabs, Size and Title.
+        Size allows explicit setting of output plot dimensions and alignment in
+        pixels - can be useful when exporting plots.
+        Title lets you add a text title at the top of the plot.</li>
     </ul>
     </p></dd>
 
