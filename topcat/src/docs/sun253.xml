@@ -7454,12 +7454,11 @@ in the <label>Outer width</label> and/or <label>Outer height</label>
 fields, the size will instead be fixed to the given dimension in pixels.
 Note if you pick a large value, you may need to manually resize the
 window to see all of the plot.
-Similarly, the <label>Border</label> fields fix the number of pixels
+Similarly, the <label>border</label> fields fix the number of pixels
 surrounding the data region of the plot; if these are left blank,
 as by default, these borders are sized to accommodate the things
-that have to fit in them (such as axis annotations).
-For some plot types, there are no external axis annotations,
-in which case the <label>Border</label> fields will not appear.
+that have to fit in them
+(such as axis annotations and the Aux axis colour ramp).
 </p>
 
 <p>The main use for this tab is to fix the size and alignment

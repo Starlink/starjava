@@ -22,16 +22,14 @@ public abstract class CartesianAxisController<P,A> extends AxisController<P,A> {
      *
      * @param  surfFact  plot surface factory
      * @param  navHelpId  help ID for navigator actions, if any
-     * @param  hasFrameInsets  whether the Size control
-     *                         supports insets or just external dimensions
      * @param  axisLabelKeys  config keys for axis labels
      * @param  stack   control stack, used to get default axis label strings
      */
     public CartesianAxisController( SurfaceFactory<P,A> surfFact,
-                                    String navHelpId, boolean hasFrameInsets,
+                                    String navHelpId,
                                     final ConfigKey<String>[] axisLabelKeys,
                                     ControlStack stack ) {
-        super( surfFact, navHelpId, hasFrameInsets );
+        super( surfFact, navHelpId );
         final int ndim = axisLabelKeys.length;
 
         /* Set up a specifier component to get axis label values.

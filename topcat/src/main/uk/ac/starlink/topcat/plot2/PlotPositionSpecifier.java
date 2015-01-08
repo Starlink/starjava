@@ -42,17 +42,15 @@ public class PlotPositionSpecifier extends SpecifierPanel<PlotPosition> {
     /**
      * Constructor.
      */
-    public PlotPositionSpecifier( boolean hasInsets ) {
+    public PlotPositionSpecifier() {
         super( false );
         List<ConfigKey> keyList = new ArrayList();
         keyList.add( XPIX_KEY );
         keyList.add( YPIX_KEY );
-        if ( hasInsets ) {
-            keyList.add( TOP_KEY );
-            keyList.add( LEFT_KEY );
-            keyList.add( BOTTOM_KEY );
-            keyList.add( RIGHT_KEY );
-        }
+        keyList.add( TOP_KEY );
+        keyList.add( LEFT_KEY );
+        keyList.add( BOTTOM_KEY );
+        keyList.add( RIGHT_KEY );
         ConfigKey[] keys = keyList.toArray( new ConfigKey[ 0 ] );
         configSpecifier_ = new ConfigSpecifier( keys );
         configSpecifier_.addActionListener( getActionForwarder() );

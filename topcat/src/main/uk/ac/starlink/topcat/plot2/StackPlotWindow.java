@@ -145,8 +145,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         stackModel_ = stack_.getStackModel();
         MultiConfigger configger = new MultiConfigger();
         axisController_ = plotTypeGui.createAxisController( stack_ );
-        final FrameControl frameControl =
-            new FrameControl( axisController_.hasFrameInsets() );
+        final FrameControl frameControl = new FrameControl();
         Factory<PlotPosition> posFact = new Factory<PlotPosition>() {
             public PlotPosition getItem() {
                 return frameControl.getPlotPosition();

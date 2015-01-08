@@ -25,7 +25,7 @@ public class TimeAxisController
      * @param  stack  control stack
      */
     public TimeAxisController( ControlStack stack ) {
-        super( new TimeSurfaceFactory(), "timeNavigation", true,
+        super( new TimeSurfaceFactory(), "timeNavigation",
                createAxisLabelKeys(), stack );
         SurfaceFactory surfFact = getSurfaceFactory();
         ConfigControl mainControl = getMainControl();
