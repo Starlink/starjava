@@ -20650,6 +20650,8 @@ introduced since the last version:
         Size allows explicit setting of output plot dimensions and alignment in
         pixels - can be useful when exporting plots.
         Title lets you add a text title at the top of the plot.</li>
+    <li>Fix Aux axis positioning for 3D plots so that the numeric labels
+        don't get snipped off at top and bottom.</li>
     </ul>
     </p></dd>
 

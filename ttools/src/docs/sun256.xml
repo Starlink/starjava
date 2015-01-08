@@ -10079,6 +10079,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Colfits files can now be accessed from streams, not just uncompressed
         disk files (though that's not necessarily a good idea).</li>
     <li>Add <code>title</code> parameter to plot2 tasks.</li>
+    <li>Fix Aux axis positioning for 3D plots so that the numeric labels 
+        don't get snipped off at top and bottom.</li>
     </ul>
     </p></dd>
 

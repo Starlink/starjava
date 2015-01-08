@@ -98,6 +98,17 @@ public class ShadeAxis {
     }
 
     /**
+     * Returns a nominal number of pixels required at the top and bottom
+     * of the ramp icon to accommodated possible axis labels.
+     * This is currently half the height of a digit caption.
+     *
+     * @return   ramp icon vertical padding for labels
+     */
+    public int getEndPadding() {
+        return ( captioner_.getCaptionBounds( "0" ).height + 1 ) / 2;
+    }
+
+    /**
      * Returns a new icon for this axis given bounds of the scale graphic
      * itself.
      *
