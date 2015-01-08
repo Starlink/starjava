@@ -28,15 +28,12 @@ public class FrameControl extends ConfigControl {
 
     /**
      * Constructor.
-     *
-     * @param  hasInsets  whether the Size control (PlotPositionSpecifier)
-     *                    supports insets or just external dimensions
      */
-    public FrameControl( boolean hasInsets ) {
+    public FrameControl() {
         super( "Frame", ResourceIcon.FRAME_CONFIG );
 
         /* Size tab. */
-        posSpecifier_ = new PlotPositionSpecifier( hasInsets );
+        posSpecifier_ = new PlotPositionSpecifier();
         addControlTab( "Size", posSpecifier_.getComponent(), true );
         posSpecifier_.addActionListener( getActionForwarder() );
 

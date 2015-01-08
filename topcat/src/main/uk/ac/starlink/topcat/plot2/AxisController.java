@@ -37,7 +37,6 @@ public abstract class AxisController<P,A> implements Configger {
 
     private final SurfaceFactory<P,A> surfFact_;
     private final String navHelpId_;
-    private final boolean hasFrameInsets_;
     private final ConfigControl mainControl_;
     private final ToggleButtonModel stickyModel_;
     private final ActionForwarder actionForwarder_;
@@ -59,14 +58,10 @@ public abstract class AxisController<P,A> implements Configger {
      *
      * @param  surfFact  plot surface factory
      * @param  navHelpId  help ID for navigator actions, if any
-     * @param  hasFrameInsets  whether axes should allow specification of
-     *                         insets or just external dimensions
      */
-    protected AxisController( SurfaceFactory<P,A> surfFact, String navHelpId,
-                              boolean hasFrameInsets ) {
+    protected AxisController( SurfaceFactory<P,A> surfFact, String navHelpId ) {
         surfFact_ = surfFact;
         navHelpId_ = navHelpId;
-        hasFrameInsets_ = hasFrameInsets;
         mainControl_ = new ConfigControl( "Axes", ResourceIcon.AXIS_CONFIG );
         stickyModel_ =
             new ToggleButtonModel( "Lock Axes", ResourceIcon.AXIS_LOCK,
@@ -109,16 +104,6 @@ public abstract class AxisController<P,A> implements Configger {
      */
     public ToggleButtonModel getAxisLockModel() {
         return stickyModel_;
-    }
-
-    /**
-     * Indicates whether the axes should allow specification of insets
-     * or just external dimensions.
-     *
-     * @return  true iff useful information appears in external frame insets
-     */
-    public boolean hasFrameInsets() {
-        return hasFrameInsets_;
     }
 
     /**
