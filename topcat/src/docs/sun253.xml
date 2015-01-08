@@ -18100,6 +18100,7 @@ Some of the notable contributers are these:
 <li>Tim Jenness (JACH)</li>
 <li>JJ Kavelaars (NRC)</li>
 <li>Gerard Lemson (MPE Garching)</li>
+<li>Mark Mahabir (Leicester)</li>
 <li>Bob Mann (Royal Observatory Edinburgh)</li>
 <li>Gr&#x00e9;gory Mantelet (ARI)</li>
 <li>Ben Maughan (Bristol)</li>
@@ -20992,6 +20993,9 @@ introduced since the last version:
         STILTS parameter assignment corresponding to the current setting.</li>
     <li>Add new <ref id="ClassifyWindow">Column Classification Window</ref>,
         which adds mutually exclusive subsets based on column contents.</li>
+    <li>OSX application bundle adjusted so that the DMG file
+        <em>should</em> work on any MacOS with
+        either legacy Apple Java 6 or Oracle/OpenJDK Java 7+ installed.</li>
     </ul>
     </p></dd>
 
