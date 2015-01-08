@@ -154,7 +154,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         };
         Factory<String> titleFact = new Factory<String>() {
             public String getItem() {
-                return null;
+                return frameControl.getPlotTitle();
             }
         };
         ToggleButtonModel axlockModel = axisController_.getAxisLockModel();
