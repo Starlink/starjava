@@ -293,7 +293,7 @@ public class PlotUtil {
 
         /* Pad the ranges with a bit of space. */
         for ( int idim = 0; idim < nDataDim; idim++ ) {
-            padRange( ranges[ idim ], logFlags[ idim ], PAD_FRACTION );
+            padRange( ranges[ idim ], logFlags[ idim ] );
         }
 
         /* Return the ranges. */
@@ -304,17 +304,17 @@ public class PlotUtil {
      * Pads a data range to provide a bit of extra space at each end.
      * If one of the limits is near to zero, it is padded to zero
      * instead of adding a fixed amount.
+     * A standard padding fraction is used.
      *
      * @param  range  range to pad
      * @param  logFlag  true for logarithmic scaling, false for linear
-     * @param  padFrac  fraction to add to range for padding purposes.
      */
-    private static void padRange( Range range, boolean logFlag,
-                                  double padFrac ) {
+    public static void padRange( Range range, boolean logFlag ) {
         double[] bounds = range.getBounds();
         double lo = bounds[ 0 ];
         double hi = bounds[ 1 ];
         if ( lo < hi ) {
+            double padFrac = PAD_FRACTION;
             final boolean loNearZero;
             final boolean hiNearZero;
             if ( logFlag ) {
