@@ -10084,6 +10084,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Add <code>auxcrowd</code> parameter to plot2 tasks to influence
         tick crowding on aux axis colour ramp.  Also adjust default to use
         fewer ticks.</li>
+    <li>Add some "dart" options (fixed-base open or filled triangles)
+        for plotting vectors (see <code>arrowN</code> parameter in
+        layers like <ref id="layer-xyvector"><code>xyvector</code></ref>).</li>
     </ul>
     </p></dd>
 
