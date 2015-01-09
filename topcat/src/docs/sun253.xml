@@ -20658,6 +20658,8 @@ introduced since the last version:
     <li>Add Tick Crowding configuration option to
         <ref id="ShaderControl">Aux control</ref> Ramp tab.
         Also changed default for Aux axis to use fewer ticks.</li>
+    <li>Add some "dart" options (fixed-base open or filled triangles)
+        for plotting <ref id="form-vector">vectors</ref>.</li>
     </ul>
     </p></dd>
 
