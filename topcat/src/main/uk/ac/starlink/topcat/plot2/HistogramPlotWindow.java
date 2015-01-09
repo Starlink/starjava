@@ -3,6 +3,8 @@ package uk.ac.starlink.topcat.plot2;
 import java.awt.Component;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -18,14 +20,18 @@ import javax.swing.event.ChangeListener;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ColumnStarTable;
+import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.TableSource;
+import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.RowSubset;
 import uk.ac.starlink.topcat.TopcatModel;
+import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotType;
+import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.Surface;
@@ -33,6 +39,7 @@ import uk.ac.starlink.ttools.plot2.SurfaceFactory;
 import uk.ac.starlink.ttools.plot2.geom.PlaneAspect;
 import uk.ac.starlink.ttools.plot2.geom.PlaneDataGeom;
 import uk.ac.starlink.ttools.plot2.geom.PlanePlotType;
+import uk.ac.starlink.ttools.plot2.geom.PlaneSurface;
 import uk.ac.starlink.ttools.plot2.geom.PlaneSurfaceFactory;
 import uk.ac.starlink.ttools.plot2.layer.BinBag;
 import uk.ac.starlink.ttools.plot2.layer.FunctionPlotter;
@@ -55,6 +62,7 @@ public class HistogramPlotWindow
 
     private static final PlotType PLOT_TYPE = new HistogramPlotType();
     private static final PlotTypeGui PLOT_GUI = new HistogramPlotTypeGui();
+    private static final int BINS_TABLE_INTRO_NCOL = 2;
 
     /**
      * Constructor.
@@ -88,6 +96,17 @@ public class HistogramPlotWindow
         exportMenu.addSeparator();
         exportMenu.add( importAct );
         exportMenu.add( saveAct );
+
+        /* Action for selective re-ranging. */
+        Action yRescaleAct =
+                new BasicAction( "Rescale Y", ResourceIcon.RESIZE_Y,
+                                 "Rescale the vertical axis to fit all the data"
+                               + " in the visible horizontal range" ) {
+            public void actionPerformed( ActionEvent evt ) {
+                rescaleY();
+            }
+        };
+        insertRescaleAction( yRescaleAct );
 
         /* Complete the setup. */
         getToolBar().addSeparator();
@@ -180,6 +199,7 @@ public class HistogramPlotWindow
                 return barList.get( (int) irow )[ 1 ];
             }
         } );
+        assert table.getColumnCount() == BINS_TABLE_INTRO_NCOL;
 
         /* Work out if the layers contain more than one table, and if they
          * contain non-ALL row subsets.  This information is used when
@@ -299,9 +319,61 @@ public class HistogramPlotWindow
                 }
             } );
         }
+        assert table.getColumnCount() ==
+               BINS_TABLE_INTRO_NCOL + binsMap.keySet().size();
 
         /* Return the completed table. */
         return table;
+    }
+
+    /**
+     * Rescales the Y axis to accommodate currently plotted histogram bars
+     * while leaving the X axis unchanged.
+     */
+    private void rescaleY() {
+        Range yrange = readVerticalRange();
+        if ( yrange != null ) {
+            PlotPanel plotPanel = getPlotPanel();
+            PlaneSurface surface = (PlaneSurface) plotPanel.getLatestSurface();
+            double[] xbounds = surface.getDataLimits()[ 0 ];
+            boolean ylogFlag = surface.getLogFlags()[ 1 ];
+            PlotUtil.padRange( yrange, ylogFlag );
+            double[] ybounds = yrange.getFiniteBounds( ylogFlag );
+            PlaneAspect aspect = new PlaneAspect( xbounds, ybounds );
+            getAxisController().setAspect( aspect );
+            plotPanel.replot();
+        }
+    }
+
+    /**
+     * Returns a Range object corresponding to the extent on the Y axis
+     * of histogram bin data currently plotted.
+     * If there is a table read error, which shouldn't happen,
+     * null is returned.
+     *
+     * @return  Y range of plotted histogram data, or null
+     */
+    private Range readVerticalRange() {
+        StarTable binsTable = getBinDataTable();
+        int ncol = binsTable.getColumnCount();
+        Range yrange = new Range();
+        try {
+            RowSequence rseq = binsTable.getRowSequence();
+            while ( rseq.next() ) {
+                Object[] row = rseq.getRow();
+                for ( int icol = BINS_TABLE_INTRO_NCOL; icol < ncol; icol++ ) {
+                    Object value = row[ icol ];
+                    if ( value instanceof Number ) {
+                        yrange.submit( ((Number) value).doubleValue() );
+                    }
+                }
+            }
+            rseq.close();
+            return yrange;
+        }
+        catch ( IOException e ) {
+            return null;
+        }
     }
 
     /**

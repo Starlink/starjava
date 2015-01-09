@@ -8986,7 +8986,23 @@ and the scrolling works a bit differently.
 
 <p>See the <ref id="StackPlotWindow" plaintextref="yes">Window Overview</ref>
 for features common to all plotting windows.
-In addition, the histogram window lets you export the binned data as
+</p>
+
+<p>The following non-standard action is available from the toolbar
+as well as the <label>Plot</label> menu:
+<dl>
+
+<dt>&IMG.RESIZE_Y; Rescale Y</dt>
+<dd><p>Adjusts the vertical range of the visible data region
+    to accommodate all the histogram bars in the currently
+    visible horizontal region of the plot.
+    The horizontal range is not changed.
+    </p></dd>
+
+</dl>
+</p>
+
+<p>In addition, the histogram window lets you export the binned data as
 a new table, either saving it or loading it directly into TOPCAT's
 table list.
 The following actions are available in the <label>Export</label> menu:
@@ -20660,6 +20676,8 @@ introduced since the last version:
         Also changed default for Aux axis to use fewer ticks.</li>
     <li>Add some "dart" options (fixed-base open or filled triangles)
         for plotting <ref id="form-vector">vectors</ref>.</li>
+    <li>Add <label>Rescale Y</label> button to
+        <ref id="HistogramPlotWindow">Histogram</ref> window.</li>
     </ul>
     </p></dd>
 
