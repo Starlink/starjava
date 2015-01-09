@@ -602,6 +602,15 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     }
 
     /**
+     * Returns this window's AxisController.
+     *
+     * @return  axis controller
+     */
+    public AxisController getAxisController() {
+        return axisController_;
+    }
+
+    /**
      * Returns this window's Export menu.
      *
      * @return  export menu
