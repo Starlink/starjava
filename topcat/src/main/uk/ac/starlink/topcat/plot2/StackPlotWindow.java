@@ -34,6 +34,8 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JToolBar;
 import javax.swing.OverlayLayout;
@@ -111,6 +113,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
     private final BlobPanel2 blobPanel_;
     private final Action blobAction_;
     private final Action fromVisibleAction_;
+    private final Action resizeAction_;
     private final boolean canSelectPoints_;
     private final JMenu exportMenu_;
     private static final Logger logger_ =
@@ -323,7 +326,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         };
 
         /* Prepare the plot rescale action. */
-        Action resizeAction =
+        resizeAction_ =
                 new BasicAction( "Rescale", ResourceIcon.RESIZE,
                                  "Rescale plot to view all plotted data" ) {
             public void actionPerformed( ActionEvent evt ) {
@@ -483,7 +486,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         }
         getToolBar().add( fromVisibleAction_ );
         getToolBar().add( replotAction );
-        getToolBar().add( resizeAction );
+        getToolBar().add( resizeAction_ );
         if ( axlockModel != null ) {
             getToolBar().add( axlockModel.createToolbarButton() );
         }
@@ -518,7 +521,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         JMenu plotMenu = new JMenu( "Plot" );
         plotMenu.setMnemonic( KeyEvent.VK_P );
         plotMenu.add( replotAction );
-        plotMenu.add( resizeAction );
+        plotMenu.add( resizeAction_ );
         if ( axlockModel != null ) {
             plotMenu.add( axlockModel.createMenuItem() );
         }
@@ -605,6 +608,63 @@ public class StackPlotWindow<P,A> extends AuxWindow {
      */
     public JMenu getExportMenu() {
         return exportMenu_;
+    }
+
+    /**
+     * Adds an action that is logically associated with rescaling the plot.
+     * This takes the given action and inserts it into the toolbar and
+     * menus in appropriate places.
+     *
+     * @param  act  action to add
+     */
+    public void insertRescaleAction( Action act ) {
+
+        /* Insert into the toolbar.  Try to put it after the existing
+         * Resize action, but if for some reason that doesn't exist,
+         * the new one will just get appended at the end. */
+        JToolBar toolbar = getToolBar();
+        JButton actButton = toolbar.add( act );
+        List<Component> comps =
+            new ArrayList<Component>( Arrays
+                                     .asList( toolbar.getComponents() ) );
+        int iresize = -1;
+        for ( int i = 0; i < comps.size() && iresize < 0; i++ ) {
+            Component comp = comps.get( i );
+            if ( comp instanceof JButton &&
+                 isResizeAction( ((JButton) comp).getAction() ) ) {
+                iresize = i;
+            }
+        }
+        if ( iresize >= 0 ) {
+            comps.remove( actButton );
+            comps.add( iresize + 1, actButton );
+            toolbar.removeAll();
+            for ( Component c : comps ) {
+                toolbar.add( c );
+            }
+        }
+
+        /* Insert into menus as appropriate.  Any place the resize action
+         * is found, place the new one after it. */
+        JMenuBar menuBar = getJMenuBar();
+        for ( int im = 0; im < menuBar.getMenuCount(); im++ ) {
+            JMenu menu = menuBar.getMenu( im );
+            for ( int ii = 0; ii < menu.getItemCount(); ii++ ) {
+                JMenuItem item = menu.getItem( ii );
+                if ( item != null && isResizeAction( item.getAction() ) ) {
+                    menu.insert( act, ii + 1 );
+                }
+            }
+        }
+    }
+
+    /**
+     * Tests whether a given action corresponds to the Resize action.
+     *
+     * @return   true iff act is the Resize action
+     */
+    private boolean isResizeAction( Action act ) {
+        return act == resizeAction_;
     }
 
     @Override
