@@ -321,7 +321,8 @@ public class LinearFitPlotter extends AbstractPlotter<LineStyle> {
                                          false, gp1 ) &&
                  surface.dataToGraphics( new double[] { dx2, dy2 },
                                          false, gp2 ) ) {
-                LineTracer tracer = style.createLineTracer( g, bounds, 2 ); 
+                LineTracer tracer =
+                    style.createLineTracer( g, bounds, 2, false ); 
                 tracer.addVertex( gp1.x, gp1.y );
                 tracer.addVertex( gp2.x, gp2.y );
                 tracer.flush();

@@ -20,6 +20,7 @@ import uk.ac.starlink.ttools.plot2.data.CoordGroup;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
+import uk.ac.starlink.ttools.plot2.paper.PaperType;
 
 /**
  * Plotter that plots a line between data points.
@@ -69,9 +70,11 @@ public class LinePlotter extends SimpleDecalPlotter<LineStyle> {
 
     protected void paintData2D( Surface surface, DataStore dataStore,
                                 DataGeom geom, DataSpec dataSpec,
-                                LineStyle style, Graphics g ) {
+                                LineStyle style, Graphics g,
+                                PaperType paperType ) {
         LineTracer tracer =
-            style.createLineTracer( g, surface.getPlotBounds(), 10240 );
+            style.createLineTracer( g, surface.getPlotBounds(), 10240,
+                                    paperType.isBitmap() );
         int icPos = getCoordGroup().getPosCoordIndex( 0, geom );
         double[] dpos = new double[ surface.getDataDimCount() ];
         Point2D.Double gp = new Point2D.Double();
