@@ -62,8 +62,14 @@ public abstract class PaperTypeSelector {
      * @return  2d selector
      */
     private static PaperTypeSelector createSelector2D() {
-        return new BasicSelector( new PaintPaperType2D(),
-                                  new OverPaperType2D() ) {
+
+        /* We currently use a quantised vector paper type here for consistency
+         * with the other paper types, which are all snapped to the pixel grid.
+         * However, it would be possible to use one with continuous
+         * coordinates insteead. */
+        PaperType vectorType = PaintPaperType2D.createPaperType( true );
+        PaperType pixelOpaqueType = new OverPaperType2D();
+        return new BasicSelector( vectorType, pixelOpaqueType ) {
             PaperType createGeneralPixelPaperType( Compositor compos ) {
                 return new CompositePaperType2D( compos );
             }

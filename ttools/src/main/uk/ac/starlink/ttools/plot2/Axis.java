@@ -49,7 +49,7 @@ public abstract class Axis {
      * @param   g  graphics coordinate
      * @return   data coordinate
      */
-    public abstract double graphicsToData( int g );
+    public abstract double graphicsToData( double g );
 
     /**
      * Returns the data bounds that result from performing an axis zoom
@@ -284,7 +284,7 @@ public abstract class Axis {
             return b_ + a_ * d;
         }
 
-        public double graphicsToData( int g ) {
+        public double graphicsToData( double g ) {
             return ( g - b_ ) * a1_;
         }
 
@@ -338,7 +338,7 @@ public abstract class Axis {
                          : Double.NaN;
         }
 
-        public double graphicsToData( int g ) {
+        public double graphicsToData( double g ) {
             return Math.exp( ( g - b_ ) * a1_ );
         }
 

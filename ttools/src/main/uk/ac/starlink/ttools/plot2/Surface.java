@@ -2,8 +2,8 @@ package uk.ac.starlink.ttools.plot2;
 
 import java.awt.Graphics;
 import java.awt.Insets;
-import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.geom.Point2D;
 
 /**
  * Defines the graphical area on which plots are painted.
@@ -81,7 +81,8 @@ public interface Surface {
      *               be written on success
      * @return  true iff the conversion succeeds
      */
-    boolean dataToGraphics( double[] dataPos, boolean visibleOnly, Point gPos );
+    boolean dataToGraphics( double[] dataPos, boolean visibleOnly,
+                            Point2D.Double gPos );
 
     /**
      * Converts an offset data space position to a graphics position.
@@ -109,9 +110,9 @@ public interface Surface {
      *                   dpos1 will be written on success
      * @return true for success, false for no result
      */
-    boolean dataToGraphicsOffset( double[] dataPos0, Point gpos0,
+    boolean dataToGraphicsOffset( double[] dataPos0, Point2D.Double gpos0,
                                   double[] dataPos1, boolean visibleOnly,
-                                  Point gPos1 ); 
+                                  Point2D.Double gPos1 ); 
     /**
      * Attempst to turn a graphics position into a data position.
      * This is not always trivial, for instance in a 3D plot one
@@ -129,7 +130,7 @@ public interface Surface {
      * @return   dataDimCount-element array giving data space position for
      *           <code>gPos</code>, or null if it cannot be determined
      */
-    double[] graphicsToData( Point gPos, Iterable<double[]> dposIt );
+    double[] graphicsToData( Point2D gPos, Iterable<double[]> dposIt );
 
     /**
      * Formats the given data space position as a coordinate string.

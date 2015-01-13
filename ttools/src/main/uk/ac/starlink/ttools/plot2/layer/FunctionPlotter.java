@@ -8,6 +8,7 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Stroke;
+import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -350,7 +351,7 @@ public class FunctionPlotter extends
             int np = xs.length;
             LineTracer tracer =
                 style_.createLineTracer( g2, surface_.getPlotBounds(), np );
-            Point gpos = new Point();
+            Point2D.Double gpos = new Point2D.Double();
             double[] dpos = new double[ surface_.getDataDimCount() ];
             for ( int ip = 0; ip < np; ip++ ) {
                 double x = xs[ ip ];

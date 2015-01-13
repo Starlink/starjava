@@ -6,6 +6,7 @@ import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Stroke;
+import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -209,7 +210,7 @@ public class LinearFitPlotter extends AbstractPlotter<LineStyle> {
 
             /* Otherwise, accumulate statistics and return the result. */
             WXYStats stats = new WXYStats();
-            Point gp = new Point();
+            Point2D.Double gp = new Point2D.Double();
             boolean visibleOnly = false;
             boolean xlog = logFlags[ 0 ];
             boolean ylog = logFlags[ 1 ];
@@ -314,8 +315,8 @@ public class LinearFitPlotter extends AbstractPlotter<LineStyle> {
             double[] coeffs = stats_.getLinearCoefficients();
             double dy1 = yFunction( dx1 );
             double dy2 = yFunction( dx2 );
-            Point gp1 = new Point();
-            Point gp2 = new Point();
+            Point2D.Double gp1 = new Point2D.Double();
+            Point2D.Double gp2 = new Point2D.Double();
             if ( surface.dataToGraphics( new double[] { dx1, dy1 },
                                          false, gp1 ) &&
                  surface.dataToGraphics( new double[] { dx2, dy2 },

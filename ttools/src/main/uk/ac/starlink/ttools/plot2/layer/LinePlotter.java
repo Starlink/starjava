@@ -3,8 +3,8 @@ package uk.ac.starlink.ttools.plot2.layer;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics;
-import java.awt.Point;
 import java.awt.Stroke;
+import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -74,7 +74,7 @@ public class LinePlotter extends SimpleDecalPlotter<LineStyle> {
             style.createLineTracer( g, surface.getPlotBounds(), 10240 );
         int icPos = getCoordGroup().getPosCoordIndex( 0, geom );
         double[] dpos = new double[ surface.getDataDimCount() ];
-        Point gp = new Point();
+        Point2D.Double gp = new Point2D.Double();
         TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
         while ( tseq.next() ) {
             if ( geom.readDataPos( tseq, icPos, dpos ) &&

@@ -153,13 +153,14 @@ public class CubeSurface implements Surface {
     }
 
     public boolean dataToGraphics( double[] dataPos, boolean visibleOnly,
-                                   Point gPos ) {
+                                   Point2D.Double gPos ) {
         return dataToGraphicZ( dataPos, visibleOnly, gPos, dummyZ_ );
     }
 
-    public boolean dataToGraphicsOffset( double[] dataPos0, Point gPos0,
+    public boolean dataToGraphicsOffset( double[] dataPos0,
+                                         Point2D.Double gPos0,
                                          double[] dataPos1, boolean visibleOnly,
-                                         Point gpos1 ) {
+                                         Point2D.Double gpos1 ) {
         return dataToGraphics( dataPos1, visibleOnly, gpos1 );
     }
 
@@ -177,7 +178,7 @@ public class CubeSurface implements Surface {
      * @see   #dataToGraphics
      */
     public boolean dataToGraphicZ( double[] dataPos, boolean visibleOnly,
-                                   Point gPos, double[] zloc ) {
+                                   Point2D.Double gPos, double[] zloc ) {
 
         /* Determine whether the given data position is in the data range. */
         final boolean knownInCube;
@@ -212,8 +213,8 @@ public class CubeSurface implements Surface {
 
         /* Apply graphics coordinates zoom and X/Y offsets,
          * determine success, and return. */
-        int gx = gXoff_ + (int) Math.floor( rx * gZoom_ );
-        int gy = gYoff_ - (int) Math.floor( rz * gZoom_ );
+        double gx = gXoff_ + rx * gZoom_;
+        double gy = gYoff_ - rz * gZoom_;
         if ( ! visibleOnly ||
              ( gx >= gxlo_ && gx < gxhi_ && gy >= gylo_ && gy < gyhi_ ) ) {
             gPos.x = gx;
@@ -310,7 +311,7 @@ public class CubeSurface implements Surface {
      * the Z coordinate is determined as the average Z coordinate of
      * all data points that fall near to the indicated graphics position.
      */
-    public double[] graphicsToData( Point gpos0, Iterable<double[]> dposIt ) {
+    public double[] graphicsToData( Point2D gpos0, Iterable<double[]> dposIt ) {
 
         /* We can only work out the position if there are data points supplied,
          * since the third dimension means the 2d->3d mapping is degenerate. */
@@ -342,7 +343,7 @@ public class CubeSurface implements Surface {
         double maxThresh2 = thresh2s[ nth - 1 ];
 
         /* Iterate over each known data point. */
-        Point gp = new Point();
+        Point2D.Double gp = new Point2D.Double();
         for ( double[] dpos : dposIt ) {
             if ( dataToGraphics( dpos, true, gp ) ) {
                 double d2 = gpos0.distanceSq( gp );
@@ -440,9 +441,9 @@ public class CubeSurface implements Surface {
      * @param  pos1  end position
      * @return   new cube
      */
-    CubeAspect pan( Point pos0, Point pos1 ) {
-        double xf = ( pos0.x - pos1.x ) / gScale_ / zoom_;
-        double yf = ( pos0.y - pos1.y ) / gScale_ / zoom_;
+    CubeAspect pan( Point2D pos0, Point2D pos1 ) {
+        double xf = ( pos0.getX() - pos1.getX() ) / gScale_ / zoom_;
+        double yf = ( pos0.getY() - pos1.getY() ) / gScale_ / zoom_;
         double phi = xf * Math.PI / 2;
         double psi = yf * Math.PI / 2;
         double[] rot = rotateXZ( rotmat_, phi, psi );
@@ -480,7 +481,7 @@ public class CubeSurface implements Surface {
      * @param   yZoom  zoom factor requested in Y screen direction
      * @return   new cube
      */
-    CubeAspect pointZoom( Point gpos, double xZoom, double yZoom ) {
+    CubeAspect pointZoom( Point2D gpos, double xZoom, double yZoom ) {
         int[] dirs = getScreenDirections();
         double[] factors = new double[] { 1, 1, 1 };
         factors[ dirs[ 0 ] ] = xZoom;
@@ -498,7 +499,7 @@ public class CubeSurface implements Surface {
      * @param  gpos1  end point in graphics coordinates
      * @return  new cube
      */
-    CubeAspect pointPan( Point gpos0, Point gpos1 ) {
+    CubeAspect pointPan( Point2D gpos0, Point gpos1 ) {
         double[] dp0 = graphicsToData( gpos0 );
         double[] dp1 = graphicsToData( gpos1 );
         double[][] limits = new double[ 3 ][];
@@ -579,7 +580,7 @@ public class CubeSurface implements Surface {
      * @param  gpos   graphics position
      * @return  corresponding data space position
      */
-    private double[] graphicsToData( Point gpos ) {
+    private double[] graphicsToData( Point2D gpos ) {
 
         /* Work out the unit vectors in normalised space for the two
          * axes defining the cube face that is most nearly facing
@@ -775,8 +776,8 @@ public class CubeSurface implements Surface {
     private void plotFrame( Graphics g, boolean front ) {
 
         /* Prepare workspace. */
-        Point gp0 = new Point();
-        Point gp1 = new Point();
+        Point2D.Double gp0 = new Point2D.Double();
+        Point2D.Double gp1 = new Point2D.Double();
         double[] gz0 = new double[ 1 ];
         double[] gz1 = new double[ 1 ];
 
@@ -1015,13 +1016,14 @@ public class CubeSurface implements Surface {
      * @param  dpos1   data space coordinates of line end
      */
     private void drawFrameLine( Graphics g, double[] dpos0, double[] dpos1 ) {
-        Point gp0 = new Point();
-        Point gp1 = new Point();
+        Point2D.Double gp0 = new Point2D.Double();
+        Point2D.Double gp1 = new Point2D.Double();
         double[] dz0 = new double[ 1 ];
         double[] dz1 = new double[ 1 ];
         dataToGraphicZ( dpos0, false, gp0, dz0 );
         dataToGraphicZ( dpos1, false, gp1, dz1 );
-        g.drawLine( gp0.x, gp0.y, gp1.x, gp1.y );
+        g.drawLine( PlotUtil.ifloor( gp0.x ), PlotUtil.ifloor( gp0.y ),
+                    PlotUtil.ifloor( gp1.x ), PlotUtil.ifloor( gp1.y ) );
     }
 
     /**

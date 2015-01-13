@@ -11,6 +11,7 @@ import uk.ac.starlink.ttools.plot2.Decal;
 import uk.ac.starlink.ttools.plot2.Drawing;
 import uk.ac.starlink.ttools.plot2.Glyph;
 import uk.ac.starlink.ttools.plot2.Pixer;
+import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
@@ -77,8 +78,10 @@ public abstract class PixOutliner implements Outliner {
      */
     private static class BinPaperType implements PaperType2D {
 
-        public void placeGlyph( Paper paper, int gx, int gy, Glyph glyph,
+        public void placeGlyph( Paper paper, double dx, double dy, Glyph glyph,
                                 Color color ) {
+            int gx = PlotUtil.ifloor( dx );
+            int gy = PlotUtil.ifloor( dy );
 
             /* Acquire requisite information from paper object. */
             BinPaper binPaper = (BinPaper) paper;

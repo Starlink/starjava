@@ -8,10 +8,10 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
 import java.awt.Insets;
-import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Stroke;
+import java.awt.geom.Point2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
@@ -1178,11 +1178,12 @@ public class PlotPanel<P,A> extends JComponent implements ActionListener {
             Icon highIcon = HIGHLIGHTER;
             int xoff = highIcon.getIconWidth() / 2;
             int yoff = highIcon.getIconHeight() / 2;
-            Point gp = new Point();
+            Point2D.Double gp = new Point2D.Double();
             for ( int ih = 0; ih < highlights_.length; ih++ ) {
                 if ( surface.dataToGraphics( highlights_[ ih ], true, gp ) ) {
-                    decList.add( new Decoration( highIcon,
-                                                 gp.x - xoff, gp.y - yoff ) );
+                    int gx = PlotUtil.ifloor( gp.x - xoff );
+                    int gy = PlotUtil.ifloor( gp.y - yoff );
+                    decList.add( new Decoration( highIcon, gx, gy ) );
                 }
             }
 

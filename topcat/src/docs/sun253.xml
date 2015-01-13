@@ -20678,6 +20678,10 @@ introduced since the last version:
         for plotting <ref id="form-vector">vectors</ref>.</li>
     <li>Add <label>Rescale Y</label> button to
         <ref id="HistogramPlotWindow">Histogram</ref> window.</li>
+    <li>Graphics coordinates are now calculated in floating point
+        rather than as integers.  This fixes problems that could
+        cause scaled vectors, ellipses etc to be drawn with shapes
+        or orientations badly wrong due to rounding errors.</li>
     </ul>
     </p></dd>
 
