@@ -96,11 +96,13 @@ public class LineStyle implements Style {
      * @param   g  graphics context
      * @param   bounds   clip bounds
      * @param   nwork   workspace array size
+     * @param   isPixel  if true graphics context is considered pixellised
      * @return   new line tracer
      */
     public LineTracer createLineTracer( Graphics g, Rectangle bounds,
-                                        int nwork ) {
-        return new LineTracer( g, bounds, color_, stroke_, antialias_, nwork );
+                                        int nwork, boolean isPixel ) {
+        return new LineTracer( g, bounds, color_, stroke_, antialias_, nwork,
+                               isPixel );
     }
 
     @Override

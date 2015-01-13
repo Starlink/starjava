@@ -20681,7 +20681,9 @@ introduced since the last version:
     <li>Graphics coordinates are now calculated in floating point
         rather than as integers.  This fixes problems that could
         cause scaled vectors, ellipses etc to be drawn with shapes
-        or orientations badly wrong due to rounding errors.</li>
+        or orientations badly wrong due to rounding errors.
+        It also improves plotting of analytic functions, especially 
+        to vector contexts (PDF/EPS).</li>
     </ul>
     </p></dd>
 
