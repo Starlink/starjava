@@ -2,6 +2,7 @@ package uk.ac.starlink.ttools.plot2.geom;
 
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.geom.Point2D;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import uk.ac.starlink.ttools.plot2.Decoration;
@@ -178,19 +179,19 @@ public class PlaneNavigator implements Navigator<PlaneAspect> {
         double[] d0 = surface
                      .graphicsToData( surface.getPlotBounds().getLocation(),
                                       null );
-        Point pc = new Point();
+        Point2D.Double pc = new Point2D.Double();
         boolean[] logFlags = surface.getLogFlags();
         int xoff = ! Double.isNaN( xAnchor_ ) &&
                    ( xAnchor_ > 0 || ! logFlags[ 0 ] ) &&
                    surface.dataToGraphics( new double[] { xAnchor_, d0[ 1 ] },
                                            false, pc )
-                 ? pc.x - refpos.x
+                 ? (int) Math.round( pc.x - refpos.x )
                  : 0;
         int yoff = ! Double.isNaN( yAnchor_ ) &&
                    ( yAnchor_ > 0 || ! logFlags[ 1 ] ) &&
                    surface.dataToGraphics( new double[] { d0[ 0 ], yAnchor_ },
                                            false, pc )
-                 ? pc.y - refpos.y
+                 ? (int) Math.round( pc.y - refpos.y )
                  : 0;
         return new int[] { xoff, yoff };
     }

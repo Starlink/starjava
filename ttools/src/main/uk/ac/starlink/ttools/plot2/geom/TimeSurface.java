@@ -7,6 +7,7 @@ import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.awt.geom.Point2D;
 import java.util.Arrays;
 import uk.ac.starlink.ttools.plot2.Axis;
 import uk.ac.starlink.ttools.plot2.BasicTicker;
@@ -112,18 +113,16 @@ public class TimeSurface implements Surface {
     }
 
     public boolean dataToGraphics( double[] dpos, boolean visibleOnly,
-                                   Point gp ) {
+                                   Point2D.Double gp ) {
         if ( dpos == null ) {
             return false;
         }
-        double dx = tAxis_.dataToGraphics( dpos[ 0 ] );
-        double dy = yAxis_.dataToGraphics( dpos[ 1 ] );
-        if ( Double.isNaN( dx ) || Double.isNaN( dy ) ) {
+        double gx = tAxis_.dataToGraphics( dpos[ 0 ] );
+        double gy = yAxis_.dataToGraphics( dpos[ 1 ] );
+        if ( Double.isNaN( gx ) || Double.isNaN( gy ) ) {
             return false;
         }
         else {
-            int gx = (int) dx;
-            int gy = (int) dy;
             if ( visibleOnly &&
                  ( gx < gxlo_ || gx >= gxhi_ || gy < gylo_ || gy >= gyhi_ ) ) {
                 return false;
@@ -136,15 +135,15 @@ public class TimeSurface implements Surface {
         }
     }
 
-    public boolean dataToGraphicsOffset( double[] dpos0, Point gpos0,
+    public boolean dataToGraphicsOffset( double[] dpos0, Point2D.Double gpos0,
                                          double[] dpos1, boolean visibleOnly,
-                                         Point gpos1 ) {
+                                         Point2D.Double gpos1 ) {
         return dataToGraphics( dpos1, visibleOnly, gpos1 );
     }
 
-    public double[] graphicsToData( Point gp, Iterable<double[]> dposIt ) {
-        return new double[] { tAxis_.graphicsToData( gp.x ),
-                              yAxis_.graphicsToData( gp.y ) };
+    public double[] graphicsToData( Point2D gp, Iterable<double[]> dposIt ) {
+        return new double[] { tAxis_.graphicsToData( gp.getX() ),
+                              yAxis_.graphicsToData( gp.getY() ) };
     }
 
     public String formatPosition( double[] dpos ) {
@@ -205,11 +204,13 @@ public class TimeSurface implements Surface {
      * @param  yZoom  vertical axis zoom factor
      * @return  new aspect
      */
-    TimeAspect zoom( Point pos, double tZoom, double yZoom ) {
-        return new TimeAspect( tAxis_.dataZoom( tAxis_.graphicsToData( pos.x ),
-                                                tZoom ),
-                               yAxis_.dataZoom( yAxis_.graphicsToData( pos.y ),
-                                                yZoom ) );
+    TimeAspect zoom( Point2D pos, double tZoom, double yZoom ) {
+        return new TimeAspect( tAxis_
+                              .dataZoom( tAxis_.graphicsToData( pos.getX() ),
+                                         tZoom ),
+                               yAxis_
+                              .dataZoom( yAxis_.graphicsToData( pos.getY() ),
+                                         yZoom ) );
     }
 
     /**
@@ -223,14 +224,14 @@ public class TimeSurface implements Surface {
      * @param   yFlag  true to pan in vertical direction
      * @return  new aspect
      */
-    TimeAspect pan( Point pos0, Point pos1, boolean tFlag, boolean yFlag ) {
+    TimeAspect pan( Point2D pos0, Point2D pos1, boolean tFlag, boolean yFlag ) {
         if ( tFlag || yFlag ) {
             return new TimeAspect(
-                tFlag ? tAxis_.dataPan( tAxis_.graphicsToData( pos0.x ),
-                                        tAxis_.graphicsToData( pos1.x ) )
+                tFlag ? tAxis_.dataPan( tAxis_.graphicsToData( pos0.getX() ),
+                                        tAxis_.graphicsToData( pos1.getX() ) )
                       : new double[] { dtlo_, dthi_ },
-                yFlag ? yAxis_.dataPan( yAxis_.graphicsToData( pos0.y ),
-                                        yAxis_.graphicsToData( pos1.y ) )
+                yFlag ? yAxis_.dataPan( yAxis_.graphicsToData( pos0.getY() ),
+                                        yAxis_.graphicsToData( pos1.getY() ) )
                       : new double[] { dylo_, dyhi_ } );
         }
         else {
@@ -247,10 +248,10 @@ public class TimeSurface implements Surface {
      * @return  new aspect
      */
     TimeAspect center( double[] dpos, boolean tFlag, boolean yFlag ) {
-        Point gp = new Point();
+        Point2D.Double gp = new Point2D.Double();
         return dataToGraphics( dpos, false, gp )
-             ? pan( gp, new Point( ( gxlo_ + gxhi_ ) / 2,
-                                   ( gylo_ + gyhi_ ) / 2 ),
+             ? pan( gp, new Point2D.Double( ( gxlo_ + gxhi_ ) * 0.5,
+                                            ( gylo_ + gyhi_ ) * 0.5 ),
                     tFlag, yFlag )
              : null;
     }

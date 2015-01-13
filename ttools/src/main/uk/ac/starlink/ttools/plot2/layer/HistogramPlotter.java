@@ -3,9 +3,9 @@ package uk.ac.starlink.ttools.plot2.layer;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map;
@@ -422,8 +422,8 @@ public class HistogramPlotter
         final boolean yflip = flipFlags[ 1 ];
         boolean ylog = surface.getLogFlags()[ 1 ];
        
-        Point p0 = new Point();
-        Point p1 = new Point();
+        Point2D.Double p0 = new Point2D.Double();
+        Point2D.Double p1 = new Point2D.Double();
         double[] dpos0 = new double[ 2 ];
         double[] dpos1 = new double[ 2 ];
         int lastGx1 = xflip ? Integer.MAX_VALUE : Integer.MIN_VALUE;
@@ -454,10 +454,10 @@ public class HistogramPlotter
                     /* Clip them so they are not too far off the plot region;
                      * attempting to draw ridiculously large rectangles can
                      * give AWT a headache. */
-                    int gx0 = clip( p0.x, xClipMin, xClipMax );
-                    int gx1 = clip( p1.x, xClipMin, xClipMax );
-                    int gy0 = clip( p0.y, yClipMin, yClipMax );
-                    int gy1 = clip( p1.y, yClipMin, yClipMax );
+                    int gx0 = clip( (int) p0.x, xClipMin, xClipMax );
+                    int gx1 = clip( (int) p1.x, xClipMin, xClipMax );
+                    int gy0 = clip( (int) p0.y, yClipMin, yClipMax );
+                    int gy1 = clip( (int) p1.y, yClipMin, yClipMax );
 
                     /* Draw the trailing edge of the previous bar if
                      * necessary. */

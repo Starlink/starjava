@@ -29,6 +29,6 @@ public interface PaperType3D extends PaperType {
      * @param  glyph  graphics shape
      * @param  color  colour for glyph
      */
-    void placeGlyph( Paper paper, int gx, int gy, double dz,
+    void placeGlyph( Paper paper, double gx, double gy, double dz,
                      Glyph glyph, Color color );
 }

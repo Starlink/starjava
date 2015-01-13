@@ -2,8 +2,8 @@ package uk.ac.starlink.ttools.plot2.layer;
 
 import java.awt.Color;
 import java.awt.Graphics;
-import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -273,7 +273,7 @@ public class MultiPointForm implements ShapeForm {
             final int nextra = extraCoordSet_.getPointCount();
             final double[] dpos0 = new double[ ndim ];
             final double[][] dposExtras = new double[ nextra ][ ndim ];
-            final Point gpos0 = new Point();
+            final Point2D.Double gpos0 = new Point2D.Double();
             final int icExtra = getExtrasCoordIndex( geom );
             double scale = scale_ * getBaseScale( surface, auxRanges );
             final Offsetter offsetter = createOffsetter( surface, scale );
@@ -305,7 +305,7 @@ public class MultiPointForm implements ShapeForm {
             final int nextra = extraCoordSet_.getPointCount();
             final double[] dpos0 = new double[ ndim ];
             final double[][] dposExtras = new double[ nextra ][ ndim ];
-            final Point gpos0 = new Point();
+            final Point2D.Double gpos0 = new Point2D.Double();
             final int icExtra = getExtrasCoordIndex( geom );
             final double[] zloc = new double[ 1 ];
             double scale = scale_ * getBaseScale( surface, auxRanges );
@@ -388,36 +388,8 @@ public class MultiPointForm implements ShapeForm {
          */
         private Offsetter createOffsetter( Surface surface,
                                            final double scale ) {
-            final int nextra = extraCoordSet_.getPointCount();
-            if ( scale == 1.0 ) {
-                return new Offsetter( surface, nextra );
-            }
-            else {
-
-                // This scaling is not great, because it is working on the
-                // integer graphics coordinates, so it will lose precision.
-                // To retain the precision, there would need to be a
-                // Surface.dataToGraphicsOffset method which outputs
-                // floating point rather than integer graphics coordinates
-                // (e.g. Point2D.Doubles rather than Points).
-                // There's no technical reason why this can't be done, but
-                // the Surface interface doesn't currently work that way.
-                return new Offsetter( surface, nextra ) {
-                    @Override
-                    void calculateOffsets( double[] dpos0, Point gpos0,
-                                           double[][] dposExtras, 
-                                           int[] xoffs, int[] yoffs ) {
-                        super.calculateOffsets( dpos0, gpos0, dposExtras,
-                                                xoffs, yoffs );
-                        for ( int ie = 0; ie < nextra; ie++ ) {
-                            xoffs[ ie ] =
-                                (int) Math.round( xoffs[ ie ] * scale );
-                            yoffs[ ie ] =
-                                (int) Math.round( yoffs[ ie ] * scale );
-                        } 
-                    }
-                };
-            }
+            int nextra = extraCoordSet_.getPointCount();
+            return new Offsetter( surface, nextra, scale );
         }
     }
 
@@ -428,7 +400,8 @@ public class MultiPointForm implements ShapeForm {
     private static class Offsetter {
         final Surface surface_;
         final int nextra_;
-        final Point gp_;
+        final double scale_;
+        final Point2D.Double gp_;
 
         /**
          * Constructor.
@@ -436,10 +409,11 @@ public class MultiPointForm implements ShapeForm {
          * @param  surface  plot surface
          * @param  nextra  number of non-central data coordinates
          */
-        Offsetter( Surface surface, int nextra ) {
+        Offsetter( Surface surface, int nextra, double scale ) {
             surface_ = surface;
             nextra_ = nextra;
-            gp_ = new Point();
+            scale_ = scale;
+            gp_ = new Point2D.Double();
         }
 
         /**
@@ -459,19 +433,19 @@ public class MultiPointForm implements ShapeForm {
          * @param  xoffs  nExtra-element array to receive graphics X offsets
          * @param  yoffs  nExtra-element array to receive graphics Y offsets
          */
-        void calculateOffsets( double[] dpos0, Point gpos0,
+        void calculateOffsets( double[] dpos0, Point2D.Double gpos0,
                                double[][] dposExtras,
                                int[] xoffs, int[] yoffs ) {
-            int gx0 = gpos0.x;
-            int gy0 = gpos0.y;
+            double gx0 = gpos0.x;
+            double gy0 = gpos0.y;
             for ( int ie = 0; ie < nextra_; ie++ ) {
                 final int gx;
                 final int gy;
                 if ( surface_.dataToGraphicsOffset( dpos0, gpos0,
                                                     dposExtras[ ie ], false,
                                                     gp_ ) ) {
-                    gx = gp_.x - gx0;
-                    gy = gp_.y - gy0;
+                    gx = (int) Math.round( ( gp_.x - gx0 ) * scale_ );
+                    gy = (int) Math.round( ( gp_.y - gy0 ) * scale_ );
                 }
                 else {
                     gx = 0;
@@ -554,8 +528,8 @@ public class MultiPointForm implements ShapeForm {
             final double[] dpos0 = new double[ ndim ];
             final double[][] dposExtras = new double[ nextra ][ ndim ];
             final int icExtra = getExtrasCoordIndex( geom );
-            final Point gpos0 = new Point();
-            final Point gpos1 = new Point();
+            final Point2D.Double gpos0 = new Point2D.Double();
+            final Point2D.Double gpos1 = new Point2D.Double();
             return new AuxReader() {
                 public void updateAuxRange( Surface surface,
                                             TupleSequence tseq, Range range ) {

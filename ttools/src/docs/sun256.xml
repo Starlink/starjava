@@ -10087,6 +10087,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Add some "dart" options (fixed-base open or filled triangles)
         for plotting vectors (see <code>arrowN</code> parameter in
         layers like <ref id="layer-xyvector"><code>xyvector</code></ref>).</li>
+    <li>Graphics coordinates are now calculated in floating point 
+        rather than as integers.  This fixes problems that could 
+        cause scaled vectors, ellipses etc to be drawn with shapes
+        or orientations badly wrong due to rounding errors.</li>
     </ul>
     </p></dd>
 

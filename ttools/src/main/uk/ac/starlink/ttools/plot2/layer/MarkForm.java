@@ -5,6 +5,7 @@ import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.geom.Point2D;
 import java.util.HashMap;
 import java.util.Map;
 import javax.swing.Icon;
@@ -392,7 +393,7 @@ public abstract class MarkForm implements ShapeForm {
                                              Map<AuxScale,Range> auxRanges,
                                              final PaperType2D paperType ) {
             final double[] dpos = new double[ surface.getDataDimCount() ];
-            final Point gp = new Point();
+            final Point2D.Double gp = new Point2D.Double();
             return new ShapePainter() {
                 public void paintPoint( TupleSequence tseq, Color color,
                                         Paper paper ) {
@@ -410,7 +411,7 @@ public abstract class MarkForm implements ShapeForm {
                                              Map<AuxScale,Range> auxRanges,
                                              final PaperType3D paperType ) {
             final double[] dpos = new double[ surface.getDataDimCount() ];
-            final Point gp = new Point();
+            final Point2D.Double gp = new Point2D.Double();
             final double[] dz = new double[ 1 ];
             return new ShapePainter() {
                 public void paintPoint( TupleSequence tseq, Color color,
@@ -470,7 +471,7 @@ public abstract class MarkForm implements ShapeForm {
                                              Map<AuxScale,Range> auxRanges,
                                              final PaperType2D paperType ) {
             final double[] dpos = new double[ surface.getDataDimCount() ];
-            final Point gp = new Point();
+            final Point2D.Double gp = new Point2D.Double();
             final int npc = geom.getPosCoords().length;
             return new ShapePainter() {
                 public void paintPoint( TupleSequence tseq, Color color,
@@ -491,7 +492,7 @@ public abstract class MarkForm implements ShapeForm {
                                              Map<AuxScale,Range> auxRanges,
                                              final PaperType3D paperType ) {
             final double[] dpos = new double[ surface.getDataDimCount() ];
-            final Point gp = new Point();
+            final Point2D.Double gp = new Point2D.Double();
             final double[] dz = new double[ 1 ];
             final int npc = geom.getPosCoords().length;
             return new ShapePainter() {

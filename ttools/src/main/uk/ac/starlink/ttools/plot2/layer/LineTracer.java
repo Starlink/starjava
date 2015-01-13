@@ -96,15 +96,21 @@ public class LineTracer {
     /**
      * Adds a point to the sequence to be plotted.
      *
-     * <p>At present points are submitted as integer x, y coordinates since
-     * that's how the rest of the plotting system works.  However, if it
-     * gets upgraded to floating point, the implementation here should
-     * change, perhaps using a {@link java.awt.geom.PathIterator}.
-     *
-     * @param  px  graphics X coordinate
-     * @param  py  graphics Y coordinate
+     * @param  dx  graphics X coordinate
+     * @param  dy  graphics Y coordinate
      */
-    public void addVertex( int px, int py ) {
+    public void addVertex( double dx, double dy ) {
+        if ( Double.isNaN( dx ) || Double.isNaN( dy ) ) {
+            return;
+        }
+
+        /* Convert points from doubles to integers by truncation.
+         * This is a temporary measure, while I convert the graphics
+         * classes from using integer to floating point coordinates.
+         * In due course it should probably make direct or indirect
+         * use of java.awt.geom.PathIterator. */
+        int px = (int) dx;
+        int py = (int) dy;
 
         /* This method does various calculations to optimise the points
          * that will be sent to the graphics context with drawPolyLine.

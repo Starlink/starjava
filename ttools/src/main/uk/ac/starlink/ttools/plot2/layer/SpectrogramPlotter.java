@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.geom.Point2D;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -327,8 +328,10 @@ public class SpectrogramPlotter
         /* Draw pixels. */
         TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
         double[] dxs = new double[ 2 ];
-        Point gp0 = new Point();
-        Point gp3 = new Point();
+        Point2D.Double gp0 = new Point2D.Double();
+        Point2D.Double gp3 = new Point2D.Double();
+        Point gp0i = new Point();
+        Point gp3i = new Point();
         double[] dpos0 = new double[ 2 ];
         double[] dpos3 = new double[ 2 ];
         double[] chanBounds = new double[ 2 ];
@@ -356,6 +359,8 @@ public class SpectrogramPlotter
                         dpos3[ 1 ] = chanBounds[ 1 ];
                         if ( surface.dataToGraphics( dpos0, false, gp0 ) &&
                              surface.dataToGraphics( dpos3, false, gp3 ) ) {
+                            PlotUtil.quantisePoint( gp0, gp0i );
+                            PlotUtil.quantisePoint( gp3, gp3i );
                             double sval = specScaler.scale( chanVector[ ic ] );
 
                             /* This could be made more efficient by setting up
@@ -365,26 +370,26 @@ public class SpectrogramPlotter
                             shader.adjustRgba( rgba, (float) sval );
                             g.setColor( new Color( rgba[ 0 ], rgba[ 1 ],
                                                    rgba[ 2 ] ) );
-                            int x03 = gp3.x - gp0.x;
-                            int y03 = gp3.y - gp0.y;
+                            int x03 = gp3i.x - gp0i.x;
+                            int y03 = gp3i.y - gp0i.y;
                             final int px;
                             final int pwidth;
                             final int py;
                             final int pheight;
                             if ( x03 > 0 ) {
-                                px = gp0.x;
+                                px = gp0i.x;
                                 pwidth = x03;
                             }
                             else {
-                                px = gp3.x;
+                                px = gp3i.x;
                                 pwidth = -x03;
                             }
                             if ( y03 > 0 ) {
-                                py = gp0.y;
+                                py = gp0i.y;
                                 pheight = y03;
                             }
                             else {
-                                py = gp3.y;
+                                py = gp3i.y;
                                 pheight = -y03;
                             }
                             assert pwidth >= 0;

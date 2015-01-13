@@ -3,6 +3,8 @@ package uk.ac.starlink.topcat.plot2;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Shape;
+import java.awt.geom.Point2D;
+import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Surface;
 
 /**
@@ -31,7 +33,7 @@ public abstract class PositionCriterion {
     public static PositionCriterion
             createBoundsCriterion( final Surface surface ) {
         return new PositionCriterion() {
-            final Point gp = new Point();
+            final Point2D.Double gp = new Point2D.Double();
             public boolean isIncluded( double[] dpos ) {
                 return surface.dataToGraphics( dpos, true, gp );
             }
@@ -56,11 +58,17 @@ public abstract class PositionCriterion {
         final int gylo = plotBounds.y;
         final int gyhi = plotBounds.y + plotBounds.height;
         return new PositionCriterion() {
-            final Point gp = new Point();
+            final Point2D.Double gp = new Point2D.Double();
+            final Point gpi = new Point();
             public boolean isIncluded( double[] dpos ) {
-                return surface.dataToGraphics( dpos, false, gp )
-                    && ( ( gxlo < gp.x && gp.x < gxhi ) ||
-                         ( gylo < gp.y && gp.y < gyhi ) );
+                if ( surface.dataToGraphics( dpos, false, gp ) ) {
+                    PlotUtil.quantisePoint( gp, gpi );
+                    return ( ( gxlo < gpi.x && gpi.x < gxhi ) ||
+                             ( gxlo < gpi.y && gpi.y < gyhi ) );
+                }
+                else {
+                    return false;
+                }
             }
         };
     }
@@ -84,11 +92,17 @@ public abstract class PositionCriterion {
          * but at least I can't see it slowing things down significantly. */
         final Rectangle blobBounds = blob.getBounds();
         return new PositionCriterion() {
-            final Point gp = new Point();
+            final Point2D.Double gp = new Point2D.Double();
+            final Point gpi = new Point();
             public boolean isIncluded( double[] dpos ) {
-                return surface.dataToGraphics( dpos, true, gp )
-                    && blobBounds.contains( gp )
-                    && blob.contains( gp );
+                if ( surface.dataToGraphics( dpos, true, gp ) ) {
+                    PlotUtil.quantisePoint( gp, gpi );
+                    return blobBounds.contains( gpi )
+                        && blob.contains( gpi );
+                }
+                else {
+                    return false;
+                }
             }
         };
     }

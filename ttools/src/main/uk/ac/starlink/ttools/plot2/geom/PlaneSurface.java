@@ -6,6 +6,7 @@ import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.geom.Point2D;
 import java.util.Arrays;
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.plot2.Axis;
@@ -117,18 +118,16 @@ public class PlaneSurface implements Surface {
     }
 
     public boolean dataToGraphics( double[] dpos, boolean visibleOnly,
-                                   Point gp ) {
+                                   Point2D.Double gp ) {
         if ( dpos == null ) {
             return false;
         }
-        double dx = xAxis_.dataToGraphics( dpos[ 0 ] );
-        double dy = yAxis_.dataToGraphics( dpos[ 1 ] );
-        if ( Double.isNaN( dx ) || Double.isNaN( dy ) ) {
+        double gx = xAxis_.dataToGraphics( dpos[ 0 ] );
+        double gy = yAxis_.dataToGraphics( dpos[ 1 ] );
+        if ( Double.isNaN( gx ) || Double.isNaN( gy ) ) {
             return false;
         }
         else {
-            int gx = (int) dx;
-            int gy = (int) dy;
             if ( visibleOnly &&
                  ( gx < gxlo_ || gx >= gxhi_ || gy < gylo_ || gy >= gyhi_ ) ) {
                 return false;
@@ -141,15 +140,15 @@ public class PlaneSurface implements Surface {
         }
     }
 
-    public boolean dataToGraphicsOffset( double[] dpos0, Point gpos0,
+    public boolean dataToGraphicsOffset( double[] dpos0, Point2D.Double gpos0,
                                          double[] dpos1, boolean visibleOnly,
-                                         Point gpos1 ) {
+                                         Point2D.Double gpos1 ) {
         return dataToGraphics( dpos1, visibleOnly, gpos1 );
     }
 
-    public double[] graphicsToData( Point gp, Iterable<double[]> dposIt ) {
-        return new double[] { xAxis_.graphicsToData( gp.x ),
-                              yAxis_.graphicsToData( gp.y ) };
+    public double[] graphicsToData( Point2D gp, Iterable<double[]> dposIt ) {
+        return new double[] { xAxis_.graphicsToData( gp.getX() ),
+                              yAxis_.graphicsToData( gp.getY() ) };
     }
 
     public String formatPosition( double[] dpos ) {
@@ -241,10 +240,10 @@ public class PlaneSurface implements Surface {
      * @param  yZoom  Y axis zoom factor
      * @return  new aspect
      */
-    PlaneAspect zoom( Point pos, double xZoom, double yZoom ) {
+    PlaneAspect zoom( Point2D pos, double xZoom, double yZoom ) {
         return new PlaneAspect(
-            xAxis_.dataZoom( xAxis_.graphicsToData( pos.x ), xZoom ),
-            yAxis_.dataZoom( yAxis_.graphicsToData( pos.y ), yZoom ) );
+            xAxis_.dataZoom( xAxis_.graphicsToData( pos.getX() ), xZoom ),
+            yAxis_.dataZoom( yAxis_.graphicsToData( pos.getY() ), yZoom ) );
     }
 
     /**
@@ -258,14 +257,15 @@ public class PlaneSurface implements Surface {
      * @param   yFlag  true iff panning will operate in Y direction
      * @return  new aspect, or null
      */
-    PlaneAspect pan( Point pos0, Point pos1, boolean xFlag, boolean yFlag ) {
+    PlaneAspect pan( Point2D pos0, Point2D pos1,
+                     boolean xFlag, boolean yFlag ) {
         if ( xFlag || yFlag ) {
             return new PlaneAspect(
-                xFlag ? xAxis_.dataPan( xAxis_.graphicsToData( pos0.x ),
-                                        xAxis_.graphicsToData( pos1.x ) )
+                xFlag ? xAxis_.dataPan( xAxis_.graphicsToData( pos0.getX() ),
+                                        xAxis_.graphicsToData( pos1.getX() ) )
                       : new double[] { dxlo_, dxhi_ },
-                yFlag ? yAxis_.dataPan( yAxis_.graphicsToData( pos0.y ),
-                                        yAxis_.graphicsToData( pos1.y ) )
+                yFlag ? yAxis_.dataPan( yAxis_.graphicsToData( pos0.getY() ),
+                                        yAxis_.graphicsToData( pos1.getY() ) )
                       : new double[] { dylo_, dyhi_ } );
         }
         else {
@@ -282,10 +282,10 @@ public class PlaneSurface implements Surface {
      * @return  new aspect
      */
     PlaneAspect center( double[] dpos, boolean xFlag, boolean yFlag ) {
-        Point gp = new Point();
+        Point2D.Double gp = new Point2D.Double();
         return dataToGraphics( dpos, false, gp )
-             ? pan( gp, new Point( ( gxlo_ + gxhi_ ) / 2,
-                                   ( gylo_ + gyhi_ ) / 2 ),
+             ? pan( gp, new Point2D.Double( ( gxlo_ + gxhi_ ) * 0.5,
+                                            ( gylo_ + gyhi_ ) * 0.5 ),
                     xFlag, yFlag )
              : null;
     }

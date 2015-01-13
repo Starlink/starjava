@@ -1,7 +1,8 @@
 package uk.ac.starlink.ttools.plot2.layer;
 
-import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.geom.Point2D;
+import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.PointCloud;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
@@ -82,11 +83,11 @@ public class BinPlan {
         int yoff = bounds.y;
         Gridder gridder = new Gridder( bounds.width, bounds.height );
         Binner binner = new Binner( gridder.getLength() );
-        Point gp = new Point();
+        Point2D.Double gp = new Point2D.Double();
         for ( double[] dpos : pointCloud.createDataPosIterable( dataStore ) ) {
             if ( surface.dataToGraphics( dpos, true, gp ) ) {
-                int gx = gp.x - xoff;
-                int gy = gp.y - yoff;
+                int gx = PlotUtil.ifloor( gp.x ) - xoff;
+                int gy = PlotUtil.ifloor( gp.y ) - yoff;
                 binner.increment( gridder.getIndex( gx, gy ) );
             }
         }

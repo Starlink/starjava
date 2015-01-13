@@ -6,6 +6,7 @@ import java.awt.Rectangle;
 import uk.ac.starlink.ttools.plot2.Decal;
 import uk.ac.starlink.ttools.plot2.Glyph;
 import uk.ac.starlink.ttools.plot2.Pixer;
+import uk.ac.starlink.ttools.plot2.PlotUtil;
 
 /**
  * Bitmapped PaperType which can paint transparent or opaque pixels
@@ -44,13 +45,17 @@ public class MonoPaperType extends RgbPaperType
         return new MonoPaper( this, bounds );
     }
 
-    public void placeGlyph( Paper paper, int gx, int gy,
+    public void placeGlyph( Paper paper, double dx, double dy,
                             Glyph glyph, Color color ) {
+        int gx = PlotUtil.ifloor( dx );
+        int gy = PlotUtil.ifloor( dy );
         ((MonoPaper) paper).placeGlyph( gx, gy, glyph, color );
     }
 
-    public void placeGlyph( Paper paper, int gx, int gy, double dz,
+    public void placeGlyph( Paper paper, double dx, double dy, double dz,
                             Glyph glyph, Color color ) {
+        int gx = PlotUtil.ifloor( dx );
+        int gy = PlotUtil.ifloor( dy );
         ((MonoPaper) paper).placeGlyph( gx, gy, glyph, color );
     }
 

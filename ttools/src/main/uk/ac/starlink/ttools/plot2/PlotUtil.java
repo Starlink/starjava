@@ -7,6 +7,7 @@ import java.awt.Rectangle;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
+import java.awt.geom.Point2D;
 import java.lang.reflect.Array;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -214,6 +215,33 @@ public class PlotUtil {
     }
 
     /**
+     * Maps a floating point graphics position to an integer graphics
+     * position, that is a 2-dimensional grid cell index.
+     * It does this by calling {@link #ifloor} on both coordinates.
+     * The input coordinates must not be NaN.
+     *
+     * @param   dpos   input definite floating point graphics position
+     * @param   gpos   output graphics position object
+     */
+    public static void quantisePoint( Point2D.Double dpos, Point gpos ) {
+        gpos.x = ifloor( dpos.x );
+        gpos.y = ifloor( dpos.y );
+    }
+
+    /**
+     * Determines the integer not larger than a given non-NaN
+     * floating point value.
+     * 
+     * @param  x  definite floating point value
+     * @return  floor of input
+     * @see   java.lang.Math#floor
+     */
+    public static int ifloor( double x ) {
+        int y = (int) x;
+        return x >= 0 || x == y || y == Integer.MIN_VALUE ? y : y - 1;
+    }
+
+    /**
      * Turns an Icon into a Picture.
      *
      * @param   icon   icon
@@ -353,9 +381,9 @@ public class PlotUtil {
     @Slow
     public static IndicatedRow getClosestRow( Surface surface, DataGeom geom,
                                               int iPosCoord, TupleSequence tseq,
-                                              Point point ) {
+                                              Point2D point ) {
         double[] dpos = new double[ surface.getDataDimCount() ];
-        Point gp = new Point();
+        Point2D.Double gp = new Point2D.Double();
         long bestIndex = -1;
         double bestDist2 = Double.POSITIVE_INFINITY;
         while ( tseq.next() ) {

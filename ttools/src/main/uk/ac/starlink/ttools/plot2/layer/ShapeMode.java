@@ -3,9 +3,9 @@ package uk.ac.starlink.ttools.plot2.layer;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
-import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Transparency;
+import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.IndexColorModel;
 import java.awt.image.WritableRaster;
@@ -1167,7 +1167,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                 public Map<AuxScale,AuxReader> getAuxRangers() {
                     Map<AuxScale,AuxReader> map = super.getAuxRangers();
                     final double[] dpos = new double[ geom.getDataDimCount() ];
-                    final Point gpos = new Point();
+                    final Point2D.Double gpos = new Point2D.Double();
                     map.put( SCALE, new AuxReader() {
                         public void updateAuxRange( Surface surface,
                                                     TupleSequence tseq,

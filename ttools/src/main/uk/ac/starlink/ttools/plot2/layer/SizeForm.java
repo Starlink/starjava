@@ -1,8 +1,8 @@
 package uk.ac.starlink.ttools.plot2.layer;
 
 import java.awt.Color;
-import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.geom.Point2D;
 import java.util.HashMap;
 import java.util.Map;
 import javax.swing.Icon;
@@ -213,7 +213,7 @@ public class SizeForm implements ShapeForm {
                                              Map<AuxScale,Range> auxRanges,
                                              final PaperType2D paperType ) {
             final double[] dpos = new double[ surface.getDataDimCount() ];
-            final Point gpos = new Point();
+            final Point2D.Double gpos = new Point2D.Double();
             final int icSize = getSizeCoordIndex( geom );
             final double scale = scale_ * getBaseScale( surface, auxRanges );
             return new ShapePainter() {
@@ -239,7 +239,7 @@ public class SizeForm implements ShapeForm {
                                              Map<AuxScale,Range> auxRanges,
                                              final PaperType3D paperType ) {
             final double[] dpos = new double[ surface.getDataDimCount() ];
-            final Point gpos = new Point();
+            final Point2D.Double gpos = new Point2D.Double();
             final double[] zloc = new double[ 1 ];
             final int icSize = getSizeCoordIndex( geom );
             final double scale = scale_ * getBaseScale( surface, auxRanges );
@@ -341,7 +341,7 @@ public class SizeForm implements ShapeForm {
         final DataGeom geom_;
         final int icSize_;
         final double[] dpos_;
-        final Point gpos_;
+        final Point2D.Double gpos_;
 
         /**
          * Constructor.
@@ -352,7 +352,7 @@ public class SizeForm implements ShapeForm {
             geom_ = geom;
             icSize_ = getSizeCoordIndex( geom );
             dpos_ = new double[ geom.getDataDimCount() ];
-            gpos_ = new Point();
+            gpos_ = new Point2D.Double();
         }
 
         public void updateAuxRange( Surface surface, TupleSequence tseq,
