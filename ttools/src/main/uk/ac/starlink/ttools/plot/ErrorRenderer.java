@@ -156,6 +156,8 @@ public abstract class ErrorRenderer {
         new OpenRectangle( "Rectangle", false ),
         new OpenRectangle( "Crosshair Rectangle", true ),
         new FilledRectangle( "Filled Rectangle" ),
+        new Triangle( "Open Triangle", false ),
+        new Triangle( "Filled Triangle", true ),
         DEFAULT,
         EXAMPLE,
         new CappedLine( "Arrows", true, new ArrowCapper( 3 ) ),
@@ -1002,6 +1004,119 @@ public abstract class ErrorRenderer {
             double dscale = 1.0 / Math.hypot( dx, dy );
             return new Point( - (int) Math.round( basepix_ * dy * dscale ),
                               + (int) Math.round( basepix_ * dx * dscale ) );
+        }
+    }
+
+    /**
+     * Error renderer which renders an isosceles triangle, centered
+     * on the data point, with a variable-length base.
+     * Used like an ellipse/rectangle/oblong (2d only).
+     */
+    private static class Triangle extends ErrorRenderer {
+
+        private final boolean isFill_;
+        private final Icon legend_;
+        private final Stroke stroke_;
+
+        /**
+         * Constructor.
+         *
+         * @param  name  renderer name
+         * @param  isFill  true for a filled triangle, false for open
+         */
+        public Triangle( String name, boolean isFill ) {
+            super( name );
+            isFill_ = isFill;
+            legend_ = new ErrorRendererIcon( this, 2 );
+            stroke_ = new BasicStroke( 1, BasicStroke.CAP_ROUND,
+                                       BasicStroke.JOIN_ROUND );
+        }
+
+        public boolean supportsDimensionality( int ndim ) {
+            return ndim == 2;
+        }
+
+        public Icon getLegendIcon() {
+            return legend_;
+        }
+
+        public Icon getLegendIcon( ErrorMode[] modes, int width, int height,
+                                   int xpad, int ypad ) {
+            return new ErrorRendererIcon( this, modes, width, height,
+                                          xpad, ypad );
+        }
+
+        public boolean isBlank( ErrorMode[] modes ) {
+            return modes != null && ErrorMode.allBlank( modes );
+        }
+
+        public Rectangle getBounds( int x, int y, int[] xoffs, int[] yoffs ) {
+            return getTriangle( x, y, xoffs, yoffs ).getBounds();
+        }
+
+        public Pixellator getPixels( Rectangle clip, int x, int y,
+                                     int[] xoffs, int[] yoffs ) {
+            Polygon triangle = getTriangle( x, y, xoffs, yoffs );
+            Drawing drawing = new Drawing( clip );
+            if ( isFill_ ) {
+                drawing.fill( triangle );
+            }
+            else {
+                int[] xs = triangle.xpoints;
+                int[] ys = triangle.ypoints;
+                drawing.drawLine( xs[ 1 ], ys[ 1 ], xs[ 2 ], ys[ 2 ] );
+                drawing.drawLine( xs[ 2 ], ys[ 2 ], xs[ 0 ], ys[ 0 ] );
+                drawing.drawLine( xs[ 0 ], ys[ 0 ], xs[ 1 ], ys[ 1 ] );
+            }
+            return drawing;
+        }
+
+        public void drawErrors( Graphics g, int x, int y,
+                                int[] xoffs, int[] yoffs ) {
+            Rectangle clip = g.getClipBounds();
+            int dmax = 4 * Math.max( clip.width, clip.height );
+            boolean ok = true;
+            for ( int ip = 0; ip < 4 && ok; ip++ ) {
+                ok = ok && Math.abs( xoffs[ ip ] ) < dmax
+                        && Math.abs( yoffs[ ip ] ) < dmax;
+            }
+            if ( ! ok ) {
+                xoffs = xoffs.clone();
+                yoffs = yoffs.clone();
+                for ( int ip = 0; ip < 4; ip++ ) {
+                    xoffs[ ip ] =
+                        Math.min( dmax, Math.max( -dmax, xoffs[ ip ] ) );
+                    yoffs[ ip ] =
+                        Math.min( dmax, Math.max( -dmax, yoffs[ ip ] ) );
+                }
+            }
+            Polygon triangle = getTriangle( x, y, xoffs, yoffs );
+            if ( isFill_ ) {
+                g.fillPolygon( triangle );
+            }
+            else {
+                g.drawPolygon( triangle );
+            }
+        }
+
+        /**
+         * Returns a polygon representing the required triangle.
+         *
+         * @param   x  data point X coordinate
+         * @param   y  data point Y coordinate
+         * @param  xoffs  offset point X coordinates (xlo, ylo, xhi, yhi)
+         * @param  yoffs  offset point Y coordinates (xlo, ylo, xhi, yhi)
+         */
+        private Polygon getTriangle( int x, int y, int[] xoffs, int[] yoffs ) {
+            int[] xs = new int[ 3 ];
+            int[] ys = new int[ 3 ];
+            xs[ 0 ] = x + xoffs[ 1 ];
+            ys[ 0 ] = y + yoffs[ 1 ];
+            xs[ 1 ] = x + xoffs[ 0 ] + xoffs[ 2 ];
+            ys[ 1 ] = y + yoffs[ 0 ] + yoffs[ 2 ];
+            xs[ 2 ] = x + xoffs[ 0 ] + xoffs[ 3 ];
+            ys[ 2 ] = y + yoffs[ 0 ] + yoffs[ 3 ];
+            return new Polygon( xs, ys, 3 );
         }
     }
 

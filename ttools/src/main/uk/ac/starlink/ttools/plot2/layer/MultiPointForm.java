@@ -178,7 +178,8 @@ public class MultiPointForm implements ShapeForm {
                                      MultiPointCoordSet extraCoordSet,
                                      boolean canScale ) {
         String descrip = PlotUtil.concatLines( new String[] {
-            "<p>Plots an ellipse (or rectangle or other similar figure)",
+            "<p>Plots an ellipse (or rectangle, triangle,",
+            "or other similar figure)",
             "defined by two principal radii and",
             "an optional rotation angle.",
             "</p>",
