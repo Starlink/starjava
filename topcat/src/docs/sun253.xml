@@ -8376,7 +8376,7 @@ see the <ref id="form-ellipse">Ellipse</ref> form).
 </figure>
 
 <p>The <label>Ellipse</label> form (&IMG.FORM_ELLIPSE;)
-draws an ellipse (or rectangle, or other similar figure) defined by 
+draws an ellipse (or rectangle, triangle, or other similar figure) defined by 
 major and minor radii and an optional rotation angle.
 </p>
 
@@ -20676,6 +20676,8 @@ introduced since the last version:
         Also changed default for Aux axis to use fewer ticks.</li>
     <li>Add some "dart" options (fixed-base open or filled triangles)
         for plotting <ref id="form-vector">vectors</ref>.</li>
+    <li>Add some "triangle" options (variable-base open or filled triangles)
+        for plotting <ref id="form-ellipse">ellipses</ref>.</li>
     <li>Add <label>Rescale Y</label> button to
         <ref id="HistogramPlotWindow">Histogram</ref> window.</li>
     <li>Graphics coordinates are now calculated in floating point
