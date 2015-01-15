@@ -48,24 +48,16 @@ public class SizeForm implements ShapeForm {
                 "<p>Size to draw each sized marker.",
                 "Units are pixels unless auto-scaling is in effect,",
                 "in which case units are arbitrary.",
+                "The plotted size is also affected by the",
+                "<code>" + StyleKeys.SCALE_PIX.getMeta().getShortName()
+                         + "</code>",
+                "value.",
                 "</p>",
             } )
         , false );
-
-    private static ConfigKey<Double> SCALE_KEY =
-        DoubleConfigKey.createSliderKey(
-            new ConfigMeta( "maxsize", "Max Marker Size" )
-           .setStringUsage( "<pixels>" )
-           .setShortDescription( "Maximum marker size in pixels" )
-           .setXmlDescription( new String[] {
-                "<p>Sets the maximum marker size in pixels.",
-                "This scales the sizes of all the plotted markers.",
-                "</p>",
-            } )
-        , 16, 2, 64, false );
     private static final AuxScale SIZE_SCALE = new AuxScale( "globalsize" );
-
     private static final SizeForm instance_ = new SizeForm();
+    private static final int DEFAULT_MAX_PIXELS = 24;
 
     /**
      * Private constructor prevents instantiation.
@@ -88,24 +80,31 @@ public class SizeForm implements ShapeForm {
     public String getFormDescription() {
         return PlotUtil.concatLines( new String[] {
             "<p>Plots a marker of fixed shape but variable size",
-            "at each postion.",
+            "at each position.",
             "The size is determined by an additional input data value.",
             "</p>",
-            "<p>The marker size is scaled according to the values",
-            "of the data.",
-            "The data range in the visible part of the plot is determined,",
-            "the maximum value is assigned to the maximum marker size,",
-            "and the size of each marker is determined as",
-            "(data value)/(max data value).",
-            "Currently data values of zero always correspond to",
+            "<p>The actual size of the markers depends on the setting of the",
+            "<code>" + StyleKeys.AUTOSCALE_PIX.getMeta().getShortName()
+                     + "</code>",
+            "parameter.",
+            "If autoscaling is off, then the basic size of each marker",
+            "is the input data value in units of pixels.",
+            "If autoscaling is on, then the data values are gathered",
+            "for all the currently visible points, and a scaling factor",
+            "is applied so that the largest ones will be a sensible size",
+            "(a few tens of pixels).",
+            "This basic size can be further adjusted with the",
+            "<code>" + StyleKeys.SCALE_PIX.getMeta().getShortName()
+                     + "</code> factor.",
+            "</p>",
+            "<p>Currently data values of zero always correspond to",
             "marker size of zero, negative data values are not represented,",
             "and the mapping is linear.",
             "Other options may be introduced in future.",
             "</p>",
-            "<p>Note the scaling to size is in terms of screen dimensions",
-            "(pixels).",
-            "For sizes that correspond to actual data values,",
-            "Error plotting may be more appropriate.",
+            "<p>Note: for marker sizes that correspond to data values",
+            "in data coordinates,",
+            "you may find Error plotting more appropriate.",
             "</p>",
         } );
     }
@@ -119,16 +118,18 @@ public class SizeForm implements ShapeForm {
     public ConfigKey[] getConfigKeys() {
         return new ConfigKey[] {
             StyleKeys.MARK_SHAPE,
-            SCALE_KEY,
+            StyleKeys.SCALE_PIX,
+            StyleKeys.AUTOSCALE_PIX
         };
     }
 
     public Outliner createOutliner( ConfigMap config ) {
         MarkShape shape = config.get( StyleKeys.MARK_SHAPE );
-        double scale = config.get( SCALE_KEY );
+        boolean isAutoscale = config.get( StyleKeys.AUTOSCALE_PIX );
+        double scale = config.get( StyleKeys.SCALE_PIX )
+                     * ( isAutoscale ? DEFAULT_MAX_PIXELS : 1 );
         final AuxScale autoscale;
         boolean isGlobal = true;
-        boolean isAutoscale = true;
         if ( isAutoscale ) {
             autoscale = isGlobal ? SIZE_SCALE : new AuxScale( "size1" );
         }
@@ -148,7 +149,7 @@ public class SizeForm implements ShapeForm {
     }
 
     /**
-     * Returns the column index in a tuple sequenc at which the size
+     * Returns the column index in a tuple sequence at which the size
      * coordinate will be found.
      *
      * @param  geom  position geometry
@@ -227,7 +228,7 @@ public class SizeForm implements ShapeForm {
                             int isize = (int) Math.round( size * scale );
                             Glyph glyph = getGlyph( isize );
                             paperType.placeGlyph( paper, gpos.x, gpos.y,
-                                                  getGlyph( isize ), color );
+                                                  glyph, color );
                         }
                     }
                 }

@@ -10096,6 +10096,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         or orientations badly wrong due to rounding errors.
         It also improves plotting of analytic functions, especially
         to vector contexts (PDF/EPS).</li>
+    <li>Replace <code>maxsizeN</code> parameter with <code>autoscaleN</code>
+        for <ref id="layer-size"><code>size</code></ref> plot layer type.
+        You can now optionally turn off autoscaling and specify marker size
+        in pixels instead.</li>
     </ul>
     </p></dd>
 

@@ -345,8 +345,9 @@ public class StyleKeys {
         , Boolean.FALSE );
 
     private static final String SCALE_NAME = "scale";
+    private static final String AUTOSCALE_NAME = "autoscale";
 
-    /** Config key for sized marker scaling. */
+    /** Config key for scaling of markers in data space. */
     public static final ConfigKey<Double> SCALE =
         DoubleConfigKey
        .createSliderKey(
@@ -355,17 +356,32 @@ public class StyleKeys {
            .setShortDescription( "Marker size multiplier" )
            .setXmlDescription( new String[] {
                 "<p>Affects the size of variable-sized markers",
-                "like vectors and ellipes.",
+                "like vectors and ellipses.",
                 "The default value is 1, smaller or larger values",
                 "multiply the visible sizes accordingly.",
                 "</p>",
             } )
-        , 1, 1e-7, 1e7, true );
+        , 1, 1e-6, 1e6, true );
 
-    /** Config key for sized marker autoscale flag. */
+    /** Config key for scaling of markers in pixel space. */
+    public static final ConfigKey<Double> SCALE_PIX =
+        DoubleConfigKey
+       .createSliderKey(
+            new ConfigMeta( SCALE_NAME, "Scale" )
+           .setStringUsage( "<factor>" )
+           .setShortDescription( "Marker size multiplier" )
+           .setXmlDescription( new String[] {
+                "<p>Scales the size of variable-sized markers.",
+                "The default is 1, smaller or larger values",
+                "multiply the visible sizes accordingly.",
+                "</p>",
+            } )
+        , 1, 1e-2, 1e2, true );
+
+    /** Config key for autoscale flag for markers in data space. */
     public static final ConfigKey<Boolean> AUTOSCALE =
         new BooleanConfigKey(
-            new ConfigMeta( "autoscale", "Auto Scale" )
+            new ConfigMeta( AUTOSCALE_NAME, "Auto Scale" )
            .setShortDescription( "Scale marker sizes automatically?" )
            .setXmlDescription( new String[] {
                 "<p>Determines whether the default size of variable-sized",
@@ -374,7 +390,7 @@ public class StyleKeys {
                 "If true, then the sizes of all the plotted markers",
                 "are examined, and some dynamically calculated factor is",
                 "applied to them all to make them a sensible size",
-                "(by default, the larges ones will be a few tens of pixels).",
+                "(by default, the largest ones will be a few tens of pixels).",
                 "If false, the sizes will be the actual input values",
                 "interpreted in data coordinates.",
                 "</p>",
@@ -382,6 +398,33 @@ public class StyleKeys {
                 "approximately the same screen size during zoom operations;",
                 "if it's off, they will keep the same size",
                 "in data coordinates.",
+                "</p>",
+                "<p>Marker size is also affected by the",
+                "<code>" + SCALE_NAME + "</code> parameter.",
+                "</p>",
+            } )
+        , Boolean.TRUE );
+
+    /** Config key for autoscale flag for markers in pixel space. */
+    public static final ConfigKey<Boolean> AUTOSCALE_PIX =
+        new BooleanConfigKey(
+            new ConfigMeta( AUTOSCALE_NAME, "Auto Scale" )
+           .setShortDescription( "Scale marker sizes automatically?" )
+           .setXmlDescription( new String[] {
+                "<p>Determines whether the basic size",
+                "of variable sized markers is automatically",
+                "scaled to have a sensible size.",
+                "If true, then the sizes of all the plotted markers",
+                "are examined, and some dynamically calculated factor is",
+                "applied to them all to make them a sensible size",
+                "(by default, the largest ones will be a few tens of pixels).",
+                "If false, the sizes will be the actual input values",
+                "in units of pixels.",
+                "</p>",
+                "<p>If auto-scaling is off, then markers will keep",
+                "exactly the same screen size during pan and zoom operations;",
+                "if it's on, then the visible sizes will change according",
+                "to what other points are currently plotted.",
                 "</p>",
                 "<p>Marker size is also affected by the",
                 "<code>" + SCALE_NAME + "</code> parameter.",

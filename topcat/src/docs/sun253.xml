@@ -8226,13 +8226,19 @@ whose size varies according to a supplied data coordinate.
 The marker size thus represents an additional dimension of the plot.
 </p>
 
-<p>The marker size is scaled according to the values of the data.
-The data range in the visible part of the plot is determined,
-the maximum value is assigned to the maximum marker size,
-and the size of each marker is determined as (data value)/(max data value).
-Currently data values of zero always correspond to marker size of zero,
+<p>The actual size of the markers depends on the setting of the
+<label>Auto Scale</label> option.
+If autoscaling is off, then the basic size of each
+marker is the input data value in units of pixels.
+If autoscaling is on, then the data values are gathered for
+all the currently visible points, and a scaling factor is applied
+so that the largest ones will be a sensible size (a few tens of pixels).
+This basic size can be further adjusted with the <label>Scale</label> slider.
+</p>
+
+<p>Currently data values of zero always correspond to marker size of zero,
 negative data values are not represented, and the mapping is linear.
-Other options may be introduced in future.
+Other options may be introduced in future. 
 </p>
 
 <p>Note the scaling to size is in terms of screen dimensions (pixels).
@@ -8249,13 +8255,28 @@ the <ref id="form-error">Error</ref> form may be more appropriate.
 <dd><p>The size coordinate data values.
     Fill this in with a column name or expression from the table
     just like for the positional coordinates.
+    The units are either pixels or arbitrary, according to
+    the <label>Auto Scale</label> setting.
     </p></dd>
 <dt>Shape</dt>
 <dd><p>Marker shape from a list of options.
     </p></dd>
-<dt>Max Marker Size</dt>
-<dd><p>Scales the maximum marker size in pixels.
-    Slide this along to scale the sizes of all the markers up or down.
+<dt>Scale</dt>
+<dd><p>Scales the size of variable-sized markers.
+    Adjusting the slider will make all markers larger or smaller.
+    </p></dd>
+<dt>Auto Scale</dt>
+<dd><p>Determines whether the basic size of variable sized markers is
+    automatically scaled to have a sensible size. If checked, then the sizes
+    of all the plotted markers are examined, and some dynamically calculated
+    factor is applied to them all to make them a sensible size (by default,
+    the largest ones will be a few tens of pixels).
+    If unchecked, the sizes will be the actual input values in units of pixels.
+    </p>
+    <p>If auto-scaling is off, then markers will keep exactly the same
+    screen size during pan and zoom operations;
+    if it's on, then the visible sizes will change according
+    to what other points are currently plotted. 
     </p></dd>
 </dl>
 </p>
@@ -20686,6 +20707,10 @@ introduced since the last version:
         or orientations badly wrong due to rounding errors.
         It also improves plotting of analytic functions, especially 
         to vector contexts (PDF/EPS).</li>
+    <li>Replace Max Marker Size option with Autoscaling option in
+        plot <ref id="form-size">Size</ref> form.
+        You can now optionally turn off autoscaling and specify marker size
+        in pixels instead.</li>
     </ul>
     </p></dd>
 
