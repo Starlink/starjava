@@ -24,6 +24,8 @@ import uk.ac.starlink.ttools.plot2.Anchor;
 import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.geom.PlaneSurfaceFactory;
 import uk.ac.starlink.ttools.plot2.layer.LevelMode;
+import uk.ac.starlink.ttools.plot2.layer.XYShape;
+import uk.ac.starlink.ttools.plot2.layer.XYShapes;
 import uk.ac.starlink.util.gui.RenderingComboBox;
 
 /**
@@ -73,6 +75,31 @@ public class StyleKeys {
                                                   .createSizeSelector() );
         }
     };
+
+    private static final XYShape[] XYSHAPES = XYShapes.getXYShapes();
+
+    /** Config key for XY shape. */
+    public static final ConfigKey<XYShape> XYSHAPE =
+        new OptionConfigKey<XYShape>(
+            new ConfigMeta( "shape", "Shape" )
+           .setShortDescription( "Marker shape" )
+           .setXmlDescription( new String[] {
+            } )
+        , XYShape.class, XYSHAPES ) {
+        public Specifier<XYShape> createSpecifier() {
+            JComboBox shapeSelector = new RenderingComboBox( XYSHAPES ) {
+                @Override
+                protected Icon getRendererIcon( Object shape ) {
+                    return XYShape.createIcon( (XYShape) shape, 20, 12, true );
+                }
+                protected String getRendererText( Object shape ) {
+                    return null;
+                }
+            };
+            return new ComboBoxSpecifier<XYShape>( shapeSelector );
+        }
+    }.setOptionUsage()
+     .addOptionsXml();
 
     /** Config key for style colour. */
     public static final ConfigKey<Color> COLOR =

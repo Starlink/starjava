@@ -57,7 +57,6 @@ public class SizeForm implements ShapeForm {
         , false );
     private static final AuxScale SIZE_SCALE = new AuxScale( "globalsize" );
     private static final SizeForm instance_ = new SizeForm();
-    private static final int DEFAULT_MAX_PIXELS = 24;
 
     /**
      * Private constructor prevents instantiation.
@@ -127,7 +126,7 @@ public class SizeForm implements ShapeForm {
         MarkShape shape = config.get( StyleKeys.MARK_SHAPE );
         boolean isAutoscale = config.get( StyleKeys.AUTOSCALE_PIX );
         double scale = config.get( StyleKeys.SCALE_PIX )
-                     * ( isAutoscale ? DEFAULT_MAX_PIXELS : 1 );
+                     * ( isAutoscale ? PlotUtil.DEFAULT_MAX_PIXELS : 1 );
         final AuxScale autoscale;
         boolean isGlobal = true;
         if ( isAutoscale ) {

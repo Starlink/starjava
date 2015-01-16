@@ -141,7 +141,7 @@ public abstract class ErrorRenderer {
                                                    new BarCapper( 3 ) ) ),
     } );
 
-    private static ErrorRenderer[] OPTIONS_GENERAL = new ErrorRenderer[] {
+    private static final ErrorRenderer[] OPTIONS_GENERAL = new ErrorRenderer[] {
         NONE,
         DEFAULT,
         EXAMPLE,
@@ -149,7 +149,7 @@ public abstract class ErrorRenderer {
         new CappedLine( "Arrows", true, new ArrowCapper( 3 ) ),
     };
 
-    private static ErrorRenderer[] OPTIONS_ELLIPSE = new ErrorRenderer[] {
+    private static final ErrorRenderer[] OPTIONS_ELLIPSE = new ErrorRenderer[] {
         new OpenEllipse( "Ellipse", false ),
         new OpenEllipse( "Crosshair Ellipse", true ),
         new FilledEllipse( "Filled Ellipse" ),
@@ -163,7 +163,18 @@ public abstract class ErrorRenderer {
         new CappedLine( "Arrows", true, new ArrowCapper( 3 ) ),
     };
 
-    private static ErrorRenderer[] OPTIONS_VECTOR = new ErrorRenderer[] {
+    private static final ErrorRenderer[] OPTIONS_SIZEXY = new ErrorRenderer[] {
+        new OpenRectangle( "Open Rectangle", false ),
+        new FilledRectangle( "Filled Rectangle" ),
+        new OpenRectangle( "Crosshair Rectangle", true ),
+        new OpenEllipse( "Open Ellipse", false ),
+        new FilledEllipse( "Filled Ellipse" ),
+        new OpenEllipse( "Crosshair Ellipse", true ),
+        DEFAULT,
+        EXAMPLE,
+    };
+
+    private static final ErrorRenderer[] OPTIONS_VECTOR = new ErrorRenderer[] {
         new CappedLine( "Small Arrow", true, new ArrowCapper( 3 ) ),
         new CappedLine( "Medium Arrow", true, new ArrowCapper( 4 ) ),
         new CappedLine( "Large Arrow", true, new ArrowCapper( 5 ) ),
@@ -437,6 +448,17 @@ public abstract class ErrorRenderer {
      */
     public static ErrorRenderer[] getOptionsEllipse() {
         return OPTIONS_ELLIPSE.clone();
+    }
+
+    /**
+     * Returns an array of ErrorRenderers which is suitable for
+     * applications that plot a shape with independently variable
+     * horizontal and vertical extents.
+     *
+     * @return  selection of renderers
+     */
+    public static ErrorRenderer[] getOptionsSizeXY() {
+        return OPTIONS_SIZEXY.clone();
     }
 
     /**

@@ -40,6 +40,7 @@ public class ResourceIcon {
         PLOT_LINK2 = readIcon( "plot-link2.gif" ),
         FORM_MARK = readIcon( "form-mark.gif" ),
         FORM_SIZE = readIcon( "form-size.gif" ),
+        FORM_SIZEXY = readIcon( "form-sizexy.gif" ),
         FORM_ELLIPSE = readIcon( "form-ellipse2.gif" ),
         FORM_ERROR = readIcon( "form-error.gif" ),
         FORM_ERROR1 = readIcon( "form-error1.gif" ),

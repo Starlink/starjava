@@ -18,6 +18,7 @@ import uk.ac.starlink.ttools.plot2.layer.ShapeMode;
 import uk.ac.starlink.ttools.plot2.layer.ShapePlotter;
 import uk.ac.starlink.ttools.plot2.layer.SkyVectorCoordSet;
 import uk.ac.starlink.ttools.plot2.layer.SkyEllipseCoordSet;
+import uk.ac.starlink.ttools.plot2.layer.SizeXyForm;
 import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
 
 /**
@@ -55,6 +56,7 @@ public class SkyPlotType implements PlotType {
         ShapeForm[] forms = new ShapeForm[] {
             MarkForm.SINGLE,
             SizeForm.getInstance(),
+            SizeXyForm.getInstance(),
             MultiPointForm.createVectorForm( "SkyVector",
                                              new SkyVectorCoordSet( true ),
                                              true ),

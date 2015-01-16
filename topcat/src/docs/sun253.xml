@@ -159,6 +159,7 @@
   <!ENTITY FIG.mode_aux '&figs;mode_aux.gif'>
   <!ENTITY FIG.form_mark '&figs;form_mark.gif'>
   <!ENTITY FIG.form_size '&figs;form_size.gif'>
+  <!ENTITY FIG.form_sizexy '&figs;form_sizexy.gif'>
   <!ENTITY FIG.form_vector '&figs;form_vector.gif'>
   <!ENTITY FIG.form_error '&figs;form_error.gif'>
   <!ENTITY FIG.form_ellipse '&figs;form_ellipse.gif'>
@@ -232,6 +233,7 @@
             <ref id="SpectrogramLayerControl">Spectrogram Layer Control</ref>'>
   <!ENTITY FORM.mark '&IMG.FORM_MARK; <ref id="form-mark">Mark</ref>'>
   <!ENTITY FORM.size '&IMG.FORM_SIZE; <ref id="form-size">Size</ref>'>
+  <!ENTITY FORM.sizexy '&IMG.FORM_SIZEXY; <ref id="form-sizexy">SizeXY</ref>'>
   <!ENTITY FORM.vector '&IMG.FORM_VECTOR; <ref id="form-vector">Vector</ref>'>
   <!ENTITY FORM.error '&IMG.FORM_ERROR; <ref id="form-error">Error Bars</ref>'>
   <!ENTITY FORM.ellipse '&IMG.FORM_ELLIPSE;
@@ -8283,6 +8285,78 @@ the <ref id="form-error">Error</ref> form may be more appropriate.
 
 </subsubsubsect>
 
+<subsubsubsect id="form-sizexy">
+<subhead><title>SizeXY Form</title></subhead>
+
+<figure>
+<caption><px>SizeXY form configuration panel</px></caption>
+<figureimage src="&FIG.form_sizexy;"/>
+</figure>
+
+<p>The <label>SizeXY</label> form (&IMG.FORM_SIZEXY;)
+plots a shaped marker whose width and height vary independently
+acoording to two supplied data coordinates.
+The marker shape can thus encode two additional dimensions of the plot.
+</p>
+
+<p>The actual size of the markers depends on the setting of the
+<label>Auto Scale</label> option.
+If autoscaling is off, the basic dimensions of each marker are given by
+the input data values in units of pixels. If autoscaling is on, the data
+values are gathered for all the currently visible points, and scaling
+factors are applied so that the largest ones will be a sensible size
+(a few tens of pixels). This autoscaling happens independently for the
+X and Y directions. The basic sizes can be further adjusted with the
+<label>Scale</label> slider.
+</p>
+
+<p>Currently data values of zero always correspond to marker extent of zero,
+negative data values are not represented, and the mapping is linear.
+Other options may be introduced in future.
+</p>
+
+<p>Note the scaling to size is in terms of screen dimensions (pixels).
+For sizes that correspond to actual data values,
+the <ref id="form-error">Error</ref> form may be more appropriate.
+</p>
+
+<p>The configuration options are:
+<dl>
+<dt>Shading Mode</dt>
+<dd><p>See <ref id="ShapeMode"/>.
+    </p></dd>
+<dt>X/Y Size</dt>
+<dd><p>For width and height respectively, the size coordinate data values.
+    Fill in with a column name or expression from the table
+    just like for the positional coordinates.
+    The units are either pixels or arbitrary, according to
+    the <label>Auto Scale</label> setting.
+    </p></dd>
+<dt>Shape</dt>
+<dd><p>Marker shape from a list of options.
+    </p></dd>
+<dt>Scale</dt>
+<dd><p>Scales the size of variable-sized markers.
+    Adjusting the slider will make all markers larger or smaller.
+    </p></dd>
+<dt>Auto Scale</dt>
+<dd><p>Determines whether the basic size of variable sized markers is
+    automatically scaled to have a sensible size. If checked, then the sizes
+    of all the plotted markers are examined, and some dynamically calculated
+    factor is applied to them all to make them a sensible size (by default,
+    the largest ones will be a few tens of pixels).
+    If unchecked, the sizes will be the actual input values in units of pixels.
+    </p>
+    <p>If auto-scaling is off, then markers will keep exactly the same
+    screen size during pan and zoom operations;
+    if it's on, then the visible sizes will change according
+    to what other points are currently plotted. 
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
 <subsubsubsect id="form-vector">
 <subhead><title>Vector Form</title></subhead>
 
@@ -9197,6 +9271,7 @@ The following subsections describe
     <ul>
     <li>&FORM.mark;</li>
     <li>&FORM.size;</li>
+    <li>&FORM.sizexy;</li>
     <li>&FORM.vector;</li>
     <li>&FORM.error;</li>
     <li>&FORM.ellipse;</li>
@@ -9483,6 +9558,7 @@ The following subsections describe
     <ul>
     <li>&FORM.mark;</li>
     <li>&FORM.size;</li>
+    <li>&FORM.sizexy;</li>
     <li>&FORM.vector;</li>
     <li>&FORM.ellipse;</li>
     <li>&FORM.label;</li>
@@ -9752,6 +9828,7 @@ The following subsections describe
     <ul>
     <li>&FORM.mark;</li>
     <li>&FORM.size;</li>
+    <li>&FORM.sizexy;</li>
     <li>&FORM.vector;</li>
     <li>&FORM.error;</li>
     <li>&FORM.ellipse;</li>
@@ -10064,6 +10141,7 @@ The following subsections describe
     <ul>
     <li>&FORM.mark;</li>
     <li>&FORM.size;</li>
+    <li>&FORM.sizexy;</li>
     <li>&FORM.label;</li>
     <li>&FORM.contour;</li>
     </ul></li>
@@ -20711,6 +20789,9 @@ introduced since the last version:
         plot <ref id="form-size">Size</ref> form.
         You can now optionally turn off autoscaling and specify marker size
         in pixels instead.</li>
+    <li>Add new plot <ref id="form-sizexy">SizeXY</ref> form,
+        which allows plotting (optionally autoscaled) markers with horizontal
+        and vertical extents independently determined by input data.</li>
     </ul>
     </p></dd>
 
