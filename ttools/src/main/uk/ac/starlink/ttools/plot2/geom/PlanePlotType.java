@@ -26,6 +26,7 @@ import uk.ac.starlink.ttools.plot2.layer.SizeForm;
 import uk.ac.starlink.ttools.plot2.layer.ShapeForm;
 import uk.ac.starlink.ttools.plot2.layer.ShapeMode;
 import uk.ac.starlink.ttools.plot2.layer.ShapePlotter;
+import uk.ac.starlink.ttools.plot2.layer.SizeXyForm;
 import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
 
 /**
@@ -66,6 +67,7 @@ public class PlanePlotType implements PlotType {
         ShapeForm[] forms = new ShapeForm[] {
             MarkForm.SINGLE,
             SizeForm.getInstance(),
+            SizeXyForm.getInstance(),
             MultiPointForm
            .createVectorForm( "XYVector",
                               new CartesianVectorCoordSet( axisNames_ ), true ),
