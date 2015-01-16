@@ -35,6 +35,7 @@ import uk.ac.starlink.ttools.plot2.paper.PaperType3D;
 public class PairLinkForm implements ShapeForm {
 
     private static final PairLinkForm instance_ = new PairLinkForm();
+    private static final LineXYShape LINE_SHAPE = LineXYShape.getInstance();
 
     /**
      * Private constructor prevents instantiation.
@@ -111,7 +112,7 @@ public class PairLinkForm implements ShapeForm {
      * @return  glyph
      */
     private static Glyph getLineGlyph( int gx, int gy ) {
-        return LineGlyph.getLineGlyph( gx, gy );
+        return LINE_SHAPE.getGlyph( (short) gx, (short) gy );
     }
 
     /**
