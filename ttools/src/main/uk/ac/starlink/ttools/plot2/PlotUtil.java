@@ -215,6 +215,16 @@ public class PlotUtil {
     }
 
     /**
+     * Indicates whether a value is a definite number.
+     *
+     * @param  value  value to test
+     * @return  true iff <code>value</code> is non-NaN and non-infinite
+     */
+    public static boolean isFinite( double value ) {
+        return ! Double.isNaN( value ) && ! Double.isInfinite( value );
+    }
+
+    /**
      * Maps a floating point graphics position to an integer graphics
      * position, that is a 2-dimensional grid cell index.
      * It does this by calling {@link #ifloor} on both coordinates.

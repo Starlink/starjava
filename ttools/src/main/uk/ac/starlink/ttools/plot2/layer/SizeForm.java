@@ -160,16 +160,6 @@ public class SizeForm implements ShapeForm {
     }
 
     /**
-     * Indicates whether a value is a usable number.
-     *
-     * @param  value  value to test
-     * @return  true iff <code>value</code> is non-NaN and non-infinite
-     */
-    private static boolean isFinite( double value ) {
-        return ! Double.isNaN( value ) && ! Double.isInfinite( value );
-    }
-
-    /**
      * Outliner implementation for use with SizeForm.
      */
     public static class SizeOutliner extends PixOutliner {
@@ -228,7 +218,7 @@ public class SizeForm implements ShapeForm {
                          surface.dataToGraphics( dpos, true, gpos ) ) {
                         double size =
                             SIZE_COORD.readDoubleCoord( tseq, icSize );
-                        if ( isFinite( size ) ) {
+                        if ( PlotUtil.isFinite( size ) ) {
                             int isize = (int) Math.round( size * scale );
                             Glyph glyph = getGlyph( isize );
                             paperType.placeGlyph( paper, gpos.x, gpos.y,
@@ -255,7 +245,7 @@ public class SizeForm implements ShapeForm {
                          surface.dataToGraphicZ( dpos, true, gpos, zloc ) ) {
                         double size =
                             SIZE_COORD.readDoubleCoord( tseq, icSize );
-                        if ( isFinite( size ) ) {
+                        if ( PlotUtil.isFinite( size ) ) {
                             int isize = (int) Math.round( size * scale );
                             double dz = zloc[ 0 ];
                             Glyph glyph = getGlyph( isize );
