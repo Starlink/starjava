@@ -1,90 +1,38 @@
 package uk.ac.starlink.ttools.plot2.layer;
 
-import java.awt.Graphics;
-import java.awt.Point;
 import java.awt.Rectangle;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import uk.ac.starlink.ttools.plot2.Equality;
+import java.awt.Graphics;
 import uk.ac.starlink.ttools.plot2.Glyph;
 import uk.ac.starlink.ttools.plot2.Pixer;
 
 /**
- * Glyph that represents a line from the origin to a given X,Y position.
+ * XYShape for drawing lines that start at the origin and terminate
+ * at the given X,Y displacement.
+ *
+ * <p>Singleton class.
  *
  * @author   Mark Taylor
- * @since    25 Nov 2013
+ * @since    15 Jan 2015
  */
-public abstract class LineGlyph implements Glyph {
+public class LineXYShape extends XYShape {
 
-    private final int x_;
-    private final int y_;
-
-    /** Glyph that paints a single pixel at the origin. */
-    public static Glyph POINT = new PointGlyph( 0, 0 );
-
-    private static final int MAX_CACHE_DIST_SQUARE = 8 * 8;
-    private static final Map<CoordPair,Glyph> cache_ =
-        new ConcurrentHashMap<CoordPair,Glyph>();
+    private static final LineXYShape instance_ = new LineXYShape();
 
     /**
-     * Constructor.  In most cases, external users should
-     * use one of the factory methods rather than extend this class.
+     * Private constructor prevents instantiation.
      */
-    protected LineGlyph( int x, int y ) {
-        x_ = x;
-        y_ = y;
+    private LineXYShape() {
+        super( "Line", 16 );
     }
 
-    public void paintGlyph( Graphics g ) {
-        g.drawLine( 0, 0, x_, y_ );
-    }
-
-    /**
-     * Returns a glyph to draw a line from the origin to a given point x, y.
-     *
-     * @param   x  X destination coordinate
-     * @param   y  Y destination coordinate
-     * @return  line glyph
-     */
-    public static Glyph getLineGlyph( final int x, final int y ) {
-
-        /* Zero extent, return a single pixel glyph. */
-        if ( x == 0 && y == 0 ) {
-            return POINT;
-        }
-
-        /* If the distance is small, use a cache of precomputed glyphs. */
-        else if ( x * x + y * y <= MAX_CACHE_DIST_SQUARE ) {
-            CoordPair xy = new CoordPair( (short) x, (short) y );
-            Glyph glyph = cache_.get( xy );
-            if ( glyph == null ) {
-                glyph = createLineGlyph( x, y );
-                cache_.put( xy, glyph );
-            }
-            return glyph;
-        }
-
-        /* Otherwise just create one to order. */
-        else {
-            return createLineGlyph( x, y );
-        }
-    }
-
-    /**
-     * Creates a new glyph representing a line from the origin to X,Y.
-     *
-     * @param  x  destination X coordinate
-     * @param  y  destination Y coordinate
-     */
-    private static Glyph createLineGlyph( final int x, final int y ) {
+    protected Glyph createGlyph( short x, short y ) {
 
         /* Point at origin.  Common and cheap. */
         if ( x == 0 && y == 0 ) {
             return POINT;
         }
 
-        /* Horiontal line. */
+        /* Horizontal line. */
         else if ( y == 0 ) {
             final int xlo;
             final int xhi;
@@ -191,51 +139,36 @@ public abstract class LineGlyph implements Glyph {
     }
 
     /**
-     * Glyph that paints a single pixel.
+     * Returns the sole instance of this class.
+     *
+     * @return  singleton instance
      */
-    private static class PointGlyph implements Glyph {
-        private final int px_;
-        private final int py_;
+    public static LineXYShape getInstance() {
+        return instance_;
+    }
+
+    /**
+     * Abstract superclass for glyph to paint lines.
+     */
+    private static abstract class LineGlyph implements Glyph {
+
+        private final short x_;
+        private final short y_;
 
         /**
          * Constructor.
          *
-         * @param  px  pixel X coordinate
-         * @param  py  pixel Y coordinate
+         * @param  x  horizontal displacement
+         * @param  y  vertical displacement
          */
-        PointGlyph( int px, int py ) {
-            px_ = px;
-            py_ = py;
+        protected LineGlyph( short x, short y ) {
+            x_ = x;
+            y_ = y;
         }
+
         public void paintGlyph( Graphics g ) {
-            g.fillRect( px_, py_, 1, 1 );
+            g.drawLine( 0, 0, x_, y_ );
         }
-        public Pixer createPixer( Rectangle clip ) {
-            if ( clip.x <= px_ && clip.x + clip.width >= px_ + 1 &&
-                 clip.y <= px_ && clip.y + clip.height >= py_ + 1 ) {
-                return new Pixer() {
-                    boolean done_;
-                    public boolean next() {
-                        if ( done_ ) {
-                            return false;
-                        }
-                        else {
-                            done_ = true;
-                            return true;
-                        }
-                    }
-                    public int getX() {
-                        return px_;
-                    }
-                    public int getY() {
-                        return py_;
-                    }
-                };
-            }
-            else {
-                return null;
-            }
-        };
     }
 
     /**
@@ -357,32 +290,6 @@ public abstract class LineGlyph implements Glyph {
         }
         public int getY() {
             return y_;
-        }
-    }
-
-    /**
-     * Aggregates two small integer values.
-     * Used to key the cache hash.
-     */
-    @Equality
-    private static final class CoordPair {
-        private final int key_;
-
-        /**
-         * Constructor.
-         *
-         * @param  x  X coordinate
-         * @param  y  Y coordinate
-         */
-        CoordPair( short x, short y ) {
-            key_ = ( x & 0xffff ) | ( ( y & 0xffff ) << 16 );
-        }
-        public int hashCode() {
-            return key_;
-        }
-        public boolean equals( Object other ) {
-            return other instanceof CoordPair
-                && ((CoordPair) other).key_ == this.key_;
         }
     }
 }
