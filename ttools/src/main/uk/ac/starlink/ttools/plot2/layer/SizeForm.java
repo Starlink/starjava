@@ -204,7 +204,11 @@ public class SizeForm implements ShapeForm {
         public Map<AuxScale,AuxReader> getAuxRangers( DataGeom geom ) {
             Map<AuxScale,AuxReader> map = new HashMap<AuxScale,AuxReader>();
             if ( autoscale_ != null ) {
-                map.put( autoscale_, new SizeAuxReader( geom ) );
+                AuxReader sizeReader =
+                    new FloatingCoordAuxReader( SIZE_COORD,
+                                                getSizeCoordIndex( geom ),
+                                                geom, true );
+                map.put( autoscale_, sizeReader );
             }
             return map;
         }
@@ -326,44 +330,6 @@ public class SizeForm implements ShapeForm {
             }
             else {
                 return 1;
-            }
-        }
-    }
-
-    /**
-     * Reads coordinate data to determine the range of size coordinate
-     * values encountered.
-     * This is used during plot preparation if autoscaling is in effect
-     * so that the range of sizes in the data can be determined, and
-     * a suitable scaling factor can be applied. 
-     */
-    private static class SizeAuxReader implements AuxReader {
-
-        final DataGeom geom_;
-        final int icSize_;
-        final double[] dpos_;
-        final Point2D.Double gpos_;
-
-        /**
-         * Constructor.
-         *
-         * @param  geom  position coordinate geometry
-         */
-        SizeAuxReader( DataGeom geom ) {
-            geom_ = geom;
-            icSize_ = getSizeCoordIndex( geom );
-            dpos_ = new double[ geom.getDataDimCount() ];
-            gpos_ = new Point2D.Double();
-        }
-
-        public void updateAuxRange( Surface surface, TupleSequence tseq,
-                                    Range range ) {
-            if ( geom_.readDataPos( tseq, 0, dpos_ ) &&
-                 surface.dataToGraphics( dpos_, true, gpos_ ) ) {
-                double size = SIZE_COORD.readDoubleCoord( tseq, icSize_ );
-                if ( isFinite( size ) ) {
-                    range.submit( size );
-                }
             }
         }
     }

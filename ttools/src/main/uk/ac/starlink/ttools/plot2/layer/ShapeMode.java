@@ -5,7 +5,6 @@ import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Rectangle;
 import java.awt.Transparency;
-import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.IndexColorModel;
 import java.awt.image.WritableRaster;
@@ -1166,20 +1165,10 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                 @Override
                 public Map<AuxScale,AuxReader> getAuxRangers() {
                     Map<AuxScale,AuxReader> map = super.getAuxRangers();
-                    final double[] dpos = new double[ geom.getDataDimCount() ];
-                    final Point2D.Double gpos = new Point2D.Double();
-                    map.put( SCALE, new AuxReader() {
-                        public void updateAuxRange( Surface surface,
-                                                    TupleSequence tseq,
-                                                    Range range ) {
-                            if ( geom.readDataPos( tseq, 0, dpos ) &&
-                                 surface.dataToGraphics( dpos, true, gpos ) ) {
-                                range.submit( SHADE_COORD
-                                             .readDoubleCoord( tseq,
-                                                               iShadeCoord ) );
-                            }
-                        }
-                    } );
+                    AuxReader shadeReader =
+                        new FloatingCoordAuxReader( SHADE_COORD, iShadeCoord,
+                                                    geom, true );
+                    map.put( SCALE, shadeReader );
                     map.putAll( outliner.getAuxRangers( geom ) );
                     return map;
                 }
