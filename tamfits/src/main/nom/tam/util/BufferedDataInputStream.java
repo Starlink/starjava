@@ -302,7 +302,7 @@ public String readUTF() throws IOException{
   * Originally we used the method itself, but Alan Brighton
   * suggested using a BufferedReader to eliminate
   * the deprecation warning...
-  * Note that the implementation
+  * Note that the implementation
   * of this routine is very slow and this class should probably
   * not be used if this method is called heavily.
   * 
