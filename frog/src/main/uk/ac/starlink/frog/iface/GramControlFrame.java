@@ -38,7 +38,7 @@ import uk.ac.starlink.frog.plot.DivaPlot;
 import uk.ac.starlink.frog.util.FrogException;
 import uk.ac.starlink.frog.util.FrogDebug;
 import uk.ac.starlink.frog.util.Utilities;
-import uk.ac.starlink.frog.util.JPEGUtility;
+import uk.ac.starlink.frog.util.GraphicFileUtilities;
 import uk.ac.starlink.frog.gram.BestPeriod;
 
 import uk.ac.starlink.diva.*;
@@ -237,8 +237,8 @@ public class GramControlFrame extends JInternalFrame
            public void actionPerformed(ActionEvent e) { 
            
               // Create popup to generate JPEG
-              JPEGUtility jpegPopup = new JPEGUtility();
-              jpegPopup.showJPEGChooser( plot.getPlot() );
+              GraphicFileUtilities jpegPopup = new GraphicFileUtilities();
+              jpegPopup.showGraphicChooser( plot.getPlot() );
            }
         }); 
         fileMenu.add(jpegItem); 
