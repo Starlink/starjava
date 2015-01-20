@@ -773,6 +773,7 @@
                 jvmversion="1.5+"
                 vmoptions=""
                 version="${version}"
+                workingdirectory="$USER_HOME"
                 jar="${dist.lib.pkg}/topcat-full.jar">
 
       <!-- demo data lives in ${src.etc}/demo (see target build_demo) -->

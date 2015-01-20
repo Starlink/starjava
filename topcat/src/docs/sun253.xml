@@ -20996,6 +20996,8 @@ introduced since the last version:
     <li>OSX application bundle adjusted so that the DMG file
         <em>should</em> work on any MacOS with
         either legacy Apple Java 6 or Oracle/OpenJDK Java 7+ installed.</li>
+    <li>OSX application bundle adjusted (I think) so that application
+        working directory is user's home directory.</li>
     </ul>
     </p></dd>
 
