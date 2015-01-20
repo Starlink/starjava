@@ -72,7 +72,7 @@ public class GuiCoordContent {
      * to their string specifications, given a set of GuiCoordContents.
      *
      * @param  contents  objects specifying selected coordinate values
-     * @return  userInfo name->coord specifier map conveying
+     * @return  userInfo name-&gt;coord specifier map conveying
      *          the same information
      * @see   LayerCommand#getInputValues
      */

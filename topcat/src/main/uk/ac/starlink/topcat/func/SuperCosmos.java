@@ -109,7 +109,6 @@ public class SuperCosmos {
      * UK Schmidt Telescope Bj-band survey.
      * The displayed image is square, and <code>pixels</code> pixels in the
      * X and Y dimensions.  Pixels are approximately 0.67 arcsec square.
-     * </p>
      *
      * <p>Sky coverage is -90&lt;Dec&lt;+2.5 (degrees).
      *
@@ -127,7 +126,6 @@ public class SuperCosmos {
      * UK Schmidt Telescope R-band survey.
      * The displayed image is square, and <code>pixels</code> pixels in the
      * X and Y dimensions.  Pixels are approximately 0.67 arcsec square.
-     * </p>
      *
      * <p>Sky coverage is -90&lt;Dec&lt;+2.5 (degrees).
      *
@@ -145,7 +143,6 @@ public class SuperCosmos {
      * UK Schmidt Telescope I-band survey.
      * The displayed image is square, and <code>pixels</code> pixels in the
      * X and Y dimensions.  Pixels are approximately 0.67 arcsec square.
-     * </p>
      *
      * <p>Sky coverage is -90&lt;Dec&lt;+2.5 (degrees).
      *
@@ -163,7 +160,6 @@ public class SuperCosmos {
      * ESO R-band survey.
      * The displayed image is square, and <code>pixels</code> pixels in the
      * X and Y dimensions.  Pixels are approximately 0.67 arcsec square.
-     * </p>
      *
      * <p>Sky coverage is -90&lt;Dec&lt;+2.5 (degrees).
      *
@@ -181,7 +177,6 @@ public class SuperCosmos {
      * Palomar E-band survey.
      * The displayed image is square, and <code>pixels</code> pixels in the
      * X and Y dimensions.  Pixels are approximately 0.67 arcsec square.
-     * </p>
      *
      * <p>Sky coverage is -20.5&lt;Dec&lt;+2.5 (degrees).
      *

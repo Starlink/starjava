@@ -294,7 +294,7 @@ public class SqlSyntax {
     /**
      * Returns a quoted version of a word.
      *
-     * <p>Note that quoting words is <bf>not</bf> harmless - unlike
+     * <p>Note that quoting words is <b>not</b> harmless - unlike
      * for instance shell syntax, quotes are not just stripped off
      * where present before processing, but instead in SQL92 and hence
      * ADQL they modify the interpretation of what's quoted.

@@ -40,7 +40,7 @@ public abstract class PositionReporter implements MouseMotionListener {
      * Constructs a new position reporter for a given plot surface
      * using supplied value converter objects for the X and Y axes.
      * The <code>unconvert</code> methods of said converters should 
-     * provide the formatting (number -> formatted string) behaviour
+     * provide the formatting (number -&gt; formatted string) behaviour
      * for each axis.
      *
      * @param   surface  plotting surface

@@ -25,7 +25,7 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
  *
  * @author   Mark Taylor
  * @since    2 Feb 2009
- * @see      <http://www.ivoa.net/Documents/latest/SSA.html>
+ * @see      <a href="http://www.ivoa.net/Documents/latest/SSA.html">SSA</a>
  */
 public class SsapTableLoadDialog extends SkyDalTableLoadDialog {
 

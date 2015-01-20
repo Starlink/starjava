@@ -339,8 +339,6 @@ public class StarTableOutput {
      * @param  out       raw output stream
      * @param  handler   output handler
      * @return  sink whose data will be written to a new table
-     * @throws  UnrepeatableSequenceException  if the output handler requires
-     *          more than one pass of the data
      */
     public TableSink createOutputSink( final OutputStream out,
                                        final StarTableWriter handler ) {
@@ -372,8 +370,6 @@ public class StarTableOutput {
      *         selected based on the value of <tt>location</tt>.
      *         Ignored for <tt>jdbc:</tt>-protocol locations
      * @return  sink whose data will be written to a new table
-     * @throws  UnrepeatableSequenceException  if the output handler requires
-     *          more than one pass of the data
      */
     public TableSink createOutputSink( final String location,
                                        final String format ) {

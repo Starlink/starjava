@@ -45,7 +45,7 @@ public interface TapLanguage {
      * Map keys are the language feature "type" strings, and the
      * values are arrays of features with that type.
      *
-     * @return   type->feature list map
+     * @return   type-&gt;feature list map
      */
     Map<String,TapLanguageFeature[]> getFeaturesMap( );
 }

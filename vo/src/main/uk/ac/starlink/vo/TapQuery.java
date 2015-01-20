@@ -92,7 +92,7 @@ public class TapQuery {
      * @param  serviceUrl  base service URL for TAP service
      *                     (excluding "/[a]sync")
      * @param  adql   text of ADQL query
-     * @param  extraParams  key->value map for optional parameters;
+     * @param  extraParams  key-&gt;value map for optional parameters;
      *                      if any of these match the names of standard
      *                      parameters (upper case) the standard values will
      *                      be overwritten, so use with care (may be null)
@@ -110,11 +110,11 @@ public class TapQuery {
      * @param  serviceUrl  base service URL for TAP service
      *                     (excluding "/[a]sync")
      * @param  adql   text of ADQL query
-     * @param  extraParams  key->value map for optional parameters;
+     * @param  extraParams  key-&gt;value map for optional parameters;
      *                      if any of these match the names of standard
      *                      parameters (upper case) the standard values will
      *                      be overwritten, so use with care (may be null)
-     * @param  uploadMap  name->table map of tables to be uploaded to
+     * @param  uploadMap  name-&gt;table map of tables to be uploaded to
      *                    the service for the query (may be null)
      * @param  uploadLimit  maximum number of bytes that may be uploaded;
      *                      if negative, no limit is applied,
@@ -183,7 +183,7 @@ public class TapQuery {
     /**
      * Returns the map of string parameters to be passed to the TAP service.
      *
-     * @return   name->value map for TAP string parameters
+     * @return   name-&gt;value map for TAP string parameters
      */
     public Map<String,String> getStringParams() {
         return stringMap_;
@@ -192,7 +192,7 @@ public class TapQuery {
     /**
      * Returns the map of streamed parameters to be passed to the TAP service.
      *
-     * @return  name->value map for TAP stream parameters
+     * @return  name-&gt;value map for TAP stream parameters
      */
     public Map<String,HttpStreamParam> getStreamParams() {
         return streamMap_;

@@ -11,8 +11,8 @@ import org.xml.sax.helpers.DefaultHandler;
 /**
  * SAX content handler which can make sense of a VizieR query for catalogues.
  * The stream expected is of the kind you get if you make a query like
- * <code>.../viz-bin/?votable&-meta</code> to vizier (as at Nov 2009).
- * May 2010: <code>.../viz-bin?votable&-meta=t</code> gives information
+ * <code>.../viz-bin/?votable&amp;-meta</code> to vizier (as at Nov 2009).
+ * May 2010: <code>.../viz-bin?votable&amp;-meta=t</code> gives information
  * about sub-tables too.
  *
  * @author   Mark Taylor

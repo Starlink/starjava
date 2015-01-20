@@ -157,7 +157,7 @@ public class BaSTIPanel {
     static TableModel ResultsData = new ResultsTableModel();
         
     /**
-     * Generates the Query&Results Panel
+     * Generates the Query and Results Panel
      */
     protected static Component create() {
 

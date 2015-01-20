@@ -133,7 +133,7 @@ public class CutChooser extends JPanel {
     /**
      * Returns the lower value specified by this component.
      *
-     * @return  low cut value; 0<=val<=1 and val<=getHighValue()
+     * @return  low cut value; 0&lt;=val&lt;=1 and val&lt;=getHighValue()
      */
     public double getLowValue() {
         return Math.exp( loSlider_.getValue() / (double) SCALE );
@@ -142,7 +142,7 @@ public class CutChooser extends JPanel {
     /** 
      * Returns the upper value specified by this component.
      *
-     * @return  high cut value; 0<=val<=1 and val>=getLowValue()
+     * @return  high cut value; 0&lt;=val&lt;=1 and val&gt;=getLowValue()
      */
     public double getHighValue() {
         return 1.0 - Math.exp( - hiSlider_.getValue() / (double) SCALE );

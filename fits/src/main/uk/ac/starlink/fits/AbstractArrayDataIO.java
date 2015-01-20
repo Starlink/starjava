@@ -32,7 +32,7 @@ import nom.tam.util.ArrayDataOutput;
 
 /**
  * Abstract implementation of an implementation of a
- * <code>nom.tam.util<code>-compatible FITS I/O handler.
+ * <code>nom.tam.util</code>-compatible FITS I/O handler.
  *
  * <p>The ArrayDataInput interface contains a lot of methods declared like
  * <pre>

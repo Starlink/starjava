@@ -25,7 +25,7 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
  *
  * @author   Mark Taylor (Starlink)
  * @since    5 Dec 2005
- * @see      <http://www.ivoa.net/Documents/latest/SIA.html>
+ * @see      <a href="http://www.ivoa.net/Documents/latest/SIA.html">SIA</a>
  */
 public class SiapTableLoadDialog extends SkyDalTableLoadDialog {
 

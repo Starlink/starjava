@@ -15,7 +15,7 @@ public interface SpectrumActivity extends Activity {
      * Sends a message to load a spectrum.
      *
      * @param   location   URL of spectrum
-     * @param   metadata   ucd/utype->value map giving spectrum metadata
+     * @param   metadata   ucd/utype-&gt;value map giving spectrum metadata
      */
     void displaySpectrum( String location, Map metadata ) throws IOException;
 }

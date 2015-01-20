@@ -144,7 +144,7 @@ public class FitsConstants {
     /**
      * Indicates whether the supplied buffer is the start of a FITS file.
      * Its contents is checked against the FITS 'magic number', which is
-     * the ASCII string "<tt>SIMPLE&nbsp&nbsp;=</tt>".
+     * the ASCII string "<tt>SIMPLE&nbsp;&nbsp;=</tt>".
      *
      * @param   buffer  a byte buffer containing
      *          the start of a file to test
