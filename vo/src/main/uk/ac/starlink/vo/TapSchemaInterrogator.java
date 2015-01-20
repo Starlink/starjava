@@ -68,7 +68,7 @@ public class TapSchemaInterrogator {
     /**
      * Queries the TAP_SCHEMA.key_columns table to get a list of all foreign
      * key links.  The returned map associates key_id values with lists of
-     * from->to column links.
+     * from-&gt;to column links.
      *
      * @return   map from key_id to link list
      */

@@ -27,7 +27,7 @@ public abstract class StreamTableSink implements TableSink {
     /**
      * Does something or other with the table whose data is being pushed
      * into this sink.  The only data access which will work is a single
-     * call to {@link uk.ac.starlink.table#getRowSequence()}.  Subsequent
+     * call to {@link StarTable#getRowSequence()}.  Subsequent
      * <code>getRowSequence</code> calls will result in a 
      * {@link uk.ac.starlink.table.UnrepeatableSequenceException}.
      * This method is called in a separate thread than the one in which

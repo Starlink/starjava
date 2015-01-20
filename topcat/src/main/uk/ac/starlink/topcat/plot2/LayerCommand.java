@@ -69,7 +69,7 @@ public class LayerCommand {
      * or on a command line to specify the column value - generally a
      * column name or JEL expression.
      *
-     * @return   user coordinate name->specification map
+     * @return   user coordinate name-&gt;specification map
      */
     public Map<String,String> getInputValues() {
         return inputValues_;

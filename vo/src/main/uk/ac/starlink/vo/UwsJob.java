@@ -382,9 +382,9 @@ public class UwsJob {
      * parameters, and posts them in an appropriate way.
      *
      * @param   url   destination URL
-     * @param   stringParams  name->value map for POST parameters;
+     * @param   stringParams  name-&gt;value map for POST parameters;
      *          values will be URL encoded as required
-     * @param   streamParams  name->parameter map for POST parameters
+     * @param   streamParams  name-&gt;parameter map for POST parameters
      * @return   URL connection corresponding to the completed POST
      */
     public static HttpURLConnection
@@ -397,11 +397,11 @@ public class UwsJob {
     }
 
     /**
-     * Performs an HTTP form POST with a name->value map of parameters.
+     * Performs an HTTP form POST with a name-&gt;value map of parameters.
      * They are posted with MIME type "application/x-www-form-urlencoded".
      *
      * @param   url  destination URL
-     * @param   paramMap   name->value map of parameters; values will be
+     * @param   paramMap   name-&gt;value map of parameters; values will be
      *          encoded as required
      * @return   URL connection corresponding to the completed POST
      */
@@ -434,12 +434,13 @@ public class UwsJob {
     }
 
     /**
-     * Performs an HTTP form POST with a name->value map and a name->stream
-     * map of parameters.  The form is written in multipart/form-data format.
+     * Performs an HTTP form POST with a name-&gt;value map and a
+     * name-&gt;stream map of parameters.
+     * The form is written in multipart/form-data format.
      * See <a href="http://www.ietf.org/rfc/rfc2046.txt">RFC 2046</a> Sec 5.1.
      *
-     * @param   stringMap   name->value map of parameters
-     * @param   streamMap   name->stream map of parameters
+     * @param   stringMap   name-&gt;value map of parameters
+     * @param   streamMap   name-&gt;stream map of parameters
      * @param  boundary  multipart boundary; if null a default value is used
      * @return   URL connection corresponding to the completed POST
      */
@@ -540,7 +541,7 @@ public class UwsJob {
     }
 
     /**
-     * Encodes a name->value mapping as an array of bytes suitable for
+     * Encodes a name-&gt;value mapping as an array of bytes suitable for
      * "application/x-www-form-urlencoded" transmission.
      *
      * @param   paramMap  name-&gt;value mapping

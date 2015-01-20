@@ -26,7 +26,7 @@ public abstract class Namespacing {
      * Property name is {@value}.
      * Possible values are
      * "<code>none</code>", "<code>lax</code>", "<code>strict</code>"
-     * or the classname of a <code>Namespacing<code> implementation
+     * or the classname of a <code>Namespacing</code> implementation
      * which has a no-arg constructor.
      */
     public static final String POLICY_PROP = "votable.namespacing";

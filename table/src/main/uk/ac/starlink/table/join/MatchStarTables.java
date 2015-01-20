@@ -714,7 +714,7 @@ public class MatchStarTables {
      * that is ones which contain more than one link.
      * 
      * @param  links  link set representing a set of matches
-     * @return  RowLink -> LinkGroup mapping describing connected groups
+     * @return  RowLink -&gt; LinkGroup mapping describing connected groups
      *          in <code>links</code> 
      */
     public static Map findGroups( LinkSet links ) {

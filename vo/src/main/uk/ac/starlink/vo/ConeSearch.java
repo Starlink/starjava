@@ -41,7 +41,7 @@ public class ConeSearch {
      * Constructs a new ConeSearch from its service URL.
      *
      * @param  serviceUrl   base URL for cone search
-     * @throws  IllegalArgumentType if the service URL is unsuitable
+     * @throws  IllegalArgumentException if the service URL is unsuitable
      */
     public ConeSearch( String serviceUrl ) {
         new CgiQuery( serviceUrl );  // may throw
@@ -54,7 +54,7 @@ public class ConeSearch {
      *
      * @param   resource  resource from registry
      * @param   capability   cone search capability interface
-     * @throws  IllegalArgumentType if the service URL is unsuitable
+     * @throws  IllegalArgumentException if the service URL is unsuitable
      */
     public ConeSearch( RegResource resource,
                        RegCapabilityInterface capability ) {
