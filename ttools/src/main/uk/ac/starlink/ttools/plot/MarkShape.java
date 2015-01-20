@@ -63,7 +63,7 @@ public abstract class MarkShape {
      *
      * @param  color   colour of style
      * @param  size    nominal size of style - any integer, or at least any
-     *                 integer >0 should give a reasonable image
+     *                 integer &gt;0 should give a reasonable image
      */
     public abstract MarkStyle getStyle( Color color, int size );
 

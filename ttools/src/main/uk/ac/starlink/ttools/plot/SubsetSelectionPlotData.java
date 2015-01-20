@@ -13,8 +13,8 @@ public class SubsetSelectionPlotData extends WrapperPlotData {
 
     /**
      * Constructor.
-     * The <code>i</code><sup>th</code> subset in this object will be
-     * the same as the <code>isets[i]</code><sup>th</code>
+     * The <code>i</code><sup>th</sup> subset in this object will be
+     * the same as the <code>isets[i]</code><sup>th</sup>
      * one from <code>base</code>.
      *
      * @param   base  plot data on which this is based

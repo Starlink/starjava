@@ -883,8 +883,8 @@ public class ScatterPlot extends SurfacePlot {
 
     /**
      * Graphical component which does the actual plotting of the points.
-     * Its basic job is to call {@link @drawData} 
-     * in its {@link paintComponent} method.  
+     * Its basic job is to call {@link #drawData} 
+     * in its <code>paintComponent</code> method.  
      * However it makes things a bit more
      * complicated than that for the purposes of efficiency.
      */

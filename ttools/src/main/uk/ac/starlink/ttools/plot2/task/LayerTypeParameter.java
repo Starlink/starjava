@@ -370,7 +370,7 @@ public class LayerTypeParameter extends ChoiceParameter<LayerType>
     }
 
     /**
-     * Returns a "name=<usage>" string for a parameter.
+     * Returns a "name=&lt;usage&gt;" string for a parameter.
      *
      * @param   param  parameter
      * @return  usage string

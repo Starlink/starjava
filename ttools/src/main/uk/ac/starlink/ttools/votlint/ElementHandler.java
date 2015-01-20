@@ -86,7 +86,7 @@ public class ElementHandler {
     /**
      * Sets this handler's attributes.
      *
-     * @param   atts   name -> value map representing this element's attributes
+     * @param  atts  name -&gt; value map representing this element's attributes
      */
     public void setAttributes( Map atts ) {
         attributes_ = atts;

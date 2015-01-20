@@ -44,7 +44,7 @@ public abstract class VersionDetail {
      * elements of a given name.
      *
      * @param   voTagname  unqualified element name in VOTable namespace
-     * @return  String->AttributeChecker map for checking attributes
+     * @return  String-&gt;AttributeChecker map for checking attributes
      */
     public Map<String,AttributeChecker>
             getAttributeCheckers( String voTagname ) {
@@ -94,7 +94,7 @@ public abstract class VersionDetail {
      * elements of a given name.
      *
      * @param   voTagname  unqualified element name in VOTable namespace
-     * @return  String->AttributeChecker map for checking attributes
+     * @return  String-&gt;AttributeChecker map for checking attributes
      */
     protected abstract Map<String,AttributeChecker>
             createAttributeCheckers( String voTagname );

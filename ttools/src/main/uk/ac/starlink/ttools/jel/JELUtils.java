@@ -178,7 +178,7 @@ public class JELUtils {
      * @param   expr  string representation of the expression
      * @return  class which evaluation of <tt>expr</tt> using <tt>lib</tt>
      *          will return
-     * @throws  CompilationExpression  if <tt>expr</tt> cannot be compiled
+     * @throws  CompilationException  if <tt>expr</tt> cannot be compiled
      */
     public static Class getExpressionType( Library lib, StarTable table,
                                            String expr )

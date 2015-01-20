@@ -83,7 +83,7 @@ public abstract class Plot3D extends TablePlot {
      * @param  state   plot state
      * @param  g       graphics context
      * @param  padBorders  4-element array, filled on return
-     * @return  pad factor (>=1)
+     * @return  pad factor (&gt;=1)
      * @see   PlotVolume#PlotVolume
      */
     protected abstract double getPadding( Plot3DState state, Graphics g,
@@ -578,7 +578,7 @@ public abstract class Plot3D extends TablePlot {
      * The return value indicates whether any of the transformed values 
      * have non-blank values - if false, then error drawing is pointless.
      *
-     * @param   trans   data space -> graphics space transformer
+     * @param   trans   data space -&gt; graphics space transformer
      * @param   ranger  range checker - anything out of range will be discarded
      * @param   logFlags  flags for which axes will be plotted logarithmically
      * @param   errors   data space error points, in pairs
