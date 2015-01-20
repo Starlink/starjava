@@ -10103,6 +10103,11 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Add new plot layer type <ref id="layer-sizexy"><code>sizexy</code></ref>
         which allows plotting (optionally autoscaled) markers with horizontal
         and vertical extents independently determined by input data.</li>
+    <li>Fixed a query bug (missing <code>REQUEST=queryData</code> parameter)
+        in the multi-SSA mode (<code>servicetype=ssa</code>) of
+        <code>coneskymatch</code>.
+        This long-standing bug would have stopped this command working at all
+        with well-behaved SSA services.</li>
     </ul>
     </p></dd>
 
