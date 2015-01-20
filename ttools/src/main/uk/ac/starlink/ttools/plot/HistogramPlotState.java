@@ -16,8 +16,8 @@ public class HistogramPlotState extends PlotState {
 
     /**
      * Sets the bin width for the histogram.
-     * In the case of a linear X axis this is an additive value (>0), and
-     * in the case of a logarithmic X axis it is a multiplicative one (>1).
+     * In the case of a linear X axis this is an additive value (&gt;0), and
+     * in the case of a logarithmic X axis it is a multiplicative one (&gt;1).
      *
      * @param  width   new bin width
      */
@@ -30,8 +30,8 @@ public class HistogramPlotState extends PlotState {
 
     /**
      * Returns the bin width for the histogram.
-     * In the case of a linear X axis this is an additive value (>0), and
-     * in the case of a logarithmic X axis it is a multiplicative one (>1).
+     * In the case of a linear X axis this is an additive value (&gt;0), and
+     * in the case of a logarithmic X axis it is a multiplicative one (&gt;1).
      *
      * @return   bin width
      */

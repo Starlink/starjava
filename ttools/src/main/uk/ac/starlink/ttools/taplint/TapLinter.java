@@ -123,7 +123,7 @@ public class TapLinter {
     /**
      * Returns an ordered map of the validation stages defined by this class.
      *
-     * @return  ordered code->stage map
+     * @return  ordered code-&gt;stage map
      */
     public Map<String,Stage> getKnownStages() {
         return Collections

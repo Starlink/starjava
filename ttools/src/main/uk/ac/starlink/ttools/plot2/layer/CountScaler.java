@@ -22,7 +22,7 @@ public abstract class CountScaler {
      * <ul>
      * <li><code>c == 0</code>: returns 0;
      * <li><code>c == 1</code>: returns delta
-     * <li><code>c &gt;= cmax</code>: returns max; max <= 1 (1 if saturated)
+     * <li><code>c &gt;= cmax</code>: returns max; max &lt;= 1 (1 if saturated)
      * </ul>
      *
      * @param   c  count value, in range 0-max

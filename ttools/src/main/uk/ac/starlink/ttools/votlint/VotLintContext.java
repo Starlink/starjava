@@ -107,7 +107,7 @@ public class VotLintContext {
     }
 
     /**
-     * Returns prefix->namespaceURI map for the xmlns namespaces currently
+     * Returns prefix-&gt;namespaceURI map for the xmlns namespaces currently
      * in scope.
      */
     public Map getNamespaceMap() {
@@ -172,7 +172,7 @@ public class VotLintContext {
     }
 
     /**
-     * Goes through all the unresolved IDREF->ID arcs and reports them.
+     * Goes through all the unresolved IDREF-&gt;ID arcs and reports them.
      * This is done at the end of the parse.
      */
     public void reportUncheckedRefs() {

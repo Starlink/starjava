@@ -44,7 +44,7 @@ public class MapEnvironment implements TableEnvironment {
     }
 
     /**
-     * Constructs a new environment with a map of parameter name->value
+     * Constructs a new environment with a map of parameter name-&gt;value
      * pairs.
      *
      * @param  map   parameter map

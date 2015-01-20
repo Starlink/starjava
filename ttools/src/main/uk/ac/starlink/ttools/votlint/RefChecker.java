@@ -45,7 +45,7 @@ public class RefChecker implements AttributeChecker {
     }
 
     /**
-     * Checks that an IDREF->ID arc is sensible.
+     * Checks that an IDREF-&gt;ID arc is sensible.
      *
      * @param   context  lint context
      * @param   id     ID value

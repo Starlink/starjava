@@ -164,7 +164,7 @@ public class BinGrid {
      * and Y values decrease.  This is the order suitable for AWT images.
      *
      * <p><strong>Note</strong> the values must be interpreted as 
-     * unsigned 8-bit values (value = 0x000000ff & (int)getBytes()[i]).
+     * unsigned 8-bit values (value = 0x000000ff &amp; (int)getBytes()[i]).
      *
      * @param   loCut  lowest distinguished sum value
      * @param   hiCut  highest distinguished sum value
