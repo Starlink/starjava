@@ -10108,6 +10108,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <code>coneskymatch</code>.
         This long-standing bug would have stopped this command working at all
         with well-behaved SSA services.</li>
+    <li>Add a hack that allows LDAC FITS tables to be treated sensibly
+        in auto-format-detection mode.</li>
     </ul>
     </p></dd>
 

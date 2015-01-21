@@ -43,8 +43,11 @@ public class ColFitsStarTable extends AbstractStarTable {
      * @param   hdr   header of the HDU containing the table
      * @param   dataPos  offset into <code>file</code> of the start of the
      *          data part of the HDU
+     * @param   force  true to make a table if we possibly can,
+     *                 false to reject if it doesn't look very much like one
      */
-    public ColFitsStarTable( DataSource datsrc, Header hdr, long dataPos )
+    public ColFitsStarTable( DataSource datsrc, Header hdr, long dataPos,
+                             boolean force )
             throws IOException {
         HeaderCards cards = new HeaderCards( hdr );
 
@@ -60,6 +63,21 @@ public class ColFitsStarTable extends AbstractStarTable {
 
         /* Find the number of columns. */
         ncol_ = cards.getIntValue( "TFIELDS" ).intValue();
+
+        /* Nasty hack.
+         * LDAC is a somewhat eccentric FITS variant that has a single-cell
+         * BINTABLE as HDU1 containing an array of FITS header cards.
+         * That looks like colfits, and causes the later HDU to be
+         * ignored in format auto-detection mode, since colfits is not
+         * a multi-table-capable format.  So reject this HDU explicitly here,
+         * in auto-detection format it will get passed on to some other
+         * format handler (basic FITS).
+         * See http://marvinweb.astro.uni-bonn.de/
+         *     data_products/THELIWWW/LDAC/LDAC_concepts.html */
+        if ( ! force &&
+             "LDAC_IMHEAD".equals( cards.getStringValue( "EXTNAME" ) ) ) {
+            throw new TableFormatException( "Reject LDAC_IMHEAD table" );
+        }
 
         /* Read metadata for each column from the FITS header cards. */
         long nrow = 0;
@@ -192,7 +210,7 @@ public class ColFitsStarTable extends AbstractStarTable {
             }
         }
 
-        /* Otherwise use a different stream for each collumn. */
+        /* Otherwise use a different stream for each column. */
         else {
             if ( isFile && datsrc.getCompression() != Compression.NONE ) {
                 logger_.warning( "Can't map compressed file " + datsrc.getName()
