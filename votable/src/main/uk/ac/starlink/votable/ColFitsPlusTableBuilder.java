@@ -98,7 +98,8 @@ public class ColFitsPlusTableBuilder implements TableBuilder {
         }
 
         /* Get the table itself from the next HDU. */
-        StarTable tableData = new ColFitsStarTable( datsrc, hdr, dataPos );
+        StarTable tableData =
+            new ColFitsStarTable( datsrc, hdr, dataPos, false );
 
         /* If we got a TABLE element, combine the metadata from that and
          * the data from the FITS table to provide the output table. */

@@ -72,6 +72,6 @@ public class ColFitsTableBuilder implements TableBuilder {
             in.close();
         }
 
-        return new ColFitsStarTable( datsrc, hdr, pos );
+        return new ColFitsStarTable( datsrc, hdr, pos, false );
     }
 }

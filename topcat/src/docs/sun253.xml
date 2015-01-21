@@ -20797,6 +20797,8 @@ introduced since the last version:
         in the <ref id="SsaMultiWindow">Multiple SSA Query</ref> window.
         This long-standing bug would have stopped this window working at all
         with well-behaved SSA services.</li>
+    <li>Add a hack that allows LDAC FITS tables to be treated sensibly
+        in auto-format-detection mode.</li>
     </ul>
     </p></dd>
 
