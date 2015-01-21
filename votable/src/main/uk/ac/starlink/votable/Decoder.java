@@ -6,7 +6,6 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.StringTokenizer;
 import java.util.logging.Logger;
 import uk.ac.starlink.util.IOUtils;
 
@@ -298,8 +297,9 @@ abstract class Decoder {
         }
         else {
             logger.warning( "Unknown data type " + datatype + 
-                         " - may cause processing problems" );
-            dec = new UnknownDecoder( arraysize );
+                            " - treat as string"
+                          + ", but may cause problems" );
+            dec = new UnknownDecoder();
         }
 
         /* Set the blank value. */
@@ -318,18 +318,12 @@ abstract class Decoder {
 
 
     private static class UnknownDecoder extends Decoder {
-        public UnknownDecoder( long[] arraysize ) {
-            super( String[].class, new long[] { -1L } );
+        public UnknownDecoder() {
+            super( String.class, new long[ 0 ] );
         }
 
         public Object decodeString( String txt ) {
-            StringTokenizer st = new StringTokenizer( txt );
-            int ntok = st.countTokens();
-            String[] result = new String[ ntok ];
-            for ( int i = 0; i < ntok; i++ ) {
-                result[ i ] = st.nextToken();
-            }
-            return result;
+            return txt;
         }
 
         public Object decodeStream( DataInput strm ) {
