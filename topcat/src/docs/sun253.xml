@@ -20799,6 +20799,8 @@ introduced since the last version:
         with well-behaved SSA services.</li>
     <li>Add a hack that allows LDAC FITS tables to be treated sensibly
         in auto-format-detection mode.</li>
+    <li>Make VOTable handling more robust against unknown (illegal)
+        datatypes.</li>
     </ul>
     </p></dd>
 
