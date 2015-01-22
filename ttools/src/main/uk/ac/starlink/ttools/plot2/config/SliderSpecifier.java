@@ -1,15 +1,21 @@
 package uk.ac.starlink.ttools.plot2.config;
 
+import java.awt.Dimension;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.Box;
 import javax.swing.ButtonGroup;
 import javax.swing.ButtonModel;
+import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JRadioButton;
 import javax.swing.JSlider;
 import javax.swing.JTextField;
 import javax.swing.event.ChangeListener;
+import uk.ac.starlink.ttools.gui.ResourceIcon;
 
 /**
  * Double value specifier that uses a slider to choose a value in the
@@ -25,8 +31,11 @@ public class SliderSpecifier extends SpecifierPanel<Double> {
     private final double hi_;
     private final boolean log_;
     private final boolean flip_;
+    private final double resetVal_;
     private final boolean txtOpt_;
+    private final boolean resetOpt_;
     private final JSlider slider_;
+    private final JButton resetButton_;
     private final JTextField txtField_;
     private final JRadioButton sliderButton_;
     private final JRadioButton txtButton_;
@@ -39,9 +48,10 @@ public class SliderSpecifier extends SpecifierPanel<Double> {
      * @param   lo   slider lower bound
      * @param   hi   slider upper bound
      * @param  log  true for logarithmic slider scale, false for linear
+     * @param  reset  value reset button resets to, or NaN for no reset
      */
-    public SliderSpecifier( double lo, double hi, boolean log ) {
-        this( lo, hi, log, false, false );
+    public SliderSpecifier( double lo, double hi, boolean log, double reset ) {
+        this( lo, hi, log, reset, false, false );
     }
 
     /**
@@ -50,19 +60,37 @@ public class SliderSpecifier extends SpecifierPanel<Double> {
      * @param   lo   slider lower bound
      * @param   hi   slider upper bound
      * @param  log  true for logarithmic slider scale, false for linear
+     * @param  reset  value reset button resets to, or NaN for no reset
      * @param  flip  true to make slider values increase right to left
      * @param  txtOpt  true to include a text entry option
      */
-    public SliderSpecifier( double lo, double hi, boolean log, boolean flip,
+    public SliderSpecifier( double lo, double hi, boolean log,
+                            final double reset, boolean flip,
                             boolean txtOpt ) {
         super( true );
         lo_ = lo;
         hi_ = hi;
         log_ = log;
         flip_ = flip;
+        resetVal_ = reset;
         txtOpt_ = txtOpt;
         slider_ = new JSlider( MIN, MAX );
-        txtField_ = new JTextField( 8 );
+        resetOpt_ = reset >= lo && reset <= hi;
+        Action resetAct = new AbstractAction( null, ResourceIcon.ZERO ) {
+            public void actionPerformed( ActionEvent evt ) {
+                slider_.setValue( unscale( reset ) );
+            }
+        };
+        resetAct.putValue( Action.SHORT_DESCRIPTION,
+                           "Reset slider to default (" + resetVal_ + ")" );
+        resetButton_ = new JButton( resetAct );
+        resetButton_.setMargin( new Insets( 0, 0, 0, 0 ) );
+        txtField_ = new JTextField( 8 ) {
+            @Override
+            public Dimension getMaximumSize() {
+                return getPreferredSize();
+            }
+        };
         sliderButton_ = new JRadioButton();
         txtButton_ = new JRadioButton();
         ButtonGroup bgrp = new ButtonGroup();
@@ -73,11 +101,19 @@ public class SliderSpecifier extends SpecifierPanel<Double> {
 
     protected JComponent createComponent() {
         JComponent line = Box.createHorizontalBox();
-        line.add( sliderButton_ );
+        if ( txtOpt_ ) {
+            line.add( sliderButton_ );
+        }
         line.add( slider_ );
-        line.add( Box.createHorizontalStrut( 10 ) );
-        line.add( txtButton_ );
-        line.add( txtField_ );
+        if ( resetOpt_ ) {
+            line.add( Box.createHorizontalStrut( 5 ) );
+            line.add( resetButton_ );
+        }
+        if ( txtOpt_ ) {
+            line.add( Box.createHorizontalStrut( 10 ) );
+            line.add( txtButton_ );
+            line.add( txtField_ );
+        }
         final ActionListener actionForwarder = getActionForwarder();
         ActionListener radioListener = new ActionListener() {
             public void actionPerformed( ActionEvent evt ) {
@@ -90,7 +126,7 @@ public class SliderSpecifier extends SpecifierPanel<Double> {
         updateInputState();
         slider_.addChangeListener( getChangeForwarder() );
         txtField_.addActionListener( actionForwarder );
-        return txtOpt_ ? line : slider_;
+        return line;
     }
 
     public Double getSpecifiedValue() {
@@ -171,6 +207,7 @@ public class SliderSpecifier extends SpecifierPanel<Double> {
     private void updateInputState() {
         boolean sliderActive = isSliderActive();
         slider_.setEnabled( sliderActive );
+        resetButton_.setEnabled( sliderActive );
         txtField_.setEnabled( ! sliderActive );
     }
 

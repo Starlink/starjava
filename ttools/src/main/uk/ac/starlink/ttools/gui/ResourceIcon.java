@@ -63,6 +63,7 @@ public class ResourceIcon {
         CLICK2 = readIcon( "click2.gif" ),
         CLICK3 = readIcon( "click3.gif" ),
         MOUSE_WHEEL = readIcon( "mwheel.gif" ),
+        ZERO = readIcon( "ozero.png" ),
 
         /* Placeholder and terminator. */
         DO_WHAT = readIcon( "burst.gif" );

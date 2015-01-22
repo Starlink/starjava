@@ -182,6 +182,8 @@ public abstract class BinSizer {
      */
     private static class BinSizerConfigKey extends ConfigKey<BinSizer> {
 
+        private final int dfltNbin_;
+
         /**
          * Constructor.
          *
@@ -190,6 +192,7 @@ public abstract class BinSizer {
          */
         BinSizerConfigKey( ConfigMeta meta, int dfltNbin ) {
             super( meta, BinSizer.class, new CountBinSizer( dfltNbin, true ) );
+            dfltNbin_ = dfltNbin;
         }
 
         public BinSizer stringToValue( String txt ) {
@@ -230,7 +233,7 @@ public abstract class BinSizer {
 
         public Specifier<BinSizer> createSpecifier() {
             final SliderSpecifier sliderSpecifier =
-                    new SliderSpecifier( 400, 2, true, false, true );
+                    new SliderSpecifier( 2, 400, true, dfltNbin_, true, true );
             return new SpecifierPanel<BinSizer>( true ) {
                 protected JComponent createComponent() {
                     sliderSpecifier.addActionListener( getActionForwarder() );
