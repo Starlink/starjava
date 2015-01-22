@@ -100,7 +100,8 @@ public class RampKeySet implements KeySet<RampKeySet.Ramp> {
         quantiseKey_ = new DoubleConfigKey( quantiseMeta, Double.NaN ) {
             final double LIMIT = 64;
             public Specifier<Double> createSpecifier() {
-                return new SliderSpecifier( 2, LIMIT, true, true, false ) {
+                return new SliderSpecifier( 2, LIMIT, true, LIMIT,
+                                            true, false ) {
                     @Override
                     public Double getSpecifiedValue() {
                         double v = super.getSpecifiedValue();
