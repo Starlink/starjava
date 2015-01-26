@@ -337,6 +337,18 @@ public class StyleKeys {
         ).appendShaderDescription()
          .setOptionUsage();
 
+    /** Config key for inverting the sense of a density shader colour map. */
+    public static final ConfigKey<Boolean> DENSITY_SHADER_FLIP =
+        new BooleanConfigKey(
+            new ConfigMeta( "denseflip", "Flip" )
+           .setShortDescription( "Flip density colour map?" )
+           .setXmlDescription( new String[] {
+                "<p>If true, the colour map used for shading points",
+                "according to density is reversed.",
+                "</p>",
+            } )
+        , Boolean.FALSE );
+
     /** Config key for restricting the range of a density shader colour map. */
     public static final ConfigKey<Subrange> DENSITY_SHADER_CLIP =
         new SubrangeConfigKey( SubrangeConfigKey
@@ -347,39 +359,19 @@ public class StyleKeys {
         new SubrangeConfigKey( SubrangeConfigKey
                               .createAxisSubMeta( "dense", "Density" ) );
 
-    private static final Scaling[] DENSITY_STRETCHES =
-        Scaling.getStretchOptions();
-
     /** Config key for density scaling. */
     public static final ConfigKey<Scaling> DENSITY_SCALING =
-        new ScalingConfigKey( ScalingConfigKey
-                             .createScalingMeta( "density", DENSITY_STRETCHES ),
-                              DENSITY_STRETCHES );
-
-    /** Config key for density shader log flag. */
-    public static final ConfigKey<Boolean> DENSITY_LOG =
-        new BooleanConfigKey(
-            new ConfigMeta( "denselog", "Log" )
-           .setShortDescription( "Logarithmic density scale?" )
+        new OptionConfigKey<Scaling>(
+            new ConfigMeta( "densefunc", "Scaling" )
+           .setShortDescription( "Density colour scaling function" )
            .setXmlDescription( new String[] {
-                "<p>If true, the scale used for shading points according",
-                "to density is logarithmic, if false, it's linear.",
+                "<p>Defines the way that values in the (possibly clipped)",
+                "density range are mapped to the selected colour ramp.",
                 "</p>",
             } )
-        , Boolean.TRUE );
-
-    /** Config key for density shader flip flag. */
-    public static final ConfigKey<Boolean> DENSITY_FLIP =
-        new BooleanConfigKey(
-            new ConfigMeta( "denseflip", "Flip" )
-           .setShortDescription( "Flip density scale?" )
-           .setXmlDescription( new String[] {
-                "<p>If true, the sense of the scale used for shading points",
-                "according to density is reversed",
-                "(the colour ramp is flipped).",
-                "</p>",
-            } )
-        , Boolean.FALSE );
+        , Scaling.class, Scaling.getStretchOptions() )
+       .setOptionUsage()
+       .addOptionsXml();
 
     private static final String SCALE_NAME = "scale";
     private static final String AUTOSCALE_NAME = "autoscale";
@@ -632,20 +624,27 @@ public class StyleKeys {
      * @param  config  config map
      * @param  baseShaderKey   key for extracting a shader
      * @param  clipKey   key for extracting a clip range of a shader
+     * @param  flipKey   key for extracting shader flip flag
      * @return  shader with clip applied if appropriate
      */
     public static Shader createShader( ConfigMap config,
                                        ConfigKey<Shader> baseShaderKey,
-                                       ConfigKey<Subrange> clipKey ) {
+                                       ConfigKey<Subrange> clipKey,
+                                       ConfigKey<Boolean> flipKey ) {
         Shader shader = config.get( baseShaderKey );
         if ( shader == null ) {
             return null;
         }
         Subrange clip = config.get( clipKey );
-        return Subrange.isIdentity( clip )
-             ? shader
-             : Shaders.stretch( shader,
-                                (float) clip.getLow(), (float) clip.getHigh() );
+        if ( ! Subrange.isIdentity( clip ) ) {
+            shader = Shaders.stretch( shader, (float) clip.getLow(),
+                                              (float) clip.getHigh() );
+        }
+        boolean isFlip = Boolean.TRUE.equals( config.get( flipKey ) );
+        if ( isFlip ) {
+            shader = Shaders.invert( shader );
+        }
+        return shader;
     }
 
     /**

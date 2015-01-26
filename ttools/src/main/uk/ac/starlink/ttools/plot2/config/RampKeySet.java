@@ -25,8 +25,8 @@ public class RampKeySet implements KeySet<RampKeySet.Ramp> {
 
     private final ConfigKey<Shader> shaderKey_;
     private final ConfigKey<Subrange> subrangeKey_;
-    private final ConfigKey<Boolean> logKey_;
     private final ConfigKey<Boolean> flipKey_;
+    private final ConfigKey<Boolean> logKey_;
     private final ConfigKey<Color> nullcolorKey_;
 
     /**
@@ -37,7 +37,7 @@ public class RampKeySet implements KeySet<RampKeySet.Ramp> {
      */
     public RampKeySet( String axname, String axName ) {
         shaderKey_ = new ShaderConfigKey(
-            new ConfigMeta( axname + "map", axName + "Map" )
+            new ConfigMeta( axname + "map", axName + " Map" )
            .setShortDescription( "Color map for " + axName + " shading" )
            .setXmlDescription( new String[] {
                 "<p>Color map used for " + axName + " axis shading.",
@@ -49,8 +49,8 @@ public class RampKeySet implements KeySet<RampKeySet.Ramp> {
         subrangeKey_ =
             new SubrangeConfigKey( SubrangeConfigKey
                                   .createShaderClipMeta( axname, axName ) );
-        logKey_ = PlaneSurfaceFactory.createAxisLogKey( axName );
         flipKey_ = PlaneSurfaceFactory.createAxisFlipKey( axName );
+        logKey_ = PlaneSurfaceFactory.createAxisLogKey( axName );
         nullcolorKey_ = new ColorConfigKey(
             ColorConfigKey.createColorMeta( axname + "null",
                                             "points with a null value of the "
@@ -68,17 +68,16 @@ public class RampKeySet implements KeySet<RampKeySet.Ramp> {
         return new ConfigKey[] {
             shaderKey_,
             subrangeKey_,
-            logKey_,
             flipKey_,
+            logKey_,
             nullcolorKey_,
         };
     }
 
     public Ramp createValue( ConfigMap config ) {
-        final Shader shader =
-            StyleKeys.createShader( config, shaderKey_, subrangeKey_ );
+        final Shader shader = StyleKeys.createShader( config, shaderKey_,
+                                                      subrangeKey_, flipKey_ );
         final boolean log = config.get( logKey_ );
-        final boolean flip = config.get( flipKey_ );
         final Color nullcolor = config.get( nullcolorKey_ );
         return new Ramp() {
             public Shader getShader() {
@@ -86,9 +85,6 @@ public class RampKeySet implements KeySet<RampKeySet.Ramp> {
             }
             public boolean isLog() {
                 return log;
-            }
-            public boolean isFlip() {
-                return flip;
             }
             public Color getNullColor() {
                 return nullcolor;
@@ -108,7 +104,7 @@ public class RampKeySet implements KeySet<RampKeySet.Ramp> {
                         double[] bounds = range.getFiniteBounds( log );
                         double lo = bounds[ 0 ];
                         double hi = bounds[ 1 ];
-                        return new ShadeAxis( shader, log, flip, lo, hi,
+                        return new ShadeAxis( shader, log, false, lo, hi,
                                               label, captioner, crowding );
                     }
                 };
@@ -149,13 +145,6 @@ public class RampKeySet implements KeySet<RampKeySet.Ramp> {
          * @return   true for logarithmic scaling, false for linear
          */
         boolean isLog();
-
-        /**
-         * Indicates whether this ramp is inverted.
-         *
-         * @return   true if the ramp is flipped
-         */
-        boolean isFlip();
 
         /**
          * Returns the colour in which items with no ramp data value

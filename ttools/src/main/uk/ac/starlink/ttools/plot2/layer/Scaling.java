@@ -3,6 +3,7 @@ package uk.ac.starlink.ttools.plot2.layer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import uk.ac.starlink.ttools.func.Maths;
+import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot2.Equality;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Subrange;
@@ -37,11 +38,6 @@ public abstract class Scaling {
     private static final double AUTO_DELTA = 0.0625;
     private static final double UNSCALE_TOL = 0.0001;
     private static final double UNSCALE_MAXIT = 50;
-    private static final Scaler FLIP_SCALER = new Scaler() {
-        public double scaleValue( double val ) {
-            return 1.0 - val;
-        }
-    };
     private static final Scaling[] STRETCHES = new Scaling[] {
         LOG, LINEAR, SQRT, SQUARE,
     };
@@ -109,28 +105,6 @@ public abstract class Scaling {
     }
 
     /**
-     * Inverts a given scaling, so that the scaler output is one minus
-     * the output of the input scaling.
-     * If the input has already been flipped, this method may return
-     * the underlying unflipped instance.
-     *
-     * @param  scaling  input scaling
-     * @return  flipped scaling
-     */
-    public static Scaling flipScaling( Scaling scaling ) {
-        boolean flip = true;
-        while ( scaling instanceof ReScaling &&
-                ((ReScaling) scaling).rescaler_ == FLIP_SCALER ) {
-            flip = ! flip;
-            scaling = ((ReScaling) scaling).baseScaling_;
-        }
-        return flip ? new ReScaling( "-" + scaling.getName(),
-                                     scaling.getDescription() + ", reversed",
-                                     scaling, FLIP_SCALER )
-                    : scaling;
-    }
-
-    /**
      * Adjusts a scaling by applying a fractional subrange to the
      * scaler inputs <em>before</em> scaling is applied,
      * so that the input range is subranged, rather than the output range.
@@ -146,6 +120,19 @@ public abstract class Scaling {
         return Subrange.isIdentity( subrange )
              ? scaling
              : new SubrangeScaling( scaling, subrange );
+    }
+
+    /**
+     * Returns a linear or logarithmic scaler based on a range.
+     *
+     * @param  isLog  true for logarithmic, false for linear
+     * @param  range  value range
+     * @return   scaler
+     */
+    public static Scaler createRangeScaler( boolean isLog, Range range ) {
+        double[] bounds = range.getFiniteBounds( isLog );
+        return ( isLog ? LOG : LINEAR )
+              .createScaler( bounds[ 0 ], bounds[ 1 ] );
     }
 
     /**
@@ -183,8 +170,12 @@ public abstract class Scaling {
                 else if ( hi > 1 ) {
                     xlo = 1;
                 }
-                else {
+                else if ( hi > 0 ) {
                     xlo = hi * 0.001;
+                }
+                else {
+                    xlo = .1;
+                    hi = 10;
                 }
                 final double base1 = 1.0 / xlo;
                 final double scale = 1.0 / ( Math.log( hi ) - Math.log( xlo ) );
