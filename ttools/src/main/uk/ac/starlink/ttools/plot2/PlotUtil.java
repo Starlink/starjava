@@ -70,6 +70,9 @@ public class PlotUtil {
     /** Maximum size for autoscaled variable-size markers. */
     public static final int DEFAULT_MAX_PIXELS = 20;
 
+    /** Minimum number of input differences that fill up a colour ramp. */
+    public static final int MIN_RAMP_UNIT = 12;
+
     /** Amount of padding added to data ranges for axis scaling. */
     private static final double PAD_FRACTION = 0.02;
 

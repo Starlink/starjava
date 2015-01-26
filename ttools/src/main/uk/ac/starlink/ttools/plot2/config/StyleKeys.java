@@ -24,6 +24,7 @@ import uk.ac.starlink.ttools.plot2.Anchor;
 import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.geom.PlaneSurfaceFactory;
 import uk.ac.starlink.ttools.plot2.layer.LevelMode;
+import uk.ac.starlink.ttools.plot2.layer.Scaling;
 import uk.ac.starlink.ttools.plot2.layer.XYShape;
 import uk.ac.starlink.ttools.plot2.layer.XYShapes;
 import uk.ac.starlink.util.gui.RenderingComboBox;
@@ -346,6 +347,15 @@ public class StyleKeys {
         new SubrangeConfigKey( SubrangeConfigKey
                               .createAxisSubMeta( "dense", "Density" ) );
 
+    private static final Scaling[] DENSITY_STRETCHES =
+        Scaling.getStretchOptions();
+
+    /** Config key for density scaling. */
+    public static final ConfigKey<Scaling> DENSITY_SCALING =
+        new ScalingConfigKey( ScalingConfigKey
+                             .createScalingMeta( "density", DENSITY_STRETCHES ),
+                              DENSITY_STRETCHES );
+
     /** Config key for density shader log flag. */
     public static final ConfigKey<Boolean> DENSITY_LOG =
         new BooleanConfigKey(
@@ -639,10 +649,26 @@ public class StyleKeys {
     }
 
     /**
+     * Returns a scaling object from a config map given appropriate keys.
+     *
+     * @param  config  config map
+     * @param  baseScalingKey  key for scaling operation
+     * @param  subrangeKey   key for input value subrange
+     * @return  scaling object ready for use
+     */
+    public static Scaling createScaling( ConfigMap config,
+                                         ConfigKey<Scaling> baseScalingKey,
+                                         ConfigKey<Subrange> subrangeKey ) {
+        Scaling baseScaling = config.get( baseScalingKey );
+        Subrange subrange = config.get( subrangeKey );
+        return Scaling.subrangeScaling( baseScaling, subrange );
+    }
+
+    /**
      * Creates a config key for a multipoint shape.
      *
      * @param   shortName   one-word name
-     * @parma   longName   GUI name
+     * @param   longName   GUI name
      * @param   renderers   renderer options
      * @param   modes   error mode objects, used with renderers to draw icon
      * @return  new key

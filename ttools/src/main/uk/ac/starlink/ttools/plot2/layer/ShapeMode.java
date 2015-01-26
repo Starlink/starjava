@@ -29,7 +29,6 @@ import uk.ac.starlink.ttools.plot2.LayerOpt;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.ReportMap;
-import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
@@ -714,7 +713,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
 
                 /* Clone this array before modifying it in-place.
                  * Trashing the data wouldn't hurt this time,
-                 * the plan may get re-used later. */
+                 * but the plan may get re-used later. */
                 int[] counts = getBinCounts( plan ).clone();
                 IndexColorModel colorModel = createColorModel( shader_ );
                 scaleLevels( counts, colorModel.getMapSize() - 1 );
@@ -737,16 +736,21 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                 for ( int i = 0; i < n; i++ ) {
                     max = Math.max( max, buf[ i ] );
                 }
-                CountScaler scaler = scaling_.createScaler( max, nlevel );
 
                 /* Leave 0 as 0 - this is transparent (no plot).
                  * Values >= 1 map to range 1..nlevel. */
-                double nl1 = nlevel - 1;
-                for ( int i = 0; i < n; i++ ) {
-                    int b = buf[ i ];
-                    if ( b > 0 ) {
-                        buf[ i ] =
-                            1 + (int) Math.round( nl1 * scaler.scale( b - 1 ) );
+                if ( max > 0 ) {
+                    max = Math.max( max, PlotUtil.MIN_RAMP_UNIT );
+                    CountScaler scaler =
+                        new CountScaler( scaling_, max, nlevel );
+                    if ( max == 1 && scaler.scaleCount( 1 ) == 1 ) {
+                        // special case: array is already in the required form
+                        // (zeros and ones), no action required
+                    }
+                    else {
+                        for ( int i = 0; i < n; i++ ) {
+                            buf[ i ] = scaler.scaleCount( buf[ i ] );
+                        }
                     }
                 }
             }
@@ -795,24 +799,6 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             assert model.getPixelSize() == 8;
             return model;
         }
-    }
-
-    /**
-     * Defines a scaling strategy.
-     */
-    @Equality
-    public static interface Scaling {
-
-        /**
-         * Returns a count scaler to use for a given maximum input count
-         * value and number of levels.
-         *
-         * @param   max  maximum value in input count data
-         *               (minimum is implicitly zero)
-         * @param  nlevel  number of levels in output array
-         * @return  new scaler
-         */
-        CountScaler createScaler( int max, int nlevel );
     }
 
     /**
@@ -869,13 +855,6 @@ public abstract class ShapeMode implements ModePlotter.Mode {
      */
     private static class AutoDensityMode extends AbstractDensityMode {
 
-        /** Auto scaling - asinh-like with a small but visible delta. */
-        private static final Scaling AUTO_SCALING = new Scaling() {
-            public CountScaler createScaler( int max, int nlevel ) {
-                return CountScaler.createScaler( max, 0.0625 );
-            }
-        };
-
         /**
          * Constructor.
          */
@@ -912,7 +891,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             Shader baseShader = Shaders.stretch( Shaders.SCALE_V, 1f, 0.2f );
             Shader densityShader =
                 Shaders.applyShader( baseShader, baseColor, COLOR_MAP_SIZE );
-            return new DensityStamper( densityShader, AUTO_SCALING );
+            return new DensityStamper( densityShader, Scaling.AUTO );
         }
     }
 
@@ -954,8 +933,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                 StyleKeys.COLOR,
                 StyleKeys.DENSITY_SHADER,
                 StyleKeys.DENSITY_SHADER_CLIP,
-                StyleKeys.DENSITY_LOG,
-                StyleKeys.DENSITY_FLIP,
+                StyleKeys.DENSITY_SCALING,
                 StyleKeys.DENSITY_SUBRANGE,
             };
         }
@@ -965,97 +943,12 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             Shader baseShader =
                 StyleKeys.createShader( config, StyleKeys.DENSITY_SHADER,
                                                 StyleKeys.DENSITY_SHADER_CLIP );
-            boolean logFlag = config.get( StyleKeys.DENSITY_LOG );
-            boolean flipFlag = config.get( StyleKeys.DENSITY_FLIP );
-            Subrange subrange = config.get( StyleKeys.DENSITY_SUBRANGE );
             Shader densityShader =
                 Shaders.applyShader( baseShader, baseColor, COLOR_MAP_SIZE );
-            if ( flipFlag ) {
-                densityShader = Shaders.invert( densityShader );
-            }
-            Scaling scaling = new CustomScaling( subrange, logFlag, false );
+            Scaling scaling =
+                StyleKeys.createScaling( config, StyleKeys.DENSITY_SCALING,
+                                                 StyleKeys.DENSITY_SUBRANGE );
             return new DensityStamper( densityShader, scaling );
-        }
-
-        /**
-         * Scaling strategy that can be adjusted by user preference.
-         */
-        private static class CustomScaling implements Scaling {
-            final Subrange subrange_;
-            final boolean logFlag_;
-            final boolean showAll_;
-
-            /**
-             * Constructor.
-             *
-             * @param  subrange  defines a region of the full data range
-             *                   over which the colour scale should run
-             * @param  logFlag  true for log scaling, false for linear
-             * @param  showAll  I'm not really sure what this does
-             */
-            CustomScaling( Subrange subrange, boolean logFlag,
-                           boolean showAll ) {
-                subrange_ = subrange;
-                logFlag_ = logFlag;
-                showAll_ = showAll;
-            }
-
-            public CountScaler createScaler( int max, int nlevel ) {
-                double[] range =
-                    PlotUtil.scaleRange( 1, max, subrange_, logFlag_ );
-                final int lo = (int) Math.round( range[ 0 ] );
-                final int hi = (int) Math.round( range[ 1 ] );
-                final double dlo = lo;
-                final double dhi = hi;
-                final double min = ( showAll_ || lo == 1 )
-                                 ? 1.0 / (double) nlevel
-                                 : 0;
-                final double scale = logFlag_
-                                   ? ( 1.0 - min ) / Math.log( dhi / dlo )
-                                   : ( 1.0 - min ) / ( dhi - dlo );
-                return new CountScaler() {
-                    public double scale( int c ) {
-                        if ( c == 0 ) {
-                            return 0;
-                        }
-                        else if ( c <= lo ) {
-                            return min;
-                        }
-                        else if ( c >= hi ) {
-                            return 1;
-                        }
-                        else {
-                            double val =
-                                 min + scale * ( logFlag_ ? Math.log( c / dlo )
-                                                          : ( c - dlo ) );
-                            assert val >= 0 && val <= 1 : val;
-                            return val;
-                        }
-                    }
-                };
-            }
-
-            @Override
-            public boolean equals( Object o ) {
-                if ( o instanceof CustomScaling ) {
-                    CustomScaling other = (CustomScaling) o;
-                    return this.subrange_.equals( other.subrange_ )
-                        && this.logFlag_ == other.logFlag_
-                        && this.showAll_ == other.showAll_;
-                }
-                else {
-                    return false;
-                }
-            }
-
-            @Override
-            public int hashCode() {
-                int code = 99;
-                code = 23 * code + subrange_.hashCode();
-                code = 23 * code + ( logFlag_ ? 5 : 7 );
-                code = 23 * code + ( showAll_ ? 13 : 19 );
-                return code;
-            }
         }
     }
 
