@@ -1,4 +1,4 @@
-package uk.ac.starlink.ttools.plot2.layer;
+package uk.ac.starlink.ttools.plot2;
 
 /**
  * Defines the mapping of an input value to the range 0..1.
