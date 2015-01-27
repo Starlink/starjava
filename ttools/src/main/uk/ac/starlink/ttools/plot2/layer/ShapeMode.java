@@ -1027,14 +1027,14 @@ public abstract class ShapeMode implements ModePlotter.Mode {
         public Stamper createStamper( ConfigMap config ) {
             RampKeySet.Ramp ramp = rampKeys_.createValue( config );
             Shader shader = ramp.getShader();
-            boolean shadeLog =  ramp.isLog();
+            Scaling scaling = ramp.getScaling();
             Color nullColor = ramp.getNullColor();
             double opaque = transparent_
                           ? config.get( StyleKeys.AUX_OPAQUE )
                           : 1;
             float scaleAlpha = 1f / (float) opaque;
             Color baseColor = config.get( StyleKeys.COLOR );
-            return new ShadeStamper( shader, shadeLog, baseColor,
+            return new ShadeStamper( shader, scaling, baseColor,
                                      nullColor, scaleAlpha );
         }
 
@@ -1048,7 +1048,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             assert dataSpec.getCoord( iShadeCoord ) == SHADE_COORD;
             ShadeStamper shStamper = (ShadeStamper) stamper;
             final Shader shader = shStamper.shader_;
-            final boolean shadeLog = shStamper.shadeLog_;
+            final Scaling scaling = shStamper.scaling_;
             final Color baseColor = shStamper.baseColor_;
             final Color nullColor = shStamper.nullColor_;
             final float scaleAlpha = shStamper.scaleAlpha_;
@@ -1072,7 +1072,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                                               PaperType paperType ) {
                     Range shadeRange = auxRanges.get( SCALE );
                     Scaler scaler =
-                        Scaling.createRangeScaler( shadeLog, shadeRange );
+                        Scaling.createRangeScaler( scaling, shadeRange );
                     ColorKit kit = new ColorKit( iShadeCoord, shader, scaler,
                                                  baseColor, nullColor,
                                                  scaleAlpha );
@@ -1217,7 +1217,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
      */
     public static class ShadeStamper implements Stamper {
         final Shader shader_;
-        final boolean shadeLog_;
+        final Scaling scaling_;
         final Color baseColor_;
         final Color nullColor_;
         final float scaleAlpha_;
@@ -1226,8 +1226,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
          * Constructor.
          *
          * @param  shader  colour shader 
-         * @param  shadeLog  true for logarithmic shading scale,
-         *                   false for linear
+         * @param  scaling   scaling function from data to shade value
          * @param  baseColor  colour to use for adjustments in case of
          *                    non-absolute shader
          * @param  nullColor  colour to use for null aux coordinate,
@@ -1235,10 +1234,10 @@ public abstract class ShapeMode implements ModePlotter.Mode {
          * @param  scaleAlpha  factor to scale output colour alpha by;
          *                     1 means opaque
          */
-        public ShadeStamper( Shader shader, boolean shadeLog, Color baseColor,
+        public ShadeStamper( Shader shader, Scaling scaling, Color baseColor,
                              Color nullColor, float scaleAlpha ) {
             shader_ = shader;
-            shadeLog_ = shadeLog;
+            scaling_ = scaling;
             baseColor_ = baseColor;
             nullColor_ = nullColor;
             scaleAlpha_ = scaleAlpha;
@@ -1254,7 +1253,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             if ( o instanceof ShadeStamper ) {
                 ShadeStamper other = (ShadeStamper) o;
                 return this.shader_.equals( other.shader_ )
-                    && this.shadeLog_ == other.shadeLog_
+                    && this.scaling_.equals( other.scaling_ )
                     && PlotUtil.equals( this.baseColor_, other.baseColor_ )
                     && PlotUtil.equals( this.nullColor_, other.nullColor_ )
                     && this.scaleAlpha_ == other.scaleAlpha_;
@@ -1268,7 +1267,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
         public int hashCode() {
             int code = 7301;
             code = 23 * code + shader_.hashCode();
-            code = 23 * code + ( shadeLog_ ? 5 : 7 );
+            code = 23 * code + scaling_.hashCode();
             code = 23 * code + PlotUtil.hashCode( baseColor_ );
             code = 23 * code + PlotUtil.hashCode( nullColor_ );
             code = 23 * code + Float.floatToIntBits( scaleAlpha_ );

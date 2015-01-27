@@ -10,7 +10,6 @@ import java.awt.geom.AffineTransform;
 import java.util.Arrays;
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.plot.Shader;
-import uk.ac.starlink.ttools.plot.Shaders;
 
 /**
  * Graphical representation of aux shading range which can be placed
@@ -22,8 +21,7 @@ import uk.ac.starlink.ttools.plot.Shaders;
 public class ShadeAxis {
 
     private final Shader shader_;
-    private final boolean log_;
-    private final boolean flip_;
+    private final Scaling scaling_;
     private final double dlo_;
     private final double dhi_;
     private final String label_;
@@ -35,8 +33,7 @@ public class ShadeAxis {
      * Constructor.
      *
      * @param  shader  object performing the actual shading
-     * @param  log   true for logarithmic scaling, false for linear
-     * @param  flip  true to invert scale
+     * @param  scaling  maps data values to unit range
      * @param  dlo   minimum data value
      * @param  dhi   maximum data value
      * @param  label  axis label
@@ -44,12 +41,11 @@ public class ShadeAxis {
      * @param  crowding   1 for normal tick density, lower for fewer labels,
      *                    higher for more
      */
-    public ShadeAxis( Shader shader, boolean log, boolean flip,
+    public ShadeAxis( Shader shader, Scaling scaling,
                       double dlo, double dhi, String label,
                       Captioner captioner, double crowding ) {
         shader_ = shader;
-        log_ = log;
-        flip_ = flip;
+        scaling_ = scaling;
         dlo_ = dlo;
         dhi_ = dhi;
         label_ = label;
@@ -85,24 +81,6 @@ public class ShadeAxis {
     }
 
     /**
-     * Indicates whether scale is logarithmic.
-     *
-     * @return  true for logarithmic, false for linear
-     */
-    public boolean isLog() {
-        return log_;
-    }
-
-    /**
-     * Indicates whether scale is reversed.
-     *
-     * @return  true for low to high, false for high to low
-     */
-    public boolean isFlip() {
-        return flip_;
-    }
-
-    /**
      * Returns a nominal number of pixels required at the top and bottom
      * of the ramp icon to accommodated possible axis labels.
      * This is currently half the height of a digit caption.
@@ -121,10 +99,11 @@ public class ShadeAxis {
      * @return  icon
      */
     private ShaderIcon createShaderAxisIcon( Rectangle rampBounds ) {
-        Tick[] ticks = ( log_ ? BasicTicker.LOG : BasicTicker.LINEAR )
+        Tick[] ticks = ( scaling_.isLogLike() ? BasicTicker.LOG
+                                              : BasicTicker.LINEAR )
                       .getTicks( dlo_, dhi_, false, captioner_, ORIENTATION,
                                  rampBounds.height, crowding_ );
-        return new ShaderIcon( shader_, log_, flip_, dlo_, dhi_, label_,
+        return new ShaderIcon( shader_, scaling_, dlo_, dhi_, label_,
                                captioner_, rampBounds, ticks );
     }
 
@@ -134,23 +113,20 @@ public class ShadeAxis {
     @Equality
     private static class ShaderIcon implements Icon {
         private final Shader shader_;
-        private final boolean log_;
-        private final boolean flip_;
+        private final Scaling scaling_;
         private final double dlo_;
         private final double dhi_;
         private final String label_;
         private final Captioner captioner_;
         private final Rectangle box_;
         private final Tick[] ticks_;
-        private final Icon rampIcon_;
         private final Axis axis_;
 
         /**
          * Constructor.
          *
          * @param  shader  object performing the actual shading
-         * @param  log   true for logarithmic scaling, false for linear
-         * @param  flip  true to invert scale
+         * @param  scaling   maps data to unit range
          * @param  dlo   minimum data value
          * @param  dhi   maximum data value
          * @param  label  axis label
@@ -158,37 +134,52 @@ public class ShadeAxis {
          * @param  rampBounds  bounds of actual ramp scale graphic
          * @param  ticks   axis ticks for annotation
          */
-        public ShaderIcon( Shader shader, boolean log, boolean flip,
+        public ShaderIcon( Shader shader, Scaling scaling,
                            double dlo, double dhi, String label,
                            Captioner captioner, Rectangle rampBounds,
                            Tick[] ticks ) {
             shader_ = shader;
-            log_ = log;
-            flip_ = flip;
+            scaling_ = scaling;
             dlo_ = dlo;
             dhi_ = dhi;
             label_ = label;
             captioner_ = captioner;
             box_ = rampBounds;
             ticks_ = ticks;
-            rampIcon_ = Shaders.invert( shader )
-                       .createIcon( false, box_.width, box_.height, 0, 0 );
             axis_ = Axis.createAxis( box_.y, box_.y + box_.height, dlo, dhi,
-                                     log_, flip_ );
+                                     scaling.isLogLike(), false );
         }
 
         public int getIconWidth() {
-            return rampIcon_.getIconWidth();
+            return box_.width;
         }
 
         public int getIconHeight() {
-            return rampIcon_.getIconHeight();
+            return box_.height;
         }
 
         public void paintIcon( Component c, Graphics g, int x, int y ) {
+
+            /* Remember graphics context. */
             Graphics2D g2 = (Graphics2D) g;
-            rampIcon_.paintIcon( c, g2, x, y );
             Color color0 = g2.getColor();
+
+            /* Paint the ramp. */
+            float[] baseRgba = Color.DARK_GRAY.getRGBComponents( null );
+            Scaler scaler = scaling_.createScaler( dlo_, dhi_ );
+            for ( int iy = 0; iy < box_.height; iy++ ) {
+                int gy = box_.y + iy;
+                int hy = box_.y + ( box_.height - iy );
+                double dval = axis_.graphicsToData( gy + 0.5 );
+                float frac = (float) scaler.scaleValue( dval );
+                float[] rgba = baseRgba.clone();
+                shader_.adjustRgba( rgba, frac );
+                g.setColor( new Color( rgba[ 0 ], rgba[ 1 ], rgba[ 2 ],
+                                       rgba[ 3 ] ) );
+                g.fillRect( box_.x, hy, box_.width, 1 );
+            }
+
+            /* Paint the ramp frame and axis annotations. */
             g2.setColor( Color.BLACK );
             AffineTransform trans0 = g2.getTransform();
             g2.drawRect( box_.x, box_.y, box_.width, box_.height );
@@ -196,6 +187,8 @@ public class ShadeAxis {
             g2.rotate( - Math.PI / 2 );
             axis_.drawLabels( ticks_, label_, captioner_, ORIENTATION,
                               false, g2 );
+
+            /* Reset graphics context. */
             g2.setColor( color0 );
             g2.setTransform( trans0 );
         }
@@ -224,8 +217,7 @@ public class ShadeAxis {
             if ( o instanceof ShaderIcon ) {
                 ShaderIcon other = (ShaderIcon) o;
                 return this.shader_.equals( other.shader_ )
-                    && this.log_ == other.log_
-                    && this.flip_ == other.flip_
+                    && this.scaling_ == other.scaling_
                     && this.dlo_ == other.dlo_
                     && this.dhi_ == other.dhi_
                     && PlotUtil.equals( this.label_, other.label_ )
@@ -242,8 +234,7 @@ public class ShadeAxis {
         public int hashCode() {
             int code = 271223;
             code = 23 * code + shader_.hashCode();
-            code = 23 * code + ( log_ ? 5 : 7 );
-            code = 23 * code + ( flip_ ? 11 : 13 );
+            code = 23 * code + scaling_.hashCode();
             code = 23 * code + Float.floatToIntBits( (float) dlo_ );
             code = 23 * code + Float.floatToIntBits( (float) dhi_ );
             code = 23 * code + PlotUtil.hashCode( label_ );

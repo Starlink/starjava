@@ -143,7 +143,7 @@ public class ShaderControl extends ConfigControl {
     }
 
     public boolean isLog() {
-        return RAMP_KEYS.createValue( getConfig() ).isLog();
+        return RAMP_KEYS.createValue( getConfig() ).getScaling().isLogLike();
     }
 
     /**

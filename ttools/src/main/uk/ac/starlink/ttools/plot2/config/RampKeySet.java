@@ -8,6 +8,7 @@ import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot.Shader;
 import uk.ac.starlink.ttools.plot.Shaders;
 import uk.ac.starlink.ttools.plot2.Captioner;
+import uk.ac.starlink.ttools.plot2.Scaling;
 import uk.ac.starlink.ttools.plot2.ShadeAxis;
 import uk.ac.starlink.ttools.plot2.ShadeAxisFactory;
 import uk.ac.starlink.ttools.plot2.Subrange;
@@ -26,7 +27,7 @@ public class RampKeySet implements KeySet<RampKeySet.Ramp> {
     private final ConfigKey<Shader> shaderKey_;
     private final ConfigKey<Subrange> subrangeKey_;
     private final ConfigKey<Boolean> flipKey_;
-    private final ConfigKey<Boolean> logKey_;
+    private final OptionConfigKey<Scaling> scalingKey_;
     private final ConfigKey<Color> nullcolorKey_;
 
     /**
@@ -49,8 +50,27 @@ public class RampKeySet implements KeySet<RampKeySet.Ramp> {
         subrangeKey_ =
             new SubrangeConfigKey( SubrangeConfigKey
                                   .createShaderClipMeta( axname, axName ) );
-        flipKey_ = PlaneSurfaceFactory.createAxisFlipKey( axName );
-        logKey_ = PlaneSurfaceFactory.createAxisLogKey( axName );
+        ConfigMeta flipMeta = new ConfigMeta( axname + "flip", "Flip" );
+        flipMeta.setShortDescription( "Flip " + axName + " colour ramp?" );
+        flipMeta.setXmlDescription( new String[] {
+            "<p>If true, the colour map on the " + axName + " axis",
+            "will be reversed.",
+            "</p>",
+        } );
+        flipKey_ = new BooleanConfigKey( flipMeta );
+        ConfigMeta scalingMeta = new ConfigMeta( axname + "func", "Scaling" );
+        scalingMeta.setShortDescription( axName + " scaling function" );
+        scalingMeta.setXmlDescription( new String[] {
+            "<p>Defines the way that values in the (possibly clipped)",
+            axname + " range are mapped to the selected colour ramp.",
+            "</p>",
+        } );
+        scalingKey_ =
+            new OptionConfigKey<Scaling>( scalingMeta, Scaling.class,
+                                          Scaling.getStretchOptions(),
+                                          Scaling.LINEAR );
+        scalingKey_.setOptionUsage();
+        scalingKey_.addOptionsXml();
         nullcolorKey_ = new ColorConfigKey(
             ColorConfigKey.createColorMeta( axname + "null",
                                             "points with a null value of the "
@@ -69,7 +89,7 @@ public class RampKeySet implements KeySet<RampKeySet.Ramp> {
             shaderKey_,
             subrangeKey_,
             flipKey_,
-            logKey_,
+            scalingKey_,
             nullcolorKey_,
         };
     }
@@ -77,14 +97,15 @@ public class RampKeySet implements KeySet<RampKeySet.Ramp> {
     public Ramp createValue( ConfigMap config ) {
         final Shader shader = StyleKeys.createShader( config, shaderKey_,
                                                       subrangeKey_, flipKey_ );
-        final boolean log = config.get( logKey_ );
+        final Scaling scaling = config.get( scalingKey_ );
         final Color nullcolor = config.get( nullcolorKey_ );
+        final boolean isLog = scaling.isLogLike();
         return new Ramp() {
             public Shader getShader() {
                 return shader;
             }
-            public boolean isLog() {
-                return log;
+            public Scaling getScaling() {
+                return scaling;
             }
             public Color getNullColor() {
                 return nullcolor;
@@ -95,16 +116,16 @@ public class RampKeySet implements KeySet<RampKeySet.Ramp> {
                                             final double crowding ) {
                 return new ShadeAxisFactory() {
                     public boolean isLog() {
-                        return log;
+                        return isLog;
                     }
                     public ShadeAxis createShadeAxis( Range range ) {
                         if ( range == null ) {
                             range = new Range();                
                         }
-                        double[] bounds = range.getFiniteBounds( log );
+                        double[] bounds = range.getFiniteBounds( isLog );
                         double lo = bounds[ 0 ];
                         double hi = bounds[ 1 ];
-                        return new ShadeAxis( shader, log, false, lo, hi,
+                        return new ShadeAxis( shader, scaling, lo, hi,
                                               label, captioner, crowding );
                     }
                 };
@@ -140,11 +161,12 @@ public class RampKeySet implements KeySet<RampKeySet.Ramp> {
         Shader getShader();
 
         /**
-         * Indicates whether this ramp is logarithmic.
+         * Returns the scaling function used to map data values to
+         * the shader range.
          *
-         * @return   true for logarithmic scaling, false for linear
+         * @return  scaling
          */
-        boolean isLog();
+        Scaling getScaling();
 
         /**
          * Returns the colour in which items with no ramp data value
