@@ -328,7 +328,7 @@ public class StyleKeys {
     /** Config key for density shader colour map. */
     public static final ConfigKey<Shader> DENSITY_SHADER =
         new ShaderConfigKey(
-            new ConfigMeta( "densemap", "Map" )
+            new ConfigMeta( "densemap", "Density Shader" )
            .setShortDescription( "Color map for density shading" )
            .setXmlDescription( new String[] {
                 "<p>Color map used to indicate point density.",
@@ -338,10 +338,15 @@ public class StyleKeys {
         ).appendShaderDescription()
          .setOptionUsage();
 
+    /** Config key for restricting the range of a density shader colour map. */
+    public static final ConfigKey<Subrange> DENSITY_SHADER_CLIP =
+        new SubrangeConfigKey( SubrangeConfigKey
+                              .createShaderClipMeta( "dense", "Density" ) );
+
     /** Config key for inverting the sense of a density shader colour map. */
     public static final ConfigKey<Boolean> DENSITY_SHADER_FLIP =
         new BooleanConfigKey(
-            new ConfigMeta( "denseflip", "Flip" )
+            new ConfigMeta( "denseflip", "Shader Flip" )
            .setShortDescription( "Flip density colour map?" )
            .setXmlDescription( new String[] {
                 "<p>If true, the colour map used for shading points",
@@ -349,16 +354,6 @@ public class StyleKeys {
                 "</p>",
             } )
         , Boolean.FALSE );
-
-    /** Config key for restricting the range of a density shader colour map. */
-    public static final ConfigKey<Subrange> DENSITY_SHADER_CLIP =
-        new SubrangeConfigKey( SubrangeConfigKey
-                              .createShaderClipMeta( "dense", "Density" ) );
-                             
-    /** Config key for density shader subrange. */
-    public static final ConfigKey<Subrange> DENSITY_SUBRANGE =
-        new SubrangeConfigKey( SubrangeConfigKey
-                              .createAxisSubMeta( "dense", "Density" ) );
 
     /** Config key for density scaling. */
     public static final ConfigKey<Scaling> DENSITY_SCALING =
@@ -373,6 +368,11 @@ public class StyleKeys {
         , Scaling.class, Scaling.getStretchOptions() )
        .setOptionUsage()
        .addOptionsXml();
+                             
+    /** Config key for density shader subrange. */
+    public static final ConfigKey<Subrange> DENSITY_SUBRANGE =
+        new SubrangeConfigKey( SubrangeConfigKey
+                              .createAxisSubMeta( "dense", "Density" ) );
 
     private static final String SCALE_NAME = "scale";
     private static final String AUTOSCALE_NAME = "autoscale";

@@ -37,8 +37,9 @@ public class RampKeySet implements KeySet<RampKeySet.Ramp> {
      * @param  axName  long form of axis name
      */
     public RampKeySet( String axname, String axName ) {
+
         shaderKey_ = new ShaderConfigKey(
-            new ConfigMeta( axname + "map", axName + " Map" )
+            new ConfigMeta( axname + "map", axName + " Shader" )
            .setShortDescription( "Color map for " + axName + " shading" )
            .setXmlDescription( new String[] {
                 "<p>Color map used for " + axName + " axis shading.",
@@ -47,10 +48,12 @@ public class RampKeySet implements KeySet<RampKeySet.Ramp> {
             , createAuxShaders(), Shaders.LUT_RAINBOW
         ).appendShaderDescription()
          .setOptionUsage();
+
         subrangeKey_ =
             new SubrangeConfigKey( SubrangeConfigKey
                                   .createShaderClipMeta( axname, axName ) );
-        ConfigMeta flipMeta = new ConfigMeta( axname + "flip", "Flip" );
+
+        ConfigMeta flipMeta = new ConfigMeta( axname + "flip", "Shader Flip" );
         flipMeta.setShortDescription( "Flip " + axName + " colour ramp?" );
         flipMeta.setXmlDescription( new String[] {
             "<p>If true, the colour map on the " + axName + " axis",
@@ -58,6 +61,7 @@ public class RampKeySet implements KeySet<RampKeySet.Ramp> {
             "</p>",
         } );
         flipKey_ = new BooleanConfigKey( flipMeta );
+
         ConfigMeta scalingMeta = new ConfigMeta( axname + "func", "Scaling" );
         scalingMeta.setShortDescription( axName + " scaling function" );
         scalingMeta.setXmlDescription( new String[] {
@@ -71,6 +75,7 @@ public class RampKeySet implements KeySet<RampKeySet.Ramp> {
                                           Scaling.LINEAR );
         scalingKey_.setOptionUsage();
         scalingKey_.addOptionsXml();
+
         nullcolorKey_ = new ColorConfigKey(
             ColorConfigKey.createColorMeta( axname + "nullcolor", "Null Color",
                                             "points with a null value of the "

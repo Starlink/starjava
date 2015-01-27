@@ -934,8 +934,8 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             return new ConfigKey[] {
                 StyleKeys.COLOR,
                 StyleKeys.DENSITY_SHADER,
-                StyleKeys.DENSITY_SHADER_FLIP,
                 StyleKeys.DENSITY_SHADER_CLIP,
+                StyleKeys.DENSITY_SHADER_FLIP,
                 StyleKeys.DENSITY_SCALING,
                 StyleKeys.DENSITY_SUBRANGE,
             };
