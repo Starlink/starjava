@@ -105,7 +105,7 @@ public class StyleKeys {
     /** Config key for style colour. */
     public static final ConfigKey<Color> COLOR =
         new ColorConfigKey( ColorConfigKey
-                           .createColorMeta( "", "plotted data" ),
+                           .createColorMeta( "color", "Color", "plotted data" ),
                             Color.RED, false );
 
     /** Config key for the opacity limit of transparent plots.
@@ -178,14 +178,15 @@ public class StyleKeys {
     /** Config key for axis grid colour. */
     public static final ConfigKey<Color> GRID_COLOR =
         new ColorConfigKey( ColorConfigKey
-                           .createColorMeta( "grid", "the plot grid" ),
+                           .createColorMeta( "gridcolor", "Grid Color",
+                                             "the plot grid" ),
                             Color.LIGHT_GRAY, false );
 
     /** Config key for axis label colour. */
     public static final ConfigKey<Color> AXLABEL_COLOR =
         new ColorConfigKey(
             ColorConfigKey 
-           .createColorMeta( "label",
+           .createColorMeta( "labelcolor", "Label Color",
                              "axis labels and other plot annotations" )
             , Color.BLACK, false );
 

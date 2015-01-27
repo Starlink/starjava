@@ -72,7 +72,7 @@ public class RampKeySet implements KeySet<RampKeySet.Ramp> {
         scalingKey_.setOptionUsage();
         scalingKey_.addOptionsXml();
         nullcolorKey_ = new ColorConfigKey(
-            ColorConfigKey.createColorMeta( axname + "null",
+            ColorConfigKey.createColorMeta( axname + "nullcolor", "Null Color",
                                             "points with a null value of the "
                                           + axName + " coordinate" )
            .appendXmlDescription( new String[] {
