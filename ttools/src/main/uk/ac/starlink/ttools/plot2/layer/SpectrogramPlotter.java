@@ -179,10 +179,10 @@ public class SpectrogramPlotter
     public SpectroStyle createStyle( ConfigMap config ) {
         RampKeySet.Ramp ramp = RAMP_KEYS.createValue( config );
         Shader shader = ramp.getShader();
-        boolean shadeLog = ramp.isLog();
+        Scaling scaling = ramp.getScaling();
         Color nullColor = ramp.getNullColor();
         ChannelGrid grid = DEFAULT_CHANGRID;
-        return new SpectroStyle( shader, shadeLog, nullColor, grid );
+        return new SpectroStyle( shader, scaling, nullColor, grid );
     }
 
     public boolean hasReports() {
@@ -283,7 +283,7 @@ public class SpectrogramPlotter
         ChannelGrid grid = style.grid_;
         Shader shader = style.shader_;
         Scaler specScaler =
-            Scaling.createRangeScaler( style.shadeLog_, spectroRange );
+            Scaling.createRangeScaler( style.scaling_, spectroRange );
 
         /* Work out the data bounds of the plotting surface. */
         Rectangle plotBounds = surface.getPlotBounds();
@@ -539,7 +539,7 @@ public class SpectrogramPlotter
      */
     public static class SpectroStyle implements Style {
         private final Shader shader_;
-        private final boolean shadeLog_;
+        private final Scaling scaling_;
         private final Color nullColor_;
         private final ChannelGrid grid_;
 
@@ -547,15 +547,14 @@ public class SpectrogramPlotter
          * Constructor.
          *
          * @param   shader  shader
-         * @param   shadeLog  true for logarithmic shading scale,
-         *                    false for linear
+         * @param   scaling   maps data values to shader ramp
          * @param   nullColor  colour to use for blank spectral values
          * @param   grid    channel bounds grid
          */
-        public SpectroStyle( Shader shader, boolean shadeLog,
+        public SpectroStyle( Shader shader, Scaling scaling,
                              Color nullColor, ChannelGrid grid ) {
             shader_ = shader;
-            shadeLog_ = shadeLog;
+            scaling_ = scaling;
             nullColor_ = nullColor;
             grid_ = grid;
         }
@@ -568,7 +567,7 @@ public class SpectrogramPlotter
         public int hashCode() {
             int code = 9703;
             code = 23 * code + shader_.hashCode();
-            code = 23 * code + ( shadeLog_ ? 1 : 3 );
+            code = 23 * code + scaling_.hashCode();
             code = 23 * code + PlotUtil.hashCode( nullColor_ );
             code = 23 * code + PlotUtil.hashCode( grid_ );
             return code;
@@ -579,7 +578,7 @@ public class SpectrogramPlotter
             if ( o instanceof SpectroStyle ) {
                 SpectroStyle other = (SpectroStyle) o;
                 return this.shader_.equals( other.shader_ )
-                    && this.shadeLog_ == other.shadeLog_
+                    && this.scaling_ == other.scaling_
                     && PlotUtil.equals( this.nullColor_, other.nullColor_ )
                     && PlotUtil.equals( this.grid_, other.grid_ );
             }

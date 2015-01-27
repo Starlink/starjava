@@ -16,6 +16,7 @@ public abstract class Scaling {
 
     private final String name_;
     private final String description_;
+    private final boolean isLogLike_;
 
     /** Linear scaling. */
     public static final Scaling LINEAR = createLinearScaling( "Linear" );
@@ -46,10 +47,13 @@ public abstract class Scaling {
      *
      * @param  name  scaling name
      * @param  description  short description of scaling rule
+     * @param  isLogLike  whether the scaling is logarithmic,
+     *                    for instance should be displayed on a log axis
      */
-    protected Scaling( String name, String description ) {
+    protected Scaling( String name, String description, boolean isLogLike ) {
         name_ = name;
         description_ = description;
+        isLogLike_ = isLogLike;
     }
 
     /**
@@ -68,6 +72,18 @@ public abstract class Scaling {
      */
     public String getDescription() {
         return description_;
+    }
+
+    /**
+     * Indicates whether this scaling is logarithmic.
+     * If so, it should be displayed on logarithmic axis,
+     * and can't cope with negative values.
+     * 
+     * @return   true for basically logarithmic,
+     *           false of (perhaps distorted) linear
+     */
+    public boolean isLogLike() {
+        return isLogLike_;
     }
 
     /**
@@ -120,16 +136,15 @@ public abstract class Scaling {
     }
 
     /**
-     * Returns a linear or logarithmic scaler based on a range.
+     * Utility method to return a scaler based on a Range object.
      *
-     * @param  isLog  true for logarithmic, false for linear
+     * @param  scaling  scaling
      * @param  range  value range
      * @return   scaler
      */
-    public static Scaler createRangeScaler( boolean isLog, Range range ) {
-        double[] bounds = range.getFiniteBounds( isLog );
-        return ( isLog ? LOG : LINEAR )
-              .createScaler( bounds[ 0 ], bounds[ 1 ] );
+    public static Scaler createRangeScaler( Scaling scaling, Range range ) {
+        double[] bounds = range.getFiniteBounds( scaling.isLogLike() );
+        return scaling.createScaler( bounds[ 0 ], bounds[ 1 ] );
     }
 
     /**
@@ -139,7 +154,7 @@ public abstract class Scaling {
      * @return  linear scaling
      */
     private static Scaling createLinearScaling( String name ) {
-        return new ClippedScaling( name, "Linear scaling" ) {
+        return new ClippedScaling( name, "Linear scaling", false ) {
             public Scaler createClippedScaler( final double lo, double hi ) {
                 final double scale = 1.0 / ( hi - lo );
                 return new Scaler() {
@@ -158,7 +173,7 @@ public abstract class Scaling {
      * @return  logarithmic scaling
      */
     private static Scaling createLogScaling( String name ) {
-        return new ClippedScaling( name, "Logarithmic scaling" ) {
+        return new ClippedScaling( name, "Logarithmic scaling", true ) {
             public Scaler createClippedScaler( double lo, double hi ) {
                 final double xlo;
                 if ( lo > 0 ) {
@@ -199,7 +214,8 @@ public abstract class Scaling {
         final Scaling asinh = createAsinhScaling( "Asinh-auto", AUTO_DELTA );
         final double minSpan = 1.0 / AUTO_DELTA + 1;
         return new Scaling( name,
-                            "asinh-based scaling with default parameters" ) {
+                            "asinh-based scaling with default parameters",
+                            false ) {
             public Scaler createScaler( double lo, double hi ) {
                 return asinh.createScaler( lo, Math.max( hi, lo + minSpan ) );
             }
@@ -384,7 +400,7 @@ public abstract class Scaling {
          *                the bottom of the scale
          */
         AsinhScaling( String name, String description, double delta ) {
-            super( name, description );
+            super( name, description, false );
             delta_ = delta;
         }
 
@@ -430,7 +446,7 @@ public abstract class Scaling {
          */
         public ReScaling( String name, String description,
                           Scaling baseScaling, Scaler rescaler ) {
-            super( name, description );
+            super( name, description, baseScaling.isLogLike() );
             baseScaling_ = baseScaling;
             rescaler_ = rescaler;
         }
@@ -480,7 +496,8 @@ public abstract class Scaling {
          */
         SubrangeScaling( Scaling baseScaling, Subrange subrange ) {
             super( baseScaling.getName() + "-sub",
-                   baseScaling.getDescription() + ", subrange: " + subrange );
+                   baseScaling.getDescription() + ", subrange: " + subrange,
+                   baseScaling.isLogLike() );
             baseScaling_ = baseScaling;
             subrange_ = subrange;
         }
@@ -525,9 +542,11 @@ public abstract class Scaling {
          *
          * @param  name  scaler name
          * @param  description  scaler description
+         * @param  isLogLike  whether it resembles a logarithmic mapping
          */
-        protected ClippedScaling( String name, String description ) {
-            super( name, description );
+        protected ClippedScaling( String name, String description,
+                                  boolean isLogLike ) {
+            super( name, description, isLogLike );
         }
 
         /**
