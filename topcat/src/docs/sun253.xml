@@ -7574,23 +7574,27 @@ are coloured by data value to represent an additional dimension in the data.
 <p>The <label>Map</label> tab controls the aux axis colour map.
 It has the following options:
 <dl>
-<dt>Shader</dt>
+<dt>Aux Shader</dt>
 <dd><p>Select the colour map from a list of options.
     </p></dd>
-<dt>Shade Clip</dt>
+<dt>Shader Clip</dt>
 <dd><p>Select a sub-range of the full colour map above.
     By default the whole colour map is used, but if you want the range
     of colours in the plot to be formed from only a part of the colour
     band shown in the <label>Shader</label> control,
     you can move the handles in from the end of this slider.
     </p></dd>
-<dt>Shade Log</dt>
-<dd><p>Whether the aux scale should map linearly or logarithmically
-    into the colour map.
-    </p></dd>
-<dt>Shade Flip</dt>
+<dt>Shader Flip</dt>
 <dd><p>Whether the aux scale should map forwards or backwards
     into the colour map.
+    </p></dd>
+<dt>Scaling</dt>
+<dd><p>Determines the function used to map the range of aux data values
+    onto the colour map.
+    Options are <label>linear</label>,
+                <label>logarithmic</label>,
+                <label>square</label> and
+                <label>square root</label>.
     </p></dd>
 <dt>Null Colour</dt>
 <dd><p>What colour should be used to represent points with a null value
@@ -8039,16 +8043,33 @@ It has the following fields:
 <p>The <label>Style</label> allows you to configure the way the spectrogram
 is plotted.  It has the following fields:
 <dl>
-<dt>Shader</dt>
+<dt>Spectral Shader</dt>
 <dd><p>Select the colour map from a list of options.
     </p></dd>
-<dt>Shade Log</dt>
-<dd><p>Whether the aux scale should map linearly or logarithmically
+<dt>Shader Clip</dt>
+<dd><p>Select a sub-range of the full colour map above.
+    By default the whole colour map is used, but if you want the range
+    of colours in the plot to be formed from only a part of the colour
+    band shown in the <label>Shader</label> control,
+    you can move the handles in from the end of this slider.
+    </p></dd>
+<dt>Shader Flip</dt>
+<dd><p>Whether the spectral values should map forwards or backwards
     into the colour map.
     </p></dd>
-<dt>Shade Flip</dt>
-<dd><p>Whether the aux scale should map forwards or backwards
-    into the colour map.
+<dt>Scaling</dt>
+<dd><p>Determines the function used to map the range of spectral data values
+    onto the colour map.
+    Options are <label>linear</label>,
+                <label>logarithmic</label>,
+                <label>square</label> and
+                <label>square root</label>.
+    </p></dd>
+<dt>Spectral Subrange</dt>
+<dd><p>Adjusts the range of the spectral coordinate over which the
+    colour map is applied.  By default the colour map is scaled using
+    limits found from the spectral data values themselves,
+    but you can restrict the range using this slider.
     </p></dd>
 <dt>Null Colour</dt>
 <dd><p>What colour should be used to represent spectral samples with a null
@@ -8769,7 +8790,6 @@ and plots a line linking the two points in a position pair.
 <p>Configuration options are:
 <dl>
 <dt>Shading Mode</dt>
-<dt>Shading Mode</dt>
 <dd><p>See <ref id="ShapeMode"/>.
     </p></dd>
 </dl>
@@ -8969,7 +8989,7 @@ shapes plotted.
 <p>This is like <ref id="mode-auto">Auto</ref> mode, but with more
 user-configurable options.  The options are:
 <dl>
-<dt>Map</dt>
+<dt>Density Shader</dt>
 <dd><p>The colour map for displaying density values.
     There are two types, relative and absolute.
     Relative maps have names marked by a star ("*"), and alter the
@@ -8978,22 +8998,26 @@ user-configurable options.  The options are:
     For a single-dataset plot, the absolute maps are best, but for
     multiple subsets it may be less confusing to use a relative one.
     </p></dd>
-<dt>Map Clip</dt>
+<dt>Shader Clip</dt>
 <dd><p>Select only a part of the colour map selected above.
     By default the whole colour map is used, but if you want the range
     of colours in the plot to be formed from only a part of the colour
     band shown in the <label>Shader</label> control,
     you can move the handles in from the end of this slider.
     </p></dd>
-<dt>Log</dt>
-<dd><p>Selects whether the colour map should be applied linearly or
-    logarithmically to the range of densities.  The default is logarithmic.
+<dt>Shader Flip</dt>
+<dd><p>Whether the density scale should map forwards or backwards
+    into the colour map.
     </p></dd>
-<dt>Flip</dt>
-<dd><p>Selects whether the colour map should be applied forwards or
-    backwards to the range of densities.
+<dt>Scaling</dt>
+<dd><p>Determines the function used to map the range of density values
+    onto the colour map.
+    Options are <label>linear</label>,
+                <label>logarithmic</label>,
+                <label>square</label> and
+                <label>square root</label>.
     </p></dd>
-<dt>Sub-range</dt>
+<dt>Density Subrange</dt>
 <dd><p>Adjusts the density range over which the colour
     map is applied.  By default the colour map is scaled using limits
     found from the data density in the plot (the most dense few pixels are
@@ -20801,6 +20825,11 @@ introduced since the last version:
         in auto-format-detection mode.</li>
     <li>Make VOTable handling more robust against unknown (illegal)
         datatypes.</li>
+    <li>The <ref id="ShaderControl">Aux Axis</ref> control,
+        <ref id="mode-density">Density</ref> shading mode, and
+        <ref id="SpectrogramLayerControl">Spectrogram</ref> layer control
+        now provide a <label>Scaling</label> option for the colour map,
+        allowing use of Square and Sqrt mapping as well as Linear and Log.</li>
     </ul>
     </p></dd>
 

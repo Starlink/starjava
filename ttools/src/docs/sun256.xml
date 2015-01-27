@@ -10112,6 +10112,14 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         in auto-format-detection mode.</li>
     <li>Make VOTable handling more robust against unknown (illegal)
         datatypes.</li>
+    <li>New parameters <code>auxfunc</code>, <code>densefuncN</code> and
+        <code>spectrofuncN</code> respectively
+        provide more flexibility in scaling functions
+        (Sqrt and Square as well as Linear and Logarithmic)
+        when using colour ramps in
+        <ref id="shading-aux">aux</ref> and
+        <ref id="shading-density">density</ref> shading modes, and
+        <ref id="layer-spectrogram">spectrogram</ref> layer.</li>
     </ul>
     </p></dd>
 
