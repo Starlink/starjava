@@ -1,4 +1,4 @@
-package uk.ac.starlink.ttools.plot2.layer;
+package uk.ac.starlink.ttools.plot2;
 
 import junit.framework.TestCase;
 

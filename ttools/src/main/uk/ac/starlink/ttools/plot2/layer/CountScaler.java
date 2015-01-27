@@ -1,5 +1,8 @@
 package uk.ac.starlink.ttools.plot2.layer;
 
+import uk.ac.starlink.ttools.plot2.Scaler;
+import uk.ac.starlink.ttools.plot2.Scaling;
+
 /**
  * Scales integer count values according to a supplied Scaling object.
  *

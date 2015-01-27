@@ -1,12 +1,9 @@
-package uk.ac.starlink.ttools.plot2.layer;
+package uk.ac.starlink.ttools.plot2;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import uk.ac.starlink.ttools.func.Maths;
 import uk.ac.starlink.ttools.plot.Range;
-import uk.ac.starlink.ttools.plot2.Equality;
-import uk.ac.starlink.ttools.plot2.PlotUtil;
-import uk.ac.starlink.ttools.plot2.Subrange;
 
 /**
  * Defines a policy for scaling values to a fixed interval.
