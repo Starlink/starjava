@@ -903,6 +903,8 @@ public abstract class ShapeMode implements ModePlotter.Mode {
      */
     private static class CustomDensityMode extends AbstractDensityMode {
 
+        private static final RampKeySet RAMP_KEYS = StyleKeys.DENSITY_RAMP;
+
         /**
          * Constructor.
          */
@@ -931,27 +933,19 @@ public abstract class ShapeMode implements ModePlotter.Mode {
         }
 
         public ConfigKey[] getConfigKeys() {
-            return new ConfigKey[] {
-                StyleKeys.COLOR,
-                StyleKeys.DENSITY_SHADER,
-                StyleKeys.DENSITY_SHADER_CLIP,
-                StyleKeys.DENSITY_SHADER_FLIP,
-                StyleKeys.DENSITY_SCALING,
-                StyleKeys.DENSITY_SUBRANGE,
-            };
+            List<ConfigKey> keyList = new ArrayList<ConfigKey>();
+            keyList.add( StyleKeys.COLOR );
+            keyList.addAll( Arrays.asList( RAMP_KEYS.getKeys() ) );
+            return keyList.toArray( new ConfigKey[ 0 ] );
         }
 
         public Stamper createStamper( ConfigMap config ) {
             Color baseColor = config.get( StyleKeys.COLOR );
-            Shader baseShader =
-                StyleKeys.createShader( config, StyleKeys.DENSITY_SHADER,
-                                                StyleKeys.DENSITY_SHADER_CLIP,
-                                                StyleKeys.DENSITY_SHADER_FLIP );
+            RampKeySet.Ramp ramp = RAMP_KEYS.createValue( config );
+            Shader baseShader = ramp.getShader();
             Shader densityShader =
                 Shaders.applyShader( baseShader, baseColor, COLOR_MAP_SIZE );
-            Scaling scaling =
-                StyleKeys.createScaling( config, StyleKeys.DENSITY_SCALING,
-                                                 StyleKeys.DENSITY_SUBRANGE );
+            Scaling scaling = ramp.getScaling();
             return new DensityStamper( densityShader, scaling );
         }
     }
@@ -964,7 +958,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
         private final boolean reportAuxKeys_;
 
         private static final AuxScale SCALE = AuxScale.COLOR;
-        private static final RampKeySet rampKeys_ = StyleKeys.AUX_RAMP;
+        private static final RampKeySet RAMP_KEYS = StyleKeys.AUX_RAMP;
         private static final String scaleName = SCALE.getName();
         private static final FloatingCoord SHADE_COORD =
             FloatingCoord.createCoord(
@@ -1016,8 +1010,9 @@ public abstract class ShapeMode implements ModePlotter.Mode {
         public ConfigKey[] getConfigKeys() {
             List<ConfigKey> list = new ArrayList<ConfigKey>();
             if ( reportAuxKeys_ ) {
-                list.addAll( Arrays.asList( rampKeys_.getKeys() ) );
+                list.addAll( Arrays.asList( RAMP_KEYS.getKeys() ) );
             }
+            list.add( StyleKeys.AUX_NULLCOLOR );
             if ( transparent_ ) {
                 list.add( StyleKeys.AUX_OPAQUE );
             }
@@ -1025,10 +1020,10 @@ public abstract class ShapeMode implements ModePlotter.Mode {
         }
 
         public Stamper createStamper( ConfigMap config ) {
-            RampKeySet.Ramp ramp = rampKeys_.createValue( config );
+            RampKeySet.Ramp ramp = RAMP_KEYS.createValue( config );
             Shader shader = ramp.getShader();
             Scaling scaling = ramp.getScaling();
-            Color nullColor = ramp.getNullColor();
+            Color nullColor = config.get( StyleKeys.AUX_NULLCOLOR );
             double opaque = transparent_
                           ? config.get( StyleKeys.AUX_OPAQUE )
                           : 1;

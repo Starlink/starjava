@@ -38,7 +38,6 @@ import uk.ac.starlink.util.gui.RenderingComboBox;
 public class StyleKeys {
 
     private static final MarkShape[] SHAPES = createShapes();
-    private static final Shader[] DENSITY_SHADERS = createDensityShaders();
 
     /** Config key for marker shape. */
     public static final ConfigKey<MarkShape> MARK_SHAPE =
@@ -325,54 +324,9 @@ public class StyleKeys {
         new SubrangeConfigKey( SubrangeConfigKey
                               .createAxisSubMeta( "aux", "Aux" ) );
 
-    /** Config key for density shader colour map. */
-    public static final ConfigKey<Shader> DENSITY_SHADER =
-        new ShaderConfigKey(
-            new ConfigMeta( "densemap", "Density Shader" )
-           .setShortDescription( "Color map for density shading" )
-           .setXmlDescription( new String[] {
-                "<p>Color map used to indicate point density.",
-                "</p>",
-            } )
-            , DENSITY_SHADERS, DENSITY_SHADERS[ 0 ]
-        ).appendShaderDescription()
-         .setOptionUsage();
-
-    /** Config key for restricting the range of a density shader colour map. */
-    public static final ConfigKey<Subrange> DENSITY_SHADER_CLIP =
-        new SubrangeConfigKey( SubrangeConfigKey
-                              .createShaderClipMeta( "dense", "Density" ) );
-
-    /** Config key for inverting the sense of a density shader colour map. */
-    public static final ConfigKey<Boolean> DENSITY_SHADER_FLIP =
-        new BooleanConfigKey(
-            new ConfigMeta( "denseflip", "Shader Flip" )
-           .setShortDescription( "Flip density colour map?" )
-           .setXmlDescription( new String[] {
-                "<p>If true, the colour map used for shading points",
-                "according to density is reversed.",
-                "</p>",
-            } )
-        , Boolean.FALSE );
-
-    /** Config key for density scaling. */
-    public static final ConfigKey<Scaling> DENSITY_SCALING =
-        new OptionConfigKey<Scaling>(
-            new ConfigMeta( "densefunc", "Scaling" )
-           .setShortDescription( "Density colour scaling function" )
-           .setXmlDescription( new String[] {
-                "<p>Defines the way that values in the (possibly clipped)",
-                "density range are mapped to the selected colour ramp.",
-                "</p>",
-            } )
-        , Scaling.class, Scaling.getStretchOptions() )
-       .setOptionUsage()
-       .addOptionsXml();
-                             
-    /** Config key for density shader subrange. */
-    public static final ConfigKey<Subrange> DENSITY_SUBRANGE =
-        new SubrangeConfigKey( SubrangeConfigKey
-                              .createAxisSubMeta( "dense", "Density" ) );
+    /** Config key for aux null colour. */
+    public static final ConfigKey<Color> AUX_NULLCOLOR =
+        createNullColorKey( "aux", "Aux" );
 
     private static final String SCALE_NAME = "scale";
     private static final String AUTOSCALE_NAME = "autoscale";
@@ -522,7 +476,19 @@ public class StyleKeys {
     public static final CaptionerKeySet CAPTIONER = new CaptionerKeySet();
 
     /** Config key set for global Aux axis colour ramp. */
-    public static final RampKeySet AUX_RAMP = new RampKeySet( "aux", "Aux" );
+    public static final RampKeySet AUX_RAMP =
+        new RampKeySet( "aux", "Aux",
+                        createAuxShaders(), Scaling.LINEAR, false );
+
+    /** Config key set for density shading. */
+    public static final RampKeySet DENSITY_RAMP =
+        new RampKeySet( "dense", "Density",
+                        createDensityShaders(), Scaling.LOG, true );
+
+    /** Config key set for spectrogram shading. */
+    public static final RampKeySet SPECTRO_RAMP =
+        new RampKeySet( "spectro", "Spectral",
+                        createAuxShaders(), Scaling.LINEAR, true );
 
     /**
      * Private constructor prevents instantiation.
@@ -598,6 +564,30 @@ public class StyleKeys {
     }
 
     /**
+     * Returns a key for acquiring a colour used in place of a shading ramp
+     * colour in case that the input data is null.
+     *
+     * @param  axname  short form of axis name, used in text parameter names
+     * @param  axName  long form of axis name, used in descriptions
+     * @return  new key
+     */
+    public static ConfigKey<Color> createNullColorKey( String axname,
+                                                       String axName ) {
+        return new ColorConfigKey(
+            ColorConfigKey.createColorMeta( axname.toLowerCase() + "nullcolor",
+                                            "Null Color",
+                                            "points with a null value of the "
+                                          + axName + " coordinate" )
+           .appendXmlDescription( new String[] {
+                "<p>If the value is null, then points with a null",
+                axName,
+                "value will not be plotted at all.",
+                "</p>",
+            } )
+            , Color.GRAY, true );
+    }
+
+    /**
      * Returns a config key for line thickness with a given default value.
      *
      * @param  dfltThick  default value for line width in pixels
@@ -617,51 +607,6 @@ public class StyleKeys {
                                new ThicknessComboBox( 5 ) );
             }
         };
-    }
-
-    /**
-     * Obtains a shader from a config map given appropriate keys.
-     *
-     * @param  config  config map
-     * @param  baseShaderKey   key for extracting a shader
-     * @param  clipKey   key for extracting a clip range of a shader
-     * @param  flipKey   key for extracting shader flip flag
-     * @return  shader with clip applied if appropriate
-     */
-    public static Shader createShader( ConfigMap config,
-                                       ConfigKey<Shader> baseShaderKey,
-                                       ConfigKey<Subrange> clipKey,
-                                       ConfigKey<Boolean> flipKey ) {
-        Shader shader = config.get( baseShaderKey );
-        if ( shader == null ) {
-            return null;
-        }
-        Subrange clip = config.get( clipKey );
-        if ( ! Subrange.isIdentity( clip ) ) {
-            shader = Shaders.stretch( shader, (float) clip.getLow(),
-                                              (float) clip.getHigh() );
-        }
-        boolean isFlip = Boolean.TRUE.equals( config.get( flipKey ) );
-        if ( isFlip ) {
-            shader = Shaders.invert( shader );
-        }
-        return shader;
-    }
-
-    /**
-     * Returns a scaling object from a config map given appropriate keys.
-     *
-     * @param  config  config map
-     * @param  baseScalingKey  key for scaling operation
-     * @param  subrangeKey   key for input value subrange
-     * @return  scaling object ready for use
-     */
-    public static Scaling createScaling( ConfigMap config,
-                                         ConfigKey<Scaling> baseScalingKey,
-                                         ConfigKey<Subrange> subrangeKey ) {
-        Scaling baseScaling = config.get( baseScalingKey );
-        Subrange subrange = config.get( subrangeKey );
-        return Scaling.subrangeScaling( baseScaling, subrange );
     }
 
     /**
@@ -735,7 +680,7 @@ public class StyleKeys {
             Shaders.RED_BLUE,
             Shaders.LUT_BRG,
             Shaders.invert( Shaders.LUT_HEAT ),
-            Shaders.invert( Shaders.LUT_COLD ),
+            Shaders.invert( Shaders.LUT_COLD ), 
             Shaders.invert( Shaders.LUT_LIGHT ),
             Shaders.WHITE_BLACK,
             Shaders.SCALE_V,
@@ -746,6 +691,54 @@ public class StyleKeys {
             Shaders.BREWER_BUPU,
             Shaders.BREWER_ORRD,
             Shaders.BREWER_PUBU,
+            Shaders.BREWER_PURD,
+        };
+    }
+
+    /**
+     * Returns a list of shaders suitable for aux axis shading.
+     *
+     * @return  shaders
+     */
+    private static Shader[] createAuxShaders() {
+        return new Shader[] {
+            Shaders.LUT_RAINBOW,
+            Shaders.LUT_GLNEMO2,
+            Shaders.LUT_PASTEL,
+            Shaders.LUT_ACCENT,
+            Shaders.LUT_GNUPLOT,
+            Shaders.LUT_GNUPLOT2,
+            Shaders.LUT_CUBEHELIX,
+            Shaders.LUT_SPECXB2Y,
+            Shaders.LUT_SET1,
+            Shaders.LUT_PAIRED,
+            Shaders.CYAN_MAGENTA,
+            Shaders.RED_BLUE,
+            Shaders.LUT_BRG,
+            Shaders.LUT_HEAT,
+            Shaders.LUT_COLD,
+            Shaders.LUT_LIGHT,
+            Shaders.LUT_COLOR,
+            Shaders.WHITE_BLACK,
+            Shaders.LUT_STANDARD,
+            Shaders.LUT_RAINBOW3,
+            Shaders.createMaskShader( "Mask", 0f, 1f, true ),
+            Shaders.FIX_HUE,
+            Shaders.TRANSPARENCY,
+            Shaders.FIX_INTENSITY,
+            Shaders.FIX_RED,
+            Shaders.FIX_GREEN,
+            Shaders.FIX_BLUE,
+            Shaders.HSV_H,
+            Shaders.HSV_S,
+            Shaders.HSV_V,
+            Shaders.FIX_Y,
+            Shaders.FIX_U,
+            Shaders.FIX_V, 
+            Shaders.BREWER_BUGN,
+            Shaders.BREWER_BUPU,
+            Shaders.BREWER_ORRD,
+            Shaders.BREWER_PUBU, 
             Shaders.BREWER_PURD,
         };
     }
