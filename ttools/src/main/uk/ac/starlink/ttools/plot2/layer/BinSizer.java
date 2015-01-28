@@ -230,7 +230,7 @@ public abstract class BinSizer {
 
         public Specifier<BinSizer> createSpecifier() {
             final SliderSpecifier sliderSpecifier =
-                    new SliderSpecifier( 400, 2, true, true );
+                    new SliderSpecifier( 400, 2, true, false, true );
             return new SpecifierPanel<BinSizer>( true ) {
                 protected JComponent createComponent() {
                     sliderSpecifier.addActionListener( getActionForwarder() );

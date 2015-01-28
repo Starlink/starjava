@@ -24,6 +24,7 @@ public class SliderSpecifier extends SpecifierPanel<Double> {
     private final double lo_;
     private final double hi_;
     private final boolean log_;
+    private final boolean flip_;
     private final boolean txtOpt_;
     private final JSlider slider_;
     private final JTextField txtField_;
@@ -33,30 +34,32 @@ public class SliderSpecifier extends SpecifierPanel<Double> {
     private static final int MAX = 10000;
 
     /**
-     * Constructs a specifier with just a slider.
+     * Constructs a specifier with minimal options.
      *
      * @param   lo   slider lower bound
      * @param   hi   slider upper bound
      * @param  log  true for logarithmic slider scale, false for linear
      */
     public SliderSpecifier( double lo, double hi, boolean log ) {
-        this( lo, hi, log, false );
+        this( lo, hi, log, false, false );
     }
 
     /**
-     * Constructs a specifier with a slider and optionally a text entry field.
+     * Constructs a specifier with all options.
      *
      * @param   lo   slider lower bound
      * @param   hi   slider upper bound
      * @param  log  true for logarithmic slider scale, false for linear
+     * @param  flip  true to make slider values increase right to left
      * @param  txtOpt  true to include a text entry option
      */
-    public SliderSpecifier( double lo, double hi, boolean log,
+    public SliderSpecifier( double lo, double hi, boolean log, boolean flip,
                             boolean txtOpt ) {
         super( true );
         lo_ = lo;
         hi_ = hi;
         log_ = log;
+        flip_ = flip;
         txtOpt_ = txtOpt;
         slider_ = new JSlider( MIN, MAX );
         txtField_ = new JTextField( 8 );
@@ -179,6 +182,9 @@ public class SliderSpecifier extends SpecifierPanel<Double> {
      */
     private double scale( int ival ) {
         double f = ( ival - MIN ) / (double) ( MAX - MIN );
+        if ( flip_ ) {
+            f = 1 - f;
+        }
         return log_ ? lo_ * Math.pow( hi_ / lo_, f )
                     : lo_ + ( hi_ - lo_ ) * f;
     }
@@ -192,6 +198,9 @@ public class SliderSpecifier extends SpecifierPanel<Double> {
     private int unscale( double dval ) {
         double s = log_ ? Math.log( dval / lo_ ) / Math.log( hi_ / lo_ )
                         : ( dval - lo_ ) / ( hi_ - lo_ );
-        return (int) Math.round( s * ( MAX - MIN ) ) + MIN;
+        if ( flip_ ) {
+            s = 1 - s;
+        }
+        return (int) Math.round( s * ( MAX - MIN ) + MIN );
     }
 }
