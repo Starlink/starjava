@@ -10120,6 +10120,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <ref id="shading-aux">aux</ref> and
         <ref id="shading-density">density</ref> shading modes, and
         <ref id="layer-spectrogram">spectrogram</ref> layer.</li>
+    <li>Add missing parameters <code>auxmax</code>, <code>auxmin</code>
+        to plotting task documentation.</li>
     </ul>
     </p></dd>
 

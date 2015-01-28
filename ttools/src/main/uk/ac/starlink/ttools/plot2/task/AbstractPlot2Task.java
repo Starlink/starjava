@@ -335,6 +335,8 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         plist.add( titleParam_ );
 
         plist.addAll( getKeyParams( StyleKeys.AUX_RAMP.getKeys() ) );
+        plist.add( new ConfigParameter( StyleKeys.SHADE_LOW ) );
+        plist.add( new ConfigParameter( StyleKeys.SHADE_HIGH ) );
 
         auxlabelParam_ = new StringParameter( "auxlabel" );
         auxlabelParam_.setUsage( "<text>" );
