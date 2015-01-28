@@ -1465,7 +1465,8 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         /* Really, I should default this from the value of the first
          * layer aux data value. */
         String label = auxlabelParam_.objectValue( env );
-        return ramp.createShadeAxisFactory( captioner, label, crowd );
+        return RampKeySet
+              .createShadeAxisFactory( ramp, captioner, label, crowd );
     }
 
     /**

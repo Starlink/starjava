@@ -5,8 +5,10 @@ import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.Point2D;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
@@ -29,6 +31,7 @@ import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.RampKeySet;
+import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.CoordGroup;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
@@ -63,8 +66,9 @@ public class SpectrogramPlotter
     private final int icSpectrum_;
 
     private static final AuxScale SPECTRO_SCALE = new AuxScale( "Spectral" );
-    private static final RampKeySet RAMP_KEYS =
-        new RampKeySet( "spectro", "Spectro" );
+    private static final RampKeySet RAMP_KEYS = StyleKeys.SPECTRO_RAMP;
+    private static final ConfigKey<Color> NULLCOLOR_KEY =
+        StyleKeys.createNullColorKey( "spectro", "Spectral" );
     private static final ChannelGrid DEFAULT_CHANGRID =
         new AssumedChannelGrid();
     private static final int MAX_SAMPLE = 100;
@@ -173,14 +177,17 @@ public class SpectrogramPlotter
     }
 
     public ConfigKey[] getStyleKeys() {
-        return RAMP_KEYS.getKeys();
+        List<ConfigKey> keyList = new ArrayList<ConfigKey>();
+        keyList.addAll( Arrays.asList( RAMP_KEYS.getKeys() ) );
+        keyList.add( NULLCOLOR_KEY );
+        return keyList.toArray( new ConfigKey[ 0 ] );
     }
 
     public SpectroStyle createStyle( ConfigMap config ) {
         RampKeySet.Ramp ramp = RAMP_KEYS.createValue( config );
         Shader shader = ramp.getShader();
         Scaling scaling = ramp.getScaling();
-        Color nullColor = ramp.getNullColor();
+        Color nullColor = config.get( NULLCOLOR_KEY );
         ChannelGrid grid = DEFAULT_CHANGRID;
         return new SpectroStyle( shader, scaling, nullColor, grid );
     }
