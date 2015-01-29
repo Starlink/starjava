@@ -80,6 +80,7 @@ public class CoordPanel {
                  * giving the current value in a stilts-friendly format. */
                 JLabel[] labels = stack.getLabels();
                 final JLabel label = labels[ labels.length - 1 ];
+                label.addMouseListener( InstantTipper.getInstance() );
                 final String shortName = meta.getShortName();
                 ActionListener tipListener = new ActionListener() {
                     public void actionPerformed( ActionEvent evt ) {

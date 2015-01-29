@@ -85,6 +85,7 @@ public class ConfigSpecifier extends SpecifierPanel<ConfigMap> {
              * the current value in a stilts-friendly format. */
             JLabel[] labels = stack.getLabels();
             final JLabel label = labels[ labels.length - 1 ];
+            label.addMouseListener( InstantTipper.getInstance() );
             ActionListener tipListener = new ActionListener() {
                 public void actionPerformed( ActionEvent evt ) {
                     label.setToolTipText( getToolTip( kspec ) );
