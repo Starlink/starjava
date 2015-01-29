@@ -10112,16 +10112,17 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         in auto-format-detection mode.</li>
     <li>Make VOTable handling more robust against unknown (illegal)
         datatypes.</li>
-    <li>New parameters <code>auxfunc</code>, <code>densefuncN</code> and
-        <code>spectrofuncN</code> respectively
-        provide more flexibility in scaling functions
-        (Sqrt and Square as well as Linear and Logarithmic)
-        when using colour ramps in
-        <ref id="shading-aux">aux</ref> and
-        <ref id="shading-density">density</ref> shading modes, and
-        <ref id="layer-spectrogram">spectrogram</ref> layer.</li>
     <li>Add missing parameters <code>auxmax</code>, <code>auxmin</code>
         to plotting task documentation.</li>
+    <li>More flexibility when assigning colour maps, in 
+        <ref id="shading-aux">aux</ref> and
+        <ref id="shading-density">density</ref> shading modes, and
+        <ref id="layer-spectrogram">spectrogram</ref> layer.
+        New parameters <code>*func</code> allow assignment of
+        different data-&gt;ramp mapping functions
+        (sqrt and square as well as linear and logarithmic),
+        and new parameters <code>*quant</code> allow quantisation
+        of the colour map to discrete levels.</li>
     </ul>
     </p></dd>
 

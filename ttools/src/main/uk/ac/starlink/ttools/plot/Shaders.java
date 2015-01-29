@@ -963,6 +963,77 @@ public class Shaders {
         }
     }
 
+    /**
+     * Shader implementation which quantises the colour map into a
+     * set of discrete colour values.
+     */
+    private static class QuantisedShader implements Shader {
+
+        private final Shader base_;
+        private final float nlevel_;
+
+        /**
+         * Constructor.
+         *
+         * @param  base  base shader
+         * @param  nlevel   number of discrete colours for output
+         */
+        public QuantisedShader( Shader base, double nlevel ) {
+            base_ = base;
+            nlevel_ = (float) nlevel;
+        }
+
+        public void adjustRgba( float[] rgba, float value ) {
+            base_.adjustRgba( rgba, quantise( value ) );
+        }
+
+        private float quantise( float value ) {
+            return (int) ( value * nlevel_ ) / nlevel_;
+        }
+
+        public boolean isAbsolute() {
+            return base_.isAbsolute();
+        }
+
+        public String getName() {
+            return base_.getName() + "-" + (int) Math.round( nlevel_ );
+        }
+
+        public Icon createIcon( boolean horizontal, int width, int height,
+                                int xpad, int ypad ) {
+            Color baseColor = base_ instanceof BasicShader   
+                            ? ((BasicShader) base_).baseColor_
+                            : null;
+            return create1dIcon( this, horizontal,
+                                 baseColor == null ? Color.BLACK : baseColor,
+                                 width, height, xpad, ypad );
+        }
+
+        @Override
+        public int hashCode() {
+            int code = 4392;
+            code = 23 * code + base_.hashCode();
+            code = 23 * code + Float.floatToIntBits( nlevel_ );
+            return code;
+        }
+
+        @Override
+        public boolean equals( Object o ) {
+            if ( o instanceof QuantisedShader ) {
+                QuantisedShader other = (QuantisedShader) o;
+                return this.base_.equals( other.base_ )
+                    && this.nlevel_ == other.nlevel_;
+            }
+            else {
+                return false;
+            }
+        }
+
+        @Override
+        public String toString() {
+            return getName();
+        }
+    }
 
     /**
      * Shader implementation which scales one component of the sRGB array
@@ -1281,9 +1352,22 @@ public class Shaders {
      *                  value 0 in this one (must be in range 0-1)
      * @param   frac1   parameter value in base shader corresponding to
      *                  value 1 in this one (must be in range 0-1)
+     * @return   new shader
      */
     public static Shader stretch( Shader shader, float frac0, float frac1 ) {
         return new StretchedShader( shader, frac0, frac1 );
+    }
+
+    /**
+     * Returns a shader which splits the colour map into a set of
+     * discrete levels.
+     *
+     * @param  shader  base shader
+     * @param  nlevel  number of discrete colour levels required
+     * @return  new shader
+     */
+    public static Shader quantise( Shader shader, double nlevel ) {
+        return new QuantisedShader( shader, nlevel );
     }
 
     /**

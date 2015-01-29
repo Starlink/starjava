@@ -7588,6 +7588,14 @@ It has the following options:
 <dd><p>Whether the aux scale should map forwards or backwards
     into the colour map.
     </p></dd>
+<dt>Shader Quantise</dt>
+<dd><p>Allows the colour map to be quantised.
+    By default, the colour map is effectively continuous.
+    If you slide the slider to the right, the map will be split into
+    a decreasing number of discrete colours.  This can be used to generate
+    a contour-like efect, and may make it easier to trace the boundaries
+    of regions of interest by eye.
+    </p></dd>
 <dt>Scaling</dt>
 <dd><p>Determines the function used to map the range of aux data values
     onto the colour map.
@@ -8056,6 +8064,14 @@ is plotted.  It has the following fields:
 <dt>Shader Flip</dt>
 <dd><p>Whether the spectral values should map forwards or backwards
     into the colour map.
+    </p></dd>
+<dt>Shader Quantise</dt>
+<dd><p>Allows the colour map to be quantised.
+    By default, the colour map is effectively continuous.
+    If you slide the slider to the right, the map will be split into
+    a decreasing number of discrete colours.  This can be used to generate
+    a contour-like efect, and may make it easier to trace the boundaries
+    of regions of interest by eye.
     </p></dd>
 <dt>Scaling</dt>
 <dd><p>Determines the function used to map the range of spectral data values
@@ -9008,6 +9024,14 @@ user-configurable options.  The options are:
 <dt>Shader Flip</dt>
 <dd><p>Whether the density scale should map forwards or backwards
     into the colour map.
+    </p></dd>
+<dt>Shader Quantise</dt>
+<dd><p>Allows the colour map to be quantised.
+    By default, the colour map is effectively continuous.
+    If you slide the slider to the right, the map will be split into
+    a decreasing number of discrete colours.  This can be used to generate
+    a contour-like efect, and may make it easier to trace the boundaries
+    of regions of interest by eye.
     </p></dd>
 <dt>Scaling</dt>
 <dd><p>Determines the function used to map the range of density values
@@ -17966,6 +17990,7 @@ Some of the notable contributers are these:
 <li>Roy Platon (RAL)</li>
 <li>James Price (Bristol)</li>
 <li>Anita Richards (Jodrell Bank)</li>
+<li>Kristin Riebe (AIP)</li>
 <li>Aaron Robotham (Bristol)</li>
 <li>Yannick Roehlly (OAMP)</li>
 <li>Mike Read (ROE)</li>
@@ -20825,11 +20850,14 @@ introduced since the last version:
         in auto-format-detection mode.</li>
     <li>Make VOTable handling more robust against unknown (illegal)
         datatypes.</li>
-    <li>The <ref id="ShaderControl">Aux Axis</ref> control,
+    <li>More flexibility when assigning colour maps, in the
+        <ref id="ShaderControl">Aux Axis</ref> control,
         <ref id="mode-density">Density</ref> shading mode, and
-        <ref id="SpectrogramLayerControl">Spectrogram</ref> layer control
-        now provide a <label>Scaling</label> option for the colour map,
-        allowing use of Square and Sqrt mapping as well as Linear and Log.</li>
+        <ref id="SpectrogramLayerControl">Spectrogram</ref> layer control.
+        These now provide a <label>Scaling</label> option allowing use of
+        Square and Sqrt mappings as well as Linear and Logarithmic,
+        and a <label>Quantise</label> slider allowing quantisation of
+        the colour map to discrete levels.</li>
     </ul>
     </p></dd>
 
