@@ -16,6 +16,7 @@ import javax.swing.JSlider;
 import javax.swing.JTextField;
 import javax.swing.event.ChangeListener;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
+import uk.ac.starlink.ttools.plot2.PlotUtil;
 
 /**
  * Double value specifier that uses a slider to choose a value in the
@@ -197,7 +198,33 @@ public class SliderSpecifier extends SpecifierPanel<Double> {
      * @return  slider value
      */
     public double getSliderValue() {
-        return scale( slider_.getValue() );
+        int i0 = slider_.getValue();
+        double d0 = scale( i0 );
+
+        /* For cosmetic reasons, try to round the value to a round number
+         * corresponding to the nearest pixel so that reporting the
+         * value as text does not include spurious (and ugly) precision.
+         * We do it by formatting the value using a pixel-sized value delta,
+         * and turning that formatted value back into a number. */
+        int npix = slider_.getOrientation() == JSlider.HORIZONTAL
+                 ? slider_.getWidth()
+                 : slider_.getHeight();
+        if ( npix > 10 ) {
+            int iPixStep = ( slider_.getMaximum() - slider_.getMinimum() )
+                         / npix;
+            double dPixStep = Math.abs( scale( i0 + iPixStep ) - d0 );
+            if ( dPixStep > 0 ) {
+                String numstr = PlotUtil.formatNumber( d0, dPixStep );
+                try {
+                    return Double.parseDouble( numstr );
+                }
+                catch ( NumberFormatException e ) {
+                }
+            }
+        }
+
+        /* If something went wrong, it's OK to use the exact value. */
+        return d0;
     }
 
     /**

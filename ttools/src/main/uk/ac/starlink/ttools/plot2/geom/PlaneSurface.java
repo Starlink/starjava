@@ -500,31 +500,7 @@ public class PlaneSurface implements Surface {
 
         /* Work out pixel size in data coordinates by looking at the
          * data position of a point two pixels away. */
-        double dp2 =
-            axis.graphicsToData( (int) axis.dataToGraphics( dpos ) + 2 );
-        double prec = Math.abs( dp2 - dpos ) / 2.;
-
-        /* Work out the number of significant figures. */
-        double aval = Math.abs( dpos );
-        int nsf =
-            Math.max( 0, (int) Math.round( -Math.log10( prec / aval ) ) );
-
-        /* Return a formatted string on this basis. */
-        if ( aval >= 1e6 || aval <= 1e-4 ) {
-            return PlotUtil.formatNumber( dpos, "0.#E0", nsf );
-        }
-        else if ( prec >= 0.9 ) {
-            return Long.toString( (long) Math.round( dpos ) );
-        }
-        else {
-            int ndp =
-                (int) Math.round( Math.max( 0, -Math.log10( prec ) ) );
-            if ( ndp == 0 ) {
-                return Long.toString( (long) Math.round( dpos ) );
-            }
-            else {
-                return PlotUtil.formatNumber( dpos, "0.0", ndp );
-            }
-        }
+        double dp2 = axis.graphicsToData( axis.dataToGraphics( dpos ) + 2 );
+        return PlotUtil.formatNumber( dpos, Math.abs( dp2 - dpos ) / 2. );
     }
 }
