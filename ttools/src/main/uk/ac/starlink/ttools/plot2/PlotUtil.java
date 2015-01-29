@@ -659,6 +659,41 @@ public class PlotUtil {
     }
 
     /**
+     * Formats a number so that it presents a number of significant figures
+     * corresponding to a supplied small difference.
+     * The idea is that the output should be compact, but that applying
+     * this function to value and value+epsilon should give visibly
+     * different results.  The number of significant figures is determined
+     * by epsilon, not further rounded (trailing zeroes are not truncated).
+     *
+     * @param   value   value to format
+     * @param   epsilon   small value
+     * @return  formatted value
+     */
+    public static String formatNumber( double value, double epsilon ) {
+        epsilon = Math.abs( epsilon );
+
+        /* Work out the number of significant figures. */
+        double aval = Math.abs( value );
+        int nsf =
+            Math.max( 0, (int) Math.round( -Math.log10( epsilon / aval ) ) );
+
+        /* Return a formatted string on this basis. */
+        if ( aval >= 1e6 || aval <= 1e-4 ) {
+            return formatNumber( value, "0.#E0", nsf );
+        }
+        else if ( epsilon >= 0.9 ) {
+            return Long.toString( (long) Math.round( value ) );
+        }
+        else {
+            int ndp = (int) Math.round( Math.max( 0, -Math.log10( epsilon ) ) );
+            return ndp == 0
+                 ? Long.toString( (long) Math.round( value ) )
+                 : formatNumber( value, "0.0", ndp );
+        }
+    }
+
+    /**
      * Returns the rectangle that results from removing the insets from
      * a given rectangle.
      *
