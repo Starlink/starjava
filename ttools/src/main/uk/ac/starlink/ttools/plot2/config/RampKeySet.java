@@ -26,6 +26,7 @@ public class RampKeySet implements KeySet<RampKeySet.Ramp> {
     private final ConfigKey<Shader> shaderKey_;
     private final ConfigKey<Subrange> shadeclipKey_;
     private final ConfigKey<Boolean> flipKey_;
+    private final ConfigKey<Double> quantiseKey_;
     private final OptionConfigKey<Scaling> scalingKey_;
     private final ConfigKey<Subrange> dataclipKey_;
     private final ConfigKey[] keys_;
@@ -76,6 +77,44 @@ public class RampKeySet implements KeySet<RampKeySet.Ramp> {
         flipKey_ = new BooleanConfigKey( flipMeta );
         keyList.add( flipKey_ );
 
+        ConfigMeta quantiseMeta =
+            new ConfigMeta( axname + "quant", "Shader Quantise" );
+        quantiseMeta.setShortDescription( axName + " colour map quantisation" );
+        quantiseMeta.setXmlDescription( new String[] {
+            "<p>Allows the colour map used for the",
+            axName,
+            "axis to be quantised.",
+            "If an integer value N is chosen",
+            "then the colour map will be viewed as N discrete evenly-spaced",
+            "levels,",
+            "so that only N different colours will appear in the plot.",
+            "This can be used to generate a contour-like effect,",
+            "and may make it easier to trace the boundaries of",
+            "regions of interest by eye.",
+            "</p>",
+            "<p>If left blank, the colour map is",
+            "nominally continuous (though in practice it may be quantised",
+            "to a medium-sized number like 256).",
+            "</p>",
+        } );
+        quantiseKey_ = new DoubleConfigKey( quantiseMeta, Double.NaN ) {
+            final double LIMIT = 64;
+            public Specifier<Double> createSpecifier() {
+                return new SliderSpecifier( 2, LIMIT, true, true, false ) {
+                    @Override
+                    public Double getSpecifiedValue() {
+                        double v = super.getSpecifiedValue();
+                        return v < LIMIT ? v : Double.NaN;
+                    }
+                    @Override
+                    public void setSpecifiedValue( Double dval ) {
+                        super.setSpecifiedValue( dval < LIMIT ? dval : LIMIT );
+                    }
+                };
+            }
+        };
+        keyList.add( quantiseKey_ );
+
         ConfigMeta scalingMeta = new ConfigMeta( axname + "func", "Scaling" );
         scalingMeta.setShortDescription( axName + " scaling function" );
         scalingMeta.setXmlDescription( new String[] {
@@ -112,12 +151,16 @@ public class RampKeySet implements KeySet<RampKeySet.Ramp> {
         Shader shader = config.get( shaderKey_ );
         Subrange shadeclip = config.get( shadeclipKey_ );
         boolean isFlip = config.get( flipKey_ );
+        double quantise = config.get( quantiseKey_ );
         if ( ! Subrange.isIdentity( shadeclip ) ) {
             shader = Shaders.stretch( shader, (float) shadeclip.getLow(),
                                               (float) shadeclip.getHigh() );
         }
         if ( isFlip ) {
             shader = Shaders.invert( shader );
+        }
+        if ( quantise > 1 && quantise < 256 ) {
+            shader = Shaders.quantise( shader, quantise );
         }
 
         /* Determine configured scaling instance. */
