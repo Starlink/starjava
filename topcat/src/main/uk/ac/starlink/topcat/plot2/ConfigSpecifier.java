@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import uk.ac.starlink.table.gui.LabelledComponentStack;
@@ -71,12 +72,6 @@ public class ConfigSpecifier extends SpecifierPanel<ConfigMap> {
             final KSpec<?> kspec = kspecs_[ ik ];
             String name = kspec.key_.getMeta().getLongName();
             final JComponent comp = kspec.specifier_.getComponent();
-            comp.setToolTipText( getToolTip( kspec ) );
-            kspec.specifier_.addActionListener( new ActionListener() {
-                public void actionPerformed( ActionEvent evt ) {
-                    comp.setToolTipText( getToolTip( kspec ) );
-                }
-            } );
 
             /* The aim is to get the specifier components to fill the
              * available width, whether it's large or small. */
@@ -85,6 +80,18 @@ public class ConfigSpecifier extends SpecifierPanel<ConfigMap> {
                 comp.setPreferredSize( comp.getMinimumSize() );
             }
             stack.addLine( name, null, comp, xfill );
+
+            /* Arrange for the component labels to display tooltips giving
+             * the current value in a stilts-friendly format. */
+            JLabel[] labels = stack.getLabels();
+            final JLabel label = labels[ labels.length - 1 ];
+            ActionListener tipListener = new ActionListener() {
+                public void actionPerformed( ActionEvent evt ) {
+                    label.setToolTipText( getToolTip( kspec ) );
+                }
+            };
+            kspec.specifier_.addActionListener( tipListener );
+            tipListener.actionPerformed( null );
         }
         JPanel panel = new JPanel( new BorderLayout() );
         panel.add( stack, BorderLayout.NORTH );

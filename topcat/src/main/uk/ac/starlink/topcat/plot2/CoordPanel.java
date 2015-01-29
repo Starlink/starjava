@@ -3,11 +3,13 @@ package uk.ac.starlink.topcat.plot2;
 import gnu.jel.CompilationException;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.Box;
 import javax.swing.ComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
@@ -53,7 +55,8 @@ public class CoordPanel {
             int ni = inputs.length;
             colSelectors_[ ic ] = new JComboBox[ ni ];
             for ( int ii = 0; ii < ni; ii++ ) {
-                JComboBox cs = ColumnDataComboBoxModel.createComboBox();
+                InputMeta meta = inputs[ ii ].getMeta();
+                final JComboBox cs = ColumnDataComboBoxModel.createComboBox();
                 colSelectors_[ ic ][ ii ] = cs;
                 cs.addActionListener( forwarder_ );
                 JComponent line = Box.createHorizontalBox();
@@ -71,8 +74,27 @@ public class CoordPanel {
                 size.width = 80;
                 cs.setMinimumSize( size );
                 cs.setPreferredSize( cs.getMinimumSize() );
-                stack.addLine( inputs[ ii ].getMeta().getLongName(),
-                               null, line, true );
+                stack.addLine( meta.getLongName(), null, line, true );
+
+                /* Arrange for the coordinate entry labels to display tooltips
+                 * giving the current value in a stilts-friendly format. */
+                JLabel[] labels = stack.getLabels();
+                final JLabel label = labels[ labels.length - 1 ];
+                final String shortName = meta.getShortName();
+                ActionListener tipListener = new ActionListener() {
+                    public void actionPerformed( ActionEvent evt ) {
+                        StringBuffer tbuf = new StringBuffer()
+                            .append( shortName )
+                            .append( '=' );
+                        Object colItem = cs.getSelectedItem();
+                        if ( colItem instanceof ColumnData ) {
+                            tbuf.append( colItem.toString() );
+                        }
+                        label.setToolTipText( tbuf.toString() );
+                    }
+                };
+                cs.addActionListener( tipListener );
+                tipListener.actionPerformed( null );
             }
         }
 

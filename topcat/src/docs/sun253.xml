@@ -20860,6 +20860,10 @@ introduced since the last version:
         the colour map to discrete levels.</li>
     <li>Every slider control in plot windows now has a little button
         on the right that resets it to its default value.</li>
+    <li>The text labels for configuration options and coordinate
+        entry fields in the plot windows now provide a tooltip 
+        of the form "<code>name=value</code>".  These strings give the
+        STILTS parameter assignment corresponding to the current setting.</li>
     </ul>
     </p></dd>
 
