@@ -20858,6 +20858,8 @@ introduced since the last version:
         Square and Sqrt mappings as well as Linear and Logarithmic,
         and a <label>Quantise</label> slider allowing quantisation of
         the colour map to discrete levels.</li>
+    <li>Every slider control in plot windows now has a little button
+        on the right that resets it to its default value.</li>
     </ul>
     </p></dd>
 
