@@ -105,8 +105,8 @@ public class XYShapes {
                 public Pixer createPixer( Rectangle clip ) {
                     int xmin = Math.max( -ix, clip.x );
                     int ymin = Math.max( -iy, clip.y );
-                    int xmax = Math.min( ix, clip.x + clip.width ) - 1;
-                    int ymax = Math.min( iy, clip.y + clip.height ) - 1;
+                    int xmax = Math.min( ix, clip.x + clip.width - 1 );
+                    int ymax = Math.min( iy, clip.y + clip.height - 1 );
                     return new BlockPixer( xmin, xmax, ymin, ymax );
                 }
             };
@@ -172,20 +172,20 @@ public class XYShapes {
                 if ( isFill ) {
                     return new Glypher() {
                         public void paintShape( Graphics g ) {
-                            g.drawOval( -dx, -dy, 2 * dx, 2 * dy );
+                            g.fillOval( -dx, -dy, 2 * dx, 2 * dy );
                         }
                         public void drawShape( Drawing d ) {
-                            d.drawOval( -dx, -dy, 2 * dx, 2 * dy );
+                            d.fillOval( -dx, -dy, 2 * dx, 2 * dy );
                         }
                     };
                 }
                 else {
                     return new Glypher() {
                         public void paintShape( Graphics g ) {
-                            g.fillOval( -dx, -dy, 2 * dx, 2 * dy );
+                            g.drawOval( -dx, -dy, 2 * dx, 2 * dy );
                         }
                         public void drawShape( Drawing d ) {
-                            d.fillOval( -dx, -dy, 2 * dx, 2 * dy );
+                            d.drawOval( -dx, -dy, 2 * dx, 2 * dy );
                         }
                     };
                 }
