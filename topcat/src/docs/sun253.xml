@@ -8277,6 +8277,8 @@ This basic size can be further adjusted with the <label>Scale</label> slider.
 
 <p>Currently data values of zero always correspond to marker size of zero,
 negative data values are not represented, and the mapping is linear.
+An absolute maximum size on markers <!--PlotUtil.MAX_MARKSIZE-->
+is also imposed.
 Other options may be introduced in future. 
 </p>
 
@@ -8349,6 +8351,8 @@ X and Y directions. The basic sizes can be further adjusted with the
 
 <p>Currently data values of zero always correspond to marker extent of zero,
 negative data values are not represented, and the mapping is linear.
+An absolute maximum size on markers <!--PlotUtil.MAX_MARKSIZE-->
+is also imposed.
 Other options may be introduced in future.
 </p>
 

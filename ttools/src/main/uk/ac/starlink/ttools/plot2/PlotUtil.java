@@ -70,6 +70,9 @@ public class PlotUtil {
     /** Maximum size for autoscaled variable-size markers. */
     public static final int DEFAULT_MAX_PIXELS = 20;
 
+    /** Absolute maximum number of pixels per marker. */
+    public static final short MAX_MARKSIZE = 100;
+
     /** Minimum number of input differences that fill up a colour ramp. */
     public static final int MIN_RAMP_UNIT = 12;
 
