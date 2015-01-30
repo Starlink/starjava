@@ -346,7 +346,12 @@ public class XYShapes {
 
             /* If the glyph will be cached, assume that it may be used
              * multiple times.  In this case, it's worth calculating the
-             * pixels once, and storing those for later use. */
+             * pixels once, and storing those for later use.
+             * The pixels may in fact never get used, if the glyph is
+             * painted rather than pixellated, but for cached glyphs the
+             * absolute cost of this preparation is assumed low, since
+             * the cache size, and the number of pixels per glyph,
+             * are both assumed relatively small. */
             if ( isCached( sx, sy ) ) {
                 Drawing drawing = new Drawing( bounds );
                 glypher.drawShape( drawing );

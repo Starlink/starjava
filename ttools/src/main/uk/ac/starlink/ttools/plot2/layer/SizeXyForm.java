@@ -210,7 +210,18 @@ public class SizeXyForm implements ShapeForm {
             xAutoscale_ = xAutoscale;
             yAutoscale_ = yAutoscale;
             icon_ = XYShape.createIcon( shape, 14, 10, false );
-            glyphMap_ = new HashMap<ShortPair,Glyph>();
+
+            /* Consider caching glyphs here.  Small ones are already
+             * cached by the XYShape implementation.  However, in cases
+             * where the paper stores the glyphs in a collection
+             * (SortedPaperType3D), it might be a good idea to ensure
+             * that new glyphs with the same content are not painted
+             * by caching all (since they may be stored elsewhere anyway).
+             * On the other hand, it's possibly significant overhead for
+             * those paper types which consume and discard glyphs
+             * immediately.  For now, set the cache to null,
+             * which disables caching. */
+            glyphMap_ = null;
         }
 
         public Icon getLegendIcon() {
@@ -342,13 +353,18 @@ public class SizeXyForm implements ShapeForm {
          * @return  glyph
          */
         private Glyph getGlyph( short xsize, short ysize ) {
-            ShortPair size = new ShortPair( xsize, ysize );
-            Glyph glyph = glyphMap_.get( size );
-            if ( glyph == null ) {
-                glyph = shape_.createGlyph( xsize, ysize );
-                glyphMap_.put( size, glyph );
+            if ( glyphMap_ != null ) {
+                ShortPair size = new ShortPair( xsize, ysize );
+                Glyph glyph = glyphMap_.get( size );
+                if ( glyph == null ) {
+                    glyph = shape_.getGlyph( xsize, ysize );
+                    glyphMap_.put( size, glyph );
+                }
+                return glyph;
             }
-            return glyph;
+            else {
+                return shape_.getGlyph( xsize, ysize );
+            }
         }
 
         /**
