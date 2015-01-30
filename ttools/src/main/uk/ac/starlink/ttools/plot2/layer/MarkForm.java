@@ -199,20 +199,36 @@ public abstract class MarkForm implements ShapeForm {
      *
      * @param  shape  marker shape
      * @param  size  marker size
+     * @param  isMultipix  if true, optimise for an instance that may have
+     *                     createPixer called multiple times
      * @return  marker glyph
      */
-    public static Glyph createMarkGlyph( MarkShape shape, int size ) {
+    public static Glyph createMarkGlyph( MarkShape shape, int size,
+                                         boolean isMultipix ) {
         final MarkStyle style = createMarkStyle( shape, size );
-        final PixellatorPixerFactory pfact =
-            new PixellatorPixerFactory( style.getPixelOffsets() );
-        return new Glyph() {
-            public void paintGlyph( Graphics g ) {
-                style.drawShape( g );
-            }
-            public Pixer createPixer( Rectangle clip ) {
-                return pfact.createPixer( clip );
-            }
-        };
+        if ( isMultipix ) {
+            final PixellatorPixerFactory pfact =
+                new PixellatorPixerFactory( style.getPixelOffsets() );
+            return new Glyph() {
+                public void paintGlyph( Graphics g ) {
+                    style.drawShape( g );
+                }
+                public Pixer createPixer( Rectangle clip ) {
+                    return pfact.createPixer( clip );
+                }
+            };
+        }
+        else {
+            return new Glyph() {
+                public void paintGlyph( Graphics g ) {
+                    style.drawShape( g );
+                }
+                public Pixer createPixer( Rectangle clip ) {
+                    return new PixellatorPixerFactory( style.getPixelOffsets() )
+                          .createPixer( clip );
+                }
+            };
+        }
     }
 
     /**
@@ -291,7 +307,7 @@ public abstract class MarkForm implements ShapeForm {
          */
         protected MarkOutliner( MarkShape shape, int size, Icon icon ) {
             style_ = createMarkStyle( shape, size );
-            glyph_ = createMarkGlyph( shape, size );
+            glyph_ = createMarkGlyph( shape, size, true );
             icon_ = icon;
         }
 

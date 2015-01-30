@@ -90,6 +90,9 @@ public class SizeXyForm implements ShapeForm {
             "marker dimension of zero,",
             "negative data values are not represented,",
             "and the mapping is linear.",
+            "An absolute maximum of",
+            Integer.toString( PlotUtil.MAX_MARKSIZE ),
+            "pixels is also imposed on marker sizes.",
             "Other options may be introduced in future.",
             "</p>",
             "<p>Note: for marker sizes that correspond to data values",
@@ -130,7 +133,8 @@ public class SizeXyForm implements ShapeForm {
             xAutoscale = null;
             yAutoscale = null;
         }
-        return new SizeXyOutliner( shape, scale, xAutoscale, yAutoscale );
+        return new SizeXyOutliner( shape, scale, xAutoscale, yAutoscale,
+                                   PlotUtil.MAX_MARKSIZE );
     }
 
     /**
@@ -187,6 +191,7 @@ public class SizeXyForm implements ShapeForm {
         private final XYShape shape_;
         private final AuxScale xAutoscale_;
         private final AuxScale yAutoscale_;
+        private final short sizeLimit_;
         private final double scale_;
         private final Icon icon_;
         private final Map<ShortPair,Glyph> glyphMap_;
@@ -202,13 +207,18 @@ public class SizeXyForm implements ShapeForm {
          * @param  yAutoscale  key used for autoscaling Y extents;
          *                     may be shared with other layers,
          *                     private to this layer, or null for no autoscale
+         * @param  sizeLimit  maximum X/Y extent in pixels of markers;
+         *                    if it's too large, plots may be slow or
+         *                    run out of memory
          */
         public SizeXyOutliner( XYShape shape, double scale,
-                               AuxScale xAutoscale, AuxScale yAutoscale ) {
+                               AuxScale xAutoscale, AuxScale yAutoscale,
+                               short sizeLimit ) {
             shape_ = shape;
             scale_ = scale;
             xAutoscale_ = xAutoscale;
             yAutoscale_ = yAutoscale;
+            sizeLimit_ = sizeLimit;
             icon_ = XYShape.createIcon( shape, 14, 10, false );
 
             /* Consider caching glyphs here.  Small ones are already
@@ -328,7 +338,8 @@ public class SizeXyForm implements ShapeForm {
                 return this.shape_.equals( other.shape_ )
                     && PlotUtil.equals( this.xAutoscale_, other.xAutoscale_ )
                     && PlotUtil.equals( this.yAutoscale_, other.yAutoscale_ )
-                    && this.scale_ == other.scale_;
+                    && this.scale_ == other.scale_
+                    && this.sizeLimit_ == other.sizeLimit_;
             }
             else {
                 return false;
@@ -342,6 +353,7 @@ public class SizeXyForm implements ShapeForm {
             code = 23 * code + PlotUtil.hashCode( xAutoscale_ );
             code = 23 * code + PlotUtil.hashCode( yAutoscale_ );
             code = 23 * code + Float.floatToIntBits( (float) scale_ );
+            code = 23 * code + sizeLimit_;
             return code;
         }
 
@@ -353,6 +365,12 @@ public class SizeXyForm implements ShapeForm {
          * @return  glyph
          */
         private Glyph getGlyph( short xsize, short ysize ) {
+            if ( xsize > sizeLimit_ ) {
+                xsize = sizeLimit_;
+            }
+            if ( ysize > sizeLimit_ ) {
+                ysize = sizeLimit_;
+            }
             if ( glyphMap_ != null ) {
                 ShortPair size = new ShortPair( xsize, ysize );
                 Glyph glyph = glyphMap_.get( size );

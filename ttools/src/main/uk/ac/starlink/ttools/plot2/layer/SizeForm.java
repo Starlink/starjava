@@ -99,6 +99,9 @@ public class SizeForm implements ShapeForm {
             "<p>Currently data values of zero always correspond to",
             "marker size of zero, negative data values are not represented,",
             "and the mapping is linear.",
+            "An absolute maximum of",
+            Integer.toString( PlotUtil.MAX_MARKSIZE ),
+            "pixels is also imposed on marker sizes.",
             "Other options may be introduced in future.",
             "</p>",
             "<p>Note: for marker sizes that correspond to data values",
@@ -135,7 +138,8 @@ public class SizeForm implements ShapeForm {
         else {
             autoscale = null;
         }
-        return new SizeOutliner( shape, scale, autoscale );
+        return new SizeOutliner( shape, scale, autoscale,
+                                 PlotUtil.MAX_MARKSIZE );
     }
 
     /**
@@ -165,6 +169,7 @@ public class SizeForm implements ShapeForm {
         private final MarkShape shape_;
         private final AuxScale autoscale_;
         private final double scale_;
+        private final int sizeLimit_;
         private final Icon icon_;
         private final Map<Integer,Glyph> glyphMap_;
 
@@ -176,12 +181,16 @@ public class SizeForm implements ShapeForm {
          * @param  autoscale   key used for autoscaling;
          *                     may be shared with other layers,
          *                     private to this layer, or null for no autoscale
+         * @param  sizeLimit  maximum size in pixels of markers;
+         *                    if it's too large, plots may be slow or
+         *                    run out of memory
          */
         public SizeOutliner( MarkShape shape, double scale,
-                             AuxScale autoscale ) {
+                             AuxScale autoscale, int sizeLimit ) {
             shape_ = shape;
             scale_ = scale;
             autoscale_ = autoscale;
+            sizeLimit_ = sizeLimit;
             icon_ = MarkForm.createLegendIcon( shape, 4 );
             glyphMap_ = new HashMap<Integer,Glyph>();
         }
@@ -262,7 +271,8 @@ public class SizeForm implements ShapeForm {
                 SizeOutliner other = (SizeOutliner) o;
                 return this.shape_.equals( other.shape_ )
                     && this.scale_ == other.scale_
-                    && PlotUtil.equals( this.autoscale_,  other.autoscale_ );
+                    && PlotUtil.equals( this.autoscale_,  other.autoscale_ )
+                    && this.sizeLimit_ == other.sizeLimit_;
             }
             else {
                 return false;
@@ -275,6 +285,7 @@ public class SizeForm implements ShapeForm {
             code = 23 * code + shape_.hashCode();
             code = 23 * code + Float.floatToIntBits( (float) scale_ );
             code = 23 * code + PlotUtil.hashCode( autoscale_ );
+            code = 23 * code + sizeLimit_;
             return code;
         }
 
@@ -291,10 +302,10 @@ public class SizeForm implements ShapeForm {
          * @return  new or re-used glyph
          */
         private Glyph getGlyph( int isize ) {
-            isize = Math.max( 0, isize );
+            isize = Math.min( sizeLimit_, Math.max( 0, isize ) );
             Glyph glyph = glyphMap_.get( isize );
             if ( glyph == null ) {
-                glyph = MarkForm.createMarkGlyph( shape_, isize );
+                glyph = MarkForm.createMarkGlyph( shape_, isize, true );
                 glyphMap_.put( isize, glyph );
             }
             return glyph;
