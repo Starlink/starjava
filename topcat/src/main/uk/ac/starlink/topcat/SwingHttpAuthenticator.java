@@ -11,7 +11,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 import javax.swing.JPasswordField;
 import uk.ac.starlink.table.gui.LabelledComponentStack;
-import uk.ac.starlink.topcat.plot2.LineBox;
 
 /**
  * Authenticator for password-protected HTTP connections that pops up a
