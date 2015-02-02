@@ -1,4 +1,4 @@
-package uk.ac.starlink.topcat.plot2;
+package uk.ac.starlink.topcat;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;

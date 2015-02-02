@@ -47,6 +47,7 @@ import uk.ac.starlink.topcat.AuxWindow;
 import uk.ac.starlink.topcat.BasicAction;
 import uk.ac.starlink.topcat.ControlWindow;
 import uk.ac.starlink.topcat.HelpAction;
+import uk.ac.starlink.topcat.LineBox;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.SubsetConsumer;
 import uk.ac.starlink.topcat.ToggleButtonModel;
