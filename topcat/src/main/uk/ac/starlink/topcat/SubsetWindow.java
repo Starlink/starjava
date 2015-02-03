@@ -56,6 +56,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
     private final Action sampleAct;
     private final Action headAct;
     private final Action tailAct;
+    private final Action classifyAct;
     private JTable jtab;
     private JProgressBar progBar;
     private SubsetCounter activeCounter;
@@ -173,6 +174,13 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
                                     "Create new subset containing the last " +
                                     "N rows" );
 
+        /* Action for classifying a column by subset contents. */
+        classifyAct = new SubsetAction( "Classify By Column",
+                                        ResourceIcon.CLASSIFY,
+                                        "Add new mutually exclusive subsets "
+                                      + "based on automatic classification "
+                                      + "of column contents" );
+
         /* Transmitter for broadcasting subset. */
         TopcatCommunicator communicator =
             ControlWindow.getInstance().getCommunicator();
@@ -256,9 +264,10 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
         getToolBar().add( sampleAct );
         getToolBar().add( headAct );
         getToolBar().add( tailAct );
+        getToolBar().add( invertAct );
+        getToolBar().add( classifyAct );
         getToolBar().add( removeAct );
         getToolBar().addSeparator();
-        getToolBar().add( invertAct );
         getToolBar().add( tocolAct );
         getToolBar().add( highlightAct );
         getToolBar().add( countAct );
@@ -274,8 +283,9 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
         subsetsMenu.add( sampleAct );
         subsetsMenu.add( headAct );
         subsetsMenu.add( tailAct );
-        subsetsMenu.add( removeAct );
         subsetsMenu.add( invertAct );
+        subsetsMenu.add( classifyAct );
+        subsetsMenu.add( removeAct );
         subsetsMenu.add( tocolAct );
         subsetsMenu.add( highlightAct );
         subsetsMenu.add( countAct );
@@ -620,7 +630,10 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
                         getExpressionField().setText( expr );
                     }
                 }.setVisible( true );
+            }
 
+            else if ( this == classifyAct ) {
+                new ClassifyWindow( tcModel, parent ).setVisible( true );
             }
 
             else {
