@@ -144,6 +144,7 @@ public class ResourceIcon implements Icon {
         VIZIER = makeIcon( "vizmini.gif" ),
         BASTI = makeIcon( "BaSTI_icon_B.gif" ),
         TREE_DIALOG = makeIcon( "browse.gif" ),
+        CLASSIFY = makeIcon( "classify3.gif" ),
 
         /* Specific actions. */
         UNSORT = makeIcon( "arrow_level.gif" ),
