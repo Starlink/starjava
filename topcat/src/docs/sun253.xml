@@ -66,6 +66,7 @@
   <!ENTITY FIG.SkyColumnQueryWindow '&figs;SkyColumnQueryWindow.gif'>
   <!ENTITY FIG.SyntheticSubsetQueryWindow 
            '&figs;SyntheticSubsetQueryWindow.gif'>
+  <!ENTITY FIG.ClassifyWindow '&figs;ClassifyWindow.gif'>
   <!ENTITY FIG.MethodWindow '&figs;MethodWindow.gif'>
   <!ENTITY FIG.HtmlWindow '&figs;HtmlWindow.gif'>
   <!ENTITY FIG.LogWindow '&figs;LogWindow.gif'>
@@ -6368,20 +6369,27 @@ can be edited by double-clicking on them in the normal way.
     consisting of the last <m>N</m> rows of the table.
     </p></dd>
 
-<dt>&IMG.DELETE; Remove Subset</dt>
-<dd><p>Deletes one of the subsets in the list.
-    Once deleted, a subset cannot be recovered.
-    Note that attempts to use its name or _ID in algebraic expressions
-    which you add or modify in the future will fail, though its use in 
-    existing expressions will continue to work.
-    </p></dd>
-
 <dt>&IMG.INVERT; Invert Subset</dt>
 <dd><p>Creates a new subset which is the complement of the selected one.
     The new one will include all the rows which are excluded by the
     selected one (and vice versa).
     To use this action, first select a subset by clicking on its row
     in the JTable.
+    </p></dd>
+
+<dt>&IMG.CLASSIFY; Classify By Column</dt>
+<dd><p>Pops up the
+    <ref id="ClassifyWindow">Column Classification Window</ref>,
+    which can add a set of mutually exclusive subsets based on the contents
+    of a given column or expression.
+    </p></dd>
+
+<dt>&IMG.DELETE; Remove Subset</dt>
+<dd><p>Deletes one of the subsets in the list.
+    Once deleted, a subset cannot be recovered.
+    Note that attempts to use its name or _ID in algebraic expressions
+    which you add or modify in the future will fail, though its use in 
+    existing expressions will continue to work.
     </p></dd>
 
 <dt>&IMG.TO_COLUMN; To Column</dt>
@@ -17589,6 +17597,117 @@ the fields, a popup window will give you a message describing the
 problem.
 </p>
 
+</subsubsect>
+
+<subsubsect id="ClassifyWindow">
+<subhead><title>Column Classification Window</title></subhead>
+
+<figure>
+<caption><px>Column Classification Window</px></caption>
+<figureimage src="&FIG.ClassifyWindow;"/>
+</figure>
+
+<p>The Column Classification Window takes a column or other algebraic
+expression, and generates a number of mutually exclusive 
+<ref id="subsets">Row Subsets</ref> based on its contents.
+For instance if you have a column with different integer values
+representing different object types, this window will let you
+add a new subset to the table for each of the distinct values (object types)
+appearing in the table.  Each subset contains rows with a single
+value of the classification expression you supply.
+In the above example, a new subset will be created for each
+of the four most commonly-occurring constellations in the table.
+</p>
+
+<p>You can activate this dialogue using the
+<label>Classify By Column</label> (&IMG.CLASSIFY;) button in the
+<ref id="SubsetWindow">Subsets Window</ref>.
+</p>
+
+<p>In the <label>Query</label> panel, you specify the 
+expression you want to classify on.
+You can select a simple column name from the drop-down list,
+or type in an algebraic expression as described in <ref id="jel"/>.
+If you want to classify on ranges of values rather than exact
+equivalence you can use an expression that rounds to an integer,
+for instance "<code>toInteger(RMAG/2.0)*2</code>" would give you subsets
+corresponding to bins of width 2 in magnitude.
+When you have entered the expression, you may need to click the
+<label>Classify</label> button to start the classification
+(or it may happen automatically).
+The classification will often complete straight away,
+but for large tables it could take a noticeable amount of time,
+in which case a progress bar is shown at the bottom of the window.
+You can stop a long-running classification in progress with the
+<label>Stop</label> button.
+If you have a very large table with many distinct categories in the given
+column, the process can take a lot of memory - if the application runs out
+of memory, a warning will pop up and the classification will not complete.
+</p>
+
+<p>When the classification has run, the results are displayed in
+the <label>Results</label> panel.
+Two fields control the way these results are displayed:
+<dl>
+<dt>Number of Categories</dt>
+<dd><p>Since in general there may be a large number of different values
+    in the column of interest (as many as there are rows), only the
+    few most popular ones are shown.
+    This field controls the maximum number shown,
+    you can adjust it as required.
+    </p></dd>
+<dt>Subset name prefix</dt>
+<dd><p>Defines the prefix added to the column values to give the default
+    name for each subset that will be added to the table.
+    The application tries to come up with something sensible
+    based on the classification expression, but doesn't always succeed.
+    If you type in a new prefix here, all the subsets listed below 
+    are given new default names accordingly.
+    </p></dd>
+</dl>
+</p>
+
+<p>The results are displayed in a table, each row corresponding to
+a Row Subset that can be added to the table based on the classification.
+The subsets are shown in decreasing order of popularity
+(the subset containing the most rows is listed first).
+The final row, labelled "<label>other</label>", groups all the
+rows which are not in any of the other currently selected and displayed
+subsets.
+The following columns are shown:
+<dl>
+<dt>Count</dt>
+<dd><p>Number of rows in the subset.
+    </p></dd>
+<dt>Value</dt>
+<dd><p>The classification value shared by all rows in the subset.
+    </p></dd>
+<dt>Subset Name</dt>
+<dd><p>The name of the subset that will be added.
+    The applicaiton tries to come up with sensible default names,
+    but doesn't always succeed - you can edit this field as required.
+    If the name matches the name of any subset already present in the table,
+    when the new subset is added it will replace the old one.
+    </p></dd>
+<dt>Add Subset?</dt>
+<dd><p>If this box is checked, the <label>Add Subsets</label> button below
+    will add a subset corresponding to this row; if not, it will be ignored.
+    If unchecked, the rows from this subset are considered part of the
+    <label>other</label> subset listed at the bottom
+    (you can see the <label>Count</label> field in the <label>other</label>
+    row adjusting when you include or exclude subsets by checking/uncheking
+    this box).
+    </p></dd>
+</dl>
+</p>
+
+<p>When you have adjusted subset names and selected the ones you want
+to add, click the <label>Add Subsets</label> button at the bottom,
+and one subset will be added to the table for each of the items with the
+<label>Add Subset?</label> checkbox ticked.
+If you don't want to add any of these subsets after all,
+just hit <label>Cancel</label> or close the window.
+</p>
 
 </subsubsect>
 
@@ -20868,6 +20987,8 @@ introduced since the last version:
         entry fields in the plot windows now provide a tooltip 
         of the form "<code>name=value</code>".  These strings give the
         STILTS parameter assignment corresponding to the current setting.</li>
+    <li>Add new <ref id="ClassifyWindow">Column Classification Window</ref>,
+        which adds mutually exclusive subsets based on column contents.</li>
     </ul>
     </p></dd>
 
