@@ -1068,13 +1068,28 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                     Range shadeRange = auxRanges.get( SCALE );
                     Scaler scaler =
                         Scaling.createRangeScaler( scaling, shadeRange );
-                    ColorKit kit = new ColorKit( iShadeCoord, shader, scaler,
-                                                 baseColor, nullColor,
-                                                 scaleAlpha );
                     DrawSpec drawSpec =
                         new DrawSpec( surface, geom, dataSpec, outliner,
                                       auxRanges, paperType );
-                    return new AuxDrawing( drawSpec, kit );
+
+                    // A possible optimisation would be in the case that we
+                    // have an opaque 2D plot to return a planned drawing,
+                    // where the plan is a double[] array of aux values.
+                    // This would allow fast changes to the colour map,
+                    // like for density plots.  Would take some code,
+                    // but nothing that hasn't been done already.
+                    // See classes PixOutliner, PixelImage, Gridder etc.
+                    // if ( scaleAlpha == 1f &&
+                    //      paperType.isBitmap() &&
+                    //      paperType instanceof PaperType2D ) {
+                    //     return new AuxGridDrawing2D( drawSpec, iShadeCoord,
+                    //                                  shader, scaler,
+                    //                                  baseColor, nullColor );
+                    // }
+                    ColorKit kit =
+                        new AuxColorKit( iShadeCoord, shader, scaler,
+                                         baseColor, nullColor, scaleAlpha );
+                    return drawSpec.createDrawing( kit );
                 }
             };
         }
@@ -1083,7 +1098,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
          * Encapsulates information about how to colour data points for
          * AuxShadingMode.
          */
-        private static class ColorKit {
+        private static class AuxColorKit implements ColorKit {
 
             private final int icShade_;
             private final Shader shader_;
@@ -1109,8 +1124,8 @@ public abstract class ShapeMode implements ModePlotter.Mode {
              * @param  scaleAlpha  alpha scaling for output colours;
              *                     1 means opaque
              */
-            ColorKit( int icShade, Shader shader, Scaler scaler,
-                      Color baseColor, Color nullColor, float scaleAlpha ) {
+            AuxColorKit( int icShade, Shader shader, Scaler scaler,
+                         Color baseColor, Color nullColor, float scaleAlpha ) {
                 icShade_ = icShade;
                 shader_ = shader;
                 scaler_ = scaler;
@@ -1125,14 +1140,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                 lastScale_ = Float.NaN;
             }
 
-            /**
-             * Returns the colour to use for plotting the current row of
-             * a supplied tuple sequence.
-             *
-             * @param  tseq  tuple sequence positioned at the row of interest
-             * @return  plotting colour, or null to omit point
-             */
-            Color readColor( TupleSequence tseq ) {
+            public Color readColor( TupleSequence tseq ) {
                 double auxVal = SHADE_COORD.readDoubleCoord( tseq, icShade_ );
                 float scaleVal = (float) scaler_.scaleValue( auxVal );
 
@@ -1172,37 +1180,6 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                 return alpha > 0 ? new Color( rgba[ 0 ], rgba[ 1 ], rgba[ 2 ],
                                               alpha * scaleAlpha_ )
                                  : null;
-            }
-        }
-
-        /**
-         * Drawing implementation used by AuxShadingMode.
-         */
-        private static class AuxDrawing extends UnplannedDrawing {
-            private final DrawSpec drawSpec_;
-            private final ColorKit kit_;
-
-            /**
-             * Constructor.
-             *
-             * @param  drawSpec  common drawing attributes
-             * @param  kit  object that knows how to colour points per row
-             */
-            AuxDrawing( DrawSpec drawSpec, ColorKit kit ) {
-                drawSpec_ = drawSpec;
-                kit_ = kit;
-            }
-
-            public void paintData( Paper paper, DataStore dataStore ) { 
-                Outliner.ShapePainter painter = drawSpec_.painter_;
-                TupleSequence tseq =
-                    dataStore.getTupleSequence( drawSpec_.dataSpec_ );
-                while ( tseq.next() ) {
-                    Color color = kit_.readColor( tseq );
-                    if ( color != null ) {
-                        painter.paintPoint( tseq, color, paper );
-                    }
-                }
             }
         }
     }
@@ -1344,7 +1321,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
         }
 
         /**
-         * Generates a bin plan for this draw spec.
+         * Utiliity method that generates a bin plan for this draw spec.
          * 
          * @param  knownPlans  known plans
          * @param  dataStore  data storage
@@ -1356,6 +1333,44 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                   .calculateBinPlan( surface_, geom_, auxRanges_, dataStore,
                                      dataSpec_, knownPlans );
         }
+
+        /**
+         * Utility method that creates an unplanned drawing
+         * using this spec's state where points are coloured
+         * from the data in accordance with a supplied ColorKit.
+         *
+         * @param  kit  maps data points to data colour
+         * @return new drawing
+         */
+        public Drawing createDrawing( final ColorKit kit ) {
+            return new UnplannedDrawing() {
+                public void paintData( Paper paper, DataStore dataStore ) {
+                    TupleSequence tseq =
+                        dataStore.getTupleSequence( dataSpec_ );
+                    while ( tseq.next() ) {
+                        Color color = kit.readColor( tseq );
+                        if ( color != null ) {
+                            painter_.paintPoint( tseq, color, paper );
+                        }
+                    }
+                }
+            };
+        }
+    }
+
+    /**
+     * Rule for colouring points according to data values.
+     */
+    private interface ColorKit {
+
+        /**
+         * Acquires a colour appropriate for the current element of
+         * a given tuple sequence.
+         *
+         * @param  tseq  tuple sequence positioned at the row of interest
+         * @return  plotting colour, or null to omit point
+         */
+        Color readColor( TupleSequence tseq );
     }
 
     /**
