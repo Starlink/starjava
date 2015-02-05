@@ -132,7 +132,7 @@
 
 <docnumber>256</docnumber>
 
-<docdate>13 November 2014</docdate>
+<docdate>6 February 2015</docdate>
 
 <contactlist>
 <contact>STILTS web page:
@@ -10044,86 +10044,110 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </dl>
     </p></dd>
 
-<dt>Next version</dt>
+<dt>Version 3.0-2 (6 February 2015)</dt>
 <dd><p>
-    <ul>
-    <li>Fix some problems to do with zooming to very large/small
-        plot axis ranges.</li>
-    <li>Hide error bars (etc) that would extend to negative values
-        on logarithmic axes; previously they were being drawn in anomalous
-        places.</li>
-    <li>The <code>PlotDisplay</code> class that forms the result of
-        plot2 commands can now have <code>PointSelectionListener</code>s
-        registered on it.  This lets you determine what point a user
-        has clicked on if you're using the plotting classes from
-        third party java code.</li>
-    <li>Histogram normalisation option adjusted so that total area under bars,
-        rather than total height of bars, is fixed.</li>
-    <li>Add <ref id="layer-linearfit">linearfit</ref> layer type for
-        <code>plot2plane</code>.</li>
-    <li>Fix NullPointerException bug when null value was supplied to
-        multi-word parameter (e.g. <code>tcube</code>).</li>
-    <li>Fixed error in fits-var output
-        (PCOUNT header card did not include block alignment gap).</li>
-    <li>Reworked part of the FITS input implementation, 
-        in particular adjusting the way memory mapping is done to reduce
-        resource requirements on some platforms.
-        If you notice any difference, it should be reduced virtual and
-        perhaps resident memory usage, and some (~10%?) performance 
-        improvements, when reading large FITS/colfits files.
-        If you were having problems with large memory allocations leading to
-        disk thrashing and system lockup when scanning files larger than RAM
-        (this didn't happen on all OSes), these will hopefully have gone away.
-        However, please report anything that appears to be working worse
-        than before, or continued memory usage issues.</li>
-    <li>Colfits files can now be accessed from streams, not just uncompressed
-        disk files (though that's not necessarily a good idea).</li>
-    <li>Add <code>title</code> parameter to plot2 tasks.</li>
-    <li>Fix Aux axis positioning for 3D plots so that the numeric labels 
-        don't get snipped off at top and bottom.</li>
-    <li>Add <code>auxcrowd</code> parameter to plot2 tasks to influence
-        tick crowding on aux axis colour ramp.  Also adjust default to use
-        fewer ticks.</li>
-    <li>Add some "dart" options (fixed-base open or filled triangles)
-        for plotting vectors (see <code>arrowN</code> parameter in
-        layers like <ref id="layer-xyvector"><code>xyvector</code></ref>).</li>
-    <li>Add some "triangle" options (variable-base open or filled triangles)
-        for plotting ellipses (see <code>ellipseN</code> parameter in layers
-        like <ref id="layer-xyellipse"><code>xyellipse</code></ref>).</li>
-    <li>Graphics coordinates are now calculated in floating point 
-        rather than as integers.  This fixes problems that could 
-        cause scaled vectors, ellipses etc to be drawn with shapes
-        or orientations badly wrong due to rounding errors.
-        It also improves plotting of analytic functions, especially
-        to vector contexts (PDF/EPS).</li>
-    <li>Replace <code>maxsizeN</code> parameter with <code>autoscaleN</code>
-        for <ref id="layer-size"><code>size</code></ref> plot layer type.
-        You can now optionally turn off autoscaling and specify marker size
-        in pixels instead.</li>
-    <li>Add new plot layer type <ref id="layer-sizexy"><code>sizexy</code></ref>
-        which allows plotting (optionally autoscaled) markers with horizontal
-        and vertical extents independently determined by input data.</li>
-    <li>Fixed a query bug (missing <code>REQUEST=queryData</code> parameter)
-        in the multi-SSA mode (<code>servicetype=ssa</code>) of
-        <code>coneskymatch</code>.
-        This long-standing bug would have stopped this command working at all
-        with well-behaved SSA services.</li>
-    <li>Add a hack that allows LDAC FITS tables to be treated sensibly
-        in auto-format-detection mode.</li>
-    <li>Make VOTable handling more robust against unknown (illegal)
-        datatypes.</li>
-    <li>Add missing parameters <code>auxmax</code>, <code>auxmin</code>
-        to plotting task documentation.</li>
-    <li>More flexibility when assigning colour maps, in 
-        <ref id="shading-aux">aux</ref> and
-        <ref id="shading-density">density</ref> shading modes, and
-        <ref id="layer-spectrogram">spectrogram</ref> layer.
-        New parameters <code>*func</code> allow assignment of
-        different data-&gt;ramp mapping functions
-        (sqrt and square as well as linear and logarithmic),
-        and new parameters <code>*quant</code> allow quantisation
-        of the colour map to discrete levels.</li>
-    </ul>
+    <dl>
+    <dt>Plotting enhancements:</dt>
+    <dd><p>
+        <ul>
+        <li>Linear fitting of points is now available using the 
+            <ref id="layer-linearfit">linearfit</ref> layer type for
+            <code>plot2plane</code>.  Points may be weighted.</li>
+        <li>You can add titles to plots using the new <code>title</code>
+            parameter.</li>
+        <li>New plot layer type
+            <ref id="layer-sizexy"><code>sizexy</code></ref>
+            allows plotting (optionally autoscaled)
+            markers with horizontal and vertical extents
+            independently determined by input data.</li>
+        <li>More flexibility when assigning colour maps, in 
+            <ref id="shading-aux">aux</ref> and
+            <ref id="shading-density">density</ref> shading modes, and
+            <ref id="layer-spectrogram">spectrogram</ref> layer.
+            New parameters <code>*func</code> allow assignment of
+            different data-&gt;ramp mapping functions
+            (sqrt and square as well as linear and logarithmic),
+            and new parameters <code>*quant</code> allow quantisation
+            of the colour map to discrete levels.</li>
+        <li>Replace <code>maxsizeN</code> parameter with <code>autoscaleN</code>
+            for <ref id="layer-size"><code>size</code></ref> plot layer type.
+            You can now optionally turn off autoscaling and specify marker size
+            in pixels instead.</li>
+        <li>Add <code>auxcrowd</code> parameter to plot2 tasks to influence
+            tick crowding on aux axis colour ramp.  Also adjust default to use
+            fewer ticks.</li>
+        <li>Add some "dart" options (fixed-base open or filled triangles)
+            for plotting vectors (see <code>arrowN</code> parameter in
+            layers like
+            <ref id="layer-xyvector"><code>xyvector</code></ref>).</li>
+        <li>Add some "triangle" options (variable-base open or filled triangles)
+            for plotting ellipses (see <code>ellipseN</code> parameter in layers
+            like <ref id="layer-xyellipse"><code>xyellipse</code></ref>).</li>
+        <li>Histogram normalisation option adjusted
+            so that total area under bars,
+            rather than total height of bars, is fixed.</li>
+        <li>The <code>PlotDisplay</code> class that forms the result of
+            plot2 commands can now have <code>PointSelectionListener</code>s
+            registered on it.  This lets you determine what point a user
+            has clicked on if you're using the plotting classes from
+            third party java code.</li>
+        </ul>
+        </p></dd>
+    <dt>FITS I/O:</dt>
+    <dd><p>
+        <ul>
+        <li>Reworked part of the FITS table input implementation, 
+            in particular adjusting the way memory mapping is done to reduce
+            resource requirements on some platforms.
+            If you notice any difference, it should be reduced virtual and
+            perhaps resident memory usage, and some (~10%?) performance 
+            improvements, when reading large FITS/colfits files.
+            If you were previously having problems
+            with large memory allocations leading to
+            disk thrashing and system lockup when scanning files
+            larger than RAM (this didn't happen on all OSes),
+            these will hopefully have gone away.
+            However, please report anything that appears to be working worse
+            than before, or continued memory usage issues.</li>
+        <li>Colfits files can now be accessed from streams,
+            not just uncompressed disk files
+            (though that's not necessarily a good idea).</li>
+        </ul>
+        </p></dd>
+    <dt>Bugfixes and workarounds:</dt>
+    <dd><p>
+        <ul>
+        <li>Fixed a query bug (missing <code>REQUEST=queryData</code> parameter)
+            in the multi-SSA mode (<code>servicetype=ssa</code>) of
+            <code>coneskymatch</code>.
+            This long-standing bug would have stopped this command working
+            at all with well-behaved SSA services.</li>
+        <li>Fixed error in fits-var output
+            (PCOUNT header card did not include block alignment gap).</li>
+        <li>Graphics coordinates are now calculated in floating point 
+            rather than as integers.  This fixes problems that could 
+            cause scaled vectors, ellipses etc to be drawn with shapes
+            or orientations badly wrong due to rounding errors.
+            It also improves plotting of analytic functions, especially
+            to vector contexts (PDF/EPS).</li>
+        <li>Fix some problems to do with zooming to very large/small
+            plot axis ranges.</li>
+        <li>Hide error bars (etc) that would extend to negative values
+            on logarithmic axes; previously they were being drawn in anomalous
+            places.</li>
+        <li>Fix NullPointerException bug when null value was supplied to
+            multi-word parameter (e.g. <code>tcube</code>).</li>
+        <li>Fix Aux axis positioning for 3D plots so that the numeric labels 
+            don't get snipped off at top and bottom.</li>
+        <li>Add a hack that allows LDAC FITS tables to be treated sensibly
+            in auto-format-detection mode.</li>
+        <li>Make VOTable handling more robust against unknown (illegal)
+            datatypes.</li>
+        <li>Add missing parameters <code>auxmax</code>, <code>auxmin</code>
+            to plotting task documentation.</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>

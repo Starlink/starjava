@@ -272,7 +272,7 @@
 
 <docnumber>253</docnumber>
 
-<docdate>13 November 2014</docdate>
+<docdate>6 February 2015</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -20910,95 +20910,131 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Next version</dt>
+<dt>Version 4.2-2 (6 February 2015)</dt>
 <dd><p>
-    <ul>
-    <li>Fix some problems to do with zooming to very large/small
-        plot axis ranges.</li>
-    <li>Hide error bars (etc) that would extend to negative values
-        on logarithmic axes; previously they were being drawn in anomalous
-        places.</li>
-    <li>Histogram normalisation option adjusted so that total area under bars,
-        rather than total height of bars, is fixed.</li>
-    <li>New <ref id="form-linearfit">Linear Fitting</ref> form for
-        Plane plot.
-        This reinstates behaviour available from old plot windows,
-        but it provides some more options, like point weighting.</li>
-    <li>New Save/Import options in
-        <ref id="HistogramPlotWindow">Histogram window</ref>
-        allow you to export histogram bin data as a new table
-        (this reinstates behaviour available from old plot windows).</li>
-    <li>Fixed error in fits-var output
-        (PCOUNT header card did not include block alignment gap).</li>
-    <li>Reworked part of the FITS input implementation,
-        in particular adjusting the way memory mapping is done to reduce
-        resource requirements on some platforms.
-        If you notice any difference, it should be reduced virtual and
-        perhaps resident memory usage, and some (~10%?) performance
-        improvements, when reading large FITS/colfits files.
-        However, please report anything that appears to be working worse
-        than before.</li>
-    <li>Colfits files can now be accessed from streams, not just uncompressed
-        disk files (though that's not necessarily a good idea).</li>
-    <li>New <ref id="FrameControl">Frame</ref> fixed control in plot windows
-        with two tabs, Size and Title.
-        Size allows explicit setting of output plot dimensions and alignment in
-        pixels - can be useful when exporting plots.
-        Title lets you add a text title at the top of the plot.</li>
-    <li>Fix Aux axis positioning for 3D plots so that the numeric labels
-        don't get snipped off at top and bottom.</li>
-    <li>Add Tick Crowding configuration option to
-        <ref id="ShaderControl">Aux control</ref> Ramp tab.
-        Also changed default for Aux axis to use fewer ticks.</li>
-    <li>Add some "dart" options (fixed-base open or filled triangles)
-        for plotting <ref id="form-vector">vectors</ref>.</li>
-    <li>Add some "triangle" options (variable-base open or filled triangles)
-        for plotting <ref id="form-ellipse">ellipses</ref>.</li>
-    <li>Add <label>Rescale Y</label> button to
-        <ref id="HistogramPlotWindow">Histogram</ref> window.</li>
-    <li>Graphics coordinates are now calculated in floating point
-        rather than as integers.  This fixes problems that could
-        cause scaled vectors, ellipses etc to be drawn with shapes
-        or orientations badly wrong due to rounding errors.
-        It also improves plotting of analytic functions, especially 
-        to vector contexts (PDF/EPS).</li>
-    <li>Replace Max Marker Size option with Autoscaling option in
-        plot <ref id="form-size">Size</ref> form.
-        You can now optionally turn off autoscaling and specify marker size
-        in pixels instead.</li>
-    <li>Add new plot <ref id="form-sizexy">SizeXY</ref> form,
-        which allows plotting (optionally autoscaled) markers with horizontal
-        and vertical extents independently determined by input data.</li>
-    <li>Fixed a query bug (missing <code>REQUEST=queryData</code> parameter)
-        in the <ref id="SsaMultiWindow">Multiple SSA Query</ref> window.
-        This long-standing bug would have stopped this window working at all
-        with well-behaved SSA services.</li>
-    <li>Add a hack that allows LDAC FITS tables to be treated sensibly
-        in auto-format-detection mode.</li>
-    <li>Make VOTable handling more robust against unknown (illegal)
-        datatypes.</li>
-    <li>More flexibility when assigning colour maps, in the
-        <ref id="ShaderControl">Aux Axis</ref> control,
-        <ref id="mode-density">Density</ref> shading mode, and
-        <ref id="SpectrogramLayerControl">Spectrogram</ref> layer control.
-        These now provide a <label>Scaling</label> option allowing use of
-        Square and Sqrt mappings as well as Linear and Logarithmic,
-        and a <label>Quantise</label> slider allowing quantisation of
-        the colour map to discrete levels.</li>
-    <li>Every slider control in plot windows now has a little button
-        on the right that resets it to its default value.</li>
-    <li>The text labels for configuration options and coordinate
-        entry fields in the plot windows now provide a tooltip 
-        of the form "<code>name=value</code>".  These strings give the
-        STILTS parameter assignment corresponding to the current setting.</li>
-    <li>Add new <ref id="ClassifyWindow">Column Classification Window</ref>,
-        which adds mutually exclusive subsets based on column contents.</li>
-    <li>OSX application bundle adjusted so that the DMG file
-        <em>should</em> work on any MacOS with
-        either legacy Apple Java 6 or Oracle/OpenJDK Java 7+ installed.</li>
-    <li>OSX application bundle adjusted (I think) so that application
-        working directory is user's home directory.</li>
-    </ul>
+    <dl>
+    <dt>Plotting enhancements:</dt>
+    <dd><p>
+        <ul>
+        <li>New <ref id="form-linearfit">Linear Fitting</ref> form for
+            Plane plot.
+            This reinstates behaviour available from old plot windows,
+            but it provides some more options, like point weighting.</li>
+        <li>New <ref id="form-sizexy">SizeXY</ref> form,
+            which allows plotting (optionally autoscaled) markers
+            with horizontal and vertical extents
+            independently determined by input data.</li>
+        <li>New <ref id="FrameControl">Frame</ref> fixed control
+            in plot windows with two tabs,
+            <label>Size</label> and <label>Title</label>.
+            Size allows explicit setting of output plot dimensions
+            and alignment in pixels - can be useful when exporting plots.
+            Title lets you add a text title at the top of the plot.</li>
+        <li>New <label>Save</label>/<label>Import</label> options in
+            <ref id="HistogramPlotWindow">Histogram window</ref>
+            allow you to export histogram bin data as a new table
+            (this reinstates behaviour available from old plot windows).</li>
+        <li>More flexibility when assigning colour maps, in the
+            <ref id="ShaderControl">Aux Axis</ref> control,
+            <ref id="mode-density">Density</ref> shading mode, and
+            <ref id="SpectrogramLayerControl">Spectrogram</ref> layer control.
+            These now provide a <label>Scaling</label> option allowing use of
+            Square and Sqrt mappings as well as Linear and Logarithmic,
+            and a <label>Quantise</label> slider allowing quantisation of
+            the colour map to discrete levels.</li>
+        <li><label>Rescale Y</label> button added to
+            <ref id="HistogramPlotWindow">Histogram</ref> window.</li>
+        <li>Histogram normalisation option adjusted
+            so that total area under bars,
+            rather than total height of bars, is fixed.</li>
+        <li>Tick Crowding configuration option added to
+            <ref id="ShaderControl">Aux Axis control</ref> Ramp tab.
+            Also changed default for Aux axis to use fewer ticks.</li>
+        <li>Some "dart" options (fixed-base open or filled triangles)
+            added for plotting <ref id="form-vector">vectors</ref>.</li>
+        <li>Some "triangle" options (variable-base open or filled triangles)
+            added for plotting <ref id="form-ellipse">ellipses</ref>.</li>
+        <li>Max Marker Size option replaced with with Autoscaling option in
+            plot <ref id="form-size">Size</ref> form.
+            You can now optionally turn off autoscaling and specify marker size
+            in pixels instead.</li>
+        <li>Every slider control in plot windows now has a little button
+            on the right that resets it to its default value.</li>
+        <li>The text labels for configuration options and coordinate
+            entry fields in the plot windows now provide a tooltip 
+            of the form "<code>name=value</code>".
+            These strings give the STILTS parameter assignment
+            corresponding to the current setting.</li>
+        </ul>
+        </p></dd>
+    <dt>Other enhancements</dt>
+    <dd><p>
+        <ul>
+        <li>New <ref id="ClassifyWindow">Column Classification Window</ref>
+            lets you add mutually exclusive subsets
+            based on column contents.</li>
+        </ul>
+        </p></dd>
+    <dt>FITS I/O:</dt>
+    <dd><p>
+        <ul>
+        <li>Reworked part of the FITS input implementation,
+            in particular adjusting the way memory mapping is done to reduce
+            resource requirements on some platforms.
+            If you notice any difference, it should be reduced virtual and
+            perhaps resident memory usage, and some (~10%?) performance
+            improvements, when reading large FITS/colfits files.
+            However, please report anything that appears to be working worse
+            than before.</li>
+        <li>Colfits files can now be accessed from streams,
+            not just uncompressed disk files
+            (though that's not necessarily a good idea).</li>
+        </ul>
+        </p></dd>
+    <dt>MacOS packaging</dt>
+    <dd><p>Some changes have been made to the MacOS DMG file/application
+        bundle.  I believe these are at worst harmless, but pre-release
+        testing of platform-specific features is patchy, so problems are
+        possible - please report if you find any, or if the following items
+        don't seem to be working.
+        <ul>
+        <li>OSX application bundle adjusted so that the DMG file
+            <em>should</em> work on any MacOS with
+            either legacy Apple Java 6 or
+            Oracle/OpenJDK Java 7+ installed.</li>
+        <li>OSX application bundle adjusted (I think) so that application
+            working directory is user's home directory.</li>
+        </ul>
+        </p></dd>
+    <dt>Bugfixes and workarounds:</dt>
+    <dd><p>
+        <ul>
+        <li>Fixed a query bug (missing <code>REQUEST=queryData</code> parameter)
+            in the <ref id="SsaMultiWindow">Multiple SSA Query</ref> window.
+            This long-standing bug would have stopped this window working at all
+            with well-behaved SSA services.</li>
+        <li>Fixed error in fits-var output
+            (PCOUNT header card did not include block alignment gap).</li>
+        <li>Graphics coordinates are now calculated in floating point
+            rather than as integers.  This fixes problems that could
+            cause scaled vectors, ellipses etc to be drawn with shapes
+            or orientations badly wrong due to rounding errors.
+            It also improves plotting of analytic functions, especially 
+            to vector contexts (PDF/EPS).</li>
+        <li>Fix some problems to do with zooming to very large/small
+            plot axis ranges.</li>
+        <li>Hide error bars (etc) that would extend to negative values
+            on logarithmic axes; previously they were being drawn in anomalous
+            places.</li>
+        <li>Fix Aux axis positioning for 3D plots so that the numeric labels
+            don't get snipped off at top and bottom.</li>
+        <li>Add a hack that allows LDAC FITS tables to be treated sensibly
+            in auto-format-detection mode.</li>
+        <li>Make VOTable handling more robust against unknown (illegal)
+            datatypes.</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>
