@@ -17,6 +17,7 @@ import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
@@ -45,6 +46,7 @@ public class ClassifyWindow extends AuxWindow {
     private final Action subsetsAct_;
     private final JProgressBar progBar_;
     private final SpinnerNumberModel ncatModel_;
+    private final JLabel countLabel_;
     private final JTextField prefixField_;
     private final ClassifyReportPanel reportPanel_;
     private Classification classification_;
@@ -79,6 +81,7 @@ public class ClassifyWindow extends AuxWindow {
                 reportClassification();
             }
         } );
+        countLabel_ = new JLabel( "" );
         prefixField_ = new JTextField( 12 );
         prefixField_.addActionListener( new ActionListener() {
             public void actionPerformed( ActionEvent evt ) {
@@ -148,8 +151,24 @@ public class ClassifyWindow extends AuxWindow {
         JComponent resultBox = new JPanel( new BorderLayout() );
         resultBox.setBorder( makeTitledBorder( "Results" ) );
         JComponent rcBox = Box.createVerticalBox();
-        rcBox.add( new LineBox( "Number of categories",
-                                new JSpinner( ncatModel_ ), true ) );
+        JComponent ncatLine = Box.createHorizontalBox();
+        ncatLine.add( new JLabel( "Number of categories: " ) );
+        JSpinner ncatSpinner = new JSpinner( ncatModel_ ) {
+            @Override
+            public Dimension getMinimumSize() {
+                return new Dimension( 80, super.getMinimumSize().height );
+            }
+            @Override
+            public Dimension getMaximumSize() {
+                return new Dimension( Integer.MAX_VALUE,
+                                      super.getPreferredSize().height );
+            }
+        };
+        ncatLine.add( ncatSpinner );
+        ncatLine.add( countLabel_ );
+        ncatLine.add( Box.createHorizontalGlue() );
+        rcBox.add( ncatLine );
+        rcBox.add( Box.createVerticalStrut( 5 ) );
         rcBox.add( new LineBox( "Subset name prefix", prefixField_, true ) );
         resultBox.add( rcBox, BorderLayout.NORTH );
         JScrollPane reportScroller = new JScrollPane( reportPanel_ );
@@ -185,8 +204,10 @@ public class ClassifyWindow extends AuxWindow {
      * classification results have changed.
      */
     private void reportClassification() {
+        final String countText;
         if ( classification_ == null ) {
             reportPanel_.setData( null, null );
+            countText = "";
         }
         else {
             Object ncval = ncatModel_.getValue();
@@ -194,9 +215,14 @@ public class ClassifyWindow extends AuxWindow {
                 reportPanel_.setMaxCount( ((Number) ncval).intValue() );
             }
             reportPanel_.setPrefix( prefixField_.getText() );
-            reportPanel_.setData( classification_.cdata_,
-                                  classification_.classifier_ );
+            ColumnData cdata = classification_.cdata_;
+            Classifier classifier = classification_.classifier_;
+            reportPanel_.setData( cdata, classifier );
+            countText = "  / " + classifier.getValueCount() + " ";
         }
+        countLabel_.setText( countText );
+        countLabel_.revalidate();
+        countLabel_.repaint();
         updateState();
     }
 

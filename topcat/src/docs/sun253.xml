@@ -17655,6 +17655,9 @@ Two fields control the way these results are displayed:
     few most popular ones are shown.
     This field controls the maximum number shown,
     you can adjust it as required.
+    The fixed value after the entry field shows the total number of
+    distinct values discovered in the data;
+    increasing the field's value beyond this value will have no further effect.
     </p></dd>
 <dt>Subset name prefix</dt>
 <dd><p>Defines the prefix added to the column values to give the default
