@@ -87,7 +87,7 @@ public class ClassifyReportPanel extends JPanel {
             /* Arrange that de/selection of the category rows will recalculate
              * the item count corresoponding to None Of The Above. */
             final Item otherItem = new Item( null, prefix_ );
-            final long nrow = classifier.getCount();
+            final long nrow = classifier.getItemCount();
             ActionListener flagListener = new ActionListener() {
                 public void actionPerformed( ActionEvent evt ) {
                     long nother = nrow;

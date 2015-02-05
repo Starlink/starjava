@@ -40,12 +40,21 @@ public class Classifier<T> {
     }
 
     /**
-     * Returns the number of values sumbmitted so far.
+     * Returns the number of values submitted so far.
      *
-     * @return   total value count
+     * @return   total item count
      */
-    public long getCount() {
+    public long getItemCount() {
         return nTotal_;
+    }
+
+    /**
+     * Returns the number of distinct values seen so far.
+     *
+     * @return  number of distinct values
+     */
+    public long getValueCount() {
+        return countMap_.size();
     }
 
     /**
