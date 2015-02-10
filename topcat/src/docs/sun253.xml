@@ -1309,6 +1309,8 @@ on which it was based was not obtained directly from Microsoft.
     followed for such a row as for data rows.
     </li> 
 </ul>
+Note that you can <em>not</em> use a "<code>#</code>" character
+(or anything else) to introduce "comment" lines.
 </p>
 
 <p>This format is not detected automatically - you must specify that
