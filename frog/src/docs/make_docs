@@ -68,9 +68,12 @@ convert -page A4 -geometry 100% \
     sun254.fig/window_data.gif eps:sun254.fig/window_data.eps                                                                                                                
 # build sun254.htx from the LaTeX file
 #
-latex sun254
-latex sun254
-dvips -o sun254.ps sun254
+
+# This will only work if you have set the TEXINPUTS environmental
+# variable to e.g  TEXINPUTS=$STARLINK_DIR/share/latexsuppport//:
+pdflatex sun254
+pdflatex sun254
+
 star2html sun254
 hlink
 
