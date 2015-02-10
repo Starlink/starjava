@@ -13,6 +13,7 @@ import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.vo.ColumnMeta;
+import uk.ac.starlink.vo.SchemaMeta;
 import uk.ac.starlink.vo.TableMeta;
 import uk.ac.starlink.vo.TapCapability;
 import uk.ac.starlink.vo.TapQuery;
@@ -76,8 +77,8 @@ public class ObsTapStage implements Stage {
         else {
             obsDeclared = false;
         }
-        TableMeta[] tmetas = metaHolder_.getTableMetadata();
-        if ( tmetas == null ) {
+        SchemaMeta[] smetas = metaHolder_.getTableMetadata();
+        if ( smetas == null ) {
             reporter.report( FixedCode.F_NOTM,
                              "No table metadata"
                            + " (earlier stages failed/skipped?)" );
@@ -86,10 +87,11 @@ public class ObsTapStage implements Stage {
 
         /* Get ObsCore table if present. */
         TableMeta obsMeta = null;
-        for ( int im = 0; im < tmetas.length; im++ ) {
-            TableMeta tmeta = tmetas[ im ];
-            if ( OBSCORE_TNAME.equalsIgnoreCase( tmeta.getName() ) ) {
-                obsMeta = tmeta;
+        for ( SchemaMeta smeta : smetas ) {
+            for ( TableMeta tmeta : smeta.getTables() ) {
+                if ( OBSCORE_TNAME.equalsIgnoreCase( tmeta.getName() ) ) {
+                    obsMeta = tmeta;
+                }
             }
         }
         if ( obsMeta == null ) {

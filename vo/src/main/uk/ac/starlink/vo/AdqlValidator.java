@@ -16,6 +16,7 @@ import adql.query.ADQLQuery;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * Handles validation of ADQL queries.
@@ -144,7 +145,7 @@ public class AdqlValidator {
                      + " [-[no]udfs]"
                      + " <query>"
                      + "\n";
-        TableMeta[] tmetas = null;
+        SchemaMeta[] schMetas = null;
         boolean allowUdfs = false;
         ArrayList<String> argList =
         new ArrayList<String>( java.util.Arrays.asList( args ) );
@@ -158,8 +159,8 @@ public class AdqlValidator {
                 it.remove();
                 String loc = it.next();
                 it.remove();
-                tmetas = TableSetSaxHandler
-                        .readTableSet( new java.net.URL( loc ) );
+                schMetas = TableSetSaxHandler
+                          .readTableSet( new java.net.URL( loc ) );
             }
             else if ( arg.equals( "-udfs" ) ) {
                 it.remove();
@@ -176,12 +177,18 @@ public class AdqlValidator {
             return;
         }
         String query = argList.remove( 0 );
-        ValidatorTable[] vtables = null;
-        if ( tmetas != null ) {
-            vtables = new ValidatorTable[ tmetas.length ];
-            for ( int i = 0; i < tmetas.length; i++ ) {
-                vtables[ i ] = toValidatorTable( tmetas[ i ] );
+        final ValidatorTable[] vtables;
+        if ( schMetas != null ) {
+            List<ValidatorTable> vtList = new ArrayList<ValidatorTable>();
+            for ( SchemaMeta schMeta : schMetas ) {
+                for ( TableMeta tmeta : schMeta.getTables() ) {
+                    vtList.add( toValidatorTable( tmeta ) );
+                }
             }
+            vtables = vtList.toArray( new ValidatorTable[ 0 ] );
+        }
+        else {
+            vtables = null;
         }
         new AdqlValidator( vtables, allowUdfs ).validate( query );
     }

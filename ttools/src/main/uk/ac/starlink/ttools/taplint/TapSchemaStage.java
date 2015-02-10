@@ -2,7 +2,6 @@ package uk.ac.starlink.ttools.taplint;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +12,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.vo.ColumnMeta;
 import uk.ac.starlink.vo.ForeignMeta;
+import uk.ac.starlink.vo.SchemaMeta;
 import uk.ac.starlink.vo.TableMeta;
 import uk.ac.starlink.vo.TapQuery;
 import uk.ac.starlink.vo.TapSchemaInterrogator;
@@ -27,7 +27,6 @@ import uk.ac.starlink.votable.VOStarTable;
 public class TapSchemaStage extends TableMetadataStage {
 
     private final TapRunner tapRunner_;
-    private TableMeta[] tmetas_;
 
     /**
      * Constructor.
@@ -46,8 +45,8 @@ public class TapSchemaStage extends TableMetadataStage {
         tapRunner_.reportSummary( reporter );
     }
 
-    protected TableMeta[] readTableMetadata( Reporter reporter,
-                                             URL serviceUrl ) {
+    protected SchemaMeta[] readTableMetadata( Reporter reporter,
+                                              URL serviceUrl ) {
 
         /* Work out the MAXREC value to use for metadata queries.
          * If this is not set, and the service default value is used,
@@ -93,20 +92,31 @@ public class TapSchemaStage extends TableMetadataStage {
             fMap = new HashMap<String,List<ForeignMeta>>();
         }
 
-        List<TableMeta> tList;
+        Map<String,List<TableMeta>> tMap;
         try {
-            tList = tsi.readTables( cMap, fMap );
+            tMap = tsi.readTables( cMap, fMap );
             checkEmpty( reporter, cMap, FixedCode.W_CLUN, "columns" );
             checkEmpty( reporter, fMap, FixedCode.W_FKUN, "keys" );
         }
         catch ( IOException e ) {
-            tList = null;
             reporter.report( FixedCode.E_TBIO,
                              "Error reading TAP_SCHEMA.tables table", e );
+            tMap = new HashMap<String,List<TableMeta>>();
         }
 
-        return tList == null ? null
-                             : tList.toArray( new TableMeta[ 0 ] );
+        List<SchemaMeta> sList;
+        try {
+            sList = tsi.readSchemas( tMap, false );
+            checkEmpty( reporter, tMap, FixedCode.W_TBUN, "tables" );
+        }
+        catch ( IOException e ) {
+            reporter.report( FixedCode.E_SCIO,
+                             "Error reading TAP_SCHEMA.schemas table", e );
+            sList = null;
+        }
+
+        return sList == null ? null
+                             : sList.toArray( new SchemaMeta[ 0 ] );
     }
 
     /**
@@ -122,13 +132,14 @@ public class TapSchemaStage extends TableMetadataStage {
     private int getMetaMaxrec( Reporter reporter, URL serviceUrl,
                                TapRunner tapRunner ) {
         String[] tnames = new String[] {
+            "TAP_SCHEMA.schemas",
             "TAP_SCHEMA.tables",
             "TAP_SCHEMA.columns",
             "TAP_SCHEMA.keys",
             "TAP_SCHEMA.key_columns",
         };
         int maxrec = 0;
-        for ( String tname : Arrays.asList( tnames ) ) {
+        for ( String tname : tnames ) {
             int nr = Math.max( maxrec, getRowCount( reporter, serviceUrl,
                                                     tapRunner, tname ) );
             if ( nr < 0 ) {

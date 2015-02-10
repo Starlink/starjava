@@ -349,7 +349,7 @@ public class TapQuery {
      * @param  serviceUrl  base TAP service URL
      * @return   table metadata
      */
-    public static TableMeta[] readTableMetadata( URL serviceUrl )
+    public static SchemaMeta[] readTableMetadata( URL serviceUrl )
             throws IOException, SAXException {
         URL turl = new URL( serviceUrl + "/tables" );
         logger_.info( "Reading table metadata from " + turl );

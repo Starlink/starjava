@@ -1,15 +1,18 @@
 package uk.ac.starlink.ttools.taplint;
 
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import uk.ac.starlink.util.CountMap;
 import uk.ac.starlink.vo.ColumnMeta;
 import uk.ac.starlink.vo.ForeignMeta;
+import uk.ac.starlink.vo.SchemaMeta;
 import uk.ac.starlink.vo.TableMeta;
 
 /**
@@ -25,7 +28,7 @@ public abstract class TableMetadataStage implements Stage, MetadataHolder {
     private final String srcDescription_;
     private final String[] knownColFlags_;
     private final boolean reportOtherFlags_;
-    private TableMeta[] tmetas_;
+    private SchemaMeta[] smetas_;
     private static final String[] KNOWN_COL_FLAGS =
         new String[] { "indexed", "primary", "nullable" };
 
@@ -62,8 +65,8 @@ public abstract class TableMetadataStage implements Stage, MetadataHolder {
      *
      * @return  table metadata array
      */
-    public TableMeta[] getTableMetadata() {
-        return tmetas_;
+    public SchemaMeta[] getTableMetadata() {
+        return smetas_;
     }
    
     /**
@@ -71,31 +74,43 @@ public abstract class TableMetadataStage implements Stage, MetadataHolder {
      *
      * @param  reporter   destination for validation messages
      * @param  serviceUrl  TAP service URL
+     * @return   list of schema metadata elements
      */
-    protected abstract TableMeta[] readTableMetadata( Reporter reporter,
-                                                      URL serviceUrl );
+    protected abstract SchemaMeta[] readTableMetadata( Reporter reporter,
+                                                       URL serviceUrl );
 
     public void run( Reporter reporter, URL serviceUrl ) {
-        TableMeta[] tmetas = readTableMetadata( reporter, serviceUrl );
-        checkTables( reporter, tmetas );
-        tmetas_ = tmetas;
+        SchemaMeta[] smetas = readTableMetadata( reporter, serviceUrl );
+        checkSchemas( reporter, smetas );
+        smetas_ = smetas;
     }
 
     /**
      * Performs the checking and reporting for a given table metadata set.
      *
      * @param  reporter  destination for validation messages
-     * @param  tmetas   table metadata to check
+     * @param  smetas   table metadata to check
      */
-    private void checkTables( Reporter reporter, TableMeta[] tmetas ) { 
-        if ( tmetas == null ) {
+    private void checkSchemas( Reporter reporter, SchemaMeta[] smetas ) { 
+        if ( smetas == null ) {
             reporter.report( FixedCode.F_GONE, "Table metadata absent" );
             return;
         }
+
+        /* Table names must be unique globally, not just within each schema. */
+        int nSchema = smetas.length;
+        Map<String,SchemaMeta> schemaMap =
+            createNameMap( reporter, "schema", 'S', smetas );
+        List<TableMeta> tmList = new ArrayList<TableMeta>();
+        for ( SchemaMeta smeta : smetas ) {
+            tmList.addAll( Arrays.asList( smeta.getTables() ) );
+        }
+        TableMeta[] tmetas = tmList.toArray( new TableMeta[ 0 ] );
         int nTable = tmetas.length;
         int nCol = 0;
         Map<String,TableMeta> tableMap = 
             createNameMap( reporter, "table", 'T', tmetas );
+
         Map<String,Map<String,ColumnMeta>> colsMap =
             new HashMap<String,Map<String,ColumnMeta>>();
         for ( String tname : tableMap.keySet() ) {
@@ -196,7 +211,8 @@ public abstract class TableMetadataStage implements Stage, MetadataHolder {
         otherFlagList.removeAll( Arrays.asList( knownColFlags_ ) );
         String[] otherFlags = otherFlagList.toArray( new String[ 0 ] );
         reporter.report( FixedCode.S_SUMM,
-                         "Tables: " + nTable + ", "
+                         "Schemas: " + nSchema + ", "
+                       + "Tables: " + nTable + ", "
                        + "Columns: " + nCol + ", "
                        + "Foreign Keys: " + nForeign );
         reporter.report( FixedCode.S_FLGS,

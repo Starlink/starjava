@@ -12,6 +12,7 @@ import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.vo.ColumnMeta;
+import uk.ac.starlink.vo.SchemaMeta;
 import uk.ac.starlink.vo.TableMeta;
 import uk.ac.starlink.vo.TapQuery;
 import uk.ac.starlink.votable.VOStarTable;
@@ -50,8 +51,17 @@ public class ColumnMetadataStage implements Stage {
     }
 
     public void run( Reporter reporter, URL serviceUrl ) {
-        TableMeta[] tmetas = metaHolder_.getTableMetadata();
-        if ( tmetas == null || tmetas.length == 0 ) {
+        SchemaMeta[] smetas = metaHolder_.getTableMetadata();
+        List<TableMeta> tlist = new ArrayList<TableMeta>();
+        if ( smetas != null ) {
+            for ( SchemaMeta smeta : smetas ) {
+                for ( TableMeta tmeta : smeta.getTables() ) {
+                    tlist.add( tmeta );
+                }
+            }
+        }
+        TableMeta[] tmetas = tlist.toArray( new TableMeta[ 0 ] );
+        if ( tmetas.length == 0 ) {
             reporter.report( FixedCode.F_NOTM,
                              "No table metadata available"
                            + " (earlier stages failed/skipped?)"

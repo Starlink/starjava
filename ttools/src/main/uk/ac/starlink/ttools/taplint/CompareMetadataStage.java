@@ -10,6 +10,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import uk.ac.starlink.vo.ColumnMeta;
 import uk.ac.starlink.vo.ForeignMeta;
+import uk.ac.starlink.vo.SchemaMeta;
 import uk.ac.starlink.vo.TableMeta;
 
 /**
@@ -50,30 +51,53 @@ public class CompareMetadataStage implements Stage {
     }
 
     public void run( Reporter reporter, URL serviceUrl ) {
-        TableMeta[] tmetas1 = metaHolder1_.getTableMetadata();
-        TableMeta[] tmetas2 = metaHolder2_.getTableMetadata();
-        if ( tmetas1 == null || tmetas2 == null ) {
+        SchemaMeta[] smetas1 = metaHolder1_.getTableMetadata();
+        SchemaMeta[] smetas2 = metaHolder2_.getTableMetadata();
+        if ( smetas1 == null || smetas2 == null ) {
             reporter.report( FixedCode.F_NOTM,
                              "Don't have two metadata sets to compare"
                            + " (earlier stages failed/skipped?)" );
             return;
         }
-        compareTables( reporter, tmetas1, tmetas2 );
+        compareSchemas( reporter, smetas1, smetas2 );
+    }
+
+    /**
+     * Compares the content of two arrays of SchemaMeta objects.
+     *
+     * @param  reporter  destination for validation messages
+     * @param  smetas1  first schema metadata set
+     * @param  smetas2  second schema metadata set
+     */
+    private void compareSchemas( Reporter reporter,
+                                 SchemaMeta[] smetas1, SchemaMeta[] smetas2 ) {
+        Map<String,SchemaMeta> smMap1 = createNameMap( smetas1 );
+        Map<String,SchemaMeta> smMap2 = createNameMap( smetas2 );
+        Collection<String> sNames =
+            getIntersection( reporter, 'S', "Schema", null, smetas1, smetas2 );
+        for ( String sname : sNames ) {
+            SchemaMeta sm1 = smMap1.get( sname );
+            SchemaMeta sm2 = smMap2.get( sname );
+            assert sm1 != null && sm2 != null : sm1 + " " + sm2;
+            compareTables( reporter, sname, sm1.getTables(), sm2.getTables() );
+        }
     }
 
     /**
      * Compares the content of two arrays of TableMeta objects.
      *
      * @param  reporter  destination for validation messages
+     * @param  schemaName  name of schema containing tables
      * @param  tmetas1  first table metadata set
      * @param  tmetas2  second table metadata set
      */
-    private void compareTables( Reporter reporter,
+    private void compareTables( Reporter reporter, String schemaName,
                                 TableMeta[] tmetas1, TableMeta[] tmetas2 ) {
         Map<String,TableMeta> tmMap1 = createNameMap( tmetas1 );
         Map<String,TableMeta> tmMap2 = createNameMap( tmetas2 );
         Collection<String> tNames =
-            getIntersection( reporter, 'T', "Table", null, tmetas1, tmetas2 );
+            getIntersection( reporter, 'T', "Table", "schema " + schemaName,
+                             tmetas1, tmetas2 );
         for ( String tname : tNames ) {
             TableMeta tm1 = tmMap1.get( tname );
             TableMeta tm2 = tmMap2.get( tname );
@@ -324,14 +348,7 @@ public class CompareMetadataStage implements Stage {
                          final TableMetadataStage stage2 ) {
         return new CompareMetadataStage( stage1.getSourceDescription(),
                                          stage2.getSourceDescription(),
-                                         stage1, stage2 ) {
-            protected TableMeta[] getMetas1() {
-                return stage1.getTableMetadata();
-            }
-            protected TableMeta[] getMetas2() {
-                return stage2.getTableMetadata();
-            }
-        };
+                                         stage1, stage2 );
     }
 
     /**

@@ -15,7 +15,7 @@ import java.util.Set;
 import uk.ac.starlink.task.Executable;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.Stilts;
-import uk.ac.starlink.vo.TableMeta;
+import uk.ac.starlink.vo.SchemaMeta;
 
 /**
  * Organises validation stages for TAP validator.
@@ -277,11 +277,11 @@ public class TapLinter {
             holders_ = holders;
         }
 
-        public TableMeta[] getTableMetadata() {
+        public SchemaMeta[] getTableMetadata() {
             for ( int ih = 0; ih < holders_.length; ih++ ) {
-                TableMeta[] tmetas = holders_[ ih ].getTableMetadata();
-                if ( tmetas != null && tmetas.length > 0 ) {
-                    return tmetas;
+                SchemaMeta[] smetas = holders_[ ih ].getTableMetadata();
+                if ( smetas != null && smetas.length > 0 ) {
+                    return smetas;
                 }
             }
             return null;

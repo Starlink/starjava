@@ -18,6 +18,7 @@ import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.util.DOMUtils;
 import uk.ac.starlink.vo.AdqlSyntax;
 import uk.ac.starlink.vo.ColumnMeta;
+import uk.ac.starlink.vo.SchemaMeta;
 import uk.ac.starlink.vo.TableMeta;
 import uk.ac.starlink.vo.TapCapability;
 import uk.ac.starlink.vo.TapLanguage;
@@ -60,27 +61,38 @@ public class QueryStage implements Stage {
     }
 
     public void run( Reporter reporter, URL serviceUrl ) {
-        TableMeta[] tmetas = metaHolder_.getTableMetadata();
+        SchemaMeta[] smetas = metaHolder_.getTableMetadata();
         String[] adqlLangs = capHolder_ == null
                            ? null
                            : getAdqlLanguages( capHolder_ );
-        if ( tmetas == null || tmetas.length == 0 ) {
+        if ( smetas == null || smetas.length == 0 ) {
             reporter.report( FixedCode.F_NOTM,
                              "No table metadata available "
                            + "(earlier stages failed/skipped?) "
                            + "- will not run test queries" );
             return;
         }
-        List<TableMeta> tmList = new ArrayList<TableMeta>();
-        for ( int i = 0; i < tmetas.length; i++ ) {
-            TableMeta tmeta = tmetas[ i ];
-            if ( ! tmeta.getName().toUpperCase().startsWith( "TAP_SCHEMA." ) ) {
-                tmList.add( tmeta );
+        List<TableMeta> allTables = new ArrayList<TableMeta>();
+        List<TableMeta> dataTables = new ArrayList<TableMeta>();
+        for ( SchemaMeta smeta : smetas ) {
+            for ( TableMeta tmeta : smeta.getTables() ) {
+                allTables.add( tmeta );
+                if ( ! tmeta.getName().toUpperCase()
+                                      .startsWith( "TAP_SCHEMA." ) ) {
+                    dataTables.add( tmeta ); 
+                }
             }
         }
-        if ( ! tmList.isEmpty() ) {
-            tmetas = tmList.toArray( new TableMeta[ 0 ] );
+        if ( allTables.size() == 0 ) {
+            reporter.report( FixedCode.F_NOTM,
+                             "No table metadata available "
+                           + "(earlier stages failed/skipped?) "
+                           + "- will not run test queries" );
+            return;
         }
+        TableMeta[] tmetas =
+            ( dataTables.size() > 0 ? dataTables : allTables )
+           .toArray( new TableMeta[ 0 ] );
         new Querier( reporter, serviceUrl, tmetas, adqlLangs ).run();
         runDuffQuery( reporter, serviceUrl );
         tapRunner_.reportSummary( reporter );

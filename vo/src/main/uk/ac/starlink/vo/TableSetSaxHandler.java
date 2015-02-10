@@ -32,12 +32,14 @@ import org.xml.sax.helpers.DefaultHandler;
  */
 public class TableSetSaxHandler extends DefaultHandler {
 
-    private TableMeta[] tables_;
+    private SchemaMeta[] schemas_;
+    private List<SchemaMeta> schemaList_;
     private List<TableMeta> tableList_;
     private List<ColumnMeta> columnList_;
     private List<ForeignMeta> foreignList_;
     private List<ForeignMeta.Link> linkList_;
     private List<String> flagList_;
+    private SchemaMeta schema_;
     private TableMeta table_;
     private ColumnMeta column_;
     private ForeignMeta foreign_;
@@ -54,24 +56,24 @@ public class TableSetSaxHandler extends DefaultHandler {
     }
 
     /** 
-     * Returns the array of table metadata objects which have been
+     * Returns the array of schema metadata objects which have been
      * read by this parser.  Only non-empty following a parse.
      *
-     * @return   table descriptions
+     * @return   schema descriptions
      */
-    public TableMeta[] getTables() {
-        return tables_;
+    public SchemaMeta[] getSchemas() {
+        return schemas_;
     }
 
     @Override
     public void startDocument() {
-        tableList_ = new ArrayList<TableMeta>();
+        schemaList_ = new ArrayList<SchemaMeta>();
     }
 
     @Override
     public void endDocument() {
-        tables_ = tableList_.toArray( new TableMeta[ 0 ] );
-        tableList_ = null;
+        schemas_ = schemaList_.toArray( new SchemaMeta[ 0 ] );
+        schemaList_ = null;
     }
 
     @Override
@@ -79,7 +81,11 @@ public class TableSetSaxHandler extends DefaultHandler {
                               Attributes atts ) {
         txtbuf_.setLength( 0 );
         String tname = getTagName( uri, localName, qName );
-        if ( "table".equals( tname ) ) {
+        if ( "schema".equals( tname ) ) {
+            schema_ = new SchemaMeta();
+            tableList_ = new ArrayList<TableMeta>();
+        }
+        else if ( "table".equals( tname ) ) {
             table_ = new TableMeta();
             String type = atts.getValue( "", "type" );
             if ( type != null ) {
@@ -146,6 +152,15 @@ public class TableSetSaxHandler extends DefaultHandler {
             }
             table_ = null;
         }
+        else if ( "schema".equals( tname ) ) {
+            assert schema_ != null;
+            schema_.tables_ = tableList_.toArray( new TableMeta[ 0 ] );
+            tableList_ = null;
+            if ( schemaList_ != null ) {
+                schemaList_.add( schema_ );
+            }
+            schema_ = null;
+        }
         else if ( link_ != null ) {
             if ( "fromColumn".equals( tname ) ) {
                 link_.from_ = txt;
@@ -202,6 +217,20 @@ public class TableSetSaxHandler extends DefaultHandler {
                 table_.utype_ = txt;
             }
         }
+        else if ( schema_ != null ) {
+            if ( "name".equals( tname ) ) {
+                schema_.name_ = txt;
+            }
+            else if ( "title".equals( tname ) ) {
+                schema_.title_ = txt;
+            }
+            else if ( "description".equals( tname ) ) {
+                schema_.description_ = txt;
+            }
+            else if ( "utype".equals( tname ) ) {
+                schema_.utype_ = txt;
+            }
+        }
     }
 
     @Override
@@ -253,7 +282,7 @@ public class TableSetSaxHandler extends DefaultHandler {
      *
      * @param  url  containing a TableSet document or similar
      */
-    public static TableMeta[] readTableSet( URL url )
+    public static SchemaMeta[] readTableSet( URL url )
             throws IOException, SAXException {
         SAXParserFactory spfact = SAXParserFactory.newInstance();
         SAXParser parser;
@@ -281,7 +310,7 @@ public class TableSetSaxHandler extends DefaultHandler {
         InputStream in = new BufferedInputStream( conn.getInputStream() );
         try {
             parser.parse( in, tsHandler );
-            return tsHandler.getTables();
+            return tsHandler.getSchemas();
         }
         finally {
             in.close();
@@ -295,14 +324,13 @@ public class TableSetSaxHandler extends DefaultHandler {
      */
     public static void main( String[] args ) throws IOException, SAXException {
         java.io.PrintStream out = System.out;
-        TableMeta[] tables = readTableSet( new URL( args[ 0 ] ) );
-        for ( int it = 0; it < tables.length; it++ ) {
-            TableMeta table = tables[ it ];
-            out.println( table.getName() );
-            ColumnMeta[] cols = table.getColumns();
-            for ( int ic = 0; ic < cols.length; ic++ ) {
-                ColumnMeta col = cols[ ic ];
-                out.println( "    " + col.getName() );
+        for ( SchemaMeta schema : readTableSet( new URL( args[ 0 ] ) ) ) {
+            out.println( schema.getName() );
+            for ( TableMeta table : schema.getTables() ) {
+                out.println( "    " + table.getName() );
+                for ( ColumnMeta col : table.getColumns() ) {
+                    out.println( "        " + col.getName() );
+                }
             }
         }
     }

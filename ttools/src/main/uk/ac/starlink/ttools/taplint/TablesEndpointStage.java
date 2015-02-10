@@ -3,7 +3,7 @@ package uk.ac.starlink.ttools.taplint;
 import java.io.IOException;
 import java.net.URL;
 import org.xml.sax.SAXException;
-import uk.ac.starlink.vo.TableMeta;
+import uk.ac.starlink.vo.SchemaMeta;
 import uk.ac.starlink.vo.TapQuery;
 
 /**
@@ -20,8 +20,8 @@ public class TablesEndpointStage extends TableMetadataStage {
                new String[] { "indexed", "primary", "nullable" }, true );
     }
 
-    protected TableMeta[] readTableMetadata( Reporter reporter,
-                                             URL serviceUrl ) {
+    protected SchemaMeta[] readTableMetadata( Reporter reporter,
+                                              URL serviceUrl ) {
         reporter.report( FixedCode.I_TURL,
                          "Reading table metadata from "
                        + serviceUrl + "/tables" );
