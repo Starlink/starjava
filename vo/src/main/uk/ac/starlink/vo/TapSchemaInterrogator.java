@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
@@ -26,6 +27,9 @@ public class TapSchemaInterrogator {
     private final URL serviceUrl_;
     private final Map<String,String> extraParams_;
     private final int maxrec_;
+
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.vo" );
 
     /**
      * Constructs an interrogator with a default maxrec limit.
@@ -52,17 +56,20 @@ public class TapSchemaInterrogator {
     }
 
     /**
-     * Returns an array of TableMeta objects describing the tables available
-     * from the service.  The column and foreign key information is filled in.
+     * Returns an array of SchemaMeta objects describing the tables available
+     * from the service.
+     * The table, column and foreign key information is filled in.
      *
-     * @return  array of known tables
+     * @return  fully populated array of known schemas
      */
-    public TableMeta[] queryMetadata() throws IOException {
+    public SchemaMeta[] queryMetadata() throws IOException {
         Map<String,List<ForeignMeta.Link>> lMap = readForeignLinks();
         Map<String,List<ForeignMeta>> fMap = readForeignKeys( lMap );
         Map<String,List<ColumnMeta>> cMap = readColumns();
-        List<TableMeta> tList = readTables( cMap, fMap );
-        return tList.toArray( new TableMeta[ 0 ] );
+        Map<String,List<TableMeta>> tMap = readTables( cMap, fMap );
+        List<SchemaMeta> sList = readSchemas( tMap, true );
+        assert tMap.isEmpty();
+        return sList.toArray( new SchemaMeta[ 0 ] );
     }
 
     /**
@@ -154,7 +161,7 @@ public class TapSchemaInterrogator {
 
     /**
      * Queries the TAP_SCHEMA.columns table to get a list of all columns.
-     * The returned map associates table names lists of columns.
+     * The returned map associates table names with lists of columns.
      *
      * @return  map from table name to column list
      */
@@ -211,6 +218,7 @@ public class TapSchemaInterrogator {
 
     /**
      * Queries the TAP_SCHEMA.tables table to get a list of all tables.
+     * The returned map associates schema names with lists of tables. 
      *
      * @param  cMap  map of known columns keyed by table name,
      *               as returned by {@link #readColumns};
@@ -218,19 +226,22 @@ public class TapSchemaInterrogator {
      * @param  fMap  map of known foreign keys keyed by table name,
      *               as returned by {@link #readForeignKeys readForeignKeys};
      *               entries are removed as used
-     * @return  list of tables
+     * @return  map from schema name to table list
      */
-    public List<TableMeta> readTables( Map<String,List<ColumnMeta>> cMap,
-                                       Map<String,List<ForeignMeta>> fMap )
+    public Map<String,List<TableMeta>>
+            readTables( Map<String,List<ColumnMeta>> cMap,
+                        Map<String,List<ForeignMeta>> fMap )
             throws IOException {
         ColList tcList = new ColList();
+        int itcSchema = tcList.addStringCol( "schema_name" );
         int itcName = tcList.addStringCol( "table_name" );
         int itcType = tcList.addStringCol( "table_type" );
         int itcDesc = tcList.addStringCol( "description" );
         int itcUtype = tcList.addStringCol( "utype" );
         StarTable tTable = tcList.query( "TAP_SCHEMA.tables" );
 
-        List<TableMeta> tList = new ArrayList<TableMeta>();
+        Map<String,List<TableMeta>> tMap =
+            new LinkedHashMap<String,List<TableMeta>>();
         RowSequence tSeq = tTable.getRowSequence();
         try {
             while ( tSeq.next() ) {
@@ -251,13 +262,79 @@ public class TapSchemaInterrogator {
                 }
                 tmeta.foreignKeys_ =
                     fMap.remove( tname ).toArray( new ForeignMeta[ 0 ] );
-                tList.add( tmeta );
+                String schema = (String) row[ itcSchema ];
+                if ( ! tMap.containsKey( schema ) ) {
+                    tMap.put( schema, new ArrayList<TableMeta>() );
+                }
+                tMap.get( schema ).add( tmeta );
             }
         }
         finally {
             tSeq.close();
         }
-        return tList;
+        return tMap;
+    }
+
+    /**
+     * Queries the TAP_SCHEMA.schemas table to get a list of all schemas.
+     *
+     * @param  tMap  map of known tables keyed by schema name,
+     *               as returned by {@link #readTables};
+     *               entries are removed as used
+     * @param  addOrphans  if true, schema entries are faked for any schemas
+     *                     referenced in the table map which are not read
+     *                     from the database table; if false, those tables
+     *                     will be retained in the table map on exit
+     * @return   list of schemas
+     */
+    public List<SchemaMeta> readSchemas( Map<String,List<TableMeta>> tMap,
+                                         boolean addOrphans )
+            throws IOException {
+
+        /* Query the database tables for schema information. */
+        ColList scList = new ColList();
+        int iscName = scList.addStringCol( "schema_name" );
+        int iscDesc = scList.addStringCol( "description" );
+        int iscUtype = scList.addStringCol( "utype" );
+        StarTable sTable = scList.query( "TAP_SCHEMA.schemas" );
+
+        /* Prepare a list of SchemaMeta object based on the results. */
+        List<SchemaMeta> sList = new ArrayList<SchemaMeta>();
+        RowSequence sSeq = sTable.getRowSequence();
+        try {
+            while ( sSeq.next() ) {
+                Object[] row = sSeq.getRow();
+                SchemaMeta smeta = new SchemaMeta();
+                String sname = (String) row[ iscName ];
+                smeta.name_ = sname;
+                smeta.description_ = (String) row[ iscDesc ];
+                smeta.utype_ = (String) row[ iscUtype ];
+                if ( ! tMap.containsKey( sname ) ) {
+                    tMap.put( sname, new ArrayList<TableMeta>() );
+                }
+                smeta.tables_ =
+                    tMap.remove( sname ).toArray( new TableMeta[ 0 ] );
+                sList.add( smeta );
+             }
+         }
+         finally {
+             sSeq.close();
+         }
+
+         /* If the schemas referenced by some of the tables have not
+          * been seen, fake schema entries if required. */
+         if ( ! tMap.isEmpty() && addOrphans ) {
+             logger_.warning( "Adding entries from phantom schemas: "
+                            + tMap.keySet() );
+             for ( String sname : tMap.keySet() ) {
+                 SchemaMeta smeta = new SchemaMeta();
+                 smeta.name_ = sname;
+                 smeta.tables_ =
+                     tMap.remove( sname ).toArray( new TableMeta[ 0 ] );
+                 sList.add( smeta );
+             }
+         }
+         return sList;
     }
 
     /**
@@ -410,19 +487,32 @@ public class TapSchemaInterrogator {
 
     public static void main( String[] args ) throws IOException {
         String url = args[ 0 ];
-        TableMeta[] tmetas =
+        SchemaMeta[] smetas =
             new TapSchemaInterrogator( new URL( args[ 0 ] ), 100000 )
            .queryMetadata();
-        for ( int it = 0; it < tmetas.length; it++ ) {
-            TableMeta tmeta = tmetas[ it ];
-            System.out.println( "T " + it + ":\t" + tmeta );
-            ColumnMeta[] cmetas = tmeta.getColumns();
-            for ( int ic = 0; ic < cmetas.length; ic++ ) {
-                System.out.println( "\tC " + ic + ":\t" + cmetas[ ic ] );
-            }
-            ForeignMeta[] fmetas = tmeta.getForeignKeys();
-            for ( int ik = 0; ik < fmetas.length; ik++ ) {
-                System.out.println( "\tF " + ik + ":\t" + fmetas[ ik ] );
+        for ( int is = 0; is < smetas.length; is++ ) {
+            SchemaMeta smeta = smetas[ is ];
+            System.out.println( "S " + is + ": " + smeta );
+            TableMeta[] tmetas = smeta.getTables();
+            if ( tmetas != null ) {
+                for ( int it = 0; it < tmetas.length; it++ ) {
+                    TableMeta tmeta = tmetas[ it ];
+                    System.out.println( "\tT " + it + ": " + tmeta );
+                    ColumnMeta[] cmetas = tmeta.getColumns();
+                    if ( cmetas != null ) {
+                        for ( int ic = 0; ic < cmetas.length; ic++ ) {
+                            System.out.println( "\t\tC " + ic + ": "
+                                              + cmetas[ ic ] );
+                        }
+                    }
+                    ForeignMeta[] fmetas = tmeta.getForeignKeys();
+                    if ( fmetas != null ) {
+                        for ( int ik = 0; ik < fmetas.length; ik++ ) {
+                            System.out.println( "\t\tF " + ik + ": "
+                                              + fmetas[ ik ] );
+                        }
+                    }
+                }
             }
         }
     }

@@ -1,6 +1,6 @@
 package uk.ac.starlink.ttools.taplint;
 
-import uk.ac.starlink.vo.TableMeta;
+import uk.ac.starlink.vo.SchemaMeta;
 
 /**
  * Provides table metadata.
@@ -14,7 +14,7 @@ public interface MetadataHolder {
      * Returns the table metadata which will be used to frame example
      * ADQL queries.
      *
-     * @return   table metadata array
+     * @return   tableset schema metadata array
      */
-    TableMeta[] getTableMetadata();
+    SchemaMeta[] getTableMetadata();
 }

@@ -296,14 +296,14 @@ public class TapQueryPanel extends JPanel {
 
         /* Dispatch a request to acquire the table metadata from
          * the service. */
-        setTables( null );
+        setSchemas( null );
         tmetaPanel_.showFetchProgressBar( "Fetching Table Metadata" );
         metaFetcher_ = new Thread( "Table metadata fetcher" ) {
             public void run() {
                 final Thread fetcher = this;
-                final TableMeta[] tableMetas;
+                final SchemaMeta[] schemaMetas;
                 try {
-                    tableMetas = TapQuery.readTableMetadata( url );
+                    schemaMetas = TapQuery.readTableMetadata( url );
                 }
                 catch ( final Exception e ) {
                     SwingUtilities.invokeLater( new Runnable() {
@@ -321,7 +321,7 @@ public class TapQueryPanel extends JPanel {
                 SwingUtilities.invokeLater( new Runnable() {
                     public void run() {
                         if ( fetcher == metaFetcher_ ) {
-                            setTables( tableMetas );
+                            setSchemas( schemaMetas );
                         }
                     }
                 } );
@@ -376,9 +376,24 @@ public class TapQueryPanel extends JPanel {
     /**
      * Sets the metadata panel to display a given set of table metadata.
      *
-     * @param  tmetas  table metadata list; null if no metadata is available
+     * @param  schMetas  schema metadata list; null if no metadata is available
      */
-    private void setTables( TableMeta[] tmetas ) {
+    private void setSchemas( SchemaMeta[] schMetas ) {
+
+        /* Extract the list of tables from the schemas. */
+        final TableMeta[] tmetas;
+        if ( schMetas != null ) {
+            List<TableMeta> tlist = new ArrayList<TableMeta>();
+            for ( SchemaMeta schMeta : schMetas ) {
+                for ( TableMeta tmeta : schMeta.getTables() ) {
+                    tlist.add( tmeta );
+                }
+            }
+            tmetas = tlist.toArray( new TableMeta[ 0 ] );
+        }
+        else {
+            tmetas = null;
+        }
 
         /* Populate table metadata JTable. */
         tmetaPanel_.setTables( tmetas );
