@@ -1,8 +1,11 @@
 package uk.ac.starlink.vo;
 
+import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * TreeModel for representing a TAP table set.
@@ -12,16 +15,49 @@ import javax.swing.tree.TreePath;
  */
 public class TapMetaTreeModel implements TreeModel {
 
-    private final SchemaMeta[] schemas_;
+    private final List<TreeModelListener> listeners_;
+    private SchemaMeta[] schemas_;
 
     /**
-     * Constructor.
+     * Constructs an empty tree model.
+     */
+    public TapMetaTreeModel() {
+        this( new SchemaMeta[ 0 ] );
+    }
+
+    /**
+     * Constructs a tree model to display a given table set.
      *
-     * @param   schemas  schema array defining the table metadata
-     *                   to be represented
+     * @param  schemas  schema array defining the table metadata to be
+     *                  represented
      */
     public TapMetaTreeModel( SchemaMeta[] schemas ) {
+        listeners_ = new ArrayList<TreeModelListener>();
+        setSchemas( schemas );
+    }
+
+    /**
+     * Sets the content of this tree.
+     *
+     * @param  schemas  schema array defining the table metadata to be
+     *                  represented
+     */
+    public void setSchemas( SchemaMeta[] schemas ) {
         schemas_ = schemas;
+        TreeModelEvent evt =
+            new TreeModelEvent( this, new Object[] { schemas } );
+        for ( TreeModelListener lnr : listeners_ ) {
+            lnr.treeStructureChanged( evt );
+        }
+    }
+
+    /**
+     * Returns the schemas array that forms the root of this tree model.
+     *
+     * @return  schema array
+     */
+    public SchemaMeta[] getSchemas() {
+        return schemas_;
     }
 
     public Object getRoot() {
@@ -66,11 +102,11 @@ public class TapMetaTreeModel implements TreeModel {
     }
 
     public void addTreeModelListener( TreeModelListener lnr ) {
-        // tree structure is immutable
+        listeners_.add( lnr );
     }
 
     public void removeTreeModelListener( TreeModelListener lnr ) {
-        // tree structure is immutable
+        listeners_.remove( lnr );
     }
 
     /**
