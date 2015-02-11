@@ -21081,6 +21081,8 @@ introduced since the last version:
         may now use syntax that reads data from a unix pipeline.</li>
     <li>OSX application bundle fixed to run application in user's home
         directory (broken in previous version).</li>
+    <li>Fix minor ADQL parse failure when using TAP tables
+        named without explicit schema prefix by service.</li>
     </ul>
     </p></dd>
 

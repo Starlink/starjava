@@ -5,7 +5,9 @@ import java.awt.Component;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.DefaultComboBoxModel;
@@ -47,7 +49,7 @@ public class TableSetPanel extends JPanel {
     private final JComponent metaPanel_;
     private final JSplitPane metaSplitter_;
     private final JLabel tableLabel_;
-    private TableMeta[] tables_;
+    private SchemaMeta[] schemas_;
 
     /**
      * Constructor.
@@ -146,12 +148,28 @@ public class TableSetPanel extends JPanel {
 
     /**
      * Sets the data model for the metadata displayed by this panel.
-     * The data is in the form of an array of table metadata objects.
+     * The data is in the form of an array of schema metadata objects.
      *
-     * @param  tables  table metadata objects, null if no metadata available
+     * @param  schemas  schema metadata objects, null if no metadata available
      */
-    public void setTables( TableMeta[] tables ) {
-        tables_ = tables;
+    public void setSchemas( SchemaMeta[] schemas ) {
+        schemas_ = schemas;
+
+        /* Extract the list of tables from the schemas. */
+        final TableMeta[] tables;
+        if ( schemas != null ) { 
+            List<TableMeta> tlist = new ArrayList<TableMeta>();
+            for ( SchemaMeta schema : schemas ) {
+                for ( TableMeta table : schema.getTables() ) {
+                    tlist.add( table );
+                }
+            }
+            tables = tlist.toArray( new TableMeta[ 0 ] );
+        }
+        else {
+            tables = null;
+        }
+
         tSelector_.setModel( tables == null
                                     ? new DefaultComboBoxModel()
                                     : new DefaultComboBoxModel( tables ) );
@@ -171,10 +189,10 @@ public class TableSetPanel extends JPanel {
     /**
      * Returns the most recently set table metadata set.
      *
-     * @return   current table metadata array
+     * @return   current schema metadata array
      */
-    public TableMeta[] getTables() {
-        return tables_;
+    public SchemaMeta[] getSchemas() {
+        return schemas_;
     }
 
     /**

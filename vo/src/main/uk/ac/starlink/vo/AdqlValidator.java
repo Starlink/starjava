@@ -77,14 +77,21 @@ public class AdqlValidator {
      * Utility method to adapt a TableMeta object into a ValidatorTable.
      *
      * @param  tmeta  input table metadata object
+     * @param  smeta  schema metadata object containing the table, or null
      * @return  table metadata object suitable for validation by this class
      */
-    public static ValidatorTable toValidatorTable( final TableMeta tmeta ) {
+    public static ValidatorTable toValidatorTable( TableMeta tmeta,
+                                                   SchemaMeta smeta ) {
         ColumnMeta[] cmetas = tmeta.getColumns();
+        final String tname = tmeta.getName();
+        final String sname = smeta == null ? null : smeta.getName();
         final ValidatorColumn[] vcols = new ValidatorColumn[ cmetas.length ];
         final ValidatorTable vtable = new ValidatorTable() {
-            public String getName() {
-                return tmeta.getName();
+            public String getTableName() {
+                return tname;
+            }
+            public String getSchemaName() {
+                return sname;
             }
             public ValidatorColumn[] getColumns() {
                 return vcols;
@@ -93,7 +100,7 @@ public class AdqlValidator {
         for ( int ic = 0; ic < cmetas.length; ic++ ) {
             final ColumnMeta cmeta = cmetas[ ic ];
             vcols[ ic ] = new ValidatorColumn() {
-                public String getName() {
+                public String getColumnName() {
                     return cmeta.getName();
                 }
                 public ValidatorTable getTable() {
@@ -125,10 +132,16 @@ public class AdqlValidator {
      * @return  table metadata in ADQLParser-friendly form
      */
     private static DBTable toDBTable( ValidatorTable vtable ) {
-        DefaultDBTable dbTable = new DefaultDBTable( vtable.getName() );
+        DefaultDBTable dbTable = new DefaultDBTable( vtable.getTableName() );
+
+        /* Setting the schema name here seems to be necessary in some cases:
+         * if the table name itself has no explicit schema qualification.
+         * In that case, the ADQL parsing library (v1.2) can throw
+         * unexpected NullPointerExceptions. */
+        dbTable.setADQLSchemaName( vtable.getSchemaName() );
         ValidatorColumn[] vcols = vtable.getColumns();
         for ( int ic = 0; ic < vcols.length; ic++ ) {
-            dbTable.addColumn( new DefaultDBColumn( vcols[ ic ].getName(),
+            dbTable.addColumn( new DefaultDBColumn( vcols[ ic ].getColumnName(),
                                                     dbTable ) );
         }
         return dbTable;
@@ -182,7 +195,7 @@ public class AdqlValidator {
             List<ValidatorTable> vtList = new ArrayList<ValidatorTable>();
             for ( SchemaMeta schMeta : schMetas ) {
                 for ( TableMeta tmeta : schMeta.getTables() ) {
-                    vtList.add( toValidatorTable( tmeta ) );
+                    vtList.add( toValidatorTable( tmeta, schMeta ) );
                 }
             }
             vtables = vtList.toArray( new ValidatorTable[ 0 ] );
@@ -199,11 +212,21 @@ public class AdqlValidator {
     public interface ValidatorTable {
 
         /**
-         * Returns the name of this table, including any schema.
+         * Returns the fully-qualified name of this table,
+         * which may include a schema part.
          *
          * @return  table name
          */
-        String getName();
+        String getTableName();
+
+        /**
+         * Returns the name of the schema to which this table belongs,
+         * if known.  In practice, it only seems to be necessary if
+         * the table name does not include a schema part.
+         *
+         * @return  schema name
+         */
+        String getSchemaName();
 
         /**
          * Returns an array of columns associated with this table.
@@ -223,7 +246,7 @@ public class AdqlValidator {
          *
          * @return  column name
          */
-        String getName();
+        String getColumnName();
 
         /**
          * Returns the table which owns this column.

@@ -376,38 +376,25 @@ public class TapQueryPanel extends JPanel {
     /**
      * Sets the metadata panel to display a given set of table metadata.
      *
-     * @param  schMetas  schema metadata list; null if no metadata is available
+     * @param  smetas  schema metadata list; null if no metadata is available
      */
-    private void setSchemas( SchemaMeta[] schMetas ) {
-
-        /* Extract the list of tables from the schemas. */
-        final TableMeta[] tmetas;
-        if ( schMetas != null ) {
-            List<TableMeta> tlist = new ArrayList<TableMeta>();
-            for ( SchemaMeta schMeta : schMetas ) {
-                for ( TableMeta tmeta : schMeta.getTables() ) {
-                    tlist.add( tmeta );
-                }
-            }
-            tmetas = tlist.toArray( new TableMeta[ 0 ] );
-        }
-        else {
-            tmetas = null;
-        }
+    private void setSchemas( SchemaMeta[] smetas ) {
 
         /* Populate table metadata JTable. */
-        tmetaPanel_.setTables( tmetas );
+        tmetaPanel_.setSchemas( smetas );
 
         /* Display number of tables. */
-        String countText;
-        if ( tmetas == null ) {
+        final String countText;
+        if ( smetas == null ) {
             countText = "";
         }
-        else if ( tmetas.length == 1 ) {
-            countText = "(1 table)";
-        }
         else {
-            countText = "(" + tmetas.length + " tables)";
+            int ns = smetas.length;
+            int nt = 0;
+            for ( SchemaMeta smeta : smetas ) {
+                nt += smeta.getTables().length;
+            }
+            countText = "(" + ns + " schemas, " + nt + " tables)";
         }
         countLabel_.setText( countText );
     }
@@ -419,7 +406,18 @@ public class TapQueryPanel extends JPanel {
     private void configureExamples() {
         String lang = tcapPanel_.getQueryLanguage();
         TapCapability tcap = tcapPanel_.getCapability();
-        TableMeta[] tables = tmetaPanel_.getTables();
+        SchemaMeta[] schemas = tmetaPanel_.getSchemas();
+        final TableMeta[] tables;
+        if ( schemas != null ) {
+            List<TableMeta> tlist = new ArrayList<TableMeta>();
+            for ( SchemaMeta schema : schemas ) {
+                tlist.addAll( Arrays.asList( schema.getTables() ) );
+            }
+            tables = tlist.toArray( new TableMeta[ 0 ] );
+        }
+        else {
+            tables = null;
+        }
         TableMeta table = tmetaPanel_.getSelectedTable();
         for ( int ie = 0; ie < exampleActs_.length; ie++ ) {
             AdqlExampleAction exAct = exampleActs_[ ie ];
@@ -440,9 +438,11 @@ public class TapQueryPanel extends JPanel {
          * what tables and columns are available. */
         List<AdqlValidator.ValidatorTable> vtList =
             new ArrayList<AdqlValidator.ValidatorTable>();
-        TableMeta[] tmetas = tmetaPanel_.getTables();
-        for ( int it = 0; it < tmetas.length; it++ ) {
-            vtList.add( AdqlValidator.toValidatorTable( tmetas[ it ] ) );
+        SchemaMeta[] smetas = tmetaPanel_.getSchemas();
+        for ( SchemaMeta smeta : tmetaPanel_.getSchemas() ) {
+            for ( TableMeta tmeta : smeta.getTables() ) {
+                vtList.add( AdqlValidator.toValidatorTable( tmeta, smeta ) );
+            }
         }
         vtList.addAll( Arrays.asList( getExtraTables() ) );
         AdqlValidator.ValidatorTable[] vtables =
