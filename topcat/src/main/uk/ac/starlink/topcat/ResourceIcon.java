@@ -631,10 +631,10 @@ public class ResourceIcon implements Icon {
                      new Ri1RegistryTableLoadDialog().getIcon() );
         nameMap.put( "HELP_TOC",
                      new ImageIcon( JHelp.class
-                             .getResource( "plaf/basic/images/toc.gif" ) ) );
+                             .getResource( "plaf/basic/images/TOCNav.gif" ) ) );
         nameMap.put( "HELP_SEARCH",
                      new ImageIcon( JHelp.class
-                             .getResource( "plaf/basic/images/search.gif" ) ) );
+                             .getResource( "plaf/basic/images/SearchNav.gif" ) ) );
 
         /* Pull in icons from TTOOLS package. */
         Field[] fields = uk.ac.starlink.ttools.gui.ResourceIcon.class
