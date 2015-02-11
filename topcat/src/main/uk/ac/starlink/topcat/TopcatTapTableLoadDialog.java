@@ -169,12 +169,14 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
                 TopcatModel[] tcModels = getTopcatModels();
                 List<AdqlValidator.ValidatorTable> vtList =
                     new ArrayList<AdqlValidator.ValidatorTable>();
+                String uploadSchemaName = "TAP_UPLOAD";
                 for ( int it = 0; it < tcModels.length; it++ ) {
                     TopcatModel tcModel = tcModels[ it ];
                     String[] aliases = getUploadAliases( tcModel );
                     for ( int ia = 0; ia < aliases.length; ia++ ) {
-                        String tname = "TAP_UPLOAD." + aliases[ ia ];
-                        vtList.add( toValidatorTable( tcModel, tname ) );
+                        String tname = uploadSchemaName + "." + aliases[ ia ];
+                        vtList.add( toValidatorTable( tcModel, tname,
+                                                      uploadSchemaName ) );
                     }
                 }
                 return vtList.toArray( new AdqlValidator.ValidatorTable[ 0 ] );
@@ -244,18 +246,23 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
      *
      * @param  tcModel  loaded table
      * @param  tname  schema-qualified table name
+     * @param  sname  schema name
      * @return   table metadata object suitable for passing to validator
      */
     private static AdqlValidator.ValidatorTable
-            toValidatorTable( TopcatModel tcModel, final String tname ) {
+            toValidatorTable( TopcatModel tcModel, final String tname,
+                              final String sname ) {
         StarTable dataTable = tcModel.getDataModel();
         int ncol = dataTable.getColumnCount();
         final AdqlValidator.ValidatorColumn[] vcols =
             new AdqlValidator.ValidatorColumn[ ncol ];
         final AdqlValidator.ValidatorTable vtable =
                 new AdqlValidator.ValidatorTable() {
-            public String getName() {
+            public String getTableName() {
                 return tname;
+            }
+            public String getSchemaName() {
+                return sname;
             }
             public AdqlValidator.ValidatorColumn[] getColumns() {
                 return vcols;
@@ -264,7 +271,7 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
         for ( int ic = 0; ic < ncol; ic++ ) {
             final String cname = dataTable.getColumnInfo( ic ).getName();
             vcols[ ic ] = new AdqlValidator.ValidatorColumn() {
-                public String getName() {
+                public String getColumnName() {
                     return cname;
                 }
                 public AdqlValidator.ValidatorTable getTable() {
