@@ -1,3 +1,7 @@
-This file is a redistributable files from SUNs JavaHelp. Do not modify. If you
-want additional files, like examples and the full api, then visit the 
-SUN website and download the full distribution.
+This package contains some binary components from a build of the javahelp
+system whose source code is available under the GPL at:
+
+   https://java.net/projects/javahelp/sources/svn/show/trunk
+
+Checkout that code and do an "ant release" with the javahelp_nbproject
+build.xml file.
