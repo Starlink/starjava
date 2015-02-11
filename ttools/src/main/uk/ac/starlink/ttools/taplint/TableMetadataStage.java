@@ -76,7 +76,7 @@ public abstract class TableMetadataStage implements Stage, MetadataHolder {
      *
      * @param  reporter   destination for validation messages
      * @param  serviceUrl  TAP service URL
-     * @return   list of schema metadata elements
+     * @return   list of fully populated schema metadata elements
      */
     protected abstract SchemaMeta[] readTableMetadata( Reporter reporter,
                                                        URL serviceUrl );

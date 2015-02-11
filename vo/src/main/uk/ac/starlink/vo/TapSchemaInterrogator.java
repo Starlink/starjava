@@ -255,13 +255,13 @@ public class TapSchemaInterrogator {
                 if ( ! cMap.containsKey( tname ) ) {
                     cMap.put( tname, new ArrayList<ColumnMeta>() );
                 }
-                tmeta.columns_ =
-                    cMap.remove( tname ).toArray( new ColumnMeta[ 0 ] );
+                tmeta.setColumns( cMap.remove( tname )
+                                      .toArray( new ColumnMeta[ 0 ] ) );
                 if ( ! fMap.containsKey( tname ) ) {
                     fMap.put( tname, new ArrayList<ForeignMeta>() );
                 }
-                tmeta.foreignKeys_ =
-                    fMap.remove( tname ).toArray( new ForeignMeta[ 0 ] );
+                tmeta.setForeignKeys( fMap.remove( tname )
+                                          .toArray( new ForeignMeta[ 0 ] ) );
                 String schema = (String) row[ itcSchema ];
                 if ( ! tMap.containsKey( schema ) ) {
                     tMap.put( schema, new ArrayList<TableMeta>() );
@@ -312,8 +312,8 @@ public class TapSchemaInterrogator {
                 if ( ! tMap.containsKey( sname ) ) {
                     tMap.put( sname, new ArrayList<TableMeta>() );
                 }
-                smeta.tables_ =
-                    tMap.remove( sname ).toArray( new TableMeta[ 0 ] );
+                smeta.setTables( tMap.remove( sname )
+                                     .toArray( new TableMeta[ 0 ] ) );
                 sList.add( smeta );
              }
          }
@@ -329,8 +329,8 @@ public class TapSchemaInterrogator {
              for ( String sname : tMap.keySet() ) {
                  SchemaMeta smeta = new SchemaMeta();
                  smeta.name_ = sname;
-                 smeta.tables_ =
-                     tMap.remove( sname ).toArray( new TableMeta[ 0 ] );
+                 smeta.setTables( tMap.remove( sname )
+                                      .toArray( new TableMeta[ 0 ] ) );
                  sList.add( smeta );
              }
          }

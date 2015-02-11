@@ -346,8 +346,11 @@ public class TapQuery {
     /**
      * Reads table metadata from a TAP service.
      *
+     * <p>The returned metadata objects contain all the available tables
+     * and columns, they are not in need of subsequent reads.
+     *
      * @param  serviceUrl  base TAP service URL
-     * @return   table metadata
+     * @return   fully populated table metadata
      */
     public static SchemaMeta[] readTableMetadata( URL serviceUrl )
             throws IOException, SAXException {
