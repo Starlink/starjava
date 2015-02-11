@@ -116,7 +116,7 @@ public class TapSchemaInterrogator {
      *
      * @param  lMap  map of known links keyed by key_id,
      *               as returned by {@link #readForeignLinks};
-     *               entries are removed as used
+     *               entries are removed as used; may be null
      * @return  map from table name to foreign key list
      */
     public Map<String,List<ForeignMeta>>
@@ -142,11 +142,13 @@ public class TapSchemaInterrogator {
                 fmeta.targetTable_ = (String) row[ ifcTarget ];
                 fmeta.description_ = (String) row[ ifcDesc ];
                 fmeta.utype_ = (String) row[ ifcUtype ];
-                if ( ! lMap.containsKey( kid ) ) {
-                    lMap.put( kid, new ArrayList<ForeignMeta.Link>() );
+                if ( lMap != null ) {
+                    if ( ! lMap.containsKey( kid ) ) {
+                        lMap.put( kid, new ArrayList<ForeignMeta.Link>() );
+                    }
+                    fmeta.links_ =
+                        lMap.remove( kid ).toArray( new ForeignMeta.Link[ 0 ] );
                 }
-                fmeta.links_ =
-                    lMap.remove( kid ).toArray( new ForeignMeta.Link[ 0 ] );
                 if ( ! fMap.containsKey( tFromName ) ) {
                     fMap.put( tFromName, new ArrayList<ForeignMeta>() );
                 }
@@ -222,10 +224,10 @@ public class TapSchemaInterrogator {
      *
      * @param  cMap  map of known columns keyed by table name,
      *               as returned by {@link #readColumns};
-     *               entries are removed as used
+     *               entries are removed as used; may be null
      * @param  fMap  map of known foreign keys keyed by table name,
      *               as returned by {@link #readForeignKeys readForeignKeys};
-     *               entries are removed as used
+     *               entries are removed as used; may be null
      * @return  map from schema name to table list
      */
     public Map<String,List<TableMeta>>
@@ -252,16 +254,20 @@ public class TapSchemaInterrogator {
                 tmeta.type_ = (String) row[ itcType ];
                 tmeta.description_ = (String) row[ itcDesc ];
                 tmeta.utype_ = (String) row[ itcUtype ];
-                if ( ! cMap.containsKey( tname ) ) {
-                    cMap.put( tname, new ArrayList<ColumnMeta>() );
+                if ( cMap != null ) {
+                    if ( ! cMap.containsKey( tname ) ) {
+                        cMap.put( tname, new ArrayList<ColumnMeta>() );
+                    }
+                    tmeta.setColumns( cMap.remove( tname )
+                                     .toArray( new ColumnMeta[ 0 ] ) );
                 }
-                tmeta.setColumns( cMap.remove( tname )
-                                      .toArray( new ColumnMeta[ 0 ] ) );
-                if ( ! fMap.containsKey( tname ) ) {
-                    fMap.put( tname, new ArrayList<ForeignMeta>() );
+                if ( fMap != null ) {
+                    if ( ! fMap.containsKey( tname ) ) {
+                        fMap.put( tname, new ArrayList<ForeignMeta>() );
+                    }
+                    tmeta.setForeignKeys( fMap.remove( tname )
+                                         .toArray( new ForeignMeta[ 0 ] ) );
                 }
-                tmeta.setForeignKeys( fMap.remove( tname )
-                                          .toArray( new ForeignMeta[ 0 ] ) );
                 String schema = (String) row[ itcSchema ];
                 if ( ! tMap.containsKey( schema ) ) {
                     tMap.put( schema, new ArrayList<TableMeta>() );
@@ -280,7 +286,7 @@ public class TapSchemaInterrogator {
      *
      * @param  tMap  map of known tables keyed by schema name,
      *               as returned by {@link #readTables};
-     *               entries are removed as used
+     *               entries are removed as used; may be null
      * @param  addOrphans  if true, schema entries are faked for any schemas
      *                     referenced in the table map which are not read
      *                     from the database table; if false, those tables
@@ -309,11 +315,13 @@ public class TapSchemaInterrogator {
                 smeta.name_ = sname;
                 smeta.description_ = (String) row[ iscDesc ];
                 smeta.utype_ = (String) row[ iscUtype ];
-                if ( ! tMap.containsKey( sname ) ) {
-                    tMap.put( sname, new ArrayList<TableMeta>() );
+                if ( tMap != null ) {
+                    if ( ! tMap.containsKey( sname ) ) {
+                        tMap.put( sname, new ArrayList<TableMeta>() );
+                    }
+                    smeta.setTables( tMap.remove( sname )
+                                         .toArray( new TableMeta[ 0 ] ) );
                 }
-                smeta.setTables( tMap.remove( sname )
-                                     .toArray( new TableMeta[ 0 ] ) );
                 sList.add( smeta );
              }
          }
