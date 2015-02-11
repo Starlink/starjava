@@ -22,6 +22,6 @@ if $cygwin; then
   JAVAHELP_HOME=`cygpath --path --windows "$JAVAHELP_HOME"`
 fi
 
-java -jar $JAVAHELP_HOME/../lib/help/jhall.jar com.java.help.search.Indexer "$@"
+java -cp $JAVAHELP_HOME/../../lib/help/jhall.jar com.sun.java.help.search.Indexer "$@"
 
 exit
