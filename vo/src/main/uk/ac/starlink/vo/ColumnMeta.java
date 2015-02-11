@@ -11,6 +11,7 @@ import java.util.Arrays;
  *          >IVOA VODataService Recommendation</a>
  */
 public class ColumnMeta {
+
     String name_;
     String description_;
     String unit_;
@@ -18,6 +19,12 @@ public class ColumnMeta {
     String utype_;
     String dataType_;  // has attributes, but content is a token
     String[] flags_;
+
+    /**
+     * Constructor.
+     */
+    protected ColumnMeta() {
+    }
 
     /**
      * Returns this column's name.
@@ -34,26 +41,62 @@ public class ColumnMeta {
         return name_;
     }
 
+    /**
+     * Returns this column's description.
+     *
+     * @return  text description
+     */
     public String getDescription() {
         return description_;
     }
 
+    /**
+     * Returns this column's unit string.
+     *
+     * @return  unit
+     */
     public String getUnit() {
         return unit_;
     }
 
+    /**
+     * Returns a UCD associated with this column.
+     *
+     * @return  ucd
+     */
     public String getUcd() {
         return ucd_;
     }
 
+    /**
+     * Returns a Utype associated with this column.
+     *
+     * @return  utype
+     */
     public String getUtype() {
         return utype_;
     }
 
+    /**
+     * Returns the datatype for this column.
+     * This may be an ADQL data type (TAP 1.0 sec 2.5) or a vs:TAPType or
+     * vs:VOTableType (VODataService 1.1 sec 3.5.3).
+     *
+     * @return  datatype
+     */
     public String getDataType() {
         return dataType_;
     }
 
+    /**
+     * Returns a list of strings corresponding to flags that are set on
+     * this column.
+     * This list is in principle open (according to VODataService)
+     * but VODataService mentions the values "indexed", "primary", "nullable",
+     * while TAP_SCHEMA.columns defines "principal", "indexed" and "std".
+     *
+     * @return   array of flag strings set
+     */
     public String[] getFlags() {
         return flags_;
     }

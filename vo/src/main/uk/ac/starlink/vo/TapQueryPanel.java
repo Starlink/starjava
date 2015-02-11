@@ -375,8 +375,11 @@ public class TapQueryPanel extends JPanel {
 
     /**
      * Sets the metadata panel to display a given set of table metadata.
+     * The supplied metadata is considered fully populated with tables
+     * and columns, no further reads are performed.
      *
-     * @param  smetas  schema metadata list; null if no metadata is available
+     * @param  smetas  fully populated schema metadata list;
+     *                 null if no metadata is available
      */
     private void setSchemas( SchemaMeta[] smetas ) {
 

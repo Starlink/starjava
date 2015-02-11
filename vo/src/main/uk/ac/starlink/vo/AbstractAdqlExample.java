@@ -284,9 +284,12 @@ public abstract class AbstractAdqlExample implements AdqlExample {
         List<TableWithCols> tlist = new ArrayList<TableWithCols>();
         for ( int i = 0; i < tables.length && tlist.size() < max; i++ ) {
             TableMeta table = tables[ i ];
-            String[] radec = getRaDecDegreesNames( tables[ i ] );
-            if ( radec != null ) {
-                tlist.add( new TableWithCols( table, radec ) );
+            ColumnMeta[] cols = table.getColumns();
+            if ( cols != null ) {
+                String[] radec = getRaDecDegreesNames( cols );
+                if ( radec != null ) {
+                    tlist.add( new TableWithCols( table, radec ) );
+                }
             }
         }
         return tlist.toArray( new TableWithCols[ 0 ] );
@@ -300,8 +303,7 @@ public abstract class AbstractAdqlExample implements AdqlExample {
      * @return  2-element array with column names for RA, Dec respectively,
      *          or null if nothing suitable
      */
-    private static String[] getRaDecDegreesNames( TableMeta table ) {
-        ColumnMeta[] cols = table.getColumns();
+    private static String[] getRaDecDegreesNames( ColumnMeta[] cols ) {
         String[] coords = new String[ 2 ];
         int[] scores = new int[ 2 ];
         for ( int ic = 0; ic < cols.length; ic++ ) {

@@ -59,7 +59,10 @@ public class TableSetSaxHandler extends DefaultHandler {
      * Returns the array of schema metadata objects which have been
      * read by this parser.  Only non-empty following a parse.
      *
-     * @return   schema descriptions
+     * <p>The returned metadata objects contain all the available tables
+     * and columns, they are not in need of subsequent reads.
+     *
+     * @return   fully populated table metadata
      */
     public SchemaMeta[] getSchemas() {
         return schemas_;
@@ -143,9 +146,10 @@ public class TableSetSaxHandler extends DefaultHandler {
         }
         else if ( "table".equals( tname ) ) {
             assert table_ != null;
-            table_.columns_ = columnList_.toArray( new ColumnMeta[ 0 ] );
+            table_.setColumns( columnList_.toArray( new ColumnMeta[ 0 ] ) );
             columnList_ = null;
-            table_.foreignKeys_ = foreignList_.toArray( new ForeignMeta[ 0 ] );
+            table_.setForeignKeys( foreignList_
+                                  .toArray( new ForeignMeta[ 0 ] ) );
             foreignList_ = null;
             if ( tableList_ != null ) {
                 tableList_.add( table_ );
@@ -154,7 +158,7 @@ public class TableSetSaxHandler extends DefaultHandler {
         }
         else if ( "schema".equals( tname ) ) {
             assert schema_ != null;
-            schema_.tables_ = tableList_.toArray( new TableMeta[ 0 ] );
+            schema_.setTables( tableList_.toArray( new TableMeta[ 0 ] ) );
             tableList_ = null;
             if ( schemaList_ != null ) {
                 schemaList_.add( schema_ );

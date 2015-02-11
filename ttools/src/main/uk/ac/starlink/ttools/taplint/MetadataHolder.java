@@ -13,6 +13,8 @@ public interface MetadataHolder {
     /**
      * Returns the table metadata which will be used to frame example
      * ADQL queries.
+     * The returned objects should be fully populated (table and column
+     * lists in place, rather than needing further read operations).
      *
      * @return   tableset schema metadata array
      */
