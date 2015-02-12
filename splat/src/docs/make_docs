@@ -1,0 +1,45 @@
+#!/bin/sh
+
+#  Make documentation. Requires a functional Starlink with working htlatex
+#  build system.
+
+export HTX_EMAIL='<A HREF="mailto:starlink@jiscmail.ac.uk">starlink@jiscmail.ac.uk</A>'
+
+copyr1="Copyright (C) 2001-2005 Council for the Central Laboratory of the Research Councils"
+copyr2="Copyright (C) 2006-2007 Particle Physics and Astronomy Research Council"
+copyr3="Copyright (C) 2007-2009 Science and Technology Facilities Council"
+copyr4="Copyright (C) 2010-2013 Peter W. Draper"
+copyr5="Copyright (C) 2013 German Astrophysical Virtual Observatory (GAVO)"
+
+export COPYRIGHT="$copyr1, $copyr2, $copyr3, $copyr4, $copyr5"
+
+#  Copy figures into place.
+test -d sun243.htx || mkdir sun243.htx
+\cp gifs/* sun243.htx
+
+#  Help system docs, these need to be in a jar file so we can 
+#  access them from javahelp.
+star2html -no_navigation -c "$COPYRIGHT" sun243.tex
+
+./makeSearchDatabase
+jar cf splat_help.jar sun243.htx HelpSet.hs TOC.xml Map.jhm JavaHelpSearch
+\mv splat_help.jar ../lib
+
+echo "Created JavaHelp archives"
+
+#  Normal docs. Note remove files that change trivially to stop
+#  unneccesary updates.
+star2html -c "$COPYRIGHT" sun243.tex
+tar cf sun243.htx_tar sun243.htx
+gzip -f -9 sun243.htx_tar
+
+star2html -c "$COPYRIGHT" programming.tex
+tar cf programming.htx_tar programming.htx
+gzip -f -9 programming.htx_tar
+
+echo "Created hypertext archives"
+
+#  PDF documentation.
+export TEXINPUTS=$STARLINK_DIR/share/latexsupport/:
+pdflatex sun243
+pdflatex sun243
