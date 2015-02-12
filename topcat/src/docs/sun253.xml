@@ -21042,6 +21042,10 @@ introduced since the last version:
 <dt>Next version</dt>
 <dd><p>
     <ul>
+    <li>Fix regression bug (from v4.2-2) that caused problems in Histogram
+        and Spectrogram layers:
+        <em>New subset from visible</em> action wasn't working,
+        and the displayed point count was always zero.</li>
     </ul>
     </p></dd>
 

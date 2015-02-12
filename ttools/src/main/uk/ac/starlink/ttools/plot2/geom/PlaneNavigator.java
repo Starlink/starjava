@@ -184,13 +184,15 @@ public class PlaneNavigator implements Navigator<PlaneAspect> {
         int xoff = ! Double.isNaN( xAnchor_ ) &&
                    ( xAnchor_ > 0 || ! logFlags[ 0 ] ) &&
                    surface.dataToGraphics( new double[] { xAnchor_, d0[ 1 ] },
-                                           false, pc )
+                                           false, pc ) &&
+                   PlotUtil.isPointFinite( pc )
                  ? (int) Math.round( pc.x - refpos.x )
                  : 0;
         int yoff = ! Double.isNaN( yAnchor_ ) &&
                    ( yAnchor_ > 0 || ! logFlags[ 1 ] ) &&
                    surface.dataToGraphics( new double[] { d0[ 0 ], yAnchor_ },
-                                           false, pc )
+                                           false, pc ) &&
+                   PlotUtil.isPointFinite( pc )
                  ? (int) Math.round( pc.y - refpos.y )
                  : 0;
         return new int[] { xoff, yoff };

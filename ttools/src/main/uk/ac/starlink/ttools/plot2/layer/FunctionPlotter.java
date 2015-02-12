@@ -364,7 +364,8 @@ public class FunctionPlotter extends
                 double x = xs[ ip ];
                 double f = function.evaluate( x );
                 if ( axis.xfToData( surface_, x, f, dpos ) &&
-                     surface_.dataToGraphics( dpos, false, gpos ) ) {
+                     surface_.dataToGraphics( dpos, false, gpos ) &&
+                     PlotUtil.isPointReal( gpos ) ) {
                     tracer.addVertex( gpos.x, gpos.y );
                 }
             }

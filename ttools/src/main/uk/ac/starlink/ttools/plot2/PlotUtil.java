@@ -174,7 +174,7 @@ public class PlotUtil {
      * time and the time when this method is called.
      * If the elapsed time is zero, nothing is logged.
      *
-     * @param  logger   log message destaination
+     * @param  logger   log message destination
      * @param  phase  name of step to log time of
      * @param  start   start {@link java.lang.System#currentTimeMillis
      *                              currentTimeMillis}
@@ -231,6 +231,28 @@ public class PlotUtil {
      */
     public static boolean isFinite( double value ) {
         return ! Double.isNaN( value ) && ! Double.isInfinite( value );
+    }
+
+    /**
+     * Determines whether both coordinates of a graphics position are
+     * definite numbers.
+     *
+     * @param  gp  position to test
+     * @return  true  iff X and Y coordinates are both non-NaN and non-infinite
+     */
+    public static boolean isPointFinite( Point2D.Double gp ) {
+        return isFinite( gp.x ) && isFinite( gp.y );
+    }
+
+    /**
+     * Determines whether both coordinates of a graphics position are
+     * not NaNs.
+     *
+     * @param  gp  position to test
+     * @return  true iff X and Y coordinates are both non-NaN
+     */
+    public static boolean isPointReal( Point2D.Double gp ) {
+        return ! Double.isNaN( gp.x ) && ! Double.isNaN( gp.y );
     }
 
     /**
