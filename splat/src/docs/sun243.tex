@@ -10,18 +10,18 @@
 \stardocsource      {sun\stardocnumber}
 \stardoccopyright
 {Copyright \copyright\ 2001-2005 Council for the Central Laboratory of the Research Councils \\
-Copyright \copyright\ 2006-2007 Particle Physics and Astronomy Research Council\\
-Copyright \copyright\ 2007-2009 Science and Technology Facilities Council\\
-Copyright \copyright\ 2010-2013 Peter W. Draper\\
-Copyright \copyright\ 2013 German Astrophysical Virtual Observatory (GAVO)
-}
+ Copyright \copyright\ 2006-2007 Particle Physics and Astronomy Research Council \\
+ Copyright \copyright\ 2007-2009 Science and Technology Facilities Council \\
+ Copyright \copyright\ 2010-2013 Peter W. Draper \\
+ Copyright \copyright\ 2013 German Astrophysical Virtual Observatory (GAVO)}
 \stardocnumber      {243.41}
 \stardocauthors     {Peter W. Draper, Mark Taylor \& Margarida Castro Neves}
 \stardocdate        {30 Jan 2013}
 \stardoctitle       {SPLAT-VO -- A VO-enabled Spectral Analysis Tool}
 \stardocversion     {3.10-0}
 \stardocmanual      {User's Manual}
-\stardocabstract  {
+\stardocabstract {
+\xlabel{abstract}
 \textsf{SPLAT-VO} is an extensible analysis and display tool for extracted
 spectra that can also interact with the Virtual Observatory.
 }
@@ -41,7 +41,7 @@ spectra that can also interact with the Virtual Observatory.
 \providecommand{\mainfigure}[1]
 {\begin{center}
     \ifpdf
-    \includegraphics[width=4.5in]{#1}
+    \includegraphics[width=4.5in]{sun243_figures/#1}
     \else
     \includegraphics{#1}
     \fi
@@ -51,7 +51,7 @@ spectra that can also interact with the Virtual Observatory.
 \providecommand{\clippedmainfigure}[1]
 {\begin{quote}
     \ifpdf
-    \includegraphics[scale=0.5,clip=true]{#1.eps}
+    \includegraphics[scale=0.5,clip=true]{sun243_figures/#1.eps}
     \else
     \includegraphics{#1}
     \fi
@@ -173,7 +173,7 @@ how to display many spectra. If you're new to \SPLAT\ then do take the
 time to read these through and try out the example commands.
 
 \newpage
-\subsection{Displaying a spectrum}
+\subsection{Displaying a spectrum\xlabel{displaying_a_spectrum}}
 
 To start \SPLAT\ you should just need to type the command:
 \begin{quote}
@@ -255,7 +255,7 @@ performing the same operation again (\ie\ double click on the
 spectrum name).
 
 \newpage
-\subsection{Displaying more than one spectrum\xlabel{displaying_more_than_one_spectrum}}
+\subsection{Displaying more than one spectrum\label{displaying_more_than_one_spectrum}\xlabel{displaying_more_than_one_spectrum}}
 
 Displaying many spectra at the same time isn't much more difficult
 than the single spectrum case. Just open up several spectra by giving
@@ -1434,7 +1434,7 @@ images that you could combine into a movie of some kind.
 \end{itemize}
 
 \newpage
-\subsection{The view and modify spectral values window}
+\subsection{The view and modify spectral values window\xlabel{view_modify_window}}
 
 The purpose of this window is to allow you to see the actual data
 values of a spectrum and to make modifications to them.
@@ -1563,7 +1563,7 @@ plots of the spectrum.
 \end{itemize}
 
 \newpage
-\subsection{The spectral coordinate system attributes window}
+\subsection{The spectral coordinate system attributes window\xlabel{spectral_coords_window}}
 
 This window allows you to define the coordinate systems that describe your
 spectra. The most trivial use of these is simply to document what type of
@@ -1645,7 +1645,7 @@ documentation (\xref{SUN/211}{sun211}{ss_specframes}).
 \end{itemize}
 
 \newpage
-\subsection{The data units window}
+\subsection{The data units window\xlabel{data_units_window}}
 
 This window allows you to inspect, set or convert the units of the data values
 of your spectra.
@@ -1853,7 +1853,7 @@ time  & min & minute & 60 s \\
 
 
 \newpage
-\subsection{The simple binary maths window}
+\subsection{The simple binary maths window\xlabel{binary_maths_window}}
 
 \mainfigure{binarymathwindow}
 
@@ -1894,7 +1894,7 @@ quick qualitative arithmetic between real spectra. Artificial spectra
 
 
 \newpage
-\subsection{The simple constant maths window}
+\subsection{The simple constant maths window\xlabel{unary_maths_window}}
 
 \mainfigure{unarymathwindow}
 
@@ -1924,7 +1924,7 @@ is created on the global list.
 \end{itemize}
 
 \newpage
-\subsection{The panner window}
+\subsection{The panner window\xlabel{panner_window}}
 
 \mainfigure{pannerwindow}
 
@@ -1968,7 +1968,7 @@ The following mouse interactions are provided:
 \end{itemize}
 
 \newpage
-\subsection{The plot configuration window}
+\subsection{The plot configuration window\xlabel{config_window}}
 
 This window provides a series of paged controls for configuring the
 plot display area. This help section describes each page in
@@ -1996,7 +1996,7 @@ be in a valid state until you've entered the complete coordinate value).
 
 
 \newpage
-\subsubsection*{Axis Data Limits:}
+\subsubsection*{Axis Data Limits:\xlabel{config_window_limits}}
 
 \mainfigure{configurewindowlimits}
 
@@ -2026,7 +2026,7 @@ those of the visible part of the display area. This is useful to just
 show coordinate axes for what you can see.
 
 \newpage
-\subsubsection*{Title Properties:}
+\subsubsection*{Title Properties:\xlabel{config_window_title}}
 
 \mainfigure{configurewindowtitle}
 
@@ -2056,7 +2056,7 @@ Escape sequences, for instance:
 \end{quote}
 
 \newpage
-\subsubsection*{Axis Label Properties:}
+\subsubsection*{Axis Label Properties:\xlabel{config_window_axis_labels}}
 
 \mainfigure{configurewindowaxislabels}
 
@@ -2071,7 +2071,7 @@ As with the title you can insert any characters from the font, and use
 sub-scripting.
 
 \newpage
-\subsubsection*{Axis Numbers:}
+\subsubsection*{Axis Numbers:\xlabel{config_window_axis_numbers}}
 
 \mainfigure{configurewindowaxisnumbers}
 
@@ -2094,7 +2094,7 @@ ticks, so it may be necessary to increase this value when configuring
 the major tick separation.
 
 \newpage
-\subsubsection*{Axes:}
+\subsubsection*{Axes:\xlabel{config_window_axes}}
 
 \mainfigure{configurewindowaxes}
 
@@ -2108,7 +2108,7 @@ The \labelitem{Log X:} and \labelitem{Log Y:} options are the same as those
 shown in the \labelitem{Limits} pane.
 
 \newpage
-\subsubsection*{Grid Line Properties:}
+\subsubsection*{Grid Line Properties:\xlabel{config_window_grid}}
 
 \mainfigure{configurewindowgrid}
 
@@ -2117,7 +2117,7 @@ or not (not by default). Grid lines are drawn between the major
 ticks. You can also set the thickness, style and colour of the grid lines.
 
 \newpage
-\subsubsection*{Border Line Properties:}
+\subsubsection*{Border Line Properties:\xlabel{config_window_border}}
 
 \mainfigure{configurewindowborder}
 
@@ -2126,7 +2126,7 @@ or not. Border lines are drawn at the data limits of the plot. You can
 also set the thickness, style and colour of the border lines.
 
 \newpage
-\subsubsection*{Tick Properties:}
+\subsubsection*{Tick Properties:\xlabel{config_window_ticks}}
 
 \mainfigure{configurewindowticks}
 
@@ -2157,7 +2157,7 @@ wanted ticks every factor of $10^2$ you'd use $2$.
 This window has no uses in \SPLAT.
 
 \newpage
-\subsubsection*{Graphics Rendering Hints:}
+\subsubsection*{Graphics Rendering Hints:\xlabel{config_window_render}}
 
 \mainfigure{configurewindowrender}
 
@@ -2176,7 +2176,7 @@ a significant performance degradation (so the default is switched off
 for spectra).
 
 \newpage
-\subsubsection*{Edge Drawing Properties:}
+\subsubsection*{Edge Drawing Properties:\xlabel{config_window_edge}}
 
 \mainfigure{configurewindowedges}
 
@@ -2188,7 +2188,7 @@ outside the bounds of the data limits (this is not normally the case,
 unless you've defined data limits of your own).
 
 \newpage
-\subsubsection*{Plot background:}
+\subsubsection*{Plot background:\xlabel{config_window_background}}
 
 \mainfigure{configurewindowbackground}
 
@@ -2196,7 +2196,7 @@ Use this page to select a colour for the background of the plot
 display area.
 
 \newpage
-\subsubsection*{Save or Restore Plot Configurations}
+\subsubsection*{Save or Restore Plot Configurations\xlabel{ave_window}}
 
 \mainfigure{restorewindow}
 
@@ -2223,7 +2223,7 @@ To restore a configuration just select it and press the
 then try deleting this file.
 
 \newpage
-\subsection{The region extraction window}
+\subsection{The region extraction window\xlabel{cutter_window}}
 
 This window is used to cut out or remove sections from the current
 spectrum. The sections are defined as a series of graphics ranges that
@@ -2300,7 +2300,7 @@ result of interpolation. To go back from this change use the
 
 
 \newpage
-\subsection{The polynomial fitting window}
+\subsection{The polynomial fitting window\xlabel{poly_window}}
 
 The polynomial fitting window allows you to fit a polynomial of selected
 degree to various selected ranges of the current spectrum. You can select to
@@ -2446,7 +2446,7 @@ Effectively undoes a \labelitem{Fit (Replace)}.
 
 
 \newpage
-\subsection{The generate spectra from interpolated lines window}
+\subsection{The generate spectra from interpolated lines window\xlabel{interp_window}}
 
 \mainfigure{generateline}
 
@@ -2503,7 +2503,7 @@ Effectively undoes a \labelitem{Generate (Replace)}.
 
 
 \newpage
-\subsection{The spectral line fitting window}
+\subsection{The spectral line fitting window\xlabel{fit_window}}
 
 The spectral line fitting window allows you to measure the wavelength
 and equivalent width of emission or absorption lines and to fit
@@ -2712,7 +2712,7 @@ hash (\#) and are ignored.
  \end{itemize}
 \end{quote}
 
-\subsubsection{Saving the results}
+\subsubsection{Saving the results\xlabel{fit_save_window}}
 \begin{quote}
  The measurements, as shown in the \labelitem{Spectral fitting
  results:} table can be written out to a text file. Just select the
@@ -2770,7 +2770,7 @@ hash (\#) and are ignored.
 
 
 \newpage
-\subsection{The filter spectrum window}
+\subsection{The filter spectrum window\xlabel{filter_window}}
 
 This window provides the ability to filter the current spectrum
 displayed in a plot.
@@ -2842,7 +2842,7 @@ Effectively undoes the first \labelitem{Filter (Replace)}, since the last
 
 
 \newpage
-\subsection{Quick change of coordinate or data units window}
+\subsection{Quick change of coordinate or data units window\xlabel{change_units_window}}
 
 This window allows you to change the coordinate or data units of the current
 spectrum to a limited number of preset values. You can only change units when
@@ -2913,7 +2913,7 @@ coordinates and/or data units to new ones.
 
 
 \newpage
-\subsection{Flip or shift or redshift a spectrum}
+\subsection{Flip or shift or redshift a spectrum\xlabel{flipper_window}}
 
 This window allows you to do three related jobs.
 \begin{itemize}
@@ -3048,7 +3048,7 @@ both these areas are written the file \hitext{SPEFO.log} by pressing the
 
 
 \newpage
-\subsection{Region statistics window}
+\subsection{Region statistics window\xlabel{stats_window}}
 
 Using this window you can get simple constantly updated statistics on regions
 of the current spectrum, or fuller statistics for the whole spectrum, or
@@ -3171,7 +3171,7 @@ button.
 \end{itemize}
 
 \newpage
-\subsection{Display stacked spectra}
+\subsection{Display stacked spectra\xlabel{stacker_window}}
 
 \mainfigure{stackerwindow}
 
@@ -3360,42 +3360,7 @@ The other possible values for \hitext{ndaction} are \hitext{extract} and
 \hitext{vectorize}. These are described as \hitext{extract all spectra}
 and \hitext{open whole as 1D}, respectively, in the open file dialogue.
 
-%%%% Removed for the moment, may all be changing a lot soon.
-%
-%\section{Extending \SPLAT}
-
-%\SPLAT\ is written in Java (with some JNI interface code to access the
-%Starink NDF and AST libraries) and has a scripting component called
-%\htmladdnormallinkfoot{BeanShell}{http://www.beanshell.org}
-%embedded in it. This provides two useful resources, the ability to
-%extend \SPLAT\ dynamically and to make it respond to remote
-%control commands.
-
-%Extending \SPLAT\ dynamically is done by two orthogonal methods, by
-%`plugins' that are loaded during startup (and are then just part of
-%\SPLAT) and by using \SPLAT\ as a
-%library of routines that you use from your own BeanShell scripts.
-
-%Note that if you are thinking about extending \SPLAT\ then you will
-%need to be familiar with Java and BeanShell (BeanShell uses a Java
-%syntax and has the full Java APIs available to it, so the first
-%condition mostly implies the latter, one of the reasons for choosing
-%BeanShell). Also \SPLAT\ is very likely to change considerably (\ie\
-%the internal APIs cannot be relied on) so don't do anything too
-%serious without contacting the support programmer.
-
-%More (provisional) information about how to proceed in these matters
-%is given in a separate document, that you can only view when you have
-%\SPLAT\ installed. To see this issue the following command:
-%\begin{quote}
-%\begin{terminalv}
-%  % $SPLAT_DIR/apidocs
-%\end{terminalv}
-%\end{quote}
-%The \hitext{apidocs} example scripts are generally useful commands in
-%themselves and as such are briefly documented in the next section.
-
-\section{Command-line control and tools}
+\section{Command-line control and tools\xlabel{command_line}}
 
 \subheading{Remote control}
 
@@ -3551,7 +3516,7 @@ SAMP MTypes which \SPLAT\ knows about are:
 \end{itemize}
 
 \newpage
-\section{Acknowledgements}
+\section{Acknowledgements\xlabel{acknowledgements}}
 
 \SPLAT\ is written in
 \htmladdnormallinkfoot{Java}{http://java.sun.com} by
@@ -3621,224 +3586,5 @@ This document can be cited as Draper et al, 2013, Starlink User Note 243.
 Finally, many programmers working for Starlink have made contributions to the
 components used in \SPLAT, and many users have reported problems, as well as
 requests for useful features -- thanks to them all.
-
-\section{Changes}
-
-\subsection{3.10-0}
-
-The major change in this release is much improved support for more complex
-SSAP queries. For instance you can now create server groups for more targeted
-queries according to the waveband or data source (theory/archive/survey for
-instance), as well as using your specific tags to create such groups.
-
-It is now also possible to add additional metadata parameters to the queries
-for the currently selected server list.
-
-New SSAP servers not currently registered can now be added  manually.
-
-Access control for servers that use HTTP passwords is now implemented.
-
-Bug fixes in this release include:
-\begin{itemize}
-\item If the SSAP server maximum record limit is reached (MAXREC),
-\SPLAT\ will no longer return an error, it just continues downloading
-spectra to the available limit.
-
-\item The BAND parameter now handles the case when the upper limit is null.
-
-\item TARGETNAME values are now correctly encoded to allow the use of special
-characters ($+$ etc.).
-\end{itemize}
-
-The column name used to select spectral coordinates in tables without any
-other metadata has changed from "wavelength*" to "wave*".
-  
-When changing the spectral coordinates column of a table in the main window
-the change wasn't seen immediately. This issue should now be fixed.
-
-
-\subsection{3.9-8}
-
-A bug in the `remove' \& `remove selected' options in the cutter toolbox has
-been fixed. After the last change the spectrum created did not have a correct
-coordinate value assigned to the removed region. This resulted in a
-non-monotonic spectrum.
-
-A bug in the flip toolbox that always reported the radial velocity as zero in
-the log file has been fixed. The log now also includes whether the values are
-redshifts.
-
-A bug that meant some NDF spectra opened in SPLAT using the `splatdisp'
-command could not be saved to disk. This has been fixed. Note this includes
-spectra sent from GAIA.
-
-\subsection{3.9-7}
-
-The `remove selected' option in the cutter toolbox now handles regions that
-overlap the ends of the spectrum correctly. Previously bad values where added
-to the ends and given poor coordinates.
-
-A single `a' or `A' as a units string is no longer recognised as meaning
-`Angstrom'. This follows the FITS standard where `A' is `Ampere'.
-
-The flip toolbox now correctly records the SPEFO log option RV.  The current
-status of the redshift option is also recorded to the SPEFO log.
-
-\subsection{3.9-6}
-
-Make position and target optional in VO queries. Not all SSAP servers are
-fixated on positions and objects.
-
-Both sidebands are now loaded when a request to load all matching line
-identifiers is made.
-
-The deblend script has been enhanced to also report errors for the parameter
-fits.
-
-\subsection{3.9-2}
-
-The Sesame name resolution service is now the default for SSAP VO queries.
-
-\subsection{3.9-1}
-
-Spectra transmitted using the SAMP and deprecated PLASTIC protocol will now
-only be FITS or VO tables. 1D FITS spectra will no longer be generated.
-
-\subsection{3.9-0}
-
-\SPLAT\ has been updated to use SAMP for interoperability with other
-desktop applications. It is still possible to use PLASTIC, but that
-protocol is now deprecated.
-See \S\ref{interop}.
-
-When opening NDF spectra with redundant axes the position of the
-redundant axes may be reported in the synopsis. This will typically
-be the position on the sky that the spectrum occupied.
-
-SSAP query failures are now reported in more detail.
-
-The offsets applied to spectra during display can now be derived from an
-expression, rather than just using an order with a fixed offset. The
-way that line identifiers are handled when applying offsets is also
-changed. This should stop excessive data limits being used when most
-line identifiers are not displayed.
-
-\subsection{3.8-8}
-
-The line profile fits now include error estimates for the fitting parameters.
-
-An error in the derivates used when fitting the Voigt profile has been
-corrected. This should give closer fits in some cases.
-
-MIME types from SSAP queries may now include trailing attributes.
-
-The SSAP query options have been extended to include TIME, FLUXCALIB
-and WAVECALIB.
-
-The SSAP query options now allow the object name to be passed as part
-of the object, without looking up an RA and Dec. This is suitable
-for searching for solar system objects.
-
-Saving the result spectrum of binary maths operations to FITS format
-should now work. Previously an invalid FITS file was created.
-
-The query SSAP server dialog now offers `select all' and `remove
-unselected' options.
-
-\subsection{3.8-7}
-The cutter tool box now offers simple linear interpolation to replace
-the selected range of values.
-
-The exception dialog will now always display the error trace, previously
-requesting this sometimes caused the dialog to just close.
-
-When attempting to overwrite an NDF that is already opened a suitable
-error message is now displayed, rather than an unhelp report about
-a null exception.
-
-Printing to postscript should make better use of the available space
-and fix a scaling problem with the encapulated option.
-
-\subsection{3.8-6}
-
-A new command-line option `--debuglevel' to control the messages output on the
-terminal has been introduced. By default fewer messages will now be seen
-(especially from the browser window), more can be seen by setting a level
-greater than zero, but that should only be required when helping to diagnose a
-problem.
-
-The errors of a spectrum can now be plotted as the spectral line, not just as
-error bars.
-
-\subsection{3.8-5}
-
-Two new command-line options have been added, `--hub' and `--exthub'.
-These start an internal PLASTIC hub and an external one respectively.
-Note an external hub will persist after SPLAT has been closed down.
-
-\subsection{3.8-4}
-
-When displaying a dual sideband spectrum with the observed band set to LSB the
-axes coordinates for the USB sideband were shown incorrectly. This bug has
-been fixed.
-
-A bug converting the epoch into UTC, in the absence of a DATE-OBS, has been
-fixed in the synopsis. Previously times were reported in TAI.
-
-\subsection{3.8-3}
-
-Standard IR spectral lines from UKIRT have been added to the built-in
-line identifiers (thanks to Andy Adamson).
-
-Line identifier labels in text files can now be quoted using single
-or double quotes.
-
-\subsection{3.8-2}
-
-By default SPLAT searches input spectra for a spectral coordinate system.
-This can lead to unexpected behaviour when attempting to display spectra with
-non-spectral coordinates (by selecting the GRID or PIXEL frames in an NDF), so
-a new command-line flag "--keepcoords" has been introduced to inhibit the
-search for spectral coordinates, and a UI preference Options->Find spectral
-coordinates.
-
-\subsection{3.8-1}
-
-Generated spectra how inherit some of the properties of the parent spectrum
-(line and plotting style).  Rebinned spectra are now displayed with a
-histogram style.
-
-The alignment of sidebands is now not done by default.
-
-An Interop menu has been added to the SSAP query results controls.  This
-allows a table to be transmitted to other applications for further analysis.
-
-The plot spectrum synopsis now includes the number of channels (points in the
-spectrum).
-
-When changing the DSB sideband the labels now include which sideband is the
-observed and which the image.
-
-The readout of the spectral coordinate in a plot should now always have
-sufficient precision so that adjacent values can be distinguished.
-
-Problems displaying spectra sent from GAIA when the plot synopsis is enabled
-(which came out at the wrong size and with the synopsis misplaced) should be
-resolved.
-
-The synopsis should now be placed at the top-left hand corner of the axis for
-all plot aspect ratios.
-
-Data units which dimensionally match one of the preset flux values will now be
-identified and shown as the preset value in the data units and plot units
-toolboxes. For instance "(erg/Angstrom)*cm**-2/s" will now be recognised as
-"erg/cm\^2/s/Angstrom".
-
-\subsection{3.8-0}
-
-Added controls to the statistics toolbox so that the TSYS related
-parameters can be set and inspected.
-
-Earlier changes can be found in the news file in the \SPLAT\ distribution.
 
 \end{document}
