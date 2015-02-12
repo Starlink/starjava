@@ -119,9 +119,6 @@ public class PlaneSurface implements Surface {
 
     public boolean dataToGraphics( double[] dpos, boolean visibleOnly,
                                    Point2D.Double gp ) {
-        if ( dpos == null ) {
-            return false;
-        }
         double gx = xAxis_.dataToGraphics( dpos[ 0 ] );
         double gy = yAxis_.dataToGraphics( dpos[ 1 ] );
         if ( Double.isNaN( gx ) || Double.isNaN( gy ) ) {
