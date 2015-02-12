@@ -1,0 +1,62 @@
+
+<?xml version='1.0' encoding='ISO-8859-1' ?>
+<!DOCTYPE map
+  PUBLIC "-//Sun Microsystems Inc.//DTD JavaHelp Map Version 1.0//EN"
+         "http://java.sun.com/products/javahelp/map_1_0.dtd">
+
+<!-- This file maps help IDs into URIs -->
+7
+<map version="1.0">
+
+  <mapID target="splat-help"                 url="sun243.htx/sun243.html"/>
+  <mapID target="abstract"                   url="xref_abstract"/>
+  <mapID target="overview"                   url="xref_overview"/>
+
+  <mapID target="getting-started"            url="xref_getting_started"/>
+  <mapID target="displaying-a-spectrum"      url="xref_displaying_a_spectrum"/>
+  <mapID target="displaying-many-spectra"    url="xref_displaying_more_than_one_spectrum"/>
+  <mapID target="plot-control"               url="xref_basic_control"/>
+
+  <mapID target="window-level-help"          url="xref_help_window_individual"/>
+  <mapID target="browser-window"             url="xref_browser_window"/>
+  <mapID target="plot-window"                url="xref_plot_window"/>
+  <mapID target="ssa-window"                 url="xref_ssap_window"/>
+  <mapID target="animation-window"           url="xref_animation_window"/>
+  <mapID target="viewer"                     url="xref_view_modify_window"/>
+  <mapID target="specxcoord-window"          url="xref_spectral_coords_window"/>
+  <mapID target="dataunits-window"           url="xref_data_units_window"/>
+  <mapID target="binary-maths"               url="xref_binary_maths_window"/>
+  <mapID target="unary-maths"                url="xref_unary_maths_window"/>
+  <mapID target="panner-window"              url="xref_panner_window"/>
+
+  <mapID target="config-window"              url="xref_config_window"/>
+  <mapID target="config-window-limits"       url="xref_config_window_limits"/>
+  <mapID target="config-window-title"        url="xref_config_window_title"/>
+  <mapID target="config-window-axis-labels"  url="xref_config_window_axis_labels"/>
+  <mapID target="config-window-axis-numbers" url="xref_config_window_axis_numbers"/>
+  <mapID target="config-window-axes"         url="xref_config_window_axes"/>
+  <mapID target="config-window-grid"         url="xref_config_window_grid"/>
+  <mapID target="config-window-border"       url="xref_config_window_border"/>
+  <mapID target="config-window-ticks"        url="xref_config_window_ticks"/>
+  <mapID target="config-window-render"       url="xref_config_window_render"/>
+  <mapID target="config-window-edge"         url="xref_config_window_edge"/>
+  <mapID target="config-window-background"   url="xref_config_window_background"/>
+
+  <mapID target="save-window"                url="xref_fit_save_window"/>
+  <mapID target="cutter-window"              url="xref_cutter_window"/>
+  <mapID target="polynomial-fit-window"      url="xref_poly_window"/>
+  <mapID target="interpolation-window"       url="xref_interp_window"/>
+  <mapID target="line-fit-window"            url="xref_fit_window"/>
+  <mapID target="line-fit-saving-window"     url="xref_fit_save_window"/>
+  <mapID target="filter-window"              url="xref_filter_window"/>
+  <mapID target="simpleunits-window"         url="xref_change_units_window"/>
+  <mapID target="flipper-window"             url="xref_flipper_window"/>
+  <mapID target="stats-window"               url="xref_stats_window"/>
+  <mapID target="stacker-window"             url="xref_stacker_window"/>
+
+  <mapID target="data-formats"               url="xref_data_formats"/>
+  <mapID target="command-line"               url="xref_command_line"
+  <mapID target="interop"                    url="xref_interop"/>
+  <mapID target="acknowledgements"           url="xref_acknowledgements"/>
+
+</map>
