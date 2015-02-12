@@ -6,7 +6,7 @@
 <toc version="1.0">
    <tocitem target="splat-help" text="SPLAT-VO help system"/>
    <tocitem target="abstract" text="Abstract"/>
-   <tocitem target="introduction" text="Overview"/>
+   <tocitem target="overview" text="Overview"/>
    <tocitem target="getting-started" text="Getting started"/>
    <tocitem target="displaying-a-spectrum" text="Displaying a spectrum"/>
    <tocitem target="displaying-many-spectra" text="Displaying many spectra"/>
@@ -48,10 +48,7 @@
    <tocitem target="stacker-window" text="Display stacked spectra window" />
    <tocitem target="data-formats" text="Supported data formats"/>
    <tocitem target="command-line" text="Command-line utilities" />
-   <tocitem target="interop" text="Interoperability">
-       <tocitem target="samp" text="SAMP"/>
-       <tocitem target="plastic" text="PLASTIC"/>
-   </tocitem>
+   <tocitem target="interop" text="Interoperability"/>
    <tocitem target="acknowledgements" text="Acknowledgements"/>
 
 </toc>
