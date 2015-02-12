@@ -444,7 +444,8 @@ public class MultiPointForm implements ShapeForm {
                 final int gy;
                 if ( surface_.dataToGraphicsOffset( dpos0, gpos0,
                                                     dposExtras[ ie ], false,
-                                                    gp_ ) ) {
+                                                    gp_ ) &&
+                     PlotUtil.isPointReal( gp_ ) ) {
                     gx = (int) Math.round( ( gp_.x - gx0 ) * scale_ );
                     gy = (int) Math.round( ( gp_.y - gy0 ) * scale_ );
                 }
@@ -537,13 +538,15 @@ public class MultiPointForm implements ShapeForm {
                     if ( geom.readDataPos( tseq, 0, dpos0 ) &&
                          surface.dataToGraphics( dpos0, scaleFromVisible_,
                                                  gpos0 ) &&
+                         PlotUtil.isPointFinite( gpos0 ) &&
                          extraCoordSet.readPoints( tseq, icExtra, dpos0,
                                                    dposExtras ) ) {
                         for ( int ie = 0; ie < nextra; ie++ ) {
                             if ( surface
                                 .dataToGraphicsOffset( dpos0, gpos0,
                                                        dposExtras[ ie ], false,
-                                                       gpos1 ) ) {
+                                                       gpos1 ) &&
+                                PlotUtil.isPointFinite( gpos1 ) ) {
                                 range.submit( gpos1.x - gpos0.x );
                                 range.submit( gpos1.y - gpos0.y );
                             }

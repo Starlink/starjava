@@ -71,6 +71,16 @@ public interface Surface {
 
     /**
      * Converts a data space position to a graphics position.
+     * If <code>visibleOnly</code> is true, then if the return value
+     * is true, the exit value of <code>gPos</code> is guaranteed
+     * to be within the plot bounds of this surface.
+     *
+     * <p>If <code>visibleOnly</code> is false, there are no guarantees
+     * about the exit value of <code>gPos</code>, and its coordinates
+     * could be infinite or NaN.  In this case you might want to perform
+     * additional checking, for instance with the utility methods
+     * {@link PlotUtil#isPointFinite PlotUtil.isPointFinite} or
+     * {@link PlotUtil#isPointReal isPointReal}.
      *
      * @param  dataPos  dataDimCount-element array containing data space
      *                  coordinates

@@ -51,7 +51,8 @@ public class FloatingCoordAuxReader implements AuxReader {
         /* Convert data to graphics coordinates.  The resulting values are
          * not used, but this determines whether the points are plottable. */
         if ( geom_.readDataPos( tseq, 0, dpos_ ) &&
-             surface.dataToGraphics( dpos_, visibleOnly_, gpos_ ) ) {
+             surface.dataToGraphics( dpos_, visibleOnly_, gpos_ ) &&
+             ( visibleOnly_ || PlotUtil.isPointFinite( gpos_ ) ) ) {
 
             /* Read the coordinate value. */
             double value = coord_.readDoubleCoord( tseq, icol_ );

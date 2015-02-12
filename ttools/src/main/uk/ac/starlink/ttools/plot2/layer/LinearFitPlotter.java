@@ -229,7 +229,8 @@ public class LinearFitPlotter extends AbstractPlotter<LineStyle> {
             double[] dpos = new double[ geom_.getDataDimCount() ];
             while ( tseq.next() ) {
                 if ( geom_.readDataPos( tseq, icPos, dpos ) &&
-                     surface_.dataToGraphics( dpos, visibleOnly, gp ) ) {
+                     surface_.dataToGraphics( dpos, visibleOnly, gp ) &&
+                     PlotUtil.isPointFinite( gp ) ) {
                     double x = xlog ? log( dpos[ 0 ] ) : dpos[ 0 ];
                     double y = ylog ? log( dpos[ 1 ] ) : dpos[ 1 ];
                     if ( hasWeight ) {
@@ -319,8 +320,10 @@ public class LinearFitPlotter extends AbstractPlotter<LineStyle> {
             Point2D.Double gp2 = new Point2D.Double();
             if ( surface.dataToGraphics( new double[] { dx1, dy1 },
                                          false, gp1 ) &&
+                 PlotUtil.isPointFinite( gp1 ) &&
                  surface.dataToGraphics( new double[] { dx2, dy2 },
-                                         false, gp2 ) ) {
+                                         false, gp2 ) &&
+                 PlotUtil.isPointFinite( gp2 ) ) {
                 LineTracer tracer =
                     style.createLineTracer( g, bounds, 2, false ); 
                 tracer.addVertex( gp1.x, gp1.y );

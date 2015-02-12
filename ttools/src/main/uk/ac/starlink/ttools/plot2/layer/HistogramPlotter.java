@@ -449,7 +449,9 @@ public class HistogramPlotter
                  dpos1[ 0 ] = dxhi;
                  dpos1[ 1 ] = dy;
                  if ( surface.dataToGraphics( dpos0, false, p0 ) &&
-                      surface.dataToGraphics( dpos1, false, p1 ) ) {
+                      ! Double.isNaN( p0.x ) &&
+                      surface.dataToGraphics( dpos1, false, p1 ) &&
+                      ! Double.isNaN( p1.x ) ) {
 
                     /* Clip them so they are not too far off the plot region;
                      * attempting to draw ridiculously large rectangles can

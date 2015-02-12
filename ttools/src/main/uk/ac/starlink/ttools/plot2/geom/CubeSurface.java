@@ -198,9 +198,6 @@ public class CubeSurface implements Surface {
         double sx = normalise( dataPos, 0 );
         double sy = normalise( dataPos, 1 );
         double sz = normalise( dataPos, 2 );
-        if ( Double.isNaN( sx ) || Double.isNaN( sy ) || Double.isNaN( sz ) ) {
-            return false;
-        }
         assert ( ! knownInCube )
                || ( isNormal( sx ) && isNormal( sy ) && isNormal( sz ) )
              : "(" + sx + ", " + sy + ", " + sz + ")";

@@ -81,7 +81,8 @@ public class LinePlotter extends SimpleDecalPlotter<LineStyle> {
         TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
         while ( tseq.next() ) {
             if ( geom.readDataPos( tseq, icPos, dpos ) &&
-                 surface.dataToGraphics( dpos, false, gp ) ) {
+                 surface.dataToGraphics( dpos, false, gp ) &&
+                 PlotUtil.isPointReal( gp ) ) {
                 tracer.addVertex( gp.x, gp.y );
             }
         }

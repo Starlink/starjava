@@ -200,8 +200,10 @@ public class PairLinkForm implements ShapeForm {
                      * plot bounds. */
                     if ( geom.readDataPos( tseq, 0, dpos1 ) &&
                          surface.dataToGraphics( dpos1, false, gp1 ) &&
+                         PlotUtil.isPointFinite( gp1 ) &&
                          geom.readDataPos( tseq, npc, dpos2 ) &&
-                         surface.dataToGraphics( dpos2, false, gp2 ) ) {
+                         surface.dataToGraphics( dpos2, false, gp2 ) &&
+                         PlotUtil.isPointFinite( gp2 ) ) {
                         PlotUtil.quantisePoint( gp1, gp1i );
                         PlotUtil.quantisePoint( gp2, gp2i );
                         if ( lineMightCross( bounds, gp1i, gp2i ) ) {
