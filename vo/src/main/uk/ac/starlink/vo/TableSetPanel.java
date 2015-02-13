@@ -1,21 +1,11 @@
 package uk.ac.starlink.vo;
 
 import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.net.URL;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.DefaultListCellRenderer;
-import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
@@ -23,23 +13,30 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.JTree;
 import javax.swing.SwingUtilities;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
+import javax.swing.tree.TreeModel;
+import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
 import uk.ac.starlink.table.gui.StarJTable;
 import uk.ac.starlink.util.gui.ArrayTableColumn;
 import uk.ac.starlink.util.gui.ArrayTableModel;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 /**
- * Displays the metadata from an array of TableMeta objects.
+ * Displays the metadata from an array of SchemaMeta objects.
  * These can be acquired from a TableSet XML document as exposed
- * by VOSI and TAP interfaces.
- * 
+ * by VOSI and TAP interfaces or from interrogating TAP_SCHEMA tables.
+ *
  * @author   Mark Taylor
  * @since    21 Jan 2011
  */
 public class TableSetPanel extends JPanel {
 
-    private final JComboBox tSelector_;
+    private final JTree tTree_;
+    private final TreeSelectionModel selectionModel_;
     private final JTable colTable_;
     private final JTable foreignTable_;
     private final ArrayTableModel colTableModel_;
@@ -56,41 +53,18 @@ public class TableSetPanel extends JPanel {
      */
     public TableSetPanel() {
         super( new BorderLayout() );
-        tSelector_ = new JComboBox();
-        tSelector_.setRenderer( new DefaultListCellRenderer() {
-            public Component getListCellRendererComponent( JList list,
-                                                           Object value,
-                                                           int index,
-                                                           boolean isSelected,
-                                                           boolean hasFocus ) {
-                super.getListCellRendererComponent( list, value, index,
-                                                    isSelected, hasFocus );
-                if ( value instanceof TableMeta ) {
-                    setText( ((TableMeta) value).getName() );
-                }
-                return this;
+        tTree_ = new JTree();
+        tTree_.setRootVisible( false );
+        tTree_.setShowsRootHandles( true );
+        tTree_.setExpandsSelectedPaths( true );
+        selectionModel_ = tTree_.getSelectionModel();
+        selectionModel_.setSelectionMode( TreeSelectionModel
+                                         .SINGLE_TREE_SELECTION );
+        selectionModel_.addTreeSelectionListener( new TreeSelectionListener() {
+            public void valueChanged( TreeSelectionEvent evt ) {
+                updateForSelectedTable();
             }
         } );
-        tSelector_.addItemListener( new ItemListener() {
-            public void itemStateChanged( ItemEvent evt ) {
-                int code = evt.getStateChange();
-                if ( code == ItemEvent.DESELECTED ) {
-                    setSelectedTable( null );
-                }
-                else if ( code == ItemEvent.SELECTED ) {
-                    setSelectedTable( (TableMeta) evt.getItem() );
-                }
-            }
-        } );
-        JComponent tLine = Box.createHorizontalBox();
-        tableLabel_ = new JLabel();
-        tLine.add( new JLabel( "Table: " ) );
-        tLine.add( new ShrinkWrapper( tSelector_ ) );
-        tLine.add( Box.createHorizontalStrut( 5 ) );
-        tLine.add( tableLabel_ );
-        tLine.add( Box.createHorizontalGlue() );
-        tLine.setBorder( BorderFactory.createEmptyBorder( 0, 0, 5, 5 ) );
-        add( tLine, BorderLayout.NORTH );
 
         colTableModel_ = new ArrayTableModel( createColumnMetaColumns(),
                                               new ColumnMeta[ 0 ] );
@@ -111,29 +85,24 @@ public class TableSetPanel extends JPanel {
                                  foreignTableModel_ );
         foreignTable_.setColumnModel( foreignColModel_ );
 
-        metaSplitter_ = new JSplitPane( JSplitPane.VERTICAL_SPLIT );
-        metaSplitter_.setResizeWeight( 0.8 );
+        tableLabel_ = new JLabel();
+        JComponent tLine = Box.createHorizontalBox();
+        tLine.add( new JLabel( "Table: " ) );
+        tLine.add( tableLabel_ );
+
+        JComponent detailPanel = new JPanel( new BorderLayout() );
+        detailPanel.add( tLine, BorderLayout.NORTH );
+        detailPanel.add( new JScrollPane( colTable_ ), BorderLayout.CENTER );
+
+        metaSplitter_ = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT );
         metaSplitter_.setBorder( BorderFactory.createEmptyBorder() );
-        JComponent colPanel = new JPanel( new BorderLayout() );
-        JComponent chBox = Box.createHorizontalBox();
-        chBox.add( new JLabel( "Columns:" ) );
-        chBox.add( Box.createHorizontalGlue() );
-        colPanel.add( chBox, BorderLayout.NORTH );
-        colPanel.add( new JScrollPane( colTable_ ), BorderLayout.CENTER );
-        metaSplitter_.setTopComponent( colPanel );
-        JComponent foreignPanel = new JPanel( new BorderLayout() );
-        JComponent fhBox = Box.createHorizontalBox();
-        fhBox.add( new JLabel( "Foreign Keys:" ) );
-        fhBox.add( Box.createHorizontalGlue() );
-        foreignPanel.add( fhBox, BorderLayout.NORTH );
-        foreignPanel.add( new JScrollPane( foreignTable_ ),
-                          BorderLayout.CENTER );
-        metaSplitter_.setBottomComponent( foreignPanel );
+        metaSplitter_.setLeftComponent( new JScrollPane( tTree_ ) );
+        metaSplitter_.setRightComponent( detailPanel );
 
         metaPanel_ = new JPanel( new BorderLayout() );
         metaPanel_.add( metaSplitter_, BorderLayout.CENTER );
         add( metaPanel_, BorderLayout.CENTER );
-        setSelectedTable( null );
+        setSchemas( null );
     }
 
     /**
@@ -154,55 +123,26 @@ public class TableSetPanel extends JPanel {
      */
     public void setSchemas( SchemaMeta[] schemas ) {
         schemas_ = schemas;
+        TreeModel treeModel =
+            new TapMetaTreeModel( schemas_ == null ? new SchemaMeta[ 0 ]
+                                                   : schemas_ );
+        tTree_.setModel( treeModel );
+        selectionModel_.setSelectionPath( null );
 
-        /* Extract the list of tables from the schemas. */
-        final TableMeta[] tables;
-        if ( schemas != null ) { 
-            List<TableMeta> tlist = new ArrayList<TableMeta>();
-            for ( SchemaMeta schema : schemas ) {
-                for ( TableMeta table : schema.getTables() ) {
-                    tlist.add( table );
-                }
-            }
-            tables = tlist.toArray( new TableMeta[ 0 ] );
-        }
-        else {
-            tables = null;
-        }
-
-        tSelector_.setModel( tables == null
-                                    ? new DefaultComboBoxModel()
-                                    : new DefaultComboBoxModel( tables ) );
         metaPanel_.removeAll();
         metaPanel_.add( metaSplitter_ );
         metaPanel_.revalidate();
-        if ( tables != null && tables.length > 0 ) {
-            tSelector_.setSelectedIndex( 0 );
-            setSelectedTable( tables[ 0 ] );  // should happen automatically?
-        }
-        else {
-            setSelectedTable( null );
-        }
+        updateForSelectedTable();
         repaint();
     }
 
     /**
      * Returns the most recently set table metadata set.
      *
-     * @return   current schema metadata array
+     * @return   current schema metadata array, may be null
      */
     public SchemaMeta[] getSchemas() {
         return schemas_;
-    }
-
-    /**
-     * Returns the combo box used to select different tables for metadata
-     * display.
-     *
-     * @return   table selector, whose items are {@link TableMeta} objects
-     */
-    public JComboBox getTableSelector() {
-        return tSelector_;
     }
 
     /**
@@ -238,7 +178,7 @@ public class TableSetPanel extends JPanel {
 
     /**
      * Displays an indication that metadata fetching failed.
-     *
+     * 
      * @param  metaUrl  the tableset metadata acquisition attempted URL
      * @param  error   error that caused the failure
      */
@@ -288,15 +228,16 @@ public class TableSetPanel extends JPanel {
      * @return   selected table, may be null
      */
     public TableMeta getSelectedTable() {
-        return (TableMeta) tSelector_.getSelectedItem();
+        TreePath path = selectionModel_.getSelectionPath();
+        Object tail = path == null ? null : path.getLastPathComponent();
+        return TapMetaTreeModel.getTable( tail );
     }
 
     /**
-     * Invoked to display the metadata corresponding to a given table.
-     *
-     * @param   table  newly selected table
+     * Invoked when table selection may have changed.
      */
-    private void setSelectedTable( TableMeta table ) {
+    private void updateForSelectedTable() {
+        TableMeta table = getSelectedTable();
         if ( table == null ) {
             colTableModel_.setItems( new ColumnMeta[ 0 ] );
             foreignTableModel_.setItems( new ForeignMeta[ 0 ] );
@@ -345,7 +286,7 @@ public class TableSetPanel extends JPanel {
         }
         String note = null;
         if ( hasDesc ) {
-            note = desc.trim().matches( "(?s).*[\n\r]+.*" ) 
+            note = desc.trim().matches( "(?s).*[\n\r]+.*" )
                  ? "<html>" + desc.replaceAll( "[\r\n]+", "<br>" ) + "</html>"
                  : desc;
         }
