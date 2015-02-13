@@ -110,6 +110,17 @@ public class TapMetaTreeModel implements TreeModel {
     }
 
     /**
+     * Acquires the table metadata object, if any, associated with
+     * a given tree node.
+     *
+     * @param  node  node from a tree of this class
+     * @return   associated TableMeta object, or null
+     */
+    public static TableMeta getTable( Object node ) {
+        return node instanceof TableMeta ? (TableMeta) node : null;
+    }
+
+    /**
      * Returns a lightweight facade for an object representing a node
      * in this tree.  The result is an adapter supplying basic tree-like
      * behaviour.  The expectation is that this method will be called
