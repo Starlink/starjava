@@ -1,9 +1,11 @@
 package uk.ac.starlink.vo;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.util.Arrays;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
+import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -11,12 +13,14 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.JTree;
 import javax.swing.SwingUtilities;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
+import javax.swing.text.JTextComponent;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
@@ -36,6 +40,7 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
 public class TableSetPanel extends JPanel {
 
     private final JTree tTree_;
+    private final JLabel countLabel_;
     private final TreeSelectionModel selectionModel_;
     private final JTable colTable_;
     private final JTable foreignTable_;
@@ -43,9 +48,15 @@ public class TableSetPanel extends JPanel {
     private final ArrayTableModel foreignTableModel_;
     private final MetaColumnModel colColModel_;
     private final MetaColumnModel foreignColModel_;
+    private final SchemaMetaPanel schemaPanel_;
+    private final TableMetaPanel tablePanel_;
+    private final JTabbedPane detailTabber_;
+    private final int itabSchema_;
+    private final int itabTable_;
+    private final int itabCol_;
+    private final int itabForeign_;
     private final JComponent metaPanel_;
     private final JSplitPane metaSplitter_;
-    private final JLabel tableLabel_;
     private SchemaMeta[] schemas_;
 
     /**
@@ -62,9 +73,11 @@ public class TableSetPanel extends JPanel {
                                          .SINGLE_TREE_SELECTION );
         selectionModel_.addTreeSelectionListener( new TreeSelectionListener() {
             public void valueChanged( TreeSelectionEvent evt ) {
-                updateForSelectedTable();
+                updateForSelection();
             }
         } );
+
+        countLabel_ = new JLabel();
 
         colTableModel_ = new ArrayTableModel( createColumnMetaColumns(),
                                               new ColumnMeta[ 0 ] );
@@ -85,19 +98,31 @@ public class TableSetPanel extends JPanel {
                                  foreignTableModel_ );
         foreignTable_.setColumnModel( foreignColModel_ );
 
-        tableLabel_ = new JLabel();
-        JComponent tLine = Box.createHorizontalBox();
-        tLine.add( new JLabel( "Table: " ) );
-        tLine.add( tableLabel_ );
+        tablePanel_ = new TableMetaPanel();
+        schemaPanel_ = new SchemaMetaPanel();
 
-        JComponent detailPanel = new JPanel( new BorderLayout() );
-        detailPanel.add( tLine, BorderLayout.NORTH );
-        detailPanel.add( new JScrollPane( colTable_ ), BorderLayout.CENTER );
+        detailTabber_ = new JTabbedPane();
+        int itab = 0;
+        detailTabber_.addTab( "Schema", schemaPanel_ );
+        itabSchema_ = itab++;
+        detailTabber_.addTab( "Table", tablePanel_ );
+        itabTable_ = itab++;
+        detailTabber_.addTab( "Columns", new JScrollPane( colTable_ ) );
+        itabCol_ = itab++;
+        detailTabber_.addTab( "Foreign Keys",
+                              new JScrollPane( foreignTable_ ) );
+        itabForeign_ = itab++;
+
+        JComponent treePanel = new JPanel( new BorderLayout() );
+        treePanel.add( new JScrollPane( tTree_ ), BorderLayout.CENTER );
+        treePanel.add( countLabel_, BorderLayout.SOUTH );
 
         metaSplitter_ = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT );
         metaSplitter_.setBorder( BorderFactory.createEmptyBorder() );
-        metaSplitter_.setLeftComponent( new JScrollPane( tTree_ ) );
-        metaSplitter_.setRightComponent( detailPanel );
+        treePanel.setMinimumSize( new Dimension( 100, 100 ) );
+        detailTabber_.setMinimumSize( new Dimension( 100, 100 ) );
+        metaSplitter_.setLeftComponent( treePanel );
+        metaSplitter_.setRightComponent( detailTabber_ );
 
         metaPanel_ = new JPanel( new BorderLayout() );
         metaPanel_.add( metaSplitter_, BorderLayout.CENTER );
@@ -129,10 +154,23 @@ public class TableSetPanel extends JPanel {
         tTree_.setModel( treeModel );
         selectionModel_.setSelectionPath( null );
 
+        final String countTxt;
+        if ( schemas == null ) {
+            countTxt = "no metadata";
+        }
+        else {
+            int nTable = 0;
+            for ( SchemaMeta schema : schemas ) {
+                nTable += schema.getTables().length;
+            }
+            countTxt = schemas.length + " schemas, " + nTable + " tables";
+        }
+        countLabel_.setText( countTxt );
+
         metaPanel_.removeAll();
         metaPanel_.add( metaSplitter_ );
         metaPanel_.revalidate();
-        updateForSelectedTable();
+        updateForSelection();
         repaint();
     }
 
@@ -228,25 +266,31 @@ public class TableSetPanel extends JPanel {
      * @return   selected table, may be null
      */
     public TableMeta getSelectedTable() {
-        TreePath path = selectionModel_.getSelectionPath();
-        Object tail = path == null ? null : path.getLastPathComponent();
-        return TapMetaTreeModel.getTable( tail );
+        return TapMetaTreeModel.getTable( selectionModel_.getSelectionPath() );
     }
 
     /**
      * Invoked when table selection may have changed.
      */
-    private void updateForSelectedTable() {
-        TableMeta table = getSelectedTable();
-        if ( table == null ) {
-            colTableModel_.setItems( new ColumnMeta[ 0 ] );
-            foreignTableModel_.setItems( new ForeignMeta[ 0 ] );
-            tableLabel_.setText( "" );
-        }
-        else {
-            configureTableLabel( table.getTitle(), table.getDescription() );
-            colTableModel_.setItems( table.getColumns() );
-            foreignTableModel_.setItems( table.getForeignKeys() );
+    private void updateForSelection() {
+        TreePath path = selectionModel_.getSelectionPath();
+        TableMeta table = TapMetaTreeModel.getTable( path );
+        SchemaMeta schema = TapMetaTreeModel.getSchema( path );
+        ColumnMeta[] cols = table == null ? new ColumnMeta[ 0 ]
+                                          : table.getColumns();
+        ForeignMeta[] fkeys = table == null ? new ForeignMeta[ 0 ]
+                                            : table.getForeignKeys();
+        schemaPanel_.setSchema( schema );
+        detailTabber_.setIconAt( itabSchema_, activeIcon( schema != null ) );
+        tablePanel_.setTable( table );
+        detailTabber_.setIconAt( itabTable_, activeIcon( table != null ) );
+        colTableModel_.setItems( cols );
+        detailTabber_.setIconAt( itabCol_, activeIcon( cols != null &&
+                                                       cols.length > 0 ) );
+        foreignTableModel_.setItems( fkeys );
+        detailTabber_.setIconAt( itabForeign_, activeIcon( fkeys != null &&
+                                                           fkeys.length > 0 ) );
+        if ( table != null ) {
             final JTable ct = colTable_;
             final JTable ft = foreignTable_;
             Runnable configer = new Runnable() {
@@ -265,36 +309,14 @@ public class TableSetPanel extends JPanel {
     }
 
     /**
-     * Configures the table label given a table title and description.
+     * Returns a small icon indicating whether a given tab is currently
+     * active or not.
      *
-     * @param  title  table title (should be short)
-     * @param  desc   table description (may be long)
+     * @param   isActive  true iff tab has content
+     * @return  little icon
      */
-    private void configureTableLabel( String title, String desc ) {
-        boolean hasTitle = title != null && title.trim().length() > 0;
-        boolean hasDesc = desc != null && desc.trim().length() > 0;
-        final String heading;
-        if ( hasTitle ) {
-            heading = title.trim().replaceAll( "\\s+", " " );
-        }
-        else if ( hasDesc ) {
-            heading = desc.trim().replaceFirst( "(?s)[.,;]\\s.*", " ..." )
-                                 .replaceAll( "\\s+", " " );
-        }
-        else {
-            heading = null;
-        }
-        String note = null;
-        if ( hasDesc ) {
-            note = desc.trim().matches( "(?s).*[\n\r]+.*" )
-                 ? "<html>" + desc.replaceAll( "[\r\n]+", "<br>" ) + "</html>"
-                 : desc;
-        }
-        else {
-            note = null;
-        }
-        tableLabel_.setText( heading );
-        tableLabel_.setToolTipText( note );
+    private Icon activeIcon( boolean isActive ) {
+        return HasContentIcon.getIcon( isActive );
     }
 
     /**
@@ -317,6 +339,16 @@ public class TableSetPanel extends JPanel {
      */
     private static ForeignMeta getForeign( Object item ) {
         return (ForeignMeta) item;
+    }
+
+    /**
+     * Utility method to return a string representing the length of an array.
+     *
+     * @param  array  array object, or null
+     * @return  string giving length of array, or null for null input
+     */
+    private static String arrayLength( Object[] array ) {
+        return array == null ? null : Integer.toString( array.length );
     }
 
     /**
@@ -425,5 +457,85 @@ public class TableSetPanel extends JPanel {
                 }
             },
         };
+    }
+
+    /**
+     * MetaPanel subclass for displaying table metadata.
+     */
+    private static class TableMetaPanel extends MetaPanel {
+        private final JTextComponent nameField_;
+        private final JTextComponent ncolField_;
+        private final JTextComponent nfkField_;
+        private final JTextComponent descripField_;
+        private TableMeta table_;
+
+        /**
+         * Constructor.
+         */
+        TableMetaPanel() {
+            nameField_ = addLineField( "Name" );
+            ncolField_ = addLineField( "Columns" );
+            nfkField_ = addLineField( "Foreign Keys" );
+            descripField_ = addMultiLineField( "Description" );
+        }
+
+        /**
+         * Configures this component to display metadata for a given table.
+         *
+         * @param  table  table metadata to display
+         */
+        public void setTable( TableMeta table ) {
+            if ( table != table_ ) {
+                table_ = table;
+                nameField_.setText( table == null ? null : table.getName() );
+                nameField_.setCaretPosition( 0 );
+                descripField_.setText( table == null ? null
+                                                     : table.getDescription() );
+                descripField_.setCaretPosition( 0 );
+                ColumnMeta[] cols = table == null ? null : table.getColumns();
+                ncolField_.setText( arrayLength( cols ) );
+                ForeignMeta[] fks = table == null ? null
+                                                  : table.getForeignKeys();
+                nfkField_.setText( arrayLength( fks ) );
+            }
+        }
+    }
+
+    /**
+     * MetaPanel subclass for displaying schema metadata.
+     */
+    private static class SchemaMetaPanel extends MetaPanel {
+        private final JTextComponent nameField_;
+        private final JTextComponent ntableField_;
+        private final JTextComponent descripField_;
+        private SchemaMeta schema_;
+
+        /**
+         * Constructor.
+         */
+        SchemaMetaPanel() {
+            nameField_ = addLineField( "Name" );
+            ntableField_ = addLineField( "Tables" );
+            descripField_ = addMultiLineField( "Description" );
+        }
+
+        /**
+         * Configures this component to display metadata for a given schema.
+         *
+         * @param  schema  schema metadata to display
+         */
+        public void setSchema( SchemaMeta schema ) {
+            if ( schema != schema_ ) {
+                schema_ = schema;
+                nameField_.setText( schema == null ? null : schema.getName() );
+                nameField_.setCaretPosition( 0 );
+                descripField_.setText( schema == null
+                                     ? null
+                                     : schema.getDescription() );
+                descripField_.setCaretPosition( 0 );
+                TableMeta[] tables = schema == null ? null : schema.getTables();
+                ntableField_.setText( arrayLength( tables ) );
+            }
+        }
     }
 }

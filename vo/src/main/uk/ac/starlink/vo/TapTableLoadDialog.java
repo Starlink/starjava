@@ -226,7 +226,7 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
         } );
 
         /* It's big. */
-        tabber_.setPreferredSize( new Dimension( 600, 550 ) );
+        tabber_.setPreferredSize( new Dimension( 700, 550 ) );
 
         /* Return the tabbed pane which is the main query component. */
         return tabber_;
@@ -542,5 +542,26 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
             return ident;
         }
         return null;
+    }
+
+    /**
+     * Main method pops up an instance of this dialog.
+     * An initial TAP URL may be given on the command line.
+     */
+    public static void main( String[] args ) {
+        final String tapUrl = args.length > 0 ? args[ 0 ] : null;
+        TapTableLoadDialog tld = new TapTableLoadDialog();
+        tld.configure( new StarTableFactory(), new AbstractAction() {
+            public void actionPerformed( ActionEvent evt ) {
+            }
+        } );
+        Component qcomp = tld.getQueryComponent();
+        if ( tapUrl != null ) {
+            tld.getServiceUrlField().setText( tapUrl );
+        }
+        javax.swing.JFrame frm = new javax.swing.JFrame();
+        frm.getContentPane().add( qcomp );
+        frm.pack();
+        frm.setVisible( true );
     }
 }

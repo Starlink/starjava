@@ -111,13 +111,38 @@ public class TapMetaTreeModel implements TreeModel {
 
     /**
      * Acquires the table metadata object, if any, associated with
-     * a given tree node.
+     * a given tree path.
      *
-     * @param  node  node from a tree of this class
+     * @param  path  tree path associated with an instance of this class
      * @return   associated TableMeta object, or null
      */
-    public static TableMeta getTable( Object node ) {
-        return node instanceof TableMeta ? (TableMeta) node : null;
+    public static TableMeta getTable( TreePath path ) {
+        if ( path != null ) {
+            for ( Object element : path.getPath() ) {
+                if ( element instanceof TableMeta ) {
+                    return (TableMeta) element;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Acquires the schema metadata object, if any, associated with
+     * a given tree path.
+     *
+     * @param  path  tree path associated with an instance of this class
+     * @return   associated SchemaMeta object, or null
+     */
+    public static SchemaMeta getSchema( TreePath path ) {
+        if ( path != null ) {
+            for ( Object element : path.getPath() ) {
+                if ( element instanceof SchemaMeta ) {
+                    return (SchemaMeta) element;
+                }
+            }
+        }
+        return null;
     }
 
     /**
