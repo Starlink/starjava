@@ -58,7 +58,6 @@ public class TapQueryPanel extends JPanel {
     private final TableSetPanel tmetaPanel_;
     private final TapCapabilityPanel tcapPanel_;
     private final JLabel serviceLabel_;
-    private final JLabel countLabel_;
     private final JToggleButton syncToggle_;
     private final Action examplesAct_;
     private final Action parseErrorAct_;
@@ -189,12 +188,9 @@ public class TapQueryPanel extends JPanel {
 
         /* Prepare a panel for the TAP service heading. */
         serviceLabel_ = new JLabel();
-        countLabel_ = new JLabel();
         JComponent tableHeading = Box.createHorizontalBox();
         tableHeading.add( new JLabel( "Service: " ) );
         tableHeading.add( serviceLabel_ );
-        tableHeading.add( Box.createHorizontalStrut( 10 ) );
-        tableHeading.add( countLabel_ );
 
         /* Arrange the components in a split pane. */
         final JSplitPane splitter = new JSplitPane( JSplitPane.VERTICAL_SPLIT );
@@ -208,7 +204,7 @@ public class TapQueryPanel extends JPanel {
         servicePanel.setBorder(
             BorderFactory.createTitledBorder(
                 BorderFactory.createLineBorder( Color.BLACK ),
-                "Table Metadata" ) );
+                "Metadata" ) );
         tcapPanel_.setBorder(
             BorderFactory.createTitledBorder(
                 BorderFactory.createLineBorder( Color.BLACK ),
@@ -385,21 +381,6 @@ public class TapQueryPanel extends JPanel {
 
         /* Populate table metadata JTable. */
         tmetaPanel_.setSchemas( smetas );
-
-        /* Display number of tables. */
-        final String countText;
-        if ( smetas == null ) {
-            countText = "";
-        }
-        else {
-            int ns = smetas.length;
-            int nt = 0;
-            for ( SchemaMeta smeta : smetas ) {
-                nt += smeta.getTables().length;
-            }
-            countText = "(" + ns + " schemas, " + nt + " tables)";
-        }
-        countLabel_.setText( countText );
     }
 
     /**
