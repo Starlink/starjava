@@ -239,6 +239,7 @@ public class SampCommunicator
         {
         	SpectrumIO.Props props = createProps( message );
             SpectrumIO.getInstance().setWatcher( this );
+            props.setType(7); //set type == guess
             loadSpectrum( props );
         }
 
