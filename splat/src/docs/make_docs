@@ -10,9 +10,21 @@ test -d sun243.htx || mkdir sun243.htx
 cp gifs/* sun243.htx
 
 #  Help system docs, these need to be in a jar file so we can access them from
-#  javahelp. XXX used to not have navigation at top and bottom of page (not
-#  needed as we have TOC).
-star2html sun243.tex
+#  javahelp. Split into more sections so that pages are not so long and better
+#  related to the help-on-window concept.
+star2html -splitlevel 3 sun243.tex
+
+#  Stop the navigation elements from appearing at the top and bottom of the
+#  pages (not needed javahelp has a permanently displayed index). 
+#  If javahelp worked with CSS this would be enough:
+#     cat sun243.htx/sun243.css | sed '/^div\.crosslinks{/N;s/block/none/'
+#  but it doesn't so we have to process all files with nasty across-line
+#  character range with greedy issues, so off to perl we go...
+for f in sun243.htx/*.html; do 
+    rm -f tmp.html
+    cat $f | perl -0pe 's/<div\ class="crosslinks".*?>TOC.*?<\/div>//sg' > tmp.html
+    mv -f tmp.html $f
+done
 
 #  Edit Map.jhm.in to reference the correct files for our TOC.
 rm -f Map.jhm
