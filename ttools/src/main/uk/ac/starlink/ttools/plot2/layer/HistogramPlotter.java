@@ -36,7 +36,6 @@ import uk.ac.starlink.ttools.plot2.data.CoordGroup;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
-import uk.ac.starlink.ttools.plot2.data.InputMeta;
 import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 import uk.ac.starlink.ttools.plot2.geom.PlaneSurface;
 import uk.ac.starlink.ttools.plot2.geom.SliceDataGeom;
@@ -124,20 +123,7 @@ public class HistogramPlotter
     public HistogramPlotter( FloatingCoord xCoord, boolean hasWeight ) {
         xCoord_ = xCoord;
         if ( hasWeight ) {
-            weightCoord_ =
-                FloatingCoord.createCoord(
-                    new InputMeta( "weight", "Weight" )
-                   .setShortDescription( "Non-unit weighting of data points" )
-                   .setXmlDescription( new String[] {
-                        "<p>Weighting of data points.",
-                        "If supplied, each point contributes a value",
-                        "to the histogram equal to the data value",
-                        "multiplied by this coordinate.",
-                        "If not supplied, the effect is the same as",
-                        "supplying a fixed value of one.",
-                        "</p>",
-                    } )
-                , false );
+            weightCoord_ = FloatingCoord.WEIGHT_COORD;
             histoCoordGrp_ =
                 CoordGroup
                .createPartialCoordGroup( new Coord[] { xCoord, weightCoord_ },
@@ -236,7 +222,7 @@ public class HistogramPlotter
                                               Map<AuxScale,Range> auxRanges,
                                               final PaperType paperType ) {
                     if ( ! ( surface instanceof PlaneSurface ) ) {
-                        throw new IllegalArgumentException( "Not plane surface"
+                        throw new IllegalArgumentException( "Not plane surface "
                                                           + surface );
                     }
                     final PlaneSurface pSurf = (PlaneSurface) surface;
@@ -415,8 +401,6 @@ public class HistogramPlotter
         double[][] dataLimits = surface.getDataLimits();
         double dxMin = dataLimits[ 0 ][ 0 ];
         double dxMax = dataLimits[ 0 ][ 1 ];
-        double dyMin = dataLimits[ 1 ][ 0 ];
-        double dyMax = dataLimits[ 1 ][ 1 ];
         boolean[] flipFlags = surface.getFlipFlags();
         final boolean xflip = flipFlags[ 0 ];
         final boolean yflip = flipFlags[ 1 ];
