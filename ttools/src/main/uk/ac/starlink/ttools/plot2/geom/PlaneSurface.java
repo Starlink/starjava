@@ -224,6 +224,15 @@ public class PlaneSurface implements Surface {
     }
 
     /**
+     * Returns the axis objects used by this surface.
+     *
+     * @return  2-element array giving X,Y axis implementations
+     */
+    public Axis[] getAxes() {
+        return new Axis[] { xAxis_, yAxis_ };
+    }
+
+    /**
      * Returns a plot aspect representing a view of this surface zoomed
      * in some or all dimensions around the given central position.
      *

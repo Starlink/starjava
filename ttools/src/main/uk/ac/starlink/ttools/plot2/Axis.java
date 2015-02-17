@@ -8,11 +8,12 @@ import java.awt.geom.AffineTransform;
 /**
  * Does geometry and drawing for a straight line axis.
  * Linear and logarithmic scales are supported; obtain one using
- * the {@link #createAxis} factory method.
+ * the {@link #createAxis createAxis} factory method.
  *
  * @author   Mark Taylor
  * @since    12 Feb 2013
  */
+@Equality
 public abstract class Axis {
 
     private final int glo_;
@@ -29,6 +30,12 @@ public abstract class Axis {
      * @param   dhi  maximum data coordinate
      */
     protected Axis( int glo, int ghi, double dlo, double dhi ) {
+        if ( ! ( glo < ghi ) ) {
+            throw new IllegalArgumentException( "Bad graphics bounds" );
+        }
+        if ( ! ( dlo < dhi ) ) {
+            throw new IllegalArgumentException( "Bad data bounds" );
+        }
         glo_ = glo;
         ghi_ = ghi;
         dlo_ = dlo;
@@ -70,6 +77,35 @@ public abstract class Axis {
      * @return   2-element array giving new new data min/max coordinates
      */
     public abstract double[] dataPan( double d0, double d1 );
+
+    /**
+     * Returns the axis graphics bounds.
+     * The first element of the result (<code>glo</code>)
+     * is always strictly less than the second (<code>ghi</code>).
+     *
+     * @return  2-element array giving the graphics min/max coordinates
+     */
+    public int[] getGraphicsLimits() {
+        return new int[] { glo_, ghi_ };
+    }
+
+    /**
+     * Returns the axis data bounds.
+     * The first element of the result (<code>dlo</code>)
+     * is always strictly less than the second (<code>dhi</code>).
+     *
+     * @return  2-element array giving the data min/max coordinates
+     */
+    public double[] getDataLimits() {
+        return new double[] { dlo_, dhi_ };
+    }
+
+    /**
+     * Indicates whether the scaling on this axis is linear.
+     *
+     * @return  true  iff this axis is linear
+     */
+    public abstract boolean isLinear();
 
     /**
      * Draws an axis title and supplied tickmarks.
@@ -280,6 +316,10 @@ public abstract class Axis {
             b_ = ( flip ? ghi : glo ) - a_ * dlo;
         }
 
+        public boolean isLinear() {
+            return true;
+        }
+
         public double dataToGraphics( double d ) {
             return b_ + a_ * d;
         }
@@ -294,6 +334,30 @@ public abstract class Axis {
 
         public double[] dataPan( double d0, double d1 ) {
             return pan( dlo_, dhi_, d0, d1, false );
+        }
+
+        @Override
+        public int hashCode() {
+            int code = 2359;
+            code = 23 * code + Float.floatToIntBits( (float) a_ );
+            code = 23 * code + Float.floatToIntBits( (float) b_ );
+            code = 23 * code + Float.floatToIntBits( (float) dlo_ );
+            code = 23 * code + Float.floatToIntBits( (float) dhi_ );
+            return code;
+        }
+
+        @Override
+        public boolean equals( Object o ) {
+            if ( o instanceof LinearAxis ) { 
+                LinearAxis other = (LinearAxis) o;
+                return this.a_ == other.a_
+                    && this.b_ == other.b_
+                    && this.dlo_ == other.dlo_
+                    && this.dhi_ == other.dhi_;
+            }
+            else {
+                return false;
+            }
         }
     }
 
@@ -328,6 +392,10 @@ public abstract class Axis {
             a1_ = 1.0 / a_;
         }
 
+        public boolean isLinear() {
+            return false;
+        }
+
         public double dataToGraphics( double d ) {
 
             /* Check explicitly for zero values and return a NaN rather than
@@ -348,6 +416,30 @@ public abstract class Axis {
 
         public double[] dataPan( double d0, double d1 ) {
             return pan( dlo_, dhi_, d0, d1, true );
+        }
+
+        @Override
+        public int hashCode() {
+            int code = -242442;
+            code = 23 * code + Float.floatToIntBits( (float) a_ );
+            code = 23 * code + Float.floatToIntBits( (float) b_ );
+            code = 23 * code + Float.floatToIntBits( (float) dlo_ );
+            code = 23 * code + Float.floatToIntBits( (float) dhi_ );
+            return code;
+        }
+
+        @Override
+        public boolean equals( Object o ) {
+            if ( o instanceof LogAxis ) {
+                LogAxis other = (LogAxis) o;
+                return this.a_ == other.a_
+                    && this.b_ == other.b_
+                    && this.dlo_ == other.dlo_
+                    && this.dhi_ == other.dhi_;
+            }
+            else {
+                return false;
+            }
         }
     }
 
