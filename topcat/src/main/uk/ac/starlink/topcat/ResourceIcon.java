@@ -240,6 +240,7 @@ public class ResourceIcon implements Icon {
         FLOAT = makeIcon( "float1.gif" ),
         PLOT_DATA = makeIcon( "dataplot.gif" ),
         PLOT_PAIR = makeIcon( "pairplot.gif" ),
+        PLOT_HISTO = makeIcon( "histoplot.gif" ),
         PLOT2_PLANE = makeIcon( "plot2plane.gif" ),
         PLOT2_SKY = makeIcon( "plot2sky.gif" ),
         PLOT2_CUBE = makeIcon( "plot2cube.gif" ),
@@ -631,10 +632,10 @@ public class ResourceIcon implements Icon {
                      new Ri1RegistryTableLoadDialog().getIcon() );
         nameMap.put( "HELP_TOC",
                      new ImageIcon( JHelp.class
-                             .getResource( "plaf/basic/images/TOCNav.gif" ) ) );
+                        .getResource( "plaf/basic/images/TOCNav.gif" ) ) );
         nameMap.put( "HELP_SEARCH",
                      new ImageIcon( JHelp.class
-                             .getResource( "plaf/basic/images/SearchNav.gif" ) ) );
+                        .getResource( "plaf/basic/images/SearchNav.gif" ) ) );
 
         /* Pull in icons from TTOOLS package. */
         Field[] fields = uk.ac.starlink.ttools.gui.ResourceIcon.class

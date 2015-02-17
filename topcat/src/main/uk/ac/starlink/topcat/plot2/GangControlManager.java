@@ -27,6 +27,7 @@ import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.CoordGroup;
+import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
 import uk.ac.starlink.ttools.plot2.data.Input;
 
 /**
@@ -351,6 +352,20 @@ public class GangControlManager implements ControlManager {
             }
         },
 
+        /** Histogram-like plotter. */
+        WEIGHTED_HISTO( ResourceIcon.PLOT_HISTO, "Histogram",
+                        "optionally weighted histogram", true ) {
+            public PositionCoordPanel
+                    createPositionCoordPanel( PlotType plotType,
+                                              PlotTypeGui plotTypeGui ) {
+                Coord[] coords = {
+                    plotType.getPointDataGeoms()[ 0 ].getPosCoords()[ 0 ],
+                    FloatingCoord.WEIGHT_COORD,
+                };
+                return new SimplePositionCoordPanel( coords, null );
+            }
+        },
+
         /** Plotter not covered by other categories. */
         MISC( null, null, null, false ) {
             public PositionCoordPanel
@@ -442,6 +457,12 @@ public class GangControlManager implements ControlManager {
             }
             else if ( npos == 2 ) {
                 return CoordsType.DOUBLE_POS;
+            }
+            else if ( cgrp.isSinglePartialPosition() &&
+                      cgrp.getExtraCoords().length == 2 &&
+                      cgrp.getExtraCoords()[ 1 ]
+                           == FloatingCoord.WEIGHT_COORD ) {
+                return CoordsType.WEIGHTED_HISTO;
             }
             else {
                 return CoordsType.MISC;
