@@ -23,6 +23,21 @@ public class FloatingCoord extends SingleCoord {
 
     private final Number nan_;
 
+    /** Coordinate instance used for weighting values. */
+    public static FloatingCoord WEIGHT_COORD = createCoord(
+        new InputMeta( "weight", "Weight" )
+       .setShortDescription( "Non-unit weighting of data points" )
+       .setXmlDescription( new String[] {
+            "<p>Weighting of data points.",
+            "If supplied, each point contributes a value",
+            "to the histogram equal to the data value",
+            "multiplied by this coordinate.",
+            "If not supplied, the effect is the same as",
+            "supplying a fixed value of one.",
+            "</p>",
+        } )
+    , false );
+
     /**
      * Constructor.
      *
