@@ -44,6 +44,7 @@ import uk.ac.starlink.ttools.plot2.geom.PlaneSurfaceFactory;
 import uk.ac.starlink.ttools.plot2.layer.BinBag;
 import uk.ac.starlink.ttools.plot2.layer.FunctionPlotter;
 import uk.ac.starlink.ttools.plot2.layer.HistogramPlotter;
+import uk.ac.starlink.ttools.plot2.layer.PixogramPlotter;
 import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
 
 /**
@@ -337,51 +338,78 @@ public class HistogramPlotWindow
      */
     private void rescaleY() {
         Range yrange = readVerticalRange();
-        if ( yrange != null ) {
-            PlotPanel plotPanel = getPlotPanel();
-            PlaneSurface surface = (PlaneSurface) plotPanel.getLatestSurface();
-            double[] xbounds = surface.getDataLimits()[ 0 ];
-            boolean ylogFlag = surface.getLogFlags()[ 1 ];
-            PlotUtil.padRange( yrange, ylogFlag );
-            double[] ybounds = yrange.getFiniteBounds( ylogFlag );
-            PlaneAspect aspect = new PlaneAspect( xbounds, ybounds );
-            getAxisController().setAspect( aspect );
-            plotPanel.replot();
-        }
+        PlotPanel plotPanel = getPlotPanel();
+        PlaneSurface surface = (PlaneSurface) plotPanel.getLatestSurface();
+        double[] xbounds = surface.getDataLimits()[ 0 ];
+        boolean ylogFlag = surface.getLogFlags()[ 1 ];
+        PlotUtil.padRange( yrange, ylogFlag );
+        double[] ybounds = yrange.getFiniteBounds( ylogFlag );
+        PlaneAspect aspect = new PlaneAspect( xbounds, ybounds );
+        getAxisController().setAspect( aspect );
+        plotPanel.replot();
     }
 
     /**
      * Returns a Range object corresponding to the extent on the Y axis
      * of histogram bin data currently plotted.
-     * If there is a table read error, which shouldn't happen,
-     * null is returned.
      *
      * @return  Y range of plotted histogram data, or null
      */
     private Range readVerticalRange() {
+        PlotPanel plotPanel = getPlotPanel();
+
+        /* Initialise range object with the lower limit for the bottom of
+         * the bars. */
+        Range yRange = new Range();
+        Surface surface = plotPanel.getSurface();
+        boolean isLog = surface instanceof PlaneSurface
+                     && ((PlaneSurface) surface ).getLogFlags()[ 1 ];
+        yRange.submit( isLog ? 1 : 0 );
+
+        /* Get the heights of the entries in the bin data table.
+         * This will cover the HistogramPlotter layers. */
         StarTable binsTable = getBinDataTable();
-        if ( binsTable == null ) {
-            return null;
+        if ( binsTable != null ) {
+            int ncol = binsTable.getColumnCount();
+            try {
+                RowSequence rseq = binsTable.getRowSequence();
+                while ( rseq.next() ) {
+                    Object[] row = rseq.getRow();
+                    for ( int icol = BINS_TABLE_INTRO_NCOL; icol < ncol;
+                          icol++ ) {
+                        Object value = row[ icol ];
+                        if ( value instanceof Number ) {
+                            yRange.submit( ((Number) value).doubleValue() );
+                        }
+                    }
+                }
+                rseq.close();
+            }
+            catch ( IOException e ) {
+                // shouldn't happen
+            }
         }
-        int ncol = binsTable.getColumnCount();
-        Range yrange = new Range();
-        try {
-            RowSequence rseq = binsTable.getRowSequence();
-            while ( rseq.next() ) {
-                Object[] row = rseq.getRow();
-                for ( int icol = BINS_TABLE_INTRO_NCOL; icol < ncol; icol++ ) {
-                    Object value = row[ icol ];
-                    if ( value instanceof Number ) {
-                        yrange.submit( ((Number) value).doubleValue() );
+
+        /* Interrogate the PixogramPlotter layers separately. */
+        PlotLayer[] layers = plotPanel.getPlotLayers();
+        ReportMap[] reports = plotPanel.getReports();
+        int nl = layers.length;
+        for ( int il = 0; il < nl; il++ ) {
+            PlotLayer layer = layers[ il ];
+            ReportMap report = reports[ il ];
+            if ( report != null ) {
+                Plotter plotter = layer.getPlotter();
+                if ( plotter instanceof PixogramPlotter ) {
+                    double[] bins = report.get( PixogramPlotter.BINS_KEY );
+                    for ( double bin : bins ) {
+                        yRange.submit( bin );
                     }
                 }
             }
-            rseq.close();
-            return yrange;
         }
-        catch ( IOException e ) {
-            return null;
-        }
+
+        /* Return the populated range object. */
+        return yRange;
     }
 
     /**
@@ -403,6 +431,7 @@ public class HistogramPlotWindow
         public Plotter[] getPlotters() {
             return new Plotter[] {
                 new HistogramPlotter( PlaneDataGeom.X_COORD, true ),
+                new PixogramPlotter( PlaneDataGeom.X_COORD, true ),
                 FunctionPlotter.PLANE,
             };
         }
