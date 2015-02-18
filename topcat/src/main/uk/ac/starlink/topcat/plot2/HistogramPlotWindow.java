@@ -360,6 +360,9 @@ public class HistogramPlotWindow
      */
     private Range readVerticalRange() {
         StarTable binsTable = getBinDataTable();
+        if ( binsTable == null ) {
+            return null;
+        }
         int ncol = binsTable.getColumnCount();
         Range yrange = new Range();
         try {
