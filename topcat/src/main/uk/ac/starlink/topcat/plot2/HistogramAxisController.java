@@ -30,7 +30,7 @@ public class HistogramAxisController
     private static final ConfigKey[] BAR_KEYS = new ConfigKey[] {
         BinSizer.BINSIZER_KEY,
         HistogramPlotter.PHASE_KEY,
-        HistogramPlotter.CUMULATIVE_KEY,
+        StyleKeys.CUMULATIVE,
         HistogramPlotter.NORM_KEY,
     };
 
