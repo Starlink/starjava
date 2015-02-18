@@ -122,7 +122,7 @@ public class PlaneSurface implements Surface {
         double gx = xAxis_.dataToGraphics( dpos[ 0 ] );
         double gy = yAxis_.dataToGraphics( dpos[ 1 ] );
         if ( ! visibleOnly ||
-             ( gx >= gxlo_ && gx <= gxhi_ && gy >= gylo_ && gy <= gyhi_ ) ) {
+             ( gx >= gxlo_ && gx < gxhi_ && gy >= gylo_ && gy < gyhi_ ) ) {
             gp.x = gx;
             gp.y = gy;
             return true;
