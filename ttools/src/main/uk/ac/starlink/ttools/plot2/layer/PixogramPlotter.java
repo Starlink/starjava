@@ -19,7 +19,9 @@ import uk.ac.starlink.ttools.plot2.LayerOpt;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Plotter;
+import uk.ac.starlink.ttools.plot2.ReportKey;
 import uk.ac.starlink.ttools.plot2.ReportMap;
+import uk.ac.starlink.ttools.plot2.ReportMeta;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
@@ -53,6 +55,11 @@ public class PixogramPlotter implements Plotter<PixogramPlotter.PixoStyle> {
     private final int icX_;
     private final int icWeight_;
     private static final int GUESS_PLOT_WIDTH = 300;
+
+    /** Report key for plotted bin height in data coordinates. */
+    public static final ReportKey<double[]> BINS_KEY =
+        new ReportKey<double[]>( new ReportMeta( "bins", "Bins" ),
+                                 double[].class, false );
 
     /** Not a fixed limit, it's just optimisation. */
     private static final int MAX_KERNEL_WIDTH = 50;
@@ -207,7 +214,13 @@ public class PixogramPlotter implements Plotter<PixogramPlotter.PixoStyle> {
                         } );
                     }
                     public ReportMap getReport( Object plan ) {
-                        return null;
+                        ReportMap report = new ReportMap();
+                        if ( plan instanceof PixoPlan ) {
+                            report.set( BINS_KEY,
+                                        getPlottedBins( (PixoPlan) plan,
+                                                        style ) );
+                        }
+                        return report;
                     }
                 };
             }
@@ -385,6 +398,26 @@ public class PixogramPlotter implements Plotter<PixogramPlotter.PixoStyle> {
     private static double clip( double p, double lo, double hi ) {
         return Math.max( Math.min( p, hi ), lo );
     }               
+
+    /**
+     * Returns an array of the bin values actually plotted.
+     * This has one element per pixel and the elements are data coordinates.
+     *
+     * @return   array of plotted values
+     */
+    private static double[] getPlottedBins( PixoPlan plan, PixoStyle style ) {
+        BinArray binArray = plan.binArray_;
+        double[] dataBins = style.kernel_.convolve( binArray.bins_ );
+        Axis xAxis = plan.xAxis_;
+        double[] dlimits = xAxis.getDataLimits();
+        int glo = (int) Math.round( xAxis.dataToGraphics( dlimits[ 0 ] ) );
+        int ghi = (int) Math.round( xAxis.dataToGraphics( dlimits[ 1 ] ) );
+        int ixlo = binArray.getBinIndex( glo );
+        int nx = ghi - glo;
+        double[] clipBins = new double[ nx ];
+        System.arraycopy( dataBins, ixlo, clipBins, 0, nx );
+        return clipBins;
+    }
 
     /**
      * Style subclass for pixogram plots.
