@@ -1,8 +1,14 @@
 package uk.ac.starlink.ttools.plot2.layer;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.awt.Stroke;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
@@ -23,6 +29,7 @@ import uk.ac.starlink.ttools.plot2.ReportKey;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.ReportMeta;
 import uk.ac.starlink.ttools.plot2.Surface;
+import uk.ac.starlink.ttools.plot2.config.BooleanConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
@@ -64,7 +71,22 @@ public class PixogramPlotter implements Plotter<PixogramPlotter.PixoStyle> {
     /** Not a fixed limit, it's just optimisation. */
     private static final int MAX_KERNEL_WIDTH = 50;
 
-    private static final ConfigKey<Integer> WIDTH_KEY =
+    /** Config key for line/fill toggle. */
+    public static final ConfigKey<Boolean> FILL_KEY =
+        new BooleanConfigKey(
+            new ConfigMeta( "fill", "Fill" )
+           .setShortDescription( "Fill bar area with solid colour?" )
+           .setXmlDescription( new String[] {
+                "<p>If true, the bars of the histogram will be plotted",
+                "as a solid colour, so that the whole area under the curve",
+                "is filled in.",
+                "If false, only the top outline of the area will be drawn.",
+                "</p>"
+            } )
+        , false );
+
+    /** Config key for smoothing width. */
+    public static final ConfigKey<Integer> SMOOTH_KEY =
         IntegerConfigKey.createSliderKey(
             new ConfigMeta( "smooth", "Smoothing" )
            .setShortDescription( "Smoothing half-width in pixels" )
@@ -138,11 +160,13 @@ public class PixogramPlotter implements Plotter<PixogramPlotter.PixoStyle> {
     }
 
     public ConfigKey[] getStyleKeys() {
-        return new ConfigKey[] {
-            StyleKeys.COLOR,
-            StyleKeys.TRANSPARENCY,
-            WIDTH_KEY,
-        };
+        List<ConfigKey> list = new ArrayList<ConfigKey>();
+        list.add( StyleKeys.COLOR );
+        list.add( StyleKeys.TRANSPARENCY );
+        list.add( SMOOTH_KEY );
+        list.add( FILL_KEY );
+        list.addAll( Arrays.asList( StyleKeys.getStrokeKeys() ) );
+        return list.toArray( new ConfigKey[ 0 ] );
     }
 
     public PixoStyle createStyle( ConfigMap config ) {
@@ -151,8 +175,13 @@ public class PixogramPlotter implements Plotter<PixogramPlotter.PixoStyle> {
         float[] rgba = baseColor.getRGBComponents( new float[ 4 ] );
         rgba[ 3 ] *= alpha;
         Color color = new Color( rgba[ 0 ], rgba[ 1 ], rgba[ 2 ], rgba[ 3 ] );
-        int width = config.get( WIDTH_KEY );
-        return new PixoStyle( color, width );
+        boolean isFill = config.get( FILL_KEY );
+        int width = config.get( SMOOTH_KEY );
+        Stroke stroke =
+            isFill ? null
+                   : StyleKeys.createStroke( config, BasicStroke.CAP_ROUND,
+                                             BasicStroke.JOIN_ROUND );
+        return new PixoStyle( color, stroke, width );
     }
 
     public boolean hasReports() {
@@ -368,36 +397,86 @@ public class PixogramPlotter implements Plotter<PixogramPlotter.PixoStyle> {
         int ixlo = binArray.getBinIndex( clip.x );
         int ixhi = binArray.getBinIndex( clip.x + clip.width );
 
-        /* Plot a rectangle (1-pixel wide bar) for each count. */
-        for ( int ix = ixlo; ix < ixhi; ix++ ) {
-            int gx = binArray.getGraphicsCoord( ix );
-            int dy = (int) Math.round( bins[ ix ] );
-            double gy = clip( yAxis.dataToGraphics( dy ), yClipMin, yClipMax );
-            double deltaY = gy - gy0;
-            int h = (int) Math.round( deltaY );
-            if ( h > 0 ) {
-                g.drawRect( gx, gy0, 1, h );
+        /* Assemble a list of the (x,y) graphics coordinates of the
+         * top left hand corner for each bar in the plot region. */
+        int np = ixhi - ixlo;
+        int[] xs = new int[ np ];
+        int[] ys = new int[ np ];
+        for ( int ip = 0; ip < np; ip++ ) {
+            int ix = ixlo + ip;
+            double dy = yAxis.dataToGraphics( bins[ ix ] );
+            xs[ ip ] = binArray.getGraphicsCoord( ix );
+            ys[ ip ] = PlotUtil.isFinite( dy )
+                     ? clip( dy, yClipMin, yClipMax )
+                     : gy0;
+        }
+
+        /* Either plot a rectangle (1-pixel wide bar) for each count. */
+        if ( style.stroke_ == null ) {
+            final int nVertex;
+            final int[] pxs;
+            final int[] pys;
+            final boolean obliqueLines = false;
+            if ( obliqueLines ) {
+                nVertex = np + 2;
+                pxs = new int[ nVertex ];
+                pys = new int[ nVertex ];
+                System.arraycopy( xs, 0, pxs, 1, np );
+                System.arraycopy( ys, 0, pys, 1, np );
             }
-            else if ( h < 0 ) {
-                g.drawRect( gx, (int) Math.round( gy ), 1, -h );
+            else {
+                nVertex = np * 2 + 2;
+                pxs = new int[ nVertex ];
+                pys = new int[ nVertex ];
+                for ( int ip = 0; ip < np; ip++ ) {
+                    pxs[ ip * 2 + 1 ] = xs[ ip ];
+                    pys[ ip * 2 + 1 ] = ys[ ip ];
+                    pxs[ ip * 2 + 2 ] = xs[ ip ] + 1;
+                    pys[ ip * 2 + 2 ] = ys[ ip ];
+                }
             }
+            pxs[ 0 ] = xs[ 0 ];
+            pys[ 0 ] = gy0;
+            pxs[ nVertex - 1 ] = xs[ np - 1 ] + 1;
+            pys[ nVertex - 1 ] = gy0;
+            g.fillPolygon( pxs, pys, nVertex );
+        }
+
+        /* Or plot a wiggly line along the top of the bars. */
+        else {
+            Graphics2D g2 = (Graphics2D) g;
+            Stroke stroke0 = g2.getStroke();
+            g2.setStroke( style.stroke_ );
+            g2.drawPolyline( xs, ys, np );
+            g2.setStroke( stroke0 );
         }
 
         /* Restore graphics context. */
         g.setColor( color0 );
     }
 
-    /**          
+    /**
      * Clips a value to a given range.
-     *                
+     *
      * @param  p  input value
      * @param  lo  minimum acceptable value
      * @param  hi  maximum acceptable value
      * @return   input value clipped to given limits
-     */              
-    private static double clip( double p, double lo, double hi ) {
-        return Math.max( Math.min( p, hi ), lo );
-    }               
+     */
+    private static int clip( double p, int lo, int hi ) {
+        if ( Double.isNaN( p ) ) {
+            return lo;
+        }
+        else if ( p < lo ) {
+            return lo;
+        }
+        else if ( p > hi ) {
+            return hi;
+        }
+        else {
+            return (int) Math.round( p );
+        }
+    }
 
     /**
      * Returns an array of the bin values actually plotted.
@@ -424,40 +503,46 @@ public class PixogramPlotter implements Plotter<PixogramPlotter.PixoStyle> {
      */
     public static class PixoStyle implements Style {
         private final Color color_;
-        private final BarStyle barStyle_;
+        private final Stroke stroke_;
         private final Kernel kernel_;
+        private final Icon icon_;
 
         /**
          * Private constructor.
          *
          * @param  color  plot colour
+         * @param  stroke  line stroke, null for filled area
          * @param  kernel  smoothing kernel
          */
-        private PixoStyle( Color color, Kernel kernel ) {
+        private PixoStyle( Color color, Stroke stroke, Kernel kernel ) {
             color_ = color;
+            stroke_ = stroke;
             kernel_ = kernel;
-            barStyle_ =
-                new BarStyle( color, BarStyle.FORM_SPIKE, BarStyle.PLACE_OVER );
+            BarStyle.Form bf =
+                stroke == null ? BarStyle.FORM_FILLED : BarStyle.FORM_OPEN;
+            icon_ = new BarStyle( color, bf, BarStyle.PLACE_OVER );
         }
 
         /**
          * Constructor.
          *
          * @param  color   plot colour
+         * @param  stroke  line stroke, null for filled area
          * @param  width   smoothing width in pixels
          */
-        public PixoStyle( Color color, int width ) {
-            this( color, new SquareKernel( width ) );
+        public PixoStyle( Color color, Stroke stroke, int width ) {
+            this( color, stroke, new SquareKernel( width ) );
         }
 
         public Icon getLegendIcon() {
-            return barStyle_;
+            return icon_;
         }
 
         @Override
         public int hashCode() {
             int code = 33421;
             code = 23 * code + color_.hashCode();
+            code = 23 * code + PlotUtil.hashCode( stroke_ );
             code = 23 * code + kernel_.hashCode();
             return code;
         }
@@ -467,6 +552,7 @@ public class PixogramPlotter implements Plotter<PixogramPlotter.PixoStyle> {
             if ( o instanceof PixoStyle ) {
                 PixoStyle other = (PixoStyle) o;
                 return this.color_.equals( other.color_ )
+                    && PlotUtil.equals( this.stroke_, other.stroke_ )
                     && this.kernel_.equals( other.kernel_ );
             }
             else {
