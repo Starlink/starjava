@@ -217,6 +217,19 @@ public class StyleKeys {
         }.setOptionUsage()
          .addOptionsXml();
 
+    /** Config key for cumulative histogram flag. */
+    public static final ConfigKey<Boolean> CUMULATIVE =
+        new BooleanConfigKey(
+            new ConfigMeta( "cumulative", "Cumulative" )
+           .setShortDescription( "Cumulative histogram?" )
+           .setXmlDescription( new String[] {
+                "<p>If true, the histogram bars plotted are calculated",
+                "cumulatively;",
+                "each bin includes the counts from all previous bins.",
+                "</p>",
+            } )
+        );
+
     /** Config key for line antialiasing. */
     public static final ConfigKey<Boolean> ANTIALIAS =
         new BooleanConfigKey(

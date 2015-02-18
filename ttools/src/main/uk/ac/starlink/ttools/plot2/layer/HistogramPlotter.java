@@ -89,19 +89,6 @@ public class HistogramPlotter
             } )
         , 0, 0, 1, false );
 
-    /** Config key for cumulative histogram flag. */
-    public static final ConfigKey<Boolean> CUMULATIVE_KEY =
-        new BooleanConfigKey(
-            new ConfigMeta( "cumulative", "Cumulative" )
-           .setShortDescription( "Cumulative histogram?" )
-           .setXmlDescription( new String[] {
-                "<p>If true, the histogram bars plotted are calculated",
-                "cumulatively;",
-                "each bin includes the counts from all previous bins.",
-                "</p>",
-            } )
-        );
-
     /** Config key for normalised histogram flag. */
     public static final ConfigKey<Boolean> NORM_KEY =
         new BooleanConfigKey(
@@ -169,7 +156,7 @@ public class HistogramPlotter
             StyleKeys.COLOR,
             StyleKeys.TRANSPARENCY,
             BinSizer.BINSIZER_KEY,
-            CUMULATIVE_KEY,
+            StyleKeys.CUMULATIVE,
             NORM_KEY,
             PHASE_KEY,
             StyleKeys.BAR_FORM,
@@ -186,7 +173,7 @@ public class HistogramPlotter
         Color color = new Color( rgba[ 0 ], rgba[ 1 ], rgba[ 2 ], rgba[ 3 ] );
         BarStyle.Form barForm = config.get( StyleKeys.BAR_FORM );
         BarStyle.Placement placement = BarStyle.PLACE_OVER;
-        boolean cumulative = config.get( CUMULATIVE_KEY );
+        boolean cumulative = config.get( StyleKeys.CUMULATIVE );
         boolean norm = config.get( NORM_KEY );
         int thick = config.get( THICK_KEY );
         float[] dash = config.get( StyleKeys.DASH );
