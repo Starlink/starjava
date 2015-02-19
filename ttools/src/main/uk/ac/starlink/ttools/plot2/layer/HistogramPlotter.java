@@ -21,6 +21,7 @@ import uk.ac.starlink.ttools.plot2.Drawing;
 import uk.ac.starlink.ttools.plot2.LayerOpt;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.Plotter;
+import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.ReportKey;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.ReportMeta;
@@ -89,18 +90,6 @@ public class HistogramPlotter
             } )
         , 0, 0, 1, false );
 
-    /** Config key for normalised histogram flag. */
-    public static final ConfigKey<Boolean> NORM_KEY =
-        new BooleanConfigKey(
-            new ConfigMeta( "norm", "Normalised" )
-           .setShortDescription( "Normalised histogram?" )
-           .setXmlDescription( new String[] {
-                "<p>If true, the counts in each plotted histogram are",
-                "normalised so that the sum of all bars is 1.",
-                "</p>",
-            } )
-        );
-
     /**
      * Constructor.
      *
@@ -157,7 +146,7 @@ public class HistogramPlotter
             StyleKeys.TRANSPARENCY,
             BinSizer.BINSIZER_KEY,
             StyleKeys.CUMULATIVE,
-            NORM_KEY,
+            StyleKeys.NORMALISE,
             PHASE_KEY,
             StyleKeys.BAR_FORM,
             THICK_KEY,
@@ -174,7 +163,7 @@ public class HistogramPlotter
         BarStyle.Form barForm = config.get( StyleKeys.BAR_FORM );
         BarStyle.Placement placement = BarStyle.PLACE_OVER;
         boolean cumulative = config.get( StyleKeys.CUMULATIVE );
-        boolean norm = config.get( NORM_KEY );
+        Normalisation norm = config.get( StyleKeys.NORMALISE );
         int thick = config.get( THICK_KEY );
         float[] dash = config.get( StyleKeys.DASH );
         BinSizer sizer = config.get( BinSizer.BINSIZER_KEY );
@@ -199,7 +188,7 @@ public class HistogramPlotter
             final double binPhase = style.phase_;
             final BinSizer sizer = style.sizer_;
             final boolean cumul = style.cumulative_;
-            final boolean norm = style.norm_;
+            final Normalisation norm = style.norm_;
             Color color = style.color_;
             final boolean isOpaque = color.getAlpha() == 255;
             LayerOpt layerOpt = new LayerOpt( color, isOpaque );
@@ -379,7 +368,7 @@ public class HistogramPlotter
         g.setColor( style.color_ );
         BarStyle barStyle = style.barStyle_;
         boolean cumul = style.cumulative_;
-        boolean norm = style.norm_;
+        Normalisation norm = style.norm_;
         Rectangle clip = surface.getPlotBounds();
         int xClipMin = clip.x - 64;
         int xClipMax = clip.x + clip.width + 64;
@@ -513,7 +502,7 @@ public class HistogramPlotter
         private final BarStyle.Form barForm_;
         private final BarStyle.Placement placement_;
         private final boolean cumulative_;
-        private final boolean norm_;
+        private final Normalisation norm_;
         private final int thick_;
         private final float[] dash_;
         private final BinSizer sizer_;
@@ -528,7 +517,7 @@ public class HistogramPlotter
          * @param  barForm  bar form
          * @param  placement  bar placement
          * @param  cumulative  whether to plot cumulative bars
-         * @param  norm    whether to normalise vertical scale
+         * @param  norm    normalisation mode for the vertical scale
          * @param  thick   line thickness (only relevant for some forms)
          * @param  dash    line dash pattern (only relevant for some forms)
          * @param  sizer   determines bin widths
@@ -536,7 +525,7 @@ public class HistogramPlotter
          */
         public HistoStyle( Color color, BarStyle.Form barForm,
                            BarStyle.Placement placement,
-                           boolean cumulative, boolean norm,
+                           boolean cumulative, Normalisation norm,
                            int thick, float[] dash,
                            BinSizer sizer, double phase ) {
             color_ = color;
@@ -572,11 +561,11 @@ public class HistogramPlotter
         }
 
         /**
-         * Returns normalised flag.
+         * Returns normalisation mode.
          *
-         * @return  true iff counts are normalised
+         * @return  normalisation mode for count axis
          */
-        public boolean isNormalised() {
+        public Normalisation getNormalisation() {
             return norm_;
         }
 
@@ -591,7 +580,7 @@ public class HistogramPlotter
             code = 23 * code + barForm_.hashCode();
             code = 23 * code + placement_.hashCode();
             code = 23 * code + ( cumulative_ ? 11 : 13 );
-            code = 23 * code + ( norm_ ? 17 : 19 );
+            code = 23 * code + PlotUtil.hashCode( norm_ );
             code = 23 * code + thick_;
             code = 23 * code + Arrays.hashCode( dash_ );
             code = 23 * code + sizer_.hashCode();
@@ -607,7 +596,7 @@ public class HistogramPlotter
                     && this.barForm_.equals( other.barForm_ )
                     && this.placement_.equals( other.placement_ )
                     && this.cumulative_ == other.cumulative_
-                    && this.norm_ == other.norm_
+                    && PlotUtil.equals( this.norm_, other.norm_ )
                     && this.thick_ == other.thick_
                     && Arrays.equals( this.dash_, other.dash_ )
                     && this.sizer_.equals( other.sizer_ )

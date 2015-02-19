@@ -15,6 +15,7 @@ import uk.ac.starlink.ttools.plot2.geom.PlaneNavigator;
 import uk.ac.starlink.ttools.plot2.geom.PlaneSurfaceFactory;
 import uk.ac.starlink.ttools.plot2.layer.BinSizer;
 import uk.ac.starlink.ttools.plot2.layer.HistogramPlotter;
+import uk.ac.starlink.ttools.plot2.layer.Normalisation;
 
 /**
  * Axis control for histogram window.
@@ -31,7 +32,7 @@ public class HistogramAxisController
         BinSizer.BINSIZER_KEY,
         HistogramPlotter.PHASE_KEY,
         StyleKeys.CUMULATIVE,
-        HistogramPlotter.NORM_KEY,
+        StyleKeys.NORMALISE,
     };
 
     /**
@@ -139,7 +140,7 @@ public class HistogramAxisController
             }
             else {
                 if ( state0.isCumulative_ != state1.isCumulative_ ||
-                     state0.isNorm_ != state1.isNorm_ ) {
+                     state0.norm_ != state1.norm_ ) {
                     return true;
                 }
                 else if ( ! state0.sizer_.equals( state1.sizer_ ) &&
@@ -172,7 +173,7 @@ public class HistogramAxisController
                     (HistogramPlotter.HistoStyle) style;
                 BinSizer sizer = hstyle.getBinSizer();
                 boolean cumul = hstyle.isCumulative();
-                boolean norm = hstyle.isNormalised();
+                Normalisation norm = hstyle.getNormalisation();
                 return new BarState( sizer, cumul, norm );
             }
         }
@@ -220,11 +221,11 @@ public class HistogramAxisController
     private static class BarState {
         final BinSizer sizer_;
         final boolean isCumulative_;
-        final boolean isNorm_;
-        BarState( BinSizer sizer, boolean isCumulative, boolean isNorm ) {
+        final Normalisation norm_;
+        BarState( BinSizer sizer, boolean isCumulative, Normalisation norm ) {
             sizer_ = sizer;
             isCumulative_ = isCumulative;
-            isNorm_ = isNorm;
+            norm_ = norm;
         }
     }
 }
