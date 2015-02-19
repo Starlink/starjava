@@ -17,12 +17,12 @@ import uk.ac.starlink.table.ValueInfo;
 class VOTableDomainMappers {
 
     /** Regex in unit string that might indicate ISO-8601 values. */
-    private static final Pattern ISO8601_UNIT_PATTERN =
+    static final Pattern ISO8601_UNIT_PATTERN =
         Pattern.compile( "iso.?8601", Pattern.CASE_INSENSITIVE );
 
     /** Regex in UCD that might indicate ISO-8601 values. */
-    private static final Pattern ISO8601_UCD_PATTERN =
-        Pattern.compile( "time|time\\.epoch(\\..*)?|TIME_DATE(_.*)?",
+    static final Pattern ISO8601_UCD_PATTERN =
+        Pattern.compile( "time(\\.(epoch|start|end))?(;.*)?|TIME_DATE(_.*)?",
                          Pattern.CASE_INSENSITIVE );
 
     /**
