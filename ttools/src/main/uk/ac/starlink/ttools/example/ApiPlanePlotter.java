@@ -29,6 +29,7 @@ import uk.ac.starlink.ttools.plot2.geom.PlaneSurfaceFactory;
 import uk.ac.starlink.ttools.plot2.layer.BinSizer;
 import uk.ac.starlink.ttools.plot2.layer.HistogramPlotter;
 import uk.ac.starlink.ttools.plot2.layer.MarkForm;
+import uk.ac.starlink.ttools.plot2.layer.Normalisation;
 import uk.ac.starlink.ttools.plot2.layer.Outliner;
 import uk.ac.starlink.ttools.plot2.layer.ShapeMode;
 import uk.ac.starlink.ttools.plot2.layer.ShapePlotter;
@@ -230,7 +231,7 @@ public class ApiPlanePlotter implements SinePlot.PlanePlotter {
         BarStyle.Form barForm = BarStyle.FORM_OPEN;
         BarStyle.Placement placement = BarStyle.PLACE_ADJACENT;
         boolean cumulative = true;
-        boolean norm = true;
+        Normalisation norm = Normalisation.NONE;
         int thick = 1;
         float[] dash = null;
         BinSizer sizer = BinSizer.createCountBinSizer( 16, true );

@@ -21,10 +21,12 @@ import uk.ac.starlink.ttools.plot.Shader;
 import uk.ac.starlink.ttools.plot.Shaders;
 import uk.ac.starlink.ttools.plot.Styles;
 import uk.ac.starlink.ttools.plot2.Anchor;
+import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Scaling;
 import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.geom.PlaneSurfaceFactory;
 import uk.ac.starlink.ttools.plot2.layer.LevelMode;
+import uk.ac.starlink.ttools.plot2.layer.Normalisation;
 import uk.ac.starlink.ttools.plot2.layer.XYShape;
 import uk.ac.starlink.ttools.plot2.layer.XYShapes;
 import uk.ac.starlink.util.gui.RenderingComboBox;
@@ -229,6 +231,14 @@ public class StyleKeys {
                 "</p>",
             } )
         );
+
+    /** Config key for histogram normalisation mode. */
+    public static final ConfigKey<Normalisation> NORMALISE =
+        new OptionConfigKey<Normalisation>(
+            new ConfigMeta( "normalise", "Normalise" )
+           .setShortDescription( "Normalisation mode" )
+           .setXmlDescription( getNormalisationDescription() )
+        , Normalisation.class, Normalisation.values(), Normalisation.NONE );
 
     /** Config key for line antialiasing. */
     public static final ConfigKey<Boolean> ANTIALIAS =
@@ -646,6 +656,34 @@ public class StyleKeys {
         key.setOptionUsage();
         key.addOptionsXml();
         return key;
+    }
+
+    /**
+     * Returns the XML description string for the normalisation config key.
+     *
+     * @return   normalisation XML description text
+     */
+    private static String getNormalisationDescription() {
+        StringBuffer sbuf = new StringBuffer();
+        for ( Normalisation norm : Normalisation.values() ) {
+            sbuf.append( "<li>" )
+                .append( "<code>" )
+                .append( norm.toString().toLowerCase() )
+                .append( "</code>" )
+                .append( ": " )
+                .append( norm.getDescription() )
+                .append( "</li>" )
+                .append( "\n" );
+        }
+        return PlotUtil.concatLines( new String[] {
+            "<p>Defines how, if at all,",
+            "the bars of histogram-like plots are normalised.",
+            "The following options are available:",
+            "<ul>",
+            sbuf.toString(),
+            "</ul>",
+            "</p>",
+        } );
     }
 
     /**

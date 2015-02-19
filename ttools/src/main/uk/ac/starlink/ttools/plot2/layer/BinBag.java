@@ -83,10 +83,10 @@ public class BinBag {
      * Returns a sorted iterator over all bins with non-zero values.
      *
      * @param   cumulative  true for bins of a cumulative histogram
-     * @param   normalised  true for bins of a normalised histogram (sum to 1)
+     * @param   norm  normalisation mode
      * @return  sorted iterator over bins
      */
-    public Iterator<Bin> binIterator( boolean cumulative, boolean normalised ) {
+    public Iterator<Bin> binIterator( boolean cumulative, Normalisation norm ) {
 
         /* Avoid some edge cases by returning an empty iterator immediately
          * in case of no bins. */
@@ -115,22 +115,19 @@ public class BinBag {
          * and adjust the values to be cumulative if so requested. */
         final double[] binValues = new double[ nbin ];
         double total = 0;
+        double max = 0;
         for ( int ib = 0; ib < nbin; ib++ ) {
             double value = valueMap_.get( binIndices[ ib ] ).value_;
             binValues[ ib ] = cumulative ? total + value : value;
             total += value;
+            max = Math.max( max, Math.abs( value ) );
         }
 
-        /* If normalised values are requested rescale them using the
-         * final total.  In the cumulative case fix it so that the
-         * final value is normalised to 1, and in the non-cumulative
-         * case so that the area covered by the bars is 1. */
-        if ( normalised ) {
-            double scale1 = total;
-            if ( ! cumulative ) {
-                scale1 *= log_ ? Math.log( binWidth_ ) : binWidth_;
-            }
-            double scale = 1.0 / scale1;
+        /* Normalise. */
+        double normBinWidth = log_ ? Double.NaN : binWidth_;
+        double scale =
+            norm.getScaleFactor( total, max, normBinWidth, cumulative );
+        if ( scale != 1.0 ) {
             for ( int ib = 0; ib < nbin; ib++ ) {
                 binValues[ ib ] *= scale;
             }

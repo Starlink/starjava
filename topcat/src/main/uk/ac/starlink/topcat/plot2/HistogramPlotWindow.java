@@ -44,6 +44,7 @@ import uk.ac.starlink.ttools.plot2.geom.PlaneSurfaceFactory;
 import uk.ac.starlink.ttools.plot2.layer.BinBag;
 import uk.ac.starlink.ttools.plot2.layer.FunctionPlotter;
 import uk.ac.starlink.ttools.plot2.layer.HistogramPlotter;
+import uk.ac.starlink.ttools.plot2.layer.Normalisation;
 import uk.ac.starlink.ttools.plot2.layer.PixogramPlotter;
 import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
 
@@ -227,7 +228,7 @@ public class HistogramPlotWindow
                 (HistogramPlotter.HistoStyle) layer.getStyle();
             GuiDataSpec dataSpec = (GuiDataSpec) layer.getDataSpec();
             boolean isCumulative = style.isCumulative();
-            boolean isNormalised = style.isNormalised();
+            Normalisation norm = style.getNormalisation();
             int icWeight = plotter.getWeightCoordIndex();
             boolean hasWeight =
                 icWeight >= 0 && ! dataSpec.isCoordBlank( icWeight );
@@ -235,7 +236,7 @@ public class HistogramPlotWindow
                   hasWeight
                 ? dataSpec.getCoordDataLabels( icWeight )[ 0 ]
                 : null;
-            boolean isInt = ! hasWeight && ! isNormalised;
+            boolean isInt = ! hasWeight && norm == Normalisation.NONE;
             TopcatModel tcModel = dataSpec.getTopcatModel();
             RowSubset rset = dataSpec.getRowSubset();
 
@@ -261,7 +262,7 @@ public class HistogramPlotWindow
 
             /* Assemble a description for the column. */
             List<String> descripWords = new ArrayList<String>();
-            if ( isNormalised ) {
+            if ( norm != Normalisation.NONE ) {
                 descripWords.add( "normalised" );
             }
             if ( isCumulative ) {
@@ -293,7 +294,7 @@ public class HistogramPlotWindow
             final Number[] data = new Number[ nrow ];
             final Class clazz = isInt ? Integer.class : Double.class;
             for ( Iterator<BinBag.Bin> binIt =
-                      binBag.binIterator( isCumulative, isNormalised );
+                      binBag.binIterator( isCumulative, norm );
                   binIt.hasNext(); ) {
                 BinBag.Bin bin = binIt.next();
                 Double xmin = new Double( bin.getXMin() );
