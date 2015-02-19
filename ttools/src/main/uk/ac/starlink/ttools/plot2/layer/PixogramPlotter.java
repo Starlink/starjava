@@ -165,6 +165,7 @@ public class PixogramPlotter implements Plotter<PixogramPlotter.PixoStyle> {
         list.add( StyleKeys.TRANSPARENCY );
         list.add( SMOOTH_KEY );
         list.add( StyleKeys.CUMULATIVE );
+        list.add( StyleKeys.NORMALISE );
         list.add( FILL_KEY );
         list.addAll( Arrays.asList( StyleKeys.getStrokeKeys() ) );
         return list.toArray( new ConfigKey[ 0 ] );
@@ -179,11 +180,12 @@ public class PixogramPlotter implements Plotter<PixogramPlotter.PixoStyle> {
         boolean isFill = config.get( FILL_KEY );
         int width = config.get( SMOOTH_KEY );
         boolean isCumulative = config.get( StyleKeys.CUMULATIVE );
+        Normalisation norm = config.get( StyleKeys.NORMALISE );
         Stroke stroke =
             isFill ? null
                    : StyleKeys.createStroke( config, BasicStroke.CAP_ROUND,
                                              BasicStroke.JOIN_ROUND );
-        return new PixoStyle( color, stroke, width, isCumulative );
+        return new PixoStyle( color, stroke, width, isCumulative, norm );
     }
 
     public boolean hasReports() {
@@ -214,7 +216,6 @@ public class PixogramPlotter implements Plotter<PixogramPlotter.PixoStyle> {
                 }
                 final PlaneSurface pSurf = (PlaneSurface) surface;
                 final Axis xAxis = pSurf.getAxes()[ 0 ];
-                final boolean xflip = pSurf.getFlipFlags()[ 0 ];
                 return new Drawing() {
                     public Object calculatePlan( Object[] knownPlans,
                                                  DataStore dataStore ) {
@@ -250,7 +251,7 @@ public class PixogramPlotter implements Plotter<PixogramPlotter.PixoStyle> {
                         if ( plan instanceof PixoPlan ) {
                             report.set( BINS_KEY,
                                         getPlottedBins( (PixoPlan) plan,
-                                                        style, xflip ) );
+                                                        style ) );
                         }
                         return report;
                     }
@@ -292,7 +293,7 @@ public class PixogramPlotter implements Plotter<PixogramPlotter.PixoStyle> {
                     Axis.createAxis( gxlo, gxhi, dxlo, dxhi, xlog, xflip );
                 BinArray binArray =
                     readBins( xAxis, xpad, dataSpec, dataStore );
-                double[] bins = getDataBins( binArray, style, xflip );
+                double[] bins = getDataBins( binArray, xAxis, style );
                 int ixlo = binArray.getBinIndex( gxlo );
                 int ixhi = binArray.getBinIndex( gxhi );
                 for ( int ix = ixlo; ix < ixhi; ix++ ) {
@@ -373,8 +374,8 @@ public class PixogramPlotter implements Plotter<PixogramPlotter.PixoStyle> {
         g.setColor( style.color_ );
 
         /* Get the data values for each pixel position. */
-        boolean xflip = surface.getFlipFlags()[ 0 ];
-        double[] bins = getDataBins( binArray, style, xflip );
+        Axis xAxis = surface.getAxes()[ 0 ];
+        double[] bins = getDataBins( binArray, xAxis, style );
 
         /* Work out the Y axis base of the bars in graphics coordinates. */
         Axis yAxis = surface.getAxes()[ 1 ];
@@ -463,22 +464,58 @@ public class PixogramPlotter implements Plotter<PixogramPlotter.PixoStyle> {
      * by style elements like smoothing, cumulativeness etc.
      *
      * @param   binArray  basic results
+     * @param   xAxis   axis over which counts are accumulated
      * @param   style   style
-     * @param   xflip   true iff X axis is inverted (affects cumulative output)
      * @return  output data bin values
      */
-    private static double[] getDataBins( BinArray binArray, PixoStyle style,
-                                         boolean xflip ) {
-        Kernel kernel = style.kernel_;
-        boolean isCumulative = style.isCumulative_;
+    private static double[] getDataBins( BinArray binArray, Axis xAxis,
+                                         PixoStyle style ) {
         double[] bins = binArray.bins_;
+        int nb = bins.length;
+        boolean cumul = style.isCumulative_;
+
+        /* Smooth. */
+        Kernel kernel = style.kernel_;
         if ( kernel != null ) {
             bins = kernel.convolve( bins );
         }
-        if ( isCumulative ) {
-            int nb = bins.length;
+
+        /* Work out the maximum bin height, which may be required for
+         * normalisation (Normalisation.MAXIMUM mode, cumul=false only).
+         * This procedure is flawed, since it will fail to pick up
+         * maximum bar heights outside of the range covered by the bins array.
+         * It probably should do that, but it would require the BinArray
+         * to keep track of a lot of values it doesn't otherwise need to
+         * worry about - both increases complication of the code, and
+         * potentially a large memory footprint.  For now leave it be,
+         * but note that MAXIMUM normalisation may not work perfectly
+         * when the X axis is zoomed to a region that does not include
+         * the highest bar. */
+        double max = 0;
+        for ( int ib = 0; ib < bins.length; ib++ ) {
+            max = Math.max( max, Math.abs( bins[ ib ] ) );
+        }
+
+        /* Normalise. */
+        Normalisation norm = style.norm_;
+        double total = binArray.getSum();
+        double binWidth = getPixelDataWidth( xAxis );
+        double scale = norm.getScaleFactor( total, max, binWidth, cumul );
+        if ( scale != 1.0 ) {
+            double[] nbins = new double[ nb ];
+            for ( int ib = 0; ib < nb; ib++ ) {
+                nbins[ ib ] = scale * bins[ ib ];
+            }
+            bins = nbins;
+        }
+
+        /* Cumulate. */
+        if ( cumul ) {
+            double[] dlimits = xAxis.getDataLimits();
+            boolean xflip = xAxis.dataToGraphics( dlimits[ 0 ] )
+                          > xAxis.dataToGraphics( dlimits[ 1 ] );
             double[] cbins = new double[ nb ];
-            double sum = xflip ? binArray.hiSum_ : binArray.loSum_;
+            double sum = binArray.getLowerSum( xflip );
             for ( int ib = 0; ib < nb; ib++ ) {
                 int jb = xflip ? nb - ib - 1 : ib;
                 sum += bins[ jb ];
@@ -486,7 +523,29 @@ public class PixogramPlotter implements Plotter<PixogramPlotter.PixoStyle> {
             }
             bins = cbins;
         }
+
+        /* Return result. */
         return bins;
+    }
+
+    /**
+     * Works out the constant width in data coordinates of a pixel-sized
+     * bin on a given axis.  If there is no such constant value
+     * (for instance a logarithmic axis), NaN is returned.
+     *
+     * @param  axis  axis
+     * @return   width of pixel in data coordinates, or NaN
+     */
+    private static double getPixelDataWidth( Axis axis ) {
+        if ( axis.isLinear() ) {
+            int[] glimits = axis.getGraphicsLimits();
+            double gmid = 0.5 * ( glimits[ 0 ] + glimits[ 1 ] );
+            return Math.abs( axis.graphicsToData( gmid + 0.5 )
+                           - axis.graphicsToData( gmid - 0.5 ) );
+        }
+        else {
+            return Double.NaN;
+        }
     }
 
     /**
@@ -519,14 +578,12 @@ public class PixogramPlotter implements Plotter<PixogramPlotter.PixoStyle> {
      *
      * @param   plan  plan object
      * @param   style  style
-     * @param   xflip  true iff X axis is inverted
      * @return   array of plotted values
      */
-    private static double[] getPlottedBins( PixoPlan plan, PixoStyle style,
-                                            boolean xflip ) {
+    private static double[] getPlottedBins( PixoPlan plan, PixoStyle style ) {
         BinArray binArray = plan.binArray_;
-        double[] dataBins = getDataBins( binArray, style, xflip );
         Axis xAxis = plan.xAxis_;
+        double[] dataBins = getDataBins( binArray, xAxis, style );
         double[] dlimits = xAxis.getDataLimits();
         int glo = (int) Math.round( xAxis.dataToGraphics( dlimits[ 0 ] ) );
         int ghi = (int) Math.round( xAxis.dataToGraphics( dlimits[ 1 ] ) );
@@ -550,6 +607,7 @@ public class PixogramPlotter implements Plotter<PixogramPlotter.PixoStyle> {
         private final Stroke stroke_;
         private final Kernel kernel_;
         private final boolean isCumulative_;
+        private final Normalisation norm_;
         private final Icon icon_;
 
         /**
@@ -559,13 +617,15 @@ public class PixogramPlotter implements Plotter<PixogramPlotter.PixoStyle> {
          * @param  stroke  line stroke, null for filled area
          * @param  kernel  smoothing kernel
          * @param  isCumulative  are bins painted cumulatively
+         * @param  norm   normalisation mode
          */
         private PixoStyle( Color color, Stroke stroke, Kernel kernel,
-                           boolean isCumulative ) {
+                           boolean isCumulative, Normalisation norm ) {
             color_ = color;
             stroke_ = stroke;
             kernel_ = kernel;
             isCumulative_ = isCumulative;
+            norm_ = norm;
             BarStyle.Form bf =
                 stroke == null ? BarStyle.FORM_FILLED : BarStyle.FORM_OPEN;
             icon_ = new BarStyle( color, bf, BarStyle.PLACE_OVER );
@@ -578,10 +638,12 @@ public class PixogramPlotter implements Plotter<PixogramPlotter.PixoStyle> {
          * @param  stroke  line stroke, null for filled area
          * @param  width   smoothing width in pixels
          * @param  isCumulative  are bins painted cumulatively
+         * @param  norm    normalisation mode
          */
         public PixoStyle( Color color, Stroke stroke, int width,
-                          boolean isCumulative ) {
-            this( color, stroke, new SquareKernel( width ), isCumulative );
+                          boolean isCumulative, Normalisation norm ) {
+            this( color, stroke, new SquareKernel( width ), isCumulative,
+                  norm );
         }
 
         public Icon getLegendIcon() {
@@ -595,6 +657,7 @@ public class PixogramPlotter implements Plotter<PixogramPlotter.PixoStyle> {
             code = 23 * code + PlotUtil.hashCode( stroke_ );
             code = 23 * code + kernel_.hashCode();
             code = 23 * code + ( isCumulative_ ? 11 : 13 );
+            code = 23 * code + PlotUtil.hashCode( norm_ );
             return code;
         }
 
@@ -605,7 +668,8 @@ public class PixogramPlotter implements Plotter<PixogramPlotter.PixoStyle> {
                 return this.color_.equals( other.color_ )
                     && PlotUtil.equals( this.stroke_, other.stroke_ )
                     && this.kernel_.equals( other.kernel_ )
-                    && this.isCumulative_ == other.isCumulative_;
+                    && this.isCumulative_ == other.isCumulative_
+                    && PlotUtil.equals( this.norm_, other.norm_ );
             }
             else {
                 return false;
@@ -780,6 +844,26 @@ public class PixogramPlotter implements Plotter<PixogramPlotter.PixoStyle> {
             else if ( dx >= bins_.length ) {
                 hiSum_ += inc;
             }
+        }
+
+        /**
+         * Returns the total sum of values accumulated into this bin array.
+         *
+         * @return   running total
+         */
+        double getSum() {
+            return loSum_ + midSum_ + hiSum_;
+        }
+
+        /**
+         * Returns the sum of all the counts at one end of the axis 
+         * not captured by this object's bins array.
+         *
+         * @param  flip   false for low-coordinate end,
+         *                true for high-coordinate end
+         */
+        double getLowerSum( boolean flip ) {
+            return flip ? hiSum_ : loSum_;
         }
 
         /**
