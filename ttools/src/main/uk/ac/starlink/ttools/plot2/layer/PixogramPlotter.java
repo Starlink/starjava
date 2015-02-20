@@ -2,74 +2,48 @@ package uk.ac.starlink.ttools.plot2.layer;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
-import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.Stroke;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.plot.BarStyle;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot.Style;
-import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.Axis;
-import uk.ac.starlink.ttools.plot2.DataGeom;
-import uk.ac.starlink.ttools.plot2.Decal;
-import uk.ac.starlink.ttools.plot2.Drawing;
-import uk.ac.starlink.ttools.plot2.Equality;
 import uk.ac.starlink.ttools.plot2.LayerOpt;
-import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
-import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.ReportKey;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.ReportMeta;
-import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.BooleanConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
 import uk.ac.starlink.ttools.plot2.config.IntegerConfigKey;
+import uk.ac.starlink.ttools.plot2.config.Specifier;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
-import uk.ac.starlink.ttools.plot2.data.Coord;
-import uk.ac.starlink.ttools.plot2.data.CoordGroup;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
 import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
-import uk.ac.starlink.ttools.plot2.data.TupleSequence;
 import uk.ac.starlink.ttools.plot2.geom.PlaneSurface;
-import uk.ac.starlink.ttools.plot2.geom.SliceDataGeom;
-import uk.ac.starlink.ttools.plot2.paper.Paper;
-import uk.ac.starlink.ttools.plot2.paper.PaperType;
 
 /**
  * Plotter that works like a histogram with pixel-sized bins.
- * Only works with PlaneSurfaces.
  *
  * @author   Mark Taylor
  * @since    17 Feb 2015
  */
-public class PixogramPlotter implements Plotter<PixogramPlotter.PixoStyle> {
-
-    private final FloatingCoord xCoord_;
-    private final FloatingCoord weightCoord_;
-    private final SliceDataGeom pixoDataGeom_;
-    private final CoordGroup pixoCoordGrp_;
-    private final int icX_;
-    private final int icWeight_;
-    private static final int GUESS_PLOT_WIDTH = 300;
+public class PixogramPlotter
+        extends Pixel1dPlotter<PixogramPlotter.PixoStyle> {
 
     /** Report key for plotted bin height in data coordinates. */
     public static final ReportKey<double[]> BINS_KEY =
         new ReportKey<double[]>( new ReportMeta( "bins", "Bins" ),
                                  double[].class, false );
-
-    /** Not a fixed limit, it's just optimisation. */
-    private static final int MAX_KERNEL_WIDTH = 50;
 
     /** Config key for line/fill toggle. */
     public static final ConfigKey<Boolean> FILL_KEY =
@@ -85,17 +59,11 @@ public class PixogramPlotter implements Plotter<PixogramPlotter.PixoStyle> {
             } )
         , false );
 
-    /** Config key for smoothing width. */
-    public static final ConfigKey<Integer> SMOOTH_KEY =
-        IntegerConfigKey.createSliderKey(
-            new ConfigMeta( "smooth", "Smoothing" )
-           .setShortDescription( "Smoothing half-width in pixels" )
-           .setXmlDescription( new String[] {
-                "<p>Sets the half-width in pixels of the kernel",
-                "used to smooth the histogram bins for display.",
-                "</p>",
-            } )
-        , 3, 0, MAX_KERNEL_WIDTH, false );
+    /** Config key for line thickness (only effective if fill==false). */
+    public static final ConfigKey<Integer> THICK_KEY =
+        StyleKeys.createThicknessKey( 2 );
+
+    private static final int GUESS_PLOT_WIDTH = 300;
 
     /**
      * Constructor.
@@ -104,38 +72,7 @@ public class PixogramPlotter implements Plotter<PixogramPlotter.PixoStyle> {
      * @param   hasWeight   true to permit histogram weighting
      */
     public PixogramPlotter( FloatingCoord xCoord, boolean hasWeight ) {
-        xCoord_ = xCoord;
-        if ( hasWeight ) {
-            weightCoord_ = FloatingCoord.WEIGHT_COORD;
-            pixoCoordGrp_ =
-                CoordGroup
-               .createPartialCoordGroup( new Coord[] { xCoord, weightCoord_ },
-                                         new boolean[] { true, true } );
-        }
-        else {
-            weightCoord_ = null;
-            pixoCoordGrp_ = CoordGroup
-              .createPartialCoordGroup( new Coord[] { xCoord },
-                                        new boolean[] { true } );
-        }
-        pixoDataGeom_ =
-            new SliceDataGeom( new FloatingCoord[] { xCoord_, null }, "X" );
-
-        /* For this plot type, coordinate indices are not sensitive to
-         * plot-time geom (the CoordGroup has no point positions),
-         * so we can calculate them here. */
-        icX_ = pixoCoordGrp_.getExtraCoordIndex( 0, null );
-        icWeight_ = hasWeight
-                  ? pixoCoordGrp_.getExtraCoordIndex( 1, null )
-                  : -1;
-    }
-
-    public String getPlotterName() {
-        return "Pixogram";  // think of a better name?
-    }
-
-    public Icon getPlotterIcon() {
-        return ResourceIcon.PLOT_PIXOGRAM;
+        super( xCoord, hasWeight, "Pixogram", ResourceIcon.PLOT_PIXOGRAM );
     }
 
     public String getPlotterDescription() {
@@ -155,10 +92,6 @@ public class PixogramPlotter implements Plotter<PixogramPlotter.PixoStyle> {
         } );
     }
 
-    public CoordGroup getCoordGroup() {
-        return pixoCoordGrp_;
-    }
-
     public ConfigKey[] getStyleKeys() {
         List<ConfigKey> list = new ArrayList<ConfigKey>();
         list.add( StyleKeys.COLOR );
@@ -167,7 +100,7 @@ public class PixogramPlotter implements Plotter<PixogramPlotter.PixoStyle> {
         list.add( StyleKeys.CUMULATIVE );
         list.add( StyleKeys.NORMALISE );
         list.add( FILL_KEY );
-        list.addAll( Arrays.asList( StyleKeys.getStrokeKeys() ) );
+        list.add( THICK_KEY );
         return list.toArray( new ConfigKey[ 0 ] );
     }
 
@@ -179,204 +112,38 @@ public class PixogramPlotter implements Plotter<PixogramPlotter.PixoStyle> {
         Color color = new Color( rgba[ 0 ], rgba[ 1 ], rgba[ 2 ], rgba[ 3 ] );
         boolean isFill = config.get( FILL_KEY );
         int width = config.get( SMOOTH_KEY );
+        Kernel kernel = createKernel( width );
         boolean isCumulative = config.get( StyleKeys.CUMULATIVE );
         Normalisation norm = config.get( StyleKeys.NORMALISE );
         Stroke stroke =
             isFill ? null
-                   : StyleKeys.createStroke( config, BasicStroke.CAP_ROUND,
-                                             BasicStroke.JOIN_ROUND );
-        return new PixoStyle( color, stroke, width, isCumulative, norm );
+                   : new BasicStroke( config.get( THICK_KEY ),
+                                      BasicStroke.CAP_ROUND,
+                                      BasicStroke.JOIN_ROUND );
+        return new PixoStyle( color, stroke, kernel, isCumulative, norm );
     }
 
-    public boolean hasReports() {
-        return false;
-    }
-
-    /**
-     * The supplied <code>geom</code> is ignored.
-     */
-    public PlotLayer createLayer( DataGeom geom, final DataSpec dataSpec,
-                                  final PixoStyle style ) {
-        if ( dataSpec == null || style == null ) {
-            return null;
-        }
-
+    protected LayerOpt getLayerOpt( PixoStyle style ) {
         Color color = style.color_;
-        final int xpad = style.kernel_.getWidth();
-        final boolean isOpaque = color.getAlpha() == 255;
-        LayerOpt layerOpt = new LayerOpt( color, isOpaque );
-        return new AbstractPlotLayer( this, pixoDataGeom_, dataSpec,
-                                      style, layerOpt ) {
-            public Drawing createDrawing( Surface surface,
-                                          Map<AuxScale,Range> auxRanges,
-                                          final PaperType paperType ) {
-                if ( ! ( surface instanceof PlaneSurface ) ) {
-                    throw new IllegalArgumentException( "Not plane surface "
-                                                      + surface );
-                }
-                final PlaneSurface pSurf = (PlaneSurface) surface;
-                final Axis xAxis = pSurf.getAxes()[ 0 ];
-                return new Drawing() {
-                    public Object calculatePlan( Object[] knownPlans,
-                                                 DataStore dataStore ) {
-                        for ( int ip = 0; ip < knownPlans.length; ip++ ) {
-                            if ( knownPlans[ ip ] instanceof PixoPlan ) {
-                                PixoPlan plan = (PixoPlan) knownPlans[ ip ];
-                                if ( plan.matches( xAxis, xpad, dataSpec ) ) {
-                                    return plan;
-                                }
-                            }
-                        }
-                        BinArray binArray =
-                            readBins( xAxis, MAX_KERNEL_WIDTH,
-                                      dataSpec, dataStore );
-                        return new PixoPlan( binArray, xAxis,
-                                             MAX_KERNEL_WIDTH, dataSpec );
-                    }
-                    public void paintData( Object plan, Paper paper,
-                                           DataStore dataStore ) {
-                        PixoPlan pPlan = (PixoPlan) plan;
-                        final BinArray binArray = pPlan.binArray_;
-                        paperType.placeDecal( paper, new Decal() {
-                            public void paintDecal( Graphics g ) {
-                                paintBins( pSurf, binArray, style, g );
-                            }
-                            public boolean isOpaque() {
-                                return isOpaque;
-                            }
-                        } );
-                    }
-                    public ReportMap getReport( Object plan ) {
-                        ReportMap report = new ReportMap();
-                        if ( plan instanceof PixoPlan ) {
-                            report.set( BINS_KEY,
-                                        getPlottedBins( (PixoPlan) plan,
-                                                        style ) );
-                        }
-                        return report;
-                    }
-                };
-            }
-
-            /* Override this method so that we can indicate to the plot
-             * the height of the bars for auto-ranging purposes. */
-            @Override
-            public void extendCoordinateRanges( Range[] ranges,
-                                                boolean[] logFlags,
-                                                DataStore dataStore ) {
-                Range xRange = ranges[ 0 ];
-                Range yRange = ranges[ 1 ];
-                boolean xlog = logFlags[ 0 ];
-                boolean ylog = logFlags[ 1 ];
-
-                /* Assume y=0 is always of interest for a histogram. */
-                yRange.submit( ylog ? 1 : 0 );
-
-                /* To calculate the bin heights, we have to provide an Axis
-                 * instance.  We know the data limits of this from previous
-                 * ranging, but unfortunately there is no information
-                 * available at this stage about the width of the plot
-                 * in pixels.  The maximum bar height is
-                 * dependent on this, but to a first approximation it
-                 * shouldn't be too sensitive, so we guess a sensible
-                 * pixel extent, and hope for the best.  Use a value on
-                 * the large side for pixel extent, since this will err
-                 * on the side of a range that is too high (leading to
-                 * unused space at the top rather than clipping the plot). */
-                double[] dxlimits = xRange.getFiniteBounds( xlog );
-                double dxlo = dxlimits[ 0 ];
-                double dxhi = dxlimits[ 1 ];
-                int gxlo = 0;
-                int gxhi = GUESS_PLOT_WIDTH;
-                boolean xflip = false;
-                Axis xAxis =
-                    Axis.createAxis( gxlo, gxhi, dxlo, dxhi, xlog, xflip );
-                BinArray binArray =
-                    readBins( xAxis, xpad, dataSpec, dataStore );
-                double[] bins = getDataBins( binArray, xAxis, style );
-                int ixlo = binArray.getBinIndex( gxlo );
-                int ixhi = binArray.getBinIndex( gxhi );
-                for ( int ix = ixlo; ix < ixhi; ix++ ) {
-                    yRange.submit( bins[ ix ] );
-                }
-            }
-        };
+        boolean isOpaque = color.getAlpha() == 255;
+        return new LayerOpt( color, isOpaque );
     }
 
-    /**
-     * Returns the DataSpec coord index used for the weighting data
-     * for this plotter.  If weighting is not supported, a negative
-     * value is returned.
-     *
-     * @return   weight coord index, or -1
-     */
-    public int getWeightCoordIndex() {
-        return icWeight_;
+    protected int getPixelPadding( PixoStyle style ) {
+        return style.kernel_.getWidth();
     }
 
-    /**
-     * Reads per-horizontal-pixel frequency data from a given data set.
-     *
-     * @param  xAxis  axis along which frequencies are accumulated
-     * @param  padPix  number of pixels in each direction
-     *                 outside of the axis range over which counts should
-     *                 be gathered
-     * @param  dataSpec  specification for frequency data values
-     * @param  dataStore  data storage
-     */
-    private BinArray readBins( Axis xAxis, int padPix, DataSpec dataSpec,
-                               DataStore dataStore ) {
-
-        /* Work out the pixel limits over which we need to accumulate counts. */
-        int[] glimits = xAxis.getGraphicsLimits();
-        int ilo = glimits[ 0 ] - padPix;
-        int ihi = glimits[ 1 ] + padPix;
-
-        /* Accumulate the counts into a suitable results object (BinArray)
-         * and return them. */
-        BinArray binArray = new BinArray( ilo, ihi );
-
-        TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
-        if ( weightCoord_ == null | dataSpec.isCoordBlank( icWeight_ ) ) {
-            while ( tseq.next() ) {
-                double dx = xCoord_.readDoubleCoord( tseq, icX_ );
-                double gx = xAxis.dataToGraphics( dx );
-                binArray.addToBin( gx, 1 );
-            }
-        }
-        else {
-            while ( tseq.next() ) {
-                double w = weightCoord_.readDoubleCoord( tseq, icWeight_ );
-                if ( PlotUtil.isFinite( w ) ) {
-                    double dx = xCoord_.readDoubleCoord( tseq, icX_ );
-                    double gx = xAxis.dataToGraphics( dx );
-                    binArray.addToBin( gx, w );
-                }
-            }
-        }
-        return binArray;
-    }
-
-    /**
-     * Draws the graphical representation of a given array of counts per
-     * horizontal pixel.
-     *
-     * @param  surface  plotting surface
-     * @param  binArray   counts per X axis pixel
-     * @param  style   plotting style
-     * @param  g  graphics context
-     */
-    private void paintBins( PlaneSurface surface, BinArray binArray,
-                            PixoStyle style, Graphics g ) {
-
+    protected void paintBins( PlaneSurface surface, BinArray binArray,
+                              PixoStyle style, Graphics2D g ) {
         /* Store graphics context state. */
         Color color0 = g.getColor();
         g.setColor( style.color_ );
 
         /* Get the data values for each pixel position. */
         Axis xAxis = surface.getAxes()[ 0 ];
-        double[] bins = getDataBins( binArray, xAxis, style );
-
+        double[] bins = getDataBins( binArray, xAxis, style.kernel_,
+                                     style.norm_, style.isCumulative_ );
+    
         /* Work out the Y axis base of the bars in graphics coordinates. */
         Axis yAxis = surface.getAxes()[ 1 ];
         boolean yLog = surface.getLogFlags()[ 1 ];
@@ -394,7 +161,7 @@ public class PixogramPlotter implements Plotter<PixogramPlotter.PixoStyle> {
         int yClipMin = clip.y - 64;
         int yClipMax = clip.y + clip.height + 64;
         gy0 = (int) clip( gy0, yClipMin, yClipMax );
-
+                            
         /* Work out the range of bin indices that need to be painted. */
         int ixlo = binArray.getBinIndex( clip.x );
         int ixhi = binArray.getBinIndex( clip.x + clip.width );
@@ -446,106 +213,80 @@ public class PixogramPlotter implements Plotter<PixogramPlotter.PixoStyle> {
 
         /* Or plot a wiggly line along the top of the bars. */
         else {
-            Graphics2D g2 = (Graphics2D) g;
-            Stroke stroke0 = g2.getStroke();
-            g2.setStroke( style.stroke_ );
-            g2.drawPolyline( xs, ys, np );
-            g2.setStroke( stroke0 );
+            Stroke stroke0 = g.getStroke();
+            g.setStroke( style.stroke_ );
+            g.drawPolyline( xs, ys, np );
+            g.setStroke( stroke0 );
         }
 
         /* Restore graphics context. */
         g.setColor( color0 );
     }
 
-    /**
-     * Returns an array of data coordinate values, one for each bin
-     * accumulated by the bin array (X pixel value).
-     * This is basically the bin array results, but perhaps adjusted
-     * by style elements like smoothing, cumulativeness etc.
-     *
-     * @param   binArray  basic results
-     * @param   xAxis   axis over which counts are accumulated
-     * @param   style   style
-     * @return  output data bin values
-     */
-    private static double[] getDataBins( BinArray binArray, Axis xAxis,
-                                         PixoStyle style ) {
-        double[] bins = binArray.bins_;
-        int nb = bins.length;
-        boolean cumul = style.isCumulative_;
+    protected void extendPixel1dCoordinateRanges( Range[] ranges,
+                                                  boolean[] logFlags,
+                                                  PixoStyle style,
+                                                  DataSpec dataSpec,
+                                                  DataStore dataStore ) {
 
-        /* Smooth. */
-        Kernel kernel = style.kernel_;
-        if ( kernel != null ) {
-            bins = kernel.convolve( bins );
+        /* Calculate the height of the bars for auto-ranging purposes. */
+        Range xRange = ranges[ 0 ];
+        Range yRange = ranges[ 1 ];
+        boolean xlog = logFlags[ 0 ];
+        boolean ylog = logFlags[ 1 ];
+
+        /* Assume y=0 is always of interest for a histogram. */
+        yRange.submit( ylog ? 1 : 0 );
+
+        /* To calculate the bin heights, we have to provide an Axis
+         * instance.  We know the data limits of this from previous
+         * ranging, but unfortunately there is no information
+         * available at this stage about the width of the plot
+         * in pixels.  The maximum bar height is
+         * dependent on this, but to a first approximation it
+         * shouldn't be too sensitive, so we guess a sensible
+         * pixel extent, and hope for the best.  Use a value on
+         * the large side for pixel extent, since this will err
+         * on the side of a range that is too high (leading to
+         * unused space at the top rather than clipping the plot). */
+        double[] dxlimits = xRange.getFiniteBounds( xlog );
+        double dxlo = dxlimits[ 0 ];
+        double dxhi = dxlimits[ 1 ];
+        int gxlo = 0;
+        int gxhi = GUESS_PLOT_WIDTH;
+        boolean xflip = false;
+        Axis xAxis = Axis.createAxis( gxlo, gxhi, dxlo, dxhi, xlog, xflip );
+        int xpad = style.kernel_.getWidth();
+        BinArray binArray = readBins( xAxis, xpad, dataSpec, dataStore );
+        double[] bins = getDataBins( binArray, xAxis, style.kernel_,
+                                     style.norm_, style.isCumulative_ );
+        int ixlo = binArray.getBinIndex( gxlo );
+        int ixhi = binArray.getBinIndex( gxhi );
+        for ( int ix = ixlo; ix < ixhi; ix++ ) {
+            yRange.submit( bins[ ix ] );
         }
-
-        /* Work out the maximum bin height, which may be required for
-         * normalisation (Normalisation.MAXIMUM mode, cumul=false only).
-         * This procedure is flawed, since it will fail to pick up
-         * maximum bar heights outside of the range covered by the bins array.
-         * It probably should do that, but it would require the BinArray
-         * to keep track of a lot of values it doesn't otherwise need to
-         * worry about - both increases complication of the code, and
-         * potentially a large memory footprint.  For now leave it be,
-         * but note that MAXIMUM normalisation may not work perfectly
-         * when the X axis is zoomed to a region that does not include
-         * the highest bar. */
-        double max = 0;
-        for ( int ib = 0; ib < bins.length; ib++ ) {
-            max = Math.max( max, Math.abs( bins[ ib ] ) );
-        }
-
-        /* Normalise. */
-        Normalisation norm = style.norm_;
-        double total = binArray.getSum();
-        double binWidth = getPixelDataWidth( xAxis );
-        double scale = norm.getScaleFactor( total, max, binWidth, cumul );
-        if ( scale != 1.0 ) {
-            double[] nbins = new double[ nb ];
-            for ( int ib = 0; ib < nb; ib++ ) {
-                nbins[ ib ] = scale * bins[ ib ];
-            }
-            bins = nbins;
-        }
-
-        /* Cumulate. */
-        if ( cumul ) {
-            double[] dlimits = xAxis.getDataLimits();
-            boolean xflip = xAxis.dataToGraphics( dlimits[ 0 ] )
-                          > xAxis.dataToGraphics( dlimits[ 1 ] );
-            double[] cbins = new double[ nb ];
-            double sum = binArray.getLowerSum( xflip );
-            for ( int ib = 0; ib < nb; ib++ ) {
-                int jb = xflip ? nb - ib - 1 : ib;
-                sum += bins[ jb ];
-                cbins[ jb ] = sum;
-            }
-            bins = cbins;
-        }
-
-        /* Return result. */
-        return bins;
     }
 
-    /**
-     * Works out the constant width in data coordinates of a pixel-sized
-     * bin on a given axis.  If there is no such constant value
-     * (for instance a logarithmic axis), NaN is returned.
-     *
-     * @param  axis  axis
-     * @return   width of pixel in data coordinates, or NaN
-     */
-    private static double getPixelDataWidth( Axis axis ) {
-        if ( axis.isLinear() ) {
-            int[] glimits = axis.getGraphicsLimits();
-            double gmid = 0.5 * ( glimits[ 0 ] + glimits[ 1 ] );
-            return Math.abs( axis.graphicsToData( gmid + 0.5 )
-                           - axis.graphicsToData( gmid - 0.5 ) );
+    protected ReportMap getPixel1dReport( Pixel1dPlan plan, PixoStyle style ) {
+        BinArray binArray = plan.binArray_;
+        Axis xAxis = plan.xAxis_;
+        double[] dataBins = getDataBins( binArray, xAxis, style.kernel_,
+                                         style.norm_, style.isCumulative_ );
+        double[] dlimits = xAxis.getDataLimits();
+        int glo = (int) Math.round( xAxis.dataToGraphics( dlimits[ 0 ] ) );
+        int ghi = (int) Math.round( xAxis.dataToGraphics( dlimits[ 1 ] ) );
+        if ( glo > ghi ) {
+            int gt = glo;              
+            glo = ghi;
+            ghi = gt;
         }
-        else {
-            return Double.NaN;
-        }
+        int ixlo = binArray.getBinIndex( glo );
+        int nx = ghi - glo;                       
+        double[] clipBins = new double[ nx ];
+        System.arraycopy( dataBins, ixlo, clipBins, 0, nx );
+        ReportMap report = new ReportMap();
+        report.set( BINS_KEY, clipBins );
+        return report;
     }
 
     /**
@@ -572,34 +313,6 @@ public class PixogramPlotter implements Plotter<PixogramPlotter.PixoStyle> {
     }
 
     /**
-     * Returns an array of the bin values actually plotted.
-     * This has one element per pixel, from left to right of the plotting
-     * region, and the element values are data coordinates.
-     *
-     * @param   plan  plan object
-     * @param   style  style
-     * @return   array of plotted values
-     */
-    private static double[] getPlottedBins( PixoPlan plan, PixoStyle style ) {
-        BinArray binArray = plan.binArray_;
-        Axis xAxis = plan.xAxis_;
-        double[] dataBins = getDataBins( binArray, xAxis, style );
-        double[] dlimits = xAxis.getDataLimits();
-        int glo = (int) Math.round( xAxis.dataToGraphics( dlimits[ 0 ] ) );
-        int ghi = (int) Math.round( xAxis.dataToGraphics( dlimits[ 1 ] ) );
-        if ( glo > ghi ) {
-            int gt = glo;
-            glo = ghi;
-            ghi = gt;
-        }
-        int ixlo = binArray.getBinIndex( glo );
-        int nx = ghi - glo;
-        double[] clipBins = new double[ nx ];
-        System.arraycopy( dataBins, ixlo, clipBins, 0, nx );
-        return clipBins;
-    }
-
-    /**
      * Style subclass for pixogram plots.
      */
     public static class PixoStyle implements Style {
@@ -611,7 +324,7 @@ public class PixogramPlotter implements Plotter<PixogramPlotter.PixoStyle> {
         private final Icon icon_;
 
         /**
-         * Private constructor.
+         * Constructor.
          *
          * @param  color  plot colour
          * @param  stroke  line stroke, null for filled area
@@ -619,8 +332,8 @@ public class PixogramPlotter implements Plotter<PixogramPlotter.PixoStyle> {
          * @param  isCumulative  are bins painted cumulatively
          * @param  norm   normalisation mode
          */
-        private PixoStyle( Color color, Stroke stroke, Kernel kernel,
-                           boolean isCumulative, Normalisation norm ) {
+        public PixoStyle( Color color, Stroke stroke, Kernel kernel,
+                          boolean isCumulative, Normalisation norm ) {
             color_ = color;
             stroke_ = stroke;
             kernel_ = kernel;
@@ -629,21 +342,6 @@ public class PixogramPlotter implements Plotter<PixogramPlotter.PixoStyle> {
             BarStyle.Form bf =
                 stroke == null ? BarStyle.FORM_FILLED : BarStyle.FORM_OPEN;
             icon_ = new BarStyle( color, bf, BarStyle.PLACE_OVER );
-        }
-
-        /**
-         * Constructor.
-         *
-         * @param  color   plot colour
-         * @param  stroke  line stroke, null for filled area
-         * @param  width   smoothing width in pixels
-         * @param  isCumulative  are bins painted cumulatively
-         * @param  norm    normalisation mode
-         */
-        public PixoStyle( Color color, Stroke stroke, int width,
-                          boolean isCumulative, Normalisation norm ) {
-            this( color, stroke, new SquareKernel( width ), isCumulative,
-                  norm );
         }
 
         public Icon getLegendIcon() {
@@ -674,218 +372,6 @@ public class PixogramPlotter implements Plotter<PixogramPlotter.PixoStyle> {
             else {
                 return false;
             }
-        }
-    }
-
-    /**
-     * Defines the smoothing function used for pixel bins.
-     */
-    @Equality
-    private interface Kernel {
-
-        /**
-         * Returns the half-width in pixels over which a value at a given
-         * point will be smoothed.
-         *
-         * @return  smoothing width in pixels
-         */
-        int getWidth();
-
-        /**
-         * Applies this kernel to a data array.
-         * Note, the values within <code>getWidth</code> pixels of the
-         * start and end of the returned data array will be distorted,
-         * so this method should be called on an input array with
-         * sufficient padding at either end that this effect can be ignored.
-         *
-         * @param  data  input data array
-         * @return  output data array, same dimensions as input,
-         *          but containing convolved data
-         */
-        double[] convolve( double[] data );
-    }
-
-    /**
-     * Kernel implementation using a rectangular function.
-     */
-    private static class SquareKernel implements Kernel {
-        final int width_;
-
-        /**
-         * Constructor.
-         *
-         * @param  width  half-width in pixels
-         */
-        public SquareKernel( int width ) {
-            width_ = width;
-        }
-
-        public int getWidth() {
-            return width_;
-        }
-
-        public double[] convolve( double[] in ) {
-            int ns = in.length;
-            double[] out = new double[ ns ];
-            for ( int is = width_; is < ns - width_; is++ ) {
-                for ( int ik = -width_; ik <= width_; ik++ ) {
-                    out[ is ] += in[ is + ik ];
-                }
-            }
-            double scale = 1.0 / ( width_ * 2 + 1 );
-            for ( int is = 0; is < ns; is++ ) {
-                out[ is ] *= scale;
-            }
-            return out;
-        }
-
-        @Override
-        public int hashCode() {
-            int code = 88234;
-            code = 23 * code + width_;
-            return code;
-        }
-
-        @Override
-        public boolean equals( Object o ) {
-            if ( o instanceof SquareKernel ) {
-                SquareKernel other = (SquareKernel) o;
-                return this.width_ == other.width_;
-            }
-            else {
-                return false;
-            }
-        }
-    }
-
-    /**
-     * Plot plan implementation for this class.
-     */
-    private static class PixoPlan {
-        final BinArray binArray_;
-        final Axis xAxis_;
-        final int xpad_;
-        final DataSpec dataSpec_;
-
-        /**
-         * Constructor.
-         *
-         * @param  binArray   frequency data
-         * @param  xAxis  axis over which counts are accumulated
-         * @param  xpad   number of pixels outside axis range in each direction
-         *                that are stored in <code>binArray</code>
-         * @param  dataSpec   count data specificatin
-         */
-        PixoPlan( BinArray binArray, Axis xAxis, int xpad, DataSpec dataSpec ) {
-            binArray_ = binArray;
-            xAxis_ = xAxis;
-            xpad_ = xpad;
-            dataSpec_ = dataSpec;
-        }
-
-        /**
-         * Indicates whether this plan is suitable for use given certain
-         * plotting requirements.
-         *
-         * @param  xAxis  axis over which counts are accumulated
-         * @param  xpad   minimum number of pixels outside axis range
-         *                in each direction that must be stored in the bin array
-         * @param  dataSpec   count data specificatin
-         */
-        boolean matches( Axis xAxis, int xpad, DataSpec dataSpec ) {
-            return xAxis_.equals( xAxis )
-                && dataSpec_.equals( dataSpec )
-                && xpad_ >= xpad;
-        }
-    }
-
-    /**
-     * Data object storing counts per pixel.
-     */
-    private static class BinArray {
-
-        final double[] bins_;
-        final int glo_;
-        final int ghi_;
-        double loSum_;
-        double hiSum_;
-        double midSum_;
-
-        /**
-         * Constructor.
-         *
-         * @param  glo  lowest pixel index required
-         * @param  ghi  1+highest pixel index required
-         */
-        BinArray( int glo, int ghi ) {
-            glo_ = glo;
-            ghi_ = ghi;
-            bins_ = new double[ ghi - glo ];
-        }
-
-        /**
-         * Increments the value in the bin corresponding to a given pixel index
-         * by a given amount.  If the target pixel index is out of bounds
-         * for this array, there is no effect.  No checking is performed
-         * on the <code>inc</code> value.
-         *
-         * @param   gx  target pixel index
-         * @param   inc  increment amount
-         */
-        void addToBin( double gx, double inc ) {
-            double dx = Math.round( gx - glo_ );
-            if ( dx >= 0 && dx < bins_.length ) {
-                bins_[ (int) dx ] += inc;
-                midSum_ += inc;
-            }
-            else if ( dx < 0 ) {
-                loSum_ += inc;
-            }
-            else if ( dx >= bins_.length ) {
-                hiSum_ += inc;
-            }
-        }
-
-        /**
-         * Returns the total sum of values accumulated into this bin array.
-         *
-         * @return   running total
-         */
-        double getSum() {
-            return loSum_ + midSum_ + hiSum_;
-        }
-
-        /**
-         * Returns the sum of all the counts at one end of the axis 
-         * not captured by this object's bins array.
-         *
-         * @param  flip   false for low-coordinate end,
-         *                true for high-coordinate end
-         */
-        double getLowerSum( boolean flip ) {
-            return flip ? hiSum_ : loSum_;
-        }
-
-        /**
-         * Returns the bin index
-         * (index into this object's <code>bins_</code> array)
-         * for a given pixel index.
-         *
-         * @param  gx  pixel index
-         * @return  bin index
-         */
-        int getBinIndex( int gx ) {
-            return gx - glo_;
-        }
-
-        /**
-         * Returns the pixel index for a given bin index.
-         *
-         * @param  index  bin index
-         * @return   pixel index
-         */
-        int getGraphicsCoord( int index ) {
-            return index + glo_;
         }
     }
 }
