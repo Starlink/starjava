@@ -38,6 +38,7 @@ public class ResourceIcon {
         PLOT_SPECTRO = readIcon( "plot-spectro.gif" ),
         PLOT_HISTO = readIcon( "plot-histo.gif" ),
         PLOT_PIXOGRAM = readIcon( "plot-pixogram.gif" ),
+        PLOT_DENSOGRAM = readIcon( "plot-densogram.gif" ),
         PLOT_LINK2 = readIcon( "plot-link2.gif" ),
         FORM_MARK = readIcon( "form-mark.gif" ),
         FORM_SIZE = readIcon( "form-size.gif" ),

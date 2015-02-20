@@ -13,6 +13,7 @@ import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
 import uk.ac.starlink.ttools.plot2.layer.CartesianErrorCoordSet;
 import uk.ac.starlink.ttools.plot2.layer.CartesianVectorCoordSet;
 import uk.ac.starlink.ttools.plot2.layer.ContourPlotter;
+import uk.ac.starlink.ttools.plot2.layer.DensogramPlotter;
 import uk.ac.starlink.ttools.plot2.layer.FunctionPlotter;
 import uk.ac.starlink.ttools.plot2.layer.HistogramPlotter;
 import uk.ac.starlink.ttools.plot2.layer.PixogramPlotter;
@@ -92,6 +93,7 @@ public class PlanePlotType implements PlotType {
             new ContourPlotter(),
             new HistogramPlotter( PlaneDataGeom.X_COORD, true ),
             new PixogramPlotter( PlaneDataGeom.X_COORD, true ),
+            new DensogramPlotter( PlaneDataGeom.X_COORD, true ),
             FunctionPlotter.PLANE,
         } ) );
         return list.toArray( new Plotter[ 0 ] );
