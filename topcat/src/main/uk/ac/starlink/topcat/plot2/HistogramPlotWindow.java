@@ -42,6 +42,7 @@ import uk.ac.starlink.ttools.plot2.geom.PlanePlotType;
 import uk.ac.starlink.ttools.plot2.geom.PlaneSurface;
 import uk.ac.starlink.ttools.plot2.geom.PlaneSurfaceFactory;
 import uk.ac.starlink.ttools.plot2.layer.BinBag;
+import uk.ac.starlink.ttools.plot2.layer.DensogramPlotter;
 import uk.ac.starlink.ttools.plot2.layer.FunctionPlotter;
 import uk.ac.starlink.ttools.plot2.layer.HistogramPlotter;
 import uk.ac.starlink.ttools.plot2.layer.Normalisation;
@@ -433,6 +434,7 @@ public class HistogramPlotWindow
             return new Plotter[] {
                 new HistogramPlotter( PlaneDataGeom.X_COORD, true ),
                 new PixogramPlotter( PlaneDataGeom.X_COORD, true ),
+                new DensogramPlotter( PlaneDataGeom.X_COORD, true ),
                 FunctionPlotter.PLANE,
             };
         }

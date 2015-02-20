@@ -192,8 +192,8 @@ public class StyleKeys {
             , Color.BLACK, false );
 
     private static final BarStyle.Form[] BARFORMS = new BarStyle.Form[] {
-        BarStyle.FORM_FILLED,
         BarStyle.FORM_OPEN,
+        BarStyle.FORM_FILLED,
         BarStyle.FORM_TOP,
         BarStyle.FORM_SPIKE,
     };
@@ -751,7 +751,7 @@ public class StyleKeys {
      *
      * @return  shaders
      */
-    private static Shader[] createAuxShaders() {
+    public static Shader[] createAuxShaders() {
         return new Shader[] {
             Shaders.LUT_RAINBOW,
             Shaders.LUT_GLNEMO2,
