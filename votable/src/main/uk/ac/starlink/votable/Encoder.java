@@ -234,6 +234,10 @@ abstract class Encoder {
      * If <tt>info</tt> is a ColumnInfo, then the preferred binary 
      * representation of bad values can be submitted in its auxiliary
      * metadata under the key {@link Tables#NULL_VALUE_INFO}.
+     * Byte values will normally be serialised as short ints
+     * (since the java byte type is signed but the VOTable one is unsigned),
+     * but unsigned byte output can be forced by setting the
+     * {@link Tables#UBYTE_FLAG_INFO} aux metadata item to true.
      *
      * @param   info  a description of the type of value which needs to
      *          be encoded
@@ -254,6 +258,23 @@ abstract class Encoder {
         final boolean isVariable = dims != null 
                                 && dims.length > 0 
                                 && dims[ dims.length - 1 ] < 0;
+
+        /* See if unsigned byte output is explicitly requested. */
+        boolean isUbyte = false;
+        if ( info instanceof ColumnInfo ) {
+            if ( Boolean.TRUE
+                .equals( ((ColumnInfo) info)
+                        .getAuxDatumValue( Tables.UBYTE_FLAG_INFO,
+                                           Boolean.class ) ) ) {
+                if ( clazz == short[].class || clazz == Short.class ) {
+                    isUbyte = true;
+                }
+                else {
+                    logger.warning( "Ignoring " + Tables.UBYTE_FLAG_INFO
+                                  + " on non-short column " + info );
+                }
+            }
+        }
 
         /* Try to work out a representation to use for blank integer values. */
         Number nullObj = null;
@@ -283,6 +304,21 @@ abstract class Encoder {
                                    ? ' '
                                    : ( value.booleanValue() ? 'T' : 'F' );
                     out.write( (int) b );
+                }
+            };
+        }
+
+        else if ( isUbyte && clazz == Short.class ) {
+            final int badVal = nullObj == null
+                              ? ( magicNulls ? 255 : 0 )
+                              : nullObj.intValue();
+            String badString = isNullable ? Integer.toString( badVal ) : null;
+            return new ScalarEncoder( info, "unsignedByte", badString ) {
+                public void encodeToStream( Object val, DataOutput out )
+                        throws IOException {
+                    Number value = (Number) val;
+                    out.writeByte( value == null ? badVal
+                                                 : value.intValue() );
                 }
             };
         }
@@ -409,6 +445,24 @@ abstract class Encoder {
                  ? (Encoder) new VariableArrayEncoder( info, "boolean",
                                                        dims, enc1 )
                  : (Encoder) new FixedArrayEncoder( info, "boolean",
+                                                    dims, enc1 );
+        }
+
+        else if ( isUbyte && clazz == short[].class ) {
+            Encoder1 enc1 = new Encoder1() {
+                public void encode1( Object array, int index, DataOutput out )
+                        throws IOException {
+                    int value = ((short[]) array)[ index ];
+                    out.writeByte( value );
+                }
+                public void pad1( DataOutput out ) throws IOException {
+                    out.writeByte( 0x0 );
+                }
+            };
+            return isVariable
+                 ? (Encoder) new VariableArrayEncoder( info, "unsignedByte",
+                                                       dims, enc1 )
+                 : (Encoder) new FixedArrayEncoder( info, "unsignedByte",
                                                     dims, enc1 );
         }
 

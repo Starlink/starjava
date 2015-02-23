@@ -99,9 +99,10 @@ public class VOStarTable extends AbstractStarTable {
         "Datatype", String.class, "VOTable data type name" );
 
     private final static ValueInfo nullInfo = Tables.NULL_VALUE_INFO;
+    private final static ValueInfo ubyteInfo = Tables.UBYTE_FLAG_INFO;
 
     private final static List auxDataInfos = Arrays.asList( new ValueInfo[] {
-        ID_INFO, DATATYPE_INFO, nullInfo, XTYPE_INFO,
+        ID_INFO, DATATYPE_INFO, nullInfo, XTYPE_INFO, ubyteInfo,
         WIDTH_INFO, PRECISION_INFO, REF_INFO, TYPE_INFO,
     } );
 
@@ -165,6 +166,10 @@ public class VOStarTable extends AbstractStarTable {
                     String datatype = field.getAttribute( "datatype" );
                     auxdata.add( new DescribedValue( DATATYPE_INFO,
                                                      datatype ) );
+                    if ( "unsignedByte".equals( datatype ) ) {
+                        auxdata.add( new DescribedValue( ubyteInfo,
+                                                         Boolean.TRUE ) );
+                    }
                 }
 
                 String blankstr = field.getNull();
