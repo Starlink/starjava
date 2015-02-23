@@ -21019,7 +21019,7 @@ introduced since the last version:
             either legacy Apple Java 6 or
             Oracle/OpenJDK Java 7+ installed.</li>
         <li>OSX application bundle adjusted (I think) so that application
-            working directory is user's home directory.</li>
+           working directory is user's home directory.</li>
         </ul>
         </p></dd>
     <dt>Bugfixes and workarounds:</dt>
@@ -21079,6 +21079,8 @@ introduced since the last version:
         (tolerate implicit TDIMn headers).</li>
     <li>Tables specified on the <ref id="tableLocation">command line</ref>
         may now use syntax that reads data from a unix pipeline.</li>
+    <li>OSX application bundle fixed to run application in user's home
+        directory (broken in previous version).</li>
     </ul>
     </p></dd>
 

@@ -34,4 +34,10 @@ seems to have the same issues as me:
 
    https://github.com/tofi86/universalJavaApplicationStub/
 
+Update 2015:
+
+TopcatUJAStub is a tweaked version of the universalJavaApplicationStub
+mentioned above.  Believed to work for (Apple) java 1.6 and (Oracle)
+java 1.7, 1.8.
+
 
