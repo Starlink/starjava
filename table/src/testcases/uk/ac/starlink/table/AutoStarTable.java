@@ -44,6 +44,10 @@ public class AutoStarTable extends ColumnStarTable {
         final int esize = colinfo.getElementSize();
         final boolean isArray = colinfo.isArray();
         final int icol = getColumnCount() + 1;
+        final boolean isUbyte =
+            Boolean.TRUE
+           .equals( colinfo.getAuxDatumValue( Tables.UBYTE_FLAG_INFO,
+                                              Boolean.class ) );
         int n1 = 1;
         if ( shape != null && shape.length > 0 ) {
             for ( int i = 0; i < shape.length; i++ ) {
@@ -78,7 +82,8 @@ public class AutoStarTable extends ColumnStarTable {
                     return new Byte( val );
                 }
                 else if ( clazz == Short.class ) {
-                    return new Short( (short) irow );
+                    return isUbyte ? new Short( (short) ( irow % 256 ) )
+                                   : new Short( (short) irow );
                 }
                 else if ( clazz == Integer.class ) {
                     return new Integer( icol + 100 * irow );
@@ -119,6 +124,13 @@ public class AutoStarTable extends ColumnStarTable {
                     Object array = Array.newInstance( clazz.getComponentType(),
                                                       nel );
                     testcase.fillCycle( array, -icol - irow, icol + irow );
+                    if ( clazz == short[].class && isUbyte ) {
+                        short[] sarray = (short[]) array;
+                        for ( int i = 0; i < sarray.length; i++ ) {
+                            sarray[ i ] =
+                               (short) ( Math.abs( sarray[ i ] ) % 256 );
+                        }
+                    }
                     return array;
                 }
                 else if ( clazz == String[].class ) {

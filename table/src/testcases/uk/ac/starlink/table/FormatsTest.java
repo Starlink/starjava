@@ -64,6 +64,8 @@ public class FormatsTest extends TableCase {
         new DefaultValueInfo( "Size", Double.class, null );
     private StarTableOutput sto = new StarTableOutput();
     private static final String FUNNY_UNITS = "\"'<a&b>'\"";
+    private static final DescribedValue UBYTE_AUXDATUM =
+        new DescribedValue( Tables.UBYTE_FLAG_INFO, Boolean.TRUE );
 
     static {
         MATRIX_INFO.setShape( new int[] { 2, -1 } );
@@ -115,30 +117,43 @@ public class FormatsTest extends TableCase {
             }
         } );
 
-        Class[] ptypes = { byte.class, short.class, int.class, long.class,
-                           float.class, double.class, };
+        Class[] ptypes = { byte.class, short.class, short.class, int.class,
+                           long.class, float.class, double.class, };
         for ( int i = 0; i < ptypes.length; i++ ) {
             final Class ptype = ptypes[ i ];
+            String pname = ptype.getName();
             ColumnInfo colinfo = new ColumnInfo( MATRIX_INFO );
+            if ( i == 1 ) {
+                assertEquals( short.class, ptype );
+                pname = "ubyte";
+                colinfo.setAuxDatum( UBYTE_AUXDATUM );
+            }
             colinfo.setContentClass( Array.newInstance( ptype, 0 ).getClass() );
-            colinfo.setName( ptype.getName() + "_matrix" );
+            colinfo.setName( pname + "_matrix" );
             ctable.addColumn( colinfo );
             ColumnInfo colinfo2 = new ColumnInfo( colinfo );
-            colinfo2.setName( ptype.getName() + "_vector" );
+            colinfo2.setName( pname + "_vector" );
             final int nel = ( i + 2 ) % 4 + 2;
             colinfo2.setShape( new int[] { nel } );
             final int bs = i;
             ctable.addColumn( colinfo2 );
         }
 
-        Class[] stypes = { Byte.class, Short.class, Integer.class, Long.class,
-                           Float.class, Double.class, String.class };
+        Class[] stypes = { Byte.class, Short.class, Short.class, Integer.class,
+                           Long.class, Float.class, Double.class,
+                           String.class };
         for ( int i = 0; i < stypes.length; i++ ) {
             final int itype = i;
             final Class stype = stypes[ i ];
             String name = stype.getName().replaceFirst( "java.lang.", "" );
             ColumnInfo colinfo = new ColumnInfo( name + "Scalar", stype,
                                                  name + " scalar data" );
+            if ( i == 1 ) {
+                assertEquals( Short.class, stype );
+                colinfo.setAuxDatum( UBYTE_AUXDATUM );
+                colinfo.setName( "ubyteScalar" );
+                colinfo.setDescription( "Unsigned byte scalar data" );
+            }
             ctable.addColumn( colinfo );
         }
     }
