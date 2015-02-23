@@ -285,6 +285,10 @@ public abstract class BintableStarTable extends AbstractStarTable {
             cinfo.setContentClass( reader.getContentClass() );
             cinfo.setShape( reader.getShape() );
             cinfo.setElementSize( reader.getElementSize() );
+            if ( reader.isUnsignedByte() ) {
+                cinfo.setAuxDatum( new DescribedValue( Tables.UBYTE_FLAG_INFO,
+                                                       Boolean.TRUE ) );
+            }
             colReaders_[ icol ] = reader;
         }
 

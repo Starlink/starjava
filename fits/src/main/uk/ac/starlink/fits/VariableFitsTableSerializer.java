@@ -186,8 +186,7 @@ public class VariableFitsTableSerializer extends StandardFitsTableSerializer {
         else {
             assert clazz.isArray();
             ArrayWriter aw =
-                ArrayWriter.createArrayWriter( cinfo.getContentClass(),
-                                               allowSignedByte_ );
+                ArrayWriter.createArrayWriter( cinfo, allowSignedByte_ );
             return new VariableArrayColumnWriter( aw, maxEls, totalEls );
         }
     }
