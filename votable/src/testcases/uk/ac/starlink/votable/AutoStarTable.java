@@ -11,6 +11,7 @@ import uk.ac.starlink.table.ColumnStarTable;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.util.TestCase;
 
 /**
@@ -30,6 +31,8 @@ public class AutoStarTable extends ColumnStarTable {
         new DefaultValueInfo( "Matrix", int[].class, "2xN matrix" );
     private static final DefaultValueInfo SIZE_INFO =
         new DefaultValueInfo( "Size", Double.class, null );
+    private static final DescribedValue UBYTE_AUXDATUM =
+        new DescribedValue( Tables.UBYTE_FLAG_INFO, Boolean.TRUE );
     static {
         NAMES_INFO.setElementSize( 16 );
     }
@@ -63,6 +66,11 @@ public class AutoStarTable extends ColumnStarTable {
         final int[] shape = colinfo.getShape();
         final int esize = colinfo.getElementSize();
         final boolean isArray = colinfo.isArray();
+        final boolean isUbyte =
+            Boolean.TRUE
+           .equals( colinfo.getAuxDatumValue( Tables.UBYTE_FLAG_INFO,
+                                              Boolean.class ) );
+                   
         final int icol = getColumnCount() + 1;
         int n1 = 1;
         if ( shape != null && shape.length > 0 ) {
@@ -87,6 +95,9 @@ public class AutoStarTable extends ColumnStarTable {
                 if ( ( irow + icol ) % 10 == 0 ) {
                     return null;
                 }
+                else if ( clazz == Short.class && isUbyte  ) {
+                    return Short.valueOf( (short) ( irow % 256 ) );
+                }
                 else if ( clazz == Boolean.class ) {
                     return Boolean.valueOf( icol + irow % 2 == 0 );
                 }
@@ -102,6 +113,9 @@ public class AutoStarTable extends ColumnStarTable {
                 }
                 else if ( clazz == Integer.class ) {
                     return new Integer( icol + 100 * irow );
+                }
+                else if ( clazz == Long.class ) {
+                    return new Long( icol + 1000 * irow );
                 }
                 else if ( clazz == Float.class ) {
                     if ( irow % 10 == 4 ) {
@@ -130,11 +144,19 @@ public class AutoStarTable extends ColumnStarTable {
                 else if ( clazz == byte[].class ||
                           clazz == short[].class ||
                           clazz == int[].class ||
+                          clazz == long[].class ||
                           clazz == float[].class ||
                           clazz == double[].class ) {
                     Object array = Array.newInstance( clazz.getComponentType(),
                                                       nel );
                     testcase.fillCycle( array, -icol - irow, icol + irow );
+                    if ( clazz == short[].class && isUbyte ) {
+                        short[] sarray = (short[]) array;
+                        for ( int i = 0; i < sarray.length; i++ ) {
+                            sarray[ i ] =
+                                (short) ( Math.abs( sarray[ i ] ) % 256 );
+                        }
+                    }
                     return array;
                 }
                 else if ( clazz == String[].class ) {
@@ -158,7 +180,8 @@ public class AutoStarTable extends ColumnStarTable {
         table.setName( "Test Table" );
         List params = new ArrayList();
         params.add( new DescribedValue( NAMES_INFO,
-                                        new String[] { "Test", "Table", "x" } ) );
+                                        new String[] { "Test", "Table",
+                                                       "x" } ) );
         params.add( new DescribedValue( DRINK_INFO, "Cider" ) );
         params.add( new DescribedValue( MATRIX_INFO,
                                         new int[] { 4, 5, } ) );
@@ -182,30 +205,43 @@ public class AutoStarTable extends ColumnStarTable {
             }
         } );
 
-        Class[] ptypes = { byte.class, short.class, int.class, float.class,
-                           double.class, };
+        Class[] ptypes = { byte.class, short.class, short.class, int.class,
+                           long.class, float.class, double.class, };
         for ( int i = 0; i < ptypes.length; i++ ) {
             final Class ptype = ptypes[ i ];
+            String pname = ptype.getName();
             ColumnInfo colinfo = new ColumnInfo( MATRIX_INFO );
+            if ( i == 1 ) {
+                assert short.class.equals( ptype );
+                pname = "ubyte";
+                colinfo.setAuxDatum( UBYTE_AUXDATUM );
+            }
             colinfo.setContentClass( Array.newInstance( ptype, 0 ).getClass() );
-            colinfo.setName( ptype.getName() + "_matrix" );
+            colinfo.setName( pname + "_matrix" );
             table.addColumn( colinfo );
             ColumnInfo colinfo2 = new ColumnInfo( colinfo );
-            colinfo2.setName( ptype.getName() + "_vector" );
+            colinfo2.setName( pname + "_vector" );
             final int nel = ( i + 2 ) % 4 + 2;
             colinfo2.setShape( new int[] { nel } );
             final int bs = i;
             table.addColumn( colinfo2 );
         }
 
-        Class[] stypes = { Byte.class, Short.class, Integer.class,
-                           Float.class, Double.class, String.class };
+        Class[] stypes = { Byte.class, Short.class, Short.class, Integer.class,
+                           Long.class, Float.class, Double.class,
+                           String.class };
         for ( int i = 0; i < stypes.length; i++ ) {
             final int itype = i;
             final Class stype = stypes[ i ];
             String name = stype.getName().replaceFirst( "java.lang.", "" );
             ColumnInfo colinfo = new ColumnInfo( name + "Scalar", stype,
                                                  name + " scalar data" );
+            if ( i == 1 ) {
+                assert Short.class.equals( stype );
+                colinfo.setAuxDatum( UBYTE_AUXDATUM );
+                colinfo.setName( "ubyteScalar" );
+                colinfo.setDescription( "Unsigned byte scalar data" );
+            }
             table.addColumn( colinfo );
         }
 
