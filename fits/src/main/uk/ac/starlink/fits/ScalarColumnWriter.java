@@ -2,6 +2,7 @@ package uk.ac.starlink.fits;
 
 import java.io.DataOutput;
 import java.io.IOException;
+import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.Tables;
@@ -18,6 +19,9 @@ abstract class ScalarColumnWriter implements ColumnWriter {
     private final char formatChar_;
     private final int nbyte_;
     private final Number badNumber_;
+
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.fits" );
 
     /**
      * Constructor.
@@ -86,8 +90,27 @@ abstract class ScalarColumnWriter implements ColumnWriter {
                 }
             }
         }
+        boolean isUbyte =
+            Boolean.TRUE
+           .equals( cinfo.getAuxDatumValue( Tables.UBYTE_FLAG_INFO,
+                                            Boolean.class ) );
 
-        if ( clazz == Boolean.class ) {
+        if ( isUbyte && clazz == Short.class ) {
+            final short badVal = blankNum == null ? (short) 0xff
+                                                  : blankNum.shortValue();
+            return new ScalarColumnWriter( 'B', 1,
+                                           nullableInt ? new Short( badVal )
+                                                       : null ) {
+                public void writeValue( DataOutput stream, Object value )
+                        throws IOException {
+                    short bval = ( value != null )
+                               ? ((Number) value).shortValue()
+                               : badVal;
+                    stream.writeByte( bval );
+                }
+            }; 
+        }
+        else if ( clazz == Boolean.class ) {
             return new ScalarColumnWriter( 'L', 1, null ) {
                 public void writeValue( DataOutput stream, Object value )
                         throws IOException {

@@ -3,6 +3,9 @@ package uk.ac.starlink.fits;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.lang.reflect.Array;
+import java.util.logging.Logger;
+import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.Tables;
 
 /**
  * Object which knows how to write array data for a particular type 
@@ -15,6 +18,9 @@ abstract class ArrayWriter {
 
     private final char formatChar_;
     private final int nByte_;
+
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.fits" );
 
     /**
      * Constructor.
@@ -74,14 +80,36 @@ abstract class ArrayWriter {
     /**
      * Constructs a new ArrayWriter for a given array class.
      *
-     * @param   clazz   array class which this writer should be able to write
+     * @param   cinfo   column metadata describing the data
+     *                  which this writer should be able to write
      * @param   allowSignedByte  if true, bytes written as FITS signed bytes
      *          (TZERO=-128), if false bytes written as signed shorts
-     * @return  new ArrayWriter, or null if <code>clazz</code> can't be handled
+     * @return  new ArrayWriter, or null if <code>cinfo</code> can't be handled
      */
-    public static ArrayWriter createArrayWriter( Class clazz,
+    public static ArrayWriter createArrayWriter( ColumnInfo cinfo,
                                                  boolean allowSignedByte ) {
+        Class clazz = cinfo.getContentClass();
+        final boolean isUbyte =
+            Boolean.TRUE
+           .equals( cinfo.getAuxDatumValue( Tables.UBYTE_FLAG_INFO,
+                                            Boolean.class ) );
 
+        if ( isUbyte ) {
+            if ( clazz == short[].class ) {
+                return new NormalArrayWriter( 'B', 1,
+                                              new short[] { (short) 0 } ) {
+                    public void writeElement( DataOutput out, Object array,
+                                              int ix )
+                            throws IOException {
+                        out.writeByte( ((short[]) array)[ ix ] );
+                    }
+                };
+            }
+            else {
+                logger_.warning( "Ignoring " + Tables.UBYTE_FLAG_INFO
+                               + " on non-short[] column " + cinfo );
+            }
+        }
         if ( clazz == boolean[].class ) {
             return new ArrayWriter( 'L', 1 ) {
                 public void writeElement( DataOutput out, Object array, int ix )
