@@ -21046,6 +21046,8 @@ introduced since the last version:
         and Spectrogram layers:
         <em>New subset from visible</em> action wasn't working,
         and the displayed point count was always zero.</li>
+    <li>Work round FITS read bug that could cause problems for VOTables using
+        inline FITS serialization, and possibly elsewhere.</li>
     </ul>
     </p></dd>
 

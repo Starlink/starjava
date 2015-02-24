@@ -55,7 +55,18 @@ public class IOUtils {
             int jskip = (int) Math.min( nskip, (long) Integer.MAX_VALUE );
             int iskip;
             try {
-                iskip = strm.skipBytes( jskip );
+
+                /* This switch on stream implementation type is a hack;
+                 * really I just want to call DataInput.skipBytes here.
+                 * The DataInput.skipBytes javadoc explicitly says that
+                 * the method never throws EOFException.  However,
+                 * nom.tam.util.BufferedDataInputStream sometimes does
+                 * throw EOFException.  I am wary about fixing the bug in
+                 * nom.tam because I don't know what else it might break.
+                 * So work around it here in what should be a harmless way. */
+                iskip = strm instanceof InputStream
+                      ? (int) ((InputStream) strm).skip( jskip )
+                      : strm.skipBytes( jskip );
                 hasSkipped = true;
             }
 
