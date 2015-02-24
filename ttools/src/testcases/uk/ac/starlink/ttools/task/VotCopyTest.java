@@ -31,6 +31,7 @@ public class VotCopyTest extends TableTestCase {
     final StarTable t2_;
     final StarTable t3_;
     final URL multiLoc_ = getClass().getResource( "multi.vot" );
+    final URL fitsLoc_ = getClass().getResource( "fitsin.vot" );
 
     public VotCopyTest( String name ) throws Exception {
         super( name );
@@ -64,6 +65,19 @@ public class VotCopyTest extends TableTestCase {
 
 
         return new VOElementFactory().makeVOElement( loc );
+    }
+
+    public void testFits() throws Exception {
+
+        /* Tests a specific bug related to IOUtils.skipBytes and
+         * a bug in nom.tam.util.BufferedDataInputStream.
+         * Hopefully fixed shortly after this test was introduced. */
+        MapEnvironment env = new MapEnvironment();
+        File file = File.createTempFile( "votcopy", ".vot" );
+        file.deleteOnExit();
+        env.setValue( "in", fitsLoc_.toString() );
+        env.setValue( "out", file.toString() );
+        new VotCopy().createExecutable( env ).execute();
     }
 
     public void testDOM() throws Exception {
