@@ -10153,6 +10153,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
 <dt>Next version</dt>
 <dd><p>
     <ul>
+    <li>Work round FITS read bug that could cause problems for VOTables using
+        inline FITS serialization, and possibly elsewhere.</li>
     </ul>
     </p></dd>
 
