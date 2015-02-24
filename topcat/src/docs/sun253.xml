@@ -18123,6 +18123,7 @@ Some of the notable contributers are these:
 <li>Aaron Robotham (Bristol)</li>
 <li>Yannick Roehlly (OAMP)</li>
 <li>Mike Read (ROE)</li>
+<li>Juan Carlos Segovia (ESAC)</li>
 <li>Petr &#x0160;koda (AIAS, CZ)</li>
 <li>Mattia Vaccari (Western Cape)</li>
 <li>Juande Sandander Vela (IAA-CSIC)</li>
@@ -21050,6 +21051,10 @@ introduced since the last version:
         inline FITS serialization, and possibly elsewhere.</li>
     <li>Fix bug that caused trouble when auto-ranging a plot 
         with a single sky position.</li> 
+    <li>Column data read in as unsigned bytes will now be written out as
+        unsigned bytes where the output format permits;
+        previously they were forced to 16-bit signed integers.
+        This affects FITS, VOTable and CDF I/O handlers.</li>
     </ul>
     </p></dd>
 
