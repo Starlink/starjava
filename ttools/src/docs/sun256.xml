@@ -10157,6 +10157,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         inline FITS serialization, and possibly elsewhere.</li>
     <li>Fix bug that caused trouble when auto-ranging a plot
         with a single sky position.</li>
+    <li>Column data read in as unsigned bytes will now be written out as
+        unsigned bytes where the output format permits; 
+        previously they were forced to 16-bit signed integers.
+        This affects FITS, VOTable and CDF I/O handlers.</li>
     </ul>
     </p></dd>
 
