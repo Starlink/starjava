@@ -23,6 +23,7 @@ import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.DomainMapper;
 import uk.ac.starlink.table.RowSequence;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
 
 /**
@@ -377,9 +378,18 @@ public class CdfStarTable extends AbstractStarTable {
                 auxData.add( new DescribedValue( auxInfo, auxValue ) );
             }
         }
-        info.setAuxData( auxData );
+
+        /* Flag unsigned byte values according to STIL convention. */
+        DataType dtype = var.getDataType();
+        if ( dtype == DataType.UINT1 ) {
+            assert dtype.getByteCount() == 1;
+            assert dtype.getScalarClass() == Short.class;
+            auxData.add( new DescribedValue( Tables.UBYTE_FLAG_INFO,
+                                             Boolean.TRUE ) );
+        }
 
         /* Return metadata. */
+        info.setAuxData( auxData );
         return info;
     }
 
