@@ -45,7 +45,7 @@ public class BooleanConfigKey extends ConfigKey<Boolean> {
         this( meta, false );
     }
 
-    public Boolean stringToValue( String txt ) {
+    public Boolean stringToValue( String txt ) throws ConfigException {
         txt = txt.toLowerCase();
         if ( TRUE_STRINGS.contains( txt ) ) {
             return Boolean.TRUE;

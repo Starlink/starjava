@@ -3,15 +3,10 @@ package uk.ac.starlink.ttools.plot2.config;
 /**
  * Exception thrown when a configuration input value is not suitable.
  *
- * <p>This exception is currently unchecked because it will not
- * often be thrown and to avoid clutter in the code.
- * However, it should be checked for (explicitly caught) in some places,
- * in particular where controlled values are input from text fields.
- *
  * @author   Mark Taylor
  * @since    26 Feb 2013
  */
-public class ConfigException extends RuntimeException {
+public class ConfigException extends Exception {
 
     private final ConfigKey<?> key_;
 

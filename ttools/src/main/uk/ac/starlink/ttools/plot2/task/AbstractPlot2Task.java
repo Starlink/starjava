@@ -44,6 +44,7 @@ import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.StringParameter;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.task.TaskException;
+import uk.ac.starlink.task.UsageException;
 import uk.ac.starlink.ttools.func.Strings;
 import uk.ac.starlink.ttools.plot.GraphicExporter;
 import uk.ac.starlink.ttools.plot.Range;
@@ -65,6 +66,7 @@ import uk.ac.starlink.ttools.plot2.ShadeAxisFactory;
 import uk.ac.starlink.ttools.plot2.SubCloud;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
+import uk.ac.starlink.ttools.plot2.config.ConfigException;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.KeySet;
@@ -1529,7 +1531,14 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
         /* Work out the requested style. */
         @SuppressWarnings("unchecked")
         Plotter<S> splotter = (Plotter<S>) plotter;
-        S style = splotter.createStyle( config );
+        S style;
+        try {
+            style = splotter.createStyle( config );
+        }
+        catch ( ConfigException e ) {
+            throw new UsageException( e.getConfigKey().getMeta().getShortName()
+                                    + ": " + e.getMessage(), e );
+        }
 
         /* Return a layer based on these. */
         return splotter.createLayer( geom, dataSpec, style );

@@ -142,7 +142,7 @@ public class LabelPlotter extends AbstractPlotter<LabelStyle> {
         return list.toArray( new ConfigKey[ 0 ] );
     }
 
-    public LabelStyle createStyle( ConfigMap config ) {
+    public LabelStyle createStyle( ConfigMap config ) throws ConfigException {
         int iclimit = config.get( CROWDLIMIT_KEY );
         if ( iclimit < 1 || iclimit > MAX_CROWDLIMIT ) {
             throw new ConfigException( CROWDLIMIT_KEY,

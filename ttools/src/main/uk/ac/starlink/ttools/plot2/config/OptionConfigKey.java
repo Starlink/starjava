@@ -81,7 +81,7 @@ public class OptionConfigKey<T> extends ConfigKey<T> {
      * This means that if <code>valueToString</code> is overridden it
      * is usually not necessary to override this method.
      */
-    public T stringToValue( String txt ) {
+    public T stringToValue( String txt ) throws ConfigException {
         if ( txt == null || txt.trim().length() == 0 ) {
             return null;
         }

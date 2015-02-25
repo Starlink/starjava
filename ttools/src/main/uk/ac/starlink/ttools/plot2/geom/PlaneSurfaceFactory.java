@@ -179,7 +179,7 @@ public class PlaneSurfaceFactory
         return list.toArray( new ConfigKey[ 0 ] );
     }
 
-    public Profile createProfile( ConfigMap config ) throws ConfigException {
+    public Profile createProfile( ConfigMap config ) {
         boolean xlog = config.get( XLOG_KEY );
         boolean ylog = config.get( YLOG_KEY );
         boolean xflip = config.get( XFLIP_KEY );

@@ -54,7 +54,7 @@ public interface SurfaceFactory<P,A> {
      * @param  config  map of profile configuration items
      * @return  factory-specific plot surface profile
      */
-    P createProfile( ConfigMap config ) throws ConfigException;
+    P createProfile( ConfigMap config );
 
     /**
      * Returns the configuration keys that may be used to configure aspect
@@ -109,8 +109,7 @@ public interface SurfaceFactory<P,A> {
      * @param  ranges  range data filled in from layers, or null
      * @return   new aspect
      */
-    A createAspect( P profile, ConfigMap aspectConfig, Range[] ranges )
-        throws ConfigException;
+    A createAspect( P profile, ConfigMap aspectConfig, Range[] ranges );
 
     /**
      * Returns the configuration keys that may be used to configure

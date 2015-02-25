@@ -195,7 +195,7 @@ public abstract class BinSizer {
             dfltNbin_ = dfltNbin;
         }
 
-        public BinSizer stringToValue( String txt ) {
+        public BinSizer stringToValue( String txt ) throws ConfigException {
             double dval;
             try {
                 dval = Double.valueOf( txt.trim() );

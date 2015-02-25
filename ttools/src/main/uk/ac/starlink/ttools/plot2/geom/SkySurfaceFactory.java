@@ -198,7 +198,7 @@ public class SkySurfaceFactory
         return list.toArray( new ConfigKey[ 0 ] );
     }
 
-    public Profile createProfile( ConfigMap config ) throws ConfigException {
+    public Profile createProfile( ConfigMap config ) {
         Projection proj = config.get( PROJECTION_KEY );
         boolean reflect = config.get( REFLECT_KEY );
         SkySys viewSystem = config.get( VIEWSYS_KEY );
