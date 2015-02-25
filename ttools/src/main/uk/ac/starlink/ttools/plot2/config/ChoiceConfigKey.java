@@ -90,7 +90,7 @@ public abstract class ChoiceConfigKey<T> extends ConfigKey<T> {
      */
     public abstract String stringifyValue( T value );
 
-    public T stringToValue( String sval ) {
+    public T stringToValue( String sval ) throws ConfigException {
         if ( sval == null || sval.length() == 0 ) {
             if ( nullPermitted_ ) {
                 return null; 

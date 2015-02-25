@@ -24,7 +24,7 @@ public class SkySysConfigKey extends OptionConfigKey<SkySys> {
         return sys == null ? "generic" : super.valueToString( sys );
     }
 
-    public SkySys stringToValue( String str ) {
+    public SkySys stringToValue( String str ) throws ConfigException {
         return "generic".equals( str ) ? null
                                        : super.stringToValue( str );
     }

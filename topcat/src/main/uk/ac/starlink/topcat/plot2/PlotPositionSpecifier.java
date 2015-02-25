@@ -112,7 +112,7 @@ public class PlotPositionSpecifier extends SpecifierPanel<PlotPosition> {
             public String valueToString( Integer value ) {
                 return value == null ? "" : value.toString();
             }
-            public Integer stringToValue( String txt ) {
+            public Integer stringToValue( String txt ) throws ConfigException {
                 if ( txt == null || txt.trim().length() == 0 ) {
                     return null;
                 }

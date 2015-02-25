@@ -193,7 +193,10 @@ public abstract class FormLayerControl
                         PlotUtil.arrayConcat( posContents, extraContents );
                     DataSpec dspec =
                         new GuiDataSpec( tcModel_, subset, contents );
-                    layerList.add( fc.createLayer( geom, dspec, subset ) );
+                    PlotLayer layer = fc.createLayer( geom, dspec, subset );
+                    if ( layer != null ) {
+                        layerList.add( layer );
+                    }
                 }
             }
         }
@@ -244,10 +247,12 @@ public abstract class FormLayerControl
                         DataSpec dspec =
                             new GuiDataSpec( tcModel_, rset, contents );
                         PlotLayer layer = fc.createLayer( geom, dspec, rset );
-                        ReportMap report =
-                            reports.get( LayerId.createLayerId( layer ) );
-                        if ( report != null ) {
-                            sreports.put( rset, report );
+                        if ( layer != null ) {
+                            ReportMap report =
+                                reports.get( LayerId.createLayerId( layer ) );
+                            if ( report != null ) {
+                                sreports.put( rset, report );
+                            }
                         }
                     }
                 }

@@ -312,7 +312,7 @@ public class CubeSurfaceFactory
         return list.toArray( new ConfigKey[ 0 ] );
     }
 
-    public Profile createProfile( ConfigMap config ) throws ConfigException {
+    public Profile createProfile( ConfigMap config ) {
         boolean xlog = isIso_ ? false : config.get( XLOG_KEY );
         boolean ylog = isIso_ ? false : config.get( YLOG_KEY );
         boolean zlog = isIso_ ? false : config.get( ZLOG_KEY );

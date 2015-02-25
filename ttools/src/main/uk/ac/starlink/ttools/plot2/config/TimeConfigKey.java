@@ -59,7 +59,7 @@ public class TimeConfigKey extends ConfigKey<Double> {
                                      : formatTime( stime );
     }
 
-    public Double stringToValue( String txt ) {
+    public Double stringToValue( String txt ) throws ConfigException {
         if ( txt == null || txt.trim().length() == 0 ) {
             return new Double( Double.NaN );
         }

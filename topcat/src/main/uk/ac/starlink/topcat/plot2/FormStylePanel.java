@@ -22,8 +22,10 @@ import javax.swing.ListModel;
 import javax.swing.border.BevelBorder;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
+import uk.ac.starlink.ttools.plot.Style;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Plotter;
+import uk.ac.starlink.ttools.plot2.config.ConfigException;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.topcat.ActionForwarder;
@@ -300,14 +302,21 @@ public class FormStylePanel extends JPanel {
      * the state of its configuration.
      */
     private void updateLegendIcon() {
-        final Icon icon;
+        Style style;
         if ( subsetSelector_.getSelectedItem() instanceof RowSubset ) {
             ConfigMap config = subsetSpecifier_.getSpecifiedValue();
-            icon = plotterFact_.getItem().createStyle( config ).getLegendIcon();
+            try {
+                style = plotterFact_.getItem().createStyle( config );
+            }
+            catch ( ConfigException e ) {
+                style = null;
+            }
         }
         else {
-            icon = IconUtils.emptyIcon( 24, 24 );
+            style = null;
         }
+        Icon icon = style == null ? IconUtils.emptyIcon( 24, 24 )
+                                  : style.getLegendIcon();
         iconLabel_.setIcon( icon );
     }
 

@@ -160,7 +160,8 @@ public class FunctionPlotter extends
         };
     }
 
-    public FunctionStyle createStyle( ConfigMap config ) {
+    public FunctionStyle createStyle( ConfigMap config )
+            throws ConfigException {
         String xname = config.get( XNAME_KEY );   
         String fexpr = config.get( FEXPR_KEY );
         if ( xname == null || xname.trim().length() == 0 ||

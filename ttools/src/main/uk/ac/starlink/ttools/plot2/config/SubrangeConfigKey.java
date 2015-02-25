@@ -53,7 +53,7 @@ public class SubrangeConfigKey extends ConfigKey<Subrange> {
         return format( value.getLow(), 3 ) + "," + format( value.getHigh(), 3 );
     }
 
-    public Subrange stringToValue( String txt ) {
+    public Subrange stringToValue( String txt ) throws ConfigException {
         String[] limits = txt.split( "," );
         if ( limits.length == 2 ) {
             String slo = limits[ 0 ].trim();

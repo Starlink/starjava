@@ -38,6 +38,7 @@ public abstract class FormControl implements Control {
     private SubsetConfigManager subManager_;
     private FormStylePanel stylePanel_;
     private JComponent panel_;
+    private ConfigStyler styler_;
     private ReportPanel reportPanel_;
 
     /**
@@ -86,6 +87,20 @@ public abstract class FormControl implements Control {
             }
         }
         return panel_;
+    }
+
+    /**
+     * Returns this component's ConfigStyler.
+     *
+     * @return  config styler
+     */
+    private synchronized ConfigStyler getStyler() {
+
+        /* Constructed lazily because it needs the component. */
+        if ( styler_ == null ) {
+            styler_ = new ConfigStyler( getPanel() );
+        }
+        return styler_;
     }
 
     /**
@@ -185,33 +200,13 @@ public abstract class FormControl implements Control {
      *                   set up for the given subset
      * @param  subset   row subset in the current table for which the
      *                  layer is to be plotted
-     * @return   new plot layer
+     * @return   new plot layer, may be null in case of incorrect GUI config
      */
     public PlotLayer createLayer( DataGeom geom, DataSpec dataSpec,
                                   RowSubset subset ) {
-        return createLayer( getPlotter(), geom, dataSpec, subset );
-    }
-
-    /**
-     * Creates a plot layer.
-     *
-     * @param  geom  data position geometry
-     * @param  dataSpec  data specification, which must contain any data
-     *                   required by this control's extra coords and be
-     *                   set up for the given subset
-     * @param  subset   row subset in the current table for which the
-     *                  layer is to be plotted
-     * @param   new plot layer
-     */
-    private <S extends Style>
-            PlotLayer createLayer( Plotter<S> plotter, DataGeom geom,
-                                   DataSpec dataSpec, RowSubset subset ) {
         ConfigMap config = stylePanel_.getConfig( subset );
         config.putAll( getExtraConfig() );
-        S style = plotter.createStyle( config );
-        assert style.equals( plotter.createStyle( config ) );
-        assert style.hashCode() == plotter.createStyle( config ).hashCode();
-        return plotter.createLayer( geom, dataSpec, style );
+        return getStyler().createLayer( getPlotter(), geom, dataSpec, config );
     }
 
     /**

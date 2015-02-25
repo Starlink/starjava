@@ -67,7 +67,7 @@ public class ShapePlotter extends AbstractPlotter<ShapeStyle> {
                                      mode_.getConfigKeys() );
     }
 
-    public ShapeStyle createStyle( ConfigMap config ) throws ConfigException {
+    public ShapeStyle createStyle( ConfigMap config ) {
         ShapeStyle style = new ShapeStyle( form_.createOutliner( config ),
                                            mode_.createStamper( config ) );
         assert style.equals( new ShapeStyle( form_.createOutliner( config ),

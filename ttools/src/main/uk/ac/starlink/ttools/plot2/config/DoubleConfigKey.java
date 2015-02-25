@@ -35,7 +35,7 @@ public abstract class DoubleConfigKey extends ConfigKey<Double> {
              : value.toString();
     }
 
-    public Double stringToValue( String txt ) {
+    public Double stringToValue( String txt ) throws ConfigException {
         if ( txt == null || txt.trim().length() == 0 ) {
             return new Double( Double.NaN );
         }
