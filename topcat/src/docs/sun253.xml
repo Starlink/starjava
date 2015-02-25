@@ -21048,6 +21048,8 @@ introduced since the last version:
         and the displayed point count was always zero.</li>
     <li>Work round FITS read bug that could cause problems for VOTables using
         inline FITS serialization, and possibly elsewhere.</li>
+    <li>Fix bug that caused trouble when auto-ranging a plot 
+        with a single sky position.</li> 
     </ul>
     </p></dd>
 
