@@ -22,6 +22,7 @@ public class SinProjection extends SkyviewProjection {
     private static final double[] RX = new double[] { 1, 0, 0 };
     private static final double[] RY = new double[] { 0, 1, 0 };
     private static final double[] RZ = new double[] { 0, 0, 1 };
+    private static final double MAX_RANGE_ZOOM = 1e7;
 
     /** Singleton instance. */
     public static SinProjection INSTANCE = new SinProjection();
@@ -153,6 +154,7 @@ public class SinProjection extends SkyviewProjection {
                     double pmax = Arrays.maximum( new double[] {
                         Math.abs( pxBounds[ 0 ] ), Math.abs( pxBounds[ 1 ] ),
                         Math.abs( pyBounds[ 0 ] ), Math.abs( pyBounds[ 1 ] ),
+                        1.0 / MAX_RANGE_ZOOM,
                     } );
 
                     /* Work out a zoom factor based on this extent. */
