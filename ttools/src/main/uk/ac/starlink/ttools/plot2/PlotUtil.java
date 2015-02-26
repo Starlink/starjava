@@ -224,6 +224,17 @@ public class PlotUtil {
     }
 
     /**
+     * Turns a Number object into a double primitive.
+     * If the supplied value is null, Double.NaN is returned.
+     *
+     * @param  value  number object
+     * @return   primitive value
+     */
+    public static double toDouble( Number value ) {
+        return value == null ? Double.NaN : value.doubleValue();
+    }
+
+    /**
      * Indicates whether a value is a definite number.
      *
      * @param  value  value to test

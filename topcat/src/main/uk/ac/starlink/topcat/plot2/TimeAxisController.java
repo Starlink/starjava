@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
+import uk.ac.starlink.ttools.plot2.config.ConfigException;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
@@ -42,7 +43,18 @@ public class TimeAxisController
 
         /* Range tab. */
         addAspectConfigTab( "Range",
-                            new ConfigSpecifier( surfFact.getAspectKeys() ) );
+                            new ConfigSpecifier( surfFact.getAspectKeys() ) {
+            @Override
+            protected void checkConfig( ConfigMap config )
+                    throws ConfigException {
+                checkRangeSense( config, "Time",
+                                 TimeSurfaceFactory.TMIN_KEY,
+                                 TimeSurfaceFactory.TMAX_KEY );
+                checkRangeSense( config, "Y",
+                                 TimeSurfaceFactory.YMIN_KEY,
+                                 TimeSurfaceFactory.YMAX_KEY );
+            }
+        } );
 
         /* Grid tab. */
         mainControl.addSpecifierTab( "Grid",

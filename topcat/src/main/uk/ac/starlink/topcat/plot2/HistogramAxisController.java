@@ -6,6 +6,7 @@ import uk.ac.starlink.ttools.plot.Style;
 import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
+import uk.ac.starlink.ttools.plot2.config.ConfigException;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
@@ -59,7 +60,18 @@ public class HistogramAxisController
 
         /* Range tab. */
         addAspectConfigTab( "Range",
-                            new ConfigSpecifier( surfFact.getAspectKeys() ) );
+                            new ConfigSpecifier( surfFact.getAspectKeys() ) {
+            @Override
+            protected void checkConfig( ConfigMap config )
+                    throws ConfigException {
+                checkRangeSense( config, "X",
+                                 PlaneSurfaceFactory.XMIN_KEY,
+                                 PlaneSurfaceFactory.XMAX_KEY );
+                checkRangeSense( config, "Y",
+                                 PlaneSurfaceFactory.YMIN_KEY,
+                                 PlaneSurfaceFactory.YMAX_KEY );
+            }
+        } );
 
         /* Grid tab. */
         mainControl.addSpecifierTab( "Grid",
@@ -84,7 +96,6 @@ public class HistogramAxisController
         mainControl.addSpecifierTab( "Font",
                                      new ConfigSpecifier( StyleKeys.CAPTIONER
                                                          .getKeys() ) );
-
 
         /* Bars control. */
         ConfigControl barControl =

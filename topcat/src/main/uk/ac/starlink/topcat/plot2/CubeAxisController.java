@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
+import uk.ac.starlink.ttools.plot2.config.ConfigException;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
@@ -100,6 +101,21 @@ public class CubeAxisController
                     c.put( CubeSurfaceFactory.YOFF_KEY, asp.getOffsetY() );
                 }
                 return c;
+            }
+            @Override
+            protected void checkConfig( ConfigMap config )
+                    throws ConfigException {
+                if ( ! isIso_ ) {
+                    checkRangeSense( config, "X",
+                                     CubeSurfaceFactory.XMIN_KEY,
+                                     CubeSurfaceFactory.XMAX_KEY );
+                    checkRangeSense( config, "Y",
+                                     CubeSurfaceFactory.YMIN_KEY,
+                                     CubeSurfaceFactory.YMAX_KEY );
+                    checkRangeSense( config, "Z",
+                                     CubeSurfaceFactory.ZMIN_KEY,
+                                     CubeSurfaceFactory.ZMAX_KEY );
+                }
             }
         };
         addAspectConfigTab( "Range", rangeSpecifier );

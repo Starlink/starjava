@@ -21055,6 +21055,8 @@ introduced since the last version:
         unsigned bytes where the output format permits;
         previously they were forced to 16-bit signed integers.
         This affects FITS, VOTable and CDF I/O handlers.</li>
+    <li>Catch and report the error properly if the user enters
+        a bad explicit axis range (max value &lt;= min value).</li>
     </ul>
     </p></dd>
 
