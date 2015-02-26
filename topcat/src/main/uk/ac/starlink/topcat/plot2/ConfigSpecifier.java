@@ -9,6 +9,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import uk.ac.starlink.table.gui.LabelledComponentStack;
+import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.config.ConfigException;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
@@ -143,6 +144,7 @@ public class ConfigSpecifier extends SpecifierPanel<ConfigMap> {
      * @param  config  config map to check
      * @throws  ConfigException  if there's something wrong with
      *                           the supplied map
+     * @see  #checkRangeSense checkRangeSense
      */
     protected void checkConfig( ConfigMap config ) throws ConfigException {
     }
@@ -256,6 +258,39 @@ public class ConfigSpecifier extends SpecifierPanel<ConfigMap> {
          * Specifier.reportError would be required) so that it can take
          * specific actions; e.g. in case of text field, grey out the
          * bad text for user editing rather than deleting it altogether. */
+    }
+
+    /**
+     * Utility method to check that min/max keys specifying a range
+     * are not the wrong way round.  Note that indefinite values at
+     * either end are OK.
+     *
+     * @param  config  config map
+     * @param  axName  axis name, used for error messages
+     * @param  minKey  config key for minimum value
+     * @param  maxKey  config key for maximum value
+     * @throws  ConfigException   if the min value is definitely
+     *                            greater than or equal to the max value
+     */
+    public static void checkRangeSense( ConfigMap config, String axName,
+                                        ConfigKey<Double> minKey,
+                                        ConfigKey<Double> maxKey )
+            throws ConfigException {
+        double min = PlotUtil.toDouble( config.get( minKey ) );
+        double max = PlotUtil.toDouble( config.get( maxKey ) );
+        final String errMsg;
+        if ( min > max ) {
+            errMsg = axName + " range backwards  (" + min + " > " + max + ")";
+        }
+        else if ( min == max ) {
+            errMsg = axName + " zero range (" + min + " = " + max + ")";
+        }
+        else {
+            errMsg = null;
+        }
+        if ( errMsg != null ) {
+            throw new ConfigException( maxKey, errMsg );
+        }
     }
 
     /**

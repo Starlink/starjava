@@ -1,7 +1,6 @@
 package uk.ac.starlink.topcat.plot2;
 
 import java.awt.Color;
-import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.Box;
@@ -19,6 +18,7 @@ import uk.ac.starlink.ttools.plot2.ShadeAxis;
 import uk.ac.starlink.ttools.plot2.ShadeAxisFactory;
 import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.config.BooleanConfigKey;
+import uk.ac.starlink.ttools.plot2.config.ConfigException;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
@@ -80,7 +80,14 @@ public class ShaderControl extends ConfigControl {
 
         rangeSpecifier_ = new ConfigSpecifier( new ConfigKey[] {
             StyleKeys.SHADE_LOW, StyleKeys.SHADE_HIGH, StyleKeys.SHADE_SUBRANGE,
-        } );
+        } ) {
+            @Override
+            protected void checkConfig( ConfigMap config )
+                    throws ConfigException {
+                checkRangeSense( config, "Aux",
+                                 StyleKeys.SHADE_LOW, StyleKeys.SHADE_HIGH );
+            }
+        };
         rangeSpecifier_.addActionListener( forwarder );
 
         ConfigKey[] shaderKeys =
@@ -98,15 +105,10 @@ public class ShaderControl extends ConfigControl {
      */
     public Range getFixRange() {
         ConfigMap rangeConfig = rangeSpecifier_.getSpecifiedValue();
-        double lo = toDouble( rangeConfig.get( StyleKeys.SHADE_LOW ) );
-        double hi = toDouble( rangeConfig.get( StyleKeys.SHADE_HIGH ) );
-        if ( lo > hi ) {
-            hi = Double.NaN;
-            rangeSpecifier_.getSpecifier( StyleKeys.SHADE_HIGH )
-                           .setSpecifiedValue( new Double( hi ) );
-            Toolkit.getDefaultToolkit().beep();
-        }
-        return new Range( lo, hi );
+        return new Range( PlotUtil
+                         .toDouble( rangeConfig.get( StyleKeys.SHADE_LOW ) ),
+                          PlotUtil
+                         .toDouble( rangeConfig.get( StyleKeys.SHADE_HIGH ) ) );
     }
 
     /**
@@ -193,15 +195,5 @@ public class ShaderControl extends ConfigControl {
             }
         }
         return false;
-    }
-
-    /**
-     * Turns a Double object into a primitive.
-     *
-     * @param  dval  object
-     * @return   primitive
-     */
-    private static double toDouble( Double dval ) {
-        return dval == null ? Double.NaN : dval.doubleValue();
     }
 }
