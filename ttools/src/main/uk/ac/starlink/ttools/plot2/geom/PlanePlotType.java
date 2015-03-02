@@ -16,7 +16,7 @@ import uk.ac.starlink.ttools.plot2.layer.ContourPlotter;
 import uk.ac.starlink.ttools.plot2.layer.DensogramPlotter;
 import uk.ac.starlink.ttools.plot2.layer.FunctionPlotter;
 import uk.ac.starlink.ttools.plot2.layer.HistogramPlotter;
-import uk.ac.starlink.ttools.plot2.layer.PixogramPlotter;
+import uk.ac.starlink.ttools.plot2.layer.KernelDensityPlotter;
 import uk.ac.starlink.ttools.plot2.layer.LinePlotter;
 import uk.ac.starlink.ttools.plot2.layer.LinearFitPlotter;
 import uk.ac.starlink.ttools.plot2.layer.LabelPlotter;
@@ -92,7 +92,7 @@ public class PlanePlotType implements PlotType {
             new LabelPlotter(),
             new ContourPlotter(),
             new HistogramPlotter( PlaneDataGeom.X_COORD, true ),
-            new PixogramPlotter( PlaneDataGeom.X_COORD, true ),
+            new KernelDensityPlotter( PlaneDataGeom.X_COORD, true ),
             new DensogramPlotter( PlaneDataGeom.X_COORD, true ),
             FunctionPlotter.PLANE,
         } ) );
