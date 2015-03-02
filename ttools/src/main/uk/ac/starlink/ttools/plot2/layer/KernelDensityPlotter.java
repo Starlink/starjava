@@ -37,8 +37,8 @@ import uk.ac.starlink.ttools.plot2.geom.PlaneSurface;
  * @author   Mark Taylor
  * @since    17 Feb 2015
  */
-public class PixogramPlotter
-        extends Pixel1dPlotter<PixogramPlotter.PixoStyle> {
+public class KernelDensityPlotter
+        extends Pixel1dPlotter<KernelDensityPlotter.KDenseStyle> {
 
     /** Report key for plotted bin height in data coordinates. */
     public static final ReportKey<double[]> BINS_KEY =
@@ -71,23 +71,29 @@ public class PixogramPlotter
      * @param   xCoord  X axis coordinate
      * @param   hasWeight   true to permit histogram weighting
      */
-    public PixogramPlotter( FloatingCoord xCoord, boolean hasWeight ) {
-        super( xCoord, hasWeight, "Pixogram", ResourceIcon.PLOT_PIXOGRAM );
+    public KernelDensityPlotter( FloatingCoord xCoord, boolean hasWeight ) {
+        super( xCoord, hasWeight, "KDE", ResourceIcon.PLOT_KDE );
     }
 
     public String getPlotterDescription() {
         return PlotUtil.concatLines( new String[] {
-            "<p>Plots smoothed frequency of data values along the",
+            "<p>Plots a Kernel Density Estimate",
+            "giving a smoothed frequency of data values along the",
             "horizontal axis.",
             "This is a generalisation of a histogram in which",
             "the bins are always 1 pixel wide,",
-            "and a smoothing kernel",
-            "(currently of a fixed rectangular form,",
-            "whose width may be varied)",
+            "and a smoothing kernel,",
+            "whose width and shape may be varied,",
             "is applied to each data point.",
             "</p>",
-            "<p>It is suitable for cases where the division into discrete bins",
+            "<p>This is suitable for cases where",
+            "the division into discrete bins",
             "done by a normal histogram is unnecessary or troublesome.",
+            "</p>",
+            "<p>Since the plotted output is quantised to the pixel level",
+            "it's not a true Kernel Density Estimation,",
+            "but at least on a bitmapped display it is indistinguishable",
+            "from one.",
             "</p>",
         } );
     }
@@ -105,7 +111,7 @@ public class PixogramPlotter
         return list.toArray( new ConfigKey[ 0 ] );
     }
 
-    public PixoStyle createStyle( ConfigMap config ) {
+    public KDenseStyle createStyle( ConfigMap config ) {
         Color baseColor = config.get( StyleKeys.COLOR );
         double alpha = 1 - config.get( StyleKeys.TRANSPARENCY );
         float[] rgba = baseColor.getRGBComponents( new float[ 4 ] );
@@ -122,21 +128,21 @@ public class PixogramPlotter
                    : new BasicStroke( config.get( THICK_KEY ),
                                       BasicStroke.CAP_ROUND,
                                       BasicStroke.JOIN_ROUND );
-        return new PixoStyle( color, stroke, kernel, isCumulative, norm );
+        return new KDenseStyle( color, stroke, kernel, isCumulative, norm );
     }
 
-    protected LayerOpt getLayerOpt( PixoStyle style ) {
+    protected LayerOpt getLayerOpt( KDenseStyle style ) {
         Color color = style.color_;
         boolean isOpaque = color.getAlpha() == 255;
         return new LayerOpt( color, isOpaque );
     }
 
-    protected int getPixelPadding( PixoStyle style ) {
+    protected int getPixelPadding( KDenseStyle style ) {
         return getEffectiveExtent( style.kernel_ );
     }
 
     protected void paintBins( PlaneSurface surface, BinArray binArray,
-                              PixoStyle style, Graphics2D g ) {
+                              KDenseStyle style, Graphics2D g ) {
         /* Store graphics context state. */
         Color color0 = g.getColor();
         g.setColor( style.color_ );
@@ -250,7 +256,7 @@ public class PixogramPlotter
 
     protected void extendPixel1dCoordinateRanges( Range[] ranges,
                                                   boolean[] logFlags,
-                                                  PixoStyle style,
+                                                  KDenseStyle style,
                                                   DataSpec dataSpec,
                                                   DataStore dataStore ) {
 
@@ -292,7 +298,8 @@ public class PixogramPlotter
         }
     }
 
-    protected ReportMap getPixel1dReport( Pixel1dPlan plan, PixoStyle style ) {
+    protected ReportMap getPixel1dReport( Pixel1dPlan plan,
+                                          KDenseStyle style ) {
         BinArray binArray = plan.binArray_;
         Axis xAxis = plan.xAxis_;
         double[] dataBins = getDataBins( binArray, xAxis, style.kernel_,
@@ -338,9 +345,9 @@ public class PixogramPlotter
     }
 
     /**
-     * Style subclass for pixogram plots.
+     * Style subclass for kernel density plots.
      */
-    public static class PixoStyle implements Style {
+    public static class KDenseStyle implements Style {
         private final Color color_;
         private final Stroke stroke_;
         private final Kernel1d kernel_;
@@ -357,8 +364,8 @@ public class PixogramPlotter
          * @param  isCumulative  are bins painted cumulatively
          * @param  norm   normalisation mode
          */
-        public PixoStyle( Color color, Stroke stroke, Kernel1d kernel,
-                          boolean isCumulative, Normalisation norm ) {
+        public KDenseStyle( Color color, Stroke stroke, Kernel1d kernel,
+                            boolean isCumulative, Normalisation norm ) {
             color_ = color;
             stroke_ = stroke;
             kernel_ = kernel;
@@ -386,8 +393,8 @@ public class PixogramPlotter
 
         @Override
         public boolean equals( Object o ) {
-            if ( o instanceof PixoStyle ) {
-                PixoStyle other = (PixoStyle) o;
+            if ( o instanceof KDenseStyle ) {
+                KDenseStyle other = (KDenseStyle) o;
                 return this.color_.equals( other.color_ )
                     && PlotUtil.equals( this.stroke_, other.stroke_ )
                     && this.kernel_.equals( other.kernel_ )

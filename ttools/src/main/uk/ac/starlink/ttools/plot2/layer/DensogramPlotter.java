@@ -87,16 +87,20 @@ public class DensogramPlotter
         return PlotUtil.concatLines( new String[] {
             "<p>Represents smoothed density of data values",
             "along the horizontal axis using a colourmap.",
-            "This is like a pixogram (histogram with bins 1 pixel wide),",
+            "This is like a",
+            "<ref id='layer-kde'>Kernel Density Estimate</ref>",
+            "(smoothed histogram with bins 1 pixel wide),",
             "but instead of representing the data extent vertically",
             "as bars or a line,",
             "values are represented by a fixed-size pixel-width column",
             "of a colour from a colour map.",
-            "A smoothing kernel",
-            "(currently of a fixed rectangular form,",
-            "whose width may be varied)",
+            "A smoothing kernel, whose width and shape may be varied,",
             "is applied to each data point.",
-            "</p>"
+            "</p>",
+            "<p>This is a rather unconventional way to represent density data,",
+            "and this plotting mode is probably not very useful.",
+            "But hey, nobody's forcing you to use it.",
+            "</p>",
         } );
     }
 
