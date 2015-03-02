@@ -6,7 +6,6 @@ import java.util.Map;
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot.Style;
-import uk.ac.starlink.ttools.plot2.Equality;
 import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.Axis;
 import uk.ac.starlink.ttools.plot2.Decal;
@@ -20,7 +19,11 @@ import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
-import uk.ac.starlink.ttools.plot2.config.IntegerConfigKey;
+import uk.ac.starlink.ttools.plot2.config.ConversionSpecifier;
+import uk.ac.starlink.ttools.plot2.config.DoubleConfigKey;
+import uk.ac.starlink.ttools.plot2.config.OptionConfigKey;
+import uk.ac.starlink.ttools.plot2.config.SliderSpecifier;
+import uk.ac.starlink.ttools.plot2.config.Specifier;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.CoordGroup;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
@@ -53,10 +56,11 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
 
     /** Not a fixed limit, it's just optimisation. */
     private static final int MAX_KERNEL_WIDTH = 50;
+    private static final int MAX_KERNEL_EXTENT = 150;
 
     /** Config key for smoothing width. */
-    public static final ConfigKey<Integer> SMOOTH_KEY =
-        IntegerConfigKey.createSliderKey(
+    public static final ConfigKey<Double> SMOOTH_KEY =
+        new DoubleConfigKey( 
             new ConfigMeta( "smooth", "Smoothing" )
            .setShortDescription( "Smoothing half-width in pixels" )
            .setXmlDescription( new String[] {
@@ -64,7 +68,34 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
                 "used to smooth the histogram bins for display.",
                 "</p>",
             } )
-        , 3, 0, MAX_KERNEL_WIDTH, false );
+        , 3.0 ) {
+            public Specifier<Double> createSpecifier() {
+                return new ConversionSpecifier<Double,Double>(
+                        new SliderSpecifier( 1, MAX_KERNEL_WIDTH, true, 3 ) ) {
+                    protected Double inToOut( Double inVal ) {
+                        return inVal - 1;
+                    }
+                    protected Double outToIn( Double outVal ) {
+                        return outVal + 1;
+                    }
+                };
+            }
+        };
+
+    /** Config key for smoothing kernel shape. */
+    public static final ConfigKey<Kernel1dShape> KERNEL_KEY =
+        new OptionConfigKey<Kernel1dShape>(
+            new ConfigMeta( "kernel", "Kernel" )
+           .setShortDescription( "Smoothing kernel functional form" )
+           .setXmlDescription( new String[] {
+                "<p>The functional form of the smoothing kernel",
+                "used if <code>" + SMOOTH_KEY + "</code>&gt;0.",
+                "</p>",
+            } )
+        , Kernel1dShape.class, Kernel1dShape.getStandardOptions(),
+        Kernel1dShape.COS2 )
+       .setOptionUsage()
+       .addOptionsXml();
 
     /**
      * Constructor.
@@ -152,7 +183,7 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
     /**
      * Performs any required range extension.  May be a no-op.
      *
-     * @param  array of data space dimension ranges to update
+     * @param  ranges   array of data space dimension ranges to update
      * @param  logFlags  array of linear/log flags corresponding to ranges
      * @param  style   plotting style
      * @param  dataSpec  data specification
@@ -337,7 +368,7 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
      * @return  output data bin values
      */
     public static double[] getDataBins( BinArray binArray, Axis xAxis,
-                                        Kernel kernel, Normalisation norm,
+                                        Kernel1d kernel, Normalisation norm,
                                         boolean cumul ) {
         double[] bins = binArray.getBins();
         int nb = bins.length;
@@ -395,13 +426,16 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
     }
 
     /**
-     * Returns a smoothing kernel with a given width.
+     * Returns the range of a given kernel over which it will be evaluated
+     * for the purposes of this plotter.
+     * This is basically the kernel's extent, but it may be limited to some
+     * maximum for practical purposes.
      *
-     * @param  width  half-width in pixels
-     * @return  kernel
+     * @param  kernel
+     * @return  effective extent
      */
-    public static Kernel createKernel( int width ) {
-        return new SquareKernel( width );
+    public int getEffectiveExtent( Kernel1d kernel ) {
+        return Math.min( kernel.getExtent(), MAX_KERNEL_EXTENT );
     }
 
     /**
@@ -421,87 +455,6 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
         }
         else {
             return Double.NaN;
-        }
-    }
-
-    /**
-     * Defines the smoothing function used for pixel bins.
-     */
-    @Equality
-    public interface Kernel {
-
-        /**
-         * Returns the half-width in pixels over which a value at a given
-         * point will be smoothed.
-         *
-         * @return  smoothing width in pixels
-         */
-        int getWidth();
-
-        /**
-         * Applies this kernel to a data array.
-         * Note, the values within <code>getWidth</code> pixels of the
-         * start and end of the returned data array will be distorted,
-         * so this method should be called on an input array with
-         * sufficient padding at either end that this effect can be ignored.
-         *
-         * @param  data  input data array
-         * @return  output data array, same dimensions as input,
-         *          but containing convolved data
-         */
-        double[] convolve( double[] data );
-    }
-
-    /**
-     * Kernel implementation using a rectangular function.
-     */
-    private static class SquareKernel implements Kernel {
-        final int width_;
-
-        /**
-         * Constructor.
-         *
-         * @param  width  half-width in pixels
-         */
-        public SquareKernel( int width ) {
-            width_ = width;
-        }
-
-        public int getWidth() {
-            return width_;
-        }
-
-        public double[] convolve( double[] in ) {
-            int ns = in.length;
-            double[] out = new double[ ns ];
-            for ( int is = width_; is < ns - width_; is++ ) {
-                for ( int ik = -width_; ik <= width_; ik++ ) {
-                    out[ is ] += in[ is + ik ];
-                }
-            }
-            double scale = 1.0 / ( width_ * 2 + 1 );
-            for ( int is = 0; is < ns; is++ ) {
-                out[ is ] *= scale;
-            }
-            return out;
-        }
-
-        @Override
-        public int hashCode() {
-            int code = 88234;
-            code = 23 * code + width_;
-            return code;
-        }
-
-        @Override
-        public boolean equals( Object o ) {
-            if ( o instanceof SquareKernel ) {
-                SquareKernel other = (SquareKernel) o;
-                return this.width_ == other.width_;
-            }
-            else {
-                return false;
-            }
         }
     }
 
