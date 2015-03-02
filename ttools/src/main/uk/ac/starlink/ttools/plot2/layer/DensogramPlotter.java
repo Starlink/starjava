@@ -104,6 +104,7 @@ public class DensogramPlotter
         List<ConfigKey> list = new ArrayList<ConfigKey>();
         list.add( StyleKeys.COLOR );
         list.add( SMOOTH_KEY );
+        list.add( KERNEL_KEY );
         list.addAll( Arrays.asList( RAMP_KEYSET.getKeys() ) );
         list.add( StyleKeys.CUMULATIVE );
         list.add( EXTENT_KEY );
@@ -114,8 +115,9 @@ public class DensogramPlotter
     public DensoStyle createStyle( ConfigMap config ) {
         Color baseColor = config.get( StyleKeys.COLOR );
         RampKeySet.Ramp ramp = RAMP_KEYSET.createValue( config );
-        int width = config.get( SMOOTH_KEY );
-        Kernel kernel = createKernel( width );
+        double width = config.get( SMOOTH_KEY );
+        Kernel1dShape kernelShape = config.get( KERNEL_KEY );
+        Kernel1d kernel = kernelShape.createKernel( width );
         boolean cumul = config.get( StyleKeys.CUMULATIVE );
         int extent = config.get( EXTENT_KEY );
         double position = config.get( POSITION_KEY );
@@ -183,7 +185,7 @@ public class DensogramPlotter
     }
 
     protected int getPixelPadding( DensoStyle style ) {
-        return style.kernel_.getWidth();
+        return getEffectiveExtent( style.kernel_ );
     }
 
     protected void extendPixel1dCoordinateRanges( Range[] ranges,
@@ -206,7 +208,7 @@ public class DensogramPlotter
         final Color baseColor_;
         final Shader shader_;
         final Scaling scaling_;
-        final Kernel kernel_;
+        final Kernel1d kernel_;
         final boolean cumul_;
         final int extent_;
         final double position_;
@@ -223,7 +225,7 @@ public class DensogramPlotter
          * @param  position   fractional location of density bar (0..1)
          */
         public DensoStyle( Color baseColor, Shader shader, Scaling scaling,
-                           Kernel kernel, boolean cumul,
+                           Kernel1d kernel, boolean cumul,
                            int extent, double position ) {
             baseColor_ = baseColor;
             shader_ = shader;

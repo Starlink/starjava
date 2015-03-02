@@ -97,6 +97,7 @@ public class PixogramPlotter
         list.add( StyleKeys.COLOR );
         list.add( StyleKeys.TRANSPARENCY );
         list.add( SMOOTH_KEY );
+        list.add( KERNEL_KEY );
         list.add( StyleKeys.CUMULATIVE );
         list.add( StyleKeys.NORMALISE );
         list.add( FILL_KEY );
@@ -111,8 +112,9 @@ public class PixogramPlotter
         rgba[ 3 ] *= alpha;
         Color color = new Color( rgba[ 0 ], rgba[ 1 ], rgba[ 2 ], rgba[ 3 ] );
         boolean isFill = config.get( FILL_KEY );
-        int width = config.get( SMOOTH_KEY );
-        Kernel kernel = createKernel( width );
+        double width = config.get( SMOOTH_KEY );
+        Kernel1dShape kernelShape = config.get( KERNEL_KEY );
+        Kernel1d kernel = kernelShape.createKernel( width );
         boolean isCumulative = config.get( StyleKeys.CUMULATIVE );
         Normalisation norm = config.get( StyleKeys.NORMALISE );
         Stroke stroke =
@@ -130,7 +132,7 @@ public class PixogramPlotter
     }
 
     protected int getPixelPadding( PixoStyle style ) {
-        return style.kernel_.getWidth();
+        return getEffectiveExtent( style.kernel_ );
     }
 
     protected void paintBins( PlaneSurface surface, BinArray binArray,
@@ -141,7 +143,8 @@ public class PixogramPlotter
 
         /* Get the data values for each pixel position. */
         Axis xAxis = surface.getAxes()[ 0 ];
-        double[] bins = getDataBins( binArray, xAxis, style.kernel_,
+        Kernel1d kernel = style.kernel_;
+        double[] bins = getDataBins( binArray, xAxis, kernel,
                                      style.norm_, style.isCumulative_ );
     
         /* Work out the Y axis base of the bars in graphics coordinates. */
@@ -180,20 +183,16 @@ public class PixogramPlotter
                      : gy0;
         }
 
+        /* Determine whether to accentuate or play down the jaggedness
+         * of the pixel quantisation of the convolved function. */
+        boolean squareLines = kernel.isSquare() || kernel.getExtent() <= 1;
+
         /* Either plot a rectangle (1-pixel wide bar) for each count. */
         if ( style.stroke_ == null ) {
             final int nVertex;
             final int[] pxs;
             final int[] pys;
-            final boolean obliqueLines = false;
-            if ( obliqueLines ) {
-                nVertex = np + 2;
-                pxs = new int[ nVertex ];
-                pys = new int[ nVertex ];
-                System.arraycopy( xs, 0, pxs, 1, np );
-                System.arraycopy( ys, 0, pys, 1, np );
-            }
-            else {
+            if ( squareLines ) {
                 nVertex = np * 2 + 2;
                 pxs = new int[ nVertex ];
                 pys = new int[ nVertex ];
@@ -204,6 +203,13 @@ public class PixogramPlotter
                     pys[ ip * 2 + 2 ] = ys[ ip ];
                 }
             }
+            else {
+                nVertex = np + 2;
+                pxs = new int[ nVertex ];
+                pys = new int[ nVertex ];
+                System.arraycopy( xs, 0, pxs, 1, np );
+                System.arraycopy( ys, 0, pys, 1, np );
+            }
             pxs[ 0 ] = xs[ 0 ];
             pys[ 0 ] = gy0;
             pxs[ nVertex - 1 ] = xs[ np - 1 ] + 1;
@@ -213,9 +219,28 @@ public class PixogramPlotter
 
         /* Or plot a wiggly line along the top of the bars. */
         else {
+            final int nVertex;
+            final int[] pxs;
+            final int[] pys;
+            if ( squareLines ) {
+                nVertex = np * 2;
+                pxs = new int[ nVertex ];
+                pys = new int[ nVertex ];
+                for ( int ip = 0; ip < np; ip++ ) {
+                    pxs[ ip * 2 ] = xs[ ip ];
+                    pys[ ip * 2 ] = ys[ ip ];
+                    pxs[ ip * 2 + 1 ] = xs[ ip ] + 1;
+                    pys[ ip * 2 + 1 ] = ys[ ip ];
+                }
+            }
+            else {
+                nVertex = np;
+                pxs = xs;
+                pys = ys;
+            }
             Stroke stroke0 = g.getStroke();
             g.setStroke( style.stroke_ );
-            g.drawPolyline( xs, ys, np );
+            g.drawPolyline( pxs, pys, nVertex );
             g.setStroke( stroke0 );
         }
 
@@ -256,7 +281,7 @@ public class PixogramPlotter
         int gxhi = GUESS_PLOT_WIDTH;
         boolean xflip = false;
         Axis xAxis = Axis.createAxis( gxlo, gxhi, dxlo, dxhi, xlog, xflip );
-        int xpad = style.kernel_.getWidth();
+        int xpad = getEffectiveExtent( style.kernel_ );
         BinArray binArray = readBins( xAxis, xpad, dataSpec, dataStore );
         double[] bins = getDataBins( binArray, xAxis, style.kernel_,
                                      style.norm_, style.isCumulative_ );
@@ -318,7 +343,7 @@ public class PixogramPlotter
     public static class PixoStyle implements Style {
         private final Color color_;
         private final Stroke stroke_;
-        private final Kernel kernel_;
+        private final Kernel1d kernel_;
         private final boolean isCumulative_;
         private final Normalisation norm_;
         private final Icon icon_;
@@ -332,7 +357,7 @@ public class PixogramPlotter
          * @param  isCumulative  are bins painted cumulatively
          * @param  norm   normalisation mode
          */
-        public PixoStyle( Color color, Stroke stroke, Kernel kernel,
+        public PixoStyle( Color color, Stroke stroke, Kernel1d kernel,
                           boolean isCumulative, Normalisation norm ) {
             color_ = color;
             stroke_ = stroke;
