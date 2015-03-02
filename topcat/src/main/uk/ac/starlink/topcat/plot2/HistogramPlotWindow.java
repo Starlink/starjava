@@ -108,6 +108,11 @@ public class HistogramPlotWindow
         };
         insertRescaleAction( yRescaleAct );
 
+        /* Switch off default sketching, since with histograms the
+         * sketched result typically looks unlike the final one
+         * (fewer samples mean the bars are shorter). */
+        getSketchModel().setSelected( false );
+
         /* Complete the setup. */
         getToolBar().addSeparator();
         addHelp( "HistogramPlotWindow" );
