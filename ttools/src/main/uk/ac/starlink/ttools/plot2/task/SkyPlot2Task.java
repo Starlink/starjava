@@ -5,6 +5,7 @@ import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.ttools.plot2.DataGeom;
+import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
 import uk.ac.starlink.ttools.plot2.config.SkySysConfigKey;
 import uk.ac.starlink.ttools.plot2.geom.SkyPlotType;
 import uk.ac.starlink.ttools.plot2.geom.SkySys;
@@ -133,7 +134,8 @@ public class SkyPlot2Task extends TypedPlot2Task {
                 "If not supplied explicitly,",
                 "<code>" + datasysName + "</code> defaults to the same value",
                 "as <code>" + viewsysName_ + "</code>.",
-                SkySysConfigKey.getDescribedOptionsXml(),
+                new SkySysConfigKey( new ConfigMeta( "dummy", "dummy" ), false )
+                   .getOptionsXml()
             } );
             return param;
         }

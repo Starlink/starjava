@@ -53,7 +53,11 @@ public class CaptionerKeySet implements KeySet<Captioner> {
         textSyntaxKey_ =
             new OptionConfigKey<TextSyntax>( syntaxMeta, TextSyntax.class,
                                              TextSyntax.values(),
-                                             syntaxDflt, true )
+                                             syntaxDflt, true ) {
+                public String getXmlDescription( TextSyntax syntax ) {
+                    return null;
+                }
+            }
            .setOptionUsage();
 
         ConfigMeta sizeMeta = new ConfigMeta( "fontsize", "Font Size" );
@@ -67,43 +71,35 @@ public class CaptionerKeySet implements KeySet<Captioner> {
 
         ConfigMeta typeMeta = new ConfigMeta( "fontstyle", "Font Style" );
         typeMeta.setShortDescription( "Font style" );
-        StringBuffer sitemBuf = new StringBuffer();
-        for ( FontType ftype : FontType.values() ) {
-            sitemBuf.append( "<li><code>" )
-                    .append( ftype.toString() )
-                    .append( "</code></li>\n" );
-        }
         typeMeta.setXmlDescription( new String[] {
-            "<p>Font style for text, one of",
-            "<ul>",
-            sitemBuf.toString(),
-            "</ul>",
+            "<p>Font style for text.",
             "</p>",
         } );
         fontTypeKey_ =
             new OptionConfigKey<FontType>( typeMeta, FontType.class,
-                                           FontType.values() )
-           .setOptionUsage();
+                                           FontType.values() ) {
+                public String getXmlDescription( FontType ft ) {
+                    return null;
+                }
+            }
+           .setOptionUsage()
+           .addOptionsXml();
 
         ConfigMeta weightMeta = new ConfigMeta( "fontweight", "Font Weight" );
         weightMeta.setShortDescription( "Font weight" );
-        StringBuffer witemBuf = new StringBuffer();
-        for ( FontWeight fweight : FontWeight.values() ) {
-            witemBuf.append( "<li><code>" )
-                    .append( fweight.toString() )
-                    .append( "</code></li>\n" );
-        }
         weightMeta.setXmlDescription( new String[] {
-            "<p>Font weight for text, one of",
-            "<ul>",
-            witemBuf.toString(),
-            "</ul>",
+            "<p>Font weight for text.",
             "</p>",
         } );
         fontWeightKey_ =
             new OptionConfigKey<FontWeight>( weightMeta, FontWeight.class,
-                                             FontWeight.values() )
-           .setOptionUsage();
+                                             FontWeight.values() ) {
+                public String getXmlDescription( FontWeight fw ) {
+                    return null;
+                }
+            }
+           .setOptionUsage()
+           .addOptionsXml();
     }
 
     public ConfigKey[] getKeys() {

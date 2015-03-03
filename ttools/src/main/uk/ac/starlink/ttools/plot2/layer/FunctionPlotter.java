@@ -125,6 +125,9 @@ public class FunctionPlotter extends
             public String valueToString( FuncAxis axis ) {
                 return axis.getAxisName();
             }
+            public String getXmlDescription( FuncAxis axis ) {
+                return null;
+            }
         }.setOptionUsage();
     }
 

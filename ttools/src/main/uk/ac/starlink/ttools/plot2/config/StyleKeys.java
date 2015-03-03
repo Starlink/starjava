@@ -52,6 +52,9 @@ public class StyleKeys {
                 "</p>",
             } )
         , MarkShape.class, SHAPES, MarkShape.FILLED_CIRCLE ) {
+        public String getXmlDescription( MarkShape shape ) {
+            return null;
+        }
         public Specifier<MarkShape> createSpecifier() {
             return new ComboBoxSpecifier<MarkShape>( MarkStyleSelectors
                                                     .createShapeSelector() );
@@ -88,6 +91,9 @@ public class StyleKeys {
            .setXmlDescription( new String[] {
             } )
         , XYShape.class, XYSHAPES ) {
+        public String getXmlDescription( XYShape shape ) {
+            return null;
+        }
         public Specifier<XYShape> createSpecifier() {
             JComboBox shapeSelector = new RenderingComboBox( XYSHAPES ) {
                 @Override
@@ -208,6 +214,9 @@ public class StyleKeys {
                 "</p>",
             } )
         , BarStyle.Form.class, BARFORMS ) {
+            public String getXmlDescription( BarStyle.Form barForm ) {
+                return null;
+            }
             public Specifier<BarStyle.Form> createSpecifier() {
                 JComboBox formSelector = new RenderingComboBox( BARFORMS ) {
                     protected Icon getRendererIcon( Object form ) {
@@ -237,8 +246,17 @@ public class StyleKeys {
         new OptionConfigKey<Normalisation>(
             new ConfigMeta( "normalise", "Normalise" )
            .setShortDescription( "Normalisation mode" )
-           .setXmlDescription( getNormalisationDescription() )
-        , Normalisation.class, Normalisation.values(), Normalisation.NONE );
+           .setXmlDescription( new String[] {
+                "<p>Defines how, if at all, the bars of histogram-like plots",
+                "are normalised.",
+                "</p>",
+            } )
+        , Normalisation.class, Normalisation.values(), Normalisation.NONE ) {
+            public String getXmlDescription( Normalisation norm ) {
+                return norm.getDescription();
+            }
+        }.setOptionUsage()
+         .addOptionsXml();
 
     /** Config key for line antialiasing. */
     public static final ConfigKey<Boolean> ANTIALIAS =
@@ -280,7 +298,11 @@ public class StyleKeys {
                 "</p>",
             } )
         , Anchor.class, new Anchor[] { Anchor.W, Anchor.E, Anchor.N, Anchor.S, }
-        ).setOptionUsage()
+        ) {
+           public String getXmlDescription( Anchor anchor ) {
+               return null;
+           }
+        }.setOptionUsage()
          .addOptionsXml();
 
     /** Config key for scaling level mode. */ 
@@ -294,7 +316,11 @@ public class StyleKeys {
                 "</p>",
             } )
             , LevelMode.class, LevelMode.MODES, LevelMode.LINEAR
-        ).setOptionUsage()
+        ) {
+            public String getXmlDescription( LevelMode mode ) {
+                return mode.getDescription();
+            }
+        }.setOptionUsage()
          .addOptionsXml();
 
     /** Config key for vector marker style. */
@@ -656,34 +682,6 @@ public class StyleKeys {
         key.setOptionUsage();
         key.addOptionsXml();
         return key;
-    }
-
-    /**
-     * Returns the XML description string for the normalisation config key.
-     *
-     * @return   normalisation XML description text
-     */
-    private static String getNormalisationDescription() {
-        StringBuffer sbuf = new StringBuffer();
-        for ( Normalisation norm : Normalisation.values() ) {
-            sbuf.append( "<li>" )
-                .append( "<code>" )
-                .append( norm.toString().toLowerCase() )
-                .append( "</code>" )
-                .append( ": " )
-                .append( norm.getDescription() )
-                .append( "</li>" )
-                .append( "\n" );
-        }
-        return PlotUtil.concatLines( new String[] {
-            "<p>Defines how, if at all,",
-            "the bars of histogram-like plots are normalised.",
-            "The following options are available:",
-            "<ul>",
-            sbuf.toString(),
-            "</ul>",
-            "</p>",
-        } );
     }
 
     /**
