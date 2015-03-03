@@ -31,7 +31,7 @@ public enum Normalisation {
     /** The total area of histogram bars is normalised to unity. */
     AREA( "The total area of histogram bars is normalised to unity. "
         + "For logarithmic X axis or cumulative plots, this behaves like "
-        + "<code>" + HEIGHT + "</code>." ) {
+        + "<code>" + HEIGHT.toString().toLowerCase() + "</code>." ) {
         public double getScaleFactor( double sum, double max, double binWidth,
                                       boolean cumul ) {
             double effectiveBinWidth = PlotUtil.isFinite( binWidth )
@@ -44,7 +44,7 @@ public enum Normalisation {
     /** Height of the tallest histogram bar is normalised to unity. */
     MAXIMUM( "The height of the tallest histogram bar is normalised to unity. "
            + "For cumulative plots, this behaves like "
-           + "<code>" + HEIGHT + "</code>." ) {
+           + "<code>" + HEIGHT.toString().toLowerCase() + "</code>." ) {
         public double getScaleFactor( double sum, double max, double binWidth,
                                       boolean cumul ) {
             return 1.0 / ( cumul ? sum : max );

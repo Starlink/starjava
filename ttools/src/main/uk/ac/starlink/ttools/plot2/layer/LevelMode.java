@@ -14,14 +14,16 @@ import uk.ac.starlink.ttools.plot2.Equality;
 public abstract class LevelMode {
 
     private final String name_;
+    private final String description_;
 
     /** Fixed count of extreme values to exclude for clipping. */
     private static final int NCLIP = 16;
 
     /**
-     * Linear scaling - levels are equally spaced.
+     * Linear scaling - level values are equally spaced.
      */
-    public static LevelMode LINEAR = new LevelMode( "linear" ) {
+    public static LevelMode LINEAR =
+            new LevelMode( "linear", "levels are equally spaced" ) {
         public double[] calculateLevels( NumberArray array, int nLevel,
                                          double offset, boolean isCounts ) {
             return calculateLinearLevels( array, nLevel, offset, isCounts );
@@ -31,7 +33,8 @@ public abstract class LevelMode {
     /**
      * Logarithmic scaling - level logarithms are equally spaced
      */
-    public static LevelMode LOG = new LevelMode( "log" ) {
+    public static LevelMode LOG =
+            new LevelMode( "log", "level logarithms are equally spaced" ) {
         public double[] calculateLevels( NumberArray array, int nLevel,
                                          double offset, boolean isCounts ) {
             return calculateLogLevels( array, nLevel, offset, isCounts );
@@ -42,7 +45,10 @@ public abstract class LevelMode {
      * Equal-area scaling - levels are spaced to provide equally sized
      * inter-contour regions.
      */
-    public static LevelMode EQU = new LevelMode( "equal" ) {
+    public static LevelMode EQU =
+            new LevelMode( "equal",
+                           "levels are spaced to provide equal-area "
+                         + "inter-contour regions" ) {
         public double[] calculateLevels( NumberArray array, int nLevel,
                                          double offset, boolean isCounts ) {
             return calculateEquivLevels( array, nLevel, offset, isCounts );
@@ -55,10 +61,12 @@ public abstract class LevelMode {
     /**
      * Constructor.
      *
-     * @param   name  level name
+     * @param   name  mode name
+     * @param   description  short description of mode
      */
-    protected LevelMode( String name ) {
+    protected LevelMode( String name, String description ) {
         name_ = name;
+        description_ = description;
     }
 
     /**
@@ -78,6 +86,15 @@ public abstract class LevelMode {
      */
     public abstract double[] calculateLevels( NumberArray array, int nLevel,
                                               double offset, boolean isCounts );
+
+    /**
+     * Returns a short description of this mode.
+     *
+     * @return   description
+     */
+    public String getDescription() {
+        return description_;
+    }
 
     @Override
     public String toString() {

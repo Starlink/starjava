@@ -124,10 +124,13 @@ public class RampKeySet implements KeySet<RampKeySet.Ramp> {
             "range are mapped to the selected colour ramp.",
             "</p>",
         } );
-        scalingKey_ =
-            new OptionConfigKey<Scaling>( scalingMeta, Scaling.class,
-                                          Scaling.getStretchOptions(),
-                                          dfltScaling );
+        scalingKey_ = new OptionConfigKey<Scaling>( scalingMeta, Scaling.class,
+                                                    Scaling.getStretchOptions(),
+                                                    dfltScaling ) {
+            public String getXmlDescription( Scaling scaling ) {
+                return scaling.getDescription();
+            }
+        };
         scalingKey_.setOptionUsage();
         scalingKey_.addOptionsXml();
         keyList.add( scalingKey_ );

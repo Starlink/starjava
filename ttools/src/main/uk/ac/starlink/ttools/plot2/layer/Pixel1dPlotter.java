@@ -93,7 +93,11 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
                 "</p>",
             } )
         , Kernel1dShape.class, Kernel1dShape.getStandardOptions(),
-        Kernel1dShape.EPANECHNIKOV )
+        Kernel1dShape.EPANECHNIKOV ) {
+            public String getXmlDescription( Kernel1dShape kshape ) {
+                return kshape.getDescription();
+            }
+        }
        .setOptionUsage()
        .addOptionsXml();
 
