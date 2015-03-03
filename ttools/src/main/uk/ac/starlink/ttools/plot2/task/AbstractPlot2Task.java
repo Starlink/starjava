@@ -938,10 +938,11 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
      * @param   suffix  suffix associated with layer
      * @return  array of plot finder for layer-specific parameters
      */
-    private ParameterFinder[] getLayerParameterFinders( Environment env,
-                                                        PlotContext context,
-                                                        final LayerType layer,
-                                                        final String suffix )
+    private ParameterFinder[]
+            getLayerParameterFinders( Environment env,
+                                      final PlotContext context,
+                                      final LayerType layer,
+                                      final String suffix )
             throws TaskException {
         List<ParameterFinder> finderList = new ArrayList<ParameterFinder>();
 
@@ -974,6 +975,17 @@ public abstract class AbstractPlot2Task implements Task, DynamicTask {
                     } );
                 }
             }
+        }
+
+        /* Layer geometry-specific parameters. */
+        Parameter[] geomParams = context.getGeomParameters( suffix );
+        for ( int igp = 0; igp < geomParams.length; igp++ ) {
+            final int igp0 = igp;
+            finderList.add( new ParameterFinder<Parameter>() {
+                public Parameter createParameter( String sfix ) {
+                    return context.getGeomParameters( sfix )[ igp0 ];
+                }
+            } );
         }
 
         /* Layer non-positional parameters. */
