@@ -101,7 +101,7 @@ public class Kernel1ds {
             double[] levels = new double[ extent + 1 ];
             double sr2 = 1.0 / ( 2 * sigma * sigma );
             for ( int i = 0; i < extent + 1; i++ ) {
-                levels[ i ] = Math.exp( - i * sr2 );
+                levels[ i ] = Math.exp( - i * i * sr2 );
             }
             return createSymmetricNormalisedKernel( levels, true );
         }
