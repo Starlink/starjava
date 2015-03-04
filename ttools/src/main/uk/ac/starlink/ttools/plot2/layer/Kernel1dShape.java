@@ -19,6 +19,24 @@ public abstract class Kernel1dShape {
         }
     };
 
+    /** Linear/triangular kernel. */
+    public static final Kernel1dShape LINEAR =
+            new Kernel1dShape( "Linear",
+                               "triangle 1-d truncated at 1" ) {
+        public Kernel1d createKernel( double width ) {
+            return Kernel1ds.createLinearKernel( width );
+        }
+    };
+
+    /** Epanechnikov (parabola) kernel. */
+    public static final Kernel1dShape EPANECHNIKOV =
+            new Kernel1dShape( "Epanechnikov",
+                               "parabola 1-d*d truncated at 1" ) {
+        public Kernel1d createKernel( double width ) {
+            return Kernel1ds.createEpanechnikovKernel( width );
+        }
+    };
+
     /** Cosine kernel truncated at PI/2. */
     public static final Kernel1dShape COS =
             new Kernel1dShape( "cos", "cosine function truncated at PI/2" ) {
@@ -43,7 +61,7 @@ public abstract class Kernel1dShape {
     public static final Kernel1dShape GAUSS6 = createGaussShape( 6 );
 
     private static final Kernel1dShape[] STANDARD_OPTIONS = {
-        SQUARE, COS2, COS, GAUSS3, GAUSS6,
+        SQUARE, LINEAR, EPANECHNIKOV, COS, COS2, GAUSS3, GAUSS6,
     };
 
     /**
