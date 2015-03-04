@@ -93,7 +93,7 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
                 "</p>",
             } )
         , Kernel1dShape.class, Kernel1dShape.getStandardOptions(),
-        Kernel1dShape.COS2 )
+        Kernel1dShape.EPANECHNIKOV )
        .setOptionUsage()
        .addOptionsXml();
 

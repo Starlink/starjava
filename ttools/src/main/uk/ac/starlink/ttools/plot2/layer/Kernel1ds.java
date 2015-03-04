@@ -49,6 +49,24 @@ public class Kernel1ds {
     }
 
     /**
+     * Returns a kernel based on the cosine function.
+     *
+     * @param  width   half-width of kernel, corresponding to PI/2
+     * @return  new kernel
+     */
+    public static Kernel1d createCosKernel( double width ) {
+        double[] levels = new double[ (int) Math.ceil( width ) ];
+        double xscale = 0.5 * Math.PI / width;
+        for ( int i = 0; i < levels.length; i++ ) {
+            double x = xscale * i;
+            assert x >= 0 && x <= 0.5 * Math.PI;
+            double c = Math.cos( x );
+            levels[ i ] = c;
+        }
+        return createSymmetricNormalisedKernel( levels, false );
+    }
+
+    /**
      * Returns a kernel based on the cosine squared function.
      *
      * @param  width   half-width of kernel, corresponding to PI/2
@@ -67,19 +85,37 @@ public class Kernel1ds {
     }
 
     /**
-     * Returns a kernel based on the cosine function.
+     * Returns an Epanechnikov kernel.
+     * This is just a truncated parabola.
+     * Apparently it's favoured by statisticians.
      *
-     * @param  width   half-width of kernel, corresponding to PI/2
+     * @param  width  half-width of kernel, corresponding to 1
      * @return  new kernel
      */
-    public static Kernel1d createCosKernel( double width ) {
+    public static Kernel1d createEpanechnikovKernel( double width ) {
         double[] levels = new double[ (int) Math.ceil( width ) ];
-        double xscale = 0.5 * Math.PI / width;
+        double xscale = 1.0 / width;
         for ( int i = 0; i < levels.length; i++ ) {
             double x = xscale * i;
-            assert x >= 0 && x <= 0.5 * Math.PI;
-            double c = Math.cos( x );
-            levels[ i ] = c;
+            assert x >= 0 && x <= 1;
+            levels[ i ] = 1.0 - x * x;
+        }
+        return createSymmetricNormalisedKernel( levels, false );
+    }
+
+    /**
+     * Returns a linear (triangular) kernel.
+     *
+     * @param  width  half-width of kernel, corresponding to 1
+     * @return  new kernel
+     */
+    public static Kernel1d createLinearKernel( double width ) {
+        double[] levels = new double[ (int) Math.ceil( width ) ];
+        double xscale = 1.0 / width;
+        for ( int i = 0; i < levels.length; i++ ) {
+            double x = xscale * i;
+            assert x >= 0 && x <= 1;
+            levels[ i ] = 1.0 - x;
         }
         return createSymmetricNormalisedKernel( levels, false );
     }
