@@ -1,10 +1,13 @@
 package uk.ac.starlink.topcat.plot2;
 
 import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.ttools.plot.Style;
 import uk.ac.starlink.ttools.plot2.Navigator;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
+import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.SurfaceFactory;
 import uk.ac.starlink.ttools.plot2.config.ConfigException;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
@@ -15,7 +18,9 @@ import uk.ac.starlink.ttools.plot2.geom.PlaneNavigator;
 import uk.ac.starlink.ttools.plot2.geom.PlaneSurfaceFactory;
 import uk.ac.starlink.ttools.plot2.layer.BinSizer;
 import uk.ac.starlink.ttools.plot2.layer.HistogramPlotter;
+import uk.ac.starlink.ttools.plot2.layer.KernelDensityPlotter;
 import uk.ac.starlink.ttools.plot2.layer.Normalisation;
+import uk.ac.starlink.ttools.plot2.layer.Pixel1dPlotter;
 
 /**
  * Axis control for histogram window.
@@ -26,14 +31,6 @@ import uk.ac.starlink.ttools.plot2.layer.Normalisation;
 public class HistogramAxisController
         extends CartesianAxisController<PlaneSurfaceFactory.Profile,
                                         PlaneAspect> {
-
-    /** Keys to control common bar configuration for all histogram layers. */
-    private static final ConfigKey[] BAR_KEYS = new ConfigKey[] {
-        BinSizer.BINSIZER_KEY,
-        HistogramPlotter.PHASE_KEY,
-        StyleKeys.CUMULATIVE,
-        StyleKeys.NORMALISE,
-    };
 
     /**
      * Constructor.
@@ -101,7 +98,22 @@ public class HistogramAxisController
         /* Bars control. */
         ConfigControl barControl =
             new ConfigControl( "Bars", ResourceIcon.HISTOBARS );
-        barControl.addSpecifierTab( "Bars", new ConfigSpecifier( BAR_KEYS ) );
+        Map<String,ConfigKey[]> barKeys =
+            new LinkedHashMap<String,ConfigKey[]>();
+        barKeys.put( "Histogram", new ConfigKey[] {
+            BinSizer.BINSIZER_KEY,
+            HistogramPlotter.PHASE_KEY,
+        } );
+        barKeys.put( "KDE", new ConfigKey[] {
+            Pixel1dPlotter.SMOOTH_KEY,
+            Pixel1dPlotter.KERNEL_KEY,
+        } );
+        barKeys.put( "General", new ConfigKey[] {
+            StyleKeys.CUMULATIVE,
+            StyleKeys.NORMALISE,
+        } );
+        barControl.addSpecifierTab( "Bars",
+                                    new GroupedConfigSpecifier( barKeys ) );
         addControl( barControl );
 
         assert assertHasKeys( surfFact.getProfileKeys() );
@@ -143,7 +155,7 @@ public class HistogramAxisController
                      state0.norm_ != state1.norm_ ) {
                     return true;
                 }
-                else if ( ! state0.sizer_.equals( state1.sizer_ ) &&
+                else if ( ! PlotUtil.equals( state0.sizer_, state1.sizer_ ) &&
                           ! state0.isCumulative_ ) {
                     return true;
                 }
@@ -163,21 +175,44 @@ public class HistogramAxisController
      */
     private static BarState getBarState( PlotLayer[] layers ) {
 
-        /* Just find one histogram layer and use the state from that.
-         * For now that is sufficient, since there is no mechanism to
-         * modify these config items per layer in this plot. */
-        for ( int il = 0; il < layers.length; il++ ) {
-            Style style = layers[ il ].getStyle();
+        /* Get the state from one representative layer, since at present
+         * configuration of these items is per-window not per-layer.
+         * There is code here to assert that this is still the case,
+         * i.e. that the BarState is consistent across all layers;
+         * subsequent changes to the GUI could invalidate those assertions
+         * in which case we have to rethink the role of the bar state. */
+        BinSizer sizer = null;
+        Boolean cumul = null;
+        Normalisation norm = null;
+        boolean hasBars = false;
+        for ( PlotLayer layer : layers ) {
+            BinSizer sizer1 = null;
+            Boolean cumul1 = null;
+            Normalisation norm1 = null;
+            Style style = layer.getStyle();
             if ( style instanceof HistogramPlotter.HistoStyle ) {
+                hasBars = true;
                 HistogramPlotter.HistoStyle hstyle =
                     (HistogramPlotter.HistoStyle) style;
-                BinSizer sizer = hstyle.getBinSizer();
-                boolean cumul = hstyle.isCumulative();
-                Normalisation norm = hstyle.getNormalisation();
-                return new BarState( sizer, cumul, norm );
+                sizer1 = hstyle.getBinSizer();
+                cumul1 = hstyle.isCumulative();
+                norm1 = hstyle.getNormalisation();
             }
+            else if ( style instanceof KernelDensityPlotter.KDenseStyle ) {
+                hasBars = true;
+                KernelDensityPlotter.KDenseStyle dstyle =
+                    (KernelDensityPlotter.KDenseStyle) style;
+                cumul1 = dstyle.isCumulative();
+                norm1 = dstyle.getNormalisation();
+            }
+            assert sizer == null || sizer1 == null || sizer.equals( sizer1 );
+            assert cumul == null || cumul.equals( cumul1 );
+            assert norm == null || norm.equals( norm1 );
+            sizer = sizer1;
+            cumul = cumul1;
+            norm = norm1;
         }
-        return null;
+        return hasBars ? new BarState( sizer, cumul, norm ) : null;
     }
 
     /**
