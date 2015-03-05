@@ -376,6 +376,24 @@ public class KernelDensityPlotter
             icon_ = new BarStyle( color, bf, BarStyle.PLACE_OVER );
         }
 
+        /**
+         * Returns cumulative flag.
+         *
+         * @return  true iff counts are cumulative
+         */
+        public boolean isCumulative() {
+            return isCumulative_;
+        }
+
+        /**
+         * Returns normalisation mode.
+         *
+         * @return  normalisation mode for count axis
+         */
+        public Normalisation getNormalisation() {
+            return norm_;
+        }
+
         public Icon getLegendIcon() {
             return icon_;
         }
