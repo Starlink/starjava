@@ -29,6 +29,9 @@ class TableTest(unittest.TestCase):
 
         self.assert_(messier.isRandom())
         self.assertEquals(110, len(messier))
+        self.assertEquals(110, messier.count_rows())
+        self.assertEquals(110, messier.rowCount)
+        self.assertEquals(110, messier.cmd_select("true").count_rows());
         for (ir, row) in enumerate(messier):
             self.assertEquals(row, messier[ir])
             for (ic, cell) in enumerate(row):
@@ -41,6 +44,8 @@ class TableTest(unittest.TestCase):
         tail1 = messier.cmd_tail(1)
         self.assertEquals(1, len(head1))
         self.assertEquals(1, len(tail1))
+        self.assertEquals(1, head1.count_rows())
+        self.assertEquals(1, tail1.count_rows())
         self.assertEquals(messier[0], head1[0])
         self.assertEquals(messier[-1], tail1[0])
 

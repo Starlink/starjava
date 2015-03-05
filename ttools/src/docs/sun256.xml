@@ -1497,6 +1497,15 @@ to use the various <code>cmd_*</code> commands etc for table processing.
 
 <p>Second, some additional utility methods are defined:
 <dl>
+<dt><code>count_rows()</code></dt>
+<dd><p>Returns the number of rows in the table in the most efficient
+    way possible.  If the table is random-access or otherwise knows
+    its row count without further calculation, that value is returned.
+    Otherwise, the rows are iterated over without reading, which may take
+    some time but should be much more efficient than iterating over
+    the table as an iterable, since the row cell data itself is not
+    retrieved.
+    </p></dd>
 <dt><code>columns()</code></dt>
 <dd><p>Returns a tuple of the column descriptors for the table.
     Each item in the tuple is an instance of the
@@ -1564,7 +1573,7 @@ as described above.
 <verbatim><![CDATA[
    >>> import stilts
    >>> xsc = stilts.tread('/data/table/2mass_xsc.xml')  # read table
-   >>> xsc.mode_count()                                 # count rows and cols
+   >>> xsc.mode_count()                                 # show rows/column count
    columns: 6   rows: 1646844
    >>> print xsc.columns()                              # full info on columns
    (id(String), ra(Double)/degrees, dec(Double)/degrees, jmag(Double)/mag, hmag(Double)/mag, kmag(Double)/mag)
@@ -1577,12 +1586,14 @@ as described above.
    19433000+4003190
    >>> print row['ra'], row['dec']                      # cells by col name
    295.875 40.055286
-   >>> print len(xsc)                                   # count rows
+   >>> print len(xsc)                                   # count rows, maybe slow
    1646844
-   >>> print len(xsc+xsc)                               # concatenate
-   3293688
-   >>> print len(xsc*100)
-   164684400
+   >>> print xsc.count_rows()                           # count rows efficiently
+   1646844L
+   >>> print (xsc+xsc).count_rows()                     # concatenate
+   3293688L
+   >>> print (xsc*10000).count_rows()
+   16468440000L
    >>> for row in xsc:                  # select rows using python commands
    ...     if row[4] - row[3] > 3.0:
    ...         print row[0]
@@ -10161,6 +10172,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         unsigned bytes where the output format permits; 
         previously they were forced to 16-bit signed integers.
         This affects FITS, VOTable and CDF I/O handlers.</li>
+    <li>Add <code>count_rows()</code> method to JyStilts 
+        <ref id="jytable">table</ref> objects, which for non-random tables
+        may be much more efficient than <code>len()</code>.</li>
     </ul>
     </p></dd>
 
