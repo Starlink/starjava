@@ -21065,6 +21065,8 @@ introduced since the last version:
         now has a <label>Visible</label> checkbox
         indicating whether the subset undergoing
         subset-specific configuration is currently visible in the plot.</li>
+    <li>Be less strict about recognising colfits files
+        (tolerate implicit TDIMn headers).</li>
     </ul>
     </p></dd>
 
