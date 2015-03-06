@@ -102,7 +102,7 @@ public class KernelDensityPlotter
         List<ConfigKey> list = new ArrayList<ConfigKey>();
         list.add( StyleKeys.COLOR );
         list.add( StyleKeys.TRANSPARENCY );
-        list.add( SMOOTH_KEY );
+        list.add( SMOOTHSIZER_KEY );
         list.add( KERNEL_KEY );
         list.add( StyleKeys.CUMULATIVE );
         list.add( StyleKeys.NORMALISE );
@@ -118,9 +118,8 @@ public class KernelDensityPlotter
         rgba[ 3 ] *= alpha;
         Color color = new Color( rgba[ 0 ], rgba[ 1 ], rgba[ 2 ], rgba[ 3 ] );
         boolean isFill = config.get( FILL_KEY );
-        double width = config.get( SMOOTH_KEY );
         Kernel1dShape kernelShape = config.get( KERNEL_KEY );
-        Kernel1d kernel = kernelShape.createKernel( width );
+        BinSizer sizer = config.get( SMOOTHSIZER_KEY );
         boolean isCumulative = config.get( StyleKeys.CUMULATIVE );
         Normalisation norm = config.get( StyleKeys.NORMALISE );
         Stroke stroke =
@@ -128,7 +127,8 @@ public class KernelDensityPlotter
                    : new BasicStroke( config.get( THICK_KEY ),
                                       BasicStroke.CAP_ROUND,
                                       BasicStroke.JOIN_ROUND );
-        return new KDenseStyle( color, stroke, kernel, isCumulative, norm );
+        return new KDenseStyle( color, stroke, kernelShape, sizer,
+                                isCumulative, norm );
     }
 
     protected LayerOpt getLayerOpt( KDenseStyle style ) {
@@ -137,8 +137,11 @@ public class KernelDensityPlotter
         return new LayerOpt( color, isOpaque );
     }
 
-    protected int getPixelPadding( KDenseStyle style ) {
-        return getEffectiveExtent( style.kernel_ );
+    protected int getPixelPadding( KDenseStyle style, PlaneSurface surf ) {
+        Kernel1d kernel =
+            createKernel( style.kernelShape_, style.sizer_,
+                          surf.getAxes()[ 0 ], surf.getLogFlags()[ 0 ] );
+        return getEffectiveExtent( kernel );
     }
 
     protected void paintBins( PlaneSurface surface, BinArray binArray,
@@ -149,7 +152,9 @@ public class KernelDensityPlotter
 
         /* Get the data values for each pixel position. */
         Axis xAxis = surface.getAxes()[ 0 ];
-        Kernel1d kernel = style.kernel_;
+        boolean xLog = surface.getLogFlags()[ 0 ];
+        Kernel1d kernel = createKernel( style.kernelShape_, style.sizer_,
+                                        xAxis, xLog );
         double[] bins = getDataBins( binArray, xAxis, kernel,
                                      style.norm_, style.isCumulative_ );
     
@@ -287,9 +292,11 @@ public class KernelDensityPlotter
         int gxhi = GUESS_PLOT_WIDTH;
         boolean xflip = false;
         Axis xAxis = Axis.createAxis( gxlo, gxhi, dxlo, dxhi, xlog, xflip );
-        int xpad = getEffectiveExtent( style.kernel_ );
+        Kernel1d kernel =
+            createKernel( style.kernelShape_, style.sizer_, xAxis, xlog );
+        int xpad = getEffectiveExtent( kernel );
         BinArray binArray = readBins( xAxis, xpad, dataSpec, dataStore );
-        double[] bins = getDataBins( binArray, xAxis, style.kernel_,
+        double[] bins = getDataBins( binArray, xAxis, kernel,
                                      style.norm_, style.isCumulative_ );
         int ixlo = binArray.getBinIndex( gxlo );
         int ixhi = binArray.getBinIndex( gxhi );
@@ -299,14 +306,20 @@ public class KernelDensityPlotter
     }
 
     protected ReportMap getPixel1dReport( Pixel1dPlan plan,
-                                          KDenseStyle style ) {
+                                          KDenseStyle style,
+                                          boolean xLog ) {
         BinArray binArray = plan.binArray_;
         Axis xAxis = plan.xAxis_;
-        double[] dataBins = getDataBins( binArray, xAxis, style.kernel_,
+        BinSizer sizer = style.sizer_;
+        Kernel1d kernel =
+            createKernel( style.kernelShape_, sizer, xAxis, xLog );
+        double[] dataBins = getDataBins( binArray, xAxis, kernel,
                                          style.norm_, style.isCumulative_ );
         double[] dlimits = xAxis.getDataLimits();
-        int glo = (int) Math.round( xAxis.dataToGraphics( dlimits[ 0 ] ) );
-        int ghi = (int) Math.round( xAxis.dataToGraphics( dlimits[ 1 ] ) );
+        double dlo = dlimits[ 0 ];
+        double dhi = dlimits[ 1 ];
+        int glo = (int) Math.round( xAxis.dataToGraphics( dlo ) );
+        int ghi = (int) Math.round( xAxis.dataToGraphics( dhi ) );
         if ( glo > ghi ) {
             int gt = glo;              
             glo = ghi;
@@ -350,7 +363,8 @@ public class KernelDensityPlotter
     public static class KDenseStyle implements Style {
         private final Color color_;
         private final Stroke stroke_;
-        private final Kernel1d kernel_;
+        private final Kernel1dShape kernelShape_;
+        private final BinSizer sizer_;
         private final boolean isCumulative_;
         private final Normalisation norm_;
         private final Icon icon_;
@@ -360,15 +374,18 @@ public class KernelDensityPlotter
          *
          * @param  color  plot colour
          * @param  stroke  line stroke, null for filled area
-         * @param  kernel  smoothing kernel
+         * @param  kernelShape  smoothing kernel shape
+         * @param  sizer   bin sizer
          * @param  isCumulative  are bins painted cumulatively
          * @param  norm   normalisation mode
          */
-        public KDenseStyle( Color color, Stroke stroke, Kernel1d kernel,
+        public KDenseStyle( Color color, Stroke stroke,
+                            Kernel1dShape kernelShape, BinSizer sizer,
                             boolean isCumulative, Normalisation norm ) {
             color_ = color;
             stroke_ = stroke;
-            kernel_ = kernel;
+            kernelShape_ = kernelShape;
+            sizer_ = sizer;
             isCumulative_ = isCumulative;
             norm_ = norm;
             BarStyle.Form bf =
@@ -403,7 +420,8 @@ public class KernelDensityPlotter
             int code = 33421;
             code = 23 * code + color_.hashCode();
             code = 23 * code + PlotUtil.hashCode( stroke_ );
-            code = 23 * code + kernel_.hashCode();
+            code = 23 * code + kernelShape_.hashCode();
+            code = 23 * code + sizer_.hashCode();
             code = 23 * code + ( isCumulative_ ? 11 : 13 );
             code = 23 * code + PlotUtil.hashCode( norm_ );
             return code;
@@ -415,7 +433,8 @@ public class KernelDensityPlotter
                 KDenseStyle other = (KDenseStyle) o;
                 return this.color_.equals( other.color_ )
                     && PlotUtil.equals( this.stroke_, other.stroke_ )
-                    && this.kernel_.equals( other.kernel_ )
+                    && this.kernelShape_.equals( other.kernelShape_ )
+                    && this.sizer_.equals( other.sizer_ )
                     && this.isCumulative_ == other.isCumulative_
                     && PlotUtil.equals( this.norm_, other.norm_ );
             }
