@@ -1,8 +1,6 @@
 package uk.ac.starlink.topcat.plot2;
 
 import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.ttools.plot.Style;
 import uk.ac.starlink.ttools.plot2.Navigator;
@@ -96,24 +94,23 @@ public class HistogramAxisController
                                                          .getKeys() ) );
 
         /* Bars control. */
-        ConfigControl barControl =
-            new ConfigControl( "Bars", ResourceIcon.HISTOBARS );
-        Map<String,ConfigKey[]> barKeys =
-            new LinkedHashMap<String,ConfigKey[]>();
-        barKeys.put( "Histogram", new ConfigKey[] {
+        ConfigSpecifier hbarSpecifier = new ConfigSpecifier( new ConfigKey[] {
             BinSizer.BINSIZER_KEY,
             HistogramPlotter.PHASE_KEY,
         } );
-        barKeys.put( "KDE", new ConfigKey[] {
+        ConfigSpecifier kbinSpecifier = new ConfigSpecifier( new ConfigKey[] {
             Pixel1dPlotter.SMOOTH_KEY,
             Pixel1dPlotter.KERNEL_KEY,
         } );
-        barKeys.put( "General", new ConfigKey[] {
+        ConfigSpecifier genSpecifier = new ConfigSpecifier( new ConfigKey[] {
             StyleKeys.CUMULATIVE,
             StyleKeys.NORMALISE,
         } );
-        barControl.addSpecifierTab( "Bars",
-                                    new GroupedConfigSpecifier( barKeys ) );
+        ConfigControl barControl =
+            new ConfigControl( "Bars", ResourceIcon.HISTOBARS );
+        barControl.addSpecifierTab( "Histogram", hbarSpecifier );
+        barControl.addSpecifierTab( "KDE", kbinSpecifier );
+        barControl.addSpecifierTab( "General", genSpecifier );
         addControl( barControl );
 
         assert assertHasKeys( surfFact.getProfileKeys() );
