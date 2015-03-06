@@ -22,29 +22,6 @@ public abstract class BinSizer {
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.ttools.plot2.layer" );
-    public static final ConfigKey<BinSizer> BINSIZER_KEY =
-        new BinSizerConfigKey(
-            new ConfigMeta( "binsize", "Bin Size" )
-           .setStringUsage( "+<width>|-<count>" )
-           .setShortDescription( "Bin size specification" )
-           .setXmlDescription( new String[] {
-                "<p>Configures the width of histogram bins.",
-                "If the supplied string is a positive number,",
-                "it is interpreted as a fixed width in the data coordinates",
-                "of the X axis",
-                "(if the X axis is logarithmic, the value is a fixed factor).",
-                "If it is a negative number, then it will be interpreted",
-                "as the approximate number of bins to display across",
-                "the width of the plot",
-                "(though an attempt is made to use only round numbers",
-                "for bin widths).",
-                "</p>",
-                "<p>When setting this value graphically,",
-                "you can use either the slider to adjust the bin count",
-                "or the numeric entry field to fix the bin width.",
-                "</p>",
-            } )
-        , 20 );
 
     /**
      * Provides a bin width value for a given axis data range.
@@ -80,6 +57,18 @@ public abstract class BinSizer {
     public static BinSizer createCountBinSizer( double nbin,
                                                 boolean rounding ) {
         return new CountBinSizer( nbin, rounding );
+    }
+
+    /**
+     * Constructs a config key for acquiring BinSizers.
+     *
+     * @param   meta  key metadata
+     * @param   dfltNbin  default bin count
+     * @return  new config key
+     */
+    public static ConfigKey<BinSizer>
+            createSizerConfigKey( ConfigMeta meta, int dfltNbin ) {
+        return new BinSizerConfigKey( meta, dfltNbin );
     }
 
     /**

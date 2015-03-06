@@ -65,6 +65,31 @@ public class HistogramPlotter
         new ReportKey<BinBag>( new ReportMeta( "bins", "Bins" ), BinBag.class,
                                false );
 
+    /** Config key for bin size configuration. */
+    public static final ConfigKey<BinSizer> BINSIZER_KEY =
+        BinSizer.createSizerConfigKey(
+            new ConfigMeta( "binsize", "Bin Size" )
+           .setStringUsage( "+<width>|-<count>" )
+           .setShortDescription( "Bin size specification" )
+           .setXmlDescription( new String[] {
+                "<p>Configures the width of histogram bins.",
+                "If the supplied string is a positive number,",
+                "it is interpreted as a fixed width in the data coordinates",
+                "of the X axis",
+                "(if the X axis is logarithmic, the value is a fixed factor).",
+                "If it is a negative number, then it will be interpreted",
+                "as the approximate number of bins to display across",
+                "the width of the plot",
+                "(though an attempt is made to use only round numbers",
+                "for bin widths).",
+                "</p>",
+                "<p>When setting this value graphically,",
+                "you can use either the slider to adjust the bin count",
+                "or the numeric entry field to fix the bin width.",
+                "</p>",
+            } )
+        , 20 );
+
     /** Config key for bar line thickness. */
     public static final ConfigKey<Integer> THICK_KEY =
         StyleKeys.createThicknessKey( 2 );
@@ -144,10 +169,10 @@ public class HistogramPlotter
         return new ConfigKey[] {
             StyleKeys.COLOR,
             StyleKeys.TRANSPARENCY,
-            BinSizer.BINSIZER_KEY,
+            BINSIZER_KEY,
+            PHASE_KEY,
             StyleKeys.CUMULATIVE,
             StyleKeys.NORMALISE,
-            PHASE_KEY,
             StyleKeys.BAR_FORM,
             THICK_KEY,
             StyleKeys.DASH,
@@ -166,7 +191,7 @@ public class HistogramPlotter
         Normalisation norm = config.get( StyleKeys.NORMALISE );
         int thick = config.get( THICK_KEY );
         float[] dash = config.get( StyleKeys.DASH );
-        BinSizer sizer = config.get( BinSizer.BINSIZER_KEY );
+        BinSizer sizer = config.get( BINSIZER_KEY );
         double binPhase = config.get( PHASE_KEY );
         return new HistoStyle( color, barForm, placement, cumulative, norm,
                                thick, dash, sizer, binPhase );

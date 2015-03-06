@@ -95,7 +95,7 @@ public class HistogramAxisController
 
         /* Bars control. */
         ConfigSpecifier hbarSpecifier = new ConfigSpecifier( new ConfigKey[] {
-            BinSizer.BINSIZER_KEY,
+            HistogramPlotter.BINSIZER_KEY,
             HistogramPlotter.PHASE_KEY,
         } );
         ConfigSpecifier kbinSpecifier = new ConfigSpecifier( new ConfigKey[] {
