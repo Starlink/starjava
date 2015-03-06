@@ -64,11 +64,14 @@ public abstract class BinSizer {
      *
      * @param   meta  key metadata
      * @param   dfltNbin  default bin count
+     * @param  rounding  true to prefer round numbers for output bin widths
+     * @param  allowZero  true iff zero is an allowed width
      * @return  new config key
      */
     public static ConfigKey<BinSizer>
-            createSizerConfigKey( ConfigMeta meta, int dfltNbin ) {
-        return new BinSizerConfigKey( meta, dfltNbin );
+            createSizerConfigKey( ConfigMeta meta, int dfltNbin,
+                                  boolean rounding, boolean allowZero ) {
+        return new BinSizerConfigKey( meta, dfltNbin, rounding, allowZero );
     }
 
     /**
@@ -172,16 +175,24 @@ public abstract class BinSizer {
     private static class BinSizerConfigKey extends ConfigKey<BinSizer> {
 
         private final int dfltNbin_;
+        private final boolean rounding_;
+        private final boolean allowZero_;
 
         /**
          * Constructor.
          *
          * @param   meta  key metadata
-         * @parma   dlftNbin  default bin count
+         * @param   dlftNbin  default bin count
+         * @param  rounding  true to prefer round numbers for output bin widths
+         * @param  allowZero  true iff zero is an allowed width
          */
-        BinSizerConfigKey( ConfigMeta meta, int dfltNbin ) {
-            super( meta, BinSizer.class, new CountBinSizer( dfltNbin, true ) );
+        BinSizerConfigKey( ConfigMeta meta, int dfltNbin,
+                           boolean rounding, boolean allowZero ) {
+            super( meta, BinSizer.class,
+                   new CountBinSizer( dfltNbin, rounding ) );
             dfltNbin_ = dfltNbin;
+            rounding_ = rounding;
+            allowZero_ = allowZero;
         }
 
         public BinSizer stringToValue( String txt ) throws ConfigException {
@@ -193,15 +204,18 @@ public abstract class BinSizer {
                 throw new ConfigException( this,
                                            "\"" + txt + "\" not numeric", e );
             }
-            if ( dval > 0 ) {
+            if ( dval > 0 ||
+                 dval == 0 && allowZero_ ) {
                 return new FixedBinSizer( dval );
             }
             else if ( dval <= -1 ) {
-                return new CountBinSizer( -dval, true );
+                return new CountBinSizer( -dval, rounding_ );
             }
             else {
-                String msg = "Bad sizer value " + dval
-                           + " - should be >0 (fixed) or <1 (-bin_count)";
+                String msg =
+                    "Bad sizer value " + dval + " - should be " +
+                    ( allowZero_ ? ">=" : ">" ) + "0 (fixed) " +
+                    "or <=-1 (-bin_count)";
                 throw new ConfigException( this, msg );
             }
         }
@@ -221,42 +235,74 @@ public abstract class BinSizer {
         }
 
         public Specifier<BinSizer> createSpecifier() {
-            final SliderSpecifier sliderSpecifier =
-                    new SliderSpecifier( 2, 400, true, dfltNbin_, true, true );
-            return new SpecifierPanel<BinSizer>( true ) {
-                protected JComponent createComponent() {
-                    sliderSpecifier.addActionListener( getActionForwarder() );
-                    return sliderSpecifier.getComponent();
+            return new BinSizerSpecifier( dfltNbin_, rounding_, allowZero_,
+                                          1000 );
+        }
+    }
+
+    /**
+     * Specifier for BinSizer values.
+     */
+    public static class BinSizerSpecifier extends SpecifierPanel<BinSizer> {
+
+        private final boolean rounding_;
+        private final boolean allowZero_;
+        private final SliderSpecifier sliderSpecifier_;
+        private final int maxCount_;
+
+        /**
+         * Constructor.
+         *
+         * @param   dlftNbin  default bin count
+         * @param  rounding  true to prefer round numbers for output bin widths
+         * @param  allowZero  true iff zero is an allowed width
+         * @param   maxCount   maximum  count value
+         */
+        BinSizerSpecifier( int dfltNbin, boolean rounding, boolean allowZero,
+                           int maxCount ) {
+            super( true );
+            rounding_ = rounding;
+            allowZero_ = allowZero;
+            maxCount_ = maxCount;
+            sliderSpecifier_ =
+                new SliderSpecifier( 2, maxCount, true, dfltNbin, true, true );
+        }
+
+        protected JComponent createComponent() {
+            sliderSpecifier_.addActionListener( getActionForwarder() );
+            return sliderSpecifier_.getComponent();
+        }
+
+        public BinSizer getSpecifiedValue() {
+            double dval = Double.NaN;
+            if ( ! sliderSpecifier_.isSliderActive() ) {
+                dval = sliderSpecifier_.getTextValue();
+            }
+            if ( Double.isNaN( dval ) ||
+                 dval == 0 && ! allowZero_ ) {
+                dval = - sliderSpecifier_.getSliderValue();
+                if ( allowZero_ && dval == - maxCount_ ) {
+                    dval = 0;
                 }
-                public BinSizer getSpecifiedValue() {
-                    if ( ! sliderSpecifier.isSliderActive() ) {
-                        double txtval = sliderSpecifier.getTextValue();
-                        if ( txtval > 0 ) {
-                            return new FixedBinSizer( txtval );
-                        }
-                        else if ( txtval < 0 ) {
-                            return new CountBinSizer( -txtval, true );
-                        }
-                    }
-                    return new CountBinSizer( sliderSpecifier.getSliderValue(),
-                                              true );
-                }
-                public void setSpecifiedValue( BinSizer sizer ) {
-                    if ( sizer instanceof CountBinSizer ) {
-                        double nbin = ((CountBinSizer) sizer).nbin_;
-                        sliderSpecifier.setSliderActive( true );
-                        sliderSpecifier.setSpecifiedValue( nbin );
-                    }
-                    else if ( sizer instanceof FixedBinSizer ) {
-                        double bw = ((FixedBinSizer) sizer).binWidth_;
-                        sliderSpecifier.setSliderActive( false );
-                        sliderSpecifier.setSpecifiedValue( bw );
-                    }
-                    else {
-                        logger_.warning( "Can't reset to unknown sizer type" );
-                    }
-                }
-            };
+            }
+            return dval >= 0 ? new FixedBinSizer( dval )
+                             : new CountBinSizer( - dval, rounding_ );
+        }
+
+        public void setSpecifiedValue( BinSizer sizer ) {
+            if ( sizer instanceof CountBinSizer ) {
+                double nbin = ((CountBinSizer) sizer).nbin_;
+                sliderSpecifier_.setSliderActive( true );
+                sliderSpecifier_.setSpecifiedValue( nbin );
+            }
+            else if ( sizer instanceof FixedBinSizer ) {
+                double bw = ((FixedBinSizer) sizer).binWidth_;
+                sliderSpecifier_.setSliderActive( false );
+                sliderSpecifier_.setSpecifiedValue( bw );
+            }
+            else {
+                logger_.warning( "Can't reset to unknown sizer type" );
+            }
         }
     }
 }
