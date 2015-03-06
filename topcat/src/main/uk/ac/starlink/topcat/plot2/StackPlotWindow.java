@@ -1222,6 +1222,7 @@ public class StackPlotWindow<P,A> extends AuxWindow {
         for ( int il = 0; il < nl; il++ ) {
             rmap.put( LayerId.createLayerId( layers[ il ] ), reports[ il ] );
         }
+        axisController_.submitReports( rmap );
         for ( LayerControl control : stackModel_.getLayerControls( false ) ) {
             control.submitReports( rmap );
         }
