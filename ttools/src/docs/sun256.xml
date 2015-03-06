@@ -10175,6 +10175,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Add <code>count_rows()</code> method to JyStilts 
         <ref id="jytable">table</ref> objects, which for non-random tables
         may be much more efficient than <code>len()</code>.</li>
+    <li>Be less strict about recognising colfits files
+        (tolerate implicit TDIMn headers).</li>
     </ul>
     </p></dd>
 

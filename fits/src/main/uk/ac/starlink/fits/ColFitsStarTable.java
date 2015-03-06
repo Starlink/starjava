@@ -115,7 +115,9 @@ public class ColFitsStarTable extends AbstractStarTable {
             String tdims = cards.getStringValue( "TDIM" + jcol );
             long[] dims = parseTdim( tdims );
             if ( dims == null ) {
-                throw new TableFormatException( "Bad TDIM value " + tdims );
+                logger_.info( "No TDIM" + jcol
+                            + "; assume (1," + nitem + ")" );
+                dims = new long[] { 1, nitem };
             }
             if ( multiply( dims ) != nitem ) {
                 throw new TableFormatException( "TDIM doesn't match TFORM" );
