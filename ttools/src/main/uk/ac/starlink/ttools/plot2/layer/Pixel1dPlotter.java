@@ -19,10 +19,7 @@ import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
-import uk.ac.starlink.ttools.plot2.config.ConversionSpecifier;
-import uk.ac.starlink.ttools.plot2.config.DoubleConfigKey;
 import uk.ac.starlink.ttools.plot2.config.OptionConfigKey;
-import uk.ac.starlink.ttools.plot2.config.SliderSpecifier;
 import uk.ac.starlink.ttools.plot2.config.Specifier;
 import uk.ac.starlink.ttools.plot2.data.Coord;
 import uk.ac.starlink.ttools.plot2.data.CoordGroup;
@@ -58,29 +55,34 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
     private static final int MAX_KERNEL_WIDTH = 50;
     private static final int MAX_KERNEL_EXTENT = 150;
 
-    /** Config key for smoothing width. */
-    public static final ConfigKey<Double> SMOOTH_KEY =
-        new DoubleConfigKey( 
+    /** Config key for smoothing width configuration. */
+    public static final ConfigKey<BinSizer> SMOOTHSIZER_KEY =
+        BinSizer.createSizerConfigKey(
             new ConfigMeta( "smooth", "Smoothing" )
-           .setShortDescription( "Smoothing half-width in pixels" )
+           .setStringUsage( "+<width>|-<count>" )
+           .setShortDescription( "Smoothing width specification" )
            .setXmlDescription( new String[] {
-                "<p>Sets the half-width in pixels of the kernel",
-                "used to smooth the histogram bins for display.",
+                "<p>Configures the smoothing width for kernel density",
+                "estimation.",
+                "This is the characteristic width of the kernel function",
+                "to be convolved with the density to produce the visible plot.",
+                "</p>",
+                "<p>If the supplied value is a positive number",
+                "it is interpreted as a fixed width in the data coordinates",
+                "of the X axis",
+                "(if the X axis is logarithmic, the value is a fixed factor).",
+                "If it is a negative number, then it will be interpreted",
+                "as the approximate number of smooothing widths that fit",
+                "in the width of the visible plot",
+                "(i.e. plot width / smoothing width).",
+                "If the value is zero, no smoothing is applied.",
+                "</p>",
+                "<p>When setting this value graphically,",
+                "you can use either the slider to adjust the bin count",
+                "or the numeric entry field to fix the bin width.",
                 "</p>",
             } )
-        , 3.0 ) {
-            public Specifier<Double> createSpecifier() {
-                return new ConversionSpecifier<Double,Double>(
-                        new SliderSpecifier( 1, MAX_KERNEL_WIDTH, true, 3 ) ) {
-                    protected Double inToOut( Double inVal ) {
-                        return inVal - 1;
-                    }
-                    protected Double outToIn( Double outVal ) {
-                        return outVal + 1;
-                    }
-                };
-            }
-        };
+        , 100, false, true );
 
     /** Config key for smoothing kernel shape. */
     public static final ConfigKey<Kernel1dShape> KERNEL_KEY =
@@ -88,8 +90,7 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
             new ConfigMeta( "kernel", "Kernel" )
            .setShortDescription( "Smoothing kernel functional form" )
            .setXmlDescription( new String[] {
-                "<p>The functional form of the smoothing kernel",
-                "used if <code>" + SMOOTH_KEY + "</code>&gt;0.",
+                "<p>The functional form of the smoothing kernel.",
                 "</p>",
             } )
         , Kernel1dShape.class, Kernel1dShape.getStandardOptions(),
@@ -168,9 +169,10 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
      * pixel bins for calculations.
      *
      * @param  style  plotting style
+     * @param  surf   plotting surface
      * @return   padding in pixels required in bin array
      */
-    protected abstract int getPixelPadding( S style );
+    protected abstract int getPixelPadding( S style, PlaneSurface surf );
 
     /** 
      * Draws the graphical representation of a given array of counts per
@@ -204,10 +206,12 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
      *
      * @param   plan  plotting plan
      * @param   style  plot style
+     * @param   xLog  true iff X axis is logarithmic
      * @return  report info, may be null
      * @see   uk.ac.starlink.ttools.plot2.Drawing#getReport
      */
-    protected abstract ReportMap getPixel1dReport( Pixel1dPlan plan, S style );
+    protected abstract ReportMap getPixel1dReport( Pixel1dPlan plan, S style,
+                                                   boolean xLog );
 
     /**
      * Calculates the plan object for this plotter.
@@ -246,7 +250,6 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
         final LayerOpt layerOpt = getLayerOpt( style );
         return new AbstractPlotLayer( this, pixoDataGeom_, dataSpec,
                                       style, layerOpt ) {
-            final int xpad = getPixelPadding( style );
             public Drawing createDrawing( Surface surface,
                                           Map<AuxScale,Range> auxRanges,
                                           final PaperType paperType ) {
@@ -256,6 +259,8 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
                 }
                 final PlaneSurface pSurf = (PlaneSurface) surface;
                 final Axis xAxis = pSurf.getAxes()[ 0 ];
+                final boolean xLog = pSurf.getLogFlags()[ 0 ];
+                final int xpad = getPixelPadding( style, pSurf );
                 return new Drawing() {
                     public Object calculatePlan( Object[] knownPlans,
                                                  DataStore dataStore ) {
@@ -289,7 +294,8 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
                     }
                     public ReportMap getReport( Object plan ) {
                         return plan instanceof Pixel1dPlan
-                             ? getPixel1dReport( (Pixel1dPlan) plan, style )
+                             ? getPixel1dReport( (Pixel1dPlan) plan,
+                                                 style, xLog )
                              : null;
                     }
                 };
@@ -438,8 +444,30 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
      * @param  kernel
      * @return  effective extent
      */
-    public int getEffectiveExtent( Kernel1d kernel ) {
+    public static int getEffectiveExtent( Kernel1d kernel ) {
         return Math.min( kernel.getExtent(), MAX_KERNEL_EXTENT );
+    }
+
+    /**
+     * Creates a new kernel from configuration items.
+     *
+     * @param   kernelShape  functional form
+     * @param   sizer   determines width in data coordinates
+     * @param   xAxis   axis on which samples occur
+     * @param   xLog   true for logarithmic x axis, false for linear
+     * @return  kernel
+     */
+    public static Kernel1d createKernel( Kernel1dShape kernelShape,
+                                         BinSizer sizer, Axis xAxis,
+                                         boolean xLog ) {
+        double[] dLimits = xAxis.getDataLimits();
+        int[] gLimits = xAxis.getGraphicsLimits();
+        double dWidth = sizer.getWidth( xLog, dLimits[ 0 ], dLimits[ 1 ] );
+        double gx0 = gLimits[ 0 ];
+        double gx1 = xAxis.dataToGraphics( xLog ? dLimits[ 0 ] * dWidth
+                                                : dLimits[ 0 ] + dWidth );
+        double gWidth = gx1 - gx0;
+        return kernelShape.createKernel( gWidth );
     }
 
     /**

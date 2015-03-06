@@ -107,7 +107,7 @@ public class DensogramPlotter
     public ConfigKey[] getStyleKeys() {
         List<ConfigKey> list = new ArrayList<ConfigKey>();
         list.add( StyleKeys.COLOR );
-        list.add( SMOOTH_KEY );
+        list.add( SMOOTHSIZER_KEY );
         list.add( KERNEL_KEY );
         list.addAll( Arrays.asList( RAMP_KEYSET.getKeys() ) );
         list.add( StyleKeys.CUMULATIVE );
@@ -119,14 +119,13 @@ public class DensogramPlotter
     public DensoStyle createStyle( ConfigMap config ) {
         Color baseColor = config.get( StyleKeys.COLOR );
         RampKeySet.Ramp ramp = RAMP_KEYSET.createValue( config );
-        double width = config.get( SMOOTH_KEY );
+        BinSizer sizer = config.get( SMOOTHSIZER_KEY );
         Kernel1dShape kernelShape = config.get( KERNEL_KEY );
-        Kernel1d kernel = kernelShape.createKernel( width );
         boolean cumul = config.get( StyleKeys.CUMULATIVE );
         int extent = config.get( EXTENT_KEY );
         double position = config.get( POSITION_KEY );
         return new DensoStyle( baseColor, ramp.getShader(), ramp.getScaling(),
-                               kernel, cumul, extent, position );
+                               kernelShape, sizer, cumul, extent, position );
     }
 
     protected void paintBins( PlaneSurface surface, BinArray binArray,
@@ -134,7 +133,10 @@ public class DensogramPlotter
 
         /* Get the data values for each pixel position. */
         Axis xAxis = surface.getAxes()[ 0 ];
-        double[] bins = getDataBins( binArray, xAxis, style.kernel_,
+        boolean xLog = surface.getLogFlags()[ 0 ];
+        Kernel1d kernel = createKernel( style.kernelShape_, style.sizer_,
+                                        xAxis, xLog );
+        double[] bins = getDataBins( binArray, xAxis, kernel,
                                      Normalisation.NONE, style.cumul_ );
 
         /* Work out the Y axis bounds. */
@@ -188,8 +190,11 @@ public class DensogramPlotter
         return LayerOpt.OPAQUE;
     }
 
-    protected int getPixelPadding( DensoStyle style ) {
-        return getEffectiveExtent( style.kernel_ );
+    protected int getPixelPadding( DensoStyle style, PlaneSurface surf ) {
+        Kernel1d kernel =
+            createKernel( style.kernelShape_, style.sizer_,
+                          surf.getAxes()[ 0 ], surf.getLogFlags()[ 0 ] );
+        return getEffectiveExtent( kernel );
     }
 
     protected void extendPixel1dCoordinateRanges( Range[] ranges,
@@ -200,7 +205,8 @@ public class DensogramPlotter
         // no-op
     }
 
-    protected ReportMap getPixel1dReport( Pixel1dPlan plan, DensoStyle style ) {
+    protected ReportMap getPixel1dReport( Pixel1dPlan plan, DensoStyle style,
+                                          boolean xLog ) {
         return null;
     }
 
@@ -212,7 +218,8 @@ public class DensogramPlotter
         final Color baseColor_;
         final Shader shader_;
         final Scaling scaling_;
-        final Kernel1d kernel_;
+        final Kernel1dShape kernelShape_;
+        final BinSizer sizer_;
         final boolean cumul_;
         final int extent_;
         final double position_;
@@ -223,18 +230,20 @@ public class DensogramPlotter
          * @param  baseColor   base colour
          * @param  shader    colour ramp shader
          * @param  scaling   colour ramp scaling function
-         * @param  kernel  smoothing kernel
+         * @param  kernelShape   smoothing kernel shape
+         * @param  sizer    smoothing width specification
          * @param  cumul  are bins painted cumulatively
          * @param  extent   height in pixels of density bar
          * @param  position   fractional location of density bar (0..1)
          */
         public DensoStyle( Color baseColor, Shader shader, Scaling scaling,
-                           Kernel1d kernel, boolean cumul,
-                           int extent, double position ) {
+                           Kernel1dShape kernelShape, BinSizer sizer,
+                           boolean cumul, int extent, double position ) {
             baseColor_ = baseColor;
             shader_ = shader;
             scaling_ = scaling;
-            kernel_ = kernel;
+            kernelShape_ = kernelShape;
+            sizer_ = sizer;
             cumul_ = cumul;
             extent_ = extent;
             position_ = position;
@@ -250,7 +259,8 @@ public class DensogramPlotter
             code = 23 * code + baseColor_.hashCode();
             code = 23 * code + shader_.hashCode();
             code = 23 * code + scaling_.hashCode();
-            code = 23 * code + kernel_.hashCode();
+            code = 23 * code + kernelShape_.hashCode();
+            code = 23 * code + sizer_.hashCode();
             code = 23 * code + ( cumul_ ? 13 : 17 );
             code = 23 * code + extent_;
             code = 23 * code + Float.floatToIntBits( (float) position_ );
@@ -264,7 +274,8 @@ public class DensogramPlotter
                 return this.baseColor_.equals( other.baseColor_ )
                     && this.shader_.equals( other.shader_ )
                     && this.scaling_.equals( other.scaling_ )
-                    && this.kernel_.equals( other.kernel_ )
+                    && this.kernelShape_.equals( other.kernelShape_ )
+                    && this.sizer_.equals( other.sizer_ )
                     && this.cumul_ == other.cumul_
                     && this.extent_ == other.extent_
                     && this.position_ == other.position_;

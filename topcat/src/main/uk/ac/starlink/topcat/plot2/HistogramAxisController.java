@@ -99,7 +99,7 @@ public class HistogramAxisController
             HistogramPlotter.PHASE_KEY,
         } );
         ConfigSpecifier kbinSpecifier = new ConfigSpecifier( new ConfigKey[] {
-            Pixel1dPlotter.SMOOTH_KEY,
+            Pixel1dPlotter.SMOOTHSIZER_KEY,
             Pixel1dPlotter.KERNEL_KEY,
         } );
         ConfigSpecifier genSpecifier = new ConfigSpecifier( new ConfigKey[] {
