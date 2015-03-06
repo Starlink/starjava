@@ -228,6 +228,24 @@ public class SliderSpecifier extends SpecifierPanel<Double> {
     }
 
     /**
+     * Returns the slider component used by this specifier.
+     *
+     * @return  slider
+     */
+    public JSlider getSlider() {
+        return slider_;
+    }
+
+    /**
+     * Returns the text entry component used by this specifier.
+     *
+     * @return  text field
+     */
+    public JTextField getTextField() {
+        return txtField_;
+    }
+
+    /**
      * Called to ensure that the enabledness of the input components matches
      * the currently selected input component.
      */

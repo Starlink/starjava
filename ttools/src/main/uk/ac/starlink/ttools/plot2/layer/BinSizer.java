@@ -2,6 +2,7 @@ package uk.ac.starlink.ttools.plot2.layer;
 
 import java.util.logging.Logger;
 import javax.swing.JComponent;
+import javax.swing.JTextField;
 import uk.ac.starlink.ttools.plot.Rounder;
 import uk.ac.starlink.ttools.plot2.Equality;
 import uk.ac.starlink.ttools.plot2.config.ConfigException;
@@ -302,6 +303,28 @@ public abstract class BinSizer {
             }
             else {
                 logger_.warning( "Can't reset to unknown sizer type" );
+            }
+        }
+
+        /**
+         * May display the current width in data coordinates in the
+         * text field of this specifier's GUI.
+         * The displayed value will only be affectedif the slider,
+         * rather than the text field, is currently active.
+         * This method can be used to reflect the actual width in data
+         * coordinates that corresponds to the slider's current value,
+         * if known, since the specifier itself is not able to determine that.
+         *
+         * @param  fixVal  the fixed positive bin width currently selected
+         */
+        public void displayBinWidth( double fixVal ) {
+            if ( sliderSpecifier_.isSliderActive() ) {
+                String txt = Double.isNaN( fixVal )
+                           ? ""
+                           : Float.toString( (float) fixVal );
+                JTextField txtField = sliderSpecifier_.getTextField();
+                txtField.setText( txt );
+                txtField.setCaretPosition( 0 );
             }
         }
     }
