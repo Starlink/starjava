@@ -329,8 +329,10 @@ public class KernelDensityPlotter
         int nx = ghi - glo;                       
         double[] clipBins = new double[ nx ];
         System.arraycopy( dataBins, ixlo, clipBins, 0, nx );
+        double dSmoothWidth = sizer.getWidth( xLog, dlo, dhi );
         ReportMap report = new ReportMap();
         report.set( BINS_KEY, clipBins );
+        report.set( SMOOTHWIDTH_KEY, dSmoothWidth );
         return report;
     }
 

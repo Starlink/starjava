@@ -221,6 +221,16 @@ public class BinBag {
     }
 
     /**
+     * Returns the bin width used by this histogram model.
+     * It's additive for linear and multiplicative for logarithmic.
+     *
+     * @return  bin width
+     */
+    public double getBinWidth() {
+        return binWidth_;
+    }
+
+    /**
      * Indicates whether the bin boundaries used by this object are the
      * same as a given bin set specification.
      *

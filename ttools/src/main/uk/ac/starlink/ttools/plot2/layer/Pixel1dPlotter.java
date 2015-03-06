@@ -15,7 +15,9 @@ import uk.ac.starlink.ttools.plot2.LayerOpt;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Plotter;
+import uk.ac.starlink.ttools.plot2.ReportKey;
 import uk.ac.starlink.ttools.plot2.ReportMap;
+import uk.ac.starlink.ttools.plot2.ReportMeta;
 import uk.ac.starlink.ttools.plot2.Surface;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
@@ -101,6 +103,12 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
         }
        .setOptionUsage()
        .addOptionsXml();
+
+    /** Report key for smoothing width. */
+    public static final ReportKey<Double> SMOOTHWIDTH_KEY =
+        new ReportKey<Double>( new ReportMeta( "smoothwidth",
+                                               "Smoothing Width" ),
+                               Double.class, false );
 
     /**
      * Constructor.

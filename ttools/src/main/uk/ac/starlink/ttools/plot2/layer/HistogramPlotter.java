@@ -65,6 +65,11 @@ public class HistogramPlotter
         new ReportKey<BinBag>( new ReportMeta( "bins", "Bins" ), BinBag.class,
                                false );
 
+    /** ReportKey for actual bin width. */
+    public static final ReportKey<Double> BINWIDTH_KEY =
+        new ReportKey<Double>( new ReportMeta( "binwidth", "Bin Width" ),
+                               Double.class, false );
+
     /** Config key for bin size configuration. */
     public static final ConfigKey<BinSizer> BINSIZER_KEY =
         BinSizer.createSizerConfigKey(
@@ -276,8 +281,9 @@ public class HistogramPlotter
                         public ReportMap getReport( Object plan ) {
                             ReportMap report = new ReportMap();
                             if ( plan instanceof HistoPlan ) {
-                                report.set( BINS_KEY,
-                                            ((HistoPlan) plan).binBag_ );
+                                BinBag bbag = ((HistoPlan) plan).binBag_;
+                                report.set( BINS_KEY, bbag );
+                                report.set( BINWIDTH_KEY, bbag.getBinWidth() );
                             }
                             return report;
                         }

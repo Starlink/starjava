@@ -207,7 +207,14 @@ public class DensogramPlotter
 
     protected ReportMap getPixel1dReport( Pixel1dPlan plan, DensoStyle style,
                                           boolean xLog ) {
-        return null;
+        Axis xAxis = plan.xAxis_;
+        BinSizer sizer = style.sizer_;
+        double[] dlimits = xAxis.getDataLimits();
+        double dSmoothWidth =
+            sizer.getWidth( xLog, dlimits[ 0 ], dlimits[ 1 ] );
+        ReportMap report = new ReportMap();
+        report.set( SMOOTHWIDTH_KEY, dSmoothWidth );
+        return report;
     }
 
     /**
