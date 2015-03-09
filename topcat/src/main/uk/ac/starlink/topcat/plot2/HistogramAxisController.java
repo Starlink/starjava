@@ -1,8 +1,14 @@
 package uk.ac.starlink.topcat.plot2;
 
+import java.awt.BorderLayout;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import javax.swing.BorderFactory;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import uk.ac.starlink.topcat.LineBox;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.ttools.plot.Style;
 import uk.ac.starlink.ttools.plot2.Navigator;
@@ -38,6 +44,8 @@ public class HistogramAxisController
 
     private final BinSizer.BinSizerSpecifier binWidthSpecifier_;
     private final BinSizer.BinSizerSpecifier smoothWidthSpecifier_;
+    private final JLabel histoCountLabel_;
+    private final JLabel kdeCountLabel_;
 
     /**
      * Constructor.
@@ -110,6 +118,9 @@ public class HistogramAxisController
         binWidthSpecifier_ =
             getSliderSpecifier( hbarSpecifier, HistogramPlotter.BINSIZER_KEY );
         assert binWidthSpecifier_ != null;
+        histoCountLabel_ = new JLabel();
+        addCountLabel( hbarSpecifier.getComponent(),
+                       "Visible Histograms", histoCountLabel_ );
         ConfigSpecifier kbinSpecifier = new ConfigSpecifier( new ConfigKey[] {
             Pixel1dPlotter.SMOOTHSIZER_KEY,
             Pixel1dPlotter.KERNEL_KEY,
@@ -117,12 +128,15 @@ public class HistogramAxisController
         smoothWidthSpecifier_ =
             getSliderSpecifier( kbinSpecifier, Pixel1dPlotter.SMOOTHSIZER_KEY );
         assert smoothWidthSpecifier_ != null;
+        kdeCountLabel_ = new JLabel();
+        addCountLabel( kbinSpecifier.getComponent(),
+                       "Visible KDEs", kdeCountLabel_ );
         ConfigSpecifier genSpecifier = new ConfigSpecifier( new ConfigKey[] {
             StyleKeys.CUMULATIVE,
             StyleKeys.NORMALISE,
         } );
         ConfigControl barControl =
-            new ConfigControl( "Bars", ResourceIcon.HISTOBARS );
+            new ConfigControl( "Bins", ResourceIcon.HISTOBARS );
         barControl.addSpecifierTab( "Histogram", hbarSpecifier );
         barControl.addSpecifierTab( "KDE", kbinSpecifier );
         barControl.addSpecifierTab( "General", genSpecifier );
@@ -181,9 +195,9 @@ public class HistogramAxisController
     @Override
     public void submitReports( Map<LayerId,ReportMap> reports ) {
         updateBinSizerText( HistogramPlotter.BINWIDTH_KEY,
-                            binWidthSpecifier_, reports );
+                            binWidthSpecifier_, histoCountLabel_, reports );
         updateBinSizerText( Pixel1dPlotter.SMOOTHWIDTH_KEY,
-                            smoothWidthSpecifier_, reports );
+                            smoothWidthSpecifier_, kdeCountLabel_, reports );
     }
 
     /**
@@ -195,16 +209,20 @@ public class HistogramAxisController
      * @param   key  report key giving the actual width in data coordinates
      *               extracted from a BinSizer config item
      * @param   specifier   specifier from which the BinSizer value is acquired
+     * @param   countLabel   label to be updated with number of layers with
+     *                       the relevant type
      * @param   reports   reports obtained from doing the plot
      */
     private static void
             updateBinSizerText( ReportKey<Double> key,
                                 BinSizer.BinSizerSpecifier specifier,
+                                JLabel countLabel,
                                 Map<LayerId,ReportMap> reports ) {
 
         /* See if we have a value for the actual width for the relevant
          * config item. */
         double dval = Double.NaN;
+        int count = 0;
         for ( ReportMap report : reports.values() ) {
             Double value = report == null ? null : report.get( key );
             double dval0 = value == null ? Double.NaN : value.doubleValue();
@@ -212,8 +230,12 @@ public class HistogramAxisController
                 assert Double.isNaN( dval ) || dval0 == dval
                      : key + " not unique?";
                 dval = dval0;
+                count++;
             }
         }
+
+        /* Report number of layers of this type. */
+        countLabel.setText( Integer.toString( count ) );
 
         /* If so, pass it to the relevant specifier for display. */
         if ( specifier != null ) {
@@ -294,6 +316,21 @@ public class HistogramAxisController
             hasBars = hasBars || layerHasBars;
         }
         return hasBars ? new BarState( sizer, cumul, norm ) : null;
+    }
+
+    /**
+     * Adds a heading/JLabel pair to the bottom of a given component.
+     *
+     * @param  panel  panel to add to
+     * @param  labelHead   text of heading
+     * @param  labelComp   component to add under heading
+     */
+    private static void addCountLabel( JComponent panel, String labelHead,
+                                       JLabel labelComp ) {
+        JComponent holder = new JPanel( new BorderLayout() );
+        holder.add( new LineBox( labelHead, labelComp ), BorderLayout.NORTH );
+        holder.setBorder( BorderFactory.createEmptyBorder( 10, 0, 5, 0 ) );
+        panel.add( holder );
     }
 
     /**
