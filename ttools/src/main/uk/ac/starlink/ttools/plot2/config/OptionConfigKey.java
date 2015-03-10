@@ -5,6 +5,7 @@ import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JComponent;
 import javax.swing.JRadioButton;
+import uk.ac.starlink.ttools.plot2.ReportMap;
 
 /**
  * Config key for use with items that can be chosen from a list of options.
@@ -272,6 +273,9 @@ public abstract class OptionConfigKey<T> extends ConfigKey<T> {
                     return;
                 }
             }
+        }
+
+        public void submitReport( ReportMap report ) {
         }
     }
 }

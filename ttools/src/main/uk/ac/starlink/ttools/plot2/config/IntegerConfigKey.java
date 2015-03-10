@@ -5,6 +5,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JComponent;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
+import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 /**
@@ -140,6 +141,9 @@ public abstract class IntegerConfigKey extends ConfigKey<Integer> {
         public void setSpecifiedValue( Integer value ) {
             spinner_.setValue( value );
             fireAction();
+        }
+
+        public void submitReport( ReportMap report ) {
         }
     }
 }

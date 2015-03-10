@@ -6,6 +6,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 
 /**
@@ -65,5 +66,9 @@ public class ToggleSpecifier<T> extends SpecifierPanel<T> {
             base_.setSpecifiedValue( value );
         }
         fireAction();
+    }
+
+    public void submitReport( ReportMap report ) {
+        base_.submitReport( report );
     }
 }

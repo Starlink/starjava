@@ -9,6 +9,7 @@ import javax.swing.JComponent;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import uk.ac.starlink.topcat.ToggleButtonModel;
+import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.Specifier;
 import uk.ac.starlink.ttools.plot2.config.SpecifierPanel;
@@ -91,5 +92,9 @@ public class AutoSpecifier<T> extends SpecifierPanel<T> {
     public void setSpecifiedValue( T value ) {
         base_.setSpecifiedValue( value );
         fireAction();
+    }
+
+    public void submitReport( ReportMap report ) {
+        base_.submitReport( report );
     }
 }
