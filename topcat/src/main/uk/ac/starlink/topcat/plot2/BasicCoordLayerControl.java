@@ -19,6 +19,7 @@ import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.Plotter;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
+import uk.ac.starlink.ttools.plot2.config.Specifier;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 
@@ -122,6 +123,16 @@ public class BasicCoordLayerControl extends ConfigControl
     }
 
     public void submitReports( Map<LayerId,ReportMap> reports ) {
+        PlotLayer[] layers = getPlotLayers();
+        PlotLayer layer = layers.length == 1 ? layers[ 0 ] : null;
+        if ( layer != null ) {
+            ReportMap report = reports.get( LayerId.createLayerId( layer ) );
+            if ( report != null ) {
+                for ( Specifier<ConfigMap> cspec : getConfigSpecifiers() ) {
+                    cspec.submitReport( report );
+                }
+            }
+        }
         reportLogger_.submitReports( reports );
     }
 

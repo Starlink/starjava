@@ -58,4 +58,14 @@ public class ConfigControl extends TabberControl implements Configger {
         }
         return config;
     }
+
+    /**
+     * Returns a list of the config specifiers explicitly added to this
+     * control.
+     *
+     * @return  list of specifiers
+     */
+    public List<Specifier<ConfigMap>> getConfigSpecifiers() {
+        return specifierList_;
+    }
 }

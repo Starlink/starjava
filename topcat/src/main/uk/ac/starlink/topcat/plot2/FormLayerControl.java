@@ -236,28 +236,26 @@ public abstract class FormLayerControl
         }
         DataGeom geom = posCoordPanel_.getDataGeom();
         for ( FormControl fc : getActiveFormControls() ) {
-            if ( fc.hasReports() ) {
-                Map<RowSubset,ReportMap> sreports =
-                    new LinkedHashMap<RowSubset,ReportMap>();
-                GuiCoordContent[] extraContents = fc.getExtraCoordContents();
-                if ( extraContents != null ) {
-                    GuiCoordContent[] contents =
-                        PlotUtil.arrayConcat( posContents, extraContents );
-                    for ( RowSubset rset : subsets ) {
-                        DataSpec dspec =
-                            new GuiDataSpec( tcModel_, rset, contents );
-                        PlotLayer layer = fc.createLayer( geom, dspec, rset );
-                        if ( layer != null ) {
-                            ReportMap report =
-                                reports.get( LayerId.createLayerId( layer ) );
-                            if ( report != null ) {
-                                sreports.put( rset, report );
-                            }
+            Map<RowSubset,ReportMap> sreports =
+                new LinkedHashMap<RowSubset,ReportMap>();
+            GuiCoordContent[] extraContents = fc.getExtraCoordContents();
+            if ( extraContents != null ) {
+                GuiCoordContent[] contents =
+                    PlotUtil.arrayConcat( posContents, extraContents );
+                for ( RowSubset rset : subsets ) {
+                    DataSpec dspec =
+                        new GuiDataSpec( tcModel_, rset, contents );
+                    PlotLayer layer = fc.createLayer( geom, dspec, rset );
+                    if ( layer != null ) {
+                        ReportMap report =
+                            reports.get( LayerId.createLayerId( layer ) );
+                        if ( report != null ) {
+                            sreports.put( rset, report );
                         }
                     }
                 }
-                fc.submitReports( sreports );
             }
+            fc.submitReports( sreports );
         }
     }
 
