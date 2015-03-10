@@ -13,6 +13,7 @@ import uk.ac.starlink.ttools.plot2.config.ConfigException;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
+import uk.ac.starlink.ttools.plot2.config.Specifier;
 import uk.ac.starlink.ttools.plot2.config.StringConfigKey;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.layer.FunctionPlotter;
@@ -100,6 +101,16 @@ public class FunctionLayerControl extends ConfigControl
     }
 
     public void submitReports( Map<LayerId,ReportMap> reports ) {
+        PlotLayer[] layers = getPlotLayers();
+        PlotLayer layer = layers.length == 1 ? layers[ 0 ] : null;
+        if ( layer != null ) {
+            ReportMap report = reports.get( LayerId.createLayerId( layer ) );
+            if ( report != null ) {
+                for ( Specifier<ConfigMap> cspec : getConfigSpecifiers() ) {
+                    cspec.submitReport( report );
+                }
+            }
+        }
         reportLogger_.submitReports( reports );
     }
 
