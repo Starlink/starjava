@@ -239,7 +239,9 @@ public class HistogramAxisController
 
         /* If so, pass it to the relevant specifier for display. */
         if ( specifier != null ) {
-            specifier.displayBinWidth( dval );
+            ReportMap report = new ReportMap();
+            report.put( key, new Double( dval ) );
+            specifier.submitReport( report );
         }
     }
 
