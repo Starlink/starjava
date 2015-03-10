@@ -57,6 +57,12 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
     private static final int MAX_KERNEL_WIDTH = 50;
     private static final int MAX_KERNEL_EXTENT = 150;
 
+    /** Report key for smoothing width. */
+    public static final ReportKey<Double> SMOOTHWIDTH_KEY =
+        new ReportKey<Double>( new ReportMeta( "smoothwidth",
+                                               "Smoothing Width" ),
+                               Double.class, false );
+
     /** Config key for smoothing width configuration. */
     public static final ConfigKey<BinSizer> SMOOTHSIZER_KEY =
         BinSizer.createSizerConfigKey(
@@ -84,7 +90,7 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
                 "or the numeric entry field to fix the bin width.",
                 "</p>",
             } )
-        , 100, false, true );
+        , SMOOTHWIDTH_KEY, 100, false, true );
 
     /** Config key for smoothing kernel shape. */
     public static final ConfigKey<Kernel1dShape> KERNEL_KEY =
@@ -103,12 +109,6 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
         }
        .setOptionUsage()
        .addOptionsXml();
-
-    /** Report key for smoothing width. */
-    public static final ReportKey<Double> SMOOTHWIDTH_KEY =
-        new ReportKey<Double>( new ReportMeta( "smoothwidth",
-                                               "Smoothing Width" ),
-                               Double.class, false );
 
     /**
      * Constructor.

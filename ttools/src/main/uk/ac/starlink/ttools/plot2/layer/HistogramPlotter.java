@@ -93,7 +93,7 @@ public class HistogramPlotter
                 "or the numeric entry field to fix the bin width.",
                 "</p>",
             } )
-        , 20, true, false );
+        , BINWIDTH_KEY, 20, true, false );
 
     /** Config key for bar line thickness. */
     public static final ConfigKey<Integer> THICK_KEY =

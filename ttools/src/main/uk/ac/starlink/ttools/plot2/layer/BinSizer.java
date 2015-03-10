@@ -5,6 +5,7 @@ import javax.swing.JComponent;
 import javax.swing.JTextField;
 import uk.ac.starlink.ttools.plot.Rounder;
 import uk.ac.starlink.ttools.plot2.Equality;
+import uk.ac.starlink.ttools.plot2.ReportKey;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.config.ConfigException;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
@@ -65,15 +66,19 @@ public abstract class BinSizer {
      * Constructs a config key for acquiring BinSizers.
      *
      * @param   meta  key metadata
+     * @param   widthReportKey  report key giving bin width in data coordinates
      * @param   dfltNbin  default bin count
      * @param  rounding  true to prefer round numbers for output bin widths
      * @param  allowZero  true iff zero is an allowed width
      * @return  new config key
      */
     public static ConfigKey<BinSizer>
-            createSizerConfigKey( ConfigMeta meta, int dfltNbin,
-                                  boolean rounding, boolean allowZero ) {
-        return new BinSizerConfigKey( meta, dfltNbin, rounding, allowZero );
+            createSizerConfigKey( ConfigMeta meta,
+                                  ReportKey<Double> widthReportKey,
+                                  int dfltNbin, boolean rounding,
+                                  boolean allowZero ) {
+        return new BinSizerConfigKey( meta, widthReportKey, dfltNbin,
+                                      rounding, allowZero );
     }
 
     /**
@@ -176,6 +181,7 @@ public abstract class BinSizer {
      */
     private static class BinSizerConfigKey extends ConfigKey<BinSizer> {
 
+        private final ReportKey<Double> widthReportKey_;
         private final int dfltNbin_;
         private final boolean rounding_;
         private final boolean allowZero_;
@@ -184,14 +190,16 @@ public abstract class BinSizer {
          * Constructor.
          *
          * @param   meta  key metadata
+         * @param   widthReportKey  report key giving bin width in data coords
          * @param   dlftNbin  default bin count
          * @param  rounding  true to prefer round numbers for output bin widths
          * @param  allowZero  true iff zero is an allowed width
          */
-        BinSizerConfigKey( ConfigMeta meta, int dfltNbin,
-                           boolean rounding, boolean allowZero ) {
+        BinSizerConfigKey( ConfigMeta meta, ReportKey<Double> widthReportKey,
+                           int dfltNbin, boolean rounding, boolean allowZero ) {
             super( meta, BinSizer.class,
                    new CountBinSizer( dfltNbin, rounding ) );
+            widthReportKey_ = widthReportKey;
             dfltNbin_ = dfltNbin;
             rounding_ = rounding;
             allowZero_ = allowZero;
@@ -237,8 +245,8 @@ public abstract class BinSizer {
         }
 
         public Specifier<BinSizer> createSpecifier() {
-            return new BinSizerSpecifier( dfltNbin_, rounding_, allowZero_,
-                                          1000 );
+            return new BinSizerSpecifier( widthReportKey_, dfltNbin_,
+                                          rounding_, allowZero_, 1000 );
         }
     }
 
@@ -247,6 +255,7 @@ public abstract class BinSizer {
      */
     public static class BinSizerSpecifier extends SpecifierPanel<BinSizer> {
 
+        private final ReportKey<Double> widthReportKey_;
         private final boolean rounding_;
         private final boolean allowZero_;
         private final SliderSpecifier sliderSpecifier_;
@@ -255,14 +264,16 @@ public abstract class BinSizer {
         /**
          * Constructor.
          *
+         * @param   widthReportKey  report key giving bin width in data coords
          * @param   dlftNbin  default bin count
          * @param  rounding  true to prefer round numbers for output bin widths
          * @param  allowZero  true iff zero is an allowed width
          * @param   maxCount   maximum  count value
          */
-        BinSizerSpecifier( int dfltNbin, boolean rounding, boolean allowZero,
-                           int maxCount ) {
+        BinSizerSpecifier( ReportKey<Double> widthReportKey, int dfltNbin,
+                           boolean rounding, boolean allowZero, int maxCount ) {
             super( true );
+            widthReportKey_ = widthReportKey;
             rounding_ = rounding;
             allowZero_ = allowZero;
             maxCount_ = maxCount;
@@ -308,6 +319,10 @@ public abstract class BinSizer {
         }
 
         public void submitReport( ReportMap report ) {
+            Double objval = report == null ? null
+                                           : report.get( widthReportKey_ );
+            double dval = objval == null ? Double.NaN : objval.doubleValue();
+            displayBinWidth( dval );
         }
 
         /**
@@ -321,7 +336,7 @@ public abstract class BinSizer {
          *
          * @param  fixVal  the fixed positive bin width currently selected
          */
-        public void displayBinWidth( double fixVal ) {
+        private void displayBinWidth( double fixVal ) {
             if ( sliderSpecifier_.isSliderActive() ) {
                 String txt = Double.isNaN( fixVal )
                            ? ""
