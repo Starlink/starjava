@@ -282,8 +282,8 @@ public class HistogramPlotter
                             ReportMap report = new ReportMap();
                             if ( plan instanceof HistoPlan ) {
                                 BinBag bbag = ((HistoPlan) plan).binBag_;
-                                report.set( BINS_KEY, bbag );
-                                report.set( BINWIDTH_KEY, bbag.getBinWidth() );
+                                report.put( BINS_KEY, bbag );
+                                report.put( BINWIDTH_KEY, bbag.getBinWidth() );
                             }
                             return report;
                         }
