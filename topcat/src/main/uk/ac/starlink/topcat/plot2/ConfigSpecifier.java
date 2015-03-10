@@ -9,6 +9,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import uk.ac.starlink.table.gui.LabelledComponentStack;
+import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.config.ConfigException;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
@@ -72,7 +73,6 @@ public class ConfigSpecifier extends SpecifierPanel<ConfigMap> {
         }
     }
 
-    @Override
     protected JComponent createComponent() {
         LabelledComponentStack stack = new LabelledComponentStack();
         for ( int ik = 0; ik < kspecs_.length; ik++ ) {
@@ -165,6 +165,12 @@ public class ConfigSpecifier extends SpecifierPanel<ConfigMap> {
     public void setSpecifiedValue( ConfigMap configMap ) {
         for ( ConfigKey<?> key : configMap.keySet() ) {
             configureSpecifierFromMap( key, configMap );
+        }
+    }
+
+    public void submitReport( ReportMap report ) {
+        for ( KSpec kspec : kspecs_ ) {
+            kspec.specifier_.submitReport( report );
         }
     }
 

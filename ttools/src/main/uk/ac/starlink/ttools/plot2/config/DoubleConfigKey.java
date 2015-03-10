@@ -3,6 +3,7 @@ package uk.ac.starlink.ttools.plot2.config;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
+import uk.ac.starlink.ttools.plot2.ReportMap;
 
 /**
  * Config key for double precision values.
@@ -161,6 +162,9 @@ public abstract class DoubleConfigKey extends ConfigKey<Double> {
                 checkBox_.setSelected( true );
             }
             fireAction();
+        }
+
+        public void submitReport( ReportMap report ) {
         }
     }
 }

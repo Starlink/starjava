@@ -16,6 +16,7 @@ import javax.swing.JSlider;
 import javax.swing.JTextField;
 import javax.swing.event.ChangeListener;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
+import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 
 /**
@@ -150,6 +151,9 @@ public class SliderSpecifier extends SpecifierPanel<Double> {
                 txtField_.setText( Float.toString( (float) dval ) );
             }
         }
+    }
+
+    public void submitReport( ReportMap report ) {
     }
 
     /**

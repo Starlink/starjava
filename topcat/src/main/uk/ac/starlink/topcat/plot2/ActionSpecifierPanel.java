@@ -7,6 +7,7 @@ import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import uk.ac.starlink.topcat.BasicAction;
+import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.Specifier;
@@ -88,6 +89,10 @@ public class ActionSpecifierPanel extends SpecifierPanel<ConfigMap> {
     
     public void setSpecifiedValue( ConfigMap config ) {
         baseSpecifier_.setSpecifiedValue( config );
+    }
+
+    public void submitReport( ReportMap report ) {
+        baseSpecifier_.submitReport( report );
     }
 
     /**

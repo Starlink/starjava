@@ -11,6 +11,7 @@ import java.util.Set;
 import javax.swing.Box;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
+import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.Specifier;
@@ -173,6 +174,10 @@ public class OptionalConfigSpecifier extends ConfigSpecifier {
 
         public void setSpecifiedValue( T value ) {
             baseSpecifier_.setSpecifiedValue( value );
+        }
+
+        public void submitReport( ReportMap report ) {
+            baseSpecifier_.submitReport( report );
         }
     }
 

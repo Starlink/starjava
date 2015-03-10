@@ -2,6 +2,7 @@ package uk.ac.starlink.ttools.plot2.config;
 
 import java.awt.event.ActionListener;
 import javax.swing.JComponent;
+import uk.ac.starlink.ttools.plot2.ReportMap;
 
 /**
  * Specifier implementation that adapts an existing one to dispense
@@ -59,6 +60,10 @@ public abstract class ConversionSpecifier<I,O> implements Specifier<O> {
 
     public void removeActionListener( ActionListener listener ) {
         baseSpec_.removeActionListener( listener );
+    }
+
+    public void submitReport( ReportMap report ) {
+        baseSpec_.submitReport( report );
     }
 
     public boolean isXFill() {

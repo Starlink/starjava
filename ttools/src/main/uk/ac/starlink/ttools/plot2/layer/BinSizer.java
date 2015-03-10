@@ -5,6 +5,7 @@ import javax.swing.JComponent;
 import javax.swing.JTextField;
 import uk.ac.starlink.ttools.plot.Rounder;
 import uk.ac.starlink.ttools.plot2.Equality;
+import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.config.ConfigException;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
@@ -304,6 +305,9 @@ public abstract class BinSizer {
             else {
                 logger_.warning( "Can't reset to unknown sizer type" );
             }
+        }
+
+        public void submitReport( ReportMap report ) {
         }
 
         /**
