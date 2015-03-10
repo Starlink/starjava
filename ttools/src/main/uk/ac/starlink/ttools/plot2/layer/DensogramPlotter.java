@@ -213,7 +213,7 @@ public class DensogramPlotter
         double dSmoothWidth =
             sizer.getWidth( xLog, dlimits[ 0 ], dlimits[ 1 ] );
         ReportMap report = new ReportMap();
-        report.set( SMOOTHWIDTH_KEY, dSmoothWidth );
+        report.put( SMOOTHWIDTH_KEY, dSmoothWidth );
         return report;
     }
 

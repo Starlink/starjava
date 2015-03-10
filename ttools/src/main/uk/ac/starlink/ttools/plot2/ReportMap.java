@@ -26,13 +26,32 @@ public class ReportMap {
     }
 
     /**
+     * Constructs a map with the same content as a given template.
+     *
+     * @param  copy  map whose contents are to be copied
+     */
+    public ReportMap( ReportMap copy ) {
+        this();
+        map_.putAll( copy.map_ );
+    }
+
+    /**
      * Sets an entry.
      *
      * @param  key  key
      * @param  value   value
      */
-    public <T> void set( ReportKey<T> key, T value ) {
+    public <T> void put( ReportKey<T> key, T value ) {
         map_.put( key, value );
+    }
+
+    /**
+     * Copies all the entries from a given map into this map.
+     *
+     * @param   report   map to copy
+     */
+    public void putAll( ReportMap report ) {
+        map_.putAll( report.map_ );
     }
 
     /**

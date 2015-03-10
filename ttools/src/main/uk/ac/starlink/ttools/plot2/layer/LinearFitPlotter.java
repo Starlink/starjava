@@ -362,11 +362,11 @@ public class LinearFitPlotter extends AbstractPlotter<LineStyle> {
                 .append( C0_KEY.getMeta().getShortName() )
                 .toString();
             ReportMap report = new ReportMap();
-            report.set( EQUATION_KEY, equation );
-            report.set( C0_KEY, coeffs[ 0 ] );
-            report.set( C1_KEY, coeffs[ 1 ] );
-            report.set( CORRELATION_KEY, stats_.getCorrelation() );
-            report.set( COEFFS_KEY, coeffs );
+            report.put( EQUATION_KEY, equation );
+            report.put( C0_KEY, coeffs[ 0 ] );
+            report.put( C1_KEY, coeffs[ 1 ] );
+            report.put( CORRELATION_KEY, stats_.getCorrelation() );
+            report.put( COEFFS_KEY, coeffs );
             return report; 
         }
     }
