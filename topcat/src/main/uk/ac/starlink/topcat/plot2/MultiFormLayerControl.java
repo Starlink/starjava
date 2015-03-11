@@ -250,7 +250,7 @@ public class MultiFormLayerControl extends FormLayerControl {
         FormControl fc =
             new SimpleFormControl( baseConfigger_, plotter,
                                    plotter.getCoordGroup().getExtraCoords() );
-        fc.setTable( getTopcatModel(), getSubsetManager() );
+        fc.setTable( getTopcatModel(), getSubsetManager(), getSubsetStack() );
         return fc;
     }
 
@@ -263,7 +263,7 @@ public class MultiFormLayerControl extends FormLayerControl {
     private ModeFormControl createModeFormControl( ModePlotter[] plotters ) {
         ModeFormControl fc =
             new ModeFormControl( baseConfigger_, plotters, subsetKeys_ );
-        fc.setTable( getTopcatModel(), getSubsetManager() );
+        fc.setTable( getTopcatModel(), getSubsetManager(), getSubsetStack() );
         return fc;
     }
 

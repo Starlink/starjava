@@ -368,7 +368,7 @@ public abstract class FormLayerControl
         posCoordPanel_.setTable( tcModel_, autoPopulate_ );
         FormControl[] fcs = getActiveFormControls();
         for ( int ifc = 0; ifc < fcs.length; ifc++ ) {
-            fcs[ ifc ].setTable( tcModel_, subsetManager_ );
+            fcs[ ifc ].setTable( tcModel_, subsetManager_, subStack_ );
         }
 
         /* If there is no new table, just clear the list of subsets

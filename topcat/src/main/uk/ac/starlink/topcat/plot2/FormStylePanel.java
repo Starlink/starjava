@@ -3,6 +3,8 @@ package uk.ac.starlink.topcat.plot2;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -14,6 +16,7 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ComboBoxModel;
 import javax.swing.Icon;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -50,6 +53,7 @@ public class FormStylePanel extends JPanel {
     private final Configger plotConfigger_;
     private final Factory<Plotter> plotterFact_;
     private final SubsetConfigManager subManager_;
+    private final SubsetStack subStack_;
     private final TopcatModel tcModel_;
     private final OptionalConfigSpecifier globalSpecifier_;
     private final ActionForwarder forwarder_;
@@ -67,16 +71,18 @@ public class FormStylePanel extends JPanel {
      * @param  plotterFact   obtains on demand the plotter for which this
      *                       panel is acquiring style information
      * @param  subManager   provides per-subset defaults for some config keys
+     * @param  subStack    controls/display per-subset visibility
      * @param  tcModel   topcat model whose subsets are being configured
      */
     public FormStylePanel( ConfigKey[] keys, Configger plotConfigger,
                            Factory<Plotter> plotterFact,
                            SubsetConfigManager subManager,
-                           TopcatModel tcModel ) {
+                           SubsetStack subStack, TopcatModel tcModel ) {
         setLayout( new BoxLayout( this, BoxLayout.Y_AXIS ) );
         plotConfigger_ = plotConfigger;
         plotterFact_ = plotterFact;
         subManager_ = subManager;
+        subStack_ = subStack;
         tcModel_ = tcModel;
         forwarder_ = new ActionForwarder();
 
@@ -144,6 +150,14 @@ public class FormStylePanel extends JPanel {
         subsetConfigs_ = new HashMap<RowSubset,ConfigMap>();
         subsetSelector_.setSelectedItem( null );
 
+        /* Set up a checkbox to display/control visibility of the selected
+         * subset.  This can be controlled elsewhere (the SubsetStack in
+         * the Subsets tab), but it's useful to have a reminder here.
+         * One particular circumstance is if you're changing something
+         * here and can't see any changes in the plot. */
+        JCheckBox subsetVisibilityBox =
+            createSelectedSubsetVisibilityBox( "Visible" );
+
         /* Place components. */
         JComponent subsetPanel = Box.createVerticalBox();
         JComponent subsetLine = Box.createHorizontalBox();
@@ -151,6 +165,8 @@ public class FormStylePanel extends JPanel {
         subsetLine.add( new ShrinkWrapper( subsetSelector_ ) );
         subsetLine.add( Box.createHorizontalStrut( 10 ) );
         subsetLine.add( iconLabel_ );
+        subsetLine.add( Box.createHorizontalStrut( 10 ) );
+        subsetLine.add( subsetVisibilityBox );
         subsetLine.add( Box.createHorizontalGlue() );
         subsetPanel.add( subsetLine );
         subsetPanel.add( Box.createVerticalStrut( 5 ) );
@@ -296,6 +312,17 @@ public class FormStylePanel extends JPanel {
     }
 
     /**
+     * Returns the subset currently selected for subset-specific configuration,
+     * or null if none is selected.
+     *
+     * @return  selected subset, may be null
+     */
+    private RowSubset getSelectedSubset() {
+        Object item = subsetSelector_.getSelectedItem();
+        return item instanceof RowSubset ? (RowSubset) item : null;
+    }
+
+    /**
      * There is space for a little icon near the per-subset specifier.
      * This updates it to make sure it shows the right thing, which
      * will change according to which subset is being configured and
@@ -318,6 +345,54 @@ public class FormStylePanel extends JPanel {
         Icon icon = style == null ? IconUtils.emptyIcon( 24, 24 )
                                   : style.getLegendIcon();
         iconLabel_.setIcon( icon );
+    }
+
+    /**
+     * Returns a checkbox that displays/controls the visibility state
+     * of whatever is this panel's currently selected subset.
+     *
+     * @param  boxName   name to label the checkbox
+     * @return  checkbox
+     */
+    private JCheckBox createSelectedSubsetVisibilityBox( String boxName ) {
+
+        /* Create the checkbox. */
+        final JCheckBox visBox = new JCheckBox( boxName );
+        visBox.setToolTipText( "Reports/sets whether the selected subset "
+                             + "is currently plotted" );
+
+        /* Make sure the checkbox state is upadated on changes to
+         * either the inclusion status of any of this panel's subsets,
+         * or the identity of this panel's currently selected subset. */
+        final ActionListener viewListener = new ActionListener() {
+            public void actionPerformed( ActionEvent evt ) {
+                RowSubset rset = getSelectedSubset();
+                boolean isVisible =
+                    Arrays.asList( subStack_.getSelectedSubsets() )
+                          .contains( rset );
+                visBox.setSelected( isVisible );
+                visBox.setEnabled( rset != null );
+            }
+        };
+        subStack_.addActionListener( viewListener );
+        subsetSelector_.addItemListener( new ItemListener() {
+            public void itemStateChanged( ItemEvent evt ) {
+                viewListener.actionPerformed( null );
+            }
+        } );
+
+        /* If the checkbox is toggled, inform the subset inclusion model. */
+        visBox.addItemListener( new ItemListener() {
+            public void itemStateChanged( ItemEvent evt ) {
+                RowSubset rset = getSelectedSubset();
+                if ( rset != null ) {
+                    subStack_.setSelected( rset, visBox.isSelected() );
+                }
+            }
+        } );
+
+        /* Return the checkbox. */
+        return visBox;
     }
 
     /**
