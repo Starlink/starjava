@@ -129,9 +129,10 @@ public abstract class FormControl implements Control {
      * @param  tcModel   topcat model
      * @param  subManager  subset manager with info about the row subsets
      *                     for <code>tcModel</code>
+     * @param  subStack   subset stack controlling/displaying subset visibility
      */
-    public void setTable( TopcatModel tcModel,
-                          SubsetConfigManager subManager ) {
+    public void setTable( TopcatModel tcModel, SubsetConfigManager subManager,
+                          SubsetStack subStack ) {
         JComponent panel = getPanel();
 
         /* Clear out an old style panel if there was one. */
@@ -156,7 +157,7 @@ public abstract class FormControl implements Control {
             ConfigKey[] keys = klist.toArray( new ConfigKey[ 0 ] );
             FormStylePanel sp =
                 new FormStylePanel( keys, baseConfigger_, plotterFact,
-                                    subManager, tcModel );
+                                    subManager, subStack, tcModel );
             if ( stylePanel_ != null ) {
                 sp.configureFrom( stylePanel_ );
             }

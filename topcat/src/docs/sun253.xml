@@ -7212,6 +7212,9 @@ generally contain two sub-panels for defining the style details,
     styles, for instance different shapes for different subsets,
     you can select a subset here and alter style details for
     that subset only, overriding the Global settings above.
+    The <label>Visible</label> checkbox indicates and controls
+    whether the subset selected for specific configuration is
+    currently visible in the plot.
     </p></dd>
 </dl>
 </p>
@@ -21057,6 +21060,11 @@ introduced since the last version:
         This affects FITS, VOTable and CDF I/O handlers.</li>
     <li>Catch and report the error properly if the user enters
         a bad explicit axis range (max value &lt;= min value).</li>
+    <li>The Subset Styles panel in
+        <ref id="tableDataControl">table data layer controls</ref>
+        now has a <label>Visible</label> checkbox
+        indicating whether the subset undergoing
+        subset-specific configuration is currently visible in the plot.</li>
     </ul>
     </p></dd>
 
