@@ -77,23 +77,25 @@ public class KernelDensityPlotter
 
     public String getPlotterDescription() {
         return PlotUtil.concatLines( new String[] {
-            "<p>Plots a Kernel Density Estimate",
+            "<p>Plots a Discrete Kernel Density Estimate",
             "giving a smoothed frequency of data values along the",
             "horizontal axis.",
             "This is a generalisation of a histogram in which",
             "the bins are always 1 pixel wide,",
-            "and a smoothing kernel,",
-            "whose width and shape may be varied,",
-            "is applied to each data point.",
+            "and a smoothing kernel is applied to each bin.",
+            "The width and shape of the kernel may be varied.",
             "</p>",
             "<p>This is suitable for cases where",
             "the division into discrete bins",
             "done by a normal histogram is unnecessary or troublesome.",
             "</p>",
-            "<p>Since the plotted output is quantised to the pixel level",
-            "it's not a true Kernel Density Estimation,",
-            "but at least on a bitmapped display it is indistinguishable",
-            "from one.",
+            "<p>Note this is not a true Kernel Density Estimate,",
+            "since, for performance reasons,",
+            "the smoothing is applied to the (pixel-width) bins",
+            "rather than to each data sample.",
+            "The deviation from a true KDE caused by this quantisation",
+            "will be at the pixel level,",
+            "hence in most cases not visually apparent.",
             "</p>",
         } );
     }
