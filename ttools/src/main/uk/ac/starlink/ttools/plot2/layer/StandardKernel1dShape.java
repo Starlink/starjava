@@ -1,6 +1,7 @@
 package uk.ac.starlink.ttools.plot2.layer;
 
 import java.util.Arrays;
+import uk.ac.starlink.ttools.plot2.Equality;
 
 /**
  * Implementation class for Kernel1dShapes based on evaluating
@@ -9,6 +10,7 @@ import java.util.Arrays;
  * @author   Mark Taylor
  * @since    12 Mar 2015
  */
+@Equality
 public abstract class StandardKernel1dShape implements Kernel1dShape {
 
     private final String name_;
@@ -183,6 +185,18 @@ public abstract class StandardKernel1dShape implements Kernel1dShape {
         }
     }
 
+    public Kernel1d createKnnKernel( double k, int maxExtent ) {
+        if ( k < 0 ) {
+            throw new IllegalArgumentException( "negative nearest-neighbours" );
+        }
+        else if ( k == 0 ) {
+            return DELTA;
+        }
+        else {
+            return new AsymmetricKnnKernel( this, k, maxExtent );
+        }
+    }
+
     @Override
     public String toString() {
         return name_;
@@ -317,6 +331,153 @@ public abstract class StandardKernel1dShape implements Kernel1dShape {
             else {
                 return false;
             }
+        }
+    }
+
+    /**
+     * K-Nearest-Neighbours adaptive kernel implementation.
+     */
+    private static class AsymmetricKnnKernel implements Kernel1d {
+
+        private final StandardKernel1dShape kshape_;
+        private final double k_;
+        private final int maxExtent_;
+        private final double[][] weightArrays_;
+
+        /**
+         * Constructor.
+         *
+         * @param  kshape   kernel shape
+         * @param  k   number of nearest neighbours within function width
+         * @param  maxExtent   upper limit for function width
+         */
+        AsymmetricKnnKernel( StandardKernel1dShape kshape, double k,
+                             int maxExtent ) {
+            kshape_ = kshape;
+            k_ = k;
+            maxExtent_ = maxExtent;
+            weightArrays_ = new double[ maxExtent + 1 ][];
+            for ( int iw = 0; iw <= maxExtent; iw++ ) {
+                weightArrays_[ iw ] = getNormalisedWeightArray( kshape, iw );
+            }
+        }
+
+        public int getExtent() {
+            return maxExtent_;
+        }
+
+        public boolean isSquare() {
+            return kshape_.isSquare();
+        }
+
+        public double[] convolve( double[] in ) {
+            int ns = in.length;
+            double[] out = new double[ ns ];
+            for ( int is = 0; is < ns; is++ ) {
+                int pWidth =
+                    knnWidth( in, is, true, Math.min( maxExtent_, ns - is ) );
+                int mWidth =
+                    knnWidth( in, is, false, Math.min( maxExtent_, is ) );
+                double[] pWeights = weightArrays_[ pWidth ];
+                double[] mWeights = weightArrays_[ mWidth ];
+                double oval =
+                    0.5 * ( pWeights[ 0 ] + mWeights[ 0 ] ) * in[ is ];
+                int pnw = Math.min( pWeights.length, ns - is );
+                int mnw = Math.min( mWeights.length, is );
+                for ( int js = 1; js < pnw; js++ ) {
+                    oval += pWeights[ js ] * in[ is + js ];
+                }
+                for ( int js = 1; js < mnw; js++ ) {
+                    oval += mWeights[ js ] * in[ is - js ];
+                }
+                out[ is ] = oval;
+            }
+            return out;
+        }
+
+        @Override
+        public int hashCode() {
+            int code = 4254352;
+            code = 23 * code + kshape_.hashCode();
+            code = 23 * code + Float.floatToIntBits( (float) k_ );
+            code = 23 * code + maxExtent_;
+            return code;
+        }
+
+        @Override
+        public boolean equals( Object o ) {
+            if ( o instanceof AsymmetricKnnKernel ) {
+                AsymmetricKnnKernel other = (AsymmetricKnnKernel) o;
+                return this.kshape_.equals( other.kshape_ )
+                    && this.k_ == other.k_
+                    && this.maxExtent_ == other.maxExtent_;
+            }
+            else {
+                return false;
+            }
+        }
+
+        /**
+         * Returns the k-nearest-neighbours width for a given point
+         * in a sample grid.
+         *
+         * @param  data  histogram data
+         * @param  js   test index into data array
+         * @param  isPositive  true to look in direction of increasing index,
+         *                     false for decreasing
+         * @param  maxWidth  maximum acceptable result (used if k not reached)
+         * @return   unidirectional width for k nearest neighbours,
+         *           limited to maxWidth
+         */
+        private int knnWidth( double[] data, int js, boolean isPositive,
+                              int maxWidth ) {
+            int step = isPositive ? +1 : -1;
+            double sum = 0;
+            for ( int i = 0; i < maxWidth; i++ ) {
+                sum += data[ js ];
+                if ( sum >= k_ ) {
+                    return i;
+                }
+                js += step;
+            }
+            return maxWidth;
+        }
+
+        /**
+         * Creates a unidirectional weight array for a given integral
+         * characteristic width.
+         *
+         * @param  kshape  kernel shape
+         * @param  width   function characteristic width
+         * @return   array of weights, element zero is weight at point
+         */
+        private static double[]
+                getNormalisedWeightArray( StandardKernel1dShape kshape,
+                                          int width ) {
+            if ( width == 0 ) {
+                return new double[] { 1.0 };
+            }
+            double normExtent = kshape.getNormalisedExtent();
+            double ext = normExtent * width;
+            int nw = (int) Math.ceil( ext );
+            if ( nw == ext && kshape.evaluate( normExtent ) != 0 ) {
+                nw++;
+            }
+            double[] weights = new double[ nw ];
+            double xscale = 1.0 / width;
+            double total = 0;
+            for ( int i = 0; i < nw; i++ ) {
+                double x = i * xscale;
+                assert x >= 0 && x <= normExtent;
+                double f = kshape.evaluate( x );
+                weights[ i ] = f;
+                total += f * ( i == 0 ? 1 : 2 );
+            }
+            double scale = 1.0 / total;
+            for ( int i = 0; i < nw; i++ ) {
+                weights[ i ] *= scale;
+            }
+            return weights;
         }
     }
 }
