@@ -6,8 +6,6 @@ import uk.ac.starlink.ttools.plot2.Equality;
  * Defines a smoothing function used for smoothing 1-dimensional
  * uniformly gridded data represented by an array.
  *
- * <p>Some implementations are provided in the {@link Kernel1ds} class.
- *
  * @author   Mark Taylor
  * @since    27 Feb 2015
  */

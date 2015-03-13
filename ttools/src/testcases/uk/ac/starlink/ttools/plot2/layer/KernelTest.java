@@ -8,12 +8,12 @@ public class KernelTest extends TestCase {
     private Random rand_ = new Random( 235089454L );
 
     public void testKernels() {
-        Kernel1dShape[] kshapes = Kernel1dShape.getStandardOptions();
-        for ( Kernel1dShape kshape : Kernel1dShape.getStandardOptions() ) {
+        for ( Kernel1dShape kshape :
+              StandardKernel1dShape.getStandardOptions() ) {
             for ( double width : new double[] { 0.0, 1.0, 4.25, 12.8 } ) {
-                checkExactNormKernel( kshape.createKernel( width ) );
+                checkExactNormKernel( kshape.createFixedWidthKernel( width ) );
             }
-            checkUnitKernel( kshape.createKernel( 0 ) );
+            checkUnitKernel( kshape.createFixedWidthKernel( 0 ) );
         }
     }
 

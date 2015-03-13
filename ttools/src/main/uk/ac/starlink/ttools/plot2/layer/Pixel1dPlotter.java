@@ -99,10 +99,13 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
            .setShortDescription( "Smoothing kernel functional form" )
            .setXmlDescription( new String[] {
                 "<p>The functional form of the smoothing kernel.",
+                "The functions listed refer to the unscaled shape;",
+                "all kernels are normalised to give a total area of unity.",
                 "</p>",
             } )
-        , Kernel1dShape.class, Kernel1dShape.getStandardOptions(),
-        Kernel1dShape.EPANECHNIKOV ) {
+        , Kernel1dShape.class,
+        StandardKernel1dShape.getStandardOptions(),
+        StandardKernel1dShape.EPANECHNIKOV ) {
             public String getXmlDescription( Kernel1dShape kshape ) {
                 return kshape.getDescription();
             }
@@ -475,7 +478,7 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
         double gx1 = xAxis.dataToGraphics( xLog ? dLimits[ 0 ] * dWidth
                                                 : dLimits[ 0 ] + dWidth );
         double gWidth = gx1 - gx0;
-        return kernelShape.createKernel( gWidth );
+        return kernelShape.createFixedWidthKernel( gWidth );
     }
 
     /**
