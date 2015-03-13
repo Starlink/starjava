@@ -14,6 +14,12 @@ public class KernelTest extends TestCase {
                 checkExactNormKernel( kshape.createFixedWidthKernel( width ) );
             }
             checkUnitKernel( kshape.createFixedWidthKernel( 0 ) );
+
+            /* Hard to know what checks to do here, since the sum over bins
+             * is no longer constant.  At least check you can create them. */
+            for ( int k = 0; k < 5; k++ ) {
+                kshape.createKnnKernel( k, 10 );
+            }
         }
     }
 

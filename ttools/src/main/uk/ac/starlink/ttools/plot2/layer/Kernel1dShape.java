@@ -36,4 +36,16 @@ public interface Kernel1dShape {
      * @return  new kernel
      */
     Kernel1d createFixedWidthKernel( double width );
+
+    /**
+     * Creates an adaptive kernel that uses a K-nearest-neighbours algorithm
+     * to determine local smoothing width.
+     *
+     * @param  k  number of nearest neighbours included in the distance 
+     *            that characterises the smoothing
+     * @param  maxExtent   the maximum distance over which smoothing will
+     *                     take place (only if k is never reached)
+     * @return  new kernel
+     */
+    Kernel1d createKnnKernel( double k, int maxExtent );
 }
