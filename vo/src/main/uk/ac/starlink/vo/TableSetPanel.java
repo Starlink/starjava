@@ -2,7 +2,12 @@ package uk.ac.starlink.vo;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.Icon;
@@ -18,6 +23,8 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.JTree;
 import javax.swing.SwingUtilities;
+import javax.swing.event.CaretEvent;
+import javax.swing.event.CaretListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.text.JTextComponent;
@@ -40,6 +47,7 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
 public class TableSetPanel extends JPanel {
 
     private final JTree tTree_;
+    private final JTextField searchField_;
     private final JLabel countLabel_;
     private final TreeSelectionModel selectionModel_;
     private final JTable colTable_;
@@ -59,6 +67,9 @@ public class TableSetPanel extends JPanel {
     private final JSplitPane metaSplitter_;
     private SchemaMeta[] schemas_;
 
+    /** Number of nodes below which tree nodes are expanded. */
+    private static final int TREE_EXPAND_THRESHOLD = 100;
+
     /**
      * Constructor.
      */
@@ -76,6 +87,18 @@ public class TableSetPanel extends JPanel {
                 updateForSelection();
             }
         } );
+
+        searchField_ = new JTextField();
+        searchField_.addCaretListener( new CaretListener() {
+            public void caretUpdate( CaretEvent evt ) {
+                updateTree();
+            }
+        } );
+        JLabel searchLabel = new JLabel( "Find: " );
+        String searchTip = "Enter one or more strings to restrict the content "
+                         + "of the schema display tree";
+        searchField_.setToolTipText( searchTip );
+        searchLabel.setToolTipText( searchTip );
 
         countLabel_ = new JLabel();
 
@@ -116,6 +139,11 @@ public class TableSetPanel extends JPanel {
         JComponent treePanel = new JPanel( new BorderLayout() );
         treePanel.add( new JScrollPane( tTree_ ), BorderLayout.CENTER );
         treePanel.add( countLabel_, BorderLayout.SOUTH );
+        JComponent searchLine = Box.createHorizontalBox();
+        searchLine.add( searchLabel );
+        searchLine.add( searchField_ );
+        searchLine.setBorder( BorderFactory.createEmptyBorder( 0, 0, 5, 0 ) );
+        treePanel.add( searchLine, BorderLayout.NORTH );
 
         metaSplitter_ = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT );
         metaSplitter_.setBorder( BorderFactory.createEmptyBorder() );
@@ -151,8 +179,10 @@ public class TableSetPanel extends JPanel {
         TreeModel treeModel =
             new TapMetaTreeModel( schemas_ == null ? new SchemaMeta[ 0 ]
                                                    : schemas_ );
-        tTree_.setModel( treeModel );
+        tTree_.setModel( new MaskTreeModel( treeModel ) );
+        searchField_.setText( null );
         selectionModel_.setSelectionPath( null );
+        updateTree();
 
         final String countTxt;
         if ( schemas == null ) {
@@ -309,6 +339,147 @@ public class TableSetPanel extends JPanel {
     }
 
     /**
+     * Called if the schema information in the JTree or its presentation
+     * rules may have changed.
+     */
+    private void updateTree() {
+
+        /* We should have a MaskTreeModel, unless maybe there's no data. */
+        TreeModel treeModel = tTree_.getModel();
+        if ( ! ( treeModel instanceof MaskTreeModel ) ) {
+            return;
+        }
+        MaskTreeModel mModel = (MaskTreeModel) treeModel;
+
+        /* Get a node mask object from the text entry field. */
+        String text = searchField_.getText();
+        MaskTreeModel.Mask mask = text == null || text.trim().length() == 0
+                                ? null
+                                : new TextMask( text );
+
+        /* We will be changing the mask, which will cause a
+         * treeStructureChanged TreeModelEvent to be sent to listeners,
+         * more or less wiping out any state of the JTree view.
+         * So store the view state we want to preserve (information about
+         * selections and node expansion) here, so we can restore it after
+         * the model has changed. */
+        Object root = mModel.getRoot();
+        TreePath[] selections = tTree_.getSelectionPaths();
+        List<TreePath> expandedList = new ArrayList<TreePath>();
+        for ( Enumeration<TreePath> tpEn =
+                  tTree_.getExpandedDescendants( new TreePath( root ) );
+              tpEn.hasMoreElements(); ) {
+            expandedList.add( tpEn.nextElement() );
+        }
+        TreePath[] oldExpanded = expandedList.toArray( new TreePath[ 0 ] );
+        int oldCount = mModel.getNodeCount();
+
+        /* Update the model. */
+        mModel.setMask( mask );
+
+        /* Apply node expansions in the JTree view.  This is a bit ad hoc.
+         * If we've just cut the tree down from huge to manageable,
+         * expand all the top-level (schema) nodes.  Conversely,
+         * if we've just grown it from manageable to huge, collapse
+         * all the top-level nodes.  Otherwise, try to retain (restore)
+         * the previous expansion state.  */
+        int newCount = mModel.getNodeCount();
+        int ne = TREE_EXPAND_THRESHOLD;
+        final TreePath[] newExpanded;
+        if ( oldCount < ne && newCount > ne ) {
+            newExpanded = new TreePath[ 0 ];
+        }
+        else if ( oldCount > ne && newCount < ne ) {
+            int nc = mModel.getChildCount( root );
+            newExpanded = new TreePath[ nc ];
+            for ( int ic = 0; ic < nc; ic++ ) {
+                Object child = mModel.getChild( root, ic );
+                newExpanded[ ic ] =
+                    new TreePath( new Object[] { root, child } );
+            }
+        }
+        else {
+            newExpanded = oldExpanded;
+        }
+        for ( TreePath expTp : newExpanded ) {
+            tTree_.expandPath( expTp );
+        }
+
+        /* Try to restore previous selections (only one, probably).
+         * If the old selections are no longer in the tree, chuck them out. */
+        if ( mask != null && selections != null ) {
+            selections = sanitiseSelections( selections, mModel );
+        }
+
+        /* If for whatever reason we have no selections, select something.
+         * This logic will probably pick the first leaf node (table metadata,
+         * rather than schema metadata).  But if it can't find it where it
+         * expects, it will just pick the very first node in the tree. */
+        if ( selections == null || selections.length == 0 ) {
+            TreePath tp0 = tTree_.getPathForRow( 0 );
+            TreePath tp1 = tTree_.getPathForRow( 1 );
+            TreePath tp = tp1 != null && tp0 != null
+                       && mModel.isLeaf( tp1.getLastPathComponent() )
+                       && ! mModel.isLeaf( tp0.getLastPathComponent() )
+                     ? tp1
+                     : tp0;
+            selections = tp != null ? new TreePath[] { tp }
+                                    : new TreePath[ 0 ];
+        }
+        tTree_.setSelectionPaths( selections );
+    }
+
+    /**
+     * Get a list of tree paths based on a given list, but making sure
+     * they exist in a given tree model.
+     *
+     * @param   selections  initial selection paths
+     * @param   model   tree model within which result selections must exist
+     * @return  list of selections that are in the model (may be empty)
+     */
+    private static TreePath[] sanitiseSelections( TreePath[] selections,
+                                                  TreeModel model ) {
+        List<TreePath> okPaths = new ArrayList<TreePath>();
+        Object root = model.getRoot();
+
+        /* Tackle each input path one at a time. */
+        for ( TreePath path : selections ) {
+            if ( path.getPathComponent( 0 ) != root ) {
+                assert false;
+            }
+            else {
+
+                /* Try to add each element of the input path to the result path.
+                 * If any of the nodes in the chain is missing, just stop
+                 * there, leaving an ancestor of the input path. */
+                int nel = path.getPathCount();
+                List<Object> els = new ArrayList<Object>( nel );
+                els.add( root );
+                for ( int i = 1; i < nel; i++ ) {
+                    Object pathEl = path.getPathComponent( i );
+                    if ( model.getIndexOfChild( els.get( i - 1 ), pathEl )
+                         >= 0 ) {
+                        els.add( pathEl );
+                    }
+                    else {
+                        break;
+                    }
+                }
+
+                /* Add it to the result, but only if it's not just the
+                 * root node (and if we don't already have it). */
+                TreePath okPath =
+                    new TreePath( els.toArray( new Object[ 0 ] ) );
+                if ( okPath.getPathCount() > 1 &&
+                     ! okPaths.contains( okPath ) ) {
+                    okPaths.add( okPath );
+                }
+            }
+        }
+        return okPaths.toArray( new TreePath[ 0 ] );
+    }
+
+    /**
      * Returns a small icon indicating whether a given tab is currently
      * active or not.
      *
@@ -457,6 +628,47 @@ public class TableSetPanel extends JPanel {
                 }
             },
         };
+    }
+
+    /**
+     * Tree node mask that selects on simple matches of node name strings
+     * to one or more space-separated words entered in the search field.
+     */
+    private static class TextMask implements MaskTreeModel.Mask {
+        private final Set<String> lwords_;
+
+        /**
+         * Constructor.
+         *
+         * @param  txt  entered text
+         */
+        TextMask( String txt ) {
+            lwords_ = new HashSet<String>( Arrays.asList( txt.trim()
+                                          .toLowerCase().split( "\\s+" ) ) );
+        }
+
+        public boolean isIncluded( Object node ) {
+            if ( node != null && node.toString() != null ) {
+                String nodeTxt = node.toString().toLowerCase();
+                for ( String lword : lwords_ ) {
+                    if ( nodeTxt.indexOf( lword ) >= 0 ) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        @Override
+        public int hashCode() {
+            return lwords_.hashCode();
+        }
+
+        @Override
+        public boolean equals( Object other ) {
+            return other instanceof TextMask
+                && this.lwords_.equals( ((TextMask) other).lwords_ );
+        }
     }
 
     /**
