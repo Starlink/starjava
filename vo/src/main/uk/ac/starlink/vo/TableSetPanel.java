@@ -8,6 +8,10 @@ import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+import java.util.logging.Logger;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.Icon;
@@ -34,6 +38,7 @@ import javax.swing.tree.TreeSelectionModel;
 import uk.ac.starlink.table.gui.StarJTable;
 import uk.ac.starlink.util.gui.ArrayTableColumn;
 import uk.ac.starlink.util.gui.ArrayTableModel;
+import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 /**
@@ -65,10 +70,14 @@ public class TableSetPanel extends JPanel {
     private final int itabForeign_;
     private final JComponent metaPanel_;
     private final JSplitPane metaSplitter_;
+    private TapMetaReader metaReader_;
+    private ExecutorService metaExecutor_;
     private SchemaMeta[] schemas_;
 
     /** Number of nodes below which tree nodes are expanded. */
     private static final int TREE_EXPAND_THRESHOLD = 100;
+
+    private static final Logger logger_ = Logger.getLogger( "uk.ac.starlink.vo" );
 
     /**
      * Constructor.
@@ -91,7 +100,7 @@ public class TableSetPanel extends JPanel {
         searchField_ = new JTextField();
         searchField_.addCaretListener( new CaretListener() {
             public void caretUpdate( CaretEvent evt ) {
-                updateTree();
+                updateTree( false );
             }
         } );
         JLabel searchLabel = new JLabel( "Find: " );
@@ -155,7 +164,7 @@ public class TableSetPanel extends JPanel {
         metaPanel_ = new JPanel( new BorderLayout() );
         metaPanel_.add( metaSplitter_, BorderLayout.CENTER );
         add( metaPanel_, BorderLayout.CENTER );
-        setSchemas( null );
+        setSchemas( null, null );
     }
 
     /**
@@ -169,12 +178,84 @@ public class TableSetPanel extends JPanel {
     }
 
     /**
-     * Sets the data model for the metadata displayed by this panel.
+     * Installs an object that knows how to acquire TAP schema metadata.
+     * If the supplied reader is non-null, calling this method
+     * initiates an asynchronous read of the metadata, which will
+     * be displayed in this panel when it arrives.
+     *
+     * @param  metaReader   new metadata reader; may be null to clear display
+     */
+    public void setMetaReader( final TapMetaReader metaReader ) {
+        if ( metaReader_ != null ) {
+            metaExecutor_.shutdownNow();
+            metaExecutor_ = null;
+        }
+        metaReader_ = metaReader;
+        setSchemas( metaReader, null );
+        if ( metaReader_ == null ) {
+            return;
+        }
+        showFetchProgressBar( metaReader, "Fetching Table Metadata" );
+        Runnable schemaWorker = new Runnable() {
+            public void run() {
+                if ( metaReader != metaReader ) {
+                    return;
+                }
+                final SchemaMeta[] schemas;
+                try {
+                    schemas = metaReader.readSchemas();
+                }
+                catch ( final Exception error ) {
+                    SwingUtilities.invokeLater( new Runnable() {
+                        public void run() {
+                            showFetchFailure( metaReader, error );
+                        }
+                    } );
+                    return;
+                }
+                SwingUtilities.invokeLater( new Runnable() {
+                    public void run() {
+                        setSchemas( metaReader, schemas );
+                    }
+                } );
+            }
+        };
+        metaExecutor_ = Executors.newSingleThreadExecutor( new ThreadFactory() {
+            public Thread newThread( Runnable r ) {
+                Thread th = new Thread( r, "TAP Metadata Query" );
+                th.setDaemon( true );
+                return th;
+            }
+        } );
+        metaExecutor_.submit( schemaWorker );
+    }
+
+    /**
+     * Returns the current table metadata set.
+     * May be null if the read is still in progress.
+     *
+     * @return   current schema metadata array, may be null
+     */
+    public SchemaMeta[] getSchemas() {
+        return schemas_;
+    }
+
+    /**
+     * Sets the data model for the metadata displayed by this panel,
+     * and updates the display.
      * The data is in the form of an array of schema metadata objects.
      *
+     * @param  metaReader  reader supplying the schemas; if it doesn't match
+     *                     the currently installed one, the call is ignored
      * @param  schemas  schema metadata objects, null if no metadata available
      */
-    public void setSchemas( SchemaMeta[] schemas ) {
+    private void setSchemas( TapMetaReader metaReader, SchemaMeta[] schemas ) {
+        if ( metaReader != metaReader_ ) {
+            return;
+        }
+        if ( schemas != null ) {
+            checkSchemasPopulated( schemas );
+        }
         schemas_ = schemas;
         TreeModel treeModel =
             new TapMetaTreeModel( schemas_ == null ? new SchemaMeta[ 0 ]
@@ -182,7 +263,7 @@ public class TableSetPanel extends JPanel {
         tTree_.setModel( new MaskTreeModel( treeModel ) );
         searchField_.setText( null );
         selectionModel_.setSelectionPath( null );
-        updateTree();
+        updateTree( true );
 
         final String countTxt;
         if ( schemas == null ) {
@@ -205,21 +286,17 @@ public class TableSetPanel extends JPanel {
     }
 
     /**
-     * Returns the most recently set table metadata set.
-     *
-     * @return   current schema metadata array, may be null
-     */
-    public SchemaMeta[] getSchemas() {
-        return schemas_;
-    }
-
-    /**
      * Displays a progress bar to indicate that metadata fetching is going on.
      *
+     * @param  metaReader  reader in use; if it doesn't match
+     *                     the currently installed one, the call is ignored
      * @param  message  message to display
-     * @return  new progress bar
      */
-    public JProgressBar showFetchProgressBar( String message ) {
+    private void showFetchProgressBar( TapMetaReader metaReader,
+                                       String message ) {
+        if ( metaReader != metaReader_ ) {
+            return;
+        }
         JProgressBar progBar = new JProgressBar();
         progBar.setIndeterminate( true );
         JComponent msgLine = Box.createHorizontalBox();
@@ -241,26 +318,30 @@ public class TableSetPanel extends JPanel {
         metaPanel_.removeAll();
         metaPanel_.add( workPanel, BorderLayout.CENTER );
         metaPanel_.revalidate();
-        return progBar;
     }
 
     /**
      * Displays an indication that metadata fetching failed.
      * 
-     * @param  metaUrl  the tableset metadata acquisition attempted URL
+     * @param  metaReader  reader in use; if it doesn't match
+     *                     the currently installed one, the call is ignored
      * @param  error   error that caused the failure
      */
-    public void showFetchFailure( String metaUrl, Throwable error ) {
+    private void showFetchFailure( TapMetaReader metaReader, Throwable error ) {
+        if ( metaReader != metaReader_ ) {
+            return;
+        }
+        ErrorDialog.showError( this, "Table Metadata Error", error );
         JComponent msgLine = Box.createHorizontalBox();
         msgLine.setAlignmentX( 0 );
         msgLine.add( new JLabel( "No table metadata available" ) );
-        JComponent urlLine = Box.createHorizontalBox();
-        urlLine.setAlignmentX( 0 );
-        urlLine.add( new JLabel( "Metadata URL: " ) );
-        JTextField urlField = new JTextField( metaUrl );
-        urlField.setEditable( false );
-        urlField.setBorder( BorderFactory.createEmptyBorder() );
-        urlLine.add( new ShrinkWrapper( urlField ) );
+        JComponent srcLine = Box.createHorizontalBox();
+        srcLine.setAlignmentX( 0 );
+        srcLine.add( new JLabel( "Metadata Source: " ) );
+        JTextField srcField = new JTextField( metaReader.getSource() );
+        srcField.setEditable( false );
+        srcField.setBorder( BorderFactory.createEmptyBorder() );
+        srcLine.add( new ShrinkWrapper( srcField ) );
         JComponent errLine = Box.createHorizontalBox();
         errLine.setAlignmentX( 0 );
         errLine.add( new JLabel( "Error: " ) );
@@ -276,7 +357,7 @@ public class TableSetPanel extends JPanel {
         linesVBox.add( Box.createVerticalGlue() );
         linesVBox.add( msgLine );
         linesVBox.add( Box.createVerticalStrut( 15 ) );
-        linesVBox.add( urlLine );
+        linesVBox.add( srcLine );
         linesVBox.add( errLine );
         linesVBox.add( Box.createVerticalGlue() );
         JComponent linesHBox = Box.createHorizontalBox();
@@ -288,6 +369,27 @@ public class TableSetPanel extends JPanel {
         metaPanel_.removeAll();
         metaPanel_.add( panel, BorderLayout.CENTER );
         metaPanel_.revalidate();
+    }
+
+    /**
+     * Checks that all the schemas are populated with lists of their tables.
+     * The SchemaMeta and TapMetaReader interface permit unpopulated schemas,
+     * but this GUI relies in some places on the assumption that schemas
+     * are always populated, so things will probably go wrong if it's not
+     * the case.  Log a warning in case of unpopulated schemas
+     * to give a clue what's wrong.
+     *
+     * @param  schemas  schemas to test
+     */
+    private void checkSchemasPopulated( SchemaMeta[] schemas ) {
+        for ( SchemaMeta smeta : schemas ) {
+            if ( smeta.getTables() == null ) {
+                logger_.warning( "Schema metadata object(s) not populated"
+                               + " with tables, probably will cause trouble"
+                               + "; use a different TapMetaReader?" );
+                return;
+            }
+        }
     }
 
     /**
@@ -341,8 +443,11 @@ public class TableSetPanel extends JPanel {
     /**
      * Called if the schema information in the JTree or its presentation
      * rules may have changed.
+     *
+     * @param  dataChanged  true iff this update includes a change of
+     *         the schema array underlying the tree model
      */
-    private void updateTree() {
+    private void updateTree( boolean dataChanged ) {
 
         /* We should have a MaskTreeModel, unless maybe there's no data. */
         TreeModel treeModel = tTree_.getModel();
@@ -386,10 +491,7 @@ public class TableSetPanel extends JPanel {
         int newCount = mModel.getNodeCount();
         int ne = TREE_EXPAND_THRESHOLD;
         final TreePath[] newExpanded;
-        if ( oldCount < ne && newCount > ne ) {
-            newExpanded = new TreePath[ 0 ];
-        }
-        else if ( oldCount > ne && newCount < ne ) {
+        if ( ( dataChanged || oldCount > ne ) && newCount < ne ) {
             int nc = mModel.getChildCount( root );
             newExpanded = new TreePath[ nc ];
             for ( int ic = 0; ic < nc; ic++ ) {
@@ -397,6 +499,9 @@ public class TableSetPanel extends JPanel {
                 newExpanded[ ic ] =
                     new TreePath( new Object[] { root, child } );
             }
+        }
+        else if ( dataChanged || ( oldCount < ne && newCount > ne ) ) {
+            newExpanded = new TreePath[ 0 ];
         }
         else {
             newExpanded = oldExpanded;
