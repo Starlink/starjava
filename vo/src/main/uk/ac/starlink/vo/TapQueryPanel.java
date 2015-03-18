@@ -51,7 +51,6 @@ import javax.swing.text.PlainDocument;
 public class TapQueryPanel extends JPanel {
 
     private URL serviceUrl_;
-    private Thread metaFetcher_;
     private Thread capFetcher_;
     private Throwable parseError_;
     private final ParseTextArea textPanel_;
@@ -292,39 +291,8 @@ public class TapQueryPanel extends JPanel {
 
         /* Dispatch a request to acquire the table metadata from
          * the service. */
-        setSchemas( null );
-        tmetaPanel_.showFetchProgressBar( "Fetching Table Metadata" );
-        metaFetcher_ = new Thread( "Table metadata fetcher" ) {
-            public void run() {
-                final Thread fetcher = this;
-                final SchemaMeta[] schemaMetas;
-                try {
-                    schemaMetas = TapQuery.readTableMetadata( url );
-                }
-                catch ( final Exception e ) {
-                    SwingUtilities.invokeLater( new Runnable() {
-                        public void run() {
-                            if ( fetcher == metaFetcher_ ) {
-                                tmetaPanel_.showFetchFailure( url + "/tables",
-                                                              e );
-                            }
-                        }
-                    } );
-                    return;
-                }
-
-                /* On success, install this information in the GUI. */
-                SwingUtilities.invokeLater( new Runnable() {
-                    public void run() {
-                        if ( fetcher == metaFetcher_ ) {
-                            setSchemas( schemaMetas );
-                        }
-                    }
-                } );
-            }
-        };
-        metaFetcher_.setDaemon( true );
-        metaFetcher_.start();
+        tmetaPanel_.setMetaReader( new TableSetTapMetaReader( serviceUrl
+                                                           + "/tables" ) );
 
         /* Dispatch a request to acquire the service capability information
          * from the service. */
@@ -370,20 +338,6 @@ public class TapQueryPanel extends JPanel {
     }
 
     /**
-     * Sets the metadata panel to display a given set of table metadata.
-     * The supplied metadata is considered fully populated with tables
-     * and columns, no further reads are performed.
-     *
-     * @param  smetas  fully populated schema metadata list;
-     *                 null if no metadata is available
-     */
-    private void setSchemas( SchemaMeta[] smetas ) {
-
-        /* Populate table metadata JTable. */
-        tmetaPanel_.setSchemas( smetas );
-    }
-
-    /**
      * Works with the known table and service metadata currently displayed
      * to set up example queries.
      */
@@ -422,7 +376,6 @@ public class TapQueryPanel extends JPanel {
          * what tables and columns are available. */
         List<AdqlValidator.ValidatorTable> vtList =
             new ArrayList<AdqlValidator.ValidatorTable>();
-        SchemaMeta[] smetas = tmetaPanel_.getSchemas();
         for ( SchemaMeta smeta : tmetaPanel_.getSchemas() ) {
             for ( TableMeta tmeta : smeta.getTables() ) {
                 vtList.add( AdqlValidator.toValidatorTable( tmeta, smeta ) );
