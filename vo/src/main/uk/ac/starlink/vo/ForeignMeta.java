@@ -15,6 +15,7 @@ public class ForeignMeta {
     String targetTable_;
     String description_;
     String utype_;
+    String keyId_;
     Link[] links_;
 
     /**
