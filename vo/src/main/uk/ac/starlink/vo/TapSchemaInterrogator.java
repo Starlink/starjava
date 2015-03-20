@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -20,7 +19,9 @@ import uk.ac.starlink.table.StoragePolicy;
  * table metadata information.
  * In the current implementation, synchronous queries are used.
  *
- * @see  <a href="http://www.ivoa.net/Documents/TAP/">TAP standard</a>
+ * @author   Mark Taylor
+ * @since    6 Jun 2011
+ * @see      <a href="http://www.ivoa.net/Documents/TAP/">TAP standard</a>
  */
 public class TapSchemaInterrogator {
 
@@ -28,15 +29,39 @@ public class TapSchemaInterrogator {
     private final Map<String,String> extraParams_;
     private final int maxrec_;
 
-    private static final MetaQuerier<ForeignMeta.Link> LINK_QUERIER =
+    /**
+     * Acquires ForeignMeta.Link objects from TAP_SCHEMA.key_columns.
+     * When reading a map, it is keyed by key_id.
+     */
+    public static final MetaQuerier<ForeignMeta.Link> LINK_QUERIER =
         createLinkQuerier();
-    private static final MetaQuerier<ForeignMeta> FKEY_QUERIER =
+
+    /**
+     * Acquires ForeignMeta objects from TAP_SCHEMA.keys.
+     * When reading a map, it is keyed by from_table.
+     */
+    public static final MetaQuerier<ForeignMeta> FKEY_QUERIER =
         createForeignKeyQuerier();
-    private static final MetaQuerier<ColumnMeta> COLUMN_QUERIER =
+
+    /**
+     * Acquires ColumnMeta objects from TAP_SCHEMA.columns.
+     * When reading a map, it is keyed by table_name.
+     */
+    public static final MetaQuerier<ColumnMeta> COLUMN_QUERIER =
         createColumnQuerier();
-    private static final MetaQuerier<TableMeta> TABLE_QUERIER =
+
+    /**
+     * Acquires TableMeta objects from TAP_SCHEMA.tables.
+     * When reading a map, it is keyed by schema_name.
+     */
+    public static final MetaQuerier<TableMeta> TABLE_QUERIER =
         createTableQuerier();
-    private static final MetaQuerier<SchemaMeta> SCHEMA_QUERIER =
+
+    /**
+     * Acquires SchemaMeta objects from TAP_SCHEMA.schemas.
+     * It doesn't read maps.
+     */
+    public static final MetaQuerier<SchemaMeta> SCHEMA_QUERIER =
         createSchemaQuerier();
 
     private static final Logger logger_ =
@@ -67,159 +92,194 @@ public class TapSchemaInterrogator {
     }
 
     /**
-     * Returns an array of SchemaMeta objects describing the tables available
-     * from the service.
-     * The table, column and foreign key information is filled in.
+     * Returns the TAP service URL used by this interrogator.
+     *
+     * @return  service URL
+     */
+    public URL getServiceUrl() {
+        return serviceUrl_;
+    }
+
+    /**
+     * This convenience method returns an array of fully filled in
+     * SchemaMeta objects describing the tables available from the service.
      *
      * @return  fully populated array of known schemas
      */
     public SchemaMeta[] queryMetadata() throws IOException {
-        Map<String,List<ForeignMeta.Link>> lMap = readForeignLinks();
-        Map<String,List<ForeignMeta>> fMap = readForeignKeys( lMap );
-        Map<String,List<ColumnMeta>> cMap = readColumns();
-        Map<String,List<TableMeta>> tMap = readTables( cMap, fMap );
-        List<SchemaMeta> sList = readSchemas( tMap, true );
-        assert tMap.isEmpty();
+        return readSchemas( true, true, true );
+    }
+
+    /**
+     * Reads all schemas.
+     * According to the options, the schemas may or may not have their
+     * tables filled in, and those tables may or may not have their
+     * columns and foreign key information filled in.
+     *
+     * @param  populateSchemas  if true, schemas will contain non-null
+     *                          table lists
+     * @param  populateTables   if true, tables will contain non-null
+     *                          column/key lists
+     *                          (ignored if populateSchemas is false)
+     * @param  addOrphanTables  if true include tables whose schemas are not
+     *                          explicitly declared
+     * @return  schema list
+     */
+    public SchemaMeta[] readSchemas( boolean populateSchemas,
+                                     boolean populateTables,
+                                     boolean addOrphanTables )
+            throws IOException {
+        List<SchemaMeta> sList = SCHEMA_QUERIER.readList( this, null );
+        if ( populateSchemas ) {
+            Map<String,List<TableMeta>> tMap =
+                TABLE_QUERIER.readMap( this, null );
+            if ( populateTables ) {
+                Map<String,List<ForeignMeta.Link>> lMap =
+                    LINK_QUERIER.readMap( this, null );
+                Map<String,List<ForeignMeta>> fMap =
+                    FKEY_QUERIER.readMap( this, null );
+                Map<String,List<ColumnMeta>> cMap =
+                    COLUMN_QUERIER.readMap( this, null );
+                for ( List<ForeignMeta> flist : fMap.values() ) {
+                    for ( ForeignMeta fmeta : flist ) {
+                        populateForeignKey( fmeta, lMap );
+                    }
+                }
+                checkEmpty( lMap, "Links" );
+                for ( List<TableMeta> tlist : tMap.values() ) {
+                    for ( TableMeta tmeta : tlist ) {
+                        populateTable( tmeta, fMap, cMap );
+                    }
+                }
+                checkEmpty( fMap, "Foreign Keys" );
+                checkEmpty( cMap, "Columns" );
+            }
+            for ( SchemaMeta smeta : sList ) {
+                populateSchema( smeta, tMap );
+            }
+
+            /* It is possible that some tables are present with schema names
+             * that do not appear in the schemas table.  If requested, add
+             * these anyway. */
+            if ( ! tMap.isEmpty() && addOrphanTables ) {
+                logger_.warning( "Adding entries from phantom schemas: "
+                               + tMap.keySet() );
+                for ( Iterator<Map.Entry<String,List<TableMeta>>> entryIt =
+                          tMap.entrySet().iterator(); entryIt.hasNext(); ) {
+                    Map.Entry<String,List<TableMeta>> entry = entryIt.next();
+                    entryIt.remove();
+                    String sname = entry.getKey();
+                    List<TableMeta> tlist = entry.getValue();
+                    assert tlist != null;
+                    SchemaMeta smeta = new SchemaMeta();
+                    smeta.name_ = sname;
+                    smeta.setTables( tlist.toArray( new TableMeta[ 0 ] ) );
+                    sList.add( smeta );
+                }
+                assert tMap.isEmpty();
+            }
+            checkEmpty( tMap, "Tables" );
+        }
         return sList.toArray( new SchemaMeta[ 0 ] );
     }
 
     /**
-     * Queries the TAP_SCHEMA.key_columns table to get a list of all foreign
-     * key links.  The returned map associates key_id values with lists of
-     * from-&gt;to column links.
+     * Reads a map of metadata items using a given MetaQuerier object.
+     * The key of the map is the name of the parent object of the
+     * map value list type.  See the documentation of the specific
+     * querier object for details.
      *
-     * @return   map from key_id to link list
+     * <p>The form of the basic SELECT statement generated by this
+     * call is "SELECT &lt;columns&Gt; FROM &lt;table&gt;".
+     * If non-null the text of the <code>moreAdql</code> parameter
+     * is appended (after a space), so it may be used to qualify the
+     * query further.
+     *
+     * @param  mq   type-specific querier
+     * @param  moreAdql   additional ADQL text to append after the
+     *                    FROM clause (for example a WHERE clause);
+     *                    may be null
+     * @return  map from parent metadata item name to list of metadata items
      */
-    public Map<String,List<ForeignMeta.Link>> readForeignLinks()
+    public <T> Map<String,List<T>> readMap( MetaQuerier<T> mq, String moreAdql )
             throws IOException {
-        return LINK_QUERIER.readMap( this );
+        return mq.readMap( this, moreAdql );
     }
 
     /**
-     * Queries the TAP_SCHEMA.keys table to get a list of all foreign keys.
-     * The returned map associates from_table values with lists of foreign
-     * keys.
+     * Reads a list of metadata items using a given MetaQuerier object.
      *
-     * @param  lMap  map of known links keyed by key_id,
-     *               as returned by {@link #readForeignLinks};
-     *               entries are removed as used; may be null
-     * @return  map from table name to foreign key list
+     * <p>The form of the basic SELECT statement generated by this
+     * call is "SELECT &lt;columns&Gt; FROM &lt;table&gt;".
+     * If non-null the text of the <code>moreAdql</code> parameter
+     * is appended (after a space), so it may be used to qualify the
+     * query further.
+     *
+     * @param  mq   type-specific querier
+     * @param  moreAdql   additional ADQL text to append after the
+     *                    FROM clause (for example a WHERE clause);
+     *                    may be null
+     * @return  list of metadata items
      */
-    public Map<String,List<ForeignMeta>>
-           readForeignKeys( Map<String,List<ForeignMeta.Link>> lMap )
+    public <T> List<T> readList( MetaQuerier<T> mq, String moreAdql )
             throws IOException {
-        Map<String,List<ForeignMeta>> fMap = FKEY_QUERIER.readMap( this );
-        if ( lMap != null ) {
-            ForeignMeta.Link[] links0 = new ForeignMeta.Link[ 0 ];
-            for ( List<ForeignMeta> fmetaList : fMap.values() ) {
-                for ( ForeignMeta fmeta : fmetaList ) {
-                    String kid = fmeta.keyId_;
-                    List<ForeignMeta.Link> lList = lMap.remove( kid );
-                    fmeta.links_ = lList == null ? links0
-                                                 : lList.toArray( links0 );
-                }
-            }
-        }
-        return fMap;
+        return mq.readList( this, moreAdql );
     }
 
     /**
-     * Queries the TAP_SCHEMA.columns table to get a list of all columns.
-     * The returned map associates table names with lists of columns.
+     * Fills in link information for a ForeignMeta object.
+     * Any relevant entries are removed from the supplied map.
+     * If the map contains no relevant entries, an empty list is filled in.
      *
-     * @return  map from table name to column list
+     * @param  fmeta  unpopulated foreign key item
+     * @param  lMap  map acquired using {@link #LINK_QUERIER}
      */
-    public Map<String,List<ColumnMeta>> readColumns() throws IOException {
-        return COLUMN_QUERIER.readMap( this );
+    public void populateForeignKey( ForeignMeta fmeta,
+                                    Map<String,List<ForeignMeta.Link>> lMap ) {
+        List<ForeignMeta.Link> llist = lMap.remove( fmeta.getKeyId() );
+        ForeignMeta.Link[] l0 = new ForeignMeta.Link[ 0 ];
+        fmeta.setLinks( llist == null ? l0 : llist.toArray( l0 ) );
     }
 
     /**
-     * Queries the TAP_SCHEMA.tables table to get a list of all tables.
-     * The returned map associates schema names with lists of tables.
+     * Fills in foreign key and column information for a TableMeta object,
+     * Any relevant entries are removed from the supplied maps.
+     * Where the maps contain no relevant entries, an empty list is filled in.
      *
-     * @param  cMap  map of known columns keyed by table name,
-     *               as returned by {@link #readColumns};
-     *               entries are removed as used; may be null
-     * @param  fMap  map of known foreign keys keyed by table name,
-     *               as returned by {@link #readForeignKeys readForeignKeys};
-     *               entries are removed as used; may be null
-     * @return  map from schema name to table list
+     * @param  tmeta  unpopulated table metadata item
+     * @param  fMap  map acquired using {@link #FKEY_QUERIER}
+     * @param  cMap  map acquired using {@link #COLUMN_QUERIER}
      */
-    public Map<String,List<TableMeta>>
-            readTables( Map<String,List<ColumnMeta>> cMap,
-                        Map<String,List<ForeignMeta>> fMap )
-            throws IOException {
-        Map<String,List<TableMeta>> tMap = TABLE_QUERIER.readMap( this );
-        if ( cMap != null ) {
-            ColumnMeta[] cols0 = new ColumnMeta[ 0 ];
-            for ( List<TableMeta> tList : tMap.values() ) {
-                for ( TableMeta tmeta : tList ) {
-                    String tname = tmeta.getName();
-                    List<ColumnMeta> cList = cMap.remove( tname );
-                    tmeta.setColumns( cList == null ? cols0
-                                                    : cList.toArray( cols0 ) );
-                }
-            }
-        }
-        if ( fMap != null ) {
-            ForeignMeta[] fkeys0 = new ForeignMeta[ 0 ];
-            for ( List<TableMeta> tList : tMap.values() ) {
-                for ( TableMeta tmeta : tList ) {
-                    String tname = tmeta.getName();
-                    List<ForeignMeta> fList = fMap.remove( tname );
-                    tmeta.setForeignKeys( fList == null
-                                              ? fkeys0
-                                              : fList.toArray( fkeys0 ) );
-                }
-            }
-        }
-        return tMap;
+    public void populateTable( TableMeta tmeta,
+                               Map<String,List<ForeignMeta>> fMap,
+                               Map<String,List<ColumnMeta>> cMap ) {
+        String tname = tmeta.getName();
+        List<ForeignMeta> flist = fMap.remove( tname );
+        ForeignMeta[] f0 = new ForeignMeta[ 0 ];
+        tmeta.setForeignKeys( flist == null ? f0 : flist.toArray( f0 ) );
+        List<ColumnMeta> clist = cMap.remove( tname );
+        ColumnMeta[] c0 = new ColumnMeta[ 0 ];
+        tmeta.setColumns( clist == null ? c0 : clist.toArray( c0 ) );
     }
 
     /**
-     * Queries the TAP_SCHEMA.schemas table to get a list of all schemas.
+     * Fills in table information for a SchemaMeta object.
+     * Any relevant entries are removed from the supplied map.
+     * If the map contains no relevant entries, an empty list is filled in.
      *
-     * @param  tMap  map of known tables keyed by schema name,
-     *               as returned by {@link #readTables};
-     *               entries are removed as used; may be null
-     * @param  addOrphans  if true, schema entries are faked for any schemas
-     *                     referenced in the table map which are not read
-     *                     from the database table; if false, those tables
-     *                     will be retained in the table map on exit
-     * @return   list of schemas
+     * @param  smeta  unpopulated schema metadata item
+     * @param  tMap  map acquired using {@link #TABLE_QUERIER}
      */
-    public List<SchemaMeta> readSchemas( Map<String,List<TableMeta>> tMap,
-                                         boolean addOrphans )
-            throws IOException {
-        List<SchemaMeta> sList = SCHEMA_QUERIER.readList( this, null );
-        if ( tMap != null ) {
-            TableMeta[] tables0 = new TableMeta[ 0 ];
-            for ( SchemaMeta smeta : sList ) {
-                String sname = smeta.getName();
-                List<TableMeta> tList = tMap.remove( sname );
-                smeta.setTables( tList == null ? tables0 
-                                               : tList.toArray( tables0 ) );
-            }
-
-            /* If the schemas referenced by some of the tables have not
-             * been seen, fake schema entries if required. */
-            if ( ! tMap.isEmpty() && addOrphans ) {
-                logger_.warning( "Adding entries from phantom schemas: "
-                               + tMap.keySet() );
-                for ( String sname : tMap.keySet() ) {
-                    SchemaMeta smeta = new SchemaMeta();
-                    smeta.name_ = sname;
-                    smeta.setTables( tMap.remove( sname )
-                                         .toArray( new TableMeta[ 0 ] ) );
-                    sList.add( smeta );
-                }
-            }
-        }
-        return sList;
+    public void populateSchema( SchemaMeta smeta,
+                                Map<String,List<TableMeta>> tMap ) {
+        List<TableMeta> tlist = tMap.remove( smeta.getName() );
+        TableMeta[] t0 = new TableMeta[ 0 ];
+        smeta.setTables( tlist == null ? t0 : tlist.toArray( t0 ) );
     }
 
     /**
      * Constructs a TAP query for a given ADQL string.
+     * May be overridden.
      *
      * @param  adql  query text
      * @return  query to execute
@@ -230,12 +290,29 @@ public class TapSchemaInterrogator {
 
     /**
      * Performs an ADQL TAP query to this interrogator's service.
+     * May be overridden.
      *
      * @param  tq   tap query
      * @return  output table
      */
     protected StarTable executeQuery( TapQuery tq ) throws IOException {
         return tq.executeSync( StoragePolicy.getDefaultPolicy() );
+    }
+
+    /**
+     * Checks that a metadata map (which should have been divested of
+     * all its entries) is empty, and logs a warning if not.
+     *
+     * @param   map   map to test
+     * @param   objType  name of the type of obect the map contains
+     */
+    private <T> void checkEmpty( Map<String,List<T>> map, String objType ) {
+        int nEntry = map.size();
+        if ( nEntry > 0 ) {
+            logger_.warning( "Schema interrogation: " + nEntry + " orphaned "
+                           + objType + " entries" );
+            logger_.info( "Orphaned " + objType + "s: " + map.keySet() );
+        }
     }
 
     /**
@@ -384,8 +461,10 @@ public class TapSchemaInterrogator {
     /**
      * Object that can read a certain type T of TAP metadata object from
      * a table of a TAP_SCHEMA database table.
+     * Instances are provided as static members of the enclosing
+     * {@link TapSchemaInterrogator} class.
      */
-    private static abstract class MetaQuerier<T> {
+    public static abstract class MetaQuerier<T> {
 
         final String tableName_;
         final CSpec[] atts_;
@@ -404,7 +483,8 @@ public class TapSchemaInterrogator {
          *                        of the constructed metadata items;
          *                        may be null
          */
-        MetaQuerier( String tableName, ColList attList, String parentColName ) {
+        private MetaQuerier( String tableName, ColList attList,
+                             String parentColName ) {
             tableName_ = tableName;
             atts_ = attList.getCols();
             parentColName_ = parentColName;
@@ -427,13 +507,14 @@ public class TapSchemaInterrogator {
          * @param  tsi  interrogator
          * @return  map of parent object name to lists of metadata items
          */
-        Map<String,List<T>> readMap( TapSchemaInterrogator tsi )
+        Map<String,List<T>> readMap( TapSchemaInterrogator tsi,
+                                     String moreAdql )
                 throws IOException {
             List<CSpec> colList = new ArrayList<CSpec>();
             colList.addAll( Arrays.asList( atts_ ) );
             colList.add( new CSpec( parentColName_, true ) );
             int icParent = colList.size() - 1;
-            StarTable table = query( tsi, colList, null );
+            StarTable table = query( tsi, colList, moreAdql );
             Map<String,List<T>> map = new LinkedHashMap<String,List<T>>();
             RowSequence rseq = table.getRowSequence();
             try {
@@ -461,28 +542,15 @@ public class TapSchemaInterrogator {
          * value of parent item.
          *
          * @param  tsi  interrogator
-         * @param  parentValue  if present, restricts query to only those
-         *                      objects with a given parent;
-         *                      if null, all objects are retrieved
+         * @param  moreAdql   additional ADQL text to append after the
+         *                    FROM clause (for example a WHERE clause);
+         *                    may be null
          * @return  list of metadata items
          */
-        List<T> readList( TapSchemaInterrogator tsi, String parentValue )
+        List<T> readList( TapSchemaInterrogator tsi, String moreAdql )
                 throws IOException {
             List<CSpec> colList = Arrays.asList( atts_ );
-            final String whereClause;
-            if ( parentValue != null ) {
-                whereClause = new StringBuffer()
-                   .append( "WHERE " )
-                   .append( parentColName_ )
-                   .append( " = '" )
-                   .append( parentValue )
-                   .append( "'" )
-                   .toString();
-            }
-            else {
-                whereClause = null;
-            }
-            StarTable table = query( tsi, colList, whereClause );
+            StarTable table = query( tsi, colList, moreAdql );
             List<T> list = new ArrayList<T>();
             RowSequence rseq = table.getRowSequence();
             try {
@@ -644,14 +712,14 @@ public class TapSchemaInterrogator {
         String url = args[ 0 ];
         SchemaMeta[] smetas =
             new TapSchemaInterrogator( new URL( args[ 0 ] ), 100000 )
-           .queryMetadata(); 
+           .readSchemas( true, true, true );
         for ( int is = 0; is < smetas.length; is++ ) {
             SchemaMeta smeta = smetas[ is ];
             System.out.println( "S " + is + ": " + smeta );
             TableMeta[] tmetas = smeta.getTables();
             if ( tmetas != null ) {
                 for ( int it = 0; it < tmetas.length; it++ ) {
-                    TableMeta tmeta = tmetas[ it ]; 
+                    TableMeta tmeta = tmetas[ it ];
                     System.out.println( "\tT " + it + ": " + tmeta );
                     ColumnMeta[] cmetas = tmeta.getColumns();
                     if ( cmetas != null ) {
