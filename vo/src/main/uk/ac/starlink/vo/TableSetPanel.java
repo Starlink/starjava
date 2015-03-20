@@ -2,6 +2,7 @@ package uk.ac.starlink.vo;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
@@ -77,7 +78,8 @@ public class TableSetPanel extends JPanel {
     /** Number of nodes below which tree nodes are expanded. */
     private static final int TREE_EXPAND_THRESHOLD = 100;
 
-    private static final Logger logger_ = Logger.getLogger( "uk.ac.starlink.vo" );
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.vo" );
 
     /**
      * Constructor.
@@ -406,38 +408,143 @@ public class TableSetPanel extends JPanel {
      */
     private void updateForSelection() {
         TreePath path = selectionModel_.getSelectionPath();
-        TableMeta table = TapMetaTreeModel.getTable( path );
+        final TableMeta table = TapMetaTreeModel.getTable( path );
         SchemaMeta schema = TapMetaTreeModel.getSchema( path );
         ColumnMeta[] cols = table == null ? new ColumnMeta[ 0 ]
                                           : table.getColumns();
         ForeignMeta[] fkeys = table == null ? new ForeignMeta[ 0 ]
                                             : table.getForeignKeys();
+        if ( cols == null ) {
+            metaExecutor_.submit( new Runnable() {
+                public void run() {
+                    populateColumns( table );
+                }
+            } );
+            cols = new ColumnMeta[ 0 ];
+        }
+        if ( fkeys == null ) {
+            metaExecutor_.submit( new Runnable() {
+                public void run() {
+                    populateForeignKeys( table );
+                }
+            } );
+            fkeys = new ForeignMeta[ 0 ];
+        }
         schemaPanel_.setSchema( schema );
         detailTabber_.setIconAt( itabSchema_, activeIcon( schema != null ) );
         tablePanel_.setTable( table );
         detailTabber_.setIconAt( itabTable_, activeIcon( table != null ) );
-        colTableModel_.setItems( cols );
-        detailTabber_.setIconAt( itabCol_, activeIcon( cols != null &&
-                                                       cols.length > 0 ) );
-        foreignTableModel_.setItems( fkeys );
-        detailTabber_.setIconAt( itabForeign_, activeIcon( fkeys != null &&
-                                                           fkeys.length > 0 ) );
-        if ( table != null ) {
-            final JTable ct = colTable_;
-            final JTable ft = foreignTable_;
-            Runnable configer = new Runnable() {
-                public void run() {
-                    StarJTable.configureColumnWidths( ct, 360, 9999 );
-                    StarJTable.configureColumnWidths( ft, 360, 9999 );
-                }
-            };
-            if ( metaSplitter_.getSize().width > 0 ) {
-                configer.run();
-            }
-            else {
-                SwingUtilities.invokeLater( configer );
+        displayColumns( table, cols );
+        displayForeignKeys( table, fkeys );
+    }
+
+    /**
+     * Updates the display if required for the columns of a table.
+     *
+     * @param  table  table
+     * @param  cols  columns
+     */
+    private void displayColumns( TableMeta table, ColumnMeta[] cols ) {
+        if ( table == getSelectedTable() ) {
+            colTableModel_.setItems( cols );
+            detailTabber_.setIconAt( itabCol_, activeIcon( cols != null &&
+                                                           cols.length > 0 ) );
+            if ( table != null ) {
+                configureColumnWidths( colTable_ );
             }
         }
+    }
+
+    /**
+     * Updates the display if required for the foreign keys of a table.
+     *
+     * @param  table  table
+     * @param  fkeys  foreign keys
+     */
+    private void displayForeignKeys( TableMeta table, ForeignMeta[] fkeys ) {
+        if ( table == getSelectedTable() ) {
+            foreignTableModel_.setItems( fkeys );
+            detailTabber_.setIconAt( itabForeign_,
+                                     activeIcon( fkeys != null &&
+                                                 fkeys.length > 0 ) );
+            if ( table != null ) {
+                configureColumnWidths( foreignTable_ );
+            }
+        }
+    }
+
+    /**
+     * Configures the columns widths of a JTable in the tabbed pane
+     * to correspond to its current contents.
+     *
+     * @param  jtable   table to update
+     */
+    private void configureColumnWidths( final JTable jtable ) {
+        Runnable configer = new Runnable() {
+            public void run() {
+                StarJTable.configureColumnWidths( jtable, 360, 9999 );
+            }
+        };
+        if ( metaSplitter_.getSize().width > 0 ) {
+            configer.run();
+        }
+        else {
+            SwingUtilities.invokeLater( configer );
+        }
+    }
+
+    /**
+     * Performs the work for asynchronous acquisition of column metadata
+     * for a given table.  On completion, it updates the TableMeta object
+     * and the display.
+     * Do not call from the event dispatch thread.
+     *
+     * @param  tmeta   table currently lacking column metadata
+     */
+    private void populateColumns( final TableMeta tmeta ) {
+        ColumnMeta[] cmetas;
+        try {
+            cmetas = metaReader_.readColumns( tmeta );
+        }
+        catch ( IOException e ) {
+            logger_.warning( "Failed to read column metadata for table "
+                           + tmeta.getName() );
+            cmetas = new ColumnMeta[ 0 ];
+        }
+        final ColumnMeta[] cmetas0 = cmetas;
+        SwingUtilities.invokeLater( new Runnable() {
+            public void run() {
+                tmeta.setColumns( cmetas0 );
+                displayColumns( tmeta, cmetas0 );
+            }
+        } );
+    }
+
+    /**
+     * Performs the work for asynchronous acquisition of foreign key metadata
+     * for a given table.  On completion, it updates the TableMeta object
+     * and the display.
+     * Do not call from the event dispatch thread.
+     *
+     * @param  tmeta   table currently lacking column metadata
+     */
+    private void populateForeignKeys( final TableMeta tmeta ) {
+        ForeignMeta[] fmetas;
+        try {
+            fmetas = metaReader_.readForeignKeys( tmeta );
+        }
+        catch ( IOException e ) {
+            logger_.warning( "Failed to read foreign key metadata for table "
+                           + tmeta.getName() );
+            fmetas = new ForeignMeta[ 0 ];
+        }
+        final ForeignMeta[] fmetas0 = fmetas;
+        SwingUtilities.invokeLater( new Runnable() {
+            public void run() {
+                tmeta.setForeignKeys( fmetas0 );
+                displayForeignKeys( tmeta, fmetas0 );
+            }
+        } );
     }
 
     /**
