@@ -53,12 +53,32 @@ public class ForeignMeta {
     }
 
     /**
-     * Returns the column links associated with this foreign key.
+     * Returns the key ID associated with this foreign key.
      *
-     * @return  link array
+     * @return  key ID
+     */
+    public String getKeyId() {
+        return keyId_;
+    }
+
+    /**
+     * Returns the column links associated with this foreign key.
+     * If the result is null, nothing is known about the links,
+     * and the list may need to be explicitly set.
+     *
+     * @return  array of links associated with this foreign key, or null
      */
     public Link[] getLinks() {
         return links_;
+    }
+
+    /**
+     * Sets the links contained in this table.
+     *
+     * @param  links  link array
+     */
+    public void setLinks( Link[] links ) {
+        links_ = links;
     }
 
     @Override
