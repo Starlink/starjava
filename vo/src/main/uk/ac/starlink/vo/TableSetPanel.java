@@ -2,16 +2,12 @@ package uk.ac.starlink.vo;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
 import java.util.logging.Logger;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -71,8 +67,7 @@ public class TableSetPanel extends JPanel {
     private final int itabForeign_;
     private final JComponent metaPanel_;
     private final JSplitPane metaSplitter_;
-    private TapMetaReader metaReader_;
-    private ExecutorService metaExecutor_;
+    private TapMetaManager metaManager_;
     private SchemaMeta[] schemas_;
 
     /** Number of nodes below which tree nodes are expanded. */
@@ -188,48 +183,42 @@ public class TableSetPanel extends JPanel {
      * @param  metaReader   new metadata reader; may be null to clear display
      */
     public void setMetaReader( final TapMetaReader metaReader ) {
-        if ( metaReader_ != null ) {
-            metaExecutor_.shutdownNow();
-            metaExecutor_ = null;
+        if ( metaManager_ != null ) {
+            metaManager_.shutdown();
         }
-        metaReader_ = metaReader;
-        setSchemas( metaReader, null );
-        if ( metaReader_ == null ) {
+        final TapMetaManager metaManager =
+            metaReader == null ? null : new TapMetaManager( metaReader );
+        metaManager_ = metaManager;
+        setSchemas( metaManager, null );
+        if ( metaManager == null ) {
             return;
         }
-        showFetchProgressBar( metaReader, "Fetching Table Metadata" );
+        showFetchProgressBar( metaManager, "Fetching Table Metadata" );
         Runnable schemaWorker = new Runnable() {
             public void run() {
-                if ( metaReader != metaReader ) {
+                if ( metaManager != metaManager_ ) {
                     return;
                 }
                 final SchemaMeta[] schemas;
                 try {
-                    schemas = metaReader.readSchemas();
+                    schemas = metaManager.getReader().readSchemas();
                 }
                 catch ( final Exception error ) {
                     SwingUtilities.invokeLater( new Runnable() {
                         public void run() {
-                            showFetchFailure( metaReader, error );
+                            showFetchFailure( metaManager, error );
                         }
                     } );
                     return;
                 }
                 SwingUtilities.invokeLater( new Runnable() {
                     public void run() {
-                        setSchemas( metaReader, schemas );
+                        setSchemas( metaManager, schemas );
                     }
                 } );
             }
         };
-        metaExecutor_ = Executors.newSingleThreadExecutor( new ThreadFactory() {
-            public Thread newThread( Runnable r ) {
-                Thread th = new Thread( r, "TAP Metadata Query" );
-                th.setDaemon( true );
-                return th;
-            }
-        } );
-        metaExecutor_.submit( schemaWorker );
+        metaManager.getExecutor().submit( schemaWorker );
     }
 
     /**
@@ -247,12 +236,14 @@ public class TableSetPanel extends JPanel {
      * and updates the display.
      * The data is in the form of an array of schema metadata objects.
      *
-     * @param  metaReader  reader supplying the schemas; if it doesn't match
-     *                     the currently installed one, the call is ignored
+     * @param  metaManager  metadata acquisition manager supplying the schemas;
+     *                      if it doesn't match the currently installed one,
+     *                      the call is ignored
      * @param  schemas  schema metadata objects, null if no metadata available
      */
-    private void setSchemas( TapMetaReader metaReader, SchemaMeta[] schemas ) {
-        if ( metaReader != metaReader_ ) {
+    private void setSchemas( TapMetaManager metaManager,
+                             SchemaMeta[] schemas ) {
+        if ( metaManager != metaManager_ ) {
             return;
         }
         if ( schemas != null ) {
@@ -290,13 +281,13 @@ public class TableSetPanel extends JPanel {
     /**
      * Displays a progress bar to indicate that metadata fetching is going on.
      *
-     * @param  metaReader  reader in use; if it doesn't match
+     * @param  metaManager  reader in use; if it doesn't match
      *                     the currently installed one, the call is ignored
      * @param  message  message to display
      */
-    private void showFetchProgressBar( TapMetaReader metaReader,
+    private void showFetchProgressBar( TapMetaManager metaManager,
                                        String message ) {
-        if ( metaReader != metaReader_ ) {
+        if ( metaManager != metaManager_ ) {
             return;
         }
         JProgressBar progBar = new JProgressBar();
@@ -325,12 +316,13 @@ public class TableSetPanel extends JPanel {
     /**
      * Displays an indication that metadata fetching failed.
      * 
-     * @param  metaReader  reader in use; if it doesn't match
+     * @param  metaManager  reader in use; if it doesn't match
      *                     the currently installed one, the call is ignored
      * @param  error   error that caused the failure
      */
-    private void showFetchFailure( TapMetaReader metaReader, Throwable error ) {
-        if ( metaReader != metaReader_ ) {
+    private void showFetchFailure( TapMetaManager metaManager,
+                                   Throwable error ) {
+        if ( metaManager != metaManager_ ) {
             return;
         }
         ErrorDialog.showError( this, "Table Metadata Error", error );
@@ -340,7 +332,8 @@ public class TableSetPanel extends JPanel {
         JComponent srcLine = Box.createHorizontalBox();
         srcLine.setAlignmentX( 0 );
         srcLine.add( new JLabel( "Metadata Source: " ) );
-        JTextField srcField = new JTextField( metaReader.getSource() );
+        JTextField srcField =
+            new JTextField( metaManager.getReader().getSource() );
         srcField.setEditable( false );
         srcField.setBorder( BorderFactory.createEmptyBorder() );
         srcLine.add( new ShrinkWrapper( srcField ) );
@@ -410,32 +403,26 @@ public class TableSetPanel extends JPanel {
         TreePath path = selectionModel_.getSelectionPath();
         final TableMeta table = TapMetaTreeModel.getTable( path );
         SchemaMeta schema = TapMetaTreeModel.getSchema( path );
-        ColumnMeta[] cols = table == null ? new ColumnMeta[ 0 ]
-                                          : table.getColumns();
-        ForeignMeta[] fkeys = table == null ? new ForeignMeta[ 0 ]
-                                            : table.getForeignKeys();
-        if ( cols == null ) {
-            metaExecutor_.submit( new Runnable() {
-                public void run() {
-                    populateColumns( table );
-                }
-            } );
-            cols = new ColumnMeta[ 0 ];
+        if ( table == null ||
+             ! metaManager_.onColumns( table, new Runnable() {
+            public void run() {
+                displayColumns( table, table.getColumns() );
+            }
+        } ) ) {
+            displayColumns( table, new ColumnMeta[ 0 ] );
         }
-        if ( fkeys == null ) {
-            metaExecutor_.submit( new Runnable() {
-                public void run() {
-                    populateForeignKeys( table );
-                }
-            } );
-            fkeys = new ForeignMeta[ 0 ];
+        if ( table == null ||
+             ! metaManager_.onForeignKeys( table, new Runnable() {
+            public void run() {
+                displayForeignKeys( table, table.getForeignKeys() );
+            }
+        } ) ) {
+            displayForeignKeys( table, new ForeignMeta[ 0 ] );
         }
         schemaPanel_.setSchema( schema );
         detailTabber_.setIconAt( itabSchema_, activeIcon( schema != null ) );
         tablePanel_.setTable( table );
         detailTabber_.setIconAt( itabTable_, activeIcon( table != null ) );
-        displayColumns( table, cols );
-        displayForeignKeys( table, fkeys );
     }
 
     /**
@@ -491,60 +478,6 @@ public class TableSetPanel extends JPanel {
         else {
             SwingUtilities.invokeLater( configer );
         }
-    }
-
-    /**
-     * Performs the work for asynchronous acquisition of column metadata
-     * for a given table.  On completion, it updates the TableMeta object
-     * and the display.
-     * Do not call from the event dispatch thread.
-     *
-     * @param  tmeta   table currently lacking column metadata
-     */
-    private void populateColumns( final TableMeta tmeta ) {
-        ColumnMeta[] cmetas;
-        try {
-            cmetas = metaReader_.readColumns( tmeta );
-        }
-        catch ( IOException e ) {
-            logger_.warning( "Failed to read column metadata for table "
-                           + tmeta.getName() );
-            cmetas = new ColumnMeta[ 0 ];
-        }
-        final ColumnMeta[] cmetas0 = cmetas;
-        SwingUtilities.invokeLater( new Runnable() {
-            public void run() {
-                tmeta.setColumns( cmetas0 );
-                displayColumns( tmeta, cmetas0 );
-            }
-        } );
-    }
-
-    /**
-     * Performs the work for asynchronous acquisition of foreign key metadata
-     * for a given table.  On completion, it updates the TableMeta object
-     * and the display.
-     * Do not call from the event dispatch thread.
-     *
-     * @param  tmeta   table currently lacking column metadata
-     */
-    private void populateForeignKeys( final TableMeta tmeta ) {
-        ForeignMeta[] fmetas;
-        try {
-            fmetas = metaReader_.readForeignKeys( tmeta );
-        }
-        catch ( IOException e ) {
-            logger_.warning( "Failed to read foreign key metadata for table "
-                           + tmeta.getName() );
-            fmetas = new ForeignMeta[ 0 ];
-        }
-        final ForeignMeta[] fmetas0 = fmetas;
-        SwingUtilities.invokeLater( new Runnable() {
-            public void run() {
-                tmeta.setForeignKeys( fmetas0 );
-                displayForeignKeys( tmeta, fmetas0 );
-            }
-        } );
     }
 
     /**
