@@ -10,8 +10,6 @@ import adql.parser.ADQLQueryFactory;
 import adql.parser.ParseException;
 import adql.parser.QueryChecker;
 import adql.parser.TokenMgrError;
-import adql.query.ADQLIterator;
-import adql.query.ADQLObject;
 import adql.query.ADQLQuery;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -74,44 +72,6 @@ public class AdqlValidator {
     }
 
     /**
-     * Utility method to adapt a TableMeta object into a ValidatorTable.
-     *
-     * @param  tmeta  input table metadata object
-     * @param  smeta  schema metadata object containing the table, or null
-     * @return  table metadata object suitable for validation by this class
-     */
-    public static ValidatorTable toValidatorTable( TableMeta tmeta,
-                                                   SchemaMeta smeta ) {
-        ColumnMeta[] cmetas = tmeta.getColumns();
-        final String tname = tmeta.getName();
-        final String sname = smeta == null ? null : smeta.getName();
-        final ValidatorColumn[] vcols = new ValidatorColumn[ cmetas.length ];
-        final ValidatorTable vtable = new ValidatorTable() {
-            public String getTableName() {
-                return tname;
-            }
-            public String getSchemaName() {
-                return sname;
-            }
-            public ValidatorColumn[] getColumns() {
-                return vcols;
-            }
-        };
-        for ( int ic = 0; ic < cmetas.length; ic++ ) {
-            final ColumnMeta cmeta = cmetas[ ic ];
-            vcols[ ic ] = new ValidatorColumn() {
-                public String getColumnName() {
-                    return cmeta.getName();
-                }
-                public ValidatorTable getTable() {
-                    return vtable;
-                }
-            };
-        }
-        return vtable;
-    }
-
-    /**
      * Adapts an array of ValidatorTable objects to a DBTable collection.
      *
      * @param  vtables  table metadata in VO package form
@@ -120,31 +80,9 @@ public class AdqlValidator {
     private static Collection<DBTable> toDBTables( ValidatorTable[] vtables ) {
         Collection<DBTable> tList = new ArrayList<DBTable>();
         for ( int i = 0; i < vtables.length; i++ ) {
-            tList.add( toDBTable( vtables[ i ] ) );
+            tList.add( new ValidatorDBTable( vtables[ i ] ) );
         }
         return tList;
-    }
-
-    /**
-     * Adapts a ValidatorTable object to a DBTable.
-     *
-     * @param   vtable  table metadata in VO package form
-     * @return  table metadata in ADQLParser-friendly form
-     */
-    private static DBTable toDBTable( ValidatorTable vtable ) {
-        DefaultDBTable dbTable = new DefaultDBTable( vtable.getTableName() );
-
-        /* Setting the schema name here seems to be necessary in some cases:
-         * if the table name itself has no explicit schema qualification.
-         * In that case, the ADQL parsing library (v1.2) can throw
-         * unexpected NullPointerExceptions. */
-        dbTable.setADQLSchemaName( vtable.getSchemaName() );
-        ValidatorColumn[] vcols = vtable.getColumns();
-        for ( int ic = 0; ic < vcols.length; ic++ ) {
-            dbTable.addColumn( new DefaultDBColumn( vcols[ ic ].getColumnName(),
-                                                    dbTable ) );
-        }
-        return dbTable;
     }
 
     /**
@@ -194,8 +132,31 @@ public class AdqlValidator {
         if ( schMetas != null ) {
             List<ValidatorTable> vtList = new ArrayList<ValidatorTable>();
             for ( SchemaMeta schMeta : schMetas ) {
+                final String sname = schMeta.getName();
                 for ( TableMeta tmeta : schMeta.getTables() ) {
-                    vtList.add( toValidatorTable( tmeta, schMeta ) );
+                    final String tname = tmeta.getName();
+                    final Collection<String> colNames;
+                    ColumnMeta[] cmetas = tmeta.getColumns();
+                    if ( cmetas == null ) {
+                        colNames = null;
+                    }
+                    else {
+                        colNames = new ArrayList<String>();
+                        for ( ColumnMeta cmeta : cmetas ) {
+                            colNames.add( cmeta.getName() );
+                        }
+                    }
+                    vtList.add( new ValidatorTable() {
+                        public String getSchemaName() {
+                            return sname;
+                        }
+                        public String getTableName() {
+                            return tname;
+                        }
+                        public Collection<String> getColumnNames() {
+                            return colNames;
+                        }
+                    } );
                 }
             }
             vtables = vtList.toArray( new ValidatorTable[ 0 ] );
@@ -229,30 +190,117 @@ public class AdqlValidator {
         String getSchemaName();
 
         /**
-         * Returns an array of columns associated with this table.
+         * Returns a collection of column names associated with this table.
+         * A null return value means that the list of column names is
+         * not known.
          *
-         * @return  column array
+         * <p>The return value of this call may change over the lifetime of
+         * this object.
+         *
+         * @return  column array, or null
          */
-        ValidatorColumn[] getColumns();
+        Collection<String> getColumnNames();
     }
 
     /**
-     * Defines column metadata for table columns known to the validator.
+     * DBTable implementation that adapts a ValidatorTable instance.
+     * Some of the implementation was done with reference to the
+     * source code of the adql.db.DefaultDBTable class.
      */
-    public interface ValidatorColumn {
-
+    private static class ValidatorDBTable implements DBTable {
+        private final ValidatorTable vtable_;
+        private String name_;
+        private String schemaName_;
+        private String catalogName_;
+  
         /**
-         * Returns the name of this column.
+         * Constructor.
          *
-         * @return  column name
+         * @param    vtable  validator table supplying behaviour
          */
-        String getColumnName();
+        ValidatorDBTable( ValidatorTable vtable ) {
+            vtable_ = vtable;
+            String[] names =
+                 DefaultDBTable.splitTableName( vtable.getTableName() );
+            name_ = names[ 2 ];
+            catalogName_ = names[ 0 ];
+            schemaName_ = vtable.getSchemaName();
+        }
 
-        /**
-         * Returns the table which owns this column.
-         *
-         * @return  owner table object
-         */
-        ValidatorTable getTable();
+        public String getADQLName() {
+            return name_;
+        }
+
+        public String getDBName() {
+            return name_;
+        }
+
+        public String getADQLSchemaName() {
+            return schemaName_;
+        }
+
+        public String getDBSchemaName() {
+            return schemaName_;
+        }
+
+        public String getADQLCatalogName() {
+            return catalogName_;
+        }
+
+        public String getDBCatalogName() {
+            return catalogName_;
+        }
+
+        public DBColumn getColumn( String colName, boolean isAdqlName ) {
+
+            /* Note the value of vtable.getColumnNames may change over the
+             * lifetime of the vtable object, so don't cache the result. */
+            Collection<String> cnames = vtable_.getColumnNames();
+            if ( cnames == null ) {
+                return createDBColumn( colName );
+            }
+            else {
+                return cnames.contains( colName )
+                     ? createDBColumn( colName )
+                     : null;
+            }
+        }
+
+        public Iterator<DBColumn> iterator() {
+
+            /* Note the value of vtable.getColumnNames may change over the
+             * lifetime of the vtable object, so don't cache the result. */
+            Collection<String> cnames = vtable_.getColumnNames();
+            if ( cnames == null ) {
+                return new ArrayList<DBColumn>().iterator();
+            }
+            else {
+                final Iterator<String> it = cnames.iterator();
+                return new Iterator<DBColumn>() {
+                    public boolean hasNext() {
+                        return it.hasNext();
+                    }
+                    public DBColumn next() {
+                        return createDBColumn( it.next() );
+                    }
+                    public void remove() {
+                        throw new UnsupportedOperationException();
+                    }
+                };
+            }
+        }
+
+        public DBTable copy( String dbName, String adqlName ) {
+            DefaultDBTable copy = new DefaultDBTable( dbName, adqlName );
+            for ( DBColumn col : this ) {
+                copy.addColumn( col.copy( col.getDBName(), col.getADQLName(),
+                                          copy ) );
+            }
+            return copy;
+        }
+
+        private DBColumn createDBColumn( String colName ) {
+            return new DefaultDBColumn( colName, colName, this );
+        }
     }
 }

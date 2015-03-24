@@ -16,6 +16,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -121,20 +123,7 @@ public class TapQueryPanel extends JPanel {
             }
             private void changed() {
                 clearAct.setEnabled( textPanel_.getDocument().getLength() > 0 );
-                String text = textPanel_.getText();
-                if ( text.trim().length() > 0 ) {
-                    AdqlValidator validator = getValidator();
-                    try {
-                        validator.validate( text );
-                        setParseError( null );
-                    }
-                    catch ( Throwable e ) {
-                        setParseError( e );
-                    }
-                }
-                else {
-                    setParseError( null );
-                }
+                validateAdql();
             }
         } );
 
@@ -366,6 +355,29 @@ public class TapQueryPanel extends JPanel {
     }
 
     /**
+     * Performs best-efforts validation on the ADQL currently visible
+     * in the query text entry field, updating the GUI accordingly.
+     * This validation is currently performed synchronously on the
+     * Event Dispatch Thread.
+     */
+    private void validateAdql() {
+        String text = textPanel_.getText();
+        if ( text.trim().length() > 0 ) {
+            AdqlValidator validator = getValidator();
+            try {
+                validator.validate( text );
+                setParseError( null );
+            }
+            catch ( Throwable e ) {
+                setParseError( e );
+            }
+        }
+        else {
+            setParseError( null );
+        }
+    }
+
+    /**
      * Returns a validator for validating ADQL text.
      *
      * @return  ADQL validator
@@ -377,8 +389,49 @@ public class TapQueryPanel extends JPanel {
         List<AdqlValidator.ValidatorTable> vtList =
             new ArrayList<AdqlValidator.ValidatorTable>();
         for ( SchemaMeta smeta : tmetaPanel_.getSchemas() ) {
+            final String sname = smeta.getName();
             for ( TableMeta tmeta : smeta.getTables() ) {
-                vtList.add( AdqlValidator.toValidatorTable( tmeta, smeta ) );
+                final TableMeta tmeta0 = tmeta;
+                vtList.add( new AdqlValidator.ValidatorTable() {
+                    public String getSchemaName() {
+                        return sname;
+                    }
+                    public String getTableName() {
+                        return tmeta0.getName();
+                    }
+                    public Collection<String> getColumnNames() {
+                        ColumnMeta[] cmetas = tmeta0.getColumns();
+
+                        /* If the table knows its columns, report them. */
+                        if ( cmetas != null ) {
+                            Collection<String> list = new HashSet<String>();
+                            for ( ColumnMeta cmeta : cmetas ) {
+                                list.add( cmeta.getName() );
+                            }
+                            return list;
+                        }
+
+                        /* Otherwise, return null to indicate that no
+                         * column information is available, but also schedule
+                         * a request to acquire the column information
+                         * and subsequently have another go at validating
+                         * the ADQL; this method will have been called by
+                         * a current validation attempt, but next time it
+                         * should be able to report the columns. */
+                        else {
+                            TapMetaManager metaManager =
+                                tmetaPanel_.getMetaManager();
+                            if ( metaManager != null ) {
+                                metaManager.onColumns( tmeta0, new Runnable() {
+                                    public void run() {
+                                        validateAdql();
+                                    }
+                                } );
+                            }
+                            return null;
+                        }
+                    }
+                } );
             }
         }
         vtList.addAll( Arrays.asList( getExtraTables() ) );
