@@ -20,6 +20,7 @@ import uk.ac.starlink.task.ExecutionException;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.TaskException;
+import uk.ac.starlink.ttools.DocUtils;
 import uk.ac.starlink.ttools.TableConsumer;
 import uk.ac.starlink.util.DataSource;
 
@@ -89,14 +90,12 @@ public abstract class AbstractInputTableParameter<T> extends Parameter<T> {
      */
     public final void setTableDescription( String inDescrip ) {
         setDescription( new String[] {
-            "<p>The location of " + inDescrip,
-            "This is usually a filename or URL, and may point to a file",
-            "compressed in one of the supported compression formats",
-            "(Unix compress, gzip or bzip2).",
-            "If it is omitted, or equal to the special value \"-\",",
-            "the table will be read from standard input.",
-            "In this case the input format must be given explicitly",
-            "using the <code>" + formatParam_.getName() + "</code> parameter.",
+            "<p>The location of " + inDescrip + ".",
+            "This may take one of the following forms:",
+            getLocationFormList( formatParam_ ),
+            "In any case, compressed data in one of the supported compression",
+            "formats (gzip, Unix compress or bzip2) will be decompressed",
+            "transparently.",
             "</p>",
         } );
         streamParam_.setDescription( new String[] {
@@ -256,7 +255,10 @@ public abstract class AbstractInputTableParameter<T> extends Parameter<T> {
     /**
      * Returns a StarTable which re-reads the input stream every time
      * the data are required.  This has similar efficiency characteristics to
-     * {@link #getStreamedTable(uk.ac.starlink.table.StarTableFactory,java,io.InputStream,java.lang.String,java.lang.String)}
+     * {@link #getStreamedTable(uk.ac.starlink.table.StarTableFactory,
+     *                          java.io.InputStream,
+     *                          java.lang.String,java.lang.String)
+     *        getStreamedTable}
      * but doesn't fall over if more than one RowSequence is taken out on it.
      * It needs a DataSource not an InputStream of course, since the
      * stream of bytes has to be re-readable.
@@ -293,5 +295,35 @@ public abstract class AbstractInputTableParameter<T> extends Parameter<T> {
                 }
             }
         };
+    }
+
+    /**
+     * Returns an XML list element enumerating the forms in which a
+     * single table may be specified.
+     *
+     * @param  fmtParam  associated input format parameter
+     * @return  ul element
+     */
+    public static String getLocationFormList( InputFormatParameter fmtParam ) {
+        return DocUtils.join( new String[] {
+            "<ul>",
+            "<li>A filename.</li>",
+            "<li>A URL.</li>",
+            "<li>The special value \"<code>-</code>\",",
+            "    meaning standard input.",
+            "    In this case the input format must be given explicitly",
+            "    using the <code>" + fmtParam.getName() + "</code>",
+            "    parameter.",
+            "    Note that not all formats can be streamed in this way.</li>",
+            "<li>A system command line with",
+            "    either a \"<code>&lt;</code>\" character at the start,",
+            "    or a \"<code>|</code>\" character at the end",
+            "    (\"<code>&lt;syscmd</code>\" or",
+            "     \"<code>syscmd|</code>\").",
+            "    This executes the given pipeline and reads from its",
+            "    standard output.",
+            "    This will probably only work on unix-like systems.</li>",
+            "</ul>",
+        } );
     }
 }

@@ -1933,6 +1933,16 @@ allowed:
 </dl>
 </p>
 
+<p>It is also possible to use the special value "<code>-</code>"
+to mean standard input; 
+in this case the file format must be specified explicitly
+using the <code>-f</code> flag,
+and not all formats can be streamed from stdin.
+Finally, the form "<code>&lt;syscmd</code>" or equivalently
+"<code>syscmd|</code>" may be used to read from the standard output
+of a shell pipeline (probably only works on Unix-like systems).
+</p>
+
 <p>As with the GUI-based load dialogues, data compression in any of the
 supported formats (gzip, bzip2, Unix compress) is detected and 
 dealt with automatically for input locations.
@@ -21067,6 +21077,8 @@ introduced since the last version:
         subset-specific configuration is currently visible in the plot.</li>
     <li>Be less strict about recognising colfits files
         (tolerate implicit TDIMn headers).</li>
+    <li>Tables specified on the <ref id="tableLocation">command line</ref>
+        may now use syntax that reads data from a unix pipeline.</li>
     </ul>
     </p></dd>
 
