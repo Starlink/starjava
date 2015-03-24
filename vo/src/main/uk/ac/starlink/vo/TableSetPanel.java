@@ -222,6 +222,15 @@ public class TableSetPanel extends JPanel {
     }
 
     /**
+     * Returns the object currently responsible for acquiring table metadata.
+     *
+     * @return  metadata manager, may be null
+     */
+    public TapMetaManager getMetaManager() {
+        return metaManager_;
+    }
+
+    /**
      * Returns the current table metadata set.
      * May be null if the read is still in progress.
      *

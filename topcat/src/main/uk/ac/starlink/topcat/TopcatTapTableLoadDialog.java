@@ -6,6 +6,7 @@ import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -254,32 +255,21 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
                               final String sname ) {
         StarTable dataTable = tcModel.getDataModel();
         int ncol = dataTable.getColumnCount();
-        final AdqlValidator.ValidatorColumn[] vcols =
-            new AdqlValidator.ValidatorColumn[ ncol ];
-        final AdqlValidator.ValidatorTable vtable =
-                new AdqlValidator.ValidatorTable() {
+        final String[] colNames = new String[ ncol ];
+        for ( int ic = 0; ic < ncol; ic++ ) {
+            colNames[ ic ] = dataTable.getColumnInfo( ic ).getName();
+        }
+        return new AdqlValidator.ValidatorTable() {
             public String getTableName() {
                 return tname;
             }
             public String getSchemaName() {
                 return sname;
             }
-            public AdqlValidator.ValidatorColumn[] getColumns() {
-                return vcols;
+            public Collection<String> getColumnNames() {
+                return Arrays.asList( colNames );
             }
         };
-        for ( int ic = 0; ic < ncol; ic++ ) {
-            final String cname = dataTable.getColumnInfo( ic ).getName();
-            vcols[ ic ] = new AdqlValidator.ValidatorColumn() {
-                public String getColumnName() {
-                    return cname;
-                }
-                public AdqlValidator.ValidatorTable getTable() {
-                    return vtable;
-                }
-            };
-        }
-        return vtable;
     }
 
     /**
