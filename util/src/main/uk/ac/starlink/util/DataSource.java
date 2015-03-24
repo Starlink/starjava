@@ -562,12 +562,15 @@ public abstract class DataSource {
 
     /**
      * Attempts to make a source given a name identifying its location.
-     * Currently this must be either a file name or a URL.
-     * If an <em>existing</em> file or valid URL exists with the given
-     * <tt>name</tt>, a DataSource based on it will be returned.
-     * Otherwise an IOException will be thrown.
-     * <p>
-     * If a '#' character exists in the string, text after it will be
+     * This may be one of the following options:
+     * <ul>
+     * <li>filename</li>
+     * <li>URL</li>
+     * <li>a string preceded by "&lt;" or followed by "|",
+     *     giving a shell commandline (may not work on all platforms)</li>
+     * </ul>
+     *
+     * <p>If a '#' character exists in the string, text after it will be
      * interpreted as a position value.  Otherwise, the position is
      * considered to be <tt>null</tt>.
      *
@@ -592,32 +595,32 @@ public abstract class DataSource {
             name = loc;
         }
 
-        /* If there is a file by this name, and the security manager doesn't
-         * object, return a source based on that. */
-        try {
-            File file = new File( name );
-            if ( file.exists() ) {
-                return new FileDataSource( file, position );
-            }
-        }
-        catch ( SecurityException e ) {
-            // never mind
+        /* Try it as a filename. */
+        File file = new File( name );
+        if ( fileExists( file ) ) {
+            return new FileDataSource( file, position );
         }
 
-        /* Otherwise, see if we can make sense of it as a URL. */
+        /* Try it as a shell command. */
+        String cmdLine = getShellCommandLine( name );
+        if ( cmdLine != null ) {
+            ProcessBuilder pb =
+                ProcessDataSource.createCommandLineProcessBuilder( cmdLine );
+            DataSource src = new ProcessDataSource( pb );
+            src.setPosition( position );
+            return src;
+        }
+
+        /* Try it as a URL. */
         try {
-            URL url = new URL( loc );
-            return new URLDataSource( url );
+            return new URLDataSource( new URL( loc ) );
         }
         catch ( MalformedURLException e ) {
-            FileNotFoundException e2 =
-                new FileNotFoundException( "Not extant file or valid URL: "
-                                         + name );
-            if ( name.matches( "^[a-zA-Z0-9_\\-]+:.+" ) ) {
-                e2.initCause( e );
-            }
-            throw e2;
         }
+
+        /* No luck. */
+        throw new FileNotFoundException( "No file, URL or command \""
+                                       + name + "\"" );
     }
 
     /**
@@ -645,38 +648,90 @@ public abstract class DataSource {
 
     /**
      * Returns an input stream based on the given location string.
-     * The location may be a URL or filename or the string "-" to represent
-     * System.in, and may represent compressed or uncompressed data; 
+     * The content of the stream may be compressed or uncompressed data;
      * the returned stream will be an uncompressed version.
+     * The following options are allowed for the location:
+     * <ul>
+     * <li>filename</li>
+     * <li>URL</li>
+     * <li>"-" meaning standard input</li>
+     * <li>a string preceded by "&lt;" or followed by "|",
+     *     giving a shell commandline (may not work on all platforms)</li>
+     * </ul>
      *
-     * @param  location  URL, filename or "-"
+     * @param  location  URL, filename, "cmdline|"/"&lt;cmdline", or "-"
      * @return  uncompressed stream containing the data at <tt>location</tt>
-     * @throws  FileNotFoundException  if <tt>location</tt> is not an existing
-     *          file or a valid URL
+     * @throws  FileNotFoundException  if <tt>location</tt> cannot be
+     *          interpreted as a source of bytes
      * @throws  IOException  if there is an error obtaining the stream
      */
     public static InputStream getInputStream( String location )
             throws IOException {
-        InputStream rawStream;
+        return Compression.decompressStatic( getRawInputStream( location ) );
+    }
+
+    /**
+     * Returns a raw input stream named by a given location string.
+     * Possible location values are as for {@link #getInputStream}.
+     *
+     * @param  location  URL, filename, "cmdline|"/"&lt;cmdline", or "-"
+     * @return  stream containing the raw content at <tt>location</tt>
+     * @throws  FileNotFoundException  if <tt>location</tt> cannot be
+     *          interpreted as a source of bytes
+     * @throws  IOException  if there is an error obtaining the stream
+     */
+    private static InputStream getRawInputStream( String location )
+            throws IOException {
+
+        /* Minus sign means standard input. */
         if ( location.equals( "-" ) ) {
-            rawStream = System.in;
+            return System.in;
         }
-        else {
-            try {
-                rawStream = new URL( location ).openStream();
-            }
-            catch ( MalformedURLException e ) {
-                File file = new File( location );
-                if ( file.exists() ) {
-                    rawStream = new FileInputStream( file );
-                }
-                else {
-                    throw new FileNotFoundException( 
-                        "\"" + location + "\" is not a file or valid URL" );
-                }
-            }
+
+        /* Try it as a filename. */
+        File file = new File( location );
+        if ( fileExists( file ) ) {
+            return new FileInputStream( file );
         }
-        return Compression.decompressStatic( rawStream );
+
+        /* Try it as a shell command line. */
+        String cmdLine = getShellCommandLine( location );
+        if ( cmdLine != null ) {
+            ProcessBuilder pb =
+                ProcessDataSource.createCommandLineProcessBuilder( cmdLine );
+            return pb.start().getInputStream();
+        }
+
+        /* Try it as a URL. */
+        try {
+            return new URL( location ).openStream();
+        }
+        catch ( MalformedURLException e ) {
+        }
+
+        /* No luck. */
+        throw new FileNotFoundException( "No file, URL or command \""
+                                       + location + "\"" );
+    }
+
+    /**
+     * Tries to interpret a data location string as a reference to a shell
+     * command line.
+     * Currently either of the forms "<code>&lt;cmdline</code>"
+     * or "<code>cmdline|</code>" is recognised.
+     *
+     * @param  location  user-supplied location string
+     * @return  command-line part of string if it looks like a command-line
+     *          specification; otherwise null
+     */
+    private static String getShellCommandLine( String location ) {
+        if ( location.charAt( 0 ) == '<' ) {
+            return location.substring( 1 );
+        }
+        if ( location.charAt( location.length() - 1 ) == '|' ) {
+            return location.substring( 0, location.length() - 1 );
+        }
+        return null;
     }
 
     /**
@@ -710,6 +765,23 @@ public abstract class DataSource {
      */
     public static void setMarkWorkaround( boolean workaround ) {
         markWorkaround_ = Boolean.valueOf( workaround );
+    }
+
+    /**
+     * Determines whether a file exists.
+     * Unlike File.exists(), it will not throw a SecurityException,
+     * it just returns false instead.
+     *
+     * @param  file  abstract file
+     * @return  true if file is known to exist
+     */
+    private static boolean fileExists( File file ) {
+        try {
+            return file.exists();
+        }
+        catch ( SecurityException e ) {
+            return false;
+        }
     }
 
     /**
