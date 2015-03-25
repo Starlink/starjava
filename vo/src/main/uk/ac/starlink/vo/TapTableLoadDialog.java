@@ -57,6 +57,7 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
     private ResumeTapQueryPanel resumePanel_;
     private CaretListener adqlListener_;
     private Action reloadAct_;
+    private TapMetaPolicy metaPolicy_;
     private int tqTabIndex_;
     private int jobsTabIndex_;
     private int resumeTabIndex_;
@@ -86,6 +87,7 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
                Capability.TAP, false, false );
         tqMap_ = new HashMap<String,TapQueryPanel>();
         basicExamples_ = AbstractAdqlExample.createSomeExamples();
+        metaPolicy_ = TapMetaPolicy.getDefaultInstance();
         setIconUrl( TapTableLoadDialog.class.getResource( "tap.gif" ) );
     }
 
@@ -184,7 +186,7 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
             public void actionPerformed( ActionEvent evt ) {
                 int itab = tabber_.getSelectedIndex();
                 if ( itab == tqTabIndex_ ) {
-                    tqPanel_.reload();
+                    tqPanel_.setService( getServiceUrl(), metaPolicy_ );
                 }
                 else if ( itab == resumeTabIndex_ ) {
                     resumePanel_.reload();
@@ -272,6 +274,26 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
     public void addRunningQuery( UwsJob tapJob ) {
         jobsPanel_.addJob( tapJob, true );
         tabber_.setSelectedIndex( jobsTabIndex_ );
+    }
+
+    /**
+     * Sets the policy used for TAP service metadata acquisition.
+     * As currently implemented, a change in policy triggers a reload
+     * of the metadata for the currently displayed service metadata,
+     * though not for other cached ones.
+     *
+     * @param  metaPolicy   new metadata acquisition policy
+     */
+    public void setMetaPolicy( TapMetaPolicy metaPolicy ) {
+        if ( metaPolicy_ != metaPolicy ) {
+            metaPolicy_ = metaPolicy;
+            String serviceUrl = getServiceUrl();
+            if ( tqPanel_ != null &&
+                 serviceUrl != null &&
+                 metaPolicy_ != null ) {
+                tqPanel_.setService( serviceUrl, metaPolicy_ );
+            }
+        }
     }
 
     /**
@@ -489,7 +511,7 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
             if ( ! tqMap_.containsKey( serviceUrl ) ) {
                 TapQueryPanel tqPanel = createTapQueryPanel();
                 tqPanel.setServiceHeading( getServiceHeading( serviceUrl ) );
-                tqPanel.setServiceUrl( serviceUrl );
+                tqPanel.setService( serviceUrl, metaPolicy_ );
                 tqMap_.put( serviceUrl, tqPanel );
             }
 

@@ -52,7 +52,6 @@ import javax.swing.text.PlainDocument;
  */
 public class TapQueryPanel extends JPanel {
 
-    private URL serviceUrl_;
     private Thread capFetcher_;
     private Throwable parseError_;
     private final ParseTextArea textPanel_;
@@ -251,22 +250,15 @@ public class TapQueryPanel extends JPanel {
     }
 
     /**
-     * Reload table and capability metadata from the server.
-     */
-    public void reload() {
-        if ( serviceUrl_ != null ) {
-            setServiceUrl( serviceUrl_.toString() );
-        }
-    }
-
-    /**
      * Sets the service URL for the TAP service used by this panel.
-     * Calling this will initiate an asynchronous attempt to fill in
-     * service metadata from the service at the given URL.
+     * Calling this will unconditionally initiate an asynchronous attempt
+     * to fill in service metadata from the service at the given URL.
      *
      * @param  serviceUrl  base URL for a TAP service
+     * @param  metaPolicy  metadata acquisition policy
      */
-    public void setServiceUrl( final String serviceUrl ) {
+    public void setService( final String serviceUrl,
+                            TapMetaPolicy metaPolicy ) {
 
         /* Prepare the URL where we can find the TableSet document. */
         final URL url;
@@ -276,12 +268,10 @@ public class TapQueryPanel extends JPanel {
         catch ( MalformedURLException e ) {
             return;
         }
-        serviceUrl_ = url;
 
         /* Dispatch a request to acquire the table metadata from
          * the service. */
-        tmetaPanel_.setMetaReader( new TableSetTapMetaReader( serviceUrl
-                                                           + "/tables" ) );
+        tmetaPanel_.setMetaReader( metaPolicy.createMetaReader( url ) );
 
         /* Dispatch a request to acquire the service capability information
          * from the service. */
