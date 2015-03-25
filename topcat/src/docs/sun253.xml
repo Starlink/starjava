@@ -16892,48 +16892,45 @@ by clicking on the appropriate tab at the top.
 <p>This window offers one menu additional to the standard
 <ref id="RegistryPanel">VO windows</ref> menus:
 <dl>
-<dt>Deletion menu</dt>
-<dd><p>Allows you to choose when asynchronously submitted jobs will
-    by default be
-    deleted from the server.  Once they are deleted they will no longer
-    be visible in the <label>Running Jobs</label> tab.  If they are not
-    deleted in this way, they will stay on the server until they are
-    deleted according to the server's deletion policy.  Choose one of
-    the available options:
-    <ul>
-    <li><strong>On Completion:</strong>
-        deleted when it has completed with either success or error status
-        </li>
-    <li><strong>On Exit:</strong>
-        deleted when TOPCAT shuts down
-        </li>
-    <li><strong>Never:</strong>
-        not deleted (except according to server policy)
-        </li>
-    </ul>
-    You can override these settings once a job has started
-    by using the controls at the bottom of the 
-    <ref id="TapTableLoadDialog_jobs">running jobs</ref> tab.
-    The settings in this menu affect the default value of the
-    <label>Delete On Exit</label> checkbox.
-    If you want to <ref id="TapTableLoadDialog_resume">resume</ref>
-    the job in a later session, you'll have to make sure that the
-    job is not deleted on completion or exit.
-    </p></dd>
-</dl>
-</p>
-
-<p>The additional menu items are:
-<dl>
-<dt>&IMG.KEEP_OPEN;: Stay Open</dt>
-<dd><p>Makes sure that the window is not automatically closed after it
-    loads a table.
-    </p></dd>
-<dt>&IMG.REDO;: Reload</dt>
-<dd><p>Reloads information displayed in the window from the server.
-    This may be updating job status information or reloading table
-    or service metadata; the exact behaviour depends on which tab
-    is currently visible.
+<dt>TAP menu</dt>
+<dd><p>This contains some configuration options specific to Table Access
+    Protocol service interaction.  It has the following sub-items:
+    <dl>
+    <dt>&IMG.REDO;: Reload</dt>
+    <dd><p>Reloads information displayed in the window from the server.
+        This may be updating job status information or reloading table
+        or service metadata; the exact behaviour depends on which tab
+        is currently visible.
+        </p></dd>
+    <dt>Deletion menu</dt>
+    <dd><p>Allows you to choose when asynchronously submitted jobs will
+        by default be
+        deleted from the server.  Once they are deleted they will no longer
+        be visible in the <label>Running Jobs</label> tab.  If they are not
+        deleted in this way, they will stay on the server until they are
+        deleted according to the server's deletion policy.  Choose one of
+        the available options:
+        <ul>
+        <li><strong>On Completion:</strong>
+            deleted when it has completed with either success or error status
+            </li>
+        <li><strong>On Exit:</strong>
+            deleted when TOPCAT shuts down
+            </li>
+        <li><strong>Never:</strong>
+            not deleted (except according to server policy)
+            </li>
+        </ul>
+        You can override these settings once a job has started
+        by using the controls at the bottom of the 
+        <ref id="TapTableLoadDialog_jobs">running jobs</ref> tab.
+        The settings in this menu affect the default value of the
+        <label>Delete On Exit</label> checkbox.
+        If you want to <ref id="TapTableLoadDialog_resume">resume</ref>
+        the job in a later session, you'll have to make sure that the
+        job is not deleted on completion or exit.
+        </p></dd>
+    </dl>
     </p></dd>
 </dl>
 </p>

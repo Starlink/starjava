@@ -49,11 +49,17 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
         Component comp = super.createQueryComponent();
         adjuster_.adjustComponent();
 
-        /* Add menu for configurable job deletion. */
+        /* Add menu for TAP-specific items. */
         List<JMenu> menuList =
             new ArrayList<JMenu>( Arrays.asList( super.getMenus() ) );
-        JMenu delMenu = new JMenu( "Deletion" );
-        delMenu.setMnemonic( KeyEvent.VK_D );
+        JMenu tapMenu = new JMenu( "TAP" );
+        tapMenu.setMnemonic( KeyEvent.VK_T );
+
+        /* Add reload action. */
+        tapMenu.add( getReloadAction() );
+
+        /* Add sub-menu for job deletion. */
+        JMenu delMenu = new JMenu( "Delete Jobs" );
         ButtonGroup delButtGroup = new ButtonGroup();
         DeletionPolicy[] delPolicies = DeletionPolicy.values();
         for ( int i = 0; i < delPolicies.length; i++ ) {
@@ -71,7 +77,8 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
                 menuItem.doClick();
             }
         }
-        menuList.add( 0, delMenu );
+        tapMenu.add( delMenu );
+        menuList.add( 0, tapMenu );
         setMenus( menuList.toArray( new JMenu[ 0 ] ) );
 
         return comp;
