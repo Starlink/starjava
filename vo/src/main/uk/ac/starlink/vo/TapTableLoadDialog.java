@@ -56,6 +56,7 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
     private UwsJobListPanel jobsPanel_;
     private ResumeTapQueryPanel resumePanel_;
     private CaretListener adqlListener_;
+    private Action reloadAct_;
     private int tqTabIndex_;
     private int jobsTabIndex_;
     private int resumeTabIndex_;
@@ -179,7 +180,7 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
         };
 
         /* Reload action. */
-        final Action reloadAct = new AbstractAction( "Reload" ) {
+        reloadAct_ = new AbstractAction( "Reload" ) {
             public void actionPerformed( ActionEvent evt ) {
                 int itab = tabber_.getSelectedIndex();
                 if ( itab == tqTabIndex_ ) {
@@ -196,22 +197,22 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
         ChangeListener reloadEnabler = new ChangeListener() {
             public void stateChanged( ChangeEvent evt ) {
                 int itab = tabber_.getSelectedIndex();
-                reloadAct.setEnabled( itab == tqTabIndex_
-                                   || itab == resumeTabIndex_
-                                   || itab == jobsTabIndex_ );
+                reloadAct_.setEnabled( itab == tqTabIndex_
+                                    || itab == resumeTabIndex_
+                                    || itab == jobsTabIndex_ );
             }
         };
         tabber_.addChangeListener( reloadEnabler );
         reloadEnabler.stateChanged( null );
-        reloadAct.putValue( Action.SMALL_ICON, 
-                            new ImageIcon( TapTableLoadDialog.class
-                                          .getResource( "reload.gif" ) ) );
-        reloadAct.putValue( Action.SHORT_DESCRIPTION,
+        reloadAct_.putValue( Action.SMALL_ICON, 
+                             new ImageIcon( TapTableLoadDialog.class
+                                           .getResource( "reload.gif" ) ) );
+        reloadAct_.putValue( Action.SHORT_DESCRIPTION,
               "Reload information displayed in this panel from the server; "
             + "exact behaviour depends on which panel is visible" );
         List<Action> actList =
             new ArrayList<Action>( Arrays.asList( super.getToolbarActions() ) );
-        actList.add( reloadAct );
+        actList.add( reloadAct_ );
         setToolbarActions( actList.toArray( new Action[ 0 ] ) );
 
         /* Adjust message. */
@@ -271,6 +272,17 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
     public void addRunningQuery( UwsJob tapJob ) {
         jobsPanel_.addJob( tapJob, true );
         tabber_.setSelectedIndex( jobsTabIndex_ );
+    }
+
+    /**
+     * Returns a panel-specific reload action.
+     * When enabled, this performs some kind of update action
+     * relevant to the currently visible tab.
+     *
+     * @return  reload action
+     */
+    public Action getReloadAction() {
+        return reloadAct_;
     }
 
     /**
