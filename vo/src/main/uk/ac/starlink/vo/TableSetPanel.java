@@ -35,6 +35,7 @@ import javax.swing.tree.TreeSelectionModel;
 import uk.ac.starlink.table.gui.StarJTable;
 import uk.ac.starlink.util.gui.ArrayTableColumn;
 import uk.ac.starlink.util.gui.ArrayTableModel;
+import uk.ac.starlink.util.gui.ArrayTableSorter;
 import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 
@@ -116,6 +117,8 @@ public class TableSetPanel extends JPanel {
         colColModel_ =
             new MetaColumnModel( colTable_.getColumnModel(), colTableModel_ );
         colTable_.setColumnModel( colColModel_ );
+        new ArrayTableSorter( colTableModel_ )
+           .install( colTable_.getTableHeader() );
 
         foreignTableModel_ = new ArrayTableModel( createForeignMetaColumns(),
                                                   new ColumnMeta[ 0 ] );
@@ -126,6 +129,8 @@ public class TableSetPanel extends JPanel {
             new MetaColumnModel( foreignTable_.getColumnModel(),
                                  foreignTableModel_ );
         foreignTable_.setColumnModel( foreignColModel_ );
+        new ArrayTableSorter( foreignTableModel_ )
+           .install( foreignTable_.getTableHeader() );
 
         tablePanel_ = new TableMetaPanel();
         schemaPanel_ = new SchemaMetaPanel();
