@@ -54,6 +54,7 @@ public class TapQueryPanel extends JPanel {
 
     private Thread capFetcher_;
     private Throwable parseError_;
+    private AdqlValidator.ValidatorTable[] validatorTables_;
     private final ParseTextArea textPanel_;
     private final TableSetPanel tmetaPanel_;
     private final TapCapabilityPanel tcapPanel_;
@@ -260,6 +261,9 @@ public class TapQueryPanel extends JPanel {
     public void setService( final String serviceUrl,
                             TapMetaPolicy metaPolicy ) {
 
+        /* Outdate service-related state. */
+        validatorTables_ = null;
+
         /* Prepare the URL where we can find the TableSet document. */
         final URL url;
         try {
@@ -378,7 +382,33 @@ public class TapQueryPanel extends JPanel {
          * what tables and columns are available. */
         List<AdqlValidator.ValidatorTable> vtList =
             new ArrayList<AdqlValidator.ValidatorTable>();
-        for ( SchemaMeta smeta : tmetaPanel_.getSchemas() ) {
+        if ( validatorTables_ == null ) {
+            validatorTables_ =
+                createValidatorTables( tmetaPanel_.getSchemas() );
+        }
+        vtList.addAll( Arrays.asList( validatorTables_ ) );
+        vtList.addAll( Arrays.asList( getExtraTables() ) );
+        AdqlValidator.ValidatorTable[] vtables =
+            vtList.toArray( new AdqlValidator.ValidatorTable[ 0 ] );
+
+        /* Construct and return a validator. */
+        return new AdqlValidator( vtables, true );
+    }
+
+    /**
+     * Turns a list of schemas into a list of ValidatorTables.
+     * These validator tables are capable of scheduling requests for
+     * unavailable column metadata followed by repeat validation operations
+     * (see implementation).
+     *
+     * @param   schemas  schema metadata objects populated with tables
+     * @return  validator tables representing schema content
+     */
+    private AdqlValidator.ValidatorTable[]
+            createValidatorTables( SchemaMeta[] schemas ) {
+        List<AdqlValidator.ValidatorTable> vtList =
+            new ArrayList<AdqlValidator.ValidatorTable>();
+        for ( SchemaMeta smeta : schemas ) {
             final String sname = smeta.getName();
             for ( TableMeta tmeta : smeta.getTables() ) {
                 final TableMeta tmeta0 = tmeta;
@@ -424,12 +454,7 @@ public class TapQueryPanel extends JPanel {
                 } );
             }
         }
-        vtList.addAll( Arrays.asList( getExtraTables() ) );
-        AdqlValidator.ValidatorTable[] vtables =
-            vtList.toArray( new AdqlValidator.ValidatorTable[ 0 ] );
-
-        /* Construct and return a validator. */
-        return new AdqlValidator( vtables, true );
+        return vtList.toArray( new AdqlValidator.ValidatorTable[ 0 ] );
     }
 
     /**
