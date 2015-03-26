@@ -5,6 +5,9 @@ import java.awt.Graphics;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import javax.swing.Icon;
 import javax.swing.JLabel;
 import javax.swing.JTable;
@@ -30,6 +33,7 @@ public class ArrayTableSorter {
     private final MouseListener mouseListener_;
     private int iSortcol_;
     private boolean descending_;
+    private Object[] unsortedItems_;
 
     /**
      * Constructor.
@@ -38,17 +42,21 @@ public class ArrayTableSorter {
      */
     public ArrayTableSorter( ArrayTableModel model ) {
         model_ = model;
+        unsortedItems_ = model.getItems().clone();
         mouseListener_ = new SortMouseListener();
         model.addTableModelListener( new TableModelListener() {
             public void tableChanged( TableModelEvent evt ) {
-                if ( iSortcol_ >= 0 ) {
-                    final int iSortcol = iSortcol_;
-                    final boolean descending = descending_;
-                    SwingUtilities.invokeLater( new Runnable() {
-                        public void run() {
-                            setSorting( iSortcol, descending );
-                        }
-                    } );
+                if ( ! equalElements( model_.getItems(), unsortedItems_ ) ) {
+                    unsortedItems_ = model_.getItems().clone();
+                    if ( iSortcol_ >= 0 ) {
+                        final int iSortcol = iSortcol_;
+                        final boolean descending = descending_;
+                        SwingUtilities.invokeLater( new Runnable() {
+                            public void run() {
+                                setSorting( iSortcol, descending );
+                            }
+                        } );
+                    }
                 }
             }
         } );
@@ -92,7 +100,30 @@ public class ArrayTableSorter {
     public void setSorting( int icol, boolean descending ) {
         iSortcol_ = icol;
         descending_ = descending;
-        model_.sortByColumn( icol, descending );
+        if ( icol >= 0 ) {
+            model_.sortByColumn( icol, descending );
+        }
+        else {
+            model_.setItems( unsortedItems_.clone() );
+        }
+    }
+
+    /**
+     * Determines whether two arrays have the same elements,
+     * regardless of their sequence.
+     *
+     * @param  items1  first array
+     * @param  items2  second array
+     * @return  true iff both arrays contain the same elements
+     */
+    private static boolean equalElements( Object[] items1, Object[] items2 ) {
+        List list1 = new ArrayList( Arrays.asList( items1 ) );
+        for ( Object item2 : items2 ) {
+            if ( ! list1.remove( item2 ) ) {
+                return false;
+            }
+        }
+        return list1.isEmpty();
     }
 
     /**
@@ -107,7 +138,12 @@ public class ArrayTableSorter {
             int icol = colModel.getColumn( iViewcol ).getModelIndex();
             if ( icol > -1 ) {
                 if ( iSortcol_ == icol ) {
-                    setSorting( icol, ! descending_ );
+                    if ( descending_ ) {
+                        setSorting( -1, false );
+                    }
+                    else {
+                        setSorting( icol, true );
+                    }
                 }
                 else {
                     setSorting( icol, false );
