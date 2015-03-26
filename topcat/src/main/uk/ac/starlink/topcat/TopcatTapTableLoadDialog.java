@@ -25,6 +25,7 @@ import uk.ac.starlink.vo.AbstractAdqlExample;
 import uk.ac.starlink.vo.AdqlExample;
 import uk.ac.starlink.vo.AdqlSyntax;
 import uk.ac.starlink.vo.AdqlValidator;
+import uk.ac.starlink.vo.TapMetaPolicy;
 import uk.ac.starlink.vo.TapQuery;
 import uk.ac.starlink.vo.TapQueryPanel;
 import uk.ac.starlink.vo.TapTableLoadDialog;
@@ -54,6 +55,8 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
             new ArrayList<JMenu>( Arrays.asList( super.getMenus() ) );
         JMenu tapMenu = new JMenu( "TAP" );
         tapMenu.setMnemonic( KeyEvent.VK_T );
+        menuList.add( 0, tapMenu );
+        setMenus( menuList.toArray( new JMenu[ 0 ] ) );
 
         /* Add reload action. */
         tapMenu.add( getReloadAction() );
@@ -61,25 +64,43 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
         /* Add sub-menu for job deletion. */
         JMenu delMenu = new JMenu( "Delete Jobs" );
         ButtonGroup delButtGroup = new ButtonGroup();
-        DeletionPolicy[] delPolicies = DeletionPolicy.values();
-        for ( int i = 0; i < delPolicies.length; i++ ) {
-            final DeletionPolicy policy = delPolicies[ i ];
-            Action act = new AbstractAction( policy.name_ ) {
+        for ( DeletionPolicy p : DeletionPolicy.values() ) {
+            final DeletionPolicy delPolicy = p;
+            Action act = new AbstractAction( delPolicy.name_ ) {
                 public void actionPerformed( ActionEvent evt ) {
-                    deletionPolicy_ = policy;
+                    deletionPolicy_ = delPolicy;
                 }
             };
-            act.putValue( Action.SHORT_DESCRIPTION, policy.description_ );
+            act.putValue( Action.SHORT_DESCRIPTION, delPolicy.description_ );
             JRadioButtonMenuItem menuItem = new JRadioButtonMenuItem( act );
             delButtGroup.add( menuItem );
             delMenu.add( menuItem );
-            if ( policy == DeletionPolicy.DEFAULT ) { // default
+            if ( delPolicy == DeletionPolicy.DEFAULT ) { // default
                 menuItem.doClick();
             }
         }
         tapMenu.add( delMenu );
-        menuList.add( 0, tapMenu );
-        setMenus( menuList.toArray( new JMenu[ 0 ] ) );
+
+        /* Add sub-menu for TAP metadata acquisition policy. */
+        JMenu metaMenu = new JMenu( "Metadata Acquisition" );
+        ButtonGroup metaButtGroup = new ButtonGroup();
+        for ( TapMetaPolicy p : TapMetaPolicy.getStandardInstances() ) {
+            final TapMetaPolicy metaPolicy = p;
+            Action act = new AbstractAction( metaPolicy.getName() ) {
+                public void actionPerformed( ActionEvent evt ) {
+                    setMetaPolicy( metaPolicy );
+                }
+            };
+            act.putValue( Action.SHORT_DESCRIPTION,
+                          metaPolicy.getDescription() );
+            JRadioButtonMenuItem menuItem = new JRadioButtonMenuItem( act );
+            metaButtGroup.add( menuItem );
+            metaMenu.add( menuItem );
+            if ( metaPolicy == TapMetaPolicy.getDefaultInstance() ) {
+                menuItem.doClick();
+            }
+        }
+        tapMenu.add( metaMenu );
 
         return comp;
     }
