@@ -200,6 +200,7 @@ public class StyleKeys {
     private static final BarStyle.Form[] BARFORMS = new BarStyle.Form[] {
         BarStyle.FORM_OPEN,
         BarStyle.FORM_FILLED,
+        BarStyle.FORM_SEMIFILLED,
         BarStyle.FORM_TOP,
         BarStyle.FORM_SPIKE,
     };
@@ -213,7 +214,7 @@ public class StyleKeys {
                 "<p>How histogram bars are represented.",
                 "</p>",
             } )
-        , BarStyle.Form.class, BARFORMS ) {
+        , BarStyle.Form.class, BARFORMS, BarStyle.FORM_SEMIFILLED ) {
             public String getXmlDescription( BarStyle.Form barForm ) {
                 return null;
             }

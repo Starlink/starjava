@@ -93,7 +93,7 @@ public class HistogramPlotter
                 "or the numeric entry field to fix the bin width.",
                 "</p>",
             } )
-        , BINWIDTH_KEY, 20, true, false );
+        , BINWIDTH_KEY, 30, true, false );
 
     /** Config key for bar line thickness. */
     public static final ConfigKey<Integer> THICK_KEY =
@@ -220,7 +220,8 @@ public class HistogramPlotter
             final boolean cumul = style.cumulative_;
             final Normalisation norm = style.norm_;
             Color color = style.color_;
-            final boolean isOpaque = color.getAlpha() == 255;
+            final boolean isOpaque = color.getAlpha() == 255
+                                 && style.barForm_.isOpaque();
             LayerOpt layerOpt = new LayerOpt( color, isOpaque );
             return new AbstractPlotLayer( this, histoDataGeom_, dataSpec,
                                           style, layerOpt ) {
