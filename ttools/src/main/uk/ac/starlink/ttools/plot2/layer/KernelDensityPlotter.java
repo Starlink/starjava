@@ -10,7 +10,6 @@ import java.util.Arrays;
 import java.util.List;
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
-import uk.ac.starlink.ttools.plot.BarStyle;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot.Style;
 import uk.ac.starlink.ttools.plot2.Axis;
@@ -44,20 +43,6 @@ public class KernelDensityPlotter
     public static final ReportKey<double[]> BINS_KEY =
         new ReportKey<double[]>( new ReportMeta( "bins", "Bins" ),
                                  double[].class, false );
-
-    /** Config key for line/fill toggle. */
-    public static final ConfigKey<Boolean> FILL_KEY =
-        new BooleanConfigKey(
-            new ConfigMeta( "fill", "Fill" )
-           .setShortDescription( "Fill bar area with solid colour?" )
-           .setXmlDescription( new String[] {
-                "<p>If true, the bars of the histogram will be plotted",
-                "as a solid colour, so that the whole area under the curve",
-                "is filled in.",
-                "If false, only the top outline of the area will be drawn.",
-                "</p>"
-            } )
-        , false );
 
     /** Config key for line thickness (only effective if fill==false). */
     public static final ConfigKey<Integer> THICK_KEY =
@@ -108,7 +93,7 @@ public class KernelDensityPlotter
         list.add( KERNEL_KEY );
         list.add( StyleKeys.CUMULATIVE );
         list.add( StyleKeys.NORMALISE );
-        list.add( FILL_KEY );
+        list.add( StyleKeys.FILL );
         list.add( THICK_KEY );
         return list.toArray( new ConfigKey[ 0 ] );
     }
@@ -119,23 +104,23 @@ public class KernelDensityPlotter
         float[] rgba = baseColor.getRGBComponents( new float[ 4 ] );
         rgba[ 3 ] *= alpha;
         Color color = new Color( rgba[ 0 ], rgba[ 1 ], rgba[ 2 ], rgba[ 3 ] );
-        boolean isFill = config.get( FILL_KEY );
         Kernel1dShape kernelShape = config.get( KERNEL_KEY );
         BinSizer sizer = config.get( SMOOTHSIZER_KEY );
         boolean isCumulative = config.get( StyleKeys.CUMULATIVE );
         Normalisation norm = config.get( StyleKeys.NORMALISE );
-        Stroke stroke =
-            isFill ? null
-                   : new BasicStroke( config.get( THICK_KEY ),
-                                      BasicStroke.CAP_ROUND,
-                                      BasicStroke.JOIN_ROUND );
-        return new KDenseStyle( color, stroke, kernelShape, sizer,
+        FillMode fill = config.get( StyleKeys.FILL );
+        Stroke stroke = fill.hasLine()
+                      ? new BasicStroke( config.get( THICK_KEY ),
+                                         BasicStroke.CAP_ROUND,
+                                         BasicStroke.JOIN_ROUND )
+                      : null;
+        return new KDenseStyle( color, fill, stroke, kernelShape, sizer,
                                 isCumulative, norm );
     }
 
     protected LayerOpt getLayerOpt( KDenseStyle style ) {
         Color color = style.color_;
-        boolean isOpaque = color.getAlpha() == 255;
+        boolean isOpaque = color.getAlpha() == 255 && style.fill_.isOpaque();
         return new LayerOpt( color, isOpaque );
     }
 
@@ -148,9 +133,14 @@ public class KernelDensityPlotter
 
     protected void paintBins( PlaneSurface surface, BinArray binArray,
                               KDenseStyle style, Graphics2D g ) {
+
         /* Store graphics context state. */
         Color color0 = g.getColor();
-        g.setColor( style.color_ );
+        float[] rgba = style.color_.getComponents( null );
+        float cr = rgba[ 0 ];
+        float cg = rgba[ 1 ];
+        float cb = rgba[ 2 ];
+        float calpha = rgba[ 3 ];
 
         /* Get the data values for each pixel position. */
         Axis xAxis = surface.getAxes()[ 0 ];
@@ -201,7 +191,8 @@ public class KernelDensityPlotter
         boolean squareLines = kernel.isSquare() || kernel.getExtent() <= 1;
 
         /* Either plot a rectangle (1-pixel wide bar) for each count. */
-        if ( style.stroke_ == null ) {
+        float fillAlpha = style.fill_.getFillAlpha();
+        if ( fillAlpha > 0 ) {
             final int nVertex;
             final int[] pxs;
             final int[] pys;
@@ -227,11 +218,13 @@ public class KernelDensityPlotter
             pys[ 0 ] = gy0;
             pxs[ nVertex - 1 ] = xs[ np - 1 ] + 1;
             pys[ nVertex - 1 ] = gy0;
+            g.setColor( new Color( cr, cg, cb, calpha * fillAlpha ) );
             g.fillPolygon( pxs, pys, nVertex );
         }
 
         /* Or plot a wiggly line along the top of the bars. */
-        else {
+        float lineAlpha = style.fill_.getLineAlpha();
+        if ( lineAlpha > 0 ) {
             final int nVertex;
             final int[] pxs;
             final int[] pys;
@@ -251,6 +244,7 @@ public class KernelDensityPlotter
                 pxs = xs;
                 pys = ys;
             }
+            g.setColor( new Color( cr, cg, cb, calpha * lineAlpha ) );
             Stroke stroke0 = g.getStroke();
             g.setStroke( style.stroke_ );
             g.drawPolyline( pxs, pys, nVertex );
@@ -366,35 +360,35 @@ public class KernelDensityPlotter
      */
     public static class KDenseStyle implements Style {
         private final Color color_;
+        private final FillMode fill_;
         private final Stroke stroke_;
         private final Kernel1dShape kernelShape_;
         private final BinSizer sizer_;
         private final boolean isCumulative_;
         private final Normalisation norm_;
-        private final Icon icon_;
+        private static final int[] ICON_DATA = { 4, 6, 8, 9, 9, 7, 5, 3, };
 
         /**
          * Constructor.
          *
          * @param  color  plot colour
+         * @param  fill   fill mode
          * @param  stroke  line stroke, null for filled area
          * @param  kernelShape  smoothing kernel shape
          * @param  sizer   bin sizer
          * @param  isCumulative  are bins painted cumulatively
          * @param  norm   normalisation mode
          */
-        public KDenseStyle( Color color, Stroke stroke,
+        public KDenseStyle( Color color, FillMode fill, Stroke stroke,
                             Kernel1dShape kernelShape, BinSizer sizer,
                             boolean isCumulative, Normalisation norm ) {
             color_ = color;
+            fill_ = fill;
             stroke_ = stroke;
             kernelShape_ = kernelShape;
             sizer_ = sizer;
             isCumulative_ = isCumulative;
             norm_ = norm;
-            BarStyle.Form bf =
-                stroke == null ? BarStyle.FORM_FILLED : BarStyle.FORM_OPEN;
-            icon_ = new BarStyle( color, bf, BarStyle.PLACE_OVER );
         }
 
         /**
@@ -416,13 +410,14 @@ public class KernelDensityPlotter
         }
 
         public Icon getLegendIcon() {
-            return icon_;
+            return fill_.createIcon( ICON_DATA, color_, stroke_, 2 );
         }
 
         @Override
         public int hashCode() {
             int code = 33421;
             code = 23 * code + color_.hashCode();
+            code = 23 * code + fill_.hashCode();
             code = 23 * code + PlotUtil.hashCode( stroke_ );
             code = 23 * code + kernelShape_.hashCode();
             code = 23 * code + sizer_.hashCode();
@@ -436,6 +431,7 @@ public class KernelDensityPlotter
             if ( o instanceof KDenseStyle ) {
                 KDenseStyle other = (KDenseStyle) o;
                 return this.color_.equals( other.color_ )
+                    && this.fill_.equals( other.fill_ )
                     && PlotUtil.equals( this.stroke_, other.stroke_ )
                     && this.kernelShape_.equals( other.kernelShape_ )
                     && this.sizer_.equals( other.sizer_ )
