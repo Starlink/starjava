@@ -25,6 +25,7 @@ import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Scaling;
 import uk.ac.starlink.ttools.plot2.Subrange;
 import uk.ac.starlink.ttools.plot2.geom.PlaneSurfaceFactory;
+import uk.ac.starlink.ttools.plot2.layer.FillMode;
 import uk.ac.starlink.ttools.plot2.layer.LevelMode;
 import uk.ac.starlink.ttools.plot2.layer.Normalisation;
 import uk.ac.starlink.ttools.plot2.layer.XYShape;
@@ -228,6 +229,41 @@ public class StyleKeys {
             }
         }.setOptionUsage()
          .addOptionsXml();
+
+    private static final FillMode[] FILLMODES = new FillMode[] {
+        FillMode.SOLID, FillMode.LINE, FillMode.SEMI,
+    };
+    private static final int[] FILLMODE_ICON_DATA = new int[] {
+        1, 2, 3, 3, 4, 5, 6, 7, 8, 9, 9, 7, 8, 7, 5, 5,
+        6, 7, 8, 9, 11, 11, 10, 11, 12, 11, 9, 7, 5, 4, 2, 1, 1, 0,
+    };
+
+    /** Config key for KDE fill mode. */
+    public static final ConfigKey<FillMode> FILL =
+        new OptionConfigKey<FillMode>(
+            new ConfigMeta( "fill", "Fill" )
+           .setShortDescription( "Fill mode" )
+           .setXmlDescription( new String[] {
+                "<p>How the density function is represented.",
+                "</p>",
+            } )
+            , FillMode.class, FILLMODES, FillMode.SEMI
+         ) {
+            public String getXmlDescription( FillMode fillMode ) {
+                return fillMode.getDescription();
+            }
+            public Specifier<FillMode> createSpecifier() {
+                JComboBox fillSelector = new RenderingComboBox( FILLMODES ) {
+                    protected Icon getRendererIcon( Object fillmode ) {
+                        return ((FillMode) fillmode)
+                              .createIcon( FILLMODE_ICON_DATA, Color.BLACK,
+                                           new BasicStroke(), 2 );
+                    }
+                };
+                return new ComboBoxSpecifier<FillMode>( fillSelector );
+            }
+         }.setOptionUsage()
+          .addOptionsXml();
 
     /** Config key for cumulative histogram flag. */
     public static final ConfigKey<Boolean> CUMULATIVE =
