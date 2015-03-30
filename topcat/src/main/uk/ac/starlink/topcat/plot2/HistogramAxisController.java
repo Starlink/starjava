@@ -26,9 +26,9 @@ import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.geom.PlaneAspect;
 import uk.ac.starlink.ttools.plot2.geom.PlaneNavigator;
 import uk.ac.starlink.ttools.plot2.geom.PlaneSurfaceFactory;
+import uk.ac.starlink.ttools.plot2.layer.AbstractKernelDensityPlotter;
 import uk.ac.starlink.ttools.plot2.layer.BinSizer;
 import uk.ac.starlink.ttools.plot2.layer.HistogramPlotter;
-import uk.ac.starlink.ttools.plot2.layer.KernelDensityPlotter;
 import uk.ac.starlink.ttools.plot2.layer.Normalisation;
 import uk.ac.starlink.ttools.plot2.layer.Pixel1dPlotter;
 
@@ -296,10 +296,11 @@ public class HistogramAxisController
                 cumul1 = hstyle.isCumulative();
                 norm1 = hstyle.getNormalisation();
             }
-            else if ( style instanceof KernelDensityPlotter.KDenseStyle ) {
+            else if ( style instanceof
+                      AbstractKernelDensityPlotter.KDenseStyle ) {
                 layerHasBars = true;
-                KernelDensityPlotter.KDenseStyle dstyle =
-                    (KernelDensityPlotter.KDenseStyle) style;
+                AbstractKernelDensityPlotter.KDenseStyle dstyle =
+                    (AbstractKernelDensityPlotter.KDenseStyle) style;
                 cumul1 = dstyle.isCumulative();
                 norm1 = dstyle.getNormalisation();
             }

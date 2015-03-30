@@ -41,12 +41,13 @@ import uk.ac.starlink.ttools.plot2.geom.PlaneDataGeom;
 import uk.ac.starlink.ttools.plot2.geom.PlanePlotType;
 import uk.ac.starlink.ttools.plot2.geom.PlaneSurface;
 import uk.ac.starlink.ttools.plot2.geom.PlaneSurfaceFactory;
+import uk.ac.starlink.ttools.plot2.layer.AbstractKernelDensityPlotter;
 import uk.ac.starlink.ttools.plot2.layer.BinBag;
 import uk.ac.starlink.ttools.plot2.layer.DensogramPlotter;
+import uk.ac.starlink.ttools.plot2.layer.FixedKernelDensityPlotter;
 import uk.ac.starlink.ttools.plot2.layer.FunctionPlotter;
 import uk.ac.starlink.ttools.plot2.layer.HistogramPlotter;
 import uk.ac.starlink.ttools.plot2.layer.Normalisation;
-import uk.ac.starlink.ttools.plot2.layer.KernelDensityPlotter;
 import uk.ac.starlink.ttools.plot2.paper.PaperTypeSelector;
 
 /**
@@ -401,8 +402,9 @@ public class HistogramPlotWindow
             ReportMap report = reports[ il ];
             if ( report != null ) {
                 Plotter plotter = layer.getPlotter();
-                if ( plotter instanceof KernelDensityPlotter ) {
-                    double[] bins = report.get( KernelDensityPlotter.BINS_KEY );
+                if ( plotter instanceof AbstractKernelDensityPlotter ) {
+                    double[] bins =
+                        report.get( AbstractKernelDensityPlotter.BINS_KEY );
                     for ( double bin : bins ) {
                         yRange.submit( bin );
                     }
@@ -433,7 +435,7 @@ public class HistogramPlotWindow
         public Plotter[] getPlotters() {
             return new Plotter[] {
                 new HistogramPlotter( PlaneDataGeom.X_COORD, true ),
-                new KernelDensityPlotter( PlaneDataGeom.X_COORD, true ),
+                new FixedKernelDensityPlotter( PlaneDataGeom.X_COORD, true ),
                 new DensogramPlotter( PlaneDataGeom.X_COORD, true ),
                 FunctionPlotter.PLANE,
             };
