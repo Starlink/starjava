@@ -203,6 +203,7 @@ public class StyleKeys {
         BarStyle.FORM_FILLED,
         BarStyle.FORM_SEMIFILLED,
         BarStyle.FORM_TOP,
+        BarStyle.FORM_SEMITOP,
         BarStyle.FORM_SPIKE,
     };
 
@@ -213,6 +214,9 @@ public class StyleKeys {
            .setShortDescription( "Histogram bar shape" )
            .setXmlDescription( new String[] {
                 "<p>How histogram bars are represented.",
+                "Note that options using transparent colours",
+                "may not render very faithfully",
+                "to some vector formats like PDF and EPS.",
                 "</p>",
             } )
         , BarStyle.Form.class, BARFORMS, BarStyle.FORM_SEMIFILLED ) {

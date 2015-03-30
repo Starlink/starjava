@@ -22,6 +22,8 @@ public class BarStyle extends DefaultStyle implements Icon {
 
     private static final int ICON_HEIGHT = 12;
     private static final int ICON_WIDTH = 8;
+    private static final float BODY_FADE = 0.25f;
+    private static final float LINE_FADE = 0.50f;
 
     /** Bar form using open rectangles. */
     public static final Form FORM_OPEN = new Form( "Open", true ) {
@@ -82,13 +84,9 @@ public class BarStyle extends DefaultStyle implements Icon {
                                                          false ) {
         public void drawBar( Graphics g, int x, int y, int width, int height ) {
             Graphics2D g2 = (Graphics2D) g;
-
             Color color0 = g2.getColor();
-            float[] rgba = color0.getRGBComponents( null );
-            g2.setColor( new Color( rgba[ 0 ], rgba[ 1 ],
-                                    rgba[ 2 ], rgba[ 3 ] * 0.25f ) );
+            g2.setColor( fade( color0, BODY_FADE ) );
             g2.fillRect( x, y, width, height + 1 );
-
             int thickness = ( g2.getStroke() instanceof BasicStroke )
                           ? (int) ((BasicStroke) g2.getStroke()).getLineWidth()
                           : 1;
@@ -98,11 +96,27 @@ public class BarStyle extends DefaultStyle implements Icon {
             int y1 = y;
             int[] xp = new int[] { x0, x0, x1, x1, };
             int[] yp = new int[] { y0, y1, y1, y0, };
-            g2.setColor( new Color( rgba[ 0 ], rgba[ 1 ],
-                                    rgba[ 2 ], rgba[ 3 ] * 0.50f ) );
+            g2.setColor( fade( color0, LINE_FADE ) );
             g2.drawPolyline( xp, yp, 4 );
-
             g2.setColor( color0 );
+        }
+    };
+
+    /** Bar form with steps and a transparent inside. */
+    public static final Form FORM_SEMITOP = new Form( "Semi Steps", false ) {
+        public void drawBar( Graphics g, int x, int y, int width, int height ) {
+            Color color0 = g.getColor();
+            g.setColor( fade( color0, BODY_FADE ) );
+            g.fillRect( x, y, width, height + 1 );
+            g.setColor( fade( color0, 0.50f ) );
+            g.drawLine( x, y, x + width, y );
+            g.setColor( color0 );
+        }
+        public void drawEdge( Graphics g, int x, int y1, int y2 ) {
+            Color color0 = g.getColor();
+            g.setColor( fade( color0, LINE_FADE ) );
+            g.drawLine( x, y1, x, y2 );
+            g.setColor( color0 );
         }
     };
 
@@ -233,6 +247,18 @@ public class BarStyle extends DefaultStyle implements Icon {
         drawEdge( g, x0, y0, y1, iseq, nseq );
         drawBar( g, x0, x1, y0, y1, iseq, nseq );
         drawEdge( g, x1, y0, y1, iseq, nseq );
+    }
+
+    /**
+     * Scales the alpha component of a given colour.
+     *
+     * @param  color  basic colour
+     * @param   alpha  scaling to apply to alpha
+     * @return  faded colour
+     */
+    private static Color fade( Color color, float alpha ) {
+        float[] rgba = color.getComponents( null );
+        return new Color( rgba[ 0 ], rgba[ 1 ], rgba[ 2 ], rgba[ 3 ] * alpha );
     }
 
     /**

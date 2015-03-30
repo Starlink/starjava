@@ -120,6 +120,8 @@ public class BarStyleFactory extends StyleFactory {
                                        BarStyle.PLACE_OVER ), "tops" );
         param.addOption( new BarShape( BarStyle.FORM_SEMIFILLED,
                                        BarStyle.PLACE_ADJACENT ), "semi" );
+        param.addOption( new BarShape( BarStyle.FORM_SEMITOP,
+                                       BarStyle.PLACE_OVER ), "semitops" );
         param.addOption( new BarShape( BarStyle.FORM_SPIKE,
                                        BarStyle.PLACE_ADJACENT ), "spikes" );
         param.addOption( new BarShape( BarStyle.FORM_FILLED,
