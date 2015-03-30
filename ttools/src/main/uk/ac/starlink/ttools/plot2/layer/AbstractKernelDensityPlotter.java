@@ -18,6 +18,7 @@ import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.ReportKey;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.ReportMeta;
+import uk.ac.starlink.ttools.plot2.config.ConfigException;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
@@ -81,7 +82,8 @@ public abstract class AbstractKernelDensityPlotter
      * @param   config   config map with kernel config keys in it
      * @see   #getKernelConfigKeys
      */
-    protected abstract KernelFigure createKernelFigure( ConfigMap config );
+    protected abstract KernelFigure createKernelFigure( ConfigMap config )
+            throws ConfigException;
 
     public ConfigKey[] getStyleKeys() {
         List<ConfigKey> list = new ArrayList<ConfigKey>();
@@ -96,7 +98,7 @@ public abstract class AbstractKernelDensityPlotter
         return list.toArray( new ConfigKey[ 0 ] );
     }
 
-    public KDenseStyle createStyle( ConfigMap config ) {
+    public KDenseStyle createStyle( ConfigMap config ) throws ConfigException {
         Color baseColor = config.get( StyleKeys.COLOR );
         double alpha = 1 - config.get( StyleKeys.TRANSPARENCY );
         float[] rgba = baseColor.getRGBComponents( new float[ 4 ] );
@@ -412,7 +414,7 @@ public abstract class AbstractKernelDensityPlotter
         /**
          * Constructs a smoothing kernel suitable for this style.
          *
-         * @param   axis on which samples occur
+         * @param   xAxis  axis on which samples occur
          * @param   xLog   true for logarithmic x axis, false for linear
          * @return  kernel
          */
@@ -461,7 +463,7 @@ public abstract class AbstractKernelDensityPlotter
          * Creates a kernel1d smoothing function for use on a given axis.
          *
          * @param  shape  kernel shape
-         * @param   axis on which samples occur
+         * @param   xAxis  axis on which samples occur
          * @param   xLog   true for logarithmic x axis, false for linear
          * @return  kernel
          */

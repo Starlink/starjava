@@ -75,20 +75,7 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
                 "This is the characteristic width of the kernel function",
                 "to be convolved with the density to produce the visible plot.",
                 "</p>",
-                "<p>If the supplied value is a positive number",
-                "it is interpreted as a fixed width in the data coordinates",
-                "of the X axis",
-                "(if the X axis is logarithmic, the value is a fixed factor).",
-                "If it is a negative number, then it will be interpreted",
-                "as the approximate number of smooothing widths that fit",
-                "in the width of the visible plot",
-                "(i.e. plot width / smoothing width).",
-                "If the value is zero, no smoothing is applied.",
-                "</p>",
-                "<p>When setting this value graphically,",
-                "you can use either the slider to adjust the bin count",
-                "or the numeric entry field to fix the bin width.",
-                "</p>",
+                BinSizer.getConfigKeyDescription(),
             } )
         , SMOOTHWIDTH_KEY, 100, false, true );
 
@@ -471,14 +458,29 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
     public static Kernel1d createKernel( Kernel1dShape kernelShape,
                                          BinSizer sizer, Axis xAxis,
                                          boolean xLog ) {
+        return kernelShape
+              .createFixedWidthKernel( getPixelWidth( sizer, xAxis, xLog ) );
+    }
+
+    /**
+     * Calculates the width in pixel coordinates represented by a
+     * bin sizer applied to a given axis.
+     *
+     * @param   sizer   determines width in data coordinates
+     * @param   xAxis   axis on which samples occur
+     * @param   xLog   true for logarithmic x axis, false for linear
+     * @return   width in pixel data coordinates represented by sizer,
+     *           never negative
+     */
+    public static double getPixelWidth( BinSizer sizer, Axis xAxis,
+                                        boolean xLog ) {
         double[] dLimits = xAxis.getDataLimits();
         int[] gLimits = xAxis.getGraphicsLimits();
         double dWidth = sizer.getWidth( xLog, dLimits[ 0 ], dLimits[ 1 ] );
         double gx0 = gLimits[ 0 ];
         double gx1 = xAxis.dataToGraphics( xLog ? dLimits[ 0 ] * dWidth
                                                 : dLimits[ 0 ] + dWidth );
-        double gWidth = Math.max( 0, gx1 - gx0 );
-        return kernelShape.createFixedWidthKernel( gWidth );
+        return Math.max( 0, gx1 - gx0 );
     }
 
     /**

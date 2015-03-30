@@ -5,6 +5,7 @@ import javax.swing.JComponent;
 import javax.swing.JTextField;
 import uk.ac.starlink.ttools.plot.Rounder;
 import uk.ac.starlink.ttools.plot2.Equality;
+import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.ReportKey;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.config.ConfigException;
@@ -79,6 +80,31 @@ public abstract class BinSizer {
                                   boolean allowZero ) {
         return new BinSizerConfigKey( meta, widthReportKey, dfltNbin,
                                       rounding, allowZero );
+    }
+
+    /**
+     * Returns an XML string describing in general terms how to operate
+     * the BinSizer config key.
+     *
+     * @return  XML &lt;p&gt; element(s)
+     */
+    public static String getConfigKeyDescription() {
+        return PlotUtil.concatLines( new String[] {
+            "<p>If the supplied value is a positive number",
+            "it is interpreted as a fixed width in the data coordinates",
+            "of the X axis",
+            "(if the X axis is logarithmic, the value is a fixed factor).",
+            "If it is a negative number, then it will be interpreted",
+            "as the approximate number of smooothing widths that fit",
+            "in the width of the visible plot",
+            "(i.e. plot width / smoothing width).",
+            "If the value is zero, no smoothing is applied.",
+            "</p>",
+            "<p>When setting this value graphically,",
+            "you can use either the slider to adjust the bin count",
+            "or the numeric entry field to fix the bin width.",
+            "</p>",
+        } );
     }
 
     /**
@@ -277,8 +303,9 @@ public abstract class BinSizer {
             rounding_ = rounding;
             allowZero_ = allowZero;
             maxCount_ = maxCount;
+            double reset = dfltNbin == 0 ? maxCount : dfltNbin;
             sliderSpecifier_ =
-                new SliderSpecifier( 2, maxCount, true, dfltNbin, true, true );
+                new SliderSpecifier( 2, maxCount, true, reset, true, true );
         }
 
         protected JComponent createComponent() {

@@ -41,7 +41,7 @@ public class FixedKernelDensityPlotter extends AbstractKernelDensityPlotter {
         return PlotUtil.concatLines( new String[] {
             "<p>Plots a Discrete Kernel Density Estimate",
             "giving a smoothed frequency of data values along the",
-            "horizontal axis.",
+            "horizontal axis, using a fixed-width smoothing kernel.",
             "This is a generalisation of a histogram in which",
             "the bins are always 1 pixel wide,",
             "and a smoothing kernel is applied to each bin.",
