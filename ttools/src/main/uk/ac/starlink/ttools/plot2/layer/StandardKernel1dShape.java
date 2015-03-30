@@ -185,15 +185,21 @@ public abstract class StandardKernel1dShape implements Kernel1dShape {
         }
     }
 
-    public Kernel1d createKnnKernel( double k, int maxExtent ) {
-        if ( k < 0 ) {
-            throw new IllegalArgumentException( "negative nearest-neighbours" );
+    public Kernel1d createKnnKernel( double k, int minWidth, int maxWidth ) {
+        if ( ! ( k >= 0 ) ) {
+            throw new IllegalArgumentException( "negative knn" );
         }
-        else if ( k == 0 ) {
-            return DELTA;
+        else if ( minWidth < 0 ) {
+            throw new IllegalArgumentException( "negative minimum width" );
+        }
+        else if ( minWidth > maxWidth ) {
+            throw new IllegalArgumentException( "min/max wrong way round" );
+        }
+        else if ( k == 0 || minWidth == maxWidth ) {
+            return createFixedWidthKernel( minWidth );
         }
         else {
-            return new AsymmetricKnnKernel( this, k, maxExtent );
+            return new AsymmetricKnnKernel( this, k, minWidth, maxWidth );
         }
     }
 
@@ -341,25 +347,31 @@ public abstract class StandardKernel1dShape implements Kernel1dShape {
 
         private final StandardKernel1dShape kshape_;
         private final double k_;
-        private final int maxExtent_;
+        private final int minWidth_;
+        private final int maxWidth_;
         private final double[][] weightArrays_;
+        private final int maxExtent_;
 
         /**
          * Constructor.
          *
          * @param  kshape   kernel shape
          * @param  k   number of nearest neighbours within function width
-         * @param  maxExtent   upper limit for function width
+         * @param  minWidth    lower limit for function width
+         * @param  maxWidth   upper limit for function width
          */
         AsymmetricKnnKernel( StandardKernel1dShape kshape, double k,
-                             int maxExtent ) {
+                             int minWidth, int maxWidth ) {
             kshape_ = kshape;
             k_ = k;
-            maxExtent_ = maxExtent;
-            weightArrays_ = new double[ maxExtent + 1 ][];
-            for ( int iw = 0; iw <= maxExtent; iw++ ) {
-                weightArrays_[ iw ] = getNormalisedWeightArray( kshape, iw );
+            minWidth_ = minWidth;
+            maxWidth_ = maxWidth;
+            weightArrays_ = new double[ maxWidth_ - minWidth_ + 1 ][];
+            for ( int iw = minWidth_; iw <= maxWidth_; iw++ ) {
+                weightArrays_[ iw - minWidth_ ] =
+                    getNormalisedWeightArray( kshape, iw );
             }
+            maxExtent_ = kshape.createFixedWidthKernel( maxWidth ).getExtent();
         }
 
         public int getExtent() {
@@ -375,11 +387,15 @@ public abstract class StandardKernel1dShape implements Kernel1dShape {
             double[] out = new double[ ns ];
             for ( int is = 0; is < ns; is++ ) {
                 int pWidth =
-                    knnWidth( in, is, true, Math.min( maxExtent_, ns - is ) );
+                    Math.max( minWidth_,
+                              knnWidth( in, is, true,
+                                        Math.min( maxWidth_, ns - is ) ) );
                 int mWidth =
-                    knnWidth( in, is, false, Math.min( maxExtent_, is ) );
-                double[] pWeights = weightArrays_[ pWidth ];
-                double[] mWeights = weightArrays_[ mWidth ];
+                    Math.max( minWidth_,
+                              knnWidth( in, is, false,
+                                        Math.min( maxWidth_, is ) ) );
+                double[] pWeights = weightArrays_[ pWidth - minWidth_ ];
+                double[] mWeights = weightArrays_[ mWidth - minWidth_ ];
                 double oval =
                     0.5 * ( pWeights[ 0 ] + mWeights[ 0 ] ) * in[ is ];
                 int pnw = Math.min( pWeights.length, ns - is );
@@ -400,7 +416,8 @@ public abstract class StandardKernel1dShape implements Kernel1dShape {
             int code = 4254352;
             code = 23 * code + kshape_.hashCode();
             code = 23 * code + Float.floatToIntBits( (float) k_ );
-            code = 23 * code + maxExtent_;
+            code = 23 * code + minWidth_;
+            code = 23 * code + maxWidth_;
             return code;
         }
 
@@ -410,7 +427,8 @@ public abstract class StandardKernel1dShape implements Kernel1dShape {
                 AsymmetricKnnKernel other = (AsymmetricKnnKernel) o;
                 return this.kshape_.equals( other.kshape_ )
                     && this.k_ == other.k_
-                    && this.maxExtent_ == other.maxExtent_;
+                    && this.minWidth_ == other.minWidth_
+                    && this.maxWidth_ == other.maxWidth_;
             }
             else {
                 return false;

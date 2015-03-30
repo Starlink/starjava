@@ -39,13 +39,21 @@ public interface Kernel1dShape {
 
     /**
      * Creates an adaptive kernel that uses a K-nearest-neighbours algorithm
-     * to determine local smoothing width.
+     * to determine local smoothing width, so that the width of the kernel
+     * is determined by the distance (number of 1-pixel bins) within which
+     * the given number <code>k</code> of samples is found.
+     *
+     * <p>Minimum and maximum smoothing widths are also supplied as bounds
+     * on the smoothing width for the case that the samples are very
+     * dense or very spread out (the latter case covers the edge of the
+     * data region as well).
+     * If <code>minWidth==maxWidth</code>, the result is a fixed-width kernel.
      *
      * @param  k  number of nearest neighbours included in the distance 
      *            that characterises the smoothing
-     * @param  maxExtent   the maximum distance over which smoothing will
-     *                     take place (only if k is never reached)
+     * @param  minWidth   minimum smoothing width
+     * @param  maxWidth   maximum smoothing width
      * @return  new kernel
      */
-    Kernel1d createKnnKernel( double k, int maxExtent );
+    Kernel1d createKnnKernel( double k, int minWidth, int maxWidth );
 }
