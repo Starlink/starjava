@@ -175,7 +175,7 @@ public abstract class StandardKernel1dShape implements Kernel1dShape {
             }
             double[] levels = new double[ nlevel ];
             double xscale = 1.0 / width;
-            assert nlevel * xscale >= normExtent;
+            assert nlevel * xscale / normExtent >= 0.99999999;
             for ( int i = 0; i < nlevel; i++ ) {
                 double x = i * xscale;
                 assert x >= 0 && x <= normExtent;
