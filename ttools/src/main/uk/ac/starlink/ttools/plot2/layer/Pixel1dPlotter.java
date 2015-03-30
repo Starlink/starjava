@@ -477,7 +477,7 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
         double gx0 = gLimits[ 0 ];
         double gx1 = xAxis.dataToGraphics( xLog ? dLimits[ 0 ] * dWidth
                                                 : dLimits[ 0 ] + dWidth );
-        double gWidth = gx1 - gx0;
+        double gWidth = Math.max( 0, gx1 - gx0 );
         return kernelShape.createFixedWidthKernel( gWidth );
     }
 

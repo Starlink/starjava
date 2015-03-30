@@ -9,21 +9,17 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import javax.swing.Icon;
-import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot.Style;
 import uk.ac.starlink.ttools.plot2.Axis;
+import uk.ac.starlink.ttools.plot2.Equality;
 import uk.ac.starlink.ttools.plot2.LayerOpt;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.ReportKey;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.ReportMeta;
-import uk.ac.starlink.ttools.plot2.config.BooleanConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
-import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
-import uk.ac.starlink.ttools.plot2.config.IntegerConfigKey;
-import uk.ac.starlink.ttools.plot2.config.Specifier;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.DataSpec;
 import uk.ac.starlink.ttools.plot2.data.DataStore;
@@ -31,13 +27,19 @@ import uk.ac.starlink.ttools.plot2.data.FloatingCoord;
 import uk.ac.starlink.ttools.plot2.geom.PlaneSurface;
 
 /**
- * Plotter that works like a histogram with pixel-sized bins.
+ * Abstract superclass for a plotter that plots something that looks like
+ * a kernel density estimate.  In fact, for reasons of efficiency and
+ * implementation, it's a histogram with pixel-sized bins, but it
+ * looks pretty much the same.
+ *
+ * <p>Concrete subclasses have to arrange for the details of exactly
+ * how kernels are instantiated from a given kernel shape.
  *
  * @author   Mark Taylor
  * @since    17 Feb 2015
  */
-public class KernelDensityPlotter
-        extends Pixel1dPlotter<KernelDensityPlotter.KDenseStyle> {
+public abstract class AbstractKernelDensityPlotter
+        extends Pixel1dPlotter<AbstractKernelDensityPlotter.KDenseStyle> {
 
     /** Report key for plotted bin height in data coordinates. */
     public static final ReportKey<double[]> BINS_KEY =
@@ -55,41 +57,37 @@ public class KernelDensityPlotter
      *
      * @param   xCoord  X axis coordinate
      * @param   hasWeight   true to permit histogram weighting
+     * @param   name  plotter name
+     * @param   icon  plotter icon
      */
-    public KernelDensityPlotter( FloatingCoord xCoord, boolean hasWeight ) {
-        super( xCoord, hasWeight, "KDE", ResourceIcon.PLOT_KDE );
+    protected AbstractKernelDensityPlotter( FloatingCoord xCoord,
+                                            boolean hasWeight,
+                                            String name, Icon icon ) {
+        super( xCoord, hasWeight, name, icon );
     }
 
-    public String getPlotterDescription() {
-        return PlotUtil.concatLines( new String[] {
-            "<p>Plots a Discrete Kernel Density Estimate",
-            "giving a smoothed frequency of data values along the",
-            "horizontal axis.",
-            "This is a generalisation of a histogram in which",
-            "the bins are always 1 pixel wide,",
-            "and a smoothing kernel is applied to each bin.",
-            "The width and shape of the kernel may be varied.",
-            "</p>",
-            "<p>This is suitable for cases where",
-            "the division into discrete bins",
-            "done by a normal histogram is unnecessary or troublesome.",
-            "</p>",
-            "<p>Note this is not a true Kernel Density Estimate,",
-            "since, for performance reasons,",
-            "the smoothing is applied to the (pixel-width) bins",
-            "rather than to each data sample.",
-            "The deviation from a true KDE caused by this quantisation",
-            "will be at the pixel level,",
-            "hence in most cases not visually apparent.",
-            "</p>",
-        } );
-    }
+    /**
+     * Returns a list of keys that specify how the smoothing kernel
+     * will be configured.
+     *
+     * @return   list of implementation-specific kernel config keys
+     */
+    protected abstract ConfigKey[] getKernelConfigKeys();
+
+    /**
+     * Constructs an object for plot-time kernel construction based on
+     * a particular config map.
+     *
+     * @param   config   config map with kernel config keys in it
+     * @see   #getKernelConfigKeys
+     */
+    protected abstract KernelFigure createKernelFigure( ConfigMap config );
 
     public ConfigKey[] getStyleKeys() {
         List<ConfigKey> list = new ArrayList<ConfigKey>();
         list.add( StyleKeys.COLOR );
         list.add( StyleKeys.TRANSPARENCY );
-        list.add( SMOOTHSIZER_KEY );
+        list.addAll( Arrays.asList( getKernelConfigKeys() ) );
         list.add( KERNEL_KEY );
         list.add( StyleKeys.CUMULATIVE );
         list.add( StyleKeys.NORMALISE );
@@ -105,16 +103,16 @@ public class KernelDensityPlotter
         rgba[ 3 ] *= alpha;
         Color color = new Color( rgba[ 0 ], rgba[ 1 ], rgba[ 2 ], rgba[ 3 ] );
         Kernel1dShape kernelShape = config.get( KERNEL_KEY );
-        BinSizer sizer = config.get( SMOOTHSIZER_KEY );
         boolean isCumulative = config.get( StyleKeys.CUMULATIVE );
         Normalisation norm = config.get( StyleKeys.NORMALISE );
         FillMode fill = config.get( StyleKeys.FILL );
+        KernelFigure kernelFigure = createKernelFigure( config );
         Stroke stroke = fill.hasLine()
                       ? new BasicStroke( config.get( THICK_KEY ),
                                          BasicStroke.CAP_ROUND,
                                          BasicStroke.JOIN_ROUND )
                       : null;
-        return new KDenseStyle( color, fill, stroke, kernelShape, sizer,
+        return new KDenseStyle( color, fill, stroke, kernelShape, kernelFigure,
                                 isCumulative, norm );
     }
 
@@ -126,8 +124,7 @@ public class KernelDensityPlotter
 
     protected int getPixelPadding( KDenseStyle style, PlaneSurface surf ) {
         Kernel1d kernel =
-            createKernel( style.kernelShape_, style.sizer_,
-                          surf.getAxes()[ 0 ], surf.getLogFlags()[ 0 ] );
+            style.createKernel( surf.getAxes()[ 0 ], surf.getLogFlags()[ 0 ] );
         return getEffectiveExtent( kernel );
     }
 
@@ -145,11 +142,10 @@ public class KernelDensityPlotter
         /* Get the data values for each pixel position. */
         Axis xAxis = surface.getAxes()[ 0 ];
         boolean xLog = surface.getLogFlags()[ 0 ];
-        Kernel1d kernel = createKernel( style.kernelShape_, style.sizer_,
-                                        xAxis, xLog );
+        Kernel1d kernel = style.createKernel( xAxis, xLog );
         double[] bins = getDataBins( binArray, xAxis, kernel,
                                      style.norm_, style.isCumulative_ );
-    
+
         /* Work out the Y axis base of the bars in graphics coordinates. */
         Axis yAxis = surface.getAxes()[ 1 ];
         boolean yLog = surface.getLogFlags()[ 1 ];
@@ -167,7 +163,7 @@ public class KernelDensityPlotter
         int yClipMin = clip.y - 64;
         int yClipMax = clip.y + clip.height + 64;
         gy0 = (int) clip( gy0, yClipMin, yClipMax );
-                            
+
         /* Work out the range of bin indices that need to be painted. */
         int ixlo = binArray.getBinIndex( clip.x );
         int ixhi = binArray.getBinIndex( clip.x + clip.width );
@@ -288,8 +284,7 @@ public class KernelDensityPlotter
         int gxhi = GUESS_PLOT_WIDTH;
         boolean xflip = false;
         Axis xAxis = Axis.createAxis( gxlo, gxhi, dxlo, dxhi, xlog, xflip );
-        Kernel1d kernel =
-            createKernel( style.kernelShape_, style.sizer_, xAxis, xlog );
+        Kernel1d kernel = style.createKernel( xAxis, xlog );
         int xpad = getEffectiveExtent( kernel );
         BinArray binArray = readBins( xAxis, xpad, dataSpec, dataStore );
         double[] bins = getDataBins( binArray, xAxis, kernel,
@@ -306,9 +301,7 @@ public class KernelDensityPlotter
                                           boolean xLog ) {
         BinArray binArray = plan.binArray_;
         Axis xAxis = plan.xAxis_;
-        BinSizer sizer = style.sizer_;
-        Kernel1d kernel =
-            createKernel( style.kernelShape_, sizer, xAxis, xLog );
+        Kernel1d kernel = style.createKernel( xAxis, xLog );
         double[] dataBins = getDataBins( binArray, xAxis, kernel,
                                          style.norm_, style.isCumulative_ );
         double[] dlimits = xAxis.getDataLimits();
@@ -317,18 +310,20 @@ public class KernelDensityPlotter
         int glo = (int) Math.round( xAxis.dataToGraphics( dlo ) );
         int ghi = (int) Math.round( xAxis.dataToGraphics( dhi ) );
         if ( glo > ghi ) {
-            int gt = glo;              
+            int gt = glo;
             glo = ghi;
             ghi = gt;
         }
         int ixlo = binArray.getBinIndex( glo );
-        int nx = ghi - glo;                       
+        int nx = ghi - glo;
         double[] clipBins = new double[ nx ];
         System.arraycopy( dataBins, ixlo, clipBins, 0, nx );
-        double dSmoothWidth = sizer.getWidth( xLog, dlo, dhi );
         ReportMap report = new ReportMap();
         report.put( BINS_KEY, clipBins );
-        report.put( SMOOTHWIDTH_KEY, dSmoothWidth );
+        ReportMap kReport = style.kernelFigure_.getReportMap( xLog, dlo, dhi );
+        if ( kReport != null ) {
+            report.putAll( kReport );
+        }
         return report;
     }
 
@@ -363,7 +358,7 @@ public class KernelDensityPlotter
         private final FillMode fill_;
         private final Stroke stroke_;
         private final Kernel1dShape kernelShape_;
-        private final BinSizer sizer_;
+        private final KernelFigure kernelFigure_;
         private final boolean isCumulative_;
         private final Normalisation norm_;
         private static final int[] ICON_DATA = { 4, 6, 8, 9, 9, 7, 5, 3, };
@@ -375,18 +370,19 @@ public class KernelDensityPlotter
          * @param  fill   fill mode
          * @param  stroke  line stroke, null for filled area
          * @param  kernelShape  smoothing kernel shape
-         * @param  sizer   bin sizer
+         * @param  kernelFigure  kernel configuration
          * @param  isCumulative  are bins painted cumulatively
          * @param  norm   normalisation mode
          */
         public KDenseStyle( Color color, FillMode fill, Stroke stroke,
-                            Kernel1dShape kernelShape, BinSizer sizer,
+                            Kernel1dShape kernelShape,
+                            KernelFigure kernelFigure,
                             boolean isCumulative, Normalisation norm ) {
             color_ = color;
             fill_ = fill;
             stroke_ = stroke;
             kernelShape_ = kernelShape;
-            sizer_ = sizer;
+            kernelFigure_ = kernelFigure;
             isCumulative_ = isCumulative;
             norm_ = norm;
         }
@@ -413,6 +409,17 @@ public class KernelDensityPlotter
             return fill_.createIcon( ICON_DATA, color_, stroke_, 2 );
         }
 
+        /**
+         * Constructs a smoothing kernel suitable for this style.
+         *
+         * @param   axis on which samples occur
+         * @param   xLog   true for logarithmic x axis, false for linear
+         * @return  kernel
+         */
+        public Kernel1d createKernel( Axis xAxis, boolean xLog ) {
+            return kernelFigure_.createKernel( kernelShape_, xAxis, xLog );
+        }
+
         @Override
         public int hashCode() {
             int code = 33421;
@@ -420,7 +427,7 @@ public class KernelDensityPlotter
             code = 23 * code + fill_.hashCode();
             code = 23 * code + PlotUtil.hashCode( stroke_ );
             code = 23 * code + kernelShape_.hashCode();
-            code = 23 * code + sizer_.hashCode();
+            code = 23 * code + kernelFigure_.hashCode();
             code = 23 * code + ( isCumulative_ ? 11 : 13 );
             code = 23 * code + PlotUtil.hashCode( norm_ );
             return code;
@@ -434,7 +441,7 @@ public class KernelDensityPlotter
                     && this.fill_.equals( other.fill_ )
                     && PlotUtil.equals( this.stroke_, other.stroke_ )
                     && this.kernelShape_.equals( other.kernelShape_ )
-                    && this.sizer_.equals( other.sizer_ )
+                    && this.kernelFigure_.equals( other.kernelFigure_ )
                     && this.isCumulative_ == other.isCumulative_
                     && PlotUtil.equals( this.norm_, other.norm_ );
             }
@@ -442,5 +449,32 @@ public class KernelDensityPlotter
                 return false;
             }
         }
+    }
+
+    /**
+     * Encapsulates the details of smoothing kernel construction.
+     */
+    @Equality
+    public interface KernelFigure {
+
+        /**
+         * Creates a kernel1d smoothing function for use on a given axis.
+         *
+         * @param  shape  kernel shape
+         * @param   axis on which samples occur
+         * @param   xLog   true for logarithmic x axis, false for linear
+         * @return  kernel
+         */
+        Kernel1d createKernel( Kernel1dShape shape, Axis xAxis, boolean xLog );
+
+        /**
+         * Returns report items specific to the way this kernel has operated.
+         *
+         * @param   xLog   true for logarithmic x axis, false for linear
+         * @param   dlo   lower data bound of axis
+         * @param   dhi   upper data bound of axis
+         * @return   report map, may be null
+         */
+        public ReportMap getReportMap( boolean xLog, double dlo, double dhi );
     }
 }
