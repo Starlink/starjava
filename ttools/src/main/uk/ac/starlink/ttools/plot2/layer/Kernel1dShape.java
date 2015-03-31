@@ -43,6 +43,10 @@ public interface Kernel1dShape {
      * is determined by the distance (number of 1-pixel bins) within which
      * the given number <code>k</code> of samples is found.
      *
+     * <p>The nearest neighbour search may be symmetric or asymmetric.
+     * In the asymmetric case, the kernel width is determined separately
+     * for the positive and negative directions along the axis.
+     *
      * <p>Minimum and maximum smoothing widths are also supplied as bounds
      * on the smoothing width for the case that the samples are very
      * dense or very spread out (the latter case covers the edge of the
@@ -51,9 +55,12 @@ public interface Kernel1dShape {
      *
      * @param  k  number of nearest neighbours included in the distance 
      *            that characterises the smoothing
+     * @param  isSymmetric  true for bidirectional KNN search,
+     *                      false for unidirectional
      * @param  minWidth   minimum smoothing width
      * @param  maxWidth   maximum smoothing width
      * @return  new kernel
      */
-    Kernel1d createKnnKernel( double k, int minWidth, int maxWidth );
+    Kernel1d createKnnKernel( double k, boolean isSymmetric,
+                              int minWidth, int maxWidth );
 }

@@ -18,7 +18,8 @@ public class KernelTest extends TestCase {
             /* Hard to know what checks to do here, since the sum over bins
              * is no longer constant.  At least check you can create them. */
             for ( int k = 0; k < 5; k++ ) {
-                kshape.createKnnKernel( k, 2, 10 );
+                kshape.createKnnKernel( k, false, 2, 10 );
+                kshape.createKnnKernel( k, true, 1, 18 );
             }
         }
     }

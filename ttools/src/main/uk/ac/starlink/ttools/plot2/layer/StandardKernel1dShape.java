@@ -185,7 +185,8 @@ public abstract class StandardKernel1dShape implements Kernel1dShape {
         }
     }
 
-    public Kernel1d createKnnKernel( double k, int minWidth, int maxWidth ) {
+    public Kernel1d createKnnKernel( double k, boolean isSymmetric,
+                                     int minWidth, int maxWidth ) {
         if ( ! ( k >= 0 ) ) {
             throw new IllegalArgumentException( "negative knn" );
         }
@@ -199,7 +200,7 @@ public abstract class StandardKernel1dShape implements Kernel1dShape {
             return createFixedWidthKernel( minWidth );
         }
         else {
-            return new AsymmetricKnnKernel( this, k, minWidth, maxWidth );
+            return new KnnKernel( this, k, isSymmetric, minWidth, maxWidth );
         }
     }
 
@@ -343,10 +344,11 @@ public abstract class StandardKernel1dShape implements Kernel1dShape {
     /**
      * K-Nearest-Neighbours adaptive kernel implementation.
      */
-    private static class AsymmetricKnnKernel implements Kernel1d {
+    private static class KnnKernel implements Kernel1d {
 
         private final StandardKernel1dShape kshape_;
         private final double k_;
+        private final boolean isSymmetric_;
         private final int minWidth_;
         private final int maxWidth_;
         private final double[][] weightArrays_;
@@ -357,13 +359,15 @@ public abstract class StandardKernel1dShape implements Kernel1dShape {
          *
          * @param  kshape   kernel shape
          * @param  k   number of nearest neighbours within function width
+         * @param  isSymmetric  true for bidirectional KNN, false for unidir
          * @param  minWidth    lower limit for function width
          * @param  maxWidth   upper limit for function width
          */
-        AsymmetricKnnKernel( StandardKernel1dShape kshape, double k,
-                             int minWidth, int maxWidth ) {
+        KnnKernel( StandardKernel1dShape kshape, double k, boolean isSymmetric,
+                   int minWidth, int maxWidth ) {
             kshape_ = kshape;
             k_ = k;
+            isSymmetric_ = isSymmetric;
             minWidth_ = minWidth;
             maxWidth_ = maxWidth;
             weightArrays_ = new double[ maxWidth_ - minWidth_ + 1 ][];
@@ -386,14 +390,21 @@ public abstract class StandardKernel1dShape implements Kernel1dShape {
             int ns = in.length;
             double[] out = new double[ ns ];
             for ( int is = 0; is < ns; is++ ) {
-                int pWidth =
-                    Math.max( minWidth_,
-                              knnWidth( in, is, true,
-                                        Math.min( maxWidth_, ns - is ) ) );
-                int mWidth =
-                    Math.max( minWidth_,
-                              knnWidth( in, is, false,
-                                        Math.min( maxWidth_, is ) ) );
+                final int pw;
+                final int mw;
+                if ( isSymmetric_ ) {
+                    pw = bidirectionalKnnWidth( in, is, maxWidth_ );
+                    mw = pw;
+                }
+                else {
+                    pw = unidirectionalKnnWidth( in, is, true,
+                                                 Math.min( maxWidth_,
+                                                           ns - is ) );
+                    mw = unidirectionalKnnWidth( in, is, false,
+                                                 Math.min( maxWidth_, is ) );
+                }
+                int pWidth = Math.max( minWidth_, pw );
+                int mWidth = Math.max( minWidth_, mw );
                 double[] pWeights = weightArrays_[ pWidth - minWidth_ ];
                 double[] mWeights = weightArrays_[ mWidth - minWidth_ ];
                 double oval =
@@ -416,6 +427,7 @@ public abstract class StandardKernel1dShape implements Kernel1dShape {
             int code = 4254352;
             code = 23 * code + kshape_.hashCode();
             code = 23 * code + Float.floatToIntBits( (float) k_ );
+            code = 23 * code + ( isSymmetric_ ? 11 : 13 );
             code = 23 * code + minWidth_;
             code = 23 * code + maxWidth_;
             return code;
@@ -423,10 +435,11 @@ public abstract class StandardKernel1dShape implements Kernel1dShape {
 
         @Override
         public boolean equals( Object o ) {
-            if ( o instanceof AsymmetricKnnKernel ) {
-                AsymmetricKnnKernel other = (AsymmetricKnnKernel) o;
+            if ( o instanceof KnnKernel ) {
+                KnnKernel other = (KnnKernel) o;
                 return this.kshape_.equals( other.kshape_ )
                     && this.k_ == other.k_
+                    && this.isSymmetric_ == other.isSymmetric_
                     && this.minWidth_ == other.minWidth_
                     && this.maxWidth_ == other.maxWidth_;
             }
@@ -437,7 +450,7 @@ public abstract class StandardKernel1dShape implements Kernel1dShape {
 
         /**
          * Returns the k-nearest-neighbours width for a given point
-         * in a sample grid.
+         * in a sample grid, looking in one direction.
          *
          * @param  data  histogram data
          * @param  js   test index into data array
@@ -447,8 +460,8 @@ public abstract class StandardKernel1dShape implements Kernel1dShape {
          * @return   unidirectional width for k nearest neighbours,
          *           limited to maxWidth
          */
-        private int knnWidth( double[] data, int js, boolean isPositive,
-                              int maxWidth ) {
+        private int unidirectionalKnnWidth( double[] data, int js,
+                                            boolean isPositive, int maxWidth ) {
             int step = isPositive ? +1 : -1;
             double sum = 0;
             for ( int i = 0; i < maxWidth; i++ ) {
@@ -457,6 +470,35 @@ public abstract class StandardKernel1dShape implements Kernel1dShape {
                     return i;
                 }
                 js += step;
+            }
+            return maxWidth;
+        }
+
+        /**
+         * Returns the k-nearest-neighbours width for a given point
+         * in the sample grid, looking in both directions.
+         *
+         * @param  data  histogram data
+         * @param  js   test index into data array
+         * @param  maxWidth  maximum acceptable result (used if k not reached)
+         * @return   bidirectional width for k nearest neighbours,
+         *           limited to maxWidth
+         */
+        private int bidirectionalKnnWidth( double[] data, int js,
+                                           int maxWidth ) {
+            double sum = data[ js ];
+            for ( int i = 1; i < maxWidth; i++ ) {
+                int ks = js - i;
+                int ls = js + i;
+                if ( ks >= 0 ) {
+                    sum += data[ ks ];
+                }
+                if ( ls < data.length ) {
+                    sum += data[ ls ];
+                }
+                if ( sum >= k_ ) {
+                    return i;
+                }
             }
             return maxWidth;
         }
