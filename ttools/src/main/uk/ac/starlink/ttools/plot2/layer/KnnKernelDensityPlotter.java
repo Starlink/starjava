@@ -6,6 +6,7 @@ import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.ReportKey;
 import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.ReportMeta;
+import uk.ac.starlink.ttools.plot2.config.BooleanConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigException;
 import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
@@ -41,12 +42,37 @@ public class KnnKernelDensityPlotter extends AbstractKernelDensityPlotter {
         new DoubleConfigKey(
              new ConfigMeta( "knn", "Knn K" )
             .setShortDescription( "Number of nearest neighbours" )
-            .setXmlDescription( "<p>Number of nearest neighbours.</p>" )
+            .setXmlDescription( new String[] {
+                 "<p>Sets the number of nearest neighbours to count",
+                 "away from a sample point to determine the width",
+                 "of the smoothing kernel at that point.",
+                 "For the symmetric case this is the number of nearest",
+                 "neighbours summed over both directions,",
+                 "and for the asymmetric case it is the number in a single",
+                 "direction.",
+                 "</p>",
+             } )
         , 100 ) {
             public Specifier<Double> createSpecifier() {
                 return new SliderSpecifier( 10, 10000, true, 100, false, true );
             }
         };
+
+    /** Config key for determining symmetry of KNN search. */
+    public static final ConfigKey<Boolean> SYMMETRIC_CKEY =
+        new BooleanConfigKey(
+            new ConfigMeta( "symmetric", "Symmetric" )
+           .setShortDescription( "KNN search in both directions?" )
+           .setXmlDescription( new String[] {
+                "<p>If true, the nearest neigbour search is carried out",
+                "in both directions, and the kernel is symmetric.",
+                "If false, the nearest neigbour search is carried out",
+                "separately in the positive and negative directions,",
+                "and the kernel width is accordingly different in the",
+                "positive and negative directions.",
+                "</p>",
+            } )
+        , true );
 
     /** Config key for minimum smoothing width. */
     public static final ConfigKey<BinSizer> MINSIZER_CKEY =
@@ -99,6 +125,7 @@ public class KnnKernelDensityPlotter extends AbstractKernelDensityPlotter {
     protected ConfigKey[] getKernelConfigKeys() {
         return new ConfigKey[] {
             KNN_CKEY,
+            SYMMETRIC_CKEY,
             MINSIZER_CKEY,
             MAXSIZER_CKEY,
         };
@@ -107,6 +134,7 @@ public class KnnKernelDensityPlotter extends AbstractKernelDensityPlotter {
     protected KernelFigure createKernelFigure( ConfigMap config )
             throws ConfigException {
         double k = config.get( KNN_CKEY );
+        boolean isSymmetric = config.get( SYMMETRIC_CKEY );
         BinSizer minSizer = config.get( MINSIZER_CKEY );
         BinSizer maxSizer = config.get( MAXSIZER_CKEY );
         if ( minSizer.getWidth( false, 0, 1 ) >
@@ -115,7 +143,7 @@ public class KnnKernelDensityPlotter extends AbstractKernelDensityPlotter {
                                        "Smoothing min/max are "
                                      + "the wrong way round" );
         }
-        return new KnnKernelFigure( k, minSizer, maxSizer );
+        return new KnnKernelFigure( k, isSymmetric, minSizer, maxSizer );
     }
 
     /**
@@ -157,6 +185,7 @@ public class KnnKernelDensityPlotter extends AbstractKernelDensityPlotter {
      */
     private static class KnnKernelFigure implements KernelFigure {
         private final double knn_;
+        private final boolean isSymmetric_;
         private final BinSizer minSizer_;
         private final BinSizer maxSizer_;
 
@@ -164,11 +193,15 @@ public class KnnKernelDensityPlotter extends AbstractKernelDensityPlotter {
          * Constructor.
          *
          * @param   knn  nearest neighbour threshold
+         * @param   isSymmetric  true for bidirectional KNN search,
+         *                       false for unidirectional
          * @param   minSizer   determines minimum smoothing width
          * @param   maxSizer   determines maximum smoothing width
          */
-        KnnKernelFigure( double knn, BinSizer minSizer, BinSizer maxSizer ) {
+        KnnKernelFigure( double knn, boolean isSymmetric,
+                         BinSizer minSizer, BinSizer maxSizer ) {
             knn_ = knn;
+            isSymmetric_ = isSymmetric;
             minSizer_ = minSizer;
             maxSizer_ = maxSizer;
         }
@@ -177,7 +210,8 @@ public class KnnKernelDensityPlotter extends AbstractKernelDensityPlotter {
                                       boolean xLog ) {
             int minWidth = (int) getPixelWidth( minSizer_, xAxis, xLog );
             int maxWidth = (int) getPixelWidth( maxSizer_, xAxis, xLog );
-            return shape.createKnnKernel( knn_, minWidth, maxWidth );
+            return shape.createKnnKernel( knn_, isSymmetric_,
+                                          minWidth, maxWidth );
         }
 
         public ReportMap getReportMap( boolean xLog, double dlo, double dhi ) {
@@ -191,6 +225,7 @@ public class KnnKernelDensityPlotter extends AbstractKernelDensityPlotter {
         public int hashCode() {
             int code = 2134233;
             code = 23 * code + Float.floatToIntBits( (float) knn_ );
+            code = 23 * code + ( isSymmetric_ ? 11 : 13 );
             code = 23 * code + minSizer_.hashCode();
             code = 23 * code + maxSizer_.hashCode();
             return code;
@@ -201,6 +236,7 @@ public class KnnKernelDensityPlotter extends AbstractKernelDensityPlotter {
             if ( o instanceof KnnKernelFigure ) {
                 KnnKernelFigure other = (KnnKernelFigure) o;
                 return this.knn_ == other.knn_
+                    && this.isSymmetric_ == other.isSymmetric_
                     && this.minSizer_.equals( other.minSizer_ )
                     && this.maxSizer_.equals( other.maxSizer_ );
             }
