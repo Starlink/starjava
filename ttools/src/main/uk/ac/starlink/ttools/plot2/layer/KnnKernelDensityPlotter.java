@@ -51,6 +51,10 @@ public class KnnKernelDensityPlotter extends AbstractKernelDensityPlotter {
                  "and for the asymmetric case it is the number in a single",
                  "direction.",
                  "</p>",
+                 "<p>The threshold is actually the weighted total of samples;",
+                 "for unweighted (<code>weight=1</code>) bins",
+                 "that is equivalent to the number of samples.",
+                 "</p>",
              } )
         , 100 ) {
             public Specifier<Double> createSpecifier() {

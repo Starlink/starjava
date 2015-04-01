@@ -675,6 +675,10 @@ public class ResourceIcon implements Icon {
         nameMap.put( "ADD_FORM_LINEARFIT", toAddIcon( TTRI.FORM_LINEARFIT ) );
         nameMap.put( "ADD_PLOT_LABEL", toAddIcon( TTRI.PLOT_LABEL ) );
         nameMap.put( "ADD_PLOT_CONTOUR", toAddIcon( TTRI.PLOT_CONTOUR ) );
+        nameMap.put( "ADD_FORM_HISTOGRAM", toAddIcon( TTRI.FORM_HISTOGRAM ) );
+        nameMap.put( "ADD_FORM_KDE", toAddIcon( TTRI.FORM_KDE ) );
+        nameMap.put( "ADD_FORM_KNN", toAddIcon( TTRI.FORM_KNN ) );
+        nameMap.put( "ADD_FORM_DENSOGRAM", toAddIcon( TTRI.FORM_DENSOGRAM ) );
         nameMap.put( "ADD_FORM_MARKS2", toAddIcon( TTRI.FORM_MARKS2 ) );
         nameMap.put( "ADD_FORM_LINK2", toAddIcon( TTRI.FORM_LINK2 ) );
 
