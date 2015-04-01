@@ -92,7 +92,7 @@ public class KnnKernelDensityPlotter extends AbstractKernelDensityPlotter {
      */
     public KnnKernelDensityPlotter( FloatingCoord xCoord,
                                     boolean hasWeight ) {
-        super( xCoord, hasWeight, "Knn", ResourceIcon.PLOT_KNN );
+        super( xCoord, hasWeight, "Knn", ResourceIcon.FORM_KNN );
     }
 
     public String getPlotterDescription() {

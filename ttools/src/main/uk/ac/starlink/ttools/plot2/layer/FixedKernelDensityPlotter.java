@@ -24,7 +24,7 @@ public class FixedKernelDensityPlotter extends AbstractKernelDensityPlotter {
      */
     public FixedKernelDensityPlotter( FloatingCoord xCoord,
                                       boolean hasWeight ) {
-        super( xCoord, hasWeight, "KDE", ResourceIcon.PLOT_KDE );
+        super( xCoord, hasWeight, "KDE", ResourceIcon.FORM_KDE );
     }
 
     protected ConfigKey[] getKernelConfigKeys() {

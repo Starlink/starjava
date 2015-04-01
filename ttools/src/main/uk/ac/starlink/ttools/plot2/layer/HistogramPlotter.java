@@ -159,7 +159,7 @@ public class HistogramPlotter
     }
 
     public Icon getPlotterIcon() {
-        return ResourceIcon.PLOT_HISTO;
+        return ResourceIcon.FORM_HISTOGRAM;
     }
 
     public String getPlotterDescription() {
