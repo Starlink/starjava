@@ -665,7 +665,7 @@ public class ResourceIcon implements Icon {
             uk.ac.starlink.ttools.gui.ResourceIcon.REF;
         nameMap.put( "ADD_PLOT_DATA", toAddIcon( PLOT_DATA ) );
         nameMap.put( "ADD_PLOT_PAIR", toAddIcon( PLOT_PAIR ) );
-        nameMap.put( "ADD_PLOT_HISTO", toAddIcon( TTRI.PLOT_HISTO ) );
+        nameMap.put( "ADD_PLOT_HISTO", toAddIcon( PLOT_HISTO ) );
         nameMap.put( "ADD_FORM_MARK", toAddIcon( TTRI.FORM_MARK ) );
         nameMap.put( "ADD_FORM_SIZE", toAddIcon( TTRI.FORM_SIZE ) );
         nameMap.put( "ADD_FORM_VECTOR", toAddIcon( TTRI.FORM_VECTOR ) );

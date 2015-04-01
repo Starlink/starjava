@@ -80,7 +80,7 @@ public class DensogramPlotter
      * @param   hasWeight   true to permit histogram weighting
      */
     public DensogramPlotter( FloatingCoord xCoord, boolean hasWeight ) {
-        super( xCoord, hasWeight, "Densogram", ResourceIcon.PLOT_DENSOGRAM );
+        super( xCoord, hasWeight, "Densogram", ResourceIcon.FORM_DENSOGRAM );
     }
 
     public String getPlotterDescription() {
