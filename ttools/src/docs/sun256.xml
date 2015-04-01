@@ -10203,6 +10203,28 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         to supply input byte streams from Un*x pipelines.</li>
     <li><code>taplint</code> is now aware of, and performs some checks
         related to, schema-level table metadata declared by TAP services.</li>
+    <li>Add new Kernel Density Estimate plot layer types
+        <ref id="layer-kde">kde</ref>,
+        <ref id="layer-knn">knn</ref> and
+        <ref id="layer-densogram">densogram</ref>
+        for <code>plot2plane</code>.</li>
+    <li>More histogram normalisation options provided.
+        Instead of just <code>true</code>/<code>false</code>,
+        the <code>normalisation</code>
+        parameter of the <ref id="layer-histogram">histogram</ref> layer
+        now has the options
+        <code>none</code>, <code>height</code>,
+        <code>area</code> and <code>maximum</code>.
+        This allows both the area normalisation introduced in v3.0-2,
+        and the height normalisation used in earlier versions
+        which it replaced.</li>
+    <li>More histogram bar style options provided;
+        the <ref id="layer-histogram">histogram</ref> <code>barform</code>
+        parameter now provides the options
+        <code>semi_filled</code> (the new default) and <code>semi_steps</code>.
+        These give outlined partially transparent bars, which make it
+        much easier to see what's going on in multi-dataset histograms.
+        Similar options are also available in the new KDE plots.</li>
     </ul>
     </p></dd>
 
