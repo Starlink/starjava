@@ -7614,7 +7614,9 @@ It has the following options:
 <dt>Shader Quantise</dt>
 <dd><p>Allows the colour map to be quantised.
     By default, the colour map is effectively continuous.
-    If you slide the slider to the right, the map will be split into
+    If you slide the slider to the right,
+    or enter a value in the text field,
+    the map will be split into
     a decreasing number of discrete colours.  This can be used to generate
     a contour-like efect, and may make it easier to trace the boundaries
     of regions of interest by eye.
@@ -8091,7 +8093,10 @@ is plotted.  It has the following fields:
 <dt>Shader Quantise</dt>
 <dd><p>Allows the colour map to be quantised.
     By default, the colour map is effectively continuous.
-    If you slide the slider to the right, the map will be split into
+    If you slide the slider to the right,
+    or enter a value in the text field,
+    the map will be split into
+ the map will be split into
     a decreasing number of discrete colours.  This can be used to generate
     a contour-like efect, and may make it easier to trace the boundaries
     of regions of interest by eye.
@@ -8328,6 +8333,7 @@ the <ref id="form-error">Error</ref> form may be more appropriate.
 <dt>Scale</dt>
 <dd><p>Scales the size of variable-sized markers.
     Adjusting the slider will make all markers larger or smaller.
+    Alternatively you can enter a scale factor in the text field.
     </p></dd>
 <dt>Auto Scale</dt>
 <dd><p>Determines whether the basic size of variable sized markers is
@@ -8402,6 +8408,7 @@ the <ref id="form-error">Error</ref> form may be more appropriate.
 <dt>Scale</dt>
 <dd><p>Scales the size of variable-sized markers.
     Adjusting the slider will make all markers larger or smaller.
+    Alternatively you can enter a scale factor in the text field.
     </p></dd>
 <dt>Auto Scale</dt>
 <dd><p>Determines whether the basic size of variable sized markers is
@@ -8464,7 +8471,8 @@ This scaling can be adjusted or turned off using the
 <dt>Scale</dt>
 <dd><p>Changes the factor by which all vector sizes are scaled.
     If the arrows are too small, slide it right, if they are too big,
-    slide it left.  The scale is logarithmic.
+    slide it left.  The slider scale is logarithmic.
+    Alternatively, enter a fixed value in the text field.
     </p></dd>
 <dt>Auto Scale</dt>
 <dd><p>If selected, this option will determine the default arrow scale size
@@ -8565,7 +8573,8 @@ major and minor radii and an optional rotation angle.
 <dt>Scale</dt>
 <dd><p>Changes the factor by which all ellipse sizes are scaled.
     If the ellipses are too small, slide it right, if they are too big,
-    slide it left.  The scale is logarithmic.
+    slide it left.  The slider scale is logarithmic.
+    Alternatively, enter a fixed value in the text field.
     </p></dd>
 <dt>Auto Scale</dt>
 <dd><p>If selected, this option will determine the default ellipse scale size
@@ -9055,7 +9064,9 @@ user-configurable options.  The options are:
 <dt>Shader Quantise</dt>
 <dd><p>Allows the colour map to be quantised.
     By default, the colour map is effectively continuous.
-    If you slide the slider to the right, the map will be split into
+    If you slide the slider to the right,
+    or enter a value in the text field,
+    the map will be split into
     a decreasing number of discrete colours.  This can be used to generate
     a contour-like efect, and may make it easier to trace the boundaries
     of regions of interest by eye.
@@ -21084,6 +21095,8 @@ introduced since the last version:
         directory (broken in previous version).</li>
     <li>Fix minor ADQL parse failure when using TAP tables
         named without explicit schema prefix by service.</li>
+    <li>Add text entry alternatives for slider controls to configure
+        colour map quantisation and marker/vector/ellipse scaling.</li>
     </ul>
     </p></dd>
 
