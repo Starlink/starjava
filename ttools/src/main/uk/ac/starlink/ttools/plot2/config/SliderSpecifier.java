@@ -16,8 +16,8 @@ import javax.swing.JSlider;
 import javax.swing.JTextField;
 import javax.swing.event.ChangeListener;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
-import uk.ac.starlink.ttools.plot2.ReportMap;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
+import uk.ac.starlink.ttools.plot2.ReportMap;
 
 /**
  * Double value specifier that uses a slider to choose a value in the
@@ -43,6 +43,7 @@ public class SliderSpecifier extends SpecifierPanel<Double> {
     private final JRadioButton txtButton_;
     private static final int MIN = 0;
     private static final int MAX = 10000;
+    private static final boolean DISPLAY_TEXT = false;
 
     /**
      * Constructs a specifier with minimal options.
@@ -76,7 +77,14 @@ public class SliderSpecifier extends SpecifierPanel<Double> {
         flip_ = flip;
         resetVal_ = reset;
         txtOpt_ = txtOpt;
-        slider_ = new JSlider( MIN, MAX );
+        slider_ = DISPLAY_TEXT
+                ? new TextDisplaySlider( MIN, MAX ) {
+                      @Override
+                      public String getDisplayValue() {
+                          return Double.toString( getSliderValue() );
+                      }
+                  }
+                : new JSlider( MIN, MAX );
         resetOpt_ = reset >= lo && reset <= hi;
         Action resetAct = new AbstractAction( null, ResourceIcon.ZERO ) {
             public void actionPerformed( ActionEvent evt ) {
