@@ -305,7 +305,8 @@ public abstract class BinSizer {
             maxCount_ = maxCount;
             double reset = dfltNbin == 0 ? maxCount : dfltNbin;
             sliderSpecifier_ =
-                new SliderSpecifier( 2, maxCount, true, reset, true, true );
+                new SliderSpecifier( 2, maxCount, true, reset, true,
+                                     SliderSpecifier.TextOption.ENTER );
         }
 
         protected JComponent createComponent() {

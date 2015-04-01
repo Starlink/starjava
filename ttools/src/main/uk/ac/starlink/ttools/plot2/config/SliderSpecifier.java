@@ -14,6 +14,7 @@ import javax.swing.JComponent;
 import javax.swing.JRadioButton;
 import javax.swing.JSlider;
 import javax.swing.JTextField;
+import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
@@ -34,7 +35,7 @@ public class SliderSpecifier extends SpecifierPanel<Double> {
     private final boolean log_;
     private final boolean flip_;
     private final double resetVal_;
-    private final boolean txtOpt_;
+    private final TextOption txtOpt_;
     private final boolean resetOpt_;
     private final JSlider slider_;
     private final JButton resetButton_;
@@ -54,7 +55,7 @@ public class SliderSpecifier extends SpecifierPanel<Double> {
      * @param  reset  value reset button resets to, or NaN for no reset
      */
     public SliderSpecifier( double lo, double hi, boolean log, double reset ) {
-        this( lo, hi, log, reset, false, false );
+        this( lo, hi, log, reset, false, TextOption.NONE );
     }
 
     /**
@@ -65,18 +66,19 @@ public class SliderSpecifier extends SpecifierPanel<Double> {
      * @param  log  true for logarithmic slider scale, false for linear
      * @param  reset  value reset button resets to, or NaN for no reset
      * @param  flip  true to make slider values increase right to left
-     * @param  txtOpt  true to include a text entry option
+     * @param  txtOpt  configures whether a text field should appear;
+     *                 null means NONE
      */
     public SliderSpecifier( double lo, double hi, boolean log,
                             final double reset, boolean flip,
-                            boolean txtOpt ) {
+                            TextOption txtOpt ) {
         super( true );
         lo_ = lo;
         hi_ = hi;
         log_ = log;
         flip_ = flip;
         resetVal_ = reset;
-        txtOpt_ = txtOpt;
+        txtOpt_ = txtOpt == null ? TextOption.NONE : txtOpt;
         slider_ = DISPLAY_TEXT
                 ? new TextDisplaySlider( MIN, MAX ) {
                       @Override
@@ -111,7 +113,7 @@ public class SliderSpecifier extends SpecifierPanel<Double> {
 
     protected JComponent createComponent() {
         JComponent line = Box.createHorizontalBox();
-        if ( txtOpt_ ) {
+        if ( txtOpt_.hasTextField_ ) {
             line.add( sliderButton_ );
         }
         line.add( slider_ );
@@ -119,7 +121,7 @@ public class SliderSpecifier extends SpecifierPanel<Double> {
             line.add( Box.createHorizontalStrut( 5 ) );
             line.add( resetButton_ );
         }
-        if ( txtOpt_ ) {
+        if ( txtOpt_.hasTextField_ ) {
             line.add( Box.createHorizontalStrut( 10 ) );
             line.add( txtButton_ );
             line.add( txtField_ );
@@ -133,9 +135,15 @@ public class SliderSpecifier extends SpecifierPanel<Double> {
         };
         txtButton_.addActionListener( radioListener );
         sliderButton_.addActionListener( radioListener );
-        updateInputState();
-        slider_.addChangeListener( getChangeForwarder() );
+        final ChangeListener changeForwarder = getChangeForwarder();
+        slider_.addChangeListener( new ChangeListener() {
+            public void stateChanged( ChangeEvent evt ) {
+                updateInputState();
+                changeForwarder.stateChanged( evt );
+            }
+        } );
         txtField_.addActionListener( actionForwarder );
+        updateInputState();
         return line;
     }
 
@@ -258,6 +266,26 @@ public class SliderSpecifier extends SpecifierPanel<Double> {
     }
 
     /**
+     * Formats a value provided by this specifier for display.
+     * The default implementation does something obvious,
+     * but may be overridden by subclasses.
+     *
+     * @param   value  double value as provided by this specifier
+     * @return   string representation for preseentation to the user
+     */
+    public String valueToString( double value ) {
+        if ( Double.isNaN( value ) ) {
+            return "";
+        }
+        else if ( value == (int) value ) {
+            return Integer.toString( (int) value );
+        }
+        else {
+            return Double.toString( value );
+        }
+    }
+
+    /**
      * Called to ensure that the enabledness of the input components matches
      * the currently selected input component.
      */
@@ -266,6 +294,9 @@ public class SliderSpecifier extends SpecifierPanel<Double> {
         slider_.setEnabled( sliderActive );
         resetButton_.setEnabled( sliderActive );
         txtField_.setEnabled( ! sliderActive );
+        if ( txtOpt_.isEchoValue_ && sliderActive ) {
+            txtField_.setText( valueToString( getSpecifiedValue() ) );
+        }
     }
 
     /**
@@ -296,5 +327,48 @@ public class SliderSpecifier extends SpecifierPanel<Double> {
             s = 1 - s;
         }
         return (int) Math.round( s * ( MAX - MIN ) + MIN );
+    }
+
+    /**
+     * Specifies whether and how a text display field should appear alongside
+     * the slider for user entry.
+     */
+    public enum TextOption {
+
+        /**
+         * No text display field.
+         * Only the slider is shown.
+         */
+        NONE( false, false ),
+
+        /**
+         * Text display option provided without echo.
+         * The user may choose to enter the value as text,
+         * but the specifier will not update the content of the text field.
+         */
+        ENTER( true, false ),
+
+        /**
+         * Text display option provided with echo.
+         * The user may choose to enter the value as text,
+         * and if the slider is active, its value will be reflected in the
+         * content of the text field.
+         */
+        ENTER_ECHO( true, true );
+
+        private final boolean hasTextField_;
+        private final boolean isEchoValue_;
+
+        /**
+         * Constructor.
+         *
+         * @param  hasTextField  whether text entry field is provided
+         * @param  isEchoValue   whether slider state is displayed in text field
+         */
+        TextOption( boolean hasTextField, boolean isEchoValue ) {
+            hasTextField_ = hasTextField;
+            isEchoValue_ = isEchoValue;
+            assert hasTextField_ || ! isEchoValue_;
+        }
     }
 }

@@ -54,7 +54,9 @@ public class KnnKernelDensityPlotter extends AbstractKernelDensityPlotter {
              } )
         , 100 ) {
             public Specifier<Double> createSpecifier() {
-                return new SliderSpecifier( 10, 10000, true, 100, false, true );
+                return new SliderSpecifier( 1, 10000, true, 100, false,
+                                            SliderSpecifier.TextOption
+                                                           .ENTER_ECHO );
             }
         };
 
