@@ -423,8 +423,7 @@ public class StyleKeys {
 
     /** Config key for scaling of markers in data space. */
     public static final ConfigKey<Double> SCALE =
-        DoubleConfigKey
-       .createSliderKey(
+        new DoubleConfigKey(
             new ConfigMeta( SCALE_NAME, "Scale" )
            .setStringUsage( "<factor>" )
            .setShortDescription( "Marker size multiplier" )
@@ -435,12 +434,17 @@ public class StyleKeys {
                 "multiply the visible sizes accordingly.",
                 "</p>",
             } )
-        , 1, 1e-6, 1e6, true );
+        , 1.0 ) {
+            public Specifier<Double> createSpecifier() {
+                return new SliderSpecifier( 1e-4, 1e+4, true, 1.0, false,
+                                            SliderSpecifier.TextOption
+                                                           .ENTER_ECHO );
+            }
+        };
 
     /** Config key for scaling of markers in pixel space. */
     public static final ConfigKey<Double> SCALE_PIX =
-        DoubleConfigKey
-       .createSliderKey(
+        new DoubleConfigKey(
             new ConfigMeta( SCALE_NAME, "Scale" )
            .setStringUsage( "<factor>" )
            .setShortDescription( "Marker size multiplier" )
@@ -450,7 +454,13 @@ public class StyleKeys {
                 "multiply the visible sizes accordingly.",
                 "</p>",
             } )
-        , 1, 1e-2, 1e2, true );
+        , 1.0 ) {
+            public Specifier<Double> createSpecifier() {
+                return new SliderSpecifier( 1e-2, 1e+2, true, 1.0, false,
+                                            SliderSpecifier.TextOption
+                                                           .ENTER_ECHO );
+            }
+        };
 
     /** Config key for autoscale flag for markers in data space. */
     public static final ConfigKey<Boolean> AUTOSCALE =
