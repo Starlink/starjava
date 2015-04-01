@@ -31,9 +31,22 @@ public abstract class DoubleConfigKey extends ConfigKey<Double> {
     }
 
     public String valueToString( Double value ) {
-        return ( value == null || Double.isNaN( value.doubleValue() ) )
-             ? ""
-             : value.toString();
+        if ( value == null ) {
+            return "";
+        }
+        else {
+            double dval = value.doubleValue();
+            if ( Double.isNaN( dval ) ) {
+                return "";
+            }
+            int ival = (int) dval;
+            if ( ival == dval ) {
+                return Integer.toString( ival );
+            }
+            else {
+                return Double.toString( dval );
+            }
+        }
     }
 
     public Double stringToValue( String txt ) throws ConfigException {
