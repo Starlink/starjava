@@ -168,12 +168,18 @@
   <!ENTITY FIG.form_linearfit '&figs;form_linearfit.gif'>
   <!ENTITY FIG.form_label '&figs;form_label.gif'>
   <!ENTITY FIG.form_contour '&figs;form_contour.gif'>
+  <!ENTITY FIG.form_histogram '&figs;form_histogram.gif'>
+  <!ENTITY FIG.form_kde '&figs;form_kde.gif'>
+  <!ENTITY FIG.form_knn '&figs;form_knn.gif'>
+  <!ENTITY FIG.form_densogram '&figs;form_densogram.gif'>
   <!ENTITY FIG.form_marks2 '&figs;form_marks2.gif'>
   <!ENTITY FIG.form_link2 '&figs;form_link2.gif'>
   <!ENTITY FIG.font_tab '&figs;font_tab.gif'>
   <!ENTITY FIG.size_tab '&figs;size_tab.gif'>
   <!ENTITY FIG.title_tab '&figs;title_tab.gif'>
-  <!ENTITY FIG.ConfigControl_histobars '&figs;ConfigControl_histobars.gif'>
+  <!ENTITY FIG.BinsControl_histogram '&figs;BinsControl_histogram.gif'>
+  <!ENTITY FIG.BinsControl_kde '&figs;BinsControl_kde.gif'>
+  <!ENTITY FIG.BinsControl_general '&figs;BinsControl_general.gif'>
   <!ENTITY FIG.PlaneAxisControl_coords '&figs;PlaneAxisControl_coords.gif'>
   <!ENTITY FIG.PlaneAxisControl_navigation
                '&figs;PlaneAxisControl_navigation.gif'>
@@ -245,6 +251,12 @@
   <!ENTITY FORM.label '&IMG.PLOT_LABEL; <ref id="form-label">Text Label</ref>'>
   <!ENTITY FORM.contour '&IMG.PLOT_CONTOUR;
                         <ref id="form-contour">Contour</ref>'>
+  <!ENTITY FORM.histogram '&IMG.FORM_HISTOGRAM;
+                          <ref id="form-histogram">Histogram</ref>'>
+  <!ENTITY FORM.kde '&IMG.FORM_KDE; <ref id="form-kde">KDE</ref>'>
+  <!ENTITY FORM.knn '&IMG.FORM_KNN; <ref id="form-knn">KNN</ref>'>
+  <!ENTITY FORM.densogram '&IMG.FORM_DENSOGRAM;
+                          <ref id="form-densogram">Densogram</ref>'>
   <!ENTITY FORM.marks2 '&IMG.FORM_MARKS2; <ref id="form-marks2">Marks</ref>'>
   <!ENTITY FORM.link2 '&IMG.FORM_LINK2; <ref id="form-link2">Link</ref>'>
   <!ENTITY GESTURE.DRAG1 '&IMG.DRAG1; Left drag'>
@@ -5472,7 +5484,8 @@ functions.  They are grouped as follows:
 
     <dt>&IMG.PLOT2_HISTOGRAM;
         <ref id="HistogramPlotWindow">Histogram Plot</ref></dt>
-    <dd><p>Displays a window for plotting 1D histograms.
+    <dd><p>Displays a window for plotting 1D histograms and
+        kernel density estimates.
         </p></dd>
 
     <dt>&IMG.PLOT2_PLANE; <ref id="PlanePlotWindow">Plane Plot</ref></dt>
@@ -6736,6 +6749,7 @@ More may be introduced in future releases.
     <li>Pair data point links</li>
     <li>Contours</li>
     <li>Variable size markers</li>
+    <li>Kernel density estimates</li>
     </ul>
     </p></dd>
 
@@ -6805,7 +6819,7 @@ the columns, and you're off.
 </p>
 
 <p>Some features from the old-style plots that are <em>not</em>
-currently (v4.1) available in the new-style plots are:
+currently available in the new-style plots are:
 <ul>
 <li>the stacked line plot</li>
 <li>true RGB density maps (though density shading modes will often do as good
@@ -7913,7 +7927,8 @@ but the detail panels are divided into these parts:
 <subhead><title>Histogram Layer Control</title></subhead>
 
 <p>The <label>Histogram</label> layer control (&IMG.PLOT_HISTO;),
-allows you to plot a 1-dimensional histogram.
+allows you to make a 1-dimensional histogram-like plots
+(weighted and unweighted histograms, various kinds of Kernel Density Estimates).
 It is the main control in the
 <ref id="HistogramPlotWindow">Histogram</ref> plot window,
 but is also available  in the <ref id="PlanePlotWindow">Plane</ref>
@@ -7926,8 +7941,8 @@ in the control panel toolbar,
 or the corresponding item in the <label>Layers</label> menu.
 </p>
 
-<p>Each instance of this control in the stack can plot a histogram
-of a particular quantity from a particular table.
+<p>Each instance of this control in the stack can make histogram-like
+plots of a particular quantity from a particular table.
 The value to be histogrammed, and optionally an associated weighting term,
 are defined in the <label>Positions</label> tab using column names
 or expressions.
@@ -7935,7 +7950,8 @@ However, the control can generate multiple layers from these coordinates;
 the <label>Subsets</label> tab controls which subsets are plotted
 and how each one is identified,
 and the <label>Form</label> tab provides many options for what graphics
-will be plotted based on the positions.
+will be plotted based on the sample values specified in the
+Position tab.
 </p>
 
 <p>This control is a Table Data control as described in
@@ -7951,8 +7967,9 @@ are described in more detail below.
 </figure>
 
 <p>In the <label>Position</label> tab you enter the value of the
-<label>X</label> value, the one which is to be binned to generate
-the histogram.  This may be a table column name or an expression.
+<label>X</label> value, the one whose values along the X axis
+will be used to generate the plots.
+This may be a table column name or an expression.
 You may also optionally fill in a column name or expression in
 the <label>Weight</label> field.  This weights the values as they
 are counted; each table row contributes a height value of the 
@@ -7966,44 +7983,48 @@ If Weight is not filled in, a value of 1 is assumed.
 </figure>
 
 <p>The <label>Form</label> tab lets you define how the specified
-data set is plotted.  The <label>Global Style</label> and
+data set is plotted.
+The stack on the left gives a list of forms currently included in the plot,
+and the panel on the right shows the detailed configuration for the
+currently selected form.
+</p>
+
+<p>When first added, the stack contains a single entry,
+<label>Histogram</label>, which plots a simple histogram.
+The colour is by default determined by the setting in the
+<label>Subsets</label> tab.
+This may be all you need, but if you want to use other histogram-like
+plots such as Kernel Density Estimates, you can add new forms to the stack
+by clicking on one of the buttons in the toolbar in the tab.
+You can remove a form with the <label>Remove</label> (&IMG.DELETE;) button
+in the same toolbar.
+You can also activate/deactivate them with the checkbox
+and move them up and down with the drag handle as usual.
+The available forms are currently the
+&FORM.histogram; and some variants on the idea of a Kernel Density Estimate:
+&FORM.kde;, &FORM.knn; and &FORM.densogram;.
+</p>
+
+<p>The <label>Global Style</label> and
 <label>Subset Style</label> sub-panels control shared and per-subset
-configration as described in <ref id="tableDataControl"/>.
-The specific configuration options are:
-<dl>
-<dt>Transparency</dt>
-<dd><p>How transparent the bars are.
-    </p></dd>
-<dt>Bar Form</dt>
-<dd><p>Type of histogram bars: filled, open, steps, spikes etc.
-    </p></dd>
-<dt>Thickness</dt>
-<dd><p>Controls line thickness where applicable.
-    This is only relevant for bar styles that draw a finite thickness
-    line, so has no effect for Filled bars.
-    </p></dd>
-<dt>Dash</dt>
-<dd><p>Controls the dash pattern of the line (solid, dots, dashes etc).
-    This is only relevant for bar styles that draw a finite thickness
-    line, so has no effect for Filled bars.
-    </p></dd>
-</dl>
+configuration specific to the selected form
+as described in <ref id="tableDataControl"/>.
 </p>
 
 <p>Histograms have some additional configuration items,
-as described in the <ref id="ConfigControl_histobars">Bars</ref>
+as described in the
+<ref id="ConfigControl_histobins">Bins</ref> (&IMG.HISTOBARS;)
 fixed control.
 When a histogram layer control is used in the
 <ref id="HistogramPlotWindow">Histogram window</ref>,
 those configuration items are found in the 
-<label>Bars</label> fixed control, where they control the settings
+<label>Bins</label> fixed control, where they control the settings
 for all the histogram layers in the plot.
 However, if you use a histogram layer in a
 <ref id="PlanePlotWindow">Plane</ref> plot,
 those items will appear as additional items in the <label>Form</label> tab
 and can be controlled separately for each histogram.
 </p>
-
 
 </subsubsubsect>
 
@@ -8792,6 +8813,546 @@ so they don't look very beautiful in exported vector output formats
 
 </subsubsubsect>
 
+<subsubsubsect id="form-histogram">
+<subhead><title>Histogram Form</title></subhead>
+
+<figure>
+<caption><px>Histogram form configuration panel</px></caption>
+<figureimage src="&FIG.form_histogram;"/>
+</figure>
+
+<p>The <label>Histogram</label> form (&IMG.FORM_HISTOGRAM;)
+plots a histogram generated by binning samples along the X axis.
+</p>
+
+<p>This form may be used in either the
+<ref id="HistogramPlotWindow">Histogram</ref> or
+<ref id="PlanePlotWindow">Plane</ref> plot windows.
+</p>
+
+<p>These options always appear in the form configuration panel:
+<dl>
+<dt>Colour</dt>
+<dd><p>Selects the basic colour for the dataset.
+    </p></dd>
+<dt>Transparency</dt>
+<dd><p>Adjusts the transparency of the bars or line.
+    For bar styles which are already partially transparent,
+    this fades them further.
+    </p></dd>
+<dt>Bar Form</dt>
+<dd><p>Type of histogram bars: filled, open, steps, spikes etc.
+    </p></dd>
+<dt>Thickness</dt>
+<dd><p>Controls line thickness where applicable.
+    This is only relevant for bar styles that draw a finite thickness
+    line, so has no effect for solid bars.
+    </p></dd>
+<dt>Dash</dt>
+<dd><p>Controls the dash pattern of the line (solid, dots, dashes etc).
+    This is only relevant for bar styles that draw a finite thickness
+    line, so has no effect for solid bars.
+    </p></dd>
+</dl>
+And these options appear in the form configuration panel for the Plane window,
+or the
+<ref id="ConfigControl_histobins">Bins control</ref> (&IMG.HISTOBARS;)
+for the Histogram window:
+<dl>
+<dt>Bin Size</dt>
+<dd><p>A scale for the width of bins that are shown on the screen.
+    There are two ways to specify this.
+    If the left-hand radio button is selected, the adjacent slider will
+    adjust the bin size, which is also affected by the actual width of
+    the plotting window in pixels.  Slide the slider left to get narrower
+    bins or right to get wider ones.
+    If the right-hand radio button is selected, you can enter a numeric
+    value giving the actual width in data units of each bar
+    (for a logarithmic X axis this value is a factor).
+    </p></dd>
+<dt>Bin Phase</dt>
+<dd><p>Controls where the horizontal zero point for binning is set.
+    For instance if your bin size is 1, it controls whether bins
+    boundaries are at 0, 1, 2, ..  or 0.5, 1.5, 2.5, ... etc.
+    If the slider is at either end of the scale, there will be a bin
+    boundary at X=0 (linear X axis) or X=1 (logarithmic X axis).
+    </p></dd>
+<dt>Cumulative</dt>
+<dd><p>If true, the histogram bars plotted are calculated cumulatively; each
+    bin includes the counts from all previous bins.
+    </p></dd>
+<dt>Normalise</dt>
+<dd><p>Defines how, if at all, the bars are normalised.
+    The available options are:
+    <ul>
+    <li><label>none</label>:
+        No normalisation is performed.
+        </li>
+    <li><label>area</label>:
+        The total area of histogram bars is normalised to unity.
+        For cumulative plots, this behaves like <label>height</label>.
+        </li>
+    <li><label>maximum</label>:
+        The height of the tallest histogram bar is normalised to unity.
+        For cumulative plots, this behaves like <label>height</label>.
+        </li>
+    <li><label>height</label>:
+        The total height of histogram bars is normalised to unity.
+        </li>
+    </ul>
+    </p></dd>
+</dl>
+</p>
+
+
+</subsubsubsect>
+
+<subsubsubsect id="form-kde">
+<subhead><title>KDE Form</title></subhead>
+
+<figure>
+<caption><px>KDE form configuration panel</px></caption>
+<figureimage src="&FIG.form_kde;"/>
+</figure>
+
+<p>The <label>KDE</label> form (&IMG.FORM_KDE;)
+plots a discrete Kernel Density Estimate giving a smoothed
+frequency of data values along the horizontal axis,
+using a fixed-width smoothing kernel.
+(for a variable-bandwidth kernel, see <ref id="form-knn">KNN</ref>).
+This is a generalisation of a histogram in which the bins are always
+1 pixel wide, and a smoothing kernel is applied to each bin. The width
+and shape of the kernel may be varied.
+</p>
+
+<p>This is suitable for cases where the division into discrete bins done
+by a normal histogram is unnecessary or troublesome.
+</p>
+
+<p>Note this is not a true Kernel Density Estimate, since, for performance
+reasons, the smoothing is applied to the (pixel-width) bins rather
+than to each data sample. The deviation from a true KDE caused by this
+quantisation will be at the pixel level, hence in most cases not visually
+apparent.
+</p>
+
+<p>This form may be used in either the
+<ref id="HistogramPlotWindow">Histogram</ref> or
+<ref id="PlanePlotWindow">Plane</ref> plot windows.
+</p>
+
+<p>These options always appear in the form configuration panel:
+<dl>
+<dt>Colour</dt>
+<dd><p>Selects the basic colour for the dataset.
+    </p></dd>
+<dt>Transparency</dt>
+<dd><p>Adjusts the transparency of the bars or line.
+    For bar styles which are already partially transparent,
+    this fades them further.
+    </p></dd>
+<dt>Fill</dt>
+<dd><p>Determines how the density function is represented.
+    The options are:
+    <ul>
+    <li><label>solid</label>:
+        area between level and axis is filled with solid colour
+        </li>
+    <li><label>line</label>:
+        level is marked by a wiggly line
+        </li>
+    <li><label>semi</label>:
+        level is marked by a wiggly line, and area below it is filled
+        with a transparent colour
+        </li>
+    </ul>
+    </p></dd>
+<dt>Thickness</dt>
+<dd><p>Controls line thickness where applicable.
+    This is only relevant for bar styles that draw a finite thickness
+    line, so has no effect for <label>solid</label> filling.
+    </p></dd>
+</dl>
+And these options appear in the form configuration panel for the Plane window,
+or the
+<ref id="ConfigControl_histobins">Bins control</ref> (&IMG.HISTOBARS;)
+for the Histogram window:
+<dl>
+<dt>Smoothing</dt>
+<dd><p>Configures the smoothing width for kernel density estimation. This is
+    the characteristic width of the kernel function to be convolved with
+    the density to produce the visible plot.
+    </p>
+    <p>Sliding the slider to the right makes the kernel width larger.
+    The width in data units is shown in the text field on the right
+    (if the X axis is logarithmic, this is a factor).
+    Alternatively you can click the radio button near the text field,
+    and enter the width in data units directly.
+    </p></dd>
+<dt>Kernel</dt>
+<dd><p>The functional form of the smoothing kernel. The functions listed
+    refer to the unscaled shape; all kernels are normalised to give a
+    total area of unity.
+    </p>
+    <p>The available options are:
+    <ul>
+    <li><label>square</label>:
+        Uniform value: f(x)=1, |x|=0..1
+        </li>
+    <li><label>linear</label>:
+        Triangle: f(x)=1-|x|, |x|=0..1
+        </li>
+    <li><label>epanechnikov</label>:
+        Parabola: f(x)=1-x*x, |x|=0..1
+        </li>
+    <li><label>cos</label>:
+        Cosine: f(x)=cos(x*pi/2), |x|=0..1
+        </li>
+    <li><label>cos2</label>:
+        Cosine squared: f(x)=cos^2(x*pi/2), |x|=0..1
+        </li>
+    <li><label>gauss3</label>: Gaussian truncated at 3.0 sigma:
+        f(x)=exp(-x*x/2), |x|=0..3
+        </li>
+    <li><label>gauss6</label>: Gaussian truncated at 6.0 sigma:
+        f(x)=exp(-x*x/2), |x|=0..6
+        </li>
+    </ul>
+    </p></dd>
+<dt>Cumulative</dt>
+<dd><p>If true, the histogram bars plotted are calculated cumulatively; each
+    bin includes the counts from all previous bins.
+    </p></dd>
+<dt>Normalise</dt>
+<dd><p>Defines how, if at all, the bars are normalised.
+    The available options are:
+    <ul>
+    <li><label>none</label>:
+        No normalisation is performed.
+        </li>
+    <li><label>area</label>:
+        The total area of histogram bars is normalised to unity.
+        For cumulative plots, this behaves like <label>height</label>.
+        </li>
+    <li><label>maximum</label>:
+        The height of the tallest histogram bar is normalised to unity.
+        For cumulative plots, this behaves like <label>height</label>.
+        </li>
+    <li><label>height</label>:
+        The total height of histogram bars is normalised to unity.
+        </li>
+    </ul>
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="form-knn">
+<subhead><title>KNN Form</title></subhead>
+
+<figure>
+<caption><px>KNN form configuration panel</px></caption>
+<figureimage src="&FIG.form_knn;"/>
+</figure>
+
+<p>The <label>KNN</label> form (&IMG.FORM_KNN;)
+plots a discrete Kernel Density Estimate giving a smoothed
+frequency of data values along the horizontal axis, using an adaptive
+(K-Nearest-Neighbours) smoothing kernel. This is a generalisation of a
+histogram in which the bins are always 1 pixel wide, and a 
+variable-bandwidth smoothing kernel is applied to each bin
+(for a fixed-bandwidth kernel, see <ref id="form-kde">KDE</ref>).
+</p>
+
+<p>The K-Nearest-Neighbour figure gives the number of points in each
+direction to determine the width of the smoothing kernel for smoothing
+each bin. Upper and lower limits for the kernel width are also supplied;
+if the upper and lower limits are equal, this is equivalent to a
+fixed-width kernel.
+</p>
+
+<p>Note this is not a true Kernel Density Estimate, since, for performance
+reasons, the smoothing is applied to the (pixel-width) bins rather
+than to each data sample. The deviation from a true KDE caused by this
+quantisation will be at the pixel level, hence in most cases not visually
+apparent.
+</p>
+
+<p>This form may be used in either the
+<ref id="HistogramPlotWindow">Histogram</ref> or
+<ref id="PlanePlotWindow">Plane</ref> plot windows.
+</p>
+
+<p>These options always appear in the form configuration panel:
+<dl>
+<dt>Colour</dt>
+<dd><p>Selects the basic colour for the dataset.
+    </p></dd>
+<dt>Transparency</dt>
+<dd><p>Adjusts the transparency of the bars or line.
+    For bar styles which are already partially transparent,
+    this fades them further.
+    </p></dd>
+<dt>Knn K</dt>
+<dd><p>Sets the number of nearest neighbours to count away from a sample
+    point to determine the width of the smoothing kernel at that point.
+    For the symmetric case this is the total of nearest neighbours summed
+    over both directions, and for the asymmetric case it is the number in
+    a single direction.
+    The threshold is actually the weighted total of samples;
+    for unweighted (weight=1) bins that is equivalent to the number of samples.
+    </p></dd>
+<dt>Symmetric</dt>
+<dd><p>If checked, the nearest neigbour search is carried out in both
+    directions, and the kernel is symmetric. If unchecked, the nearest
+    neigbour search is carried out separately in the positive and negative
+    directions, and the kernel width is accordingly different in the
+    positive and negative directions.
+    </p></dd>
+<dt>Min Smoothing</dt>
+<dd><p>Fixes the minimum size of the smoothing kernel. This functions as a
+    lower limit on the distance that is otherwise determined by searching
+    for the K nearest neighbours at each sample point.
+    </p>
+    <p>You can either use the slider, or check the radio button on the right
+    and enter the value in data units directly.
+    </p></dd>
+<dt>Max Smoothing</dt>
+<dd><p>Fixes the maximum size of the smoothing kernel. This functions as an
+    upper limit on the distance that is otherwise determined by searching
+    for the K nearest neighbours at each sample point.
+    </p>
+    <p>You can either use the slider, or check the radio button on the right
+    and enter the value in data units directly.
+    </p></dd>
+<dt>Fill</dt>
+<dd><p>Determines how the density function is represented.
+    The options are:
+    <ul>
+    <li><label>solid</label>:
+        area between level and axis is filled with solid colour
+        </li>
+    <li><label>line</label>:
+        level is marked by a wiggly line
+        </li>
+    <li><label>semi</label>:
+        level is marked by a wiggly line, and area below it is filled
+        with a transparent colour
+        </li>
+    </ul>
+    </p></dd>
+<dt>Thickness</dt>
+<dd><p>Controls line thickness where applicable.
+    This is only relevant for bar styles that draw a finite thickness
+    line, so has no effect for <label>solid</label> filling.
+    </p></dd>
+</dl>
+And these options appear in the form configuration panel for the Plane window,
+or the
+<ref id="ConfigControl_histobins">Bins control</ref> (&IMG.HISTOBARS;)
+for the Histogram window:
+<dl>
+<dt>Kernel</dt>
+<dd><p>The functional form of the smoothing kernel. The functions listed
+    refer to the unscaled shape; all kernels are normalised to give a
+    total area of unity.
+    </p>
+    <p>The available options are:
+    <ul>
+    <li><label>square</label>:
+        Uniform value: f(x)=1, |x|=0..1
+        </li>
+    <li><label>linear</label>:
+        Triangle: f(x)=1-|x|, |x|=0..1
+        </li>
+    <li><label>epanechnikov</label>:
+        Parabola: f(x)=1-x*x, |x|=0..1
+        </li>
+    <li><label>cos</label>:
+        Cosine: f(x)=cos(x*pi/2), |x|=0..1
+        </li>
+    <li><label>cos2</label>:
+        Cosine squared: f(x)=cos^2(x*pi/2), |x|=0..1
+        </li>
+    <li><label>gauss3</label>: Gaussian truncated at 3.0 sigma:
+        f(x)=exp(-x*x/2), |x|=0..3
+        </li>
+    <li><label>gauss6</label>: Gaussian truncated at 6.0 sigma:
+        f(x)=exp(-x*x/2), |x|=0..6
+        </li>
+    </ul>
+    </p></dd>
+<dt>Cumulative</dt>
+<dd><p>If true, the histogram bars plotted are calculated cumulatively; each
+    bin includes the counts from all previous bins.
+    </p></dd>
+<dt>Normalise</dt>
+<dd><p>Defines how, if at all, the bars are normalised.
+    The available options are:
+    <ul>
+    <li><label>none</label>:
+        No normalisation is performed.
+        </li>
+    <li><label>area</label>:
+        The total area of histogram bars is normalised to unity.
+        For cumulative plots, this behaves like <label>height</label>.
+        </li>
+    <li><label>maximum</label>:
+        The height of the tallest histogram bar is normalised to unity.
+        For cumulative plots, this behaves like <label>height</label>.
+        </li>
+    <li><label>height</label>:
+        The total height of histogram bars is normalised to unity.
+        </li>
+    </ul>
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect id="form-densogram">
+<subhead><title>Densogram Form</title></subhead>
+
+<figure>
+<caption><px>Densogram form configuration panel</px></caption>
+<figureimage src="&FIG.form_densogram;"/>
+</figure>
+
+<p>The <label>Densogram</label> form (&IMG.FORM_DENSOGRAM;)
+represents smoothed density of data values along the horizontal axis using
+a colourmap. This is like a Kernel Density Estimate (smoothed histogram
+with bins 1 pixel wide), but instead of representing the data extent
+vertically as bars or a line, values are represented by a fixed-size
+pixel-width column of a colour from a colour map. A smoothing kernel,
+whose width and shape may be varied, is applied to each data point.
+</p>
+
+<p>This is a rather unconventional way to represent density data, and this
+plotting mode is probably not very useful. But hey, nobody's forcing
+you to use it.
+</p>
+
+<p>This form may be used in either the
+<ref id="HistogramPlotWindow">Histogram</ref> or
+<ref id="PlanePlotWindow">Plane</ref> plot windows.
+</p>
+
+<p>These options always appear in the form configuration panel:
+<dl>
+<dt>Colour</dt>
+<dd><p>The base colour for the data set.
+    Only certain shader colour maps respect this value, for others it
+    is ignored.</p></dd>
+<dt>Density Shader</dt>                  
+<dd><p>The colour map for displaying density values.
+    There are two types, relative and absolute.
+    Relative maps have names marked by a star ("*"), and alter the
+    basic dataset colour, for instance by darkening or lightening it,
+    while absolute maps (the rest) ignore the basic dataset colour altogether.
+    For a single-dataset plot, the absolute maps are best, but for
+    multiple subsets it may be less confusing to use a relative one.
+    </p></dd>
+<dt>Shader Clip</dt>
+<dd><p>Select only a part of the colour map selected above.
+    By default the whole colour map is used, but if you want the range
+    of colours in the plot to be formed from only a part of the colour
+    band shown in the <label>Shader</label> control,
+    you can move the handles in from the end of this slider.
+    </p></dd>
+<dt>Shader Flip</dt>
+<dd><p>Whether the density scale should map forwards or backwards
+    into the colour map.
+    </p></dd>
+<dt>Shader Quantise</dt>
+<dd><p>Allows the colour map to be quantised.
+    By default, the colour map is effectively continuous.
+    If you slide the slider to the right,
+    or enter a value in the text field,
+    the map will be split into
+    a decreasing number of discrete colours.  This can be used to generate
+    a contour-like efect, and may make it easier to trace the boundaries
+    of regions of interest by eye.
+    </p></dd>
+<dt>Scaling</dt>
+<dd><p>Determines the function used to map the range of density values
+    onto the colour map.
+    Options are <label>linear</label>,
+                <label>logarithmic</label>,
+                <label>square</label> and
+                <label>square root</label>.
+    </p></dd>
+<dt>Density Subrange</dt>
+<dd><p>Adjusts the density range over which the colour
+    map is applied.  By default the colour map is scaled using limits
+    found from the data density in the plot (the most dense few pixels are
+    ignored), but you can restrict the range using this slider.
+    </p></dd>
+<dt>Size</dt>
+<dd><p>Height of the density bar in pixels.
+    </p></dd>
+<dt>Position</dt>
+<dd><p>Determines where on the plot region the density bar appears. The value
+    should be in the range 0..1; zero corresponds to the bottom of the
+    plot and one to the top.
+    </p></dd>
+</dl>
+And these options appear in the form configuration panel for the Plane window,
+or the
+<ref id="ConfigControl_histobins">Bins control</ref> (&IMG.HISTOBARS;)
+for the Histogram window:
+<dl>
+<dt>Smoothing</dt>
+<dd><p>Configures the smoothing width for kernel density estimation. This is
+    the characteristic width of the kernel function to be convolved with
+    the density to produce the visible plot.
+    </p>
+    <p>Sliding the slider to the right makes the kernel width larger.
+    The width in data units is shown in the text field on the right
+    (if the X axis is logarithmic, this is a factor).
+    Alternatively you can click the radio button near the text field,
+    and enter the width in data units directly.
+    </p></dd>
+<dt>Kernel</dt>
+<dd><p>The functional form of the smoothing kernel. The functions listed
+    refer to the unscaled shape; all kernels are normalised to give a
+    total area of unity.
+    </p>
+    <p>The available options are:
+    <ul>
+    <li><label>square</label>:
+        Uniform value: f(x)=1, |x|=0..1
+        </li>
+    <li><label>linear</label>:
+        Triangle: f(x)=1-|x|, |x|=0..1
+        </li>
+    <li><label>epanechnikov</label>:
+        Parabola: f(x)=1-x*x, |x|=0..1
+        </li>
+    <li><label>cos</label>:
+        Cosine: f(x)=cos(x*pi/2), |x|=0..1
+        </li>
+    <li><label>cos2</label>:
+        Cosine squared: f(x)=cos^2(x*pi/2), |x|=0..1
+        </li>
+    <li><label>gauss3</label>: Gaussian truncated at 3.0 sigma:
+        f(x)=exp(-x*x/2), |x|=0..3
+        </li>
+    <li><label>gauss6</label>: Gaussian truncated at 6.0 sigma:
+        f(x)=exp(-x*x/2), |x|=0..6
+        </li>
+    </ul>
+    </p></dd>
+<dt>Cumulative</dt>
+<dd><p>If true, the histogram bars plotted are calculated cumulatively; each
+    bin includes the counts from all previous bins.
+    </p></dd>
+</dl>
+</p>
+
+</subsubsubsect>
+
 <subsubsubsect id="form-marks2">
 <subhead><title>Pair Marks Form</title></subhead>
 
@@ -9158,10 +9719,12 @@ layers will be completely obscured.
 </figure>
 
 <p>The <label>Histogram Plot</label> (&IMG.PLOT2_HISTOGRAM;)
-plots 1-dimensional histograms.
-In many respects it is like the <ref id="PlanePlotWindow">Plane Plot</ref>,
-but it has an additional fixed control
-<ref id="ConfigControl_histobars">Bars</ref>
+plots 1-dimensional histograms and some variants on the idea of a
+1-dimensional Kernel Density Estimate.
+In many respects it works like the <ref id="PlanePlotWindow">Plane Plot</ref>,
+but it has a restricted set of plot types
+and an additional fixed control
+<ref id="ConfigControl_histobins">Bins</ref>,
 and the scrolling works a bit differently.
 </p>
 
@@ -9186,7 +9749,8 @@ as well as the <label>Plot</label> menu:
 <p>In addition, the histogram window lets you export the binned data as
 a new table, either saving it or loading it directly into TOPCAT's
 table list.
-The following actions are available in the <label>Export</label> menu:
+The following actions are available in the <label>Export</label> menu;
+note they only apply to histograms proper, not to KDEs:
 <dl>
 
 <dt>&IMG.HISTO_SAVE; Save as Table</dt>
@@ -9205,17 +9769,24 @@ The following actions are available in the <label>Export</label> menu:
 </dl>
 </p>
 
+<p>The Histogram Plot offers the following plot controls:
+<ul>
+<li>&CONTROL.histogram;, with these form options:
+    <ul>
+    <li>&FORM.histogram;</li>
+    <li>&FORM.kde;</li>
+    <li>&FORM.knn;</li>
+    <li>&FORM.densogram;</li>
+    </ul>
+    </li>
+<li>&CONTROL.function;</li>
+</ul>
+</p>
+
 <p>The following subsections describe
 <ref id="histogramNavigation">navigation</ref>,
 <ref id="HistogramAxisControl">axis configuration</ref> and
-<ref id="ConfigControl_histobars">bar configuration</ref>.
-</p>
-
-<p>The Histogram Plot offers only the following plot controls:
-<ul>
-<li>&CONTROL.histogram;</li>
-<li>&CONTROL.function;</li>
-</ul>
+<ref id="ConfigControl_histobins">bar configuration</ref>.
 </p>
 
 <subsubsubsect id="histogramNavigation">
@@ -9281,15 +9852,37 @@ the Y=0 line to stay anchored to the bottom of the plot when zooming.
 
 </subsubsubsect>
 
-<subsubsubsect id="ConfigControl_histobars">
-<subhead><title>Bars Control</title></subhead>
+<subsubsubsect id="ConfigControl_histobins">
+<subhead><title>Bins Control</title></subhead>
 
-<p>The <label>Bars</label> control (&IMG.HISTOBARS;)
-is found in the control stack of the Histogram window.
-It configures the common placement and calculation of the bars for
-all the histogram layers displayed.
-It has the following fields:
+<p>The <label>Bins</label> control (&IMG.HISTOBARS;)
+is found in the control stack of the 
+<ref id="HistogramPlotWindow">Histogram</ref> window.
+It configures the common placement and calculation of some options
+for all the histogram-like layers displayed.
+Being able to set these values in common for all displayed layers
+of a similar type can be convenient, but if you need to use different
+parameters for different datasets, you can plot the same layer forms
+in the <ref id="PlanePlotWindow">Plane</ref> window
+(which has no fixed Bins control) instead.
+</p>
+
+<p>There are three tabs:
+<label>Histogram</label>,
+<label>KDE</label> and
+<label>General</label>.
+</p>
+
+<figure>
+<caption><px>Histogram tab of histogram window Bins fixed control</px></caption>
+<figureimage src="&FIG.BinsControl_histogram;"/>
+</figure>
+
+<p>The <label>Histogram</label> tab affects all
+<ref id="form-histogram">Histogram</ref> layers,
+and has the following controls:
 <dl>
+
 <dt>Bin Size</dt>
 <dd><p>A scale for the width of bins that are shown on the screen.
     There are two ways to specify this.
@@ -9301,6 +9894,7 @@ It has the following fields:
     value giving the actual width in data units of each bar
     (for a logarithmic X axis this value is a factor).
     </p></dd>
+
 <dt>Bin Phase</dt>
 <dd><p>Controls where the horizontal zero point for binning is set.
     For instance if your bin size is 1, it controls whether bins
@@ -9308,21 +9902,101 @@ It has the following fields:
     If the slider is at either end of the scale, there will be a bin
     boundary at X=0 (linear X axis) or X=1 (logarithmic X axis).
     </p></dd>
-<dt>Cumulative</dt>
-<dd><p>If true, the bars plotted are calculated cumulatively;
-    each bin includes the counts from all previous bins.
+</dl>
+</p>
+
+<figure>
+<caption><px>KDE tab of histogram window Bins fixed control</px></caption>
+<figureimage src="&FIG.BinsControl_kde;"/>
+</figure>
+
+<p>The <label>KDE</label> (Kernel Density Estimate) tab affects all
+<ref id="form-kde">KDE</ref>,
+<ref id="form-knn">KNN</ref> and
+<ref id="form-densogram">Densogram</ref> layers,
+and has the following controls:
+<dl>
+<dt>Smoothing</dt>
+<dd><p>Configures the smoothing width for kernel density estimation. This is
+    the characteristic width of the kernel function to be convolved with
+    the density to produce the visible plot.
+    </p>
+    <p>Sliding the slider to the right makes the kernel width larger.
+    The width in data units is shown in the text field on the right
+    (if the X axis is logarithmic, this is a factor).
+    Alternatively you can click the radio button near the text field,
+    and enter the width in data units directly.
+    </p>
+    <p>Note this affects KDE and Densogram layers,
+    but <em>not</em> KNN layers, which have their own smoothing controls.
     </p></dd>
-<dt>Normalized</dt>
-<dd><p>If true, the counts in each plotted histogram are normalised to
-    sum to a value of 1.
+<dt>Kernel</dt>
+<dd><p>The functional form of the smoothing kernel. The functions listed
+    refer to the unscaled shape; all kernels are normalised to give a
+    total area of unity.
+    </p>
+    <p>The available options are:
+    <ul>
+    <li><label>square</label>:
+        Uniform value: f(x)=1, |x|=0..1
+        </li>
+    <li><label>linear</label>:
+        Triangle: f(x)=1-|x|, |x|=0..1
+        </li>
+    <li><label>epanechnikov</label>:
+        Parabola: f(x)=1-x*x, |x|=0..1
+        </li>
+    <li><label>cos</label>:
+        Cosine: f(x)=cos(x*pi/2), |x|=0..1
+        </li>
+    <li><label>cos2</label>:
+        Cosine squared: f(x)=cos^2(x*pi/2), |x|=0..1
+        </li>
+    <li><label>gauss3</label>: Gaussian truncated at 3.0 sigma:
+        f(x)=exp(-x*x/2), |x|=0..3
+        </li>
+    <li><label>gauss6</label>: Gaussian truncated at 6.0 sigma:
+        f(x)=exp(-x*x/2), |x|=0..6
+        </li>
+    </ul>
     </p></dd>
 </dl>
 </p>
 
 <figure>
-<caption><px>Bars fixed control in Histogram Window</px></caption>
-<figureimage src="&FIG.ConfigControl_histobars;"/>
+<caption><px>General tab of histogram window Bins fixed control</px></caption>
+<figureimage src="&FIG.BinsControl_general;"/>
 </figure>
+
+<p>The <label>General</label> tab affects all histogram-like layers,
+and has the following controls:
+<dl>
+<dt>Cumulative</dt>
+<dd><p>If true, the histogram bars plotted are calculated cumulatively; each
+    bin includes the counts from all previous bins.
+    </p></dd>
+<dt>Normalise</dt>
+<dd><p>Defines how, if at all, the bars are normalised.
+    The available options are:
+    <ul>
+    <li><label>none</label>:
+        No normalisation is performed.
+        </li>
+    <li><label>area</label>:
+        The total area of histogram bars is normalised to unity.
+        For cumulative plots, this behaves like <label>height</label>.
+        </li>
+    <li><label>maximum</label>:
+        The height of the tallest histogram bar is normalised to unity.
+        For cumulative plots, this behaves like <label>height</label>.
+        </li>
+    <li><label>height</label>:
+        The total height of histogram bars is normalised to unity.
+        </li>
+    </ul>
+    </p></dd>
+</dl>
+</p>
 
 </subsubsubsect>
 
@@ -9342,13 +10016,6 @@ The positional coordinates are <label>X</label> and <label>Y</label>.
 To control the direction and linear/log scaling of the axes,
 see the <label>Coords</label> tab of the
 <ref id="PlaneAxisControl">Axes</ref> control.
-</p>
-
-<p>See the <ref id="StackPlotWindow" plaintextref="yes">Window Overview</ref>
-for features common to all plotting windows.
-The following subsections describe
-<ref id="planeNavigation">navigation</ref> and
-<ref id="PlaneAxisControl">axis configuration</ref>.
 </p>
 
 <p>The Plane Plot offers the following plot controls:
@@ -9374,6 +10041,13 @@ The following subsections describe
 <li>&CONTROL.histogram;</li>
 <li>&CONTROL.function;</li>
 </ul>
+</p>
+
+<p>See the <ref id="StackPlotWindow" plaintextref="yes">Window Overview</ref>
+for features common to all plotting windows.
+The following subsections describe
+<ref id="planeNavigation">navigation</ref> and
+<ref id="PlaneAxisControl">axis configuration</ref>.
 </p>
 
 <subsubsubsect id="planeNavigation">
@@ -9631,13 +10305,6 @@ as the coordinates you are supplying, you can ignore leave these
 values as their default (both Equatorial) and no conversion will be done.
 </p>
 
-<p>See the <ref id="StackPlotWindow" plaintextref="yes">Window Overview</ref>
-for features common to all plotting windows.
-The following subsections describe
-<ref id="skyNavigation">navigation</ref> and
-<ref id="SkyAxisControl">axis configuration</ref>.
-</p>
-
 <p>The sky plot offers the following plot controls:
 <ul>
 <li>&CONTROL.single;, with these form options:
@@ -9656,6 +10323,13 @@ The following subsections describe
     <li>&FORM.link2;</li>
     </ul></li>
 </ul>
+</p>
+
+<p>See the <ref id="StackPlotWindow" plaintextref="yes">Window Overview</ref>
+for features common to all plotting windows.
+The following subsections describe
+<ref id="skyNavigation">navigation</ref> and
+<ref id="SkyAxisControl">axis configuration</ref>.
 </p>
 
 <subsubsubsect id="skyNavigation">
@@ -9901,13 +10575,6 @@ see the <label>Coords</label> tab of the
 <ref id="CubeAxisControl">Axes</ref> control.
 </p>
 
-<p>See the <ref id="StackPlotWindow" plaintextref="yes">Window Overview</ref>
-for features common to all plotting windows.
-The following subsections describe
-<ref id="cubeNavigation">navigation</ref> and
-<ref id="CubeAxisControl">axis configuration</ref>.
-</p>
-
 <p>The cube plot offers the following plot controls:
 <ul>
 <li>&CONTROL.single;, with these form options:
@@ -9935,6 +10602,13 @@ This is because pixels based on density along a line of sight are not
 located at any point on that line, so shaded pixels can't appear
 at the "right" place in the 3-d space.  The same applies to a lesser
 extent with contours.  They work fine with a single dataset though.
+</p>
+
+<p>See the <ref id="StackPlotWindow" plaintextref="yes">Window Overview</ref>
+for features common to all plotting windows.
+The following subsections describe
+<ref id="cubeNavigation">navigation</ref> and
+<ref id="CubeAxisControl">axis configuration</ref>.
 </p>
 
 <subsubsubsect id="cubeNavigation">
@@ -10214,13 +10888,6 @@ In many respects this works like the
 <label>Radius</label>.
 </p>
 
-<p>See the <ref id="StackPlotWindow" plaintextref="yes">Window Overview</ref>
-for features common to all plotting windows.
-The following subsections describe
-<ref id="sphereNavigation">navigation</ref> and
-<ref id="SphereAxisControl">axis configuration</ref>.
-</p>
-
 <p>The sphere plot offers the following plot controls:
 <ul>
 <li>&CONTROL.single;, with these form options:
@@ -10244,6 +10911,13 @@ This is because pixels based on density along a line of sight are not
 located at any point on that line, so shaded pixels can't appear
 at the "right" place in the 3-d space.  The same applies to a lesser
 extent with contours.  They work fine with a single dataset though.
+</p>
+
+<p>See the <ref id="StackPlotWindow" plaintextref="yes">Window Overview</ref>
+for features common to all plotting windows.
+The following subsections describe
+<ref id="sphereNavigation">navigation</ref> and
+<ref id="SphereAxisControl">axis configuration</ref>.
 </p>
 
 <subsubsubsect id="sphereNavigation">
@@ -10482,13 +11156,6 @@ stacked vertically using the same horizontal axis,
 but at present it doesn't do that.
 </p>
 
-<p>See the <ref id="StackPlotWindow" plaintextref="yes">Window Overview</ref>
-for features common to all plotting windows.
-The following subsections describe
-<ref id="timeNavigation">navigation</ref> and
-<ref id="TimeAxisControl">axis configuration</ref>.
-</p>
-
 <p>The Time Plot offers the following plot controls:
 <ul>
 <li>&CONTROL.single;, with these form options:
@@ -10502,6 +11169,13 @@ The following subsections describe
 <li>&CONTROL.spectrogram;</li>
 <li>&CONTROL.function;</li>
 </ul>
+</p>
+
+<p>See the <ref id="StackPlotWindow" plaintextref="yes">Window Overview</ref>
+for features common to all plotting windows.
+The following subsections describe
+<ref id="timeNavigation">navigation</ref> and
+<ref id="TimeAxisControl">axis configuration</ref>.
 </p>
 
 <subsubsubsect id="timeNavigation">
@@ -11654,7 +12328,7 @@ be identified in the legend which appears alongside the plot
 </dl>
 </p>
 
-<p>The <label>Bars</label> panel describes the form of the bars to be
+<p>The <label>Bins</label> panel describes the form of the bars to be
 plotted for each data set.
 <dl>
 <dt>Colour</dt>
