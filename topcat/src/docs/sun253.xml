@@ -284,7 +284,7 @@
 
 <docnumber>253</docnumber>
 
-<docdate>6 February 2015</docdate>
+<docdate>14 April 2015</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -9786,7 +9786,7 @@ note they only apply to histograms proper, not to KDEs:
 <p>The following subsections describe
 <ref id="histogramNavigation">navigation</ref>,
 <ref id="HistogramAxisControl">axis configuration</ref> and
-<ref id="ConfigControl_histobins">bar configuration</ref>.
+<ref id="ConfigControl_histobins">bin configuration</ref>.
 </p>
 
 <subsubsubsect id="histogramNavigation">
@@ -21739,39 +21739,78 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Next version</dt>
+<dt>Version 4.2-3 (14 April 2015)</dt>
 <dd><p>
-    <ul>
-    <li>Fix regression bug (from v4.2-2) that caused problems in Histogram
-        and Spectrogram layers:
-        <em>New subset from visible</em> action wasn't working,
-        and the displayed point count was always zero.</li>
-    <li>Work round FITS read bug that could cause problems for VOTables using
-        inline FITS serialization, and possibly elsewhere.</li>
-    <li>Fix bug that caused trouble when auto-ranging a plot 
-        with a single sky position.</li> 
-    <li>Column data read in as unsigned bytes will now be written out as
-        unsigned bytes where the output format permits;
-        previously they were forced to 16-bit signed integers.
-        This affects FITS, VOTable and CDF I/O handlers.</li>
-    <li>Catch and report the error properly if the user enters
-        a bad explicit axis range (max value &lt;= min value).</li>
-    <li>The Subset Styles panel in
-        <ref id="tableDataControl">table data layer controls</ref>
-        now has a <label>Visible</label> checkbox
-        indicating whether the subset undergoing
-        subset-specific configuration is currently visible in the plot.</li>
-    <li>Be less strict about recognising colfits files
-        (tolerate implicit TDIMn headers).</li>
-    <li>Tables specified on the <ref id="tableLocation">command line</ref>
-        may now use syntax that reads data from a unix pipeline.</li>
-    <li>OSX application bundle fixed to run application in user's home
-        directory (broken in previous version).</li>
-    <li>Fix minor ADQL parse failure when using TAP tables
-        named without explicit schema prefix by service.</li>
-    <li>Add text entry alternatives for slider controls to configure
-        colour map quantisation and marker/vector/ellipse scaling.</li>
-    </ul>
+    <dl>
+    <dt>Histogram enhancements:</dt>
+    <dd><p>
+        <ul>
+        <li>New Kernel Density Estimate plotting option variants
+            added in the Histogram and Plane plot windows:
+            <ref id="form-kde">KDE</ref>,
+            <ref id="form-knn">KNN</ref> and
+            <ref id="form-densogram">Densogram</ref>.</li>
+        <li>More flexible normalisation options for histogram/KDE plots:
+            normalise by area, maximum bar height, or total bar height.</li>
+        <li>The Bars fixed control is now relabelled 
+            <ref id="ConfigControl_histobins">Bins</ref>,
+            and has separate tabs for Histogram, KDE and General controls.</li>
+        <li>The existing Bin Size slider, and new kernel Smoothing sliders,
+            now display current width in data units as the slider is moved.</li>
+        <li>More bar styles are available for Histogram plots;
+            <label>Semi Filled</label> (the new default) and
+            <label>Semi Steps</label> options make it easier to understand
+            multiple overplotted data sets.
+            Note Semi Steps does not currently export very nicely to PDF/EPS.</li>
+        <li>Sketch mode is switched off by default.</li>
+        </ul>
+        </p></dd>
+    <dt>Minor improvements:</dt>
+    <dd><p>
+        <ul>
+        <li>More slider controls have options allowing explicit entry
+            of values from the keyboard (colour map quantisation,
+            marker/vector/ellipse scaling values).</li>
+        <li>More slider controls have text value readout displays
+            alongside the slider
+            (colour map quantisation,
+            marker size/errorbar scaling values).</li>
+        <li>Column data read in as unsigned bytes will now be written out as
+            unsigned bytes where the output format permits;
+            previously they were forced to 16-bit signed integers.
+            This affects FITS, VOTable and CDF I/O handlers.</li>
+        <li>The Subset Styles panel in
+            <ref id="tableDataControl">table data layer controls</ref>
+            now has a <label>Visible</label> checkbox
+            indicating whether the subset undergoing
+            subset-specific configuration is currently visible in the plot.</li>
+        <li>Be less strict about recognising colfits files
+            (tolerate implicit TDIMn headers).</li>
+        <li>Tables specified on the <ref id="tableLocation">command line</ref>
+            may now use syntax that reads data from a unix pipeline.</li>
+        <li>OSX application bundle fixed to run application in user's home
+            directory (broken in previous version).</li>
+        </ul>
+        </p></dd>
+    <dt>Bug fixes:</dt>
+    <dd><p>
+        <ul>
+        <li>Fix minor ADQL parse failure when using TAP tables
+            named without explicit schema prefix by service.</li>
+        <li>Fix regression bug (from v4.2-2) that caused problems in Histogram
+            and Spectrogram layers:
+            <em>New subset from visible</em> action wasn't working,
+            and the displayed point count was always zero.</li>
+        <li>Work round FITS read bug that could cause problems
+            for VOTables using inline FITS serialization,
+            and possibly elsewhere.</li>
+        <li>Fix bug that caused trouble when auto-ranging a plot 
+            with a single sky position.</li> 
+        <li>Catch and report the error properly if the user enters
+            a bad explicit axis range (max value &lt;= min value).</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>

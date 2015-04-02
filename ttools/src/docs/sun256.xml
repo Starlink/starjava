@@ -132,7 +132,7 @@
 
 <docnumber>256</docnumber>
 
-<docdate>6 February 2015</docdate>
+<docdate>14 April 2015</docdate>
 
 <contactlist>
 <contact>STILTS web page:
@@ -10181,28 +10181,13 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </dl>
     </p></dd>
 
-<dt>Next version</dt>
+<dt>Version 3.0-3 (14 April 2015)</dt>
 <dd><p>
     <ul>
-    <li>Work round FITS read bug that could cause problems for VOTables using
-        inline FITS serialization, and possibly elsewhere.</li>
-    <li>Fix bug that caused trouble when auto-ranging a plot
-        with a single sky position.</li>
-    <li>Column data read in as unsigned bytes will now be written out as
-        unsigned bytes where the output format permits; 
-        previously they were forced to 16-bit signed integers.
-        This affects FITS, VOTable and CDF I/O handlers.</li>
-    <li>Add <code>count_rows()</code> method to JyStilts 
-        <ref id="jytable">table</ref> objects, which for non-random tables
-        may be much more efficient than <code>len()</code>.</li>
-    <li>Be less strict about recognising colfits files
-        (tolerate implicit TDIMn headers).</li>
     <li>New System Command option for
         <ref id="location-syntax">input table syntax</ref>;
         you can now use "<code>&lt;syscmd</code>" or "<code>syscmd|</code>"
         to supply input byte streams from Un*x pipelines.</li>
-    <li><code>taplint</code> is now aware of, and performs some checks
-        related to, schema-level table metadata declared by TAP services.</li>
     <li>Add new Kernel Density Estimate plot layer types
         <ref id="layer-kde">kde</ref>,
         <ref id="layer-knn">knn</ref> and
@@ -10224,7 +10209,24 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <code>semi_filled</code> (the new default) and <code>semi_steps</code>.
         These give outlined partially transparent bars, which make it
         much easier to see what's going on in multi-dataset histograms.
+        Note <code>semi_steps</code> does not currently export very nicely
+        to PDF/EPS.
         Similar options are also available in the new KDE plots.</li>
+    <li>Column data read in as unsigned bytes will now be written out as
+        unsigned bytes where the output format permits; 
+        previously they were forced to 16-bit signed integers.
+        This affects FITS, VOTable and CDF I/O handlers.</li>
+    <li>Add <code>count_rows()</code> method to JyStilts 
+        <ref id="jytable">table</ref> objects, which for non-random tables
+        may be much more efficient than <code>len()</code>.</li>
+    <li>Be less strict about recognising colfits files
+        (tolerate implicit TDIMn headers).</li>
+    <li><code>taplint</code> is now aware of, and performs some checks
+        related to, schema-level table metadata declared by TAP services.</li>
+    <li>Work round FITS read bug that could cause problems for VOTables using
+        inline FITS serialization, and possibly elsewhere.</li>
+    <li>Fix bug that caused trouble when auto-ranging a plot
+        with a single sky position.</li>
     </ul>
     </p></dd>
 
