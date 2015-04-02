@@ -20,34 +20,29 @@ public enum Normalisation {
         }
     },
 
-    /** The total height of histogram bars is normalised to unity. */
-    HEIGHT( "The total height of histogram bars is normalised to unity." ) {
-        public double getScaleFactor( double sum, double max, double binWidth,
-                                      boolean cumul ) {
-            return 1.0 / sum;
-        }
-    },
-
     /** The total area of histogram bars is normalised to unity. */
     AREA( "The total area of histogram bars is normalised to unity. "
-        + "For logarithmic X axis or cumulative plots, this behaves like "
-        + "<code>" + HEIGHT.toString().toLowerCase() + "</code>." ) {
+        + "For cumulative plots, this behaves like <code>height</code>." ) {
         public double getScaleFactor( double sum, double max, double binWidth,
                                       boolean cumul ) {
-            double effectiveBinWidth = PlotUtil.isFinite( binWidth )
-                                     ? binWidth
-                                     : 1;
-            return 1.0 / ( cumul ? sum : ( sum * effectiveBinWidth ) );
+            return 1.0 / ( cumul ? sum : ( sum * binWidth ) );
         }
     },
 
     /** Height of the tallest histogram bar is normalised to unity. */
     MAXIMUM( "The height of the tallest histogram bar is normalised to unity. "
-           + "For cumulative plots, this behaves like "
-           + "<code>" + HEIGHT.toString().toLowerCase() + "</code>." ) {
+           + "For cumulative plots, this behaves like <code>height</code>." ) {
         public double getScaleFactor( double sum, double max, double binWidth,
                                       boolean cumul ) {
             return 1.0 / ( cumul ? sum : max );
+        }
+    },
+
+    /** The total height of histogram bars is normalised to unity. */
+    HEIGHT( "The total height of histogram bars is normalised to unity." ) {
+        public double getScaleFactor( double sum, double max, double binWidth,
+                                      boolean cumul ) {
+            return 1.0 / sum;
         }
     };
 
@@ -75,10 +70,10 @@ public enum Normalisation {
      * Returns the value by which all bins should be scaled to achieve
      * normalisation for a given data set.
      *
-     * <p>If it is not possible to supply a single <code>binWidth</code> value
-     * (for instance in the case of a logarithmic axis), NaN may be given.
-     * The <code>binWidth</code> is only used by AREA mode, and in case of
-     * an indefinite bin width that mode will behave like HEIGHT.
+     * <p>The <code>binWidth</code> should at least make sense in terms
+     * of screen area.  For linear X axis, it can be in data units,
+     * but for logarithmic X axis it may have to be in log(data units).
+     * The <code>binWidth</code> is only used by AREA mode.
      *
      * <p>For cumulative plots, all the modes except NONE behave the same,
      * normalising the total value to unity.

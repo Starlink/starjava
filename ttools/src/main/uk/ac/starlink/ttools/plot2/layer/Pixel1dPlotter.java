@@ -483,23 +483,20 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
     }
 
     /**
-     * Works out the constant width in data coordinates of a pixel-sized
-     * bin on a given axis.  If there is no such constant value
-     * (for instance a logarithmic axis), NaN is returned.
+     * Works out the constant width of a pixel-sized bin on a given axis.
+     * For linear axis this is in data units,
+     * for logarithmic axis it's in log(data units).
      *
      * @param  axis  axis
-     * @return   width of pixel in data coordinates, or NaN
+     * @return   fixed width of pixel in data-like coordinates
      */
     private static double getPixelDataWidth( Axis axis ) {
-        if ( axis.isLinear() ) {
-            int[] glimits = axis.getGraphicsLimits();
-            double gmid = 0.5 * ( glimits[ 0 ] + glimits[ 1 ] );
-            return Math.abs( axis.graphicsToData( gmid + 0.5 )
-                           - axis.graphicsToData( gmid - 0.5 ) );
-        }
-        else {
-            return Double.NaN;
-        }
+        int[] glimits = axis.getGraphicsLimits();
+        double gmid = 0.5 * ( glimits[ 0 ] + glimits[ 1 ] );
+        double d1 = axis.graphicsToData( gmid - 0.5 );
+        double d2 = axis.graphicsToData( gmid + 0.5 );
+        return Math.abs( axis.isLinear() ? d2 - d1
+                                         : Math.log( d2 ) - Math.log( d1 ) );
     }
 
     /**

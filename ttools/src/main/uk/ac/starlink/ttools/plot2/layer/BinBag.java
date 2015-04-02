@@ -124,9 +124,8 @@ public class BinBag {
         }
 
         /* Normalise. */
-        double normBinWidth = log_ ? Double.NaN : binWidth_;
-        double scale =
-            norm.getScaleFactor( total, max, normBinWidth, cumulative );
+        double bw = log_ ? Math.log( binWidth_ ) : binWidth_;
+        double scale = norm.getScaleFactor( total, max, bw, cumulative );
         if ( scale != 1.0 ) {
             for ( int ib = 0; ib < nbin; ib++ ) {
                 binValues[ ib ] *= scale;
