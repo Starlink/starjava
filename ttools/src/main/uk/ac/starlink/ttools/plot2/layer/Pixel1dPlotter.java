@@ -475,12 +475,11 @@ public abstract class Pixel1dPlotter<S extends Style> implements Plotter<S> {
     public static double getPixelWidth( BinSizer sizer, Axis xAxis,
                                         boolean xLog ) {
         double[] dLimits = xAxis.getDataLimits();
-        int[] gLimits = xAxis.getGraphicsLimits();
         double dWidth = sizer.getWidth( xLog, dLimits[ 0 ], dLimits[ 1 ] );
-        double gx0 = gLimits[ 0 ];
+        double gx0 = xAxis.dataToGraphics( dLimits[ 0 ] );
         double gx1 = xAxis.dataToGraphics( xLog ? dLimits[ 0 ] * dWidth
                                                 : dLimits[ 0 ] + dWidth );
-        return Math.max( 0, gx1 - gx0 );
+        return Math.abs( gx1 - gx0 );
     }
 
     /**
