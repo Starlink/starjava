@@ -383,10 +383,14 @@ public class TapQueryPanel extends JPanel {
         List<AdqlValidator.ValidatorTable> vtList =
             new ArrayList<AdqlValidator.ValidatorTable>();
         if ( validatorTables_ == null ) {
-            validatorTables_ =
-                createValidatorTables( tmetaPanel_.getSchemas() );
+            SchemaMeta[] schemas = tmetaPanel_.getSchemas();
+            if ( schemas != null ) {
+                validatorTables_ = createValidatorTables( schemas );
+            }
         }
-        vtList.addAll( Arrays.asList( validatorTables_ ) );
+        if ( validatorTables_ != null ) {
+            vtList.addAll( Arrays.asList( validatorTables_ ) );
+        }
         vtList.addAll( Arrays.asList( getExtraTables() ) );
         AdqlValidator.ValidatorTable[] vtables =
             vtList.toArray( new AdqlValidator.ValidatorTable[ 0 ] );
