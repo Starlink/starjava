@@ -146,7 +146,7 @@ public class SpecDataFactory
      * Short descriptions of each type.
      */
     public final static String[] shortNames = {
-        "notsupported",
+       // "notsupported",
         "default",
         "fits",
         "hds",
@@ -154,7 +154,7 @@ public class SpecDataFactory
         "hdx",
         "table",
         "line ids",
-        "guess"
+        "guess",
    
     };
 
@@ -162,7 +162,7 @@ public class SpecDataFactory
      * Long descriptions of each type.
      */
     public final static String[] longNames = {
-        "Not supported format",
+      //  "Not supported format",
         "File extension rule",
         "FITS file (spectrum/table)",
         "HDS container file",
@@ -176,14 +176,16 @@ public class SpecDataFactory
      * File extensions for each type.
      */
     public final static String[][] extensions = {
-        {""}, //
+  //      {""}, //
         {"*"},
         {"fits", "fit"},
         {"sdf"},
         {"txt", "lis"},
-        {"xml", "vot"}, // changed MCN 
+        {"xml"}, //"vot"}, // changed MCN 
         {"*"},
-        {"ids"}
+        {"ids"},
+  //      {"*"},
+  //      {"vot"}
     };
 
     /**
