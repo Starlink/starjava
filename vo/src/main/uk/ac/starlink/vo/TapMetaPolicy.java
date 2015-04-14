@@ -1,6 +1,12 @@
 package uk.ac.starlink.vo;
 
+import java.io.IOException;
 import java.net.URL;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.StoragePolicy;
+import uk.ac.starlink.table.Tables;
 
 /**
  * Defines the policy for acquiring TAP metadata from a remote service.
@@ -14,11 +20,17 @@ public abstract class TapMetaPolicy {
     private final String name_;
     private final String description_;
 
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.vo" );
+
     /** Uses the /tables endpoint. */
     public static final TapMetaPolicy TABLESET;
 
     /** Uses the TAP_SCHEMA tables. */
     public static final TapMetaPolicy TAPSCHEMA;
+
+    /** Tries its best to do something sensible. */
+    public static final TapMetaPolicy ADAPTIVE;
  
     private static final TapMetaPolicy[] KNOWN_VALUES = {
         TABLESET = new TapMetaPolicy( "TableSet",
@@ -36,6 +48,14 @@ public abstract class TapMetaPolicy {
             public TapMetaReader createMetaReader( URL serviceUrl ) {
                 return new TapSchemaTapMetaReader( serviceUrl.toString(), 99999,
                                                    true, false );
+            }
+        },
+        ADAPTIVE = new TapMetaPolicy( "ADAPTIVE",
+                                      "Uses the /tables endpoint if there are "
+                                    + "a moderate number of tables, or "
+                                    + "TAP_SCHEMA queries if there are many" ) {
+            public TapMetaReader createMetaReader( URL serviceUrl ) {
+                return createAdaptiveMetaReader( serviceUrl, 5000 );
             }
         },
     };
@@ -94,6 +114,84 @@ public abstract class TapMetaPolicy {
      * @return   default instance
      */
     public static TapMetaPolicy getDefaultInstance() {
-        return TAPSCHEMA;
+        return ADAPTIVE;
+    }
+
+    /**
+     * Returns a TapMetaReader instance for a given service with policy
+     * determined by the apparent size of the metadata set.
+     *
+     * @param  serviceUrl   TAP service URL
+     * @param  maxrow     maximum number of records to tolerate from a single
+     *                    TAP metadata query 
+     */
+    private static TapMetaReader createAdaptiveMetaReader( URL serviceUrl,
+                                                           int maxrow ) {
+ 
+        /* The columns table is almost certainly the longest one we would
+         * have to cope with.  In principle it could be the foreign key table,
+         * but that seems very unlikely. */
+        final String colTableName = "TAP_SCHEMA.columns";
+
+        /* Find out how many columns there are in total. */
+        try {
+            long ncol = readRowCount( serviceUrl, colTableName );
+
+            /* If there are more columns than the threshold, read the tables
+             * now and defer column reads until later. */
+            if ( ncol > maxrow ) {
+                logger_.info( "Many columns in TAP service ("
+                            + ncol + " > " + maxrow + "); "
+                            + "use TAP_SCHEMA queries for " + serviceUrl );
+                int maxrec = (int) Math.min( Integer.MAX_VALUE, ncol + 1 );
+                return new TapSchemaTapMetaReader( serviceUrl.toString(),
+                                                   maxrec, true, false );
+            }
+            else {
+                logger_.info( "Not excessive column count for TAP service ("
+                            + ncol + " <= " + maxrow + ")" );
+            }
+        }
+        catch ( IOException e ) {
+            logger_.log( Level.WARNING,
+                         "Row count for " + colTableName + " failed: " + e,
+                         e );
+        }
+
+        /* If there are fewer columns than the threshold, or the column
+         * count failed, use the VOSI /tables endpoint instead. */
+        logger_.info( "Use /tables endpoint for " + serviceUrl );
+        return new TableSetTapMetaReader( serviceUrl + "/tables" );
+    }
+
+    /**
+     * Return the number of rows in a named TAP table.
+     *
+     * @param   serviceUrl  TAP service URL
+     * @param   tableName  fully qualified ADQL table name
+     * @return   number of rows in table
+     * @throws   IOException   if the row count cannot be determined
+     *                         for some reason
+     */
+    private static long readRowCount( URL serviceUrl, String tableName )
+            throws IOException {
+        String adql = "SELECT COUNT(*) AS nrow FROM " + tableName;
+        TapQuery tq = new TapQuery( serviceUrl, adql, null );
+        StarTable result = tq.executeSync( StoragePolicy.PREFER_MEMORY );
+        result = Tables.randomTable( result );
+        if ( result.getRowCount() == 1 && result.getColumnCount() == 1 ) {
+            Object cell = result.getCell( 0, 0 );
+            if ( cell instanceof Number ) {
+                return ((Number) cell).longValue();
+            }
+            else {
+                throw new IOException( "Count result not numeric" );
+            }
+        }
+        else {
+            throw new IOException( "Count result not unique ("
+                                 + result.getRowCount() + "x"
+                                 + result.getColumnCount() );
+        }
     }
 }
