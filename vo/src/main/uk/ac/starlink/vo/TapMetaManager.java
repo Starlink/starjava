@@ -5,12 +5,17 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
@@ -30,6 +35,7 @@ import javax.swing.SwingUtilities;
 public class TapMetaManager {
 
     private final TapMetaReader rdr_;
+    private final int queueLimit_;
     private final Map<Populator,Collection<Runnable>> runningMap_;
     private ExecutorService executor_;
 
@@ -40,9 +46,13 @@ public class TapMetaManager {
      * Constructor.
      *
      * @param   rdr   object that knows how to acquire metadata
+     * @param   queueLimit  maximum number of metadata requests queued
+     *                      to service; more than that and older ones
+     *                      will be dropped
      */
-    public TapMetaManager( TapMetaReader rdr ) {
+    public TapMetaManager( TapMetaReader rdr, int queueLimit ) {
         rdr_ = rdr;
+        queueLimit_ = queueLimit;
         runningMap_ = new HashMap<Populator,Collection<Runnable>>();
     }
 
@@ -155,7 +165,7 @@ public class TapMetaManager {
      */
     public ExecutorService getExecutor() {
         if ( executor_ == null ) {
-            executor_ = createExecutorService();
+            executor_ = createExecutorService( queueLimit_ );
         }
         return executor_;
     }
@@ -255,9 +265,62 @@ public class TapMetaManager {
     /**
      * Creates an executor service suitable for use by this object.
      *
+     * @param   queueLimit  maximum number of metadata requests queued
+     *                      to service; more than that and older ones
+     *                      will be dropped
      * @return   new executor service
      */
-    private static ExecutorService createExecutorService() {
+    private static ExecutorService createExecutorService( int queueLimit ) {
+
+        /* Use a custom queue implementation that has LIFO rather than FIFO
+         * semantics.  For our purposes (driving requests from a GUI),
+         * it is likely that the most recently received request is the
+         * most pressing one.  Older ones may relate to actions that are
+         * no longer relevant (e.g. selection of items that have since
+         * been superceded).  So prioritise the most recent requests, and
+         * possibly discard older ones in their favour. */
+        BlockingQueue<Runnable> queue =
+            new BoundedBlockingStack<Runnable>( queueLimit );
+
+        /* This handler deals with a full queue by discarding the runnable
+         * at the tail of the executorService's queue.  Since we are using
+         * a LIFO "queue", that is the oldest one
+         * (note that ThreadPoolExecutor.DiscardOldestPolicy discards the
+         * item at the head, which in this case is the newest one).
+         * So in case of a full queue, the most recent requests are honoured,
+         * and the old ones get forgotten. */
+        RejectedExecutionHandler rejectHandler =
+                new RejectedExecutionHandler() {
+            private final RejectedExecutionHandler dfltHandler =
+                new ThreadPoolExecutor.AbortPolicy();
+            public void rejectedExecution( Runnable r,
+                                           ThreadPoolExecutor e ) {
+                BlockingQueue<Runnable> q = e.getQueue();
+                if ( q instanceof BoundedBlockingStack ) {
+
+                    /* This implementation code is adapted from
+                     * ThreadPoolExecutor.DiscardOldestPolicy. */
+                    if ( ! e.isShutdown() ) {
+                        ((BoundedBlockingStack) q).removeTail();
+                        logger_.log( Level.INFO,
+                                     "Discard metadata request" );
+                        e.execute( r );
+                    }
+                }
+
+                /* Fall back to default behaviour if we have the wrong queue
+                 * type for some reason. */
+                else {
+                    assert false;
+                    dfltHandler.rejectedExecution( r, e );
+                }
+            }
+        };
+
+        /* Construct and return an ExecutorService based on these custom
+         * characteristics. */
+        int corePoolSize = 1;
+        int maxPoolSize = 1;
         ThreadFactory thFact = new ThreadFactory() {
             public Thread newThread( Runnable r ) {
                 Thread th = new Thread( r, "TAP metadata query" );
@@ -265,7 +328,9 @@ public class TapMetaManager {
                 return th;
             }
         };
-        return Executors.newSingleThreadExecutor( thFact );
+        return new ThreadPoolExecutor( corePoolSize, maxPoolSize,
+                                       30, TimeUnit.SECONDS,
+                                       queue, thFact, rejectHandler );
     }
 
     /**
@@ -372,6 +437,92 @@ public class TapMetaManager {
         public boolean equals( Object o ) {
             return getClass().equals( o.getClass() )
                 && this.id_.equals( ((Populator) o).id_ );
+        }
+    }
+
+    /**
+     * Bounded LIFO BlockingQueue implementation.
+     * This subclasses Doug Lea's (unbounded) LinkedBlockingStack
+     * implementation to provide a limit on queue size.
+     * It doesn't do it correctly, since it lies about the capacity -
+     * adding items will always work without blocking, even when this
+     * implementation says otherwise.  But it works well enough to fool
+     * an ExecutorService into thinking it's full and rejecting new runnables.
+     * In any case I don't think the contract violations of this class
+     * are dangerous or even discoverable by clients.
+     *
+     * <p>At J2SE 1.6 a class java.util.concurrent.LinkedBlockingDeque
+     * exists which could be built on to provide this functionality.
+     * When starjava targets java 1.6, it might be a good idea to
+     * rewrite this in terms of that library class instead.
+     */
+    private static class BoundedBlockingStack<E>
+            extends LinkedBlockingStack<E> {
+        private final int capacity_;
+        private final Lock lock_;
+
+        /**
+         * Constructor.
+         *
+         * @param  capacity  maximum nominal queue capacity
+         */
+        BoundedBlockingStack( int capacity ) {
+            capacity_ = capacity;
+            lock_ = getLock();
+        }
+
+        @Override
+        public boolean add( E o ) {
+            lock_.lock();
+            try {
+                if ( remainingCapacity() > 0 ) {
+                    return super.add( o );
+                }
+                else {
+                    throw new IllegalStateException( "Queue full" );
+                }
+            }
+            finally {
+                lock_.unlock();
+            }
+        }
+
+        @Override
+        public boolean offer( E o ) {
+            lock_.lock();
+            try {
+                return remainingCapacity() > 0 && super.offer( o );
+            }
+            finally {
+                lock_.unlock();
+            }
+        }
+
+        @Override
+        public int remainingCapacity() {
+            return Math.max( 0, capacity_ - size() );
+        }
+
+        /**
+         * Deletes the item at the tail of this queue.
+         *
+         * @return   tail item, or null if empty
+         */
+        public E removeTail() {
+            lock_.lock();
+            try {
+                for ( Iterator<E> it = iterator(); it.hasNext(); ) {
+                    E item = it.next();
+                    if ( ! it.hasNext() ) {
+                        it.remove();
+                        return item;
+                    }
+                }
+                return null;
+            }
+            finally {
+                lock_.unlock();
+            }
         }
     }
 }

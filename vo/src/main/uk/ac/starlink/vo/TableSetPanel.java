@@ -192,7 +192,7 @@ public class TableSetPanel extends JPanel {
             metaManager_.shutdown();
         }
         final TapMetaManager metaManager =
-            metaReader == null ? null : new TapMetaManager( metaReader );
+            metaReader == null ? null : new TapMetaManager( metaReader, 10 );
         metaManager_ = metaManager;
         setSchemas( metaManager, null );
         if ( metaManager == null ) {

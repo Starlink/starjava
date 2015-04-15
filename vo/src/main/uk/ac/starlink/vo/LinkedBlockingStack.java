@@ -6,6 +6,8 @@
 
 // Last update Mon Nov  1 07:23:15 2004  Doug Lea  (dl at gee)
 
+package uk.ac.starlink.vo;
+
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.*;
@@ -35,6 +37,11 @@ public class LinkedBlockingStack<E> extends AbstractQueue<E>
 
     public LinkedBlockingStack(Collection c) {
         addAll(c);
+    }
+
+    /** Returns the lock object used for synchronizing this object's state. */
+    protected ReentrantLock getLock() {
+        return lock;
     }
 
     /** Insert node at front of list */
