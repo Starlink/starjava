@@ -21761,7 +21761,8 @@ introduced since the last version:
             <label>Semi Filled</label> (the new default) and
             <label>Semi Steps</label> options make it easier to understand
             multiple overplotted data sets.
-            Note Semi Steps does not currently export very nicely to PDF/EPS.</li>
+            Note Semi Steps does not currently export very nicely
+            to PDF/EPS.</li>
         <li>Sketch mode is switched off by default.</li>
         </ul>
         </p></dd>
