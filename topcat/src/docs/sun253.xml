@@ -21818,7 +21818,8 @@ introduced since the last version:
 <dd><p>
     <ul>
     <li>Minor improvement to version reporting 
-        (no longer issues warning for absent revision string).</li>
+        (reports java specification version,
+         no longer issues warning for absent revision string).</li>
     </ul>
     </p></dd>
 
