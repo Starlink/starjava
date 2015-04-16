@@ -76,8 +76,10 @@ public class InvokeUtils {
     public static String getJavaVM() {
         try {
             return System.getProperty( "java.vm.name", "???" )
-                 + " version "
-                 + System.getProperty( "java.vm.version", "???" );
+                 + ", version "
+                 + System.getProperty( "java.vm.version", "???" )
+                 + ", JRE "
+                 + System.getProperty( "java.specification.version", "???" );
         }
         catch ( SecurityException e ) {
             return "???";
