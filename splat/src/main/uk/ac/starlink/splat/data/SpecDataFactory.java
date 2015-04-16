@@ -1861,6 +1861,7 @@ public class SpecDataFactory
 
         //   Note allow for application/fits;xxxx, so use startsWith,
         //   same for full mime types below.
+       
         if ( simpleType.startsWith( "application/fits" ) ||
              simpleType.equals( "fits" ) ) {
             //  FITS format, is that image or table?
@@ -1873,6 +1874,9 @@ public class SpecDataFactory
         else if ( simpleType.startsWith( "spectrum/fits" ) ) {
             //  FITS format, is that image or table? Don't know who
             //  thought this was a mime-type?
+            stype = SpecDataFactory.FITS;
+        }
+        else if (simpleType.startsWith("timeseries/fits") ) {
             stype = SpecDataFactory.FITS;
         }
         else if ( simpleType.startsWith( "text/plain" ) ) {
