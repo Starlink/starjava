@@ -430,17 +430,19 @@ public class TopcatUtils {
      * @return  version number only
      */
     public static String getVersion() {
-        return IOUtils.getResourceContents( AuxWindow.class, VERSION_RESOURCE );
+        return IOUtils.getResourceContents( AuxWindow.class, VERSION_RESOURCE,
+                                            null );
     }
 
     /**
-     * Returns the subversion revision number for TOPCAT and its dependencies.
+     * Returns the version control revision number
+     * for TOPCAT and its dependencies.
      *
-     * @return   svn revision
+     * @return   revision identifier
      */
     public static String getRevision() {
-        return IOUtils.getResourceContents( AuxWindow.class,
-                                            "revision-string" );
+        return IOUtils.getResourceContents( AuxWindow.class, "revision-string",
+                                            Level.CONFIG );
     }
 
     /**
@@ -449,7 +451,8 @@ public class TopcatUtils {
      * @return  STIL version number
      */
     public static String getSTILVersion() {
-        return IOUtils.getResourceContents( StarTable.class, "stil.version" );
+        return IOUtils.getResourceContents( StarTable.class, "stil.version",
+                                            null );
     }
 
     /**

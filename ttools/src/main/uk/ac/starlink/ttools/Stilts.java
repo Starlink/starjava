@@ -2,6 +2,7 @@ package uk.ac.starlink.ttools;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.logging.Level;
 import uk.ac.starlink.task.Task;
 import uk.ac.starlink.ttools.mode.ProcessingMode;
 import uk.ac.starlink.ttools.task.LineInvoker;
@@ -69,7 +70,8 @@ public class Stilts {
      * @return  version string
      */
     public static String getVersion() {
-        return IOUtils.getResourceContents( Stilts.class, VERSION_RESOURCE );
+        return IOUtils.getResourceContents( Stilts.class, VERSION_RESOURCE,
+                                            null );
     }
 
     /**
@@ -78,7 +80,8 @@ public class Stilts {
      * @return  revision string
      */
     public static String getStarjavaRevision() {
-        return IOUtils.getResourceContents( Stilts.class, "revision-string" );
+        return IOUtils.getResourceContents( Stilts.class, "revision-string",
+                                            Level.CONFIG );
     }
 
     /**

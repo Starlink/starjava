@@ -21814,6 +21814,14 @@ introduced since the last version:
     </dl>
     </p></dd>
 
+<dt>Next version</dt>
+<dd><p>
+    <ul>
+    <li>Minor improvement to version reporting 
+        (no longer issues warning for absent revision string).</li>
+    </ul>
+    </p></dd>
+
 </dl>
 </p>
 
