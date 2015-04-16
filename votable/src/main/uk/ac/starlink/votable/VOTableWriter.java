@@ -421,7 +421,7 @@ public class VOTableWriter implements StarTableWriter, MultiStarTableWriter {
         writer.newLine();
         writer.write( " !  VOTable written by STIL version "
                     + IOUtils.getResourceContents( StarTable.class,
-                                                   "stil.version" )
+                                                   "stil.version", null )
                     + " (" + VOSerializer.formatText( getClass().getName() )
                     + ")" );
         writer.newLine();

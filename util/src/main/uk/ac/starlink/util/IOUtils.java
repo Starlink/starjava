@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -165,15 +166,19 @@ public class IOUtils {
      * The resource is read using <code>clazz.getResourceAsStream(name)</code>
      * and is assumed to have ASCII content.  The result is cached so that
      * subsequent calls will return the same value.
-     * If it can't be read, "?" is returned.
+     * If it can't be read, "?" is returned, and a message is written
+     * through the logging system at the requested level.
      * This is intended for short files such as version strings.
      *
      * @param  clazz  class defining relative location of resource
      * @param  name   resource name relative to <code>clazz</code>
+     * @param  level  logging level for failure; if null a default value
+     *                is used (currently WARNING)
      * @return resource content string
      * @see    java.lang.Class#getResourceAsStream
      */
-    public static String getResourceContents( Class clazz, String name ) {
+    public static String getResourceContents( Class clazz, String name,
+                                              Level level ) {
         List key = Arrays.asList( new Object[] { clazz, name } );
         if ( ! resourceMap_.containsKey( key ) ) {
             String value = null;
@@ -200,7 +205,8 @@ public class IOUtils {
                 }
             }
             if ( value == null ) {
-                logger_.warning( "Couldn't read requested resource " + name );
+                logger_.log( level == null ? Level.WARNING : level,
+                             "Couldn't read requested resource " + name );
                 value = "?";
             }
             resourceMap_.put( key, value );

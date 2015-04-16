@@ -186,7 +186,7 @@ public abstract class AbstractFitsTableWriter extends StreamStarTableWriter
                           "Date of HDU creation (UTC)" );
             hdr.addValue( "STILVERS",
                           IOUtils.getResourceContents( StarTable.class,
-                                                       "stil.version" ),
+                                                       "stil.version", null ),
                           "Version of STIL software" );
             hdr.addValue( "STILCLAS", getClass().getName(),
                           "Author class in STIL software" );

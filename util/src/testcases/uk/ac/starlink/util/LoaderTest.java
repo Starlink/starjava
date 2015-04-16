@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class LoaderTest extends TestCase {
 
@@ -16,6 +18,7 @@ public class LoaderTest extends TestCase {
     }
 
     public void testLoader() {
+        Logger.getLogger( "uk.ac.starlink.util" ).setLevel( Level.SEVERE );
         assertNull( Loader.getClassInstance( "no.class.here.mate",
                                              TestCase.class ) );
         assertNull( Loader.getClassInstance( getClass().getName(),

@@ -93,7 +93,7 @@ public class LineInvoker {
                         "STILTS version " + Stilts.getVersion(),
                         "STIL version "
                         + IOUtils.getResourceContents( StarTable.class,
-                                                       "stil.version" ),
+                                                       "stil.version", null ),
                         "Starjava revision: " + Stilts.getStarjavaRevision(),
                         "JVM: " + InvokeUtils.getJavaVM(),
                         "",
