@@ -2,6 +2,7 @@ package uk.ac.starlink.vo;
 
 import java.io.IOException;
 import java.lang.reflect.Array;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -9,7 +10,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadFactory;
@@ -19,6 +23,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
+import org.xml.sax.SAXException;
 
 /**
  * Handles asynchronous population of the TAP metadata hierarchy. 
@@ -32,12 +37,13 @@ import javax.swing.SwingUtilities;
  * @author   Mark Taylor
  * @since    23 Mar 2015
  */
-public class TapMetaManager {
+public class TapServiceKit {
 
-    private final TapMetaReader rdr_;
-    private final int queueLimit_;
+    private final URL serviceUrl_;
+    private final TapMetaPolicy metaPolicy_;
     private final Map<Populator,Collection<Runnable>> runningMap_;
-    private ExecutorService executor_;
+    private final ExecutorService metaExecutor_;
+    private volatile FutureTask<TapMetaReader> rdrFuture_;
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
@@ -45,24 +51,27 @@ public class TapMetaManager {
     /**
      * Constructor.
      *
-     * @param   rdr   object that knows how to acquire metadata
-     * @param   queueLimit  maximum number of metadata requests queued
+     * @param   serviceUrl  base URL of TAP service
+     * @param   metaPolicy  implementation for reading table metadata
+     * @param   queueLimit  maximum number of table metadata requests queued
      *                      to service; more than that and older ones
      *                      will be dropped
      */
-    public TapMetaManager( TapMetaReader rdr, int queueLimit ) {
-        rdr_ = rdr;
-        queueLimit_ = queueLimit;
+    public TapServiceKit( URL serviceUrl, TapMetaPolicy metaPolicy,
+                          int queueLimit ) {
+        serviceUrl_ = serviceUrl;
+        metaPolicy_ = metaPolicy;
+        metaExecutor_ = createExecutorService( queueLimit );
         runningMap_ = new HashMap<Populator,Collection<Runnable>>();
     }
 
     /**
-     * Returns the object that performs the actual data reads.
+     * Returns the TAP service URL used by this kit.
      *
-     * @return  metadata reader
+     * @return   service URL
      */
-    public TapMetaReader getReader() {
-        return rdr_;
+    public URL getServiceUrl() {
+        return serviceUrl_;
     }
 
     /**
@@ -147,27 +156,89 @@ public class TapMetaManager {
     }
 
     /**
+     * Asynchronously acquires TAP database schema list.
+     *
+     * @param  handler  receiver for schema information
+     */
+    public void acquireSchemas( final ResultHandler<SchemaMeta[]> handler ) {
+        acquireData( handler, new DataCallable<SchemaMeta[]>() {
+            public SchemaMeta[] call() throws IOException {
+                return getMetaReader().readSchemas();
+            }
+        }, "Table metadata" );
+    }
+
+    /**
+     * Asynchronously acquires TAP capability information.
+     *
+     * @param  handler   receiver for TAP capability object
+     */
+    public void acquireCapability( final
+                                   ResultHandler<TapCapability> handler ) {
+        acquireData( handler, new DataCallable<TapCapability>() {
+            public TapCapability call() throws IOException {
+                try {
+                    return TapQuery.readTapCapability( serviceUrl_ );
+                }
+                catch ( SAXException e ) {
+                    throw (IOException)
+                          new IOException( "Capability parse error: " + e )
+                         .initCause( e );
+                }
+            }
+        }, "TAP Capabilities" );
+    }
+
+    /**
      * Releases resources and terminates any currently running asynchronous
      * metadata reads.  Calling this method does not prevent future use
      * of this object.
      */
     public void shutdown() {
-        if ( executor_ != null ) {
-            executor_.shutdownNow();
-            executor_ = null;
-        }
+        metaExecutor_.shutdownNow();
     }
 
     /**
-     * Lazily create and return an executor instance.
-     *
-     * @return  executor used for asynchronous queries by this object
+     * Returns a TapMetaReader for use by this kit.
+     * Thread safe, but should be called on a thread which is not the EDT.
      */
-    public ExecutorService getExecutor() {
-        if ( executor_ == null ) {
-            executor_ = createExecutorService( queueLimit_ );
+    private TapMetaReader getMetaReader() {
+        final boolean runNow;
+
+        /* Prepare to initiate acquisition only if no other process has
+         * got there first. */
+        synchronized ( this ) {
+            if ( rdrFuture_ == null ) {
+                runNow = true;
+                rdrFuture_ = new FutureTask<TapMetaReader>(
+                                 new Callable<TapMetaReader>() {
+                    public TapMetaReader call() {
+                        return metaPolicy_.createMetaReader( serviceUrl_ );
+                    }
+                } );
+            }
+            else {
+                runNow = false;
+            }
         }
-        return executor_;
+
+        /* If this invocation is responsible for obtaining the value,
+         * do it synchronously. */
+        if ( runNow ) {
+            rdrFuture_.run();
+        }
+
+        /* Obtain the value, which may entail waiting for another thread. */
+        try {
+            return rdrFuture_.get();
+        }
+        catch ( InterruptedException e ) {
+            Thread.currentThread().interrupt();
+            return null;
+        }
+        catch ( ExecutionException e ) {
+            return null;
+        }
     }
 
     /**
@@ -186,7 +257,7 @@ public class TapMetaManager {
         }
         else {
             try {
-                getExecutor().submit( new Runnable() {
+                metaExecutor_.submit( new Runnable() {
                     public void run() {
                         if ( populator.populateCompleted_ ) {
                             SwingUtilities.invokeLater( callback );
@@ -239,7 +310,7 @@ public class TapMetaManager {
         }
 
         /* Acquire the data synchronously. */
-        populator.populate( rdr_ );
+        populator.populate( getMetaReader() );
         populator.populateCompleted_ = true;
 
         /* Get the list of callbacks dependent on the data.
@@ -258,6 +329,56 @@ public class TapMetaManager {
                 for ( Runnable cb : callbacks ) {
                     cb.run();
                 }
+            }
+        } );
+    }
+
+    /**
+     * Asynchronously acquires a result and passes it to a supplied handler
+     * whose methods are invoked on the event dispatch thread.
+     *
+     * @param  handler  receiver for acquired information
+     * @param  callable   supplier for information
+     * @param  resultDescrip   short text description of information being
+     *                         acquired, used for user interaction
+     */
+    private <T> void acquireData( final ResultHandler<T> handler,
+                                  final DataCallable<T> callable,
+                                  final String resultDescrip ) {
+        if ( ! handler.isActive() ) {
+            return;
+        }
+        handler.showWaiting();
+        metaExecutor_.submit( new Runnable() {
+            public void run() {
+                if ( ! handler.isActive() ) {
+                    return;
+                }
+                T data;
+                try {
+                    data = callable.call();
+                }
+                catch ( final IOException error ) {
+                    SwingUtilities.invokeLater( new Runnable() {
+                        public void run() {
+                            if ( handler.isActive() ) {
+                                logger_.log( Level.WARNING,
+                                             "Failed to read " + resultDescrip
+                                           + ": " + error, error );
+                                handler.showError( error );
+                            }
+                        }
+                    } );
+                    return;
+                }
+                final T data0 = data;
+                SwingUtilities.invokeLater( new Runnable() {
+                    public void run() {
+                        if ( handler.isActive() ) {
+                            handler.showResult( data0 );
+                        }
+                    }
+                } );
             }
         } );
     }
@@ -331,6 +452,13 @@ public class TapMetaManager {
         return new ThreadPoolExecutor( corePoolSize, maxPoolSize,
                                        30, TimeUnit.SECONDS,
                                        queue, thFact, rejectHandler );
+    }
+
+    /**
+     * Typed callable that only throws an IOException.
+     */
+    private static interface DataCallable<T> extends Callable {
+        T call() throws IOException;
     }
 
     /**
