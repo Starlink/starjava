@@ -2,6 +2,7 @@ package uk.ac.starlink.vo;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
@@ -68,7 +69,7 @@ public class TableSetPanel extends JPanel {
     private final int itabForeign_;
     private final JComponent metaPanel_;
     private final JSplitPane metaSplitter_;
-    private TapMetaManager metaManager_;
+    private TapServiceKit serviceKit_;;
     private SchemaMeta[] schemas_;
 
     /** Number of nodes below which tree nodes are expanded. */
@@ -166,7 +167,7 @@ public class TableSetPanel extends JPanel {
         metaPanel_ = new JPanel( new BorderLayout() );
         metaPanel_.add( metaSplitter_, BorderLayout.CENTER );
         add( metaPanel_, BorderLayout.CENTER );
-        setSchemas( null, null );
+        setSchemas( null );
     }
 
     /**
@@ -180,59 +181,45 @@ public class TableSetPanel extends JPanel {
     }
 
     /**
-     * Installs an object that knows how to acquire TAP schema metadata.
-     * If the supplied reader is non-null, calling this method
-     * initiates an asynchronous read of the metadata, which will
-     * be displayed in this panel when it arrives.
+     * Installs an object that knows how to acquire TAP service metadata.
+     * If the supplied kit is non-null, calling this method
+     * initiates asynchronous reads of metadata, which will be displayed
+     * in this panel when it arrives.
      *
-     * @param  metaReader   new metadata reader; may be null to clear display
+     * @param  serviceKit  TAP service metadata access kit
      */
-    public void setMetaReader( final TapMetaReader metaReader ) {
-        if ( metaManager_ != null ) {
-            metaManager_.shutdown();
+    public void setServiceKit( final TapServiceKit serviceKit ) {
+        if ( serviceKit_ != null ) {
+            serviceKit_.shutdown();
         }
-        final TapMetaManager metaManager =
-            metaReader == null ? null : new TapMetaManager( metaReader, 10 );
-        metaManager_ = metaManager;
-        setSchemas( metaManager, null );
-        if ( metaManager == null ) {
+        serviceKit_ = serviceKit;
+        setSchemas( null );
+        if ( serviceKit == null ) {
             return;
         }
-        showFetchProgressBar( metaManager, "Fetching Table Metadata" );
-        Runnable schemaWorker = new Runnable() {
-            public void run() {
-                if ( metaManager != metaManager_ ) {
-                    return;
-                }
-                final SchemaMeta[] schemas;
-                try {
-                    schemas = metaManager.getReader().readSchemas();
-                }
-                catch ( final Exception error ) {
-                    SwingUtilities.invokeLater( new Runnable() {
-                        public void run() {
-                            showFetchFailure( metaManager, error );
-                        }
-                    } );
-                    return;
-                }
-                SwingUtilities.invokeLater( new Runnable() {
-                    public void run() {
-                        setSchemas( metaManager, schemas );
-                    }
-                } );
+        serviceKit.acquireSchemas( new ResultHandler<SchemaMeta[]>() {
+            public boolean isActive() {
+                return serviceKit == serviceKit_;
             }
-        };
-        metaManager.getExecutor().submit( schemaWorker );
+            public void showWaiting() {
+                showFetchProgressBar( "Fetching Table Metadata" );
+            }
+            public void showResult( SchemaMeta[] result ) {
+                setSchemas( result );
+            }
+            public void showError( IOException error ) {
+                showFetchFailure( error );
+            }
+        } );
     }
 
     /**
      * Returns the object currently responsible for acquiring table metadata.
      *
-     * @return  metadata manager, may be null
+     * @return  metadata access kit, may be null
      */
-    public TapMetaManager getMetaManager() {
-        return metaManager_;
+    public TapServiceKit getServiceKit() {
+        return serviceKit_;
     }
 
     /**
@@ -250,16 +237,9 @@ public class TableSetPanel extends JPanel {
      * and updates the display.
      * The data is in the form of an array of schema metadata objects.
      *
-     * @param  metaManager  metadata acquisition manager supplying the schemas;
-     *                      if it doesn't match the currently installed one,
-     *                      the call is ignored
      * @param  schemas  schema metadata objects, null if no metadata available
      */
-    private void setSchemas( TapMetaManager metaManager,
-                             SchemaMeta[] schemas ) {
-        if ( metaManager != metaManager_ ) {
-            return;
-        }
+    private void setSchemas( SchemaMeta[] schemas ) {
         if ( schemas != null ) {
             checkSchemasPopulated( schemas );
         }
@@ -295,15 +275,9 @@ public class TableSetPanel extends JPanel {
     /**
      * Displays a progress bar to indicate that metadata fetching is going on.
      *
-     * @param  metaManager  reader in use; if it doesn't match
-     *                     the currently installed one, the call is ignored
      * @param  message  message to display
      */
-    private void showFetchProgressBar( TapMetaManager metaManager,
-                                       String message ) {
-        if ( metaManager != metaManager_ ) {
-            return;
-        }
+    private void showFetchProgressBar( String message ) {
         JProgressBar progBar = new JProgressBar();
         progBar.setIndeterminate( true );
         JComponent msgLine = Box.createHorizontalBox();
@@ -330,27 +304,13 @@ public class TableSetPanel extends JPanel {
     /**
      * Displays an indication that metadata fetching failed.
      * 
-     * @param  metaManager  reader in use; if it doesn't match
-     *                     the currently installed one, the call is ignored
      * @param  error   error that caused the failure
      */
-    private void showFetchFailure( TapMetaManager metaManager,
-                                   Throwable error ) {
-        if ( metaManager != metaManager_ ) {
-            return;
-        }
+    private void showFetchFailure( Throwable error ) {
         ErrorDialog.showError( this, "Table Metadata Error", error );
         JComponent msgLine = Box.createHorizontalBox();
         msgLine.setAlignmentX( 0 );
         msgLine.add( new JLabel( "No table metadata available" ) );
-        JComponent srcLine = Box.createHorizontalBox();
-        srcLine.setAlignmentX( 0 );
-        srcLine.add( new JLabel( "Metadata Source: " ) );
-        JTextField srcField =
-            new JTextField( metaManager.getReader().getSource() );
-        srcField.setEditable( false );
-        srcField.setBorder( BorderFactory.createEmptyBorder() );
-        srcLine.add( new ShrinkWrapper( srcField ) );
         JComponent errLine = Box.createHorizontalBox();
         errLine.setAlignmentX( 0 );
         errLine.add( new JLabel( "Error: " ) );
@@ -366,7 +326,6 @@ public class TableSetPanel extends JPanel {
         linesVBox.add( Box.createVerticalGlue() );
         linesVBox.add( msgLine );
         linesVBox.add( Box.createVerticalStrut( 15 ) );
-        linesVBox.add( srcLine );
         linesVBox.add( errLine );
         linesVBox.add( Box.createVerticalGlue() );
         JComponent linesHBox = Box.createHorizontalBox();
@@ -418,7 +377,7 @@ public class TableSetPanel extends JPanel {
         final TableMeta table = TapMetaTreeModel.getTable( path );
         SchemaMeta schema = TapMetaTreeModel.getSchema( path );
         if ( table == null ||
-             ! metaManager_.onColumns( table, new Runnable() {
+             ! serviceKit_.onColumns( table, new Runnable() {
             public void run() {
                 displayColumns( table, table.getColumns() );
             }
@@ -426,7 +385,7 @@ public class TableSetPanel extends JPanel {
             displayColumns( table, new ColumnMeta[ 0 ] );
         }
         if ( table == null ||
-             ! metaManager_.onForeignKeys( table, new Runnable() {
+             ! serviceKit_.onForeignKeys( table, new Runnable() {
             public void run() {
                 displayForeignKeys( table, table.getForeignKeys() );
             }

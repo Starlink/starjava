@@ -7,6 +7,7 @@ import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InterruptedIOException;
+import java.net.MalformedURLException;
 import java.net.URLConnection;
 import java.net.URL;
 import java.util.ArrayList;
@@ -77,6 +78,9 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
     private static final Pattern TNAME_REGEX =
         Pattern.compile( "(FROM|JOIN)\\s+(\\S*)",
                          Pattern.CASE_INSENSITIVE );
+
+    // Maximum Number of requests for table metadata to queue in LIFO.
+    private static final int META_QUEUE_LIMIT = 10;
 
     /**
      * Constructor.
@@ -167,7 +171,7 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
         tabber_.addChangeListener( new ChangeListener() {
             public void stateChanged( ChangeEvent evt ) {
                 if ( tabber_.getSelectedIndex() == tqTabIndex_ ) {
-                    setSelectedService( getServiceUrl() );
+                    setSelectedService( createServiceKit() );
                 }
                 updateReady();
             }
@@ -186,7 +190,7 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
             public void actionPerformed( ActionEvent evt ) {
                 int itab = tabber_.getSelectedIndex();
                 if ( itab == tqTabIndex_ ) {
-                    tqPanel_.setService( getServiceUrl(), metaPolicy_ );
+                    tqPanel_.setServiceKit( createServiceKit() );
                 }
                 else if ( itab == resumeTabIndex_ ) {
                     resumePanel_.reload();
@@ -287,11 +291,11 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
     public void setMetaPolicy( TapMetaPolicy metaPolicy ) {
         if ( metaPolicy_ != metaPolicy ) {
             metaPolicy_ = metaPolicy;
-            String serviceUrl = getServiceUrl();
-            if ( tqPanel_ != null &&
-                 serviceUrl != null &&
-                 metaPolicy_ != null ) {
-                tqPanel_.setService( serviceUrl, metaPolicy_ );
+            if ( tqPanel_ != null ) {
+                TapServiceKit serviceKit = createServiceKit();
+                if ( serviceKit != null ) {
+                    tqPanel_.setServiceKit( serviceKit );
+                }
             }
         }
     }
@@ -490,11 +494,31 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
     }
 
     /**
-     * Configure this dialogue to use a TAP service with a given service URL.
+     * Returns a service kit based on the current state of this dialogue.
      *
-     * @param  serviceUrl  service URL for TAP service
+     * @return  service kit, may be null if not ready
      */
-    private void setSelectedService( String serviceUrl ) {
+    private TapServiceKit createServiceKit() {
+        String surl = getServiceUrl();
+        if ( surl == null || metaPolicy_ == null ) {
+            return null;
+        }
+        URL serviceUrl;
+        try {
+            serviceUrl = new URL( surl );
+        }
+        catch ( MalformedURLException e ) {
+            return null;
+        }
+        return new TapServiceKit( serviceUrl, metaPolicy_, META_QUEUE_LIMIT );
+    }
+
+    /**
+     * Configure this dialogue to use a given TAP service.
+     *
+     * @param  serviceKit   TAP service metadata access kit
+     */
+    private void setSelectedService( TapServiceKit serviceKit ) {
 
         /* We have to install a TapQueryPanel for this service in the 
          * appropriate tab of the tabbed pane.
@@ -504,14 +528,15 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
             tqPanel_.getAdqlPanel().removeCaretListener( adqlListener_ );
             tqPanel_ = null;
         }
-        if ( serviceUrl != null ) {
+        if ( serviceKit != null ) {
+            String serviceUrl = serviceKit.getServiceUrl().toString();
 
             /* Construct, configure and cache a suitable query panel
              * if we haven't seen this service URL before now. */
             if ( ! tqMap_.containsKey( serviceUrl ) ) {
                 TapQueryPanel tqPanel = createTapQueryPanel();
                 tqPanel.setServiceHeading( getServiceHeading( serviceUrl ) );
-                tqPanel.setService( serviceUrl, metaPolicy_ );
+                tqPanel.setServiceKit( serviceKit );
                 tqMap_.put( serviceUrl, tqPanel );
             }
 

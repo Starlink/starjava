@@ -12,8 +12,7 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -36,7 +35,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 import javax.swing.JToggleButton;
-import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
@@ -52,7 +50,7 @@ import javax.swing.text.PlainDocument;
  */
 public class TapQueryPanel extends JPanel {
 
-    private Thread capFetcher_;
+    private TapServiceKit serviceKit_;
     private Throwable parseError_;
     private AdqlValidator.ValidatorTable[] validatorTables_;
     private final ParseTextArea textPanel_;
@@ -251,58 +249,41 @@ public class TapQueryPanel extends JPanel {
     }
 
     /**
-     * Sets the service URL for the TAP service used by this panel.
+     * Sets the TAP service access used by this panel.
      * Calling this will unconditionally initiate an asynchronous attempt
-     * to fill in service metadata from the service at the given URL.
+     * to fill in service metadata from the given service.
      *
-     * @param  serviceUrl  base URL for a TAP service
-     * @param  metaPolicy  metadata acquisition policy
+     * @param  serviceKit   defines TAP service
      */
-    public void setService( final String serviceUrl,
-                            TapMetaPolicy metaPolicy ) {
+    public void setServiceKit( final TapServiceKit serviceKit ) {
+        serviceKit_ = serviceKit;
 
         /* Outdate service-related state. */
         validatorTables_ = null;
 
-        /* Prepare the URL where we can find the TableSet document. */
-        final URL url;
-        try {
-            url = new URL( serviceUrl );
-        }
-        catch ( MalformedURLException e ) {
-            return;
-        }
-
         /* Dispatch a request to acquire the table metadata from
          * the service. */
-        tmetaPanel_.setMetaReader( metaPolicy.createMetaReader( url ) );
+        tmetaPanel_.setServiceKit( serviceKit );
 
         /* Dispatch a request to acquire the service capability information
          * from the service. */
-        tcapPanel_.setCapability( null );
-        capFetcher_ = new Thread( "Table capability fetcher" ) {
-            public void run() {
-                final Thread fetcher = this;
-                final TapCapability cap;
-                try {
-                    cap = TapQuery.readTapCapability( url );
+        if ( serviceKit != null ) {
+            serviceKit.acquireCapability( new ResultHandler<TapCapability>() {
+                public boolean isActive() {
+                    return serviceKit_ == serviceKit;
                 }
-                catch ( final Exception e ) {
+                public void showWaiting() {
+                    tcapPanel_.setCapability( null );
+                }
+                public void showResult( TapCapability tcap ) {
+                    tcapPanel_.setCapability( tcap );
+                }
+                public void showError( IOException error ) {
                     logger_.warning( "Failed to acquire TAP service capability "
                                    + "information" );
-                    return;
                 }
-                SwingUtilities.invokeLater( new Runnable() {
-                    public void run() {
-                        if ( fetcher == capFetcher_ ) {
-                            tcapPanel_.setCapability( cap );
-                        }
-                    }
-                } );
-            }
-        };
-        capFetcher_.setDaemon( true );
-        capFetcher_.start();
+            } );
+        }
     }
 
     /**
@@ -443,10 +424,10 @@ public class TapQueryPanel extends JPanel {
                          * a current validation attempt, but next time it
                          * should be able to report the columns. */
                         else {
-                            TapMetaManager metaManager =
-                                tmetaPanel_.getMetaManager();
-                            if ( metaManager != null ) {
-                                metaManager.onColumns( tmeta0, new Runnable() {
+                            TapServiceKit serviceKit =
+                                tmetaPanel_.getServiceKit();
+                            if ( serviceKit != null ) {
+                                serviceKit.onColumns( tmeta0, new Runnable() {
                                     public void run() {
                                         validateAdql();
                                     }
