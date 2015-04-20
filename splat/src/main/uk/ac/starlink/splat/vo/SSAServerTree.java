@@ -1039,8 +1039,10 @@ public class SSAServerTree extends JPanel  implements PropertyChangeListener {
                     
                     SSAPRegResource server = (SSAPRegResource)resources[i];
                     String shortname = server.getShortName();
-                    if (shortname == null || shortname.length()==0)
+                    if (shortname == null || shortname.length()==0) {
                         shortname = server.getTitle(); // avoid problems if server has no name (should not happen, but it does!!!)
+                        server.setShortName(shortname);
+                    }
                     SSAPRegCapability caps[] = server.getCapabilities();
                     int nrcaps = server.getCapabilities().length;
                     int nrssacaps=0;
