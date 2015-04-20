@@ -4,9 +4,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import uk.ac.starlink.table.StarTable;
-import uk.ac.starlink.table.StoragePolicy;
-import uk.ac.starlink.table.Tables;
 
 /**
  * Defines the policy for acquiring TAP metadata from a remote service.
@@ -176,22 +173,12 @@ public abstract class TapMetaPolicy {
     private static long readRowCount( URL serviceUrl, String tableName )
             throws IOException {
         String adql = "SELECT COUNT(*) AS nrow FROM " + tableName;
-        TapQuery tq = new TapQuery( serviceUrl, adql, null );
-        StarTable result = tq.executeSync( StoragePolicy.PREFER_MEMORY );
-        result = Tables.randomTable( result );
-        if ( result.getRowCount() == 1 && result.getColumnCount() == 1 ) {
-            Object cell = result.getCell( 0, 0 );
-            if ( cell instanceof Number ) {
-                return ((Number) cell).longValue();
-            }
-            else {
-                throw new IOException( "Count result not numeric" );
-            }
+        Number nrow = TapQuery.scalarQuery( serviceUrl, adql, Number.class );
+        if ( nrow != null ) {
+            return nrow.longValue();
         }
         else {
-            throw new IOException( "Count result not unique ("
-                                 + result.getRowCount() + "x"
-                                 + result.getColumnCount() );
+            throw new IOException( "No count result" );
         }
     }
 }
