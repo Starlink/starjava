@@ -27,6 +27,7 @@ import uk.ac.starlink.table.ByteStore;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableSink;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.storage.DiscardByteStore;
 import uk.ac.starlink.table.storage.LimitByteStore;
 import uk.ac.starlink.util.CountInputStream;
@@ -370,6 +371,49 @@ public class TapQuery {
         URL curl = new URL( serviceUrl + "/capabilities" );
         logger_.info( "Reading capability metadata from " + curl );
         return TapCapability.readTapCapability( curl );
+    }
+
+    /**
+     * Utility method to obtain a single-cell table as the result of a
+     * synchronous TAP query.
+     *
+     * @param   serviceUrl     TAP service URL
+     * @param   adql   query string
+     * @param   clazz   class of required value
+     * @return   single value, or null if no rows
+     * @throws   IOException  if required result cannot be got
+     */
+    public static <T> T scalarQuery( URL serviceUrl, String adql,
+                                     Class<T> clazz )
+            throws IOException {
+        TapQuery tq = new TapQuery( serviceUrl, adql, null );
+        StarTable result = tq.executeSync( StoragePolicy.PREFER_MEMORY );
+        int ncol = result.getColumnCount();
+        if ( ncol != 1 ) {
+            throw new IOException( "Unexpected column count: "
+                                 + ncol + " != 1" );
+        }
+        result = Tables.randomTable( result );
+        long nrow = result.getRowCount();
+        if ( nrow == 0 ) {
+            return null;
+        }
+        else if ( nrow == 1 ) {
+            Object cell = result.getCell( 0, 0 );
+            if ( cell == null || clazz.isInstance( cell ) ) {
+                @SuppressWarnings("unchecked")
+                T tcell = clazz.cast( cell );
+                return tcell;
+            }
+            else {
+                throw new IOException( "Unexpected type "
+                                     + cell.getClass().getName() + " not "
+                                     + clazz.getName() );
+            }
+        }
+        else {
+            throw new IOException( "Unexpected row count: " + nrow + " > 0 " );
+        }
     }
 
     /**
