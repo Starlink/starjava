@@ -558,7 +558,6 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
              * if we haven't seen this service URL before now. */
             if ( ! tqMap_.containsKey( serviceUrl ) ) {
                 TapQueryPanel tqPanel = createTapQueryPanel();
-                tqPanel.setServiceHeading( getServiceHeading( serviceUrl ) );
                 tqPanel.setServiceKit( serviceKit );
                 tqMap_.put( serviceUrl, tqPanel );
             }
@@ -571,59 +570,6 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
             tqContainer_.add( tqPanel_, BorderLayout.CENTER );
         }
         updateReady();
-    }
-
-    /**
-     * Returns a line of text describing the given service URL.
-     * This is intended to be as human-readable as possible, and will be
-     * taken from the currently selected resource if it appears to be
-     * appropriate for the given URL.
-     *
-     * @param  serviceUrl  service URL of TAP service to find a heading for
-     * @return  human-readable description of service
-     */
-    private String getServiceHeading( String serviceUrl ) {
-        if ( serviceUrl == null && serviceUrl.trim().length() == 0 ) {
-            return "";
-        }
-        RegistryPanel regPanel = getRegistryPanel();
-        RegResource[] resources = regPanel.getSelectedResources();
-        RegCapabilityInterface[] caps = regPanel.getSelectedCapabilities();
-        if ( caps.length == 1 && resources.length == 1 ) {
-            String acref = caps[ 0 ].getAccessUrl();
-            if ( serviceUrl.equals( caps[ 0 ].getAccessUrl() ) ) {
-                String heading = getResourceHeading( resources[ 0 ] );
-                if ( heading != null && heading.trim().length() > 0 ) {
-                    return heading;
-                }
-            }
-        }
-        return serviceUrl;
-    }
-
-    /**
-     * Returns a line of text describing the given registry resource.
-     * This is intended to be as human-readable as possible.
-     * If the resource contains no appropriate fields however,
-     * null may be returned.
-     *
-     * @param  resource  resourse to describe
-     * @return  human-readable description of resource, or null
-     */
-    private static String getResourceHeading( RegResource resource ) {
-        String title = resource.getTitle();
-        if ( title != null && title.trim().length() > 0 ) {
-            return title;
-        }
-        String shortName = resource.getShortName();
-        if ( shortName != null && shortName.trim().length() > 0 ) {
-            return shortName;
-        }
-        String ident = resource.getIdentifier();
-        if ( ident != null && ident.trim().length() > 0 ) {
-            return ident;
-        }
-        return null;
     }
 
     /**
