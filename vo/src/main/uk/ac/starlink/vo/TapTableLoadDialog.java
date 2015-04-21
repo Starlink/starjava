@@ -510,7 +510,30 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
         catch ( MalformedURLException e ) {
             return null;
         }
-        return new TapServiceKit( serviceUrl, metaPolicy_, META_QUEUE_LIMIT );
+        return new TapServiceKit( serviceUrl, getIvoid( serviceUrl ),
+                                  metaPolicy_, META_QUEUE_LIMIT );
+    }
+
+    /**
+     * Returns the IVORN apparently corresponding to a selected service URL.
+     *
+     * @param   serviceUrl  service URL
+     * @return   corresponding IVORN, or null
+     */
+    private String getIvoid( URL serviceUrl ) {
+        RegResource[] resources = getRegistryPanel().getSelectedResources();
+        if ( resources == null || serviceUrl == null ) {
+            return null;
+        }
+        String surl = serviceUrl.toString();
+        for ( RegResource res : resources ) {
+            for ( RegCapabilityInterface cap : res.getCapabilities() ) {
+                if ( surl.equals( cap.getAccessUrl() ) ) {
+                    return res.getIdentifier();
+                }
+            }
+        }
+        return null;
     }
 
     /**
