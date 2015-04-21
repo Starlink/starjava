@@ -27,7 +27,6 @@ import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
@@ -56,7 +55,6 @@ public class TapQueryPanel extends JPanel {
     private final ParseTextArea textPanel_;
     private final TableSetPanel tmetaPanel_;
     private final TapCapabilityPanel tcapPanel_;
-    private final JLabel serviceLabel_;
     private final JToggleButton syncToggle_;
     private final Action examplesAct_;
     private final Action parseErrorAct_;
@@ -172,16 +170,9 @@ public class TapQueryPanel extends JPanel {
         qPanel.add( tcapPanel_, BorderLayout.NORTH );
         qPanel.add( adqlPanel, BorderLayout.CENTER );
 
-        /* Prepare a panel for the TAP service heading. */
-        serviceLabel_ = new JLabel();
-        JComponent tableHeading = Box.createHorizontalBox();
-        tableHeading.add( new JLabel( "Service: " ) );
-        tableHeading.add( serviceLabel_ );
-
         /* Arrange the components in a split pane. */
         final JSplitPane splitter = new JSplitPane( JSplitPane.VERTICAL_SPLIT );
         JComponent servicePanel = new JPanel( new BorderLayout() );
-        servicePanel.add( tableHeading, BorderLayout.NORTH );
         servicePanel.add( tmetaPanel_, BorderLayout.CENTER );
         adqlPanel.setBorder(
             BorderFactory.createTitledBorder(
@@ -236,16 +227,6 @@ public class TapQueryPanel extends JPanel {
      */
     public boolean isSynchronous() {
         return syncToggle_.isSelected();
-    }
-
-    /**
-     * Sets a short text string describing the TAP service used by this panel.
-     *
-     * @param  serviceHeading  short, human-readable label for the
-     *         service this panel relates to
-     */
-    public void setServiceHeading( String serviceHeading ) {
-        serviceLabel_.setText( serviceHeading );
     }
 
     /**

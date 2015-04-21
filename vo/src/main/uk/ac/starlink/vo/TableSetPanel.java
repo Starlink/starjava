@@ -7,8 +7,10 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 import javax.swing.BorderFactory;
@@ -53,7 +55,6 @@ public class TableSetPanel extends JPanel {
 
     private final JTree tTree_;
     private final JTextField searchField_;
-    private final JLabel countLabel_;
     private final TreeSelectionModel selectionModel_;
     private final JTable colTable_;
     private final JTable foreignTable_;
@@ -111,8 +112,6 @@ public class TableSetPanel extends JPanel {
         searchField_.setToolTipText( searchTip );
         searchLabel.setToolTipText( searchTip );
 
-        countLabel_ = new JLabel();
-
         colTableModel_ = new ArrayTableModel( createColumnMetaColumns(),
                                               new ColumnMeta[ 0 ] );
         colTable_ = new JTable( colTableModel_ );
@@ -142,21 +141,26 @@ public class TableSetPanel extends JPanel {
 
         detailTabber_ = new JTabbedPane();
         int itab = 0;
-        detailTabber_.addTab( "Service", servicePanel_ );
+        detailTabber_.addTab( "Service", metaScroller( servicePanel_ ) );
         itabService_ = itab++;
-        detailTabber_.addTab( "Schema", schemaPanel_ );
+        detailTabber_.addTab( "Schema", metaScroller( schemaPanel_ ) );
         itabSchema_ = itab++;
-        detailTabber_.addTab( "Table", tablePanel_ );
+        detailTabber_.addTab( "Table", metaScroller( tablePanel_ ) );
         itabTable_ = itab++;
         detailTabber_.addTab( "Columns", new JScrollPane( colTable_ ) );
         itabCol_ = itab++;
         detailTabber_.addTab( "Foreign Keys",
                               new JScrollPane( foreignTable_ ) );
         itabForeign_ = itab++;
+        detailTabber_.setSelectedIndex( itabSchema_ );
 
-        JComponent treePanel = new JPanel( new BorderLayout() );
+        JComponent treePanel = new JPanel( new BorderLayout() ) {
+            @Override
+            public Dimension getMinimumSize() {
+                return new Dimension( 180, super.getMinimumSize().height );
+            }
+        };
         treePanel.add( new JScrollPane( tTree_ ), BorderLayout.CENTER );
-        treePanel.add( countLabel_, BorderLayout.SOUTH );
         JComponent searchLine = Box.createHorizontalBox();
         searchLine.add( searchLabel );
         searchLine.add( searchField_ );
@@ -200,25 +204,42 @@ public class TableSetPanel extends JPanel {
         }
         serviceKit_ = serviceKit;
         setSchemas( null );
+        setResourceInfo( null );
         if ( serviceKit == null ) {
-            return;
+            servicePanel_.setId( null, null );
         }
-        servicePanel_.setServiceUrl( serviceKit.getServiceUrl() );
-        servicePanel_.setIvoid( serviceKit.getIvoid() );
-        serviceKit.acquireSchemas( new ResultHandler<SchemaMeta[]>() {
-            public boolean isActive() {
-                return serviceKit == serviceKit_;
-            }
-            public void showWaiting() {
-                showFetchProgressBar( "Fetching Table Metadata" );
-            }
-            public void showResult( SchemaMeta[] result ) {
-                setSchemas( result );
-            }
-            public void showError( IOException error ) {
-                showFetchFailure( error );
-            }
-        } );
+        else {
+            servicePanel_.setId( serviceKit.getServiceUrl(),
+                                 serviceKit.getIvoid() );
+            serviceKit.acquireResource(
+                           new ResultHandler<Map<String,String>>() {
+                public boolean isActive() {
+                    return serviceKit == serviceKit_;
+                }
+                public void showWaiting() {
+                }
+                public void showResult( Map<String,String> resourceMap ) {
+                    setResourceInfo( resourceMap );
+                }
+                public void showError( IOException error ) {
+                    setResourceInfo( null );
+                }
+            } );
+            serviceKit.acquireSchemas( new ResultHandler<SchemaMeta[]>() {
+                public boolean isActive() {
+                    return serviceKit == serviceKit_;
+                }
+                public void showWaiting() {
+                    showFetchProgressBar( "Fetching Table Metadata" );
+                }
+                public void showResult( SchemaMeta[] result ) {
+                    setSchemas( result );
+                }
+                public void showError( IOException error ) {
+                    showFetchFailure( error );
+                }
+            } );
+        }
     }
 
     /**
@@ -271,13 +292,29 @@ public class TableSetPanel extends JPanel {
             }
             countTxt = schemas.length + " schemas, " + nTable + " tables";
         }
-        countLabel_.setText( countTxt );
+        servicePanel_.setSize( countTxt );
 
         metaPanel_.removeAll();
         metaPanel_.add( metaSplitter_ );
         metaPanel_.revalidate();
         updateForSelection();
         repaint();
+    }
+
+    /**
+     * Displays information about the registry resource corresponding to
+     * the TAP service represented by this panel.
+     * The argument is a map of standard RegTAP resource column names
+     * to their values.
+     *
+     * @param  map  map of service resource metadata items,
+     *              or null for no info
+     */
+    private void setResourceInfo( Map<String,String> map ) {
+        servicePanel_.setResourceInfo( map == null
+                                     ? new HashMap<String,String>()
+                                     : map );
+        detailTabber_.setIconAt( itabService_, activeIcon( map != null ) );
     }
 
     /**
@@ -757,6 +794,17 @@ public class TableSetPanel extends JPanel {
     }
 
     /**
+     * Wraps a MetaPanel in a suitable JScrollPane.
+     *
+     * @param  panel  panel to wrap
+     * @return   wrapped panel
+     */
+    private static JScrollPane metaScroller( MetaPanel panel ) {
+        return new JScrollPane( panel, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                                       JScrollPane.HORIZONTAL_SCROLLBAR_NEVER );
+    }
+
+    /**
      * Tree node mask that selects on simple matches of node name strings
      * to one or more space-separated words entered in the search field.
      */
@@ -825,16 +873,15 @@ public class TableSetPanel extends JPanel {
         public void setTable( TableMeta table ) {
             if ( table != table_ ) {
                 table_ = table;
-                nameField_.setText( table == null ? null : table.getName() );
-                nameField_.setCaretPosition( 0 );
-                descripField_.setText( table == null ? null
-                                                     : table.getDescription() );
-                descripField_.setCaretPosition( 0 );
+                setFieldText( nameField_,
+                              table == null ? null : table.getName() );
+                setFieldText( descripField_,
+                              table == null ? null : table.getDescription() );
                 ColumnMeta[] cols = table == null ? null : table.getColumns();
-                ncolField_.setText( arrayLength( cols ) );
+                setFieldText( ncolField_, arrayLength( cols ) );
                 ForeignMeta[] fks = table == null ? null
                                                   : table.getForeignKeys();
-                nfkField_.setText( arrayLength( fks ) );
+                setFieldText( nfkField_, arrayLength( fks ) );
             }
         }
     }
@@ -865,14 +912,12 @@ public class TableSetPanel extends JPanel {
         public void setSchema( SchemaMeta schema ) {
             if ( schema != schema_ ) {
                 schema_ = schema;
-                nameField_.setText( schema == null ? null : schema.getName() );
-                nameField_.setCaretPosition( 0 );
-                descripField_.setText( schema == null
-                                     ? null
-                                     : schema.getDescription() );
-                descripField_.setCaretPosition( 0 );
+                setFieldText( nameField_,
+                              schema == null ? null : schema.getName() );
+                setFieldText( descripField_,
+                              schema == null ? null : schema.getDescription() );
                 TableMeta[] tables = schema == null ? null : schema.getTables();
-                ntableField_.setText( arrayLength( tables ) );
+                setFieldText( ntableField_, arrayLength( tables ) );
             }
         }
     }
@@ -883,20 +928,59 @@ public class TableSetPanel extends JPanel {
     private static class ResourceMetaPanel extends MetaPanel {
         private final JTextComponent ivoidField_;
         private final JTextComponent servurlField_;
+        private final JTextComponent nameField_;
+        private final JTextComponent titleField_;
+        private final JTextComponent refurlField_;
+        private final JTextComponent sizeField_;
+        private final JTextComponent descripField_;
 
+        /**
+         * Constructor.
+         */
         ResourceMetaPanel() {
+            nameField_ = addLineField( "Short Name" );
+            titleField_ = addLineField( "Title" );
             ivoidField_ = addLineField( "IVO ID" );
             servurlField_ = addLineField( "Service URL" );
+            refurlField_ = addLineField( "Reference URL" );
+            sizeField_ = addLineField( "Size" );
+            descripField_ = addMultiLineField( "Description" );
         }
 
-        public void setServiceUrl( URL url ) {
-            servurlField_.setText( url == null ? null : url.toString() );
-            servurlField_.setCaretPosition( 0 );
+        /**
+         * Sets basic identity information for this service.
+         *
+         * @param  serviceUrl   TAP service URL, may be null
+         * @param  ivoid  ivorn for TAP service registry resource, may be null
+         */
+        public void setId( URL serviceUrl, String ivoid ) {
+            setFieldText( servurlField_,
+                          serviceUrl == null ? null : serviceUrl.toString() );
+            setFieldText( ivoidField_, ivoid );
         }
 
-        public void setIvoid( String ivoid ) {
-            ivoidField_.setText( ivoid );
-            ivoidField_.setCaretPosition( 0 );
+        /**
+         * Supplies a string indicating the size of the service.
+         *
+         * @param   sizeTxt  text, for instance count of schemas and tables
+         */
+        public void setSize( String sizeTxt ) {
+            setFieldText( sizeField_, sizeTxt );
+        }
+
+        /**
+         * Sets resource information.
+         * The argument is a map of standard RegTAP resource column names
+         * to their values.
+         *
+         * @param  map  map of service resource metadata items,
+         *              may be empty but not null
+         */
+        public void setResourceInfo( Map<String,String> info ) {
+            setFieldText( nameField_, info.remove( "short_name" ) );
+            setFieldText( titleField_, info.remove( "res_title" ) );
+            setFieldText( refurlField_, info.remove( "reference_url" ) );
+            setFieldText( descripField_, info.remove( "res_description" ) );
         }
     }
 }

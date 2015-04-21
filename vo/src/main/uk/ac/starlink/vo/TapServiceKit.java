@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
@@ -24,6 +25,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
 import org.xml.sax.SAXException;
+import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.StoragePolicy;
+import uk.ac.starlink.table.Tables;
 
 /**
  * Handles asynchronous population of the TAP metadata hierarchy. 
@@ -199,6 +203,28 @@ public class TapServiceKit {
                 }
             }
         }, "TAP Capabilities" );
+    }
+
+    /**
+     * Asynchronously acquires information about the registry resource
+     * corresponding to this service.
+     * The result is a map of standard RegTAP resource column names
+     * to their values.
+     *
+     * @param  handler  receiver for resource metadata map
+     */
+    public void acquireResource( final
+                                 ResultHandler<Map<String,String>> handler ) {
+        acquireData( handler, new DataCallable<Map<String,String>>() {
+            public Map<String,String> call() throws IOException {
+
+                /* For now we have hardcoded the GAVO registry service here.
+                 * Perhaps it should be pluggable, but this information is not
+                 * critical, and this service is expected to be pretty
+                 * reliable. */
+                return readResourceInfo( RegTapRegistryQuery.GAVO_REG, ivoid_ );
+            }
+        }, "Registry resource info" );
     }
 
     /**
@@ -393,6 +419,49 @@ public class TapServiceKit {
                 } );
             }
         } );
+    }
+
+    /**
+     * Reads resource metadata corresponding to a given IVORN.
+     * The result is a map of standard RegTAP resource column names
+     * to their values.
+     *
+     * @param  regUrl   service URL of registry service
+     * @param  ivoid    ivorn for resource of interest
+     * @return  map from resource column name to value for selected resource
+     *          metadata items
+     */
+    private static Map<String,String> readResourceInfo( String regUrl,
+                                                        String ivoid )
+            throws IOException {
+        String[] items = new String[] {
+            "short_name",
+            "res_title",
+            "res_description",
+            "reference_url",
+        };
+        StringBuffer adql = new StringBuffer()
+           .append( "SELECT" );
+        for ( int i = 0; i < items.length; i++ ) {
+            adql.append( i == 0 ? " " : ", " )
+                .append( items[ i ] );
+        }
+        adql.append( " FROM rr.resource" )
+            .append( " WHERE ivoid='" )
+            .append( ivoid )
+            .append( "'" );
+        TapQuery tq = new TapQuery( new URL( regUrl ), adql.toString(), null );
+        StarTable result = tq.executeSync( StoragePolicy.PREFER_MEMORY );
+        result = Tables.randomTable( result );
+        Map<String,String> resultMap = new LinkedHashMap<String,String>();
+        int ncol = result.getColumnCount();
+        for ( int icol = 0; icol < ncol; icol++ ) {
+            Object value = result.getCell( 0, icol );
+            if ( value instanceof String ) {
+                resultMap.put( items[ icol ], (String) value );
+            }
+        }
+        return resultMap;
     }
 
     /**
