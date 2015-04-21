@@ -40,6 +40,7 @@ import org.xml.sax.SAXException;
 public class TapServiceKit {
 
     private final URL serviceUrl_;
+    private final String ivoid_;
     private final TapMetaPolicy metaPolicy_;
     private final Map<Populator,Collection<Runnable>> runningMap_;
     private final ExecutorService metaExecutor_;
@@ -52,14 +53,16 @@ public class TapServiceKit {
      * Constructor.
      *
      * @param   serviceUrl  base URL of TAP service
+     * @param   ivoid       IVORN of TAP service, if known (may be null)
      * @param   metaPolicy  implementation for reading table metadata
      * @param   queueLimit  maximum number of table metadata requests queued
      *                      to service; more than that and older ones
      *                      will be dropped
      */
-    public TapServiceKit( URL serviceUrl, TapMetaPolicy metaPolicy,
-                          int queueLimit ) {
+    public TapServiceKit( URL serviceUrl, String ivoid,
+                          TapMetaPolicy metaPolicy, int queueLimit ) {
         serviceUrl_ = serviceUrl;
+        ivoid_ = ivoid;
         metaPolicy_ = metaPolicy;
         metaExecutor_ = createExecutorService( queueLimit );
         runningMap_ = new HashMap<Populator,Collection<Runnable>>();
@@ -72,6 +75,15 @@ public class TapServiceKit {
      */
     public URL getServiceUrl() {
         return serviceUrl_;
+    }
+
+    /**
+     * Returns the resource identifier for this kit if known.
+     *
+     * @return  IVORN for TAP service resource, or null
+     */
+    public String getIvoid() {
+        return ivoid_;
     }
 
     /**

@@ -3,6 +3,7 @@ package uk.ac.starlink.vo;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
@@ -60,9 +61,11 @@ public class TableSetPanel extends JPanel {
     private final ArrayTableModel foreignTableModel_;
     private final MetaColumnModel colColModel_;
     private final MetaColumnModel foreignColModel_;
+    private final ResourceMetaPanel servicePanel_;
     private final SchemaMetaPanel schemaPanel_;
     private final TableMetaPanel tablePanel_;
     private final JTabbedPane detailTabber_;
+    private final int itabService_;
     private final int itabSchema_;
     private final int itabTable_;
     private final int itabCol_;
@@ -135,9 +138,12 @@ public class TableSetPanel extends JPanel {
 
         tablePanel_ = new TableMetaPanel();
         schemaPanel_ = new SchemaMetaPanel();
+        servicePanel_ = new ResourceMetaPanel();
 
         detailTabber_ = new JTabbedPane();
         int itab = 0;
+        detailTabber_.addTab( "Service", servicePanel_ );
+        itabService_ = itab++;
         detailTabber_.addTab( "Schema", schemaPanel_ );
         itabSchema_ = itab++;
         detailTabber_.addTab( "Table", tablePanel_ );
@@ -197,6 +203,8 @@ public class TableSetPanel extends JPanel {
         if ( serviceKit == null ) {
             return;
         }
+        servicePanel_.setServiceUrl( serviceKit.getServiceUrl() );
+        servicePanel_.setIvoid( serviceKit.getIvoid() );
         serviceKit.acquireSchemas( new ResultHandler<SchemaMeta[]>() {
             public boolean isActive() {
                 return serviceKit == serviceKit_;
@@ -866,6 +874,29 @@ public class TableSetPanel extends JPanel {
                 TableMeta[] tables = schema == null ? null : schema.getTables();
                 ntableField_.setText( arrayLength( tables ) );
             }
+        }
+    }
+
+    /**
+     * MetaPanel subclass for displaying service metadata.
+     */
+    private static class ResourceMetaPanel extends MetaPanel {
+        private final JTextComponent ivoidField_;
+        private final JTextComponent servurlField_;
+
+        ResourceMetaPanel() {
+            ivoidField_ = addLineField( "IVO ID" );
+            servurlField_ = addLineField( "Service URL" );
+        }
+
+        public void setServiceUrl( URL url ) {
+            servurlField_.setText( url == null ? null : url.toString() );
+            servurlField_.setCaretPosition( 0 );
+        }
+
+        public void setIvoid( String ivoid ) {
+            ivoidField_.setText( ivoid );
+            ivoidField_.setCaretPosition( 0 );
         }
     }
 }
