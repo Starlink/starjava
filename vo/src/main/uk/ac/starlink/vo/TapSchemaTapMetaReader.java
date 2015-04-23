@@ -3,6 +3,8 @@ package uk.ac.starlink.vo;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -66,13 +68,22 @@ public class TapSchemaTapMetaReader implements TapMetaReader {
     }
 
     public SchemaMeta[] readSchemas() throws IOException {
-        return tsi_.readSchemas( populateSchemas_, populateTables_,
-                                 addOrphanTables_ );
+        SchemaMeta[] schemas = 
+            tsi_.readSchemas( populateSchemas_, populateTables_,
+                              addOrphanTables_ );
+        sortSchemas( schemas );
+        for ( SchemaMeta smeta : schemas ) {
+            TableMeta[] tmetas = smeta.getTables();
+            if ( tmetas != null ) {
+                sortTables( tmetas );
+            }
+        }
+        return schemas;
     }
 
     public TableMeta[] readTables( SchemaMeta schema ) throws IOException {
         String whereClause = "schema_name = '" + schema.getName() + "'";
-        List<TableMeta> tables =
+        List<TableMeta> tableList =
             tsi_.readList( TapSchemaInterrogator.TABLE_QUERIER, whereClause );
         if ( populateTables_ ) {
             Map<String,List<ForeignMeta.Link>> lMap =
@@ -93,13 +104,15 @@ public class TapSchemaTapMetaReader implements TapMetaReader {
             Map<String,List<ColumnMeta>> cMap =
                tsi_.readMap( TapSchemaInterrogator.COLUMN_QUERIER,
                              "NATURAL JOIN TAP_SCHEMA.tables " + whereClause );
-            for ( TableMeta tmeta : tables ) {
+            for ( TableMeta tmeta : tableList ) {
                 tsi_.populateTable( tmeta, fMap, cMap );
             }
             checkEmpty( fMap, "Foreign keys" );
             checkEmpty( cMap, "Columns" );
         }
-        return tables.toArray( new TableMeta[ 0 ] );
+        TableMeta[] tables = tableList.toArray( new TableMeta[ 0 ] );
+        sortTables( tables );
+        return tables;
     }
 
     public ColumnMeta[] readColumns( TableMeta table ) throws IOException {
@@ -138,5 +151,39 @@ public class TapSchemaTapMetaReader implements TapMetaReader {
                            + objType + " entries" );
             logger_.info( "Orphaned " + objType + "s: " + map.keySet() );
         }
+    }
+
+    /**
+     * Sorts an array of schemas in place by schema name.
+     *
+     * @param  smetas  schema array
+     */
+    private static void sortSchemas( SchemaMeta[] smetas ) {
+        Arrays.sort( smetas, new Comparator<SchemaMeta>() {
+            public int compare( SchemaMeta s1, SchemaMeta s2 ) {
+                return getSchemaName( s1 ).compareTo( getSchemaName( s2 ) );
+            }
+            private String getSchemaName( SchemaMeta smeta ) {
+                String name = smeta.getName();
+                return name == null ? "" : name;
+            }
+        } );
+    }
+
+    /**
+     * Sorts an array of tables in place by table name.
+     *
+     * @param  tmetas  table array
+     */
+    private static void sortTables( TableMeta[] tmetas ) {
+        Arrays.sort( tmetas, new Comparator<TableMeta>() {
+            public int compare( TableMeta t1, TableMeta t2 ) {
+                return getTableName( t1 ).compareTo( getTableName( t2 ) );
+            }
+            private String getTableName( TableMeta tmeta ) {
+                String name = tmeta.getName();
+                return name == null ? "" : name;
+            }
+        } );
     }
 }
