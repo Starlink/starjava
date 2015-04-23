@@ -21823,6 +21823,8 @@ introduced since the last version:
     <li>Fix serious bug in time conversion for CDF TIME_TT2000 data types.
         This was giving completely wrong (deep future) labels when using
         TIME_TT2000 columns in time plots.</li>
+    <li>Update JCDF library to v1.1
+        (minor changes to do with leap seconds).</li>
     </ul>
     </p></dd>
 
