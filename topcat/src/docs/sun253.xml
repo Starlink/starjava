@@ -21820,6 +21820,9 @@ introduced since the last version:
     <li>Minor improvement to version reporting 
         (reports java specification version,
          no longer issues warning for absent revision string).</li>
+    <li>Fix serious bug in time conversion for CDF TIME_TT2000 data types.
+        This was giving completely wrong (deep future) labels when using
+        TIME_TT2000 columns in time plots.</li>
     </ul>
     </p></dd>
 
