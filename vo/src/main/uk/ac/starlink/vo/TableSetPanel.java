@@ -1,6 +1,7 @@
 package uk.ac.starlink.vo;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.io.IOException;
 import java.net.URL;
@@ -33,6 +34,7 @@ import javax.swing.event.CaretListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.text.JTextComponent;
+import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
@@ -91,6 +93,7 @@ public class TableSetPanel extends JPanel {
         tTree_.setRootVisible( false );
         tTree_.setShowsRootHandles( true );
         tTree_.setExpandsSelectedPaths( true );
+        tTree_.setCellRenderer( new CountTableTreeCellRenderer() );
         selectionModel_ = tTree_.getSelectionModel();
         selectionModel_.setSelectionMode( TreeSelectionModel
                                          .SINGLE_TREE_SELECTION );
@@ -802,6 +805,32 @@ public class TableSetPanel extends JPanel {
     private static JScrollPane metaScroller( MetaPanel panel ) {
         return new JScrollPane( panel, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
                                        JScrollPane.HORIZONTAL_SCROLLBAR_NEVER );
+    }
+
+    /**
+     * TreeCellRenderer that appends a count of table children to the
+     * text label for each schema entry in the tree.
+     */
+    private static class CountTableTreeCellRenderer
+            extends DefaultTreeCellRenderer {
+        @Override
+        public Component getTreeCellRendererComponent( JTree tree, Object value,
+                                                       boolean isSelected,
+                                                       boolean isExpanded,
+                                                       boolean isLeaf, int irow,
+                                                       boolean hasFocus ) {
+            Component comp =
+                super.getTreeCellRendererComponent( tree, value, isSelected,
+                                                    isExpanded, isLeaf, irow,
+                                                    hasFocus );
+            if ( value instanceof SchemaMeta ) {
+                TableMeta[] tables = ((SchemaMeta) value).getTables();
+                if ( tables != null ) {
+                    setText( getText() + " (" + tables.length + ")" );
+                }
+            }
+            return comp;
+        }
     }
 
     /**
