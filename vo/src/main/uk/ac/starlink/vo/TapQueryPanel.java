@@ -53,7 +53,8 @@ public class TapQueryPanel extends JPanel {
 
     private TapServiceKit serviceKit_;
     private Throwable parseError_;
-    private AdqlValidator.ValidatorTable[] validatorTables_;
+    private AdqlValidator.ValidatorTable[] extraTables_;
+    private AdqlValidator validator_;
     private final ParseTextArea textPanel_;
     private final TableSetPanel tmetaPanel_;
     private final TapCapabilityPanel tcapPanel_;
@@ -75,6 +76,13 @@ public class TapQueryPanel extends JPanel {
 
         /* Prepare a panel for table metadata display. */
         tmetaPanel_ = new TableSetPanel();
+        tmetaPanel_.addPropertyChangeListener( TableSetPanel.SCHEMAS_PROPERTY,
+                                               new PropertyChangeListener() {
+            public void propertyChange( PropertyChangeEvent evt ) {
+                validator_ = null;
+                validateAdql();
+            }
+        } );
 
         /* Prepare a panel to contain service capability information. */
         tcapPanel_ = new TapCapabilityPanel();
@@ -282,7 +290,7 @@ public class TapQueryPanel extends JPanel {
         serviceKit_ = serviceKit;
 
         /* Outdate service-related state. */
-        validatorTables_ = null;
+        validator_ = null;
 
         /* Dispatch a request to acquire the table metadata from
          * the service. */
@@ -310,18 +318,17 @@ public class TapQueryPanel extends JPanel {
     }
 
     /**
-     * Returns any extra tables available for valid queries.
+     * Sets a list of extra tables available for valid queries.
      * By default ADQL validation is done on a list of tables acquired
-     * by reading the service's declared table metadata.
-     * Subclasses which override this method can arrange for additional
-     * tables to be passed by the validator.
-     * This method is called immediately prior to any validation attempt.
-     * The default implementation returns an empty array.
+     * by reading the service's declared table metadata,
+     * but additional tables may be added for consideration using this call.
      *
-     * @return   array of additional tables to be passed by the validator
+     * @param   extraTables  additional tables to be passed by the validator
      */
-    protected AdqlValidator.ValidatorTable[] getExtraTables() {
-        return new AdqlValidator.ValidatorTable[ 0 ];
+    public void setExtraTables( AdqlValidator.ValidatorTable[] extraTables ) {
+        extraTables_ = extraTables;
+        validator_ = null;
+        validateAdql();
     }
 
     /**
@@ -381,26 +388,23 @@ public class TapQueryPanel extends JPanel {
      * @return  ADQL validator
      */
     private AdqlValidator getValidator() {
-
-        /* Prepare a list of table metadata objects to inform the validator
-         * what tables and columns are available. */
-        List<AdqlValidator.ValidatorTable> vtList =
-            new ArrayList<AdqlValidator.ValidatorTable>();
-        if ( validatorTables_ == null ) {
+        if ( validator_ == null ) {
+            List<AdqlValidator.ValidatorTable> vtList =
+                new ArrayList<AdqlValidator.ValidatorTable>();
             SchemaMeta[] schemas = tmetaPanel_.getSchemas();
             if ( schemas != null ) {
-                validatorTables_ = createValidatorTables( schemas );
+                AdqlValidator.ValidatorTable[] serviceTables =
+                    createValidatorTables( schemas );
+                vtList.addAll( Arrays.asList( serviceTables ) );
             }
+            if ( extraTables_ != null ) {
+                vtList.addAll( Arrays.asList( extraTables_ ) );
+            }
+            AdqlValidator.ValidatorTable[] vtables =
+                vtList.toArray( new AdqlValidator.ValidatorTable[ 0 ] );
+            validator_ = new AdqlValidator( vtables, true );
         }
-        if ( validatorTables_ != null ) {
-            vtList.addAll( Arrays.asList( validatorTables_ ) );
-        }
-        vtList.addAll( Arrays.asList( getExtraTables() ) );
-        AdqlValidator.ValidatorTable[] vtables =
-            vtList.toArray( new AdqlValidator.ValidatorTable[ 0 ] );
-
-        /* Construct and return a validator. */
-        return new AdqlValidator( vtables, true );
+        return validator_;
     }
 
     /**
