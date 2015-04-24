@@ -28,9 +28,12 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.JTree;
+import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.text.JTextComponent;
@@ -77,6 +80,19 @@ public class TableSetPanel extends JPanel {
     private final JSplitPane metaSplitter_;
     private TapServiceKit serviceKit_;;
     private SchemaMeta[] schemas_;
+    private ColumnMeta[] lastSelectedCols_;
+
+    /**
+     * Name of bound property for table selection.
+     * Property value is the return value of {@link #getSelectedTable}.
+     */
+    public static final String TABLE_SELECTION_PROPERTY = "selectedTable";
+
+    /**
+     * Name of bound property for column list selection.
+     * Property value is the return value of {@link #getSelectedColumns}.
+     */
+    public static final String COLUMNS_SELECTION_PROPERTY = "selectedColumns";
 
     /** Number of nodes below which tree nodes are expanded. */
     private static final int TREE_EXPAND_THRESHOLD = 100;
@@ -99,7 +115,15 @@ public class TableSetPanel extends JPanel {
                                          .SINGLE_TREE_SELECTION );
         selectionModel_.addTreeSelectionListener( new TreeSelectionListener() {
             public void valueChanged( TreeSelectionEvent evt ) {
-                updateForSelection();
+                updateForTableSelection();
+                TableMeta oldSel =
+                    TapMetaTreeModel.getTable( evt.getOldLeadSelectionPath() );
+                TableMeta newSel =
+                    TapMetaTreeModel.getTable( evt.getNewLeadSelectionPath() );
+                assert newSel == getSelectedTable();
+                TableSetPanel.this
+                             .firePropertyChange( TABLE_SELECTION_PROPERTY,
+                                                  oldSel, newSel );
             }
         } );
 
@@ -119,12 +143,22 @@ public class TableSetPanel extends JPanel {
                                               new ColumnMeta[ 0 ] );
         colTable_ = new JTable( colTableModel_ );
         colTable_.setColumnSelectionAllowed( false );
-        colTable_.setRowSelectionAllowed( false );
         colColModel_ =
             new MetaColumnModel( colTable_.getColumnModel(), colTableModel_ );
         colTable_.setColumnModel( colColModel_ );
         new ArrayTableSorter( colTableModel_ )
            .install( colTable_.getTableHeader() );
+        ListSelectionModel colSelModel = colTable_.getSelectionModel();
+        colSelModel.setSelectionMode( ListSelectionModel
+                                     .MULTIPLE_INTERVAL_SELECTION );
+        colSelModel.addListSelectionListener( new ListSelectionListener() {
+            public void valueChanged( ListSelectionEvent evt ) {
+                if ( ! evt.getValueIsAdjusting() ) {
+                    TableSetPanel.this.fireColumnSelectionChanged();
+                }
+            }
+        } );
+        lastSelectedCols_ = new ColumnMeta[ 0 ];
 
         foreignTableModel_ = new ArrayTableModel( createForeignMetaColumns(),
                                                   new ColumnMeta[ 0 ] );
@@ -300,7 +334,7 @@ public class TableSetPanel extends JPanel {
         metaPanel_.removeAll();
         metaPanel_.add( metaSplitter_ );
         metaPanel_.revalidate();
-        updateForSelection();
+        updateForTableSelection();
         repaint();
     }
 
@@ -418,9 +452,30 @@ public class TableSetPanel extends JPanel {
     }
 
     /**
+     * Returns an array of the columns which are currently selected in
+     * the column metadata display table.
+     *
+     * @return   array of selected columns, may be empty but not null
+     */
+    public ColumnMeta[] getSelectedColumns() {
+        List<ColumnMeta> colList = new ArrayList<ColumnMeta>();
+        ListSelectionModel selModel = colTable_.getSelectionModel();
+        if ( ! selModel.isSelectionEmpty() ) {
+            int imin = selModel.getMinSelectionIndex();
+            int imax = selModel.getMaxSelectionIndex();
+            for ( int i = imin; i <= imax; i++ ) {
+                if ( selModel.isSelectedIndex( i ) ) {
+                    colList.add( (ColumnMeta) colTableModel_.getItems()[ i ] );
+                }
+            }
+        }
+        return colList.toArray( new ColumnMeta[ 0 ] );
+    }
+
+    /**
      * Invoked when table selection may have changed.
      */
-    private void updateForSelection() {
+    private void updateForTableSelection() {
         TreePath path = selectionModel_.getSelectionPath();
         final TableMeta table = TapMetaTreeModel.getTable( path );
         SchemaMeta schema = TapMetaTreeModel.getSchema( path );
@@ -447,6 +502,16 @@ public class TableSetPanel extends JPanel {
     }
 
     /**
+     * Invoked when the column selection may have changed.
+     */
+    private void fireColumnSelectionChanged() {
+        ColumnMeta[] selCols = getSelectedColumns();
+        firePropertyChange( COLUMNS_SELECTION_PROPERTY,
+                            lastSelectedCols_, selCols );
+        lastSelectedCols_ = selCols;
+    }
+
+    /**
      * Updates the display if required for the columns of a table.
      *
      * @param  table  table
@@ -460,6 +525,7 @@ public class TableSetPanel extends JPanel {
             if ( table != null ) {
                 configureColumnWidths( colTable_ );
             }
+            fireColumnSelectionChanged();
         }
     }
 
