@@ -12,6 +12,8 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -102,10 +104,9 @@ public class TapQueryPanel extends JPanel {
 
         /* Action to clear text in ADQL panel. */
         final AdqlTextAction clearAct =
-                new AdqlTextAction( "Clear",
-                                    "Clear currently visible ADQL text "
-                                  + "from editor" ) {
-        };
+            new AdqlTextAction( "Clear", true,
+                                "Clear currently visible ADQL text "
+                              + "from editor" );
         clearAct.setAdqlText( "" );
         clearAct.setEnabled( false );
         textPanel_.getDocument().addDocumentListener( new DocumentListener() {
@@ -120,6 +121,43 @@ public class TapQueryPanel extends JPanel {
             private void changed() {
                 clearAct.setEnabled( textPanel_.getDocument().getLength() > 0 );
                 validateAdql();
+            }
+        } );
+
+        /* Action to insert table name. */
+        final AdqlTextAction interpolateTableAct =
+            new AdqlTextAction( "Insert Table", false,
+                                "Insert name of currently selected table "
+                              + "into ADQL text panel" );
+        tmetaPanel_.addPropertyChangeListener( TableSetPanel
+                                              .TABLE_SELECTION_PROPERTY,
+                                               new PropertyChangeListener() {
+            public void propertyChange( PropertyChangeEvent evt ) {
+                TableMeta tmeta = tmetaPanel_.getSelectedTable();
+                String txt = tmeta == null ? null : tmeta.getName();
+                interpolateTableAct.setAdqlText( txt );
+            }
+        } );
+
+        /* Action to insert column names. */
+        final AdqlTextAction interpolateColumnsAct =
+            new AdqlTextAction( "Insert Columns", false,
+                                "Insert names of currently selected columns "
+                              + "into ADQL text panel" );
+        tmetaPanel_.addPropertyChangeListener( TableSetPanel
+                                              .COLUMNS_SELECTION_PROPERTY,
+                                               new PropertyChangeListener() {
+            public void propertyChange( PropertyChangeEvent evt ) {
+                ColumnMeta[] cmetas = tmetaPanel_.getSelectedColumns();
+                StringBuffer sbuf = new StringBuffer();
+                for ( int i = 0; i < cmetas.length; i++ ) {
+                    if ( i > 0 ) {
+                        sbuf.append( ", " );
+                    }
+                    sbuf.append( cmetas[ i ].getName() );
+                }
+                String txt = sbuf.length() == 0 ? null : sbuf.toString();
+                interpolateColumnsAct.setAdqlText( txt );
             }
         } );
 
@@ -156,6 +194,10 @@ public class TapQueryPanel extends JPanel {
         buttLine.setBorder( BorderFactory.createEmptyBorder( 0, 2, 2, 0 ) );
         buttLine.add( syncToggle_ );
         buttLine.add( Box.createHorizontalGlue() );
+        buttLine.add( new JButton( interpolateColumnsAct ) );
+        buttLine.add( Box.createHorizontalStrut( 5 ) );
+        buttLine.add( new JButton( interpolateTableAct ) );
+        buttLine.add( Box.createHorizontalStrut( 5 ) );
         buttLine.add( new JButton( examplesAct_ ) );
         buttLine.add( Box.createHorizontalStrut( 5 ) );
         buttLine.add( new JButton( clearAct ) );
@@ -451,22 +493,33 @@ public class TapQueryPanel extends JPanel {
      * area with some fixed string.
      */
     private class AdqlTextAction extends AbstractAction {
+        private final boolean replace_;
         private String text_;
 
         /**
          * Constructor.
          *
          * @param  name  action name
+         * @param  replace  true to replace entire contents,
+         *                  false to insert at current position,
          * @param  description   action short description
          */
-        public AdqlTextAction( String name, String description ) {
+        public AdqlTextAction( String name, boolean replace,
+                               String description ) {
             super( name );
+            replace_ = replace;
             putValue( SHORT_DESCRIPTION, description );
             setAdqlText( null );
         }
 
         public void actionPerformed( ActionEvent evt ) {
-            textPanel_.setText( text_ );
+            if ( replace_ ) {
+                textPanel_.setText( text_ );
+            }
+            else {
+                textPanel_.insert( text_, textPanel_.getCaretPosition() );
+            }
+            textPanel_.requestFocusInWindow();
         }
 
         /**
@@ -493,7 +546,7 @@ public class TapQueryPanel extends JPanel {
          * @param   example  the example which this action will display
          */
         public AdqlExampleAction( AdqlExample example ) {
-            super( example.getName(), example.getDescription() );
+            super( example.getName(), true, example.getDescription() );
             example_ = example;
         }
 
