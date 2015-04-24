@@ -4,6 +4,7 @@ import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
+import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -15,6 +16,8 @@ import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.ListModel;
+import javax.swing.event.ListDataEvent;
+import javax.swing.event.ListDataListener;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
@@ -189,28 +192,50 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
 
     @Override
     protected TapQueryPanel createTapQueryPanel() {
-        return new TapQueryPanel( getExamples() ) {
-            @Override
-            protected AdqlValidator.ValidatorTable[] getExtraTables() {
+        final TapQueryPanel tqp = new TapQueryPanel( getExamples() );
 
-                /* Return a list of tables in the TAP_UPLOAD schema which may
-                 * be used in ADQL as well as those declared by the service. */
-                TopcatModel[] tcModels = getTopcatModels();
-                List<AdqlValidator.ValidatorTable> vtList =
-                    new ArrayList<AdqlValidator.ValidatorTable>();
-                String uploadSchemaName = "TAP_UPLOAD";
-                for ( int it = 0; it < tcModels.length; it++ ) {
-                    TopcatModel tcModel = tcModels[ it ];
-                    String[] aliases = getUploadAliases( tcModel );
-                    for ( int ia = 0; ia < aliases.length; ia++ ) {
-                        String tname = uploadSchemaName + "." + aliases[ ia ];
-                        vtList.add( toValidatorTable( tcModel, tname,
-                                                      uploadSchemaName ) );
-                    }
-                }
-                return vtList.toArray( new AdqlValidator.ValidatorTable[ 0 ] );
+        /* Make sure the panel is kept up to date with the list of
+         * tables known by the application. */
+        ControlWindow.getInstance().getTablesListModel()
+                     .addListDataListener( new ListDataListener() {
+            public void intervalAdded( ListDataEvent evt ) {
+                updateTopcatTables();
             }
-        };
+            public void intervalRemoved( ListDataEvent evt ) {
+                updateTopcatTables();
+            }
+            public void contentsChanged( ListDataEvent evt ) {
+                updateTopcatTables();
+            }
+            private void updateTopcatTables() {
+                if ( tqp != null ) {
+                    tqp.setExtraTables( createTopcatValidatorTables() );
+                }
+            }
+        } );
+        tqp.setExtraTables( createTopcatValidatorTables() );
+        return tqp;
+    }
+
+    /**
+     * Returns a list of tables in the TAP_UPLOAD schema which may
+     * be used in ADQL as well as those declared by the service.
+     *
+     * @return   list of validation tables corresponding to topcat tables
+     */
+    private AdqlValidator.ValidatorTable[] createTopcatValidatorTables() {
+        TopcatModel[] tcModels = getTopcatModels();
+        List<AdqlValidator.ValidatorTable> vtList =
+            new ArrayList<AdqlValidator.ValidatorTable>();
+        String upSchemaName = "TAP_UPLOAD";
+        for ( TopcatModel tcModel : getTopcatModels() ) {
+            String[] aliases = getUploadAliases( tcModel );
+            for ( int ia = 0; ia < aliases.length; ia++ ) {
+                String tname = upSchemaName + "." + aliases[ ia ];
+                vtList.add( toValidatorTable( tcModel, tname, upSchemaName ) );
+            }
+        }
+        return vtList.toArray( new AdqlValidator.ValidatorTable[ 0 ] );
     }
 
     /**
@@ -281,12 +306,15 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
     private static AdqlValidator.ValidatorTable
             toValidatorTable( TopcatModel tcModel, final String tname,
                               final String sname ) {
-        StarTable dataTable = tcModel.getDataModel();
-        int ncol = dataTable.getColumnCount();
-        final String[] colNames = new String[ ncol ];
-        for ( int ic = 0; ic < ncol; ic++ ) {
-            colNames[ ic ] = dataTable.getColumnInfo( ic ).getName();
-        }
+        final StarTable dataTable = tcModel.getDataModel();
+        final List<String> colList = new AbstractList<String>() {
+            public int size() {
+                return dataTable.getColumnCount();
+            }
+            public String get( int index ) {
+                return dataTable.getColumnInfo( index ).getName();
+            }
+        };
         return new AdqlValidator.ValidatorTable() {
             public String getTableName() {
                 return tname;
@@ -295,7 +323,7 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
                 return sname;
             }
             public Collection<String> getColumnNames() {
-                return Arrays.asList( colNames );
+                return colList;
             }
         };
     }

@@ -94,6 +94,12 @@ public class TableSetPanel extends JPanel {
      */
     public static final String COLUMNS_SELECTION_PROPERTY = "selectedColumns";
 
+    /**
+     * Name of bound property for schema array giving table metadata.
+     * Property value is the return value of {@link #getSchemas}.
+     */
+    public static final String SCHEMAS_PROPERTY = "schemas";
+
     /** Number of nodes below which tree nodes are expanded. */
     private static final int TREE_EXPAND_THRESHOLD = 100;
 
@@ -309,6 +315,7 @@ public class TableSetPanel extends JPanel {
         if ( schemas != null ) {
             checkSchemasPopulated( schemas );
         }
+        SchemaMeta[] oldSchemas = schemas_;
         schemas_ = schemas;
         TreeModel treeModel =
             new TapMetaTreeModel( schemas_ == null ? new SchemaMeta[ 0 ]
@@ -335,6 +342,7 @@ public class TableSetPanel extends JPanel {
         metaPanel_.add( metaSplitter_ );
         metaPanel_.revalidate();
         updateForTableSelection();
+        firePropertyChange( SCHEMAS_PROPERTY, oldSchemas, schemas );
         repaint();
     }
 
