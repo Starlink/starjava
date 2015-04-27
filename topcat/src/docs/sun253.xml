@@ -3327,12 +3327,11 @@ and others.
 
 <p>SAMP and PLASTIC do much the same job as each other, and work in much
 the same way.  SAMP is an evolution of PLASTIC with a number of
-technical improvements, and so PLASTIC is now deprecated in favour
-of SAMP.
-It is not necessary for users to understand the differences between the two, 
-but in general a tool using SAMP can communicate with other tools using SAMP,
-and the same with PLASTIC, but in most cases interoperation between
-PLASTIC and SAMP tools will not work.
+technical improvements, and PLASTIC has been deprecated in favour
+of SAMP since around 2009.
+PLASTIC is therefore of mainly historical interest,
+though TOPCAT can still run in PLASTIC mode on request,
+if you need it to communicate with older tools that can only speak PLASTIC.
 </p>
 
 <p>The communication architecture of the two protocols is basically the same:
@@ -3341,27 +3340,19 @@ so a hub must be running in order for the messaging to operate.
 If a hub is running when TOPCAT starts,
 or if one starts up while TOPCAT is in operation,
 it will connect to it automatically.
-A hub can be started from within TOPCAT if required - details of how to
-do this are given in the <ref id="sampControl">SAMP</ref> and 
-<ref id="plasticControl">PLASTIC</ref> sections below.
-Other tools will have their own policies for connecting to the hub,
-but in general it is a good idea to start a hub first
-before starting up the tools which you want to talk to it.
+If no SAMP hub is running, TOPCAT will set one up during application startup.
 </p>
 
 <p>TOPCAT can work in either SAMP or PLASTIC mode, but not both at once.
 It determines which mode to use at startup:
 if the <code>-samp</code> or <code>-plastic</code> flag is supplied
 on the command line the corresponding mode will be used;
-otherwise if a running SAMP or PLASTIC hub can be found,
-the corresponding mode is used, otherwise it defaults to SAMP.
+otherwise it will try to use SAMP.
 It is easy to tell which mode is being used by looking at the 
 <ref id="ControlWindow">Control Window</ref>;
 in SAMP mode the <ref id="sampPanel">SAMP panel</ref> displaying connection
 and message status is visible at the bottom of the right hand panel
 (there are a few other changes to the GUI as well).
-Facilities for communications monitoring are considerably better in
-SAMP than in PLASTIC mode.
 </p>
 
 <p>This communication has two aspects to it: on the one hand
@@ -3436,6 +3427,11 @@ by other SAMP applications.
 
 <subsect id="plasticControl">
 <subhead><title>PLASTIC control</title></subhead>
+
+<p><em>Note: the PLASTIC protocol has been deprecated in favour
+of SAMP since about 2009, and this functionality, though still present,
+is of mostly historical interest.</em>
+</p>
 
 <p>You can view and control operations relating to the PLASTIC hub
 from the <label>Interop</label> menu in the 
@@ -3988,9 +3984,8 @@ The meaning of the flags is as follows:
 
 <dt>-samp</dt>
 <dd><p>Forces TOPCAT to use SAMP for tool interoperability
-    (see <ref id="interop"/>).  This is the default, but PLASTIC mode 
-    instead of SAMP will otherwise be chosen if a PLASTIC hub but no SAMP
-    hub is running on startup.
+    (see <ref id="interop"/>).  SAMP rather than PLASTIC is the
+    default, so this flag has no effect.
     </p></dd>
 
 <dt>-plastic</dt>
@@ -4003,7 +3998,7 @@ The meaning of the flags is as follows:
     SAMP or PLASTIC hub (SAMP by default), if no hub is already
     running, and the <code>-nohub</code> flag prevents this from happening.
     The default behaviour, when neither of these flags is given,
-    is currently (since v3.8) to start a hub automatically for
+    is to start a hub automatically for
     SAMP but not for PLASTIC.  The hub will terminate when TOPCAT does,
     or can be shut down manually with the 
     <label>Interop|Stop Internal Hub</label> (&IMG.NO_HUB;) menu item.
@@ -17653,7 +17648,7 @@ in the control window will indicate the action you have configured.
     web server which provides these images, retrieve the image, and
     display it in an image viewer window.
     Unfortunately at present the viewer window is an internal one;
-    it does not display in an external SAMP/PLASTIC viewer.
+    it does not display in an external SAMP viewer.
     </p></dd>
 
 <dt>View URL as Image</dt>
@@ -21825,6 +21820,10 @@ introduced since the last version:
         TIME_TT2000 columns in time plots.</li>
     <li>Update JCDF library to v1.1
         (minor changes to do with leap seconds).</li>
+    <li>Now only runs in PLASTIC mode if the <code>-plastic</code> flag is
+        set explicitly (otherwise runs in the default SAMP mode).
+        Previously it ran in PLASTIC mode if a <code>.plastic</code>
+        lockfile was present.</li>
     </ul>
     </p></dd>
 
