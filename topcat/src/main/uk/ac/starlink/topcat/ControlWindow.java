@@ -1489,12 +1489,26 @@ public class ControlWindow extends AuxWindow
      */
     private static TopcatCommunicator
                    attemptCreateCommunicator( ControlWindow control ) {
-        if ( "plastic".equals( interopType_ ) ) {
+        if ( "none".equals( interopType_ ) ) {
+            logger_.info( "Run with no interop" );
+            return null;
+        }
+        else if ( "plastic".equals( interopType_ ) ) {
             logger_.info( "Run in PLASTIC mode by request" );
             return new PlasticCommunicator( control );
         }
-        else if ( "samp".equals( interopType_ ) ) {
-            logger_.info( "Run in SAMP mode by request" );
+        else {
+            final String msg;
+            if ( "samp".equals( interopType_ ) ) {
+                msg = "Run in SAMP mode by request";
+            }
+            else {
+                assert interopType_ == null;
+                msg = DefaultClientProfile.getProfile().isHubRunning()
+                    ? "SAMP hub running - run in SAMP mode"
+                    : "Run in SAMP mode by default";
+            }
+            logger_.info( msg );
             try {
                 return new SampCommunicator( control );
             }
@@ -1502,44 +1516,7 @@ public class ControlWindow extends AuxWindow
                 throw new RuntimeException( "SAMP config failed", e );
             }
         }
-        else if ( "none".equals( interopType_ ) ) {
-            logger_.info( "Run with no interop" );
-            return null;
-        }
-        else {
-            assert interopType_ == null;
-            if ( DefaultClientProfile.getProfile().isHubRunning() ) {
-                logger_.info( "SAMP hub running - run in SAMP mode" );
-                try {
-                    return new SampCommunicator( control );
-                }
-                catch ( IOException e ) {
-                    logger_.warning( "SAMP setup failed: " + e );
-                    logger_.info( "Fall back to PLASTIC" );
-                    return new PlasticCommunicator( control );
-                }
-            }
-            else if ( PlasticUtils.isHubRunning() ) {
-                logger_.info( "PLASTIC hub running - run in PLASTIC mode" );
-                return new PlasticCommunicator( control );
-            }
-            else {
-                TopcatCommunicator comm;
-                try {
-                    comm = new SampCommunicator( control );
-                }
-                catch ( IOException e ) {
-                    logger_.warning( "SAMP setup failed: " + e );
-                    logger_.info( "Fall back to PLASTIC" );
-                    comm = new PlasticCommunicator( control );
-                }
-                logger_.info( "Run in " + comm.getProtocolName()
-                            + " mode by default" );
-                return comm;
-            }
-        }
     }
-
 
     /**
      * General control actions.
