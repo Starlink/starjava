@@ -9,10 +9,12 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Event;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
@@ -27,6 +29,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
+import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
@@ -38,14 +41,19 @@ import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JToggleButton;
+import javax.swing.KeyStroke;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.event.UndoableEditEvent;
+import javax.swing.event.UndoableEditListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Caret;
 import javax.swing.text.Element;
 import javax.swing.text.PlainDocument;
+import javax.swing.undo.CannotUndoException;
+import javax.swing.undo.UndoManager;
 
 /**
  * Panel for display of a TAP query for a given TAP service.
@@ -64,6 +72,10 @@ public class TapQueryPanel extends JPanel {
     private final JTabbedPane textTabber_;
     private final CaretListener caretForwarder_;
     private final List<CaretListener> caretListeners_;
+    private final UndoManager undoer_;
+    private final UndoableEditListener undoListener_;
+    private final Action undoAct_;
+    private final Action redoAct_;
     private TapServiceKit serviceKit_;
     private Throwable parseError_;
     private AdqlValidator.ValidatorTable[] extraTables_;
@@ -126,6 +138,36 @@ public class TapQueryPanel extends JPanel {
         };
         removeTabAct.putValue( Action.SHORT_DESCRIPTION,
                                "Delete the currently visible ADQL entry tab" );
+
+        /* Support ADQL text undo/redo. */
+        undoer_ = new UndoManager();
+        undoListener_ = new UndoableEditListener() {
+            public void undoableEditHappened( UndoableEditEvent evt ) {
+                undoer_.addEdit( evt.getEdit() );
+                updateUndoState();
+            }
+        };
+        undoAct_ = new AbstractAction( "Undo" ) {
+            public void actionPerformed( ActionEvent evt ) {
+                try {
+                    undoer_.undo();
+                }
+                catch ( CannotUndoException e ) {
+                }
+                updateUndoState();
+            }
+        };
+        redoAct_ = new AbstractAction( "Redo" ) {
+            public void actionPerformed( ActionEvent evt ) {
+                try {
+                    undoer_.redo();
+                }
+                catch ( CannotUndoException e ) {
+                }
+                updateUndoState();
+            }
+        };
+        updateUndoState();
 
         /* Button for selecting sync/async mode of query. */
         syncToggle_ = new JCheckBox( "Synchronous", true );
@@ -439,6 +481,14 @@ public class TapQueryPanel extends JPanel {
         ParseTextArea textPanel = new ParseTextArea();
         textPanel.setEditable( true );
         textPanel.setFont( Font.decode( "Monospaced" ) );
+        InputMap inputMap = textPanel.getInputMap();
+        inputMap.put( KeyStroke.getKeyStroke( KeyEvent.VK_Z, Event.CTRL_MASK ),
+                      undoAct_ );
+        inputMap.put( KeyStroke.getKeyStroke( KeyEvent.VK_Y, Event.CTRL_MASK ),
+                      redoAct_ );
+        inputMap.put( KeyStroke.getKeyStroke( KeyEvent.VK_Z, Event.CTRL_MASK
+                                                           | Event.SHIFT_MASK ),
+                      redoAct_ );
         String tabName = Integer.toString( textTabber_.getTabCount() + 1 );
         textTabber_.addTab( tabName, new JScrollPane( textPanel ) );
         textTabber_.setSelectedIndex( textTabber_.getTabCount() - 1 );
@@ -452,11 +502,15 @@ public class TapQueryPanel extends JPanel {
     private void updateTextTab() {
         if ( textPanel_ != null ) {
             textPanel_.removeCaretListener( caretForwarder_ );
+            textPanel_.getDocument()
+                      .removeUndoableEditListener( undoListener_ );
         }
         textPanel_ = (ParseTextArea)
                      ((JScrollPane) textTabber_.getSelectedComponent())
                     .getViewport().getView();
         textPanel_.addCaretListener( caretForwarder_ );
+        undoer_.discardAllEdits();
+        textPanel_.getDocument().addUndoableEditListener( undoListener_ );
         Caret caret = textPanel_.getCaret();
         final int dot = caret.getDot();
         final int mark = caret.getMark();
@@ -471,6 +525,15 @@ public class TapQueryPanel extends JPanel {
         for ( CaretListener l : caretListeners_ ) {
             l.caretUpdate( evt );
         }
+    }
+
+    /**
+     * Updates the state of undo actions,
+     * invoked if the undo state may have changed.
+     */
+    private void updateUndoState() {
+        undoAct_.setEnabled( undoer_.canUndo() );
+        redoAct_.setEnabled( undoer_.canRedo() );
     }
 
     /**
