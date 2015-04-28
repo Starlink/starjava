@@ -38,9 +38,9 @@ import javax.swing.JTextArea;
 import javax.swing.JToggleButton;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.event.CaretListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Element;
-import javax.swing.text.JTextComponent;
 import javax.swing.text.PlainDocument;
 
 /**
@@ -51,10 +51,6 @@ import javax.swing.text.PlainDocument;
  */
 public class TapQueryPanel extends JPanel {
 
-    private TapServiceKit serviceKit_;
-    private Throwable parseError_;
-    private AdqlValidator.ValidatorTable[] extraTables_;
-    private AdqlValidator validator_;
     private final ParseTextArea textPanel_;
     private final TableSetPanel tmetaPanel_;
     private final TapCapabilityPanel tcapPanel_;
@@ -62,6 +58,11 @@ public class TapQueryPanel extends JPanel {
     private final Action examplesAct_;
     private final Action parseErrorAct_;
     private final AdqlExampleAction[] exampleActs_;
+    private TapServiceKit serviceKit_;
+    private Throwable parseError_;
+    private AdqlValidator.ValidatorTable[] extraTables_;
+    private AdqlValidator validator_;
+
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
 
@@ -253,15 +254,6 @@ public class TapQueryPanel extends JPanel {
     }
 
     /**
-     * Returns the text panel used for the ADQL text entered by the user.
-     *
-     * @return   ADQL text entry component
-     */
-    public JTextComponent getAdqlPanel() {
-        return textPanel_;
-    }
-
-    /**
      * Returns the text currently entered in the ADQL text component.
      *
      * @return  adql text supplied by user
@@ -329,6 +321,28 @@ public class TapQueryPanel extends JPanel {
         extraTables_ = extraTables;
         validator_ = null;
         validateAdql();
+    }
+
+    /**
+     * Adds a listener for changes to the text in the displayed ADQL
+     * text entry panel.
+     * This uses a CaretListener rather than (what might be more
+     * appropriate) DocumentListener because the DocumentListener
+     * interface looks too hairy.
+     *
+     * @param  listener  listener to add
+     */
+    public void addCaretListener( CaretListener listener ) {
+        textPanel_.addCaretListener( listener );
+    }
+
+    /**
+     * Removes a listener previously added with addCaretListener.
+     *
+     * @param  listener  listener to remove
+     */
+    public void removeCaretListener( CaretListener listener ) {
+        textPanel_.removeCaretListener( listener );
     }
 
     /**
