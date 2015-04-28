@@ -320,7 +320,7 @@ public class TableSetPanel extends JPanel {
         TreeModel treeModel =
             new TapMetaTreeModel( schemas_ == null ? new SchemaMeta[ 0 ]
                                                    : schemas_ );
-        tTree_.setModel( new MaskTreeModel( treeModel ) );
+        tTree_.setModel( new MaskTreeModel( treeModel, true ) );
         searchField_.setText( null );
         selectionModel_.setSelectionPath( null );
         updateTree( true );

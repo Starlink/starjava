@@ -27,6 +27,7 @@ import javax.swing.tree.TreePath;
  */
 public class MaskTreeModel implements TreeModel {
 
+    private final boolean includeDescendants_;
     private final List<TreeModelListener> listeners_;
     private final TreeModelListener baseModelListener_;
     private TreeModel base_;
@@ -39,8 +40,11 @@ public class MaskTreeModel implements TreeModel {
      * Constructor.
      *
      * @param  base   underlying tree model
+     * @param  includeDescendants  if true, all descendants of an included node
+     *                             are automatically included
      */
-    public MaskTreeModel( TreeModel base ) {
+    public MaskTreeModel( TreeModel base, boolean includeDescendants ) {
+        includeDescendants_ = includeDescendants;
         base_ = base;
         listeners_ = new ArrayList<TreeModelListener>();
         baseModelListener_ = new BaseModelListener();
@@ -184,17 +188,18 @@ public class MaskTreeModel implements TreeModel {
      * @param   mask    mask to apply
      * @return    node inclusion cache, or null for full inclusion
      */
-    private static Content createContent( TreeModel model, Mask mask ) {
+    private Content createContent( TreeModel model, Mask mask ) {
         if ( mask == null ) {
             return null;
         }
         Set<Object> inclusionSet = new HashSet<Object>();
         Stack<Object> path = new Stack<Object>();
         Object root = model.getRoot();
-        inclusionSet.add( root );
         path.push( root );
         boolean allIncluded =
-            addIncludedNodes( inclusionSet, path, model, mask ); 
+            addIncludedNodes( inclusionSet, path, model, mask, false,
+                              includeDescendants_ ); 
+        inclusionSet.add( root );
         if ( allIncluded ) {
             return null;
         }
@@ -226,6 +231,8 @@ public class MaskTreeModel implements TreeModel {
      * The result is therefore the set of all nodes that must appear in
      * the tree to make the mask inclusions visible, which is in general
      * larger than the set of nodes actually permitted by the mask.
+     * All descendants of included nodes may also be unconditionally
+     * included, according to the <code>includeDescendants</code> parameter.
      *
      * <p>The return value is true only if all nodes under the given path
      * are included in the mask and hence added to the inclusion Set.
@@ -235,25 +242,39 @@ public class MaskTreeModel implements TreeModel {
      *                 (works like a TreePath; element 0 is tree root)
      * @param  model   tree model
      * @param  mask    inclusion mask
+     * @param  ancestorsIncluded  true iff the ancestor elements of the
+     *                            submitted path have already been included
+     * @param  includeDescendants  if true, all descendants of an included node
+     *                             are automatically included
      * @return   true iff path and all its descendants are included
      */
     private static boolean addIncludedNodes( Set<Object> inclusionSet,
                                              Stack<Object> path,
-                                             TreeModel model, Mask mask ) {
+                                             TreeModel model, Mask mask,
+                                             boolean ancestorsIncluded,
+                                             boolean includeDescendants ) {
         Object node = path.peek();
-        boolean allIncluded = true;
-        if ( mask.isIncluded( node ) ) {
-            for ( Object ancestor : path ) {
-                inclusionSet.add( ancestor );
+        final boolean nodeIncluded;
+        if ( ancestorsIncluded ) {
+            nodeIncluded = includeDescendants || mask.isIncluded( node );
+            if ( nodeIncluded ) {
+                inclusionSet.add( node );
             }
         }
         else {
-            allIncluded = false;
+            nodeIncluded = mask.isIncluded( node );
+            if ( nodeIncluded ) {
+                for ( Object ancestor : path ) {
+                    inclusionSet.add( ancestor );
+                }
+            }
         }
+        boolean allIncluded = nodeIncluded;
         int nchild = model.getChildCount( node );
         for ( int ic = 0; ic < nchild; ic++ ) {
             path.push( model.getChild( node, ic ) );
-            allIncluded = addIncludedNodes( inclusionSet, path, model, mask )
+            allIncluded = addIncludedNodes( inclusionSet, path, model, mask,
+                                            nodeIncluded, includeDescendants )
                        && allIncluded;
             path.pop();
         }
