@@ -233,7 +233,7 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
         } );
 
         /* It's big. */
-        tabber_.setPreferredSize( new Dimension( 700, 550 ) );
+        tabber_.setPreferredSize( new Dimension( 700, 650 ) );
 
         /* Return the tabbed pane which is the main query component. */
         return tabber_;

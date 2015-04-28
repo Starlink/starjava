@@ -8,6 +8,7 @@ import adql.query.TextPosition;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Rectangle;
@@ -34,12 +35,15 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JToggleButton;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
+import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.Caret;
 import javax.swing.text.Element;
 import javax.swing.text.PlainDocument;
 
@@ -51,17 +55,20 @@ import javax.swing.text.PlainDocument;
  */
 public class TapQueryPanel extends JPanel {
 
-    private final ParseTextArea textPanel_;
     private final TableSetPanel tmetaPanel_;
     private final TapCapabilityPanel tcapPanel_;
     private final JToggleButton syncToggle_;
     private final Action examplesAct_;
     private final Action parseErrorAct_;
     private final AdqlExampleAction[] exampleActs_;
+    private final JTabbedPane textTabber_;
+    private final CaretListener caretForwarder_;
+    private final List<CaretListener> caretListeners_;
     private TapServiceKit serviceKit_;
     private Throwable parseError_;
     private AdqlValidator.ValidatorTable[] extraTables_;
     private AdqlValidator validator_;
+    private ParseTextArea textPanel_;
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
@@ -88,11 +95,37 @@ public class TapQueryPanel extends JPanel {
         /* Prepare a panel to contain service capability information. */
         tcapPanel_ = new TapCapabilityPanel();
 
-        /* Prepare a panel to contain user-entered ADQL text. */
-        textPanel_ = new ParseTextArea();
-        textPanel_.setEditable( true );
-        textPanel_.setFont( Font.decode( "Monospaced" ) );
-        JComponent textScroller = new JScrollPane( textPanel_ );
+        /* Prepare a component to contain user-entered ADQL text. */
+        textTabber_ = new JTabbedPane();
+        textTabber_.addChangeListener( new ChangeListener() {
+            public void stateChanged( ChangeEvent evt ) {
+                updateTextTab();
+            }
+        } );
+        Action addTabAct = new AbstractAction( "Add Tab" ) {
+            public void actionPerformed( ActionEvent evt ) {
+                addTextTab();
+            }
+        };
+        addTabAct.putValue( Action.SHORT_DESCRIPTION,
+                            "Add a new ADQL entry tab" );
+        Action copyTabAct = new AbstractAction( "Copy Tab" ) {
+            public void actionPerformed( ActionEvent evt ) {
+                String text = textPanel_ == null ? null : textPanel_.getText();
+                addTextTab();
+                textPanel_.setText( text );
+            }
+        };
+        copyTabAct.putValue( Action.SHORT_DESCRIPTION,
+                             "Add a new ADQL entry tab, with initial content "
+                           + "copied from the currently visible one" );
+        Action removeTabAct = new AbstractAction( "Remove Tab" ) {
+            public void actionPerformed( ActionEvent evt ) {
+                textTabber_.removeTabAt( textTabber_.getSelectedIndex() );
+            }
+        };
+        removeTabAct.putValue( Action.SHORT_DESCRIPTION,
+                               "Delete the currently visible ADQL entry tab" );
 
         /* Button for selecting sync/async mode of query. */
         syncToggle_ = new JCheckBox( "Synchronous", true );
@@ -109,7 +142,6 @@ public class TapQueryPanel extends JPanel {
         parseErrorAct_.putValue( Action.SHORT_DESCRIPTION,
                                  "Show details of error parsing "
                                + "current query ADQL text" );
-        setParseError( null );
 
         /* Action to clear text in ADQL panel. */
         final AdqlTextAction clearAct =
@@ -118,20 +150,18 @@ public class TapQueryPanel extends JPanel {
                               + "from editor" );
         clearAct.setAdqlText( "" );
         clearAct.setEnabled( false );
-        textPanel_.getDocument().addDocumentListener( new DocumentListener() {
-            public void changedUpdate( DocumentEvent evt ) {
-            }
-            public void insertUpdate( DocumentEvent evt ) {
-                changed();
-            }
-            public void removeUpdate( DocumentEvent evt ) {
-                changed();
-            }
-            private void changed() {
+
+        /* Prepare to warn listeners when the visible ADQL text changes. */
+        caretListeners_ = new ArrayList<CaretListener>();
+        caretForwarder_ = new CaretListener() {
+            public void caretUpdate( CaretEvent evt ) {
                 clearAct.setEnabled( textPanel_.getDocument().getLength() > 0 );
                 validateAdql();
+                for ( CaretListener l : caretListeners_ ) {
+                    l.caretUpdate( evt );
+                }
             }
-        } );
+        };
 
         /* Action to insert table name. */
         final AdqlTextAction interpolateTableAct =
@@ -198,6 +228,10 @@ public class TapQueryPanel extends JPanel {
         examplesAct_.putValue( Action.SHORT_DESCRIPTION,
                                "Choose from example ADQL quries" );
 
+        /* Prepare initial ADQL entry text panel. */
+        addTextTab();
+        setParseError( null );
+
         /* Controls for ADQL text panel. */
         Box buttLine = Box.createHorizontalBox();
         buttLine.setBorder( BorderFactory.createEmptyBorder( 0, 2, 2, 0 ) );
@@ -215,8 +249,9 @@ public class TapQueryPanel extends JPanel {
 
         /* Place components on ADQL panel. */
         JComponent adqlPanel = new JPanel( new BorderLayout() );
+        adqlPanel.setPreferredSize( new Dimension( 500, 200 ) );
         adqlPanel.add( buttLine, BorderLayout.NORTH );
-        adqlPanel.add( textScroller, BorderLayout.CENTER );
+        adqlPanel.add( textTabber_, BorderLayout.CENTER );
         JComponent qPanel = new JPanel( new BorderLayout() );
         qPanel.add( tcapPanel_, BorderLayout.NORTH );
         qPanel.add( adqlPanel, BorderLayout.CENTER );
@@ -333,7 +368,7 @@ public class TapQueryPanel extends JPanel {
      * @param  listener  listener to add
      */
     public void addCaretListener( CaretListener listener ) {
-        textPanel_.addCaretListener( listener );
+        caretListeners_.add( listener );
     }
 
     /**
@@ -342,7 +377,7 @@ public class TapQueryPanel extends JPanel {
      * @param  listener  listener to remove
      */
     public void removeCaretListener( CaretListener listener ) {
-        textPanel_.removeCaretListener( listener );
+        caretListeners_.remove( listener );
     }
 
     /**
@@ -393,6 +428,48 @@ public class TapQueryPanel extends JPanel {
         }
         else {
             setParseError( null );
+        }
+    }
+
+    /**
+     * Adds a new tab containing a text panel in the editing area,
+     * for entry of ADQL text.
+     */
+    private void addTextTab() {
+        ParseTextArea textPanel = new ParseTextArea();
+        textPanel.setEditable( true );
+        textPanel.setFont( Font.decode( "Monospaced" ) );
+        String tabName = Integer.toString( textTabber_.getTabCount() + 1 );
+        textTabber_.addTab( tabName, new JScrollPane( textPanel ) );
+        textTabber_.setSelectedIndex( textTabber_.getTabCount() - 1 );
+        assert textPanel_ == textPanel;
+    }
+
+    /**
+     * Updates the GUI as appropriate when the currently visible ADQL
+     * text entry tab may have changed.
+     */
+    private void updateTextTab() {
+        if ( textPanel_ != null ) {
+            textPanel_.removeCaretListener( caretForwarder_ );
+        }
+        textPanel_ = (ParseTextArea)
+                     ((JScrollPane) textTabber_.getSelectedComponent())
+                    .getViewport().getView();
+        textPanel_.addCaretListener( caretForwarder_ );
+        Caret caret = textPanel_.getCaret();
+        final int dot = caret.getDot();
+        final int mark = caret.getMark();
+        CaretEvent evt = new CaretEvent( textPanel_ ) {
+            public int getDot() {
+                return dot;
+            }
+            public int getMark() {
+                return mark;
+            }
+        };
+        for ( CaretListener l : caretListeners_ ) {
+            l.caretUpdate( evt );
         }
     }
 
