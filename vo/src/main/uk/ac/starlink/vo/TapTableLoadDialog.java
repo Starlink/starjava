@@ -548,7 +548,7 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
          * First remove any previously installed query panel. */
         if ( tqPanel_ != null ) {
             tqContainer_.remove( tqPanel_ );
-            tqPanel_.getAdqlPanel().removeCaretListener( adqlListener_ );
+            tqPanel_.removeCaretListener( adqlListener_ );
             tqPanel_ = null;
         }
         if ( serviceKit != null ) {
@@ -566,7 +566,7 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
             tqPanel_ = tqMap_.get( serviceUrl );
 
             /* Install ready for use. */
-            tqPanel_.getAdqlPanel().addCaretListener( adqlListener_ );
+            tqPanel_.addCaretListener( adqlListener_ );
             tqContainer_.add( tqPanel_, BorderLayout.CENTER );
         }
         updateReady();
