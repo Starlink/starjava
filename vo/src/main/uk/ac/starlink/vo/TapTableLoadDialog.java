@@ -4,6 +4,9 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InterruptedIOException;
@@ -25,6 +28,7 @@ import javax.swing.Action;
 import javax.swing.Box;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JMenu;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
@@ -58,6 +62,7 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
     private ResumeTapQueryPanel resumePanel_;
     private CaretListener adqlListener_;
     private Action reloadAct_;
+    private ProxyAction[] proxyActs_;
     private TapMetaPolicy metaPolicy_;
     private int tqTabIndex_;
     private int jobsTabIndex_;
@@ -216,6 +221,30 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
         reloadAct_.putValue( Action.SHORT_DESCRIPTION,
               "Reload information displayed in this panel from the server; "
             + "exact behaviour depends on which panel is visible" );
+
+        /* Set up an Edit menu. */
+        List<JMenu> menuList =
+            new ArrayList<JMenu>( Arrays.asList( super.getMenus() ) );
+        JMenu editMenu = new JMenu( "Edit" );
+        editMenu.setMnemonic( KeyEvent.VK_E );
+        menuList.add( editMenu );
+        setMenus( menuList.toArray( new JMenu[ 0 ] ) );
+
+        /* Add actions from the query panel to this dialogue's Edit menu.
+         * However, the query panel object will change over the
+         * lifetime of this component, so populate the menu with
+         * proxy actions that will delegate to the corresponding action
+         * of whatever query panel is currently visible. */
+        List<ProxyAction> pacts = new ArrayList<ProxyAction>();
+        for ( Action templateAct : createTapQueryPanel().getEditActions() ) {
+            ProxyAction proxyAct = new ProxyAction( templateAct );
+            pacts.add( proxyAct );
+            editMenu.add( proxyAct );
+        }
+        proxyActs_ = pacts.toArray( new ProxyAction[ 0 ] );
+        updateQueryPanel();
+
+        /* Set toolbar actions. */
         List<Action> actList =
             new ArrayList<Action>( Arrays.asList( super.getToolbarActions() ) );
         actList.add( reloadAct_ );
@@ -569,7 +598,90 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
             tqPanel_.addCaretListener( adqlListener_ );
             tqContainer_.add( tqPanel_, BorderLayout.CENTER );
         }
+        updateQueryPanel();
         updateReady();
+    }
+
+    /**
+     * Invoked to update the GUI if the identity of the TapQueryPanel
+     * on display may have changed.
+     */
+    private void updateQueryPanel() {
+
+        /* Reconfigure all known proxy actions so that they delegate to the
+         * corresponding actions from the curently visible TapQueryPanel. */
+        Map<String,Action> actMap = new HashMap<String,Action>();
+        if ( tqPanel_ != null ) {
+            for ( Action baseAct : tqPanel_.getEditActions() ) {
+                actMap.put( (String) baseAct.getValue( Action.NAME ), baseAct );
+            }
+        }
+        for ( ProxyAction act : proxyActs_ ) {
+            act.setTarget( actMap.get( act.getValue( Action.NAME ) ) );
+        }
+    }
+
+    /**
+     * Action which is based on a given template action,
+     * but can delegate behaviour to a dynamically supplied target action.
+     * Properties are taken from the template, but enabledness and the
+     * actionPerformed method are delegated to the target.
+     * If the target is null, the action is disabled.
+     */
+    private static class ProxyAction extends AbstractAction {
+        private final Action template_;
+        private final PropertyChangeListener propForwarder_;
+        private Action target_;
+
+        /**
+         * Constructor.
+         *
+         * @param  template  template action providing all fixed properties
+         *                   apart from enabled status
+         */
+        ProxyAction( Action template ) {
+            template_ = template;
+            propForwarder_ = new PropertyChangeListener() {
+                public void propertyChange( PropertyChangeEvent evt ) {
+                    for ( PropertyChangeListener l :
+                          getPropertyChangeListeners() ) {
+                        l.propertyChange( evt );
+                    }
+                }
+            };
+        }
+
+        /**
+         * Sets the target action.
+         *
+         * @param  action providing enabledness and actionPerformed
+         */
+        public void setTarget( Action target ) {
+            if ( target_ != null ) {
+                target_.removePropertyChangeListener( propForwarder_ );
+            }
+            target_ = target;
+            if ( target_ != null ) {
+                target_.addPropertyChangeListener( propForwarder_ );
+            }
+            setEnabled( isEnabled() );
+        }
+
+        public void actionPerformed( ActionEvent evt ) {
+            if ( target_ != null ) {
+                target_.actionPerformed( evt );
+            }
+        }
+
+        @Override
+        public boolean isEnabled() {
+            return target_ != null && target_.isEnabled();
+        }
+
+        @Override
+        public Object getValue( String key ) {
+            return template_.getValue( key );
+        }
     }
 
     /**
@@ -588,6 +700,10 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
             tld.getServiceUrlField().setText( tapUrl );
         }
         javax.swing.JFrame frm = new javax.swing.JFrame();
+        frm.setJMenuBar( new javax.swing.JMenuBar() );
+        for ( JMenu menu : tld.getMenus() ) {
+            frm.getJMenuBar().add( menu );
+        }
         frm.getContentPane().add( qcomp );
         frm.pack();
         frm.setVisible( true );

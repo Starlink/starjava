@@ -75,6 +75,9 @@ public class TapQueryPanel extends JPanel {
     private final CaretListener caretForwarder_;
     private final List<CaretListener> caretListeners_;
     private final Map<ParseTextArea,UndoManager> undoerMap_;
+    private final AdqlTextAction clearAct_;
+    private final AdqlTextAction interpolateColumnsAct_;
+    private final AdqlTextAction interpolateTableAct_;;
     private final Action undoAct_;
     private final Action redoAct_;
     private final Action addTabAct_;
@@ -88,6 +91,14 @@ public class TapQueryPanel extends JPanel {
     private int iTab_;
     private UndoManager undoer_;
 
+    private static final KeyStroke[] UNDO_KEYS = new KeyStroke[] {
+        KeyStroke.getKeyStroke( KeyEvent.VK_Z, Event.CTRL_MASK ),
+    };
+    private static final KeyStroke[] REDO_KEYS = new KeyStroke[] {
+        KeyStroke.getKeyStroke( KeyEvent.VK_Y, Event.CTRL_MASK ),
+        KeyStroke.getKeyStroke( KeyEvent.VK_Z, Event.CTRL_MASK
+                                             | Event.SHIFT_MASK ),
+    };
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
 
@@ -137,6 +148,7 @@ public class TapQueryPanel extends JPanel {
                 updateUndoState();
             }
         };
+        undoAct_.putValue( Action.ACCELERATOR_KEY, UNDO_KEYS[ 0 ] );
         redoAct_ = new AbstractAction( "Redo" ) {
             public void actionPerformed( ActionEvent evt ) {
                 try {
@@ -147,6 +159,7 @@ public class TapQueryPanel extends JPanel {
                 updateUndoState();
             }
         };
+        redoAct_.putValue( Action.ACCELERATOR_KEY, REDO_KEYS[ 0 ] );
 
         /* Actions for adding and removing text entry tabs. */
         addTabAct_ = new AbstractAction( "Add Tab" ) {
@@ -195,18 +208,18 @@ public class TapQueryPanel extends JPanel {
                                + "current query ADQL text" );
 
         /* Action to clear text in ADQL panel. */
-        final AdqlTextAction clearAct =
-            new AdqlTextAction( "Clear", true,
-                                "Clear currently visible ADQL text "
-                              + "from editor" );
-        clearAct.setAdqlText( "" );
-        clearAct.setEnabled( false );
+        clearAct_ = new AdqlTextAction( "Clear", true,
+                                        "Clear currently visible ADQL text "
+                                      + "from editor" );
+        clearAct_.setAdqlText( "" );
+        clearAct_.setEnabled( false );
 
         /* Prepare to warn listeners when the visible ADQL text changes. */
         caretListeners_ = new ArrayList<CaretListener>();
         caretForwarder_ = new CaretListener() {
             public void caretUpdate( CaretEvent evt ) {
-                clearAct.setEnabled( textPanel_.getDocument().getLength() > 0 );
+                clearAct_.setEnabled( textPanel_.getDocument()
+                                                .getLength() > 0 );
                 validateAdql();
                 for ( CaretListener l : caretListeners_ ) {
                     l.caretUpdate( evt );
@@ -215,7 +228,7 @@ public class TapQueryPanel extends JPanel {
         };
 
         /* Action to insert table name. */
-        final AdqlTextAction interpolateTableAct =
+        interpolateTableAct_ =
             new AdqlTextAction( "Insert Table", false,
                                 "Insert name of currently selected table "
                               + "into ADQL text panel" );
@@ -225,12 +238,12 @@ public class TapQueryPanel extends JPanel {
             public void propertyChange( PropertyChangeEvent evt ) {
                 TableMeta tmeta = tmetaPanel_.getSelectedTable();
                 String txt = tmeta == null ? null : tmeta.getName();
-                interpolateTableAct.setAdqlText( txt );
+                interpolateTableAct_.setAdqlText( txt );
             }
         } );
 
         /* Action to insert column names. */
-        final AdqlTextAction interpolateColumnsAct =
+        interpolateColumnsAct_ =
             new AdqlTextAction( "Insert Columns", false,
                                 "Insert names of currently selected columns "
                               + "into ADQL text panel" );
@@ -247,7 +260,7 @@ public class TapQueryPanel extends JPanel {
                     sbuf.append( cmetas[ i ].getName() );
                 }
                 String txt = sbuf.length() == 0 ? null : sbuf.toString();
-                interpolateColumnsAct.setAdqlText( txt );
+                interpolateColumnsAct_.setAdqlText( txt );
             }
         } );
 
@@ -288,13 +301,13 @@ public class TapQueryPanel extends JPanel {
         buttLine.setBorder( BorderFactory.createEmptyBorder( 0, 2, 2, 0 ) );
         buttLine.add( syncToggle_ );
         buttLine.add( Box.createHorizontalGlue() );
-        buttLine.add( new JButton( interpolateColumnsAct ) );
+        buttLine.add( new JButton( interpolateColumnsAct_ ) );
         buttLine.add( Box.createHorizontalStrut( 5 ) );
-        buttLine.add( new JButton( interpolateTableAct ) );
+        buttLine.add( new JButton( interpolateTableAct_ ) );
         buttLine.add( Box.createHorizontalStrut( 5 ) );
         buttLine.add( new JButton( examplesAct_ ) );
         buttLine.add( Box.createHorizontalStrut( 5 ) );
-        buttLine.add( new JButton( clearAct ) );
+        buttLine.add( new JButton( clearAct_ ) );
         buttLine.add( Box.createHorizontalStrut( 5 ) );
         buttLine.add( new JButton( parseErrorAct_ ) );
 
@@ -410,6 +423,19 @@ public class TapQueryPanel extends JPanel {
     }
 
     /**
+     * Returns an array of GUI actions related to editing the ADQL text.
+     *
+     * @return  edit action list
+     */
+    public Action[] getEditActions() {
+        return new Action[] {
+            undoAct_, redoAct_, clearAct_,
+            addTabAct_, copyTabAct_, removeTabAct_,
+            parseErrorAct_, interpolateColumnsAct_, interpolateTableAct_,
+        };
+    }
+
+    /**
      * Adds a listener for changes to the text in the displayed ADQL
      * text entry panel.
      * This uses a CaretListener rather than (what might be more
@@ -491,13 +517,12 @@ public class TapQueryPanel extends JPanel {
         textPanel.setEditable( true );
         textPanel.setFont( Font.decode( "Monospaced" ) );
         InputMap inputMap = textPanel.getInputMap();
-        inputMap.put( KeyStroke.getKeyStroke( KeyEvent.VK_Z, Event.CTRL_MASK ),
-                      undoAct_ );
-        inputMap.put( KeyStroke.getKeyStroke( KeyEvent.VK_Y, Event.CTRL_MASK ),
-                      redoAct_ );
-        inputMap.put( KeyStroke.getKeyStroke( KeyEvent.VK_Z, Event.CTRL_MASK
-                                                           | Event.SHIFT_MASK ),
-                      redoAct_ );
+        for ( KeyStroke key : UNDO_KEYS ) {
+            inputMap.put( key, undoAct_ );
+        }
+        for ( KeyStroke key : REDO_KEYS ) {
+            inputMap.put( key, redoAct_ );
+        }
         final UndoManager undoer = new UndoManager();
         textPanel.getDocument()
                  .addUndoableEditListener( new UndoableEditListener() {
