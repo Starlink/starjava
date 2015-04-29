@@ -21,8 +21,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
@@ -72,15 +74,19 @@ public class TapQueryPanel extends JPanel {
     private final JTabbedPane textTabber_;
     private final CaretListener caretForwarder_;
     private final List<CaretListener> caretListeners_;
-    private final UndoManager undoer_;
-    private final UndoableEditListener undoListener_;
+    private final Map<ParseTextArea,UndoManager> undoerMap_;
     private final Action undoAct_;
     private final Action redoAct_;
+    private final Action addTabAct_;
+    private final Action copyTabAct_;
+    private final Action removeTabAct_;
     private TapServiceKit serviceKit_;
     private Throwable parseError_;
     private AdqlValidator.ValidatorTable[] extraTables_;
     private AdqlValidator validator_;
     private ParseTextArea textPanel_;
+    private int iTab_;
+    private UndoManager undoer_;
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
@@ -114,39 +120,13 @@ public class TapQueryPanel extends JPanel {
                 updateTextTab();
             }
         } );
-        Action addTabAct = new AbstractAction( "Add Tab" ) {
-            public void actionPerformed( ActionEvent evt ) {
-                addTextTab();
-            }
-        };
-        addTabAct.putValue( Action.SHORT_DESCRIPTION,
-                            "Add a new ADQL entry tab" );
-        Action copyTabAct = new AbstractAction( "Copy Tab" ) {
-            public void actionPerformed( ActionEvent evt ) {
-                String text = textPanel_ == null ? null : textPanel_.getText();
-                addTextTab();
-                textPanel_.setText( text );
-            }
-        };
-        copyTabAct.putValue( Action.SHORT_DESCRIPTION,
-                             "Add a new ADQL entry tab, with initial content "
-                           + "copied from the currently visible one" );
-        Action removeTabAct = new AbstractAction( "Remove Tab" ) {
-            public void actionPerformed( ActionEvent evt ) {
-                textTabber_.removeTabAt( textTabber_.getSelectedIndex() );
-            }
-        };
-        removeTabAct.putValue( Action.SHORT_DESCRIPTION,
-                               "Delete the currently visible ADQL entry tab" );
 
         /* Support ADQL text undo/redo. */
-        undoer_ = new UndoManager();
-        undoListener_ = new UndoableEditListener() {
-            public void undoableEditHappened( UndoableEditEvent evt ) {
-                undoer_.addEdit( evt.getEdit() );
-                updateUndoState();
-            }
-        };
+        undoerMap_ = new HashMap<ParseTextArea,UndoManager>();
+        UndoManager undoer0 = new UndoManager();
+        undoer0.setLimit( 0 );
+        undoerMap_.put( null, undoer0 );
+        undoer_ = undoer0;
         undoAct_ = new AbstractAction( "Undo" ) {
             public void actionPerformed( ActionEvent evt ) {
                 try {
@@ -167,7 +147,36 @@ public class TapQueryPanel extends JPanel {
                 updateUndoState();
             }
         };
-        updateUndoState();
+
+        /* Actions for adding and removing text entry tabs. */
+        addTabAct_ = new AbstractAction( "Add Tab" ) {
+            public void actionPerformed( ActionEvent evt ) {
+                addTextTab();
+            }
+        };
+        addTabAct_.putValue( Action.SHORT_DESCRIPTION,
+                             "Add a new ADQL entry tab" );
+        copyTabAct_ = new AbstractAction( "Copy Tab" ) {
+            public void actionPerformed( ActionEvent evt ) {
+                String text = textPanel_ == null ? null : textPanel_.getText();
+                addTextTab();
+                textPanel_.setText( text );
+            }
+        };
+        copyTabAct_.putValue( Action.SHORT_DESCRIPTION,
+                             "Add a new ADQL entry tab, with initial content "
+                           + "copied from the currently visible one" );
+        removeTabAct_ = new AbstractAction( "Remove Tab" ) {
+            public void actionPerformed( ActionEvent evt ) {
+                if ( textTabber_.getTabCount() > 1 ) {
+                    undoerMap_.remove( textPanel_ );
+                    textTabber_.removeTabAt( textTabber_.getSelectedIndex() );
+                }
+                updateTabState();
+            }
+        };
+        removeTabAct_.putValue( Action.SHORT_DESCRIPTION,
+                                "Delete the currently visible ADQL entry tab" );
 
         /* Button for selecting sync/async mode of query. */
         syncToggle_ = new JCheckBox( "Synchronous", true );
@@ -489,7 +498,16 @@ public class TapQueryPanel extends JPanel {
         inputMap.put( KeyStroke.getKeyStroke( KeyEvent.VK_Z, Event.CTRL_MASK
                                                            | Event.SHIFT_MASK ),
                       redoAct_ );
-        String tabName = Integer.toString( textTabber_.getTabCount() + 1 );
+        final UndoManager undoer = new UndoManager();
+        textPanel.getDocument()
+                 .addUndoableEditListener( new UndoableEditListener() {
+            public void undoableEditHappened( UndoableEditEvent evt ) {
+                undoer.addEdit( evt.getEdit() );
+                updateUndoState();
+            }
+        } );
+        undoerMap_.put( textPanel, undoer );
+        String tabName = Integer.toString( ++iTab_ );
         textTabber_.addTab( tabName, new JScrollPane( textPanel ) );
         textTabber_.setSelectedIndex( textTabber_.getTabCount() - 1 );
         assert textPanel_ == textPanel;
@@ -502,15 +520,12 @@ public class TapQueryPanel extends JPanel {
     private void updateTextTab() {
         if ( textPanel_ != null ) {
             textPanel_.removeCaretListener( caretForwarder_ );
-            textPanel_.getDocument()
-                      .removeUndoableEditListener( undoListener_ );
         }
         textPanel_ = (ParseTextArea)
                      ((JScrollPane) textTabber_.getSelectedComponent())
                     .getViewport().getView();
         textPanel_.addCaretListener( caretForwarder_ );
-        undoer_.discardAllEdits();
-        textPanel_.getDocument().addUndoableEditListener( undoListener_ );
+        undoer_ = undoerMap_.get( textPanel_ );
         Caret caret = textPanel_.getCaret();
         final int dot = caret.getDot();
         final int mark = caret.getMark();
@@ -525,6 +540,9 @@ public class TapQueryPanel extends JPanel {
         for ( CaretListener l : caretListeners_ ) {
             l.caretUpdate( evt );
         }
+        updateTabState();
+        updateUndoState();
+        validateAdql();
     }
 
     /**
@@ -534,6 +552,16 @@ public class TapQueryPanel extends JPanel {
     private void updateUndoState() {
         undoAct_.setEnabled( undoer_.canUndo() );
         redoAct_.setEnabled( undoer_.canRedo() );
+    }
+
+    /**
+     * Updates the state of actions related to text tab manipulation,
+     * invoked if tabs may have been added or removed.
+     */
+    private void updateTabState() {
+        copyTabAct_.setEnabled( textPanel_ != null );
+        removeTabAct_.setEnabled( textPanel_ != null &&
+                                  textTabber_.getTabCount() > 1 );
     }
 
     /**
