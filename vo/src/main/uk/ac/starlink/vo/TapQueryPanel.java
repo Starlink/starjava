@@ -18,6 +18,7 @@ import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -31,6 +32,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
+import javax.swing.ImageIcon;
 import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -43,6 +45,7 @@ import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JToggleButton;
+import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
@@ -93,11 +96,14 @@ public class TapQueryPanel extends JPanel {
 
     private static final KeyStroke[] UNDO_KEYS = new KeyStroke[] {
         KeyStroke.getKeyStroke( KeyEvent.VK_Z, Event.CTRL_MASK ),
+        KeyStroke.getKeyStroke( KeyEvent.VK_Z, Event.META_MASK ),
     };
     private static final KeyStroke[] REDO_KEYS = new KeyStroke[] {
-        KeyStroke.getKeyStroke( KeyEvent.VK_Y, Event.CTRL_MASK ),
         KeyStroke.getKeyStroke( KeyEvent.VK_Z, Event.CTRL_MASK
                                              | Event.SHIFT_MASK ),
+        KeyStroke.getKeyStroke( KeyEvent.VK_Z, Event.META_MASK
+                                             | Event.SHIFT_MASK ),
+        KeyStroke.getKeyStroke( KeyEvent.VK_Y, Event.CTRL_MASK ),
     };
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
@@ -148,6 +154,8 @@ public class TapQueryPanel extends JPanel {
                 updateUndoState();
             }
         };
+        configureAction( undoAct_, "undo.gif",
+                         "Undo most recent edit to text" );
         undoAct_.putValue( Action.ACCELERATOR_KEY, UNDO_KEYS[ 0 ] );
         redoAct_ = new AbstractAction( "Redo" ) {
             public void actionPerformed( ActionEvent evt ) {
@@ -159,6 +167,8 @@ public class TapQueryPanel extends JPanel {
                 updateUndoState();
             }
         };
+        configureAction( redoAct_, "redo.gif",
+                         "Redo most recently undone edit to text" );
         redoAct_.putValue( Action.ACCELERATOR_KEY, REDO_KEYS[ 0 ] );
 
         /* Actions for adding and removing text entry tabs. */
@@ -167,8 +177,8 @@ public class TapQueryPanel extends JPanel {
                 addTextTab();
             }
         };
-        addTabAct_.putValue( Action.SHORT_DESCRIPTION,
-                             "Add a new ADQL entry tab" );
+        configureAction( addTabAct_, "add_tab.gif",
+                         "Add a new ADQL entry tab" );
         copyTabAct_ = new AbstractAction( "Copy Tab" ) {
             public void actionPerformed( ActionEvent evt ) {
                 String text = textPanel_ == null ? null : textPanel_.getText();
@@ -176,9 +186,9 @@ public class TapQueryPanel extends JPanel {
                 textPanel_.setText( text );
             }
         };
-        copyTabAct_.putValue( Action.SHORT_DESCRIPTION,
-                             "Add a new ADQL entry tab, with initial content "
-                           + "copied from the currently visible one" );
+        configureAction( copyTabAct_, "copy_tab.gif",
+                         "Add a new ADQL entry tab, with initial content "
+                       + "copied from the currently visible one" );
         removeTabAct_ = new AbstractAction( "Remove Tab" ) {
             public void actionPerformed( ActionEvent evt ) {
                 if ( textTabber_.getTabCount() > 1 ) {
@@ -188,8 +198,8 @@ public class TapQueryPanel extends JPanel {
                 updateTabState();
             }
         };
-        removeTabAct_.putValue( Action.SHORT_DESCRIPTION,
-                                "Delete the currently visible ADQL entry tab" );
+        configureAction( removeTabAct_, "remove_tab.gif",
+                         "Delete the currently visible ADQL entry tab" );
 
         /* Button for selecting sync/async mode of query. */
         syncToggle_ = new JCheckBox( "Synchronous", true );
@@ -203,14 +213,13 @@ public class TapQueryPanel extends JPanel {
                 showParseError();
             }
         };
-        parseErrorAct_.putValue( Action.SHORT_DESCRIPTION,
-                                 "Show details of error parsing "
-                               + "current query ADQL text" );
+        configureAction( parseErrorAct_, "error.gif",
+                         "Show details of error parsing current query text" );
 
         /* Action to clear text in ADQL panel. */
-        clearAct_ = new AdqlTextAction( "Clear", true,
-                                        "Clear currently visible ADQL text "
-                                      + "from editor" );
+        clearAct_ = new AdqlTextAction( "Clear", true );
+        configureAction( clearAct_, "clear.gif",
+                         "Delete currently visible ADQL text from editor" );
         clearAct_.setAdqlText( "" );
         clearAct_.setEnabled( false );
 
@@ -228,10 +237,10 @@ public class TapQueryPanel extends JPanel {
         };
 
         /* Action to insert table name. */
-        interpolateTableAct_ =
-            new AdqlTextAction( "Insert Table", false,
-                                "Insert name of currently selected table "
-                              + "into ADQL text panel" );
+        interpolateTableAct_ = new AdqlTextAction( "Insert Table", false );
+        configureAction( interpolateTableAct_, "insert_table.gif",
+                         "Insert name of currently selected table "
+                       + "into ADQL text panel" );
         tmetaPanel_.addPropertyChangeListener( TableSetPanel
                                               .TABLE_SELECTION_PROPERTY,
                                                new PropertyChangeListener() {
@@ -243,10 +252,10 @@ public class TapQueryPanel extends JPanel {
         } );
 
         /* Action to insert column names. */
-        interpolateColumnsAct_ =
-            new AdqlTextAction( "Insert Columns", false,
-                                "Insert names of currently selected columns "
-                              + "into ADQL text panel" );
+        interpolateColumnsAct_ = new AdqlTextAction( "Insert Columns", false );
+        configureAction( interpolateColumnsAct_, "insert_columns.gif",
+                         "Insert names of currently selected columns "
+                       + "into ADQL text panel" );
         tmetaPanel_.addPropertyChangeListener( TableSetPanel
                                               .COLUMNS_SELECTION_PROPERTY,
                                                new PropertyChangeListener() {
@@ -297,19 +306,19 @@ public class TapQueryPanel extends JPanel {
         setParseError( null );
 
         /* Controls for ADQL text panel. */
+        JToolBar toolbar = new JToolBar();
+        toolbar.setFloatable( false );
+        toolbar.setBorderPainted( false );
+        for ( Action act : getEditActions() ) {
+            toolbar.add( act );
+        }
         Box buttLine = Box.createHorizontalBox();
         buttLine.setBorder( BorderFactory.createEmptyBorder( 0, 2, 2, 0 ) );
         buttLine.add( syncToggle_ );
-        buttLine.add( Box.createHorizontalGlue() );
-        buttLine.add( new JButton( interpolateColumnsAct_ ) );
-        buttLine.add( Box.createHorizontalStrut( 5 ) );
-        buttLine.add( new JButton( interpolateTableAct_ ) );
         buttLine.add( Box.createHorizontalStrut( 5 ) );
         buttLine.add( new JButton( examplesAct_ ) );
-        buttLine.add( Box.createHorizontalStrut( 5 ) );
-        buttLine.add( new JButton( clearAct_ ) );
-        buttLine.add( Box.createHorizontalStrut( 5 ) );
-        buttLine.add( new JButton( parseErrorAct_ ) );
+        buttLine.add( Box.createHorizontalGlue() );
+        buttLine.add( toolbar );
 
         /* Place components on ADQL panel. */
         JComponent adqlPanel = new JPanel( new BorderLayout() );
@@ -429,9 +438,10 @@ public class TapQueryPanel extends JPanel {
      */
     public Action[] getEditActions() {
         return new Action[] {
-            undoAct_, redoAct_, clearAct_,
             addTabAct_, copyTabAct_, removeTabAct_,
-            parseErrorAct_, interpolateColumnsAct_, interpolateTableAct_,
+            clearAct_, undoAct_, redoAct_,
+            interpolateTableAct_, interpolateColumnsAct_,
+            parseErrorAct_,
         };
     }
 
@@ -700,6 +710,26 @@ public class TapQueryPanel extends JPanel {
     }
 
     /**
+     * Adds description text and an icon to a given action.
+     *
+     * @param   act  action
+     * @param   iconName  name of icon filename in this class's directory
+     * @param   description  description of action
+     */
+    private static void configureAction( Action act, String iconName,
+                                         String description ) {
+        if ( iconName != null ) {
+            URL iconUrl = TapQueryPanel.class.getResource( iconName );
+            if ( iconUrl != null ) {
+                act.putValue( Action.SMALL_ICON, new ImageIcon( iconUrl ) );
+            }
+        }
+        if ( description != null ) {
+            act.putValue( Action.SHORT_DESCRIPTION, description );
+        }
+    }
+
+    /**
      * Action which replaces the current content of the ADQL text entry
      * area with some fixed string.
      */
@@ -713,13 +743,10 @@ public class TapQueryPanel extends JPanel {
          * @param  name  action name
          * @param  replace  true to replace entire contents,
          *                  false to insert at current position,
-         * @param  description   action short description
          */
-        public AdqlTextAction( String name, boolean replace,
-                               String description ) {
+        public AdqlTextAction( String name, boolean replace ) {
             super( name );
             replace_ = replace;
-            putValue( SHORT_DESCRIPTION, description );
             setAdqlText( null );
         }
 
@@ -757,7 +784,8 @@ public class TapQueryPanel extends JPanel {
          * @param   example  the example which this action will display
          */
         public AdqlExampleAction( AdqlExample example ) {
-            super( example.getName(), true, example.getDescription() );
+            super( example.getName(), true );
+            putValue( SHORT_DESCRIPTION, example.getDescription() );
             example_ = example;
         }
 
