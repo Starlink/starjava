@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -80,7 +81,7 @@ public class TableSetPanel extends JPanel {
     private final JSplitPane metaSplitter_;
     private TapServiceKit serviceKit_;;
     private SchemaMeta[] schemas_;
-    private ColumnMeta[] lastSelectedCols_;
+    private ColumnMeta[] selectedColumns_;
 
     /**
      * Name of bound property for table selection.
@@ -159,12 +160,10 @@ public class TableSetPanel extends JPanel {
                                      .MULTIPLE_INTERVAL_SELECTION );
         colSelModel.addListSelectionListener( new ListSelectionListener() {
             public void valueChanged( ListSelectionEvent evt ) {
-                if ( ! evt.getValueIsAdjusting() ) {
-                    TableSetPanel.this.fireColumnSelectionChanged();
-                }
+                columnSelectionChanged();
             }
         } );
-        lastSelectedCols_ = new ColumnMeta[ 0 ];
+        selectedColumns_ = new ColumnMeta[ 0 ];
 
         foreignTableModel_ = new ArrayTableModel( createForeignMetaColumns(),
                                                   new ColumnMeta[ 0 ] );
@@ -466,18 +465,7 @@ public class TableSetPanel extends JPanel {
      * @return   array of selected columns, may be empty but not null
      */
     public ColumnMeta[] getSelectedColumns() {
-        List<ColumnMeta> colList = new ArrayList<ColumnMeta>();
-        ListSelectionModel selModel = colTable_.getSelectionModel();
-        if ( ! selModel.isSelectionEmpty() ) {
-            int imin = selModel.getMinSelectionIndex();
-            int imax = selModel.getMaxSelectionIndex();
-            for ( int i = imin; i <= imax; i++ ) {
-                if ( selModel.isSelectedIndex( i ) ) {
-                    colList.add( (ColumnMeta) colTableModel_.getItems()[ i ] );
-                }
-            }
-        }
-        return colList.toArray( new ColumnMeta[ 0 ] );
+        return selectedColumns_;
     }
 
     /**
@@ -512,11 +500,48 @@ public class TableSetPanel extends JPanel {
     /**
      * Invoked when the column selection may have changed.
      */
-    private void fireColumnSelectionChanged() {
-        ColumnMeta[] selCols = getSelectedColumns();
-        firePropertyChange( COLUMNS_SELECTION_PROPERTY,
-                            lastSelectedCols_, selCols );
-        lastSelectedCols_ = selCols;
+    private void columnSelectionChanged() {
+        ColumnMeta[] oldCols = selectedColumns_;
+
+        /* Get a list of all the columns in the current selection. */
+        Collection<ColumnMeta> curSet = new HashSet<ColumnMeta>();
+        ListSelectionModel selModel = colTable_.getSelectionModel();
+        if ( ! selModel.isSelectionEmpty() ) {
+            int imin = selModel.getMinSelectionIndex();
+            int imax = selModel.getMaxSelectionIndex();
+            for ( int i = imin; i <= imax; i++ ) {
+                if ( selModel.isSelectedIndex( i ) ) {
+                    curSet.add( (ColumnMeta) colTableModel_.getItems()[ i ] );
+                }
+            }
+        }
+
+        /* Prepare a list with the same content as this selection list,
+         * but following the sequence of the elements in the previous
+         * version of the list as much as possible.
+         * This could be done a bit more elegantly with collections
+         * if ColumnMeta implemented object equality properly,
+         * but it doesn't. */
+        List<ColumnMeta> newList = new ArrayList<ColumnMeta>();
+        for ( ColumnMeta col : oldCols ) {
+            ColumnMeta oldCol = getNamedEntry( curSet, col.getName() );
+            if ( oldCol != null ) {
+                newList.add( oldCol );
+            }
+        }
+        for ( ColumnMeta col : curSet ) {
+            if ( getNamedEntry( newList, col.getName() ) == null ) {
+                newList.add( col );
+            }
+        }
+        assert new HashSet<ColumnMeta>( newList ).equals( curSet );
+        selectedColumns_ = newList.toArray( new ColumnMeta[ 0 ] );
+
+        /* Notify listeners if required. */
+        if ( ! Arrays.equals( selectedColumns_, oldCols ) ) {
+            firePropertyChange( COLUMNS_SELECTION_PROPERTY,
+                                oldCols, selectedColumns_ );
+        }
     }
 
     /**
@@ -533,7 +558,7 @@ public class TableSetPanel extends JPanel {
             if ( table != null ) {
                 configureColumnWidths( colTable_ );
             }
-            fireColumnSelectionChanged();
+            columnSelectionChanged();
         }
     }
 
@@ -667,6 +692,26 @@ public class TableSetPanel extends JPanel {
                                     : new TreePath[ 0 ];
         }
         tTree_.setSelectionPaths( selections );
+    }
+
+    /**
+     * Returns the first column in a given list with a given name,
+     * or null if there is no such entry.
+     *
+     * @param  list  column list
+     * @param  name  required name
+     * @return   list entry with given name, or null
+     */
+    private static ColumnMeta getNamedEntry( Collection<ColumnMeta> list,
+                                             String name ) {
+        if ( name != null ) {
+            for ( ColumnMeta c : list ) {
+                if ( name.equals( c.getName() ) ) {
+                    return c;
+                }
+            }
+        }
+        return null;
     }
 
     /**
