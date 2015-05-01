@@ -19,10 +19,8 @@ import javax.swing.SwingUtilities;
 
 import org.astrogrid.samp.client.DefaultClientProfile;
 
-import uk.ac.starlink.plastic.PlasticUtils;
 import uk.ac.starlink.splat.ast.ASTJ;
 import uk.ac.starlink.splat.data.NameParser;
-import uk.ac.starlink.splat.util.PlasticCommunicator;
 import uk.ac.starlink.splat.util.SampCommunicator;
 import uk.ac.starlink.splat.util.SplatCommunicator;
 import uk.ac.starlink.splat.util.SplatException;
@@ -68,7 +66,7 @@ public class SplatBrowserMain
              " [{-s,--selectax} axis_index]" +
              " [{-c,--clear}]" +
              " [{-k,--keepcoords}]" +
-             " [{--interop s{amp}||p{lastic}]" +
+             " [{--interop s{amp}||n{one}]" +
              " [{--hub,--exthub}]" +
              " [{--debuglevel} level]" +
              " [spectra1 spectra2 ...]"
@@ -257,16 +255,18 @@ public class SplatBrowserMain
         //  critical to the GUI startup, which is why it is done after
         //  the interface startup is dispatched.
         if ( Boolean.TRUE.equals( intHub ) || Boolean.TRUE.equals( extHub ) ) {
-            boolean external = Boolean.TRUE.equals( extHub );
-            String hubtype = external ? "external" : "internal";
-            logger.info( "Starting " + hubtype + " hub ..." );
-            try {
-                communicator.startHub( external );
-                logger.info( "Started " + hubtype + " hub successfully" );
-            }
-            catch (IOException e) {
-                logger.log( Level.WARNING,
-                            "Failed to start " + hubtype + " hub", e );
+            if ( communicator != null ) {
+                boolean external = Boolean.TRUE.equals( extHub );
+                String hubtype = external ? "external" : "internal";
+                logger.info( "Starting " + hubtype + " hub ..." );
+                try {
+                    communicator.startHub( external );
+                    logger.info( "Started " + hubtype + " hub successfully" );
+                }
+                catch (IOException e) {
+                    logger.log( Level.WARNING,
+                                "Failed to start " + hubtype + " hub", e );
+                }
             }
         }
     }
@@ -420,65 +420,34 @@ public class SplatBrowserMain
      * Returns a new SplatCommunicator object to handle inter-applcation
      * communications.
      *
-     * @param interopType "s(amp)" or "p(lastic)", otherwise a default is used
+     * @param interopType "s(amp)" or "n(one)", samp being the default.
      */
     public static SplatCommunicator createCommunicator( String interopType ) {
 
-        //  SAMP mode explicitly requested.
-        if ( "s".equals( interopType ) ||
-             "samp".equalsIgnoreCase( interopType ) ) {
-            logger.info( "Using SAMP communications by request" );
+        //  No mode explicitly requested.
+        if ( "n".equals( interopType ) ||
+             "none".equalsIgnoreCase( interopType ) ) {
+            logger.info( "Using no interop communications by request" );
+            return null;
+        }
+        else {
+            // SAMP requested or look for a hub.
+            final String msg;
+            if ( "s".equals( interopType ) ||
+                 "samp".equalsIgnoreCase( interopType )) {
+                msg = "Using SAMP communication by request";
+            }
+            else {
+                msg = DefaultClientProfile.getProfile().isHubRunning()
+                    ? "SAMP hub running - run in SAMP mode"
+                    : "Run in SAMP mode by default";
+            }
+            logger.info( msg );
             try {
                 return new SampCommunicator();
             }
-            catch (IOException e) {
-                throw new RuntimeException( "Failed to start up SAMP", e );
-            }
-        }
-
-        //  PLASTIC mode explicitly requested.
-        else if ( "p".equals( interopType ) ||
-                  "plastic".equalsIgnoreCase( interopType ) ) {
-            logger.info( "Using PLASTIC communications by request" );
-            return new PlasticCommunicator();
-        }
-
-        //  No explicit request.
-        else {
-
-            //  If SAMP hub is running, run in SAMP mode.
-            if ( DefaultClientProfile.getProfile().isHubRunning() ) {
-                logger.info( "SAMP hub running - run in SAMP mode" );
-                try {
-                    return new SampCommunicator();
-                }
-                catch (IOException e) {
-                    logger.warning( "Failed to start SAMP hub: " + e );
-                    logger.info( "Falling back to PLASTIC" );
-                    return new PlasticCommunicator();
-                }
-            }
-
-            //  If PLASTIC hub is running, run in PLASTIC mode.
-            else if ( PlasticUtils.isHubRunning() ) {
-                logger.info( "PLASTIC hub running - run in PLASTIC mode" );
-                return new PlasticCommunicator();
-            }
-
-            //  Otherwise default to SAMP.
-            else {
-                SplatCommunicator comm;
-                try {
-                    comm = new SampCommunicator();
-                }
-                catch (IOException e) {
-                    logger.warning( "Failed to start SAMP"
-                                  + " - fall back to PLASTIC (" + e + ")" );
-                    comm = new PlasticCommunicator();
-                }
-                logger.info( "Run in " + comm.getProtocolName()
-                           + " mode by default" );
-                return comm;
+            catch ( IOException e ) {
+                throw new RuntimeException( "SAMP config failed", e );
             }
         }
     }
