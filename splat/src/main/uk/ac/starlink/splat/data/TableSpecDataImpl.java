@@ -11,7 +11,6 @@ package uk.ac.starlink.splat.data;
 import java.util.List;
 import java.io.IOException;
 
-import nom.tam.fits.Header;
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.splat.util.SEDSplatException;
 import uk.ac.starlink.splat.util.SplatException;
@@ -45,22 +44,22 @@ public class TableSpecDataImpl
     extends MEMSpecDataImpl
 {
     /** Index of the column containing the coordinates */
-    protected int coordColumn = -1;
+    private int coordColumn = -1;
 
     /** Index of the column containing the data values */
-    protected int dataColumn = -1;
+    private int dataColumn = -1;
 
     /** Index of the column containing the data errors */
     private int errorColumn = -1;
 
     /** Names of all the columns in the table */
-    protected String[] columnNames = null;
+    private String[] columnNames = null;
 
     /** ColumnInfo objects for all columns */
-    protected ColumnInfo[] columnInfos = null;
+    private ColumnInfo[] columnInfos = null;
 
     /** Dimension of a column. */
-    protected int[] dims = new int[1];
+    private int[] dims = new int[1];
 
     /** Counter for generating application unique names */
     static int uniqueCount = 0;
