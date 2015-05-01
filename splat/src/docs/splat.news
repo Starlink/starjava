@@ -1,5 +1,17 @@
 1 Starlink SPLAT news.
 
+   3.11-0
+   ======
+
+   The already deprecated PLASTIC VO interoperability mechanism has
+   now been removed from SPLAT. All interoperability is now only available
+   using SAMP.
+
+   A new command-line option "--interop none" has been added so that
+   SPLAT can run without attempting to communicate with any running
+   SAMP hubs.
+
+
    3.10-0
    ======
 

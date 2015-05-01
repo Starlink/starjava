@@ -12,13 +12,13 @@
 {Copyright \copyright\ 2001-2005 Council for the Central Laboratory of the Research Councils \\
  Copyright \copyright\ 2006-2007 Particle Physics and Astronomy Research Council \\
  Copyright \copyright\ 2007-2009 Science and Technology Facilities Council \\
- Copyright \copyright\ 2010-2013 Peter W. Draper \\
+ Copyright \copyright\ 2010-2015 Peter W. Draper \\
  Copyright \copyright\ 2013 German Astrophysical Virtual Observatory (GAVO)}
-\stardocnumber      {243.41}
+\stardocnumber      {243.42}
 \stardocauthors     {Peter W. Draper, Mark Taylor \& Margarida Castro Neves}
-\stardocdate        {30 Jan 2013}
+\stardocdate        {1 May 2015}
 \stardoctitle       {SPLAT-VO -- A VO-enabled Spectral Analysis Tool}
-\stardocversion     {3.10-0}
+\stardocversion     {3.11-0}
 \stardocmanual      {User's Manual}
 \stardocabstract {
 \xlabel{abstract}
@@ -3478,10 +3478,11 @@ The communication architecture of SAMP uses a central ``Hub'' process to pass
 messages between registered applications, so a hub must be running in order
 for the messaging to operate.  If a hub is running when \SPLAT\ starts, or if
 one starts up while \SPLAT\ is in operation, it will connect to it
-automatically.  Other tools have their own policies for connecting to the hub,
-but in general it is a good idea to start a hub first before starting up the
-tools which you want to talk to it.  A hub can be started from within \SPLAT\
-if required.  The \verb+--hub+ or \verb+--exthub+ command-line flags start an
+automatically, unless you have started \SPLAT\ with the \verb+--interop none+
+command-line option.  Other tools have their own policies for connecting to
+the hub, but in general it is a good idea to start a hub first before starting
+up the tools which you want to talk to it.  A hub can be started from within
+\SPLAT\ if required.  The \verb+--hub+ or \verb+--exthub+ command-line flags start an
 ``internal'' or ``external'' hub respectively; the difference is that an
 internal hub will terminate when \SPLAT\ exits, while an external one
 continues running in its own process.  Alternatively, a hub can be started

@@ -17,7 +17,8 @@ import uk.ac.starlink.splat.vo.SSAQueryBrowser;
 
 /**
  * Abstract interface for inter-application messaging requirements of SPLAT.
- * This can be implemented by SAMP or PLASTIC (or others).
+ * This can be implemented by SAMP or PLASTIC (or others). PLASTIC
+ * support is now withdrawn, so this keep for future flexibility.
  *
  * @author   Mark Taylor
  * @version  $Id$

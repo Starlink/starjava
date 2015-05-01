@@ -12,7 +12,10 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import javax.swing.AbstractAction;
@@ -306,7 +309,7 @@ public class SampCommunicator
             String shortName = (String) msg.getParam( "name" );
 
             //  Turn these into a properties object which SPLAT can process.
-            SpectrumIO.Props props = SplatPlastic.getProps( location, meta );
+            SpectrumIO.Props props = getProps( location, meta );
             if ( shortName != null && shortName.trim().length() > 0 ) {
                 props.setShortName( shortName );
             }
@@ -333,6 +336,93 @@ public class SampCommunicator
             SwingUtilities.invokeLater( specAdder );
         }
     }
+
+    /**
+     * Convert a spectrum specification (a URL and Map of SSAP metadata) into
+     * a SpectrumIO.Prop instance.
+     *
+     * @param location URL of spectrum.
+     * @param meta a key-value map of SSAP metadata that describes the
+     *             spectrum to be accessed.
+     */
+    public static SpectrumIO.Props getProps( String location, Map meta )
+    {
+        SpectrumIO.Props props = new SpectrumIO.Props( location );
+        if ( meta != null && meta.size() > 0 ) {
+            SpecDataFactory specDataFactory = SpecDataFactory.getInstance();
+            Set keys = meta.keySet();
+            Iterator i = keys.iterator();
+            String key;
+            String value;
+            String axes[];
+            String units[];
+            while( i.hasNext() ) {
+                key = (String) i.next();
+                value = String.valueOf( meta.get( key ) );
+                key = key.toLowerCase();
+
+                //  UTYPEs and UCDs, maybe UTYPES should be sdm:ssa.xxx.
+                //  Many of the SSAP response UTYPEs don't seem documented yet.
+                if ( key.equals( "vox:spectrum_format" ) ||
+                     utypeMatches( key, "access.format" ) ) {
+                    props.setType( specDataFactory.mimeToSPLATType( value ) );
+                }
+                else if ( key.equals( "vox:image_title" ) ||
+                          utypeMatches( key, "target.name" ) ) {
+                    props.setShortName( value );
+                }
+                else if ( key.equals( "vox:spectrum_axes" ) ) {
+                    axes = value.split( "\\s" );
+                    if ( axes.length > 0  ) {
+                        props.setCoordColumn( axes[0] );
+                        if ( axes.length > 1 ) {
+                            props.setDataColumn( axes[1] );
+                            if ( axes.length == 3 ) {
+                                props.setErrorColumn( axes[2] );
+                            }
+                        }
+                    }
+                }
+                else if ( utypeMatches( key, "Dataset.SpectralAxis" ) ) {
+                    props.setCoordColumn( value );
+                }
+                else if ( utypeMatches( key, "Dataset.FluxAxis" ) ) {
+                    props.setDataColumn( value );
+                }
+                else if ( key.equals( "vox:spectrum_units" ) ) {
+                    units = value.split("\\s");
+                    if ( units.length > 0  ) {
+                        props.setCoordUnits( units[0] );
+                        if ( units.length > 1 ) {
+                            props.setDataUnits( units[1] );
+                        }
+                    }
+                }
+            }
+        }
+        return props;
+    }
+
+    /**
+     * Determines whether a given map key corresponds to a utype string.
+     *
+     * @param   key  provided map key
+     * @param   utype  UType to test against, without namespacing
+     * @return  true iff they appear to match
+     */
+    private static boolean utypeMatches( String key, String utype )
+    {
+        // Not sure what the correct utype namespacing is, if anything;
+        // be liberal about that, and about case sensitivity, for now.
+        if ( key == null ) {
+            return false;
+        }
+        String lKey = key.toLowerCase();
+        String lUtype = utype.toLowerCase();
+        return lKey.equals( lUtype )
+            || lKey.endsWith( ":" + lUtype );
+    }
+
 
     /**
      * Encapsulates information about a message which has been received.

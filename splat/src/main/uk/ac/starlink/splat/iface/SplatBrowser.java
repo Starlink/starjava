@@ -78,7 +78,6 @@ import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.plot.PlotControl;
 import uk.ac.starlink.splat.util.RemoteServer;
 import uk.ac.starlink.splat.util.SEDSplatException;
-import uk.ac.starlink.splat.util.SpecTransmitter;
 import uk.ac.starlink.splat.util.SampCommunicator;
 import uk.ac.starlink.splat.util.SplatCommunicator;
 import uk.ac.starlink.splat.util.SplatException;
@@ -357,7 +356,7 @@ public class SplatBrowser
     protected JCheckBoxMenuItem searchCoordsItem = null;
 
     /**
-     * Controls communications for interoperability (PLASTIC/SAMP).
+     * Controls communications for SAMP interoperability.
      */
     protected SplatCommunicator communicator = null;
 
@@ -431,8 +430,8 @@ public class SplatBrowser
      *  @param selectAxis the axis to step along during collapse/extract,
      *                    if any of the spectra are 3D. If null then an axis
      *                    will be selected automatically.
-     *  @param communicator object which provides inter-client communications
-     *                      (SAMP or PLASTIC)
+     *  @param communicator object which provides inter-client SAMP 
+     *                      communications, null for none.
      */
     public SplatBrowser( String[] inspec, boolean embedded, String type,
                          String ndAction, Integer dispAxis,
@@ -445,10 +444,9 @@ public class SplatBrowser
         setEmbedded( embedded );
         enableEvents( AWTEvent.WINDOW_EVENT_MASK );
         try {
-            if ( communicator == null ) {
-                communicator = new SampCommunicator();
+            if ( communicator != null ) {
+                communicator.setBrowser( this );
             }
-            communicator.setBrowser( this );
             this.communicator = communicator;
             initComponents();
         }
@@ -1047,10 +1045,15 @@ public class SplatBrowser
     }
 
     /**
-     * Create the Interop menu and populate it with appropriate actions.
+     * Create the Interop menu and populate it with appropriate actions,
+     * if enabled.
      */
     private void createInteropMenu()
     {
+        if ( communicator == null ) {
+            return;
+        }
+
         JMenu interopMenu = new JMenu( "Interop" );
         interopMenu.setMnemonic( KeyEvent.VK_I );
         menuBar.add( interopMenu );
@@ -1251,16 +1254,18 @@ public class SplatBrowser
         if ( ! embedded ) {
 
             //  Client interop registration.
-            try {
-                String msg = "Attempting registration with "
-                           + communicator.getProtocolName()
-                           + " hub: ";
-                boolean isReg = communicator.setActive();
-                msg += isReg ? "success" : "failure";
-                logger.info( msg );
-            }
-            catch ( Exception e ) {
-                logger.warning( "Unexpected registration failure: " + e );
+            if ( communicator != null ) {
+                try {
+                    String msg = "Attempting registration with "
+                        + communicator.getProtocolName()
+                        + " hub: ";
+                    boolean isReg = communicator.setActive();
+                    msg += isReg ? "success" : "failure";
+                    logger.info( msg );
+                }
+                catch ( Exception e ) {
+                    logger.warning( "Unexpected registration failure: " + e );
+                }
             }
 
             try {
