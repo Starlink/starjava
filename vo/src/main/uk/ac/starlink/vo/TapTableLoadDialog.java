@@ -64,6 +64,7 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
     private Action reloadAct_;
     private ProxyAction[] proxyActs_;
     private TapMetaPolicy metaPolicy_;
+    private String ofmtName_;
     private int tqTabIndex_;
     private int jobsTabIndex_;
     private int resumeTabIndex_;
@@ -330,6 +331,21 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
     }
 
     /**
+     * Sets the preferred format in which the service is to provide the
+     * table output.  This had better represent some form of VOTable.
+     * The supplied name may be a MIME type, an alias, or an ivo-id
+     * as described in sec 2.4 of TAPRegExt v1.0.
+     * If the supplied name is null, or if no output format has been
+     * declared by the service corresponding to the supplied name,
+     * then the service's default output format will be used.
+     *
+     * @param  ofmtName  output format MIME type, alias or ivo-id
+     */
+    public void setPreferredOutputFormat( String ofmtName ) {
+        ofmtName_ = ofmtName;
+    }
+
+    /**
      * Returns a panel-specific reload action.
      * When enabled, this performs some kind of update action
      * relevant to the currently visible tab.
@@ -382,6 +398,14 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
         long maxrec = tcapPanel.getMaxrec();
         if ( maxrec > 0 ) {
             extraParams.put( "MAXREC", Long.toString( maxrec ) );
+        }
+        TapCapability tcap = tcapPanel.getCapability();
+        if ( tcap != null ) {
+            String ofmtSpec =
+                getOutputFormatSpecifier( ofmtName_, tcap.getOutputFormats() );
+            if ( ofmtSpec != null ) {
+                extraParams.put( "FORMAT", ofmtSpec );
+            }
         }
         List<DescribedValue> metaList = new ArrayList<DescribedValue>();
         metaList.addAll( Arrays.asList( getResourceMetadata( serviceUrl
@@ -619,6 +643,32 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
         for ( ProxyAction act : proxyActs_ ) {
             act.setTarget( actMap.get( act.getValue( Action.NAME ) ) );
         }
+    }
+
+    /**
+     * Returns a specification string suitable for use with the TAP
+     * FORMAT request parameter that indicates preference for a particular
+     * table output format.
+     *
+     * @param  ofmtName  preferred output format MIME type, alias or ivo-id
+     * @param  ofmts   available output formats
+     * @return  FORMAT value to specify preferred output format,
+     *          or none if no suitable format is present in the supplied list
+     */
+    private static String getOutputFormatSpecifier( String ofmtName,
+                                                    OutputFormat[] ofmts ) {
+        if ( ofmtName != null && ofmts != null ) {
+            for ( OutputFormat ofmt : ofmts ) {
+                String[] aliases = ofmt.getAliases();
+                aliases = aliases == null ? new String[ 0 ] : aliases;
+                if ( ofmtName.equalsIgnoreCase( ofmt.getIvoid() ) ||
+                     ofmtName.equalsIgnoreCase( ofmt.getMime() ) ||
+                     Arrays.asList( aliases ).indexOf( ofmtName ) >= 0 ) {
+                    return aliases.length > 0 ? aliases[ 0 ] : ofmt.getMime();
+                }
+            }
+        }
+        return null;
     }
 
     /**
