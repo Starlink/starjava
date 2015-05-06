@@ -8,7 +8,9 @@ import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ButtonGroup;
@@ -28,6 +30,7 @@ import uk.ac.starlink.vo.AbstractAdqlExample;
 import uk.ac.starlink.vo.AdqlExample;
 import uk.ac.starlink.vo.AdqlSyntax;
 import uk.ac.starlink.vo.AdqlValidator;
+import uk.ac.starlink.vo.TapCapability;
 import uk.ac.starlink.vo.TapMetaPolicy;
 import uk.ac.starlink.vo.TapQuery;
 import uk.ac.starlink.vo.TapQueryPanel;
@@ -104,6 +107,35 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
             }
         }
         tapMenu.add( metaMenu );
+
+        /* Add sub-menu for output format preference. */
+        JMenu ofmtMenu = new JMenu( "Transfer Format" );
+        ButtonGroup ofmtButtGroup = new ButtonGroup();
+        Map<String,String> ofmtMap = new LinkedHashMap<String,String>();
+        ofmtMap.put( "Service Default", null );
+        String tapregextStd = TapCapability.TAPREGEXT_STD_URI;
+        ofmtMap.put( "TABLEDATA", tapregextStd + "#output-votable-td" );
+        ofmtMap.put( "BINARY", tapregextStd + "#output-votable-binary" );
+        ofmtMap.put( "BINARY2", tapregextStd + "#output-votable-binary2" );
+        for ( Map.Entry<String,String> entry : ofmtMap.entrySet() ) {
+            String optName = entry.getKey();
+            final String ofmtId = entry.getValue();
+            Action act = new AbstractAction( optName ) {
+                public void actionPerformed( ActionEvent evt ) {
+                    setPreferredOutputFormat( ofmtId );
+                }
+            };
+            act.putValue( Action.SHORT_DESCRIPTION,
+                          "Request TAP results in " + ofmtId
+                        + " format if supported" );
+            JRadioButtonMenuItem menuItem = new JRadioButtonMenuItem( act );
+            ofmtButtGroup.add( menuItem );
+            ofmtMenu.add( menuItem );
+            if ( optName.equals( "BINARY2" ) ) {
+                menuItem.doClick();
+            }
+        }
+        tapMenu.add( ofmtMenu );
 
         return comp;
     }
