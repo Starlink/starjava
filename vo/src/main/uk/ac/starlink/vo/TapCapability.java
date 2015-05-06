@@ -66,6 +66,13 @@ public abstract class TapCapability {
     public abstract TapLanguage[] getLanguages();
 
     /**
+     * Returns an array of output format options declared by this capability.
+     *
+     * @return  array of output formats
+     */
+    public abstract OutputFormat[] getOutputFormats();
+
+    /**
      * Returns an array of data models known by this capability.
      *
      * @return   dataModel element ivo-id attribute values
@@ -188,6 +195,20 @@ public abstract class TapCapability {
         final TapLanguage[] languages =
             langList.toArray( new TapLanguage[ 0 ] );
 
+        /* Get output formats. */
+        NodeList ofmtNodeList =
+            (NodeList) xpath.evaluate( "outputFormat",
+                                       capNode, XPathConstants.NODESET );
+        List<OutputFormat> ofmtList = new ArrayList<OutputFormat>();
+        for ( int i = 0; i < ofmtNodeList.getLength(); i++ ) {
+            Node ofmt = ofmtNodeList.item( i );
+            if ( ofmt instanceof Element ) {
+                ofmtList.add( getOutputFormat( (Element) ofmt ) );
+            }
+        }
+        final OutputFormat[] outputFormats =
+            ofmtList.toArray( new OutputFormat[ 0 ] );
+
         /* Get various limits. */
         final TapLimit[] outputLimits =
             getLimits( (NodeList) xpath.evaluate( "outputLimit/*", capNode,
@@ -215,6 +236,9 @@ public abstract class TapCapability {
             public TapLanguage[] getLanguages() {
                 return languages;
             }
+            public OutputFormat[] getOutputFormats() {
+                return outputFormats;
+            }
             public String[] getDataModels() {
                 return dataModels;
             }
@@ -233,6 +257,7 @@ public abstract class TapCapability {
             public String toString() {
                 return "uploadMethods: " + Arrays.asList( uploadMethods ) + "; "
                      + "languages: " + Arrays.asList( languages ) + "; "
+                     + "outputFormats: " + Arrays.asList( outputFormats ) + "; "
                      + "dataModels: " + Arrays.asList( dataModels ) + "; "
                      + "outputLimits: " + Arrays.asList( outputLimits ) + "; "
                      + "uploadLimits: " + Arrays.asList( uploadLimits ) + "; "
@@ -376,6 +401,59 @@ public abstract class TapCapability {
             }
             public String toString() {
                 return name + "-" + Arrays.asList( versions );
+            }
+        };
+    }
+
+    /**
+     * Reads an OutputFormat object from a TAPRegExt outputFormat element.
+     *
+     * @param   ofmtEl  element of type tr:OutputFormat (see TAPRegExt)
+     * @return  corresponding OutputFormat object
+     */
+    private static OutputFormat getOutputFormat( Element ofmtEl ) {
+
+        /* Acquire relevant attribute and element values from DOM. */
+        final String ivoid = ofmtEl.getAttribute( "ivo-id" );
+        String ofmtMime = null;
+        List<String> aliasList = new ArrayList<String>();
+        for ( Node ofmtChild = ofmtEl.getFirstChild(); ofmtChild != null;
+              ofmtChild = ofmtChild.getNextSibling() ) {
+            if ( ofmtChild instanceof Element ) {
+                Element childEl = (Element) ofmtChild;
+                String childName = childEl.getTagName();
+                if ( "mime".equals( childName ) ) {
+                    ofmtMime = DOMUtils.getTextContent( childEl );
+                }
+                else if ( "alias".equals( childName ) ) {
+                    aliasList.add( DOMUtils.getTextContent( childEl ) );
+                }
+            }
+        }
+
+        /* Return the results as a new OutputFormat implementation object. */
+        final String mime = ofmtMime;
+        final String[] aliases = aliasList.toArray( new String[ 0 ] );
+        return new OutputFormat() {
+            public String getMime() {
+                return mime;
+            }
+            public String[] getAliases() {
+                return aliases;
+            }
+            public String getIvoid() {
+                return ivoid;
+            }
+            public String toString() {
+                if ( aliases.length > 0 ) {
+                    return aliases[ 0 ];
+                }
+                else if ( mime != null ) {
+                    return mime;
+                }
+                else {
+                    return ivoid;
+                }
             }
         };
     }

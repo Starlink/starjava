@@ -1,6 +1,5 @@
 package uk.ac.starlink.ttools.taplint;
 
-import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -11,17 +10,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import uk.ac.starlink.util.DOMUtils;
+import uk.ac.starlink.vo.OutputFormat;
 import uk.ac.starlink.vo.TapCapability;
 import uk.ac.starlink.vo.TapLanguage;
 import uk.ac.starlink.vo.TapLanguageFeature;
 import uk.ac.starlink.vo.TapQuery;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 /**
@@ -106,30 +99,8 @@ public class CapabilityStage implements Stage, CapabilityHolder {
             return null;
         }
 
-        /* Read a DOM from the same place.  This shouldn't fail if the
-         * previous step succeeded, but if it does, just report the failure
-         * and carry on with a null DOM; some later checks won't get run. */
-	Document capsDoc = null; 
-        try {
-            capsDoc = DocumentBuilderFactory.newInstance().newDocumentBuilder()
-                     .parse( new BufferedInputStream( capUrl.openStream() ) );
-        }
-        catch ( IOException e ) {
-            reporter.report( FixedCode.E_CAIO,
-                             "Error reading capabilities from " + capUrl, e );
-        }
-        catch ( SAXException e ) {
-            reporter.report( FixedCode.E_CAXM,
-                             "Error parsing capabilities from " + capUrl, e );
-        }
-        catch ( ParserConfigurationException e ) {
-            reporter.report( FixedCode.F_CAPC,
-                             "Error parsing capabilities XML from " + capUrl,
-                             e );
-        }
-
         /* Do the work. */
-        new CapabilityRunner( reporter, tcap, capsDoc ).run();
+        new CapabilityRunner( reporter, tcap ).run();
         return tcap;
     }
 
@@ -139,20 +110,16 @@ public class CapabilityStage implements Stage, CapabilityHolder {
     private static class CapabilityRunner implements Runnable {
         private final Reporter reporter_;
         private final TapCapability tcap_;
-        private final Document capsDoc_;
 
         /**
          * Constructor.
          *
          * @param  reporter  validation message destination
          * @param  tcap  TAP capability object
-         * @param  capsDoc  DOM of a Capabilities document
          */
-        CapabilityRunner( Reporter reporter, TapCapability tcap,
-                          Document capsDoc ) {
+        CapabilityRunner( Reporter reporter, TapCapability tcap ) {
             reporter_ = reporter;
             tcap_ = tcap;
-            capsDoc_ = capsDoc;
         }
 
         public void run() {
@@ -415,35 +382,10 @@ public class CapabilityStage implements Stage, CapabilityHolder {
         }
 
         /**
-         * Locates and returns the capability element in the capabilities DOM
-         * which has a given standard ID.
-         *
-         * @param   stdId  required standardID attribute value
-         * @return  capability element or null
-         */
-        private Element getCapabilityElement( String stdId ) {
-            NodeList capList = capsDoc_.getDocumentElement()
-                              .getElementsByTagName( "capability" );
-            for ( int ic = 0; ic < capList.getLength(); ic++ ) {
-                Element capEl = (Element) capList.item( ic );
-                if ( stdId.equals( capEl.getAttribute( "standardID" ) ) ) {
-                   return capEl;
-                }
-            }
-            return null;
-        }
-
-        /**
          * Checks that output formats are declared correctly.
          */
         private void checkOutputFormats() {
-            Element treEl = getCapabilityElement( "ivo://ivoa.net/std/TAP" );
-            if ( treEl == null ) {
-                reporter_.report( FixedCode.E_TCAP,
-                                  "No TAPRegExt capability element" );
-                return;
-            }
-            OutputFormat[] outFormats = readOutputFormats( treEl );
+            OutputFormat[] outFormats = tcap_.getOutputFormats();
             if ( outFormats.length == 0 ) {
                 reporter_.report( FixedCode.E_NOOF,
                                   "No output formats defined" );
@@ -457,10 +399,9 @@ public class CapabilityStage implements Stage, CapabilityHolder {
             String stdPrefix = TapCapability.TAPREGEXT_STD_URI;
             for ( int iof = 0; iof < outFormats.length; iof++ ) {
                 OutputFormat of = outFormats[ iof ];
-                String ofName = of.aliases_.length > 0
-                              ? of.aliases_[ 0 ]
-                              : of.mime_;
-                String mime = of.mime_;
+                String[] aliases = of.getAliases();
+                String mime = of.getMime();
+                String ofName = aliases.length > 0 ? aliases[ 0 ] : mime;
                 if ( mime == null 
                      || ! OUT_MIME_REGEX.matcher( mime.trim() ).matches() ) {
                     String msg = new StringBuffer()
@@ -471,7 +412,7 @@ public class CapabilityStage implements Stage, CapabilityHolder {
                        .toString();
                     reporter_.report( FixedCode.E_BMIM, msg );
                 }
-                String ivoid = of.ivoid_;
+                String ivoid = of.getIvoid();
                 if ( ivoid != null && ivoid.startsWith( stdPrefix ) &&
                      ! outKeyList
                       .contains( ivoid.substring( stdPrefix.length() ) ) ) {
@@ -484,44 +425,6 @@ public class CapabilityStage implements Stage, CapabilityHolder {
                     reporter_.report( FixedCode.E_XOFK, msg );
                 }
             }
-        }
-
-        /**
-         * Reads a TAPRegExt capability element to find the declared
-         * output formats.
-         *
-         * @param   treEl  capability element with
-         *                 standardID="ivo://ivoa.net/std/TAP"
-         * @return   output formats declared
-         */
-        private OutputFormat[] readOutputFormats( Element treEl ) {
-            List<OutputFormat> ofList = new ArrayList<OutputFormat>();
-            for ( Node treChild = treEl.getFirstChild(); treChild != null;
-                  treChild = treChild.getNextSibling() ) {
-                if ( treChild instanceof Element &&
-                     "outputFormat".equals( treChild.getNodeName() ) ) {
-                    Element ofel = (Element) treChild;
-                    String ivoid = ofel.getAttribute( "ivo-id" );
-                    String mime = null;
-                    List<String> aliasList = new ArrayList<String>();
-                    for ( Node ofChild = ofel.getFirstChild(); ofChild != null;
-                          ofChild = ofChild.getNextSibling() ) {
-                        if ( ofChild instanceof Element ) {
-                            Element el = (Element) ofChild;
-                            String tname = el.getTagName();
-                            if ( "mime".equals( tname ) ) {
-                                mime = DOMUtils.getTextContent( el );
-                            }
-                            if ( "alias".equals( tname ) ) {
-                                aliasList.add( DOMUtils.getTextContent( el ) );
-                            }
-                        }
-                    }
-                    String[] aliases = aliasList.toArray( new String[ 0 ] );
-                    ofList.add( new OutputFormat( mime, aliases, ivoid ) );
-                }
-            }
-            return ofList.toArray( new OutputFormat[ 0 ] );
         }
 
         /**
@@ -549,35 +452,6 @@ public class CapabilityStage implements Stage, CapabilityHolder {
                     reporter_.report( FixedCode.W_CPID, msg );
                 }
             }
-        }
-    }
-
-    /**
-     * Aggregates information about a declared output format.
-     */
-    private static class OutputFormat {
-        final String mime_;
-        final String[] aliases_;
-        final String ivoid_;
-
-        /**
-         * Constructor.
-         *
-         * @param  mime  MIME type
-         * @param  aliases   array of alias strings, may be empty
-         * @parm  ivoid  identifier URI
-         */
-        OutputFormat( String mime, String[] aliases, String ivoid ) {
-            mime_ = mime;
-            aliases_ = aliases;
-            ivoid_ = ivoid;
-        }
-
-        public String toString() {
-            return "OutputFormat: "
-                 + "mime: " + mime_ + ", "
-                 + "ivoid: " + ivoid_ + ", "
-                 + "aliases: " + Arrays.asList( aliases_ );
         }
     }
 
