@@ -1,9 +1,11 @@
 package uk.ac.starlink.topcat;
 
+import edu.stanford.ejalbert.BrowserLauncher;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
+import java.net.URL;
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -11,6 +13,8 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ButtonGroup;
@@ -35,6 +39,7 @@ import uk.ac.starlink.vo.TapMetaPolicy;
 import uk.ac.starlink.vo.TapQuery;
 import uk.ac.starlink.vo.TapQueryPanel;
 import uk.ac.starlink.vo.TapTableLoadDialog;
+import uk.ac.starlink.vo.UrlHandler;
 import uk.ac.starlink.vo.UwsJob;
 
 /**
@@ -44,10 +49,18 @@ import uk.ac.starlink.vo.UwsJob;
  * @since    18 Jan 2011
  */
 public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
+
     private final RegistryDialogAdjuster adjuster_;
     private AdqlExample[] examples_;
+    private UrlHandler urlHandler_;
     private volatile DeletionPolicy deletionPolicy_;
 
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.topcat" );
+
+    /**
+     * Constructor.
+     */
     public TopcatTapTableLoadDialog() {
         adjuster_ = new RegistryDialogAdjuster( this, "tap", false );
     }
@@ -137,6 +150,9 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
         }
         tapMenu.add( ofmtMenu );
 
+        /* Prepare a handler for clickable URLs. */
+        urlHandler_ = createUrlHandler();
+
         return comp;
     }
 
@@ -224,7 +240,8 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
 
     @Override
     protected TapQueryPanel createTapQueryPanel() {
-        final TapQueryPanel tqp = new TapQueryPanel( getExamples() );
+        final TapQueryPanel tqp =
+            new TapQueryPanel( getExamples(), urlHandler_ );
 
         /* Make sure the panel is kept up to date with the list of
          * tables known by the application. */
@@ -356,6 +373,30 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
             }
             public Collection<String> getColumnNames() {
                 return colList;
+            }
+        };
+    }
+
+    /**
+     * Tries on a best-efforts basis to returns a handler
+     * that launches a browser when a URL is clicked.
+     *
+     * @return  browser launcher handler, or null if it can't be done
+     */
+    private static UrlHandler createUrlHandler() {
+        final BrowserLauncher launcher;
+        try {
+            launcher = new BrowserLauncher();
+        }
+        catch ( Exception e ) {
+            logger_.log( Level.WARNING,
+                         "Trouble invoking BrowserLauncher: " + e, e );
+            return null;
+        }
+        launcher.setNewWindowPolicy( false );
+        return new UrlHandler() {
+            public void clickUrl( URL url ) {
+                launcher.openURLinBrowser( url.toString() );
             }
         };
     }

@@ -21,6 +21,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.AbstractAction;
@@ -87,6 +88,9 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
 
     // Maximum Number of requests for table metadata to queue in LIFO.
     private static final int META_QUEUE_LIMIT = 10;
+
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.vo" );
 
     /**
      * Constructor.
@@ -482,7 +486,11 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
      * @return  new query panel
      */
     protected TapQueryPanel createTapQueryPanel() {
-        return new TapQueryPanel( basicExamples_ );
+        return new TapQueryPanel( basicExamples_, new UrlHandler() {
+            public void clickUrl( URL url ) {
+                logger_.warning( "Click :" + url );
+            }
+        } );
     }
 
     public boolean isReady() {

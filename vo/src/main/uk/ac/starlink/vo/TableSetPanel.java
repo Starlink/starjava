@@ -109,8 +109,10 @@ public class TableSetPanel extends JPanel {
 
     /**
      * Constructor.
+     *
+     * @param  urlHandler  handles URLs that the user clicks on; may be null
      */
-    public TableSetPanel() {
+    public TableSetPanel( UrlHandler urlHandler ) {
         super( new BorderLayout() );
         tTree_ = new JTree();
         tTree_.setRootVisible( false );
@@ -179,7 +181,7 @@ public class TableSetPanel extends JPanel {
 
         tablePanel_ = new TableMetaPanel();
         schemaPanel_ = new SchemaMetaPanel();
-        servicePanel_ = new ResourceMetaPanel();
+        servicePanel_ = new ResourceMetaPanel( urlHandler );
 
         detailTabber_ = new JTabbedPane();
         int itab = 0;
@@ -1084,13 +1086,15 @@ public class TableSetPanel extends JPanel {
 
         /**
          * Constructor.
+         *
+         * @param  urlHandler  handles URLs that the user clicks on; may be null
          */
-        ResourceMetaPanel() {
+        ResourceMetaPanel( UrlHandler urlHandler ) {
             nameField_ = addLineField( "Short Name" );
             titleField_ = addLineField( "Title" );
             ivoidField_ = addLineField( "IVO ID" );
             servurlField_ = addLineField( "Service URL" );
-            refurlField_ = addLineField( "Reference URL" );
+            refurlField_ = addUrlField( "Reference URL", urlHandler );
             sizeField_ = addLineField( "Size" );
             descripField_ = addMultiLineField( "Description" );
         }
