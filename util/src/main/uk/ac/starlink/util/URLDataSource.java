@@ -17,27 +17,61 @@ import java.net.URLConnection;
  */
 public class URLDataSource extends DataSource {
 
-    private URL url; 
+    private final URL url_; 
+    private final ContentCoding coding_;
 
     /**
-     * Constructs a DataSource from a URL.
+     * Constructs a DataSource from a URL with default content coding.
      * If the URL has a ref part (the bit after the '#') it will be 
      * treated as the position attribute of this DataSource.
+     *
+     * @param  url  URL
      */
     public URLDataSource( URL url ) {
-        this.url = url;
-        setName( url.toString() );
-        setPosition( url.getRef() );
+        this( url, ContentCoding.GZIP );
+    }
+
+    /**
+     * Constructs a DataSource from a URL with given content coding policy.
+     * If the URL has a ref part (the bit after the '#') it will be 
+     * treated as the position attribute of this DataSource.
+     *
+     * @param  url  URL
+     * @param  coding  configures HTTP compression; may be overridden
+     *                 if inapplicable or security concerns apply
+     */
+    public URLDataSource( URL url, ContentCoding coding ) {
+        url_ = url;
+
+        /* There are security issues around content-coding;
+         * they are probably not relevant but I don't understand them,
+         * so be cautious/paranoid. */
+        if ( coding != null &&
+             "http".equals( url.getProtocol() ) &&
+             url.getUserInfo() == null ) {
+            coding_ = coding;
+        }
+        else {
+            coding_ = ContentCoding.NONE;
+        }
+        setName( url_.toString() );
+        setPosition( url_.getRef() );
     }
 
     protected InputStream getRawInputStream() throws IOException {
 
         //  Contact the resource.
-        URLConnection connection = url.openConnection();
+        URLConnection connection = url_.openConnection();
 
         /* Handle basic authentication if present. */
-        String userInfo = url.getUserInfo();
+        String userInfo = url_.getUserInfo();
         setBasicAuth( connection, userInfo );
+
+        /* Use content-coding to control HTTP-level compression. */
+        ContentCoding coding = userInfo == null ? coding_ : ContentCoding.NONE;
+        if ( coding != null ) {
+            coding.prepareRequest( connection );
+        }
 
         //  Handle switching from HTTP to HTTPS (but not vice-versa, that's
         //  insecure), if a HTTP 30x redirect is returned, as Java doesn't do
@@ -51,6 +85,9 @@ public class URLDataSource extends DataSource {
                 String newloc = connection.getHeaderField( "Location" );
                 URL newurl = new URL( newloc );
                 connection = newurl.openConnection();
+                if ( coding != null ) {
+                    coding.prepareRequest( connection );
+                }
                 setBasicAuth( connection, userInfo );
             }
         }
@@ -58,7 +95,7 @@ public class URLDataSource extends DataSource {
         /* Work around known mark/reset bug in one of the J2SE input stream 
          * implementations (present up to 1.6 at least) used when 
          * invoking connection.getInputStream(). */
-        InputStream strm = connection.getInputStream();
+        InputStream strm = coding.getInputStream( connection );
         return new FilterInputStream( strm ) {
             public boolean markSupported() {
                 return false;
@@ -72,7 +109,7 @@ public class URLDataSource extends DataSource {
      * @return  the URL
      */
     public URL getURL() {
-        return url;
+        return url_;
     }
 
     /**
