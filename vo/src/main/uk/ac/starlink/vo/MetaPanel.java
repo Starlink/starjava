@@ -1,7 +1,13 @@
 package uk.ac.starlink.vo;
 
+import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Rectangle;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.net.MalformedURLException;
+import java.net.URL;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -58,6 +64,44 @@ public class MetaPanel extends JPanel implements Scrollable {
         field.setEditable( false );
         field.setOpaque( false );
         addHeadedComponent( heading, field );
+        return field;
+    }
+
+    /**
+     * Adds a field intended to contain a clickable URL.
+     * If a non-null UrlHandler is supplied, its {@link UrlHandler#clickUrl}
+     * method is invoked when the user clicks on this field.
+     *
+     * @param  heading  item heading text
+     * @param  urlHandler  handler used when the field is clicked on;
+     *                     may be null
+     */
+    public JTextComponent addUrlField( String heading,
+                                       final UrlHandler urlHandler ) {
+        final JTextComponent field = addLineField( heading );
+        if ( urlHandler != null ) {
+            field.setForeground( new Color( 0x0000ee ) );
+            try {
+                field.setCursor( Cursor.getPredefinedCursor( Cursor
+                                                            .HAND_CURSOR ) );
+            }
+            catch ( Exception e ) {
+                //
+            }
+            field.addMouseListener( new MouseAdapter() {
+                public void mouseClicked( MouseEvent evt ) {
+                    String txt = field.getText();
+                    if ( evt.getButton() == evt.BUTTON1 && txt != null ) {
+                        try {
+                            urlHandler.clickUrl( new URL( txt ) );
+                        }
+                        catch ( MalformedURLException e ) {
+                            // no action
+                        }
+                    }
+                }
+            } );
+        }
         return field;
     }
 

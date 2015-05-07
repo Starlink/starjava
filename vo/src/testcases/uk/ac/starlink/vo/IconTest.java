@@ -16,7 +16,8 @@ public class IconTest extends TestCase {
 
     public void testEditActions() {
         for ( Action act :
-              new TapQueryPanel( new AdqlExample[ 0 ] ).getEditActions() ) {
+              new TapQueryPanel( new AdqlExample[ 0 ], null )
+                 .getEditActions() ) {
             assertNotNull( act.getValue( Action.SHORT_DESCRIPTION ) );
             Icon icon = (Icon) act.getValue( Action.SMALL_ICON );
             assertNotNull( icon );

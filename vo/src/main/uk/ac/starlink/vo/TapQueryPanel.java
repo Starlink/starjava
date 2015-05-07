@@ -113,12 +113,13 @@ public class TapQueryPanel extends JPanel {
      *
      * @param   examples   list of example queries to be made available
      *          from the examples menu
+     * @param   urlHandler  handles URLs that the user clicks on; may be null
      */
-    public TapQueryPanel( AdqlExample[] examples ) {
+    public TapQueryPanel( AdqlExample[] examples, UrlHandler urlHandler ) {
         super( new BorderLayout() );
 
         /* Prepare a panel for table metadata display. */
-        tmetaPanel_ = new TableSetPanel();
+        tmetaPanel_ = new TableSetPanel( urlHandler );
         tmetaPanel_.addPropertyChangeListener( TableSetPanel.SCHEMAS_PROPERTY,
                                                new PropertyChangeListener() {
             public void propertyChange( PropertyChangeEvent evt ) {
