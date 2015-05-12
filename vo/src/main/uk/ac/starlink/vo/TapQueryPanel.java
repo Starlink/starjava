@@ -37,6 +37,7 @@ import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
+import javax.swing.JMenu;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
@@ -74,6 +75,7 @@ public class TapQueryPanel extends JPanel {
     private final Action examplesAct_;
     private final Action parseErrorAct_;
     private final AdqlExampleAction[] exampleActs_;
+    private final JMenu serviceExampleMenu_;
     private final JTabbedPane textTabber_;
     private final CaretListener caretForwarder_;
     private final List<CaretListener> caretListeners_;
@@ -282,6 +284,9 @@ public class TapQueryPanel extends JPanel {
             exampleActs_[ ie ] = new AdqlExampleAction( examples[ ie ] );
             examplesMenu.add( exampleActs_[ ie ] );
         }
+        serviceExampleMenu_ = new JMenu( "Service-Specific" );
+        examplesMenu.add( serviceExampleMenu_ );
+        setDaliExamples( null );
         examplesAct_ = new AbstractAction( "Examples" ) {
             public void actionPerformed( ActionEvent evt ) {
                 Object src = evt.getSource();
@@ -300,7 +305,7 @@ public class TapQueryPanel extends JPanel {
             }
         };
         examplesAct_.putValue( Action.SHORT_DESCRIPTION,
-                               "Choose from example ADQL quries" );
+                               "Choose from example ADQL queries" );
 
         /* Prepare initial ADQL entry text panel. */
         addTextTab();
@@ -397,8 +402,7 @@ public class TapQueryPanel extends JPanel {
          * the service. */
         tmetaPanel_.setServiceKit( serviceKit );
 
-        /* Dispatch a request to acquire the service capability information
-         * from the service. */
+        /* Dispatch request for other information from the service. */
         if ( serviceKit != null ) {
             serviceKit.acquireCapability( new ResultHandler<TapCapability>() {
                 public boolean isActive() {
@@ -411,8 +415,25 @@ public class TapQueryPanel extends JPanel {
                     tcapPanel_.setCapability( tcap );
                 }
                 public void showError( IOException error ) {
-                    logger_.warning( "Failed to acquire TAP service capability "
-                                   + "information" );
+                    logger_.log( Level.WARNING,
+                                 "Failed to acquire TAP service capability "
+                               + "information: " + error, error );
+                }
+            } );
+            serviceKit.acquireExamples( new ResultHandler<DaliExample[]>() {
+                public boolean isActive() {
+                    return serviceKit_ == serviceKit;
+                }
+                public void showWaiting() {
+                    setDaliExamples( null );
+                }
+                public void showResult( DaliExample[] examples ) {
+                    setDaliExamples( examples );
+                }
+                public void showError( IOException error ) {
+                    setDaliExamples( new DaliExample[ 0 ] );
+                    logger_.log( Level.INFO, "No TAP examples: " + error,
+                                 error );
                 }
             } );
         }
@@ -493,6 +514,27 @@ public class TapQueryPanel extends JPanel {
             String adql =
                 exAct.getExample().getText( true, lang, tcap, tables, table );
             exAct.setAdqlText( adql );
+        }
+    }
+
+    /**
+     * Sets the list of examples to be included in the service-specific
+     * examples sub-menu.
+     *
+     * @param  examples  example list, may be null
+     */
+    private void setDaliExamples( DaliExample[] examples ) {
+        JMenu menu = serviceExampleMenu_;
+        menu.removeAll();
+        menu.setEnabled( examples != null && examples.length > 0 );
+        if ( examples != null ) {
+            for ( DaliExample example : examples ) {
+                String name = example.getName();
+                String adql = example.getGenericParameters().get( "QUERY" );
+                AdqlTextAction act = new AdqlTextAction( name, true );
+                act.setAdqlText( adql );
+                menu.add( act );
+            }
         }
     }
 
