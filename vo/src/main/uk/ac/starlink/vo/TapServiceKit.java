@@ -228,6 +228,21 @@ public class TapServiceKit {
     }
 
     /**
+     * Asynchronously acquires a list of service-specific query examples,
+     * if available.
+     *
+     * @param  handler  receiver for example list
+     */
+    public void acquireExamples( final ResultHandler<DaliExample[]> handler ) {
+        acquireData( handler, new DataCallable<DaliExample[]>() {
+            public DaliExample[] call() throws IOException {
+                return new DaliExampleReader()
+                      .readExamples( new URL( serviceUrl_ + "/examples" ) );
+            }
+        }, "Examples" );
+    }
+
+    /**
      * Releases resources and terminates any currently running asynchronous
      * metadata reads.  Calling this method does not prevent future use
      * of this object.
