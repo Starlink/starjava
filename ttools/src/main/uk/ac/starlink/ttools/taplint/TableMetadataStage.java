@@ -10,6 +10,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import uk.ac.starlink.util.CountMap;
+import uk.ac.starlink.vo.AdqlSyntax;
 import uk.ac.starlink.vo.ColumnMeta;
 import uk.ac.starlink.vo.ForeignMeta;
 import uk.ac.starlink.vo.SchemaMeta;
@@ -29,6 +30,7 @@ public abstract class TableMetadataStage implements Stage, MetadataHolder {
     private final String[] knownColFlags_;
     private final boolean reportOtherFlags_;
     private SchemaMeta[] smetas_;
+    private static final AdqlSyntax syntax_ = AdqlSyntax.getInstance();
     private static final String[] KNOWN_COL_FLAGS =
         new String[] { "indexed", "primary", "nullable" };
 
@@ -101,6 +103,9 @@ public abstract class TableMetadataStage implements Stage, MetadataHolder {
         int nSchema = smetas.length;
         Map<String,SchemaMeta> schemaMap =
             createNameMap( reporter, "schema", 'S', smetas );
+        for ( String sname : schemaMap.keySet() ) {
+            checkSchemaName( reporter, sname );
+        }
         List<TableMeta> tmList = new ArrayList<TableMeta>();
         for ( SchemaMeta smeta : smetas ) {
             tmList.addAll( Arrays.asList( smeta.getTables() ) );
@@ -110,6 +115,9 @@ public abstract class TableMetadataStage implements Stage, MetadataHolder {
         int nCol = 0;
         Map<String,TableMeta> tableMap = 
             createNameMap( reporter, "table", 'T', tmetas );
+        for ( String tname : tableMap.keySet() ) {
+            checkTableName( reporter, tname );
+        }
 
         Map<String,Map<String,ColumnMeta>> colsMap =
             new HashMap<String,Map<String,ColumnMeta>>();
@@ -119,6 +127,9 @@ public abstract class TableMetadataStage implements Stage, MetadataHolder {
             nCol += cols.length; 
             Map<String,ColumnMeta> cmap =
                 createNameMap( reporter, "column", 'C', cols );
+            for ( String cname : cmap.keySet() ) {
+                checkColumnName( reporter, cname, tmeta );
+            }
             colsMap.put( tname, cmap );
         }
         int nForeign = 0;
@@ -222,6 +233,56 @@ public abstract class TableMetadataStage implements Stage, MetadataHolder {
             reporter.report( FixedCode.S_FLGO,
                              "Other column flags: "
                            + summariseCounts( flagMap, otherFlags ) );
+        }
+    }
+
+    /**
+     * Checks legality of a metadata Schema name.
+     *
+     * @param  reporter   destination for validation messages
+     * @param  sname   schema name
+     */
+    private void checkSchemaName( Reporter reporter, String sname ) {
+        // no constraints?
+    }
+
+    /**
+     * Checks legality of a metadata Table name.
+     *
+     * @param  reporter   destination for validation messages
+     * @param  tname    table name
+     */
+    private void checkTableName( Reporter reporter, String tname ) {
+        if ( ! syntax_.isAdqlTableName( tname ) ) {
+            reporter.report( FixedCode.E_TNTN,
+                             "Bad ADQL table name '" + tname + "'" );
+        }
+        if ( syntax_.isReserved( tname ) ) {
+            reporter.report( FixedCode.E_TRSV,
+                             "Table name is ADQL reserved word '"
+                           + tname + "'" );
+        }
+    }
+
+    /**
+     * Checks legality of a metadata Column name.
+     *
+     * @param  reporter   destination for validation messages
+     * @param  cname    column name
+     * @param  tmeta    table containing the column
+     */
+    private void checkColumnName( Reporter reporter, String cname,
+                                  TableMeta tmeta ) {
+        String detailTxt =
+              " '" + cname + "' in table " + tmeta.getName()
+            + " - should delimit like '" + syntax_.quote( cname ) + "'";
+        if ( ! syntax_.isAdqlColumnName( cname ) ) {
+            reporter.report( FixedCode.E_CNID,
+                             "Column name is not ADQL identifier" + detailTxt );
+        }
+        if ( syntax_.isReserved( cname ) ) {
+            reporter.report( FixedCode.E_CRSV,
+                             "Column name is ADQL reserved word" + detailTxt );
         }
     }
 

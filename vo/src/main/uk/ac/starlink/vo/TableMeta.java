@@ -21,6 +21,16 @@ public class TableMeta {
         return type_;
     }
 
+    /**
+     * Returns this table's name.
+     * This is a string suitable for unadorned insertion into an ADQL query,
+     * so syntactically it must match ADQL's <code>&lt;table_name&gt;</code>
+     * production.
+     * It should not be quoted, or have a schema name prepended,
+     * or be otherwise adjusted, for use in an ADQL query.
+     *
+     * @return  name suitable for use in ADQL
+     */
     public String getName() {
         return name_;
     }
