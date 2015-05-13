@@ -12,6 +12,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.gui.StarTableColumn;
 import uk.ac.starlink.vo.AbstractAdqlExample;
 import uk.ac.starlink.vo.AdqlExample;
+import uk.ac.starlink.vo.AdqlSyntax;
 import uk.ac.starlink.vo.TableMeta;
 import uk.ac.starlink.vo.TapCapability;
 import uk.ac.starlink.vo.TapCapabilityPanel;
@@ -34,7 +35,7 @@ public abstract class UploadAdqlExample extends AbstractAdqlExample {
         Pattern.compile( "RA_?J?(2000)?", Pattern.CASE_INSENSITIVE ),
         Pattern.compile( "DEC?L?_?J?(2000)?", Pattern.CASE_INSENSITIVE )
     };
-
+  
     /**
      * Constructor.
      *
@@ -136,6 +137,7 @@ public abstract class UploadAdqlExample extends AbstractAdqlExample {
     private static String getJoinText( boolean lineBreaks, String lang,
                                        TableMeta[] tables, TableMeta table,
                                        JList tcJlist ) {
+        AdqlSyntax syntax = AdqlSyntax.getInstance();
         TableWithCols[] rdRemotes =
             getRaDecTables( toTables( table, tables ), 1 );
         if ( rdRemotes.length == 0 ) {
@@ -159,7 +161,7 @@ public abstract class UploadAdqlExample extends AbstractAdqlExample {
         TopcatModel localRd = null;
         String[] localCoords = null;
         for ( int i = 0; i < tcs.length; i++ ) {
-            String[] crds = getRaDecDegreesNames( tcs[ i ] );
+            String[] crds = getRaDecDegreesNames( tcs[ i ], syntax );
             if ( crds != null ) {
                 localRd = tcs[ i ];
                 localCoords = crds;
@@ -181,7 +183,7 @@ public abstract class UploadAdqlExample extends AbstractAdqlExample {
             .append( "*" )
             .append( breaker.level( 1 ) )
             .append( "FROM " )
-            .append( citeTableName( rdRemote.getTable().getName() ) )
+            .append( rdRemote.getTable().getName() )
             .append( " AS " )
             .append( remoteAlias )
             .append( breaker.level( 1 ) )
@@ -194,11 +196,11 @@ public abstract class UploadAdqlExample extends AbstractAdqlExample {
             .append( "ON 1=CONTAINS(POINT('ICRS', " )
             .append( remoteAlias )
             .append( "." )
-            .append( citeColumnName( rdRemote.getColumns()[ 0 ] ) )
+            .append( rdRemote.getColumns()[ 0 ] )
             .append( ", " )
             .append( remoteAlias )
             .append( "." )
-            .append( citeColumnName( rdRemote.getColumns()[ 1 ] ) )
+            .append( rdRemote.getColumns()[ 1 ] )
             .append( ")," )
             .append( breaker.level( 1 ) )
             .append( "              CIRCLE('ICRS', " )
@@ -218,12 +220,16 @@ public abstract class UploadAdqlExample extends AbstractAdqlExample {
     /**
      * Returns the names for suitable RA/Dec columns in degrees from a table.
      * If no such column pair can be found, null is returned.
+     * The column names are suitable for insertion into ADQL,
+     * that is they must not be further quoted.
      *
      * @param  tcModel   topcat table to be investigated
+     * @param  syntax    query language syntax
      * @return   2-element array with column names for RA, Dec respectively,
      *           or null if nothing suitable
      */
-    private static String[] getRaDecDegreesNames( TopcatModel tcModel ) {
+    private static String[] getRaDecDegreesNames( TopcatModel tcModel,
+                                                  AdqlSyntax syntax ) {
         TableColumnModel colModel = tcModel.getColumnModel();
         String[] coords = new String[ 2 ];
         int[] scores = new int[ 2 ];
@@ -266,7 +272,7 @@ public abstract class UploadAdqlExample extends AbstractAdqlExample {
                     }
                     if ( score > scores[ id ] ) {
                         scores[ id ] = score;
-                        coords[ id ] = name;
+                        coords[ id ] = syntax.quoteIfNecessary( name );
                     }
                 }
             }

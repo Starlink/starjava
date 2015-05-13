@@ -21824,6 +21824,10 @@ introduced since the last version:
         set explicitly (otherwise runs in the default SAMP mode).
         Previously it ran in PLASTIC mode if a <code>.plastic</code>
         lockfile was present.</li>
+    <li>Change in the way that TAP service metadata is interpreted,
+        table/column names now expected to be delimited if required.
+        May cause some ADQL examples to work incorrectly in presence
+        of non-compliant service table metadata reports.</li>
     </ul>
     </p></dd>
 

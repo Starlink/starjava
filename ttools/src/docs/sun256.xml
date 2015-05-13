@@ -10239,6 +10239,12 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Fix serious bug in time conversion for CDF TIME_TT2000 data types.</li>
     <li>Update JCDF library to v1.1
         (minor changes to do with leap seconds).</li>
+    <li>Changes to the way that TAP service table/column name reports are
+        interpreted (to conform to original intention of TAP standard).
+        Taplint now checks that table/column names from TAP_SCHEMA and /tables
+        endpoint are regular-or-delimited-identifiers, but no longer
+        submits example queries using supplied column names wrapped in
+        additional quotes.</li>
     </ul>
     </p></dd>
 

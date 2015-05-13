@@ -81,37 +81,6 @@ public abstract class AbstractAdqlExample implements AdqlExample {
     }
 
     /**
-     * Fixes a table name so it's suitable for insertion into ADQL.
-     * It is quoted if necessary, but not otherwise.
-     *
-     * @param  tname  raw table name, may include delimiters (schema.table etc)
-     * @return  name suitable for use in ADQL
-     */
-    public static String citeTableName( String tname ) {
-        String[] words = tname.split( "\\." );
-        StringBuffer sbuf = new StringBuffer();
-        for ( int iw = 0; iw < words.length; iw++ ) {
-            if ( iw > 0 ) {
-                sbuf.append( '.' );
-            }
-            sbuf.append( AdqlSyntax.getInstance()
-                                   .quoteIfNecessary( words[ iw ] ) );
-        }
-        return sbuf.toString();
-    }
-
-    /**
-     * Fixes a colum name so it's suitable for insersion into ADQL.
-     * It is quoted if necessary, but not otherwise.
-     *
-     * @param  colName  raw column name, may not include delimiters
-     * @return  name suitable for use in ADQL
-     */
-    public static String citeColumnName( String colName ) {
-        return AdqlSyntax.getInstance().quoteIfNecessary( colName );
-    }
-
-    /**
      * Returns a table ref for a given table and a given language variant.
      *
      * @param  table  table metadata object
@@ -121,11 +90,11 @@ public abstract class AbstractAdqlExample implements AdqlExample {
                                             String lang ) {
         if ( ! isAdql1( lang ) ) {
             return new TableRef() {
-                public String getColumnName( String rawName ) {
-                    return citeColumnName( rawName );
+                public String getColumnName( String cname ) {
+                    return cname;
                 }
                 public String getIntroName() {
-                    return citeTableName( table.getName() );
+                    return table.getName();
                 }
             };
         }
@@ -144,11 +113,11 @@ public abstract class AbstractAdqlExample implements AdqlExample {
     private static TableRef createAliasedTableRef( final TableMeta table,
                                                    final String alias ) {
         return new TableRef() {
-            public String getColumnName( String rawName ) {
-                return alias + "." + citeColumnName( rawName );
+            public String getColumnName( String cname ) {
+                return alias + "." + cname;
             }
             public String getIntroName() {
-                return citeTableName( table.getName() ) + " AS " + alias;
+                return table.getName() + " AS " + alias;
             }
         };
     }
@@ -200,12 +169,14 @@ public abstract class AbstractAdqlExample implements AdqlExample {
 
         /**
          * Returns the text by which a given column in this object's table
-         * should be referred to in ADQL text.
+         * should be referred to in ADQL text.  The input name must be
+         * quoted as appropriate, but additional table qualification
+         * may be added by this method.
          *
-         * @param  rawName  basic column name
-         * @return   quoted column name
+         * @param  cname  basic column name
+         * @return   name for use in ADQL
          */
-        public abstract String getColumnName( String rawName );
+        public abstract String getColumnName( String cname );
 
         /**
          * Returns the text with which this object's table should be
@@ -245,8 +216,10 @@ public abstract class AbstractAdqlExample implements AdqlExample {
 
         /**
          * Returns the columns array.
+         * Column names are ADQL-ready as per {@link ColumnMeta#getName}.
          *
-         * @return  array of column names of interest
+         * @return  array of column names of interest,
+         *          each ready for use in ADQL
          */
         public String[] getColumns() {
             return cols_;
@@ -403,7 +376,7 @@ public abstract class AbstractAdqlExample implements AdqlExample {
                         .append( "SELECT TOP " )
                         .append( ROW_COUNT )
                         .append( " * FROM " )
-                        .append( citeTableName( table.getName() ) )
+                        .append( table.getName() )
                         .toString();
                 }
             },

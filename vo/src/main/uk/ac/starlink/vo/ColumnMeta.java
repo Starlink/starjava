@@ -19,6 +19,17 @@ public class ColumnMeta {
     String dataType_;  // has attributes, but content is a token
     String[] flags_;
 
+    /**
+     * Returns this column's name.
+     * This is a string suitable for unadorned insertion into an ADQL query,
+     * so syntactically it must match ADQL's <code>&lt;column_name&gt;</code>,
+     * hence <code>&lt;identifier&gt;</code> production
+     * (a <code>&lt;regular_identifier&gt;</code> without quotes
+     * or a <code>&lt;delimited_identifer&gt;</code> including quotes).
+     * It should not be quoted or otherwise adjusted for use in an ADQL query.
+     *
+     * @return  name suitable for use in ADQL
+     */
     public String getName() {
         return name_;
     }

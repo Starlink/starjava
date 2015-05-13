@@ -363,6 +363,9 @@ public class QueryStage implements Stage {
 
             /* Assemble column specifiers for the query. */
             String talias = tmeta.getName().substring( 0, 1 );
+            if ( ! AdqlSyntax.getInstance().isIdentifier( talias ) ) {
+                talias = "t";
+            }
             List<ColSpec> clist = new ArrayList<ColSpec>();
             int ncol = tmeta.getColumns().length;
             int step = Math.max( 1, ncol / 11 );
@@ -373,9 +376,6 @@ public class QueryStage implements Stage {
                     cspec.setRename( "taplint_c_" + ( ix + 1 ) );
                 }
                 if ( ix % 3 == 2 ) {
-                    cspec.setQuoted( true );
-                }
-                if ( ix % 5 == 3 ) {
                     cspec.setTableAlias( talias );
                 }
                 clist.add( cspec );
@@ -577,7 +577,6 @@ public class QueryStage implements Stage {
         private final ColumnMeta cmeta_;
         private String talias_;
         private String rename_;
-        private boolean quote_;
 
         /**
          * Constructor.
@@ -595,15 +594,6 @@ public class QueryStage implements Stage {
          */
         ColumnMeta getColumnMeta() {
             return cmeta_;
-        }
-
-        /**
-         * Sets whether the column name should be quoted in ADQL.
-         *
-         * @param  quote   true for quoting, false for not
-         */
-        public void setQuoted( boolean quote ) {
-            quote_ = quote;
         }
 
         /**
@@ -633,18 +623,15 @@ public class QueryStage implements Stage {
          * @return  query column specifier
          */
         String getQueryText() {
-            AdqlSyntax syntax = AdqlSyntax.getInstance();
             StringBuffer sbuf = new StringBuffer();
             if ( talias_ != null ) {
-                sbuf.append( syntax.quoteIfNecessary( talias_ ) )
+                sbuf.append( talias_ )
                     .append( "." );
             }
-            String cname = cmeta_.getName();
-            sbuf.append( quote_ ? syntax.quote( cname )
-                                : syntax.quoteIfNecessary( cname ) );
+            sbuf.append( cmeta_.getName() );
             if ( rename_ != null ) {
                 sbuf.append( " AS " )
-                    .append( syntax.quoteIfNecessary( rename_ ) );
+                    .append( rename_ );
             }
             return sbuf.toString();
         }
