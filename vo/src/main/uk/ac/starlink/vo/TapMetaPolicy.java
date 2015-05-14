@@ -35,7 +35,9 @@ public abstract class TapMetaPolicy {
                                     + "vs:TableSet document at the /tables "
                                     + "endpoint of the TAP service" ) {
             public TapMetaReader createMetaReader( URL serviceUrl ) {
-                return new TableSetTapMetaReader( serviceUrl + "/tables" );
+                String tablesetUrl = serviceUrl + "/tables";
+                MetaNameFixer fixer = MetaNameFixer.createDefaultFixer();
+                return new TableSetTapMetaReader( tablesetUrl, fixer );
             }
         },
         TAPSCHEMA = new TapMetaPolicy( "TAP_SCHEMA",
@@ -43,11 +45,16 @@ public abstract class TapMetaPolicy {
                                      + "synchronous queries on the TAP_SCHEMA "
                                      + "tables in the TAP service" ) {
             public TapMetaReader createMetaReader( URL serviceUrl ) {
-                return new TapSchemaTapMetaReader( serviceUrl.toString(), 99999,
-                                                   true, false );
+                int maxrec = 99999;
+                boolean popSchemas = true;
+                boolean popTables = false;
+                MetaNameFixer fixer = MetaNameFixer.createDefaultFixer();
+                return new TapSchemaTapMetaReader( serviceUrl.toString(),
+                                                   maxrec, popSchemas,
+                                                   popTables, fixer );
             }
         },
-        ADAPTIVE = new TapMetaPolicy( "ADAPTIVE",
+        ADAPTIVE = new TapMetaPolicy( "Adaptive",
                                       "Uses the /tables endpoint if there are "
                                     + "a moderate number of tables, or "
                                     + "TAP_SCHEMA queries if there are many" ) {
@@ -124,6 +131,7 @@ public abstract class TapMetaPolicy {
      */
     private static TapMetaReader createAdaptiveMetaReader( URL serviceUrl,
                                                            int maxrow ) {
+        MetaNameFixer fixer = MetaNameFixer.createDefaultFixer();
  
         /* The columns table is almost certainly the longest one we would
          * have to cope with.  In principle it could be the foreign key table,
@@ -142,7 +150,7 @@ public abstract class TapMetaPolicy {
                             + "use TAP_SCHEMA queries for " + serviceUrl );
                 int maxrec = (int) Math.min( Integer.MAX_VALUE, ncol + 1 );
                 return new TapSchemaTapMetaReader( serviceUrl.toString(),
-                                                   maxrec, true, false );
+                                                   maxrec, true, false, fixer );
             }
             else {
                 logger_.info( "Not excessive column count for TAP service ("
@@ -158,7 +166,7 @@ public abstract class TapMetaPolicy {
         /* If there are fewer columns than the threshold, or the column
          * count failed, use the VOSI /tables endpoint instead. */
         logger_.info( "Use /tables endpoint for " + serviceUrl );
-        return new TableSetTapMetaReader( serviceUrl + "/tables" );
+        return new TableSetTapMetaReader( serviceUrl + "/tables", fixer );
     }
 
     /**

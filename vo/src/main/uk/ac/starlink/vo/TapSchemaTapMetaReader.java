@@ -22,6 +22,7 @@ public class TapSchemaTapMetaReader implements TapMetaReader {
     private final TapSchemaInterrogator tsi_;
     private final boolean populateSchemas_;
     private final boolean populateTables_;
+    private final MetaNameFixer fixer_;
     private final boolean addOrphanTables_;
 
     private static final Logger logger_ =
@@ -38,10 +39,14 @@ public class TapSchemaTapMetaReader implements TapMetaReader {
      * @param  populateTables   whether TableMeta objects will be
      *                          filled in with column and foreign key lists
      *                          when they are acquired
+     * @param    fixer  object that fixes up syntactically incorrect
+     *                  table/column names; if null no fixing is done;
+     *                  has no effect for compliant TAP_SCHEMA services
      */
     public TapSchemaTapMetaReader( String serviceUrl, int maxrec,
                                    boolean populateSchemas,
-                                   boolean populateTables ) {
+                                   boolean populateTables,
+                                   MetaNameFixer fixer ) {
         final URL url;
         try {
             url = new URL( serviceUrl );
@@ -60,6 +65,7 @@ public class TapSchemaTapMetaReader implements TapMetaReader {
         };
         populateSchemas_ = populateSchemas;
         populateTables_ = populateTables;
+        fixer_ = fixer == null ? MetaNameFixer.NONE : fixer;
         addOrphanTables_ = true;
     }
 
@@ -71,6 +77,7 @@ public class TapSchemaTapMetaReader implements TapMetaReader {
         SchemaMeta[] schemas = 
             tsi_.readSchemas( populateSchemas_, populateTables_,
                               addOrphanTables_ );
+        fixer_.fixSchemas( schemas );
         sortSchemas( schemas );
         for ( SchemaMeta smeta : schemas ) {
             TableMeta[] tmetas = smeta.getTables();
@@ -111,18 +118,24 @@ public class TapSchemaTapMetaReader implements TapMetaReader {
             checkEmpty( cMap, "Columns" );
         }
         TableMeta[] tables = tableList.toArray( new TableMeta[ 0 ] );
+        fixer_.fixTables( tables, schema );
         sortTables( tables );
         return tables;
     }
 
     public ColumnMeta[] readColumns( TableMeta table ) throws IOException {
-        return tsi_.readList( TapSchemaInterrogator.COLUMN_QUERIER,
-                              "WHERE table_name = '" + table.getName() + "'" )
-              .toArray( new ColumnMeta[ 0 ] );
+        String whereClause =
+            "WHERE table_name = '" + fixer_.getOriginalTableName( table ) + "'";
+        ColumnMeta[] columns =
+            tsi_.readList( TapSchemaInterrogator.COLUMN_QUERIER, whereClause )
+           .toArray( new ColumnMeta[ 0 ] );
+        fixer_.fixColumns( columns );
+        return columns;
     }
 
     public ForeignMeta[] readForeignKeys( TableMeta table ) throws IOException {
-        String whereClause = "WHERE from_table = '" + table.getName() + "'";
+        String whereClause =
+            "WHERE from_table = '" + fixer_.getOriginalTableName( table ) + "'";
         Map<String,List<ForeignMeta.Link>> lMap =
             tsi_.readMap( TapSchemaInterrogator.LINK_QUERIER,
                           "NATURAL JOIN TAP_SCHEMA.keys "

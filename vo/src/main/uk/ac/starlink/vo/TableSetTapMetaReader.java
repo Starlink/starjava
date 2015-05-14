@@ -22,6 +22,7 @@ import org.xml.sax.SAXException;
 public class TableSetTapMetaReader implements TapMetaReader {
 
     private final URL url_;
+    private final MetaNameFixer fixer_;
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
@@ -31,26 +32,35 @@ public class TableSetTapMetaReader implements TapMetaReader {
      *
      * @param    tablesetUrl  URL of some document containing VOSITables
      *           <code>&lt;schema&gt;</code> elements
+     * @param    fixer  object that fixes up syntactically incorrect
+     *                  table/column names; if null no fixing is done;
+     *                  has no effect for compliant VODataService documents
      */
-    public TableSetTapMetaReader( String tablesetUrl ) {
+    public TableSetTapMetaReader( String tablesetUrl, MetaNameFixer fixer ) {
         try {
             url_ = new URL( tablesetUrl );
         }
         catch ( MalformedURLException e ) {
             throw new IllegalArgumentException( "Not a URL: " + tablesetUrl );
         }
+        fixer_ = fixer;
     }
 
     public SchemaMeta[] readSchemas() throws IOException {
         logger_.info( "Reading table metadata from " + url_ );
+        final SchemaMeta[] schemas;
         try {
-            return TableSetSaxHandler.readTableSet( url_ );
+            schemas = TableSetSaxHandler.readTableSet( url_ );
         }
         catch ( SAXException e ) {
             throw (IOException)
                   new IOException( "Invalid TableSet XML document" )
                  .initCause( e );
         }
+        if ( fixer_ != null ) {
+            fixer_.fixSchemas( schemas );
+        }
+        return schemas;
     }
 
     /** @throws UnsupportedOperationException */
