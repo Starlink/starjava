@@ -212,6 +212,7 @@ public class AdqlValidator {
         private String name_;
         private String schemaName_;
         private String catalogName_;
+        private AdqlSyntax syntax_;
   
         /**
          * Constructor.
@@ -225,6 +226,7 @@ public class AdqlValidator {
             name_ = names[ 2 ];
             catalogName_ = names[ 0 ];
             schemaName_ = vtable.getSchemaName();
+            syntax_ = AdqlSyntax.getInstance();
         }
 
         public String getADQLName() {
@@ -259,10 +261,18 @@ public class AdqlValidator {
             if ( cnames == null ) {
                 return createDBColumn( colName );
             }
+            else if ( cnames.contains( colName ) ) {
+                return createDBColumn( colName );
+            }
             else {
-                return cnames.contains( colName )
-                     ? createDBColumn( colName )
-                     : null;
+                String rawColName = syntax_.unquote( colName );
+                if ( ! colName.equals( rawColName ) &&
+                     cnames.contains( rawColName ) ) {
+                    return createDBColumn( rawColName );
+                }
+                else {
+                    return null;
+                }
             }
         }
 
@@ -281,7 +291,7 @@ public class AdqlValidator {
                         return it.hasNext();
                     }
                     public DBColumn next() {
-                        return createDBColumn( it.next() );
+                        return createDBColumn( syntax_.unquote( it.next() ) );
                     }
                     public void remove() {
                         throw new UnsupportedOperationException();
