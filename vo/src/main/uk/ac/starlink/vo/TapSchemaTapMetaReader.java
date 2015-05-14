@@ -171,7 +171,7 @@ public class TapSchemaTapMetaReader implements TapMetaReader {
      *
      * @param  smetas  schema array
      */
-    private static void sortSchemas( SchemaMeta[] smetas ) {
+    static void sortSchemas( SchemaMeta[] smetas ) {
         Arrays.sort( smetas, new Comparator<SchemaMeta>() {
             public int compare( SchemaMeta s1, SchemaMeta s2 ) {
                 return getSchemaName( s1 ).compareTo( getSchemaName( s2 ) );
@@ -188,7 +188,7 @@ public class TapSchemaTapMetaReader implements TapMetaReader {
      *
      * @param  tmetas  table array
      */
-    private static void sortTables( TableMeta[] tmetas ) {
+    static void sortTables( TableMeta[] tmetas ) {
         Arrays.sort( tmetas, new Comparator<TableMeta>() {
             public int compare( TableMeta t1, TableMeta t2 ) {
                 return getTableName( t1 ).compareTo( getTableName( t2 ) );

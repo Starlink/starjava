@@ -29,6 +29,9 @@ public abstract class TapMetaPolicy {
     /** Uses the TAP_SCHEMA tables. */
     public static final TapMetaPolicy TAPSCHEMA;
 
+    /** Uses the non-standard VizieR two-level /tables endpoint. */
+    public static final TapMetaPolicy VIZIER;
+ 
     private static final TapMetaPolicy[] KNOWN_VALUES = {
         AUTO = new TapMetaPolicy( "Auto",
                                   "Chooses a suitable place to get table "
@@ -63,6 +66,15 @@ public abstract class TapMetaPolicy {
                 return new TapSchemaTapMetaReader( serviceUrl.toString(),
                                                    maxrec, popSchemas,
                                                    popTables, fixer );
+            }
+        },
+        VIZIER = new TapMetaPolicy( "VizieR",
+                                    "Uses TAPVizieR's non-standard two-stage "
+                                  + "/tables endpoint" ) {
+            public TapMetaReader createMetaReader( URL serviceUrl ) {
+                String tablesetUrl = serviceUrl + "/tables";
+                MetaNameFixer fixer = MetaNameFixer.createDefaultFixer();
+                return new VizierTapMetaReader( tablesetUrl, fixer );
             }
         },
     };
@@ -135,6 +147,12 @@ public abstract class TapMetaPolicy {
     private static TapMetaReader createAutoMetaReader( URL serviceUrl,
                                                        int maxrow ) {
         MetaNameFixer fixer = MetaNameFixer.createDefaultFixer();
+
+        /* Special non-standard protocol for TAPVizieR. */
+        if ( VizierTapMetaReader.isVizierTapService( serviceUrl ) ) {
+            logger_.info( "Using VizieR-specific metadata acquisition" );
+            return new VizierTapMetaReader( serviceUrl + "/tables", fixer ); 
+        }
  
         /* The columns table is almost certainly the longest one we would
          * have to cope with.  In principle it could be the foreign key table,
