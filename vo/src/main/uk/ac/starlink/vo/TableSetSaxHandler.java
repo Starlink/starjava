@@ -7,6 +7,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.xml.parsers.ParserConfigurationException;
@@ -33,11 +34,13 @@ import org.xml.sax.helpers.DefaultHandler;
 public class TableSetSaxHandler extends DefaultHandler {
 
     private SchemaMeta[] schemas_;
+    private TableMeta[] nakedTables_;
     private List<SchemaMeta> schemaList_;
     private List<TableMeta> tableList_;
     private List<ColumnMeta> columnList_;
     private List<ForeignMeta> foreignList_;
     private List<ForeignMeta.Link> linkList_;
+    private List<TableMeta> nakedTableList_;
     private List<String> flagList_;
     private SchemaMeta schema_;
     private TableMeta table_;
@@ -59,24 +62,35 @@ public class TableSetSaxHandler extends DefaultHandler {
      * Returns the array of schema metadata objects which have been
      * read by this parser.  Only non-empty following a parse.
      *
-     * <p>The returned metadata objects contain all the available tables
-     * and columns, they are not in need of subsequent reads.
-     *
      * @return   fully populated table metadata
      */
     public SchemaMeta[] getSchemas() {
         return schemas_;
     }
 
+    /**
+     * Returns the array of table metadata objects which were found
+     * outside of any schema.  Only non-empty following a parse.
+     *
+     * @return  table metadata
+     */
+    public TableMeta[] getNakedTables() {
+        return nakedTables_;
+    }
+
     @Override
     public void startDocument() {
         schemaList_ = new ArrayList<SchemaMeta>();
+        nakedTableList_ = new ArrayList<TableMeta>();
+        tableList_ = nakedTableList_;
     }
 
     @Override
     public void endDocument() {
         schemas_ = schemaList_.toArray( new SchemaMeta[ 0 ] );
         schemaList_ = null;
+        nakedTables_ = nakedTableList_.toArray( new TableMeta[ 0 ] );
+        nakedTableList_ = null;
     }
 
     @Override
@@ -159,7 +173,7 @@ public class TableSetSaxHandler extends DefaultHandler {
         else if ( "schema".equals( tname ) ) {
             assert schema_ != null;
             schema_.setTables( tableList_.toArray( new TableMeta[ 0 ] ) );
-            tableList_ = null;
+            tableList_ = nakedTableList_;
             if ( schemaList_ != null ) {
                 schemaList_.add( schema_ );
             }
@@ -282,11 +296,44 @@ public class TableSetSaxHandler extends DefaultHandler {
 
     /**
      * Uses an instance of this class to read an XML document from a given
-     * URL and extract the TableMeta objects from it.
+     * URL and extract the SchemaMeta objects it represents.
      *
      * @param  url  containing a TableSet document or similar
+     * @return   list of all schemas with contents
      */
     public static SchemaMeta[] readTableSet( URL url )
+            throws IOException, SAXException {
+        return populateHandler( url ).getSchemas();
+    }
+
+    /**
+     * Uses an instance of this class to read an XML document from a given
+     * URL and extracts a flat list of all the TableMeta objects it
+     * represents.
+     * This includes all the tables in schemas, as well as any outside
+     * any <code>&lt;schema&gt;</code> element.
+     *
+     * @param  url  containing a TableSet document or similar
+     * @return  flat list of all tables
+     */
+    public static TableMeta[] readTables( URL url )
+            throws IOException, SAXException {
+        TableSetSaxHandler handler = populateHandler( url );
+        List<TableMeta> tlist = new ArrayList<TableMeta>();
+        for ( SchemaMeta schema : handler.getSchemas() ) {
+            tlist.addAll( Arrays.asList( schema.getTables() ) );
+        }
+        tlist.addAll( Arrays.asList( handler.getNakedTables() ) );
+        return tlist.toArray( new TableMeta[ 0 ] );
+    }
+    
+    /**
+     * Uses an instance of this class to parse the document at a given URL.
+     *
+     * @param  url  containing a TableSet document or similar
+     * @return   handler containing located items
+     */
+    public static TableSetSaxHandler populateHandler( URL url )
             throws IOException, SAXException {
         SAXParserFactory spfact = SAXParserFactory.newInstance();
         SAXParser parser;
@@ -314,7 +361,7 @@ public class TableSetSaxHandler extends DefaultHandler {
         InputStream in = new BufferedInputStream( conn.getInputStream() );
         try {
             parser.parse( in, tsHandler );
-            return tsHandler.getSchemas();
+            return tsHandler;
         }
         finally {
             in.close();
@@ -328,9 +375,20 @@ public class TableSetSaxHandler extends DefaultHandler {
      */
     public static void main( String[] args ) throws IOException, SAXException {
         java.io.PrintStream out = System.out;
-        for ( SchemaMeta schema : readTableSet( new URL( args[ 0 ] ) ) ) {
+        TableSetSaxHandler tsHandler = populateHandler( new URL( args[ 0 ] ) );
+        for ( SchemaMeta schema : tsHandler.getSchemas() ) {
             out.println( schema.getName() );
             for ( TableMeta table : schema.getTables() ) {
+                out.println( "    " + table.getName() );
+                for ( ColumnMeta col : table.getColumns() ) {
+                    out.println( "        " + col.getName() );
+                }
+            }
+        }
+        TableMeta[] nakedTables = tsHandler.getNakedTables();
+        if ( nakedTables.length > 0 ) {
+            out.println( "No schema: " );
+            for ( TableMeta table : nakedTables ) {
                 out.println( "    " + table.getName() );
                 for ( ColumnMeta col : table.getColumns() ) {
                     out.println( "        " + col.getName() );
