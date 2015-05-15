@@ -20,16 +20,27 @@ public abstract class TapMetaPolicy {
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
 
+    /** Tries its best to do something sensible. */
+    public static final TapMetaPolicy AUTO;
+
     /** Uses the /tables endpoint. */
     public static final TapMetaPolicy TABLESET;
 
     /** Uses the TAP_SCHEMA tables. */
     public static final TapMetaPolicy TAPSCHEMA;
 
-    /** Tries its best to do something sensible. */
-    public static final TapMetaPolicy ADAPTIVE;
- 
     private static final TapMetaPolicy[] KNOWN_VALUES = {
+        AUTO = new TapMetaPolicy( "Auto",
+                                  "Chooses a suitable place to get table "
+                                + "metadata. "
+                                + "Some services may have custom protocols. "
+                                + "Otherwise, use the /tables endpoint "
+                                + "when there are a moderate number of tables, "
+                                + "or TAP_SCHEMA queries if there are many" ) {
+            public TapMetaReader createMetaReader( URL serviceUrl ) {
+                return createAutoMetaReader( serviceUrl, 5000 );
+            }
+        },
         TABLESET = new TapMetaPolicy( "TableSet",
                                       "Reads all metadata in one go from the "
                                     + "vs:TableSet document at the /tables "
@@ -52,14 +63,6 @@ public abstract class TapMetaPolicy {
                 return new TapSchemaTapMetaReader( serviceUrl.toString(),
                                                    maxrec, popSchemas,
                                                    popTables, fixer );
-            }
-        },
-        ADAPTIVE = new TapMetaPolicy( "Adaptive",
-                                      "Uses the /tables endpoint if there are "
-                                    + "a moderate number of tables, or "
-                                    + "TAP_SCHEMA queries if there are many" ) {
-            public TapMetaReader createMetaReader( URL serviceUrl ) {
-                return createAdaptiveMetaReader( serviceUrl, 5000 );
             }
         },
     };
@@ -118,7 +121,7 @@ public abstract class TapMetaPolicy {
      * @return   default instance
      */
     public static TapMetaPolicy getDefaultInstance() {
-        return ADAPTIVE;
+        return AUTO;
     }
 
     /**
@@ -129,8 +132,8 @@ public abstract class TapMetaPolicy {
      * @param  maxrow     maximum number of records to tolerate from a single
      *                    TAP metadata query 
      */
-    private static TapMetaReader createAdaptiveMetaReader( URL serviceUrl,
-                                                           int maxrow ) {
+    private static TapMetaReader createAutoMetaReader( URL serviceUrl,
+                                                       int maxrow ) {
         MetaNameFixer fixer = MetaNameFixer.createDefaultFixer();
  
         /* The columns table is almost certainly the longest one we would
