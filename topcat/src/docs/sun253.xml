@@ -21828,6 +21828,8 @@ introduced since the last version:
         table/column names now expected to be delimited if required.
         May cause some ADQL examples to work incorrectly in presence
         of non-compliant service table metadata reports.</li>
+    <li>Fix sky plot vector bug: delta latitude and delta longitude values
+        were being used the wrong way round.</li>
     </ul>
     </p></dd>
 

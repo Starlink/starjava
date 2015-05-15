@@ -10245,6 +10245,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         endpoint are regular-or-delimited-identifiers, but no longer
         submits example queries using supplied column names wrapped in
         additional quotes.</li>
+    <li>Fix <code>skyvector</code> bug: <code>dlat</code> and <code>dlon</code>
+        values were being used the wrong way round.</li>
     </ul>
     </p></dd>
 
