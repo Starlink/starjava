@@ -31,7 +31,10 @@ public abstract class TapMetaPolicy {
 
     /** Uses the non-standard VizieR two-level /tables endpoint. */
     public static final TapMetaPolicy VIZIER;
- 
+
+    /** Uses the non-standard proposed VOSI 1.1 two-level /tables endpoint. */
+    public static final TapMetaPolicy CADC;
+
     private static final TapMetaPolicy[] KNOWN_VALUES = {
         AUTO = new TapMetaPolicy( "Auto",
                                   "Chooses a suitable place to get table "
@@ -75,6 +78,14 @@ public abstract class TapMetaPolicy {
                 String tablesetUrl = serviceUrl + "/tables";
                 MetaNameFixer fixer = MetaNameFixer.createDefaultFixer();
                 return new VizierTapMetaReader( tablesetUrl, fixer );
+            }
+        },
+        CADC = new TapMetaPolicy( "CADC",
+                                  "Uses CADC's non-standard multi-stage "
+                                + "/tables endpoint" ) {
+            public TapMetaReader createMetaReader( URL serviceUrl ) {
+                String tablesetUrl = serviceUrl + "/tables";
+                return new CadcTapMetaReader( tablesetUrl );
             }
         },
     };
@@ -152,6 +163,12 @@ public abstract class TapMetaPolicy {
         if ( VizierTapMetaReader.isVizierTapService( serviceUrl ) ) {
             logger_.info( "Using VizieR-specific metadata acquisition" );
             return new VizierTapMetaReader( serviceUrl + "/tables", fixer ); 
+        }
+
+        /* Proposed VOSI 1.1 protocol implemented at CADC. */
+        if ( CadcTapMetaReader.isCadcTapService( serviceUrl ) ) {
+            logger_.info( "Using CADC-specific metadata acquisition" );
+            return new CadcTapMetaReader( serviceUrl + "/tables" );
         }
  
         /* The columns table is almost certainly the longest one we would
