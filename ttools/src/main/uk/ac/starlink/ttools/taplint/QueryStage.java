@@ -526,9 +526,11 @@ public class QueryStage implements Stage {
             for ( int ic = 0; ic < ncol; ic++ ) {
                 ColSpec cspec = colSpecs[ ic ];
                 ColumnInfo cinfo = table.getColumnInfo( ic );
-                String qName = cspec.getResultName();
-                String rName = cinfo.getName();
-                if ( ! qName.equalsIgnoreCase( rName ) ) {
+                String qName = ColumnMetadataStage
+                              .normaliseColumnName( cspec.getResultName() );
+                String rName = ColumnMetadataStage
+                              .normaliseColumnName( cinfo.getName() );
+                if ( ! qName.equals( rName ) ) {
                     String msg = new StringBuffer()
                        .append( "Query/result column name mismatch " )
                        .append( "for column #" )
