@@ -5,6 +5,7 @@ import adql.db.DBColumn;
 import adql.db.DBTable;
 import adql.db.DefaultDBColumn;
 import adql.db.DefaultDBTable;
+import adql.db.FunctionDef;
 import adql.parser.ADQLParser;
 import adql.parser.ADQLQueryFactory;
 import adql.parser.ParseException;
@@ -36,10 +37,13 @@ public class AdqlValidator {
      * @param  allowUdfs  whether unknown functions should cause a parse error
      */
     public AdqlValidator( ValidatorTable[] vtables, boolean allowUdfs ) {
-        parser_ = new ADQLParser( new ADQLQueryFactory( allowUdfs ) );
-        parser_.setDebug( false );
-        checker_ = vtables == null ? null
-                                   : new DBChecker( toDBTables( vtables ) );
+        parser_ = new ADQLParser( new ADQLQueryFactory() );
+        Collection<FunctionDef> udfs = allowUdfs
+                                     ? null
+                                     : new ArrayList<FunctionDef>();
+        checker_ = vtables == null
+                 ? null
+                 : new DBChecker( toDBTables( vtables ), udfs );
     }
 
     /**
@@ -301,7 +305,12 @@ public class AdqlValidator {
         }
 
         public DBTable copy( String dbName, String adqlName ) {
-            DefaultDBTable copy = new DefaultDBTable( dbName, adqlName );
+            String dfltName = DefaultDBTable.joinTableName( new String[] {
+                                  catalogName_, schemaName_, name_,
+                              } );
+            DefaultDBTable copy =
+                new DefaultDBTable( dbName == null ? dfltName : dbName,
+                                    adqlName == null ? dfltName : adqlName );
             for ( DBColumn col : this ) {
                 copy.addColumn( col.copy( col.getDBName(), col.getADQLName(),
                                           copy ) );
