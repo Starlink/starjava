@@ -431,9 +431,8 @@ public class TapQueryPanel extends JPanel {
                     setDaliExamples( examples );
                 }
                 public void showError( IOException error ) {
+                    logger_.info( "No TAP examples: " + error );
                     setDaliExamples( new DaliExample[ 0 ] );
-                    logger_.log( Level.INFO, "No TAP examples: " + error,
-                                 error );
                 }
             } );
         }

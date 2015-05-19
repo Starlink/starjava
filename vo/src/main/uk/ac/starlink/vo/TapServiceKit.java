@@ -181,7 +181,7 @@ public class TapServiceKit {
             public SchemaMeta[] call() throws IOException {
                 return getMetaReader().readSchemas();
             }
-        }, "Table metadata" );
+        } );
     }
 
     /**
@@ -202,7 +202,7 @@ public class TapServiceKit {
                          .initCause( e );
                 }
             }
-        }, "TAP Capabilities" );
+        } );
     }
 
     /**
@@ -224,7 +224,7 @@ public class TapServiceKit {
                  * reliable. */
                 return readResourceInfo( RegTapRegistryQuery.GAVO_REG, ivoid_ );
             }
-        }, "Registry resource info" );
+        } );
     }
 
     /**
@@ -239,7 +239,7 @@ public class TapServiceKit {
                 return new DaliExampleReader()
                       .readExamples( new URL( serviceUrl_ + "/examples" ) );
             }
-        }, "Examples" );
+        } );
     }
 
     /**
@@ -392,12 +392,9 @@ public class TapServiceKit {
      *
      * @param  handler  receiver for acquired information
      * @param  callable   supplier for information
-     * @param  resultDescrip   short text description of information being
-     *                         acquired, used for user interaction
      */
     private <T> void acquireData( final ResultHandler<T> handler,
-                                  final DataCallable<T> callable,
-                                  final String resultDescrip ) {
+                                  final DataCallable<T> callable ) {
         if ( ! handler.isActive() ) {
             return;
         }
@@ -415,9 +412,6 @@ public class TapServiceKit {
                     SwingUtilities.invokeLater( new Runnable() {
                         public void run() {
                             if ( handler.isActive() ) {
-                                logger_.log( Level.WARNING,
-                                             "Failed to read " + resultDescrip
-                                           + ": " + error, error );
                                 handler.showError( error );
                             }
                         }
