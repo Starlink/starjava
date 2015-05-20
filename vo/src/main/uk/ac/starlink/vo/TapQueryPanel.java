@@ -493,7 +493,7 @@ public class TapQueryPanel extends JPanel {
      * to set up example queries.
      */
     private void configureExamples() {
-        String lang = tcapPanel_.getQueryLanguage();
+        String lang = tcapPanel_.getQueryLanguageName();
         TapCapability tcap = tcapPanel_.getCapability();
         SchemaMeta[] schemas = tmetaPanel_.getSchemas();
         final TableMeta[] tables;

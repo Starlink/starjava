@@ -3,7 +3,9 @@ package uk.ac.starlink.vo;
 import java.awt.BorderLayout;
 import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import javax.swing.Box;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
@@ -25,6 +27,7 @@ public class TapCapabilityPanel extends JPanel {
     private final JComboBox langSelector_;
     private final JTextField uploadField_;
     private final JComboBox maxrecSelector_;
+    private static final VersionedLanguage ADQL = createDefaultAdqlLanguage();
 
     /**
      * Constructor.
@@ -78,8 +81,8 @@ public class TapCapabilityPanel extends JPanel {
         /* Capability object exists, but looks like it is very sparsely
          * populated (missing mandatory elements). */
         else if ( capability.getLanguages().length == 0 ) {
-            langSelector_
-               .setModel( new DefaultComboBoxModel( new String[] { "ADQL" } ) );
+            VersionedLanguage[] vlangs = new VersionedLanguage[] { ADQL };
+            langSelector_.setModel( new DefaultComboBoxModel( vlangs ) );
             langSelector_.setSelectedIndex( 0 );
             uploadField_.setText( null );
             langSelector_.setEnabled( false );
@@ -88,9 +91,9 @@ public class TapCapabilityPanel extends JPanel {
 
         /* Apparently healthy capability object. */
         else {
-            String[] langs = getLanguageNames( capability );
-            langSelector_.setModel( new DefaultComboBoxModel( langs ) );
-            langSelector_.setSelectedItem( getDefaultLanguage( langs ) );
+            VersionedLanguage[] vlangs = getVersionedLanguages( capability );
+            langSelector_.setModel( new DefaultComboBoxModel( vlangs ) );
+            langSelector_.setSelectedItem( getDefaultLanguage( vlangs ) );
             langSelector_.setEnabled( true );
 
             if ( canUpload( capability ) ) {
@@ -142,14 +145,34 @@ public class TapCapabilityPanel extends JPanel {
     }
 
     /**
-     * Returns the query language currently selected in this panel.
-     * If none has been explicitly selected, "ADQL" will be returned.
+     * Returns the query language object currently selected in this panel.
+     * If none has been explicitly selected, one representing ADQL
+     * will be returned.
      *
      * @return  selected query language
      */
-    public String getQueryLanguage() {
-        Object lang = langSelector_.getSelectedItem();
-        return lang instanceof String ? (String) lang : "ADQL";
+    public TapLanguage getQueryLanguage() {
+        Object selected = langSelector_.getSelectedItem();
+        VersionedLanguage vlang = selected instanceof VersionedLanguage
+                                ? (VersionedLanguage) selected
+                                : ADQL;
+        return vlang.lang_;
+    }
+
+    /**
+     * Returns the formatted name of the query language currently selected
+     * in this panel.  This may include version information formatted
+     * as required by the TAP LANG parameter
+     * (for instance "<code>ADQL-2.0</code>").
+     *
+     * @return   formatted language name
+     */
+    public String getQueryLanguageName() {
+        Object selected = langSelector_.getSelectedItem();
+        VersionedLanguage vlang = selected instanceof VersionedLanguage
+                                ? (VersionedLanguage) selected
+                                : ADQL;
+        return vlang.toString();
     }
 
     /**
@@ -270,47 +293,6 @@ public class TapCapabilityPanel extends JPanel {
     }
 
     /**
-     * Returns the default query language to use given a list of possibles.
-     *
-     * @param  langs  query language options
-     * @return   favoured option
-     */
-    private static String getDefaultLanguage( String[] langs ) {
-        for ( int i = 0; i < langs.length; i++ ) {
-            if ( langs[ i ].equalsIgnoreCase( "adql-2.0" ) ) {
-                return langs[ i ];
-            }
-        }
-        for ( int i = 0; i < langs.length; i++ ) {
-            if ( langs[ i ].toLowerCase().startsWith( "adql" ) ) {
-                return langs[ i ];
-            }
-        }
-        return langs.length > 0 ? langs[ 0 ] : "ADQL";
-    }
-
-    /**
-     * Returns an array of language-version specifiers for languages
-     * supported by a given TapCapability object.
-     *
-     * @param   tcap  capability object
-     * @return   array of language identifiers
-     */
-    private static String[] getLanguageNames( TapCapability tcap ) {
-        List<String> langList = new ArrayList<String>();
-        TapLanguage[] tlangs = tcap.getLanguages();
-        for ( int il = 0; il < tlangs.length; il++ ) {
-            TapLanguage tlang = tlangs[ il ];
-            String baseName = tlang.getName();
-            String[] versNames = tlang.getVersions();
-            for ( int iv = 0; iv < versNames.length; iv++ ) {
-                langList.add( baseName + "-" + versNames[ iv ] );
-            }
-        }
-        return langList.toArray( new String[ 0 ] );
-    }
-
-    /**
      * Creates and returns a label associated with a given component.
      * Tool tip text is copied.
      *
@@ -322,5 +304,101 @@ public class TapCapabilityPanel extends JPanel {
         JLabel label = new JLabel( text );
         label.setToolTipText( comp.getToolTipText() );
         return label;
+    }
+
+    /**
+     * Returns the default query language to use given a list of possibles.
+     *
+     * @param  langs  query language options
+     * @return   favoured option
+     */
+    private static VersionedLanguage
+            getDefaultLanguage( VersionedLanguage[] vlangs ) {
+        for ( VersionedLanguage vlang : vlangs ) {
+            if ( "adql".equalsIgnoreCase( vlang.lang_.getName() ) &&
+                 "2.0".equals( vlang.version_ ) ) {
+                return vlang;
+            }
+        }
+        for ( VersionedLanguage vlang : vlangs ) {
+            if ( "adql".equalsIgnoreCase( vlang.lang_.getName() ) ) {
+                return vlang;
+            }
+        }
+        return vlangs.length > 0 ? vlangs[ 0 ] : ADQL;
+    }
+
+    /**
+     * Returns an array of language-version specifiers for languages
+     * supported by a given TapCapability object.
+     *
+     * @param   tcap  capability object
+     * @return   array of language identifiers
+     */
+    private static VersionedLanguage[]
+            getVersionedLanguages( TapCapability tcap ) {
+        List<VersionedLanguage> vlangList = new ArrayList<VersionedLanguage>();
+        for ( TapLanguage lang : tcap.getLanguages() ) {
+            for ( String vers : lang.getVersions() ) {
+                vlangList.add( new VersionedLanguage( lang, vers ) );
+            }
+        }
+        return vlangList.toArray( new VersionedLanguage[ 0 ] );
+    }
+
+    /**
+     * Returns a default VersionedLanguage instance.
+     * This currently corresponds to ADQL 2.0, which is mandatory for TAP v1.0.
+     *
+     * @return  default language instance
+     */
+    private static VersionedLanguage createDefaultAdqlLanguage() {
+        String version = null;
+        TapLanguage lang = new TapLanguage() {
+            public String getName() {
+                return "ADQL";
+            }
+            public String getDescription() {
+                return "Astronomical Data Query Language";
+            }
+            public String[] getVersionIds() {
+                return new String[] { "ivo://ivoa.net/std/ADQL#v2.0" };
+            }
+            public String[] getVersions() {
+                return new String[] { "2.0" };
+            }
+            public Map<String,TapLanguageFeature[]> getFeaturesMap() {
+                return new HashMap<String,TapLanguageFeature[]>();
+            }
+        };
+        return new VersionedLanguage( lang, version );
+    }
+
+    /**
+     * Aggregates a query language and its version number.
+     */
+    private static class VersionedLanguage {
+        final TapLanguage lang_;
+        final String version_;
+
+        /**
+         * Constructor.
+         *
+         * @param  lang  language
+         * @param  version   version number
+         */
+        VersionedLanguage( TapLanguage lang, String version ) {
+            lang_ = lang;
+            version_ = version;
+        }
+        public String toString() {
+            StringBuffer sbuf = new StringBuffer()
+               .append( lang_.getName() );
+            if ( version_ != null ) {
+                sbuf.append( '-' )
+                    .append( version_ );
+            }
+            return sbuf.toString();
+        }
     }
 }

@@ -395,7 +395,7 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
         }
         final Map<String,String> extraParams =
             new LinkedHashMap<String,String>();
-        String language = tcapPanel.getQueryLanguage();
+        String language = tcapPanel.getQueryLanguageName();
         if ( language != null && language.trim().length() > 0 ) {
             extraParams.put( "LANG", language );
         }
