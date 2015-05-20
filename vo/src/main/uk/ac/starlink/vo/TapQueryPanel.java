@@ -661,7 +661,8 @@ public class TapQueryPanel extends JPanel {
             }
             AdqlValidator.ValidatorTable[] vtables =
                 vtList.toArray( new AdqlValidator.ValidatorTable[ 0 ] );
-            validator_ = new AdqlValidator( vtables, true );
+            TapLanguage tapLang = null;
+            validator_ = AdqlValidator.createValidator( vtables, tapLang );
         }
         return validator_;
     }

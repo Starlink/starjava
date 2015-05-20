@@ -13,9 +13,14 @@ import adql.parser.QueryChecker;
 import adql.parser.TokenMgrError;
 import adql.query.ADQLQuery;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Handles validation of ADQL queries.
@@ -29,21 +34,56 @@ public class AdqlValidator {
 
     private final ADQLParser parser_;
     private final QueryChecker checker_;
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.vo" );
 
     /**
      * Constructor.
+     * Note empty arrays restrict possibilities (to none), but null values
+     * allow anything.
      *
      * @param  vtables  table metadata for database to be checked against
-     * @param  allowUdfs  whether unknown functions should cause a parse error
+     * @param  udfs   array of permitted user-defined-functions,
+     *                or null to permit all
+     *                (but ignored if vtables is null)
+     * @param  geoFuncs  array of permitted ADQL geometry function names,
+     *                   or null to permit all those defined by ADQL (sec 2.4)
+     *                   (but ignored if vtables is null)
      */
-    public AdqlValidator( ValidatorTable[] vtables, boolean allowUdfs ) {
-        parser_ = new ADQLParser( new ADQLQueryFactory() );
-        Collection<FunctionDef> udfs = allowUdfs
-                                     ? null
-                                     : new ArrayList<FunctionDef>();
-        checker_ = vtables == null
-                 ? null
-                 : new DBChecker( toDBTables( vtables ), udfs );
+    public AdqlValidator( ValidatorTable[] vtables, FunctionDef[] udfs,
+                          String[] geoFuncs ) {
+        parser_ = new ADQLParser();
+        Collection<DBTable> tableList = vtables == null
+                                      ? null
+                                      : toDBTables( vtables );
+        Collection<FunctionDef> udfList = udfs == null
+                                        ? null
+                                        : Arrays.asList( udfs );
+        Collection<String> geoList = geoFuncs == null
+                                   ? null
+                                   : Arrays.asList( geoFuncs );
+        if ( tableList == null ) {
+
+            /* You can't specify that any table/columns are permitted,
+             * so if we have no table metadata, just don't do any checking
+             * beyond basic syntax.  In this case the udfList and geoList
+             * are ignored. */
+            checker_ = null;
+        }
+        else {
+            List<String> csysList = null;
+            try {
+                checker_ =
+                    new DBChecker( tableList, udfList, geoList, csysList );
+            }
+            catch ( ParseException e ) {
+                // At ADQL lib 1.3, this exception is only generated if
+                // coordinate system processing goes wrong.  Since we are
+                // submitting a null coordinate system list, this exception
+                // should be impossible.
+                throw new RuntimeException( "Unexpected", e );
+            }
+        }
     }
 
     /**
@@ -76,6 +116,71 @@ public class AdqlValidator {
     }
 
     /**
+     * Creates an instance given a set of table metadata and a TapLanguage
+     * description object.
+     * The language object's TapLanguageFeature map is examined to determine
+     * what UDFs and ADQL geometry functions are supported.
+     * In the case of no description of UDFs and geom functions,
+     * no restrictions are imposed.
+     *
+     * @param  vtables  table metadata
+     * @param  lang   language specifics
+     */
+    public static AdqlValidator createValidator( ValidatorTable[] vtables,
+                                                 TapLanguage lang ) {
+        Map<String,TapLanguageFeature[]> featMap =
+            lang == null ? null : lang.getFeaturesMap();
+        if ( featMap == null ) {
+            featMap = new HashMap<String,TapLanguageFeature[]>();
+        }
+
+        /* Work out supported ADQL geometry functions. */
+        TapLanguageFeature[] geoFeats =
+            featMap.get( TapCapability.ADQLGEO_FEATURE_TYPE );
+        List<String> geoList = new ArrayList<String>();
+        if ( geoFeats != null ) {
+            for ( TapLanguageFeature geoFeat : geoFeats ) {
+                String fname = geoFeat.getForm();
+                if ( fname != null && fname.trim().length() > 0 ) {
+                    geoList.add( fname.trim() );
+                }
+            }
+        }
+        String[] geoFuncs = geoList.size() > 0
+                          ? geoList.toArray( new String[ 0 ] )
+                          : null;
+
+        /* Work out supported user-defined functions. */
+        TapLanguageFeature[] udfFeats =
+            featMap.get( TapCapability.UDF_FEATURE_TYPE );
+        List<FunctionDef> udfList = new ArrayList<FunctionDef>();
+        if ( udfFeats != null ) {
+            for ( TapLanguageFeature udfFeat : udfFeats ) {
+                String form = udfFeat.getForm();
+                FunctionDef udf;
+                try {
+                    udf = FunctionDef.parse( form );
+                }
+                catch ( ParseException e ) {
+                    udf = null;
+                    logger_.log( Level.WARNING,
+                                 "Failed to parse UDF def \"" + form + "\""
+                               + ": " + e, e );
+                }
+                if ( udf != null ) {
+                    udfList.add( udf );
+                }
+            }
+        }
+        FunctionDef[] udfs = udfList.size() > 0
+                           ? udfList.toArray( new FunctionDef[ 0 ] )
+                           : null;
+
+        /* Construct a suitable validator object. */
+        return new AdqlValidator( vtables, udfs, geoFuncs );
+    }
+
+    /**
      * Adapts an array of ValidatorTable objects to a DBTable collection.
      *
      * @param  vtables  table metadata in VO package form
@@ -97,11 +202,9 @@ public class AdqlValidator {
             java.io.IOException, org.xml.sax.SAXException {
         String usage = "\n   Usage: " + AdqlValidator.class.getName()
                      + " [-meta <tmeta-url>]"
-                     + " [-[no]udfs]"
                      + " <query>"
                      + "\n";
         SchemaMeta[] schMetas = null;
-        boolean allowUdfs = false;
         ArrayList<String> argList =
         new ArrayList<String>( java.util.Arrays.asList( args ) );
         for ( Iterator<String> it = argList.iterator(); it.hasNext(); ) {
@@ -116,14 +219,6 @@ public class AdqlValidator {
                 it.remove();
                 schMetas = TableSetSaxHandler
                           .readTableSet( new java.net.URL( loc ) );
-            }
-            else if ( arg.equals( "-udfs" ) ) {
-                it.remove();
-                allowUdfs = true;
-            }
-            else if ( arg.equals( "-noudfs" ) ) {
-                it.remove();
-                allowUdfs = false;
             }
         }
         if ( argList.size() != 1 ) {
@@ -168,7 +263,9 @@ public class AdqlValidator {
         else {
             vtables = null;
         }
-        new AdqlValidator( vtables, allowUdfs ).validate( query );
+        FunctionDef[] udfs = null;
+        String[] geoFuncs = null;
+        new AdqlValidator( vtables, udfs, geoFuncs ).validate( query );
     }
 
     /**
