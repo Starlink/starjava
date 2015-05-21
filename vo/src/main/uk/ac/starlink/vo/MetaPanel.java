@@ -12,12 +12,14 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JComponent;
+import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.Scrollable;
 import javax.swing.text.JTextComponent;
+import javax.swing.text.html.HTMLEditorKit;
 
 /**
  * Panel for displaying metadata under headings.
@@ -61,6 +63,28 @@ public class MetaPanel extends JPanel implements Scrollable {
         JTextArea field = new JTextArea();
         field.setLineWrap( true );
         field.setWrapStyleWord( true );
+        field.setEditable( false );
+        field.setOpaque( false );
+        addHeadedComponent( heading, field );
+        return field;
+    }
+
+    /**
+     * Adds a field for displaying a text item formatted as HTML text.
+     *
+     * @param   heading   item heading text
+     * @return  component whose content can be set
+     */
+    public JTextComponent addHtmlField( String heading ) {
+        JEditorPane field = new JEditorPane() {
+            @Override
+            public Dimension getPreferredSize() {
+                Dimension size = super.getPreferredSize();
+                return new Dimension( size.width, Math.max( size.height, 15 ) );
+            }
+        };
+        field.setEditorKit( new HTMLEditorKit() );
+        field.putClientProperty( JEditorPane.HONOR_DISPLAY_PROPERTIES, true );
         field.setEditable( false );
         field.setOpaque( false );
         addHeadedComponent( heading, field );
