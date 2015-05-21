@@ -410,9 +410,11 @@ public class TapQueryPanel extends JPanel {
                 }
                 public void showWaiting() {
                     tcapPanel_.setCapability( null );
+                    tmetaPanel_.setCapability( null );
                 }
                 public void showResult( TapCapability tcap ) {
                     tcapPanel_.setCapability( tcap );
+                    tmetaPanel_.setCapability( tcap );
                 }
                 public void showError( IOException error ) {
                     logger_.log( Level.WARNING,
