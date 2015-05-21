@@ -8,6 +8,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -345,6 +346,15 @@ public class TableSetPanel extends JPanel {
         updateForTableSelection();
         firePropertyChange( SCHEMAS_PROPERTY, oldSchemas, schemas );
         repaint();
+    }
+
+    /**
+     * Sets the TapCapability information to be displayed in this panel.
+     *
+     * @param   capability   current capability object, may be null
+     */
+    public void setCapability( TapCapability capability ) {
+        servicePanel_.setCapability( capability );
     }
 
     /**
@@ -1083,6 +1093,9 @@ public class TableSetPanel extends JPanel {
         private final JTextComponent refurlField_;
         private final JTextComponent sizeField_;
         private final JTextComponent descripField_;
+        private final JTextComponent dmField_;
+        private final JTextComponent geoField_;
+        private final JTextComponent udfField_;
 
         /**
          * Constructor.
@@ -1097,6 +1110,9 @@ public class TableSetPanel extends JPanel {
             refurlField_ = addUrlField( "Reference URL", urlHandler );
             sizeField_ = addLineField( "Size" );
             descripField_ = addMultiLineField( "Description" );
+            dmField_ = addMultiLineField( "Data Models" );
+            geoField_ = addMultiLineField( "Geometry Functions" );
+            udfField_ = addHtmlField( "User-Defined Functions" );
         }
 
         /**
@@ -1133,6 +1149,217 @@ public class TableSetPanel extends JPanel {
             setFieldText( titleField_, info.remove( "res_title" ) );
             setFieldText( refurlField_, info.remove( "reference_url" ) );
             setFieldText( descripField_, info.remove( "res_description" ) );
+        }
+
+        /**
+         * Sets capability information to display.
+         *
+         * @param   tcap  capability object, may be null
+         */
+        public void setCapability( TapCapability tcap ) {
+            setFieldText( dmField_, getDataModelText( tcap ) );
+            setFieldText( geoField_, getGeoFuncText( tcap ) );
+            setFieldText( udfField_, getUdfHtml( tcap ) );
+        }
+
+        /**
+         * Returns a text string displaying data model information for
+         * the given capability.
+         *
+         * @param   tcap  capability object, may be null
+         * @return   text summarising data model information, or null
+         */
+        private static String getDataModelText( TapCapability tcap ) {
+            if ( tcap == null ) {
+                return null;
+            }
+            String[] dms = tcap.getDataModels();
+            if ( dms == null || dms.length == 0 ) {
+                return null;
+            }
+            StringBuffer sbuf = new StringBuffer();
+            if ( dms != null ) {
+                for ( String dm : dms ) {
+                    if ( sbuf.length() != 0 ) {
+                        sbuf.append( '\n' );
+                    }
+                    sbuf.append( dm );
+                }
+            }
+            return sbuf.toString();
+        }
+
+        /**
+         * Returns a text string displaying ADQL geometry function
+         * information for the given capability.
+         *
+         * @param   tcap  capability object, may be null
+         * @return   text summarising available geometry functions, or null
+         */
+        private static String getGeoFuncText( TapCapability tcap ) {
+            if ( tcap == null ) {
+                return null;
+            }
+            TapLanguage[] langs = getAdqlLanguages( tcap );
+            if ( langs.length == 0 ) {
+                return null;
+            }
+            else if ( langs.length == 1 ) {
+                return getGeoFuncText( langs[ 0 ] );
+            }
+            else {
+
+                /* There won't usually be multiple ADQL-like languages.
+                 * Cope with the case where there are, but the result
+                 * may be ugly. */
+                StringBuffer sbuf = new StringBuffer();
+                for ( TapLanguage lang : langs ) {
+                    String geoTxt = getGeoFuncText( lang );
+                    if ( geoTxt != null && geoTxt.length() > 0 ) {
+                        if ( sbuf.length() != 0 ) {
+                            sbuf.append( '\n' );
+                        }
+                        sbuf.append( lang.getName() )
+                            .append( '\n' )
+                            .append( "--------\n" )
+                            .append( geoTxt );
+                    }
+                }
+                return sbuf.toString();
+            }
+        }
+
+        /**
+         * Returns HTML formatted text displaying information about ADQL UDFs
+         * for the given capability.
+         *
+         * @param   tcap  capability object, may be null
+         * @return   HTML summarising available geometry functions, or null
+         */
+        private static String getUdfHtml( TapCapability tcap ) {
+            if ( tcap == null ) {
+                return null;
+            }
+            TapLanguage[] langs = getAdqlLanguages( tcap );
+            if ( langs.length == 0 ) {
+                return null;
+            }
+            else if ( langs.length == 1 ) {
+                return getUdfHtml( langs[ 0 ] );
+            }
+            else {
+
+                /* There won't usually be multiple ADQL-like languages,
+                 * Cope with the case where there are, but the result
+                 * may be ugly. */
+                StringBuffer sbuf = new StringBuffer();
+                for ( TapLanguage lang : langs ) {
+                    String udfHtml = getUdfHtml( lang );
+                    if ( udfHtml != null && udfHtml.length() > 0 ) {
+                        sbuf.append( "<dt>" )
+                            .append( escapeHtml( lang.getName() ) )
+                            .append( "</dt>\n" )
+                            .append( "<dd>" )
+                            .append( udfHtml )
+                            .append( "</dd>\n" );
+                    }
+                }
+                return sbuf.length() > 0
+                     ? "<dl>\n" + sbuf + "</dl>"
+                     : null;
+            }
+        }
+
+        /**
+         * Returns a text string displaying ADQL geometry function
+         * information for the given language.
+         *
+         * @param  lang  TAP language object
+         * @return  text summarising available geometry functions, or null
+         */
+        private static String getGeoFuncText( TapLanguage lang ) {
+            TapLanguageFeature[] geoFeats =
+                lang.getFeaturesMap()
+                    .get( TapCapability.ADQLGEO_FEATURE_TYPE );
+            if ( geoFeats == null || geoFeats.length == 0 ) {
+                return null;
+            }
+            List<String> geoFuncs = new ArrayList<String>();
+            for ( TapLanguageFeature feat : geoFeats ) {
+                geoFuncs.add( feat.getForm() );
+            }
+            Collections.sort( geoFuncs );
+            StringBuffer sbuf = new StringBuffer(); 
+            for ( String func : geoFuncs ) {
+                if ( sbuf.length() != 0 ) {
+                    sbuf.append( ", " );
+                }
+                sbuf.append( func );
+            }
+            return sbuf.toString();
+        }
+
+        /**
+         * Returns HTML formatted text displaying information about ADQL UDFs
+         * for the given language.
+         *
+         * @param  lang  TAP language object
+         * @return   HTML summarising available geometry functions, or null
+         */
+        private static String getUdfHtml( TapLanguage lang ) {
+            TapLanguageFeature[] udfFeats =
+                lang.getFeaturesMap()
+                    .get( TapCapability.UDF_FEATURE_TYPE );
+            if ( udfFeats == null || udfFeats.length == 0 ) {
+                return null;
+            }
+            StringBuffer sbuf = new StringBuffer();
+            for ( TapLanguageFeature feat : udfFeats ) {
+                sbuf.append( "<dt>" )
+                    .append( "<strong><code>" )
+                    .append( escapeHtml( feat.getForm() ) )
+                    .append( "</code></strong>" )
+                    .append( "</dt>\n" )
+                    .append( "<dd>" )
+                    .append( escapeHtml( feat.getDescription() ) )
+                    .append( "</dd>\n" );
+            }
+            return sbuf.length() > 0 ? "<dl>\n" + sbuf + "</dl>"
+                                     : null;
+        }
+
+        /**
+         * Returns a list of the ADQL-like languages available from a
+         * given TAP Capability object.
+         *
+         * @param  tcap  capability
+         * @return   list of ADQL-like language objects, not null
+         */
+        private static TapLanguage[] getAdqlLanguages( TapCapability tcap ) {
+            List<TapLanguage> adqlList = new ArrayList<TapLanguage>();
+            if ( tcap != null ) {
+                TapLanguage[] langs = tcap.getLanguages();
+                if ( langs != null ) {
+                    for ( TapLanguage lang : langs ) {
+                        if ( "adql".equalsIgnoreCase( lang.getName() ) ) {
+                            adqlList.add( lang );
+                        }
+                    }
+                }
+            }
+            return adqlList.toArray( new TapLanguage[ 0 ] );
+        }
+
+        /**
+         * Makes plain text safe for interpolation into HTML source.
+         *
+         * @param  txt  raw text
+         * @return  escaped text
+         */
+        private static String escapeHtml( String txt ) {
+            return txt.replace( "&", "&amp;" )
+                      .replace( "<", "&lt;" )
+                      .replace( ">", "&gt;" );
         }
     }
 }
