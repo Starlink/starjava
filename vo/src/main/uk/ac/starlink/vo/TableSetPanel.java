@@ -80,7 +80,7 @@ public class TableSetPanel extends JPanel {
     private final int itabForeign_;
     private final JComponent metaPanel_;
     private final JSplitPane metaSplitter_;
-    private TapServiceKit serviceKit_;;
+    private TapServiceKit serviceKit_;
     private SchemaMeta[] schemas_;
     private ColumnMeta[] selectedColumns_;
 
@@ -355,6 +355,19 @@ public class TableSetPanel extends JPanel {
      */
     public void setCapability( TapCapability capability ) {
         servicePanel_.setCapability( capability );
+    }
+
+    /**
+     * Sets whether an examples document is known to be available
+     * in the standard location (&lt;serviceUrl&gt;/examples).
+     *
+     * @param   hasExamples  true iff examples are known to exist
+     */
+    public void setHasExamples( boolean hasExamples ) {
+        String exampleUrl = hasExamples && serviceKit_ != null
+                          ? serviceKit_.getServiceUrl() + "/examples"
+                          : null;
+        servicePanel_.setExamplesUrl( exampleUrl );
     }
 
     /**
@@ -1091,6 +1104,7 @@ public class TableSetPanel extends JPanel {
         private final JTextComponent nameField_;
         private final JTextComponent titleField_;
         private final JTextComponent refurlField_;
+        private final JTextComponent examplesurlField_;
         private final JTextComponent sizeField_;
         private final JTextComponent descripField_;
         private final JTextComponent dmField_;
@@ -1108,6 +1122,7 @@ public class TableSetPanel extends JPanel {
             ivoidField_ = addLineField( "IVO ID" );
             servurlField_ = addLineField( "Service URL" );
             refurlField_ = addUrlField( "Reference URL", urlHandler );
+            examplesurlField_ = addUrlField( "Examples URL", urlHandler );
             sizeField_ = addLineField( "Size" );
             descripField_ = addMultiLineField( "Description" );
             dmField_ = addMultiLineField( "Data Models" );
@@ -1149,6 +1164,15 @@ public class TableSetPanel extends JPanel {
             setFieldText( titleField_, info.remove( "res_title" ) );
             setFieldText( refurlField_, info.remove( "reference_url" ) );
             setFieldText( descripField_, info.remove( "res_description" ) );
+        }
+
+        /**
+         * Sets the examples URL to display.
+         *
+         * @param  examples URL, or null
+         */
+        public void setExamplesUrl( String examplesUrl ) {
+            setFieldText( examplesurlField_, examplesUrl );
         }
 
         /**

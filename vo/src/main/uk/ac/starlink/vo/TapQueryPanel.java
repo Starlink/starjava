@@ -537,6 +537,7 @@ public class TapQueryPanel extends JPanel {
                 menu.add( act );
             }
         }
+        tmetaPanel_.setHasExamples( examples != null && examples.length > 0 );
     }
 
     /**
