@@ -21830,6 +21830,10 @@ introduced since the last version:
         of non-compliant service table metadata reports.</li>
     <li>Fix sky plot vector bug: delta latitude and delta longitude values
         were being used the wrong way round.</li>
+    <li>Upgrade JEL to v2.0.2.
+        Fixes problem with evaluating void-typed expressions
+        (especially user-supplied activation actions),
+        and possibly some other obscure bugs.</li>
     </ul>
     </p></dd>
 
