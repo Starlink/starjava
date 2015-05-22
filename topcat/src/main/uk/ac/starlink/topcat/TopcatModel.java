@@ -586,10 +586,12 @@ public class TopcatModel {
             if ( activator_ != null &&
                  ( sendOut ||
                    ! ActivationQueryWindow.isRowSender( activator_ ) ) ) {
-                String msg = activator_.activateRow( lrow );
-                if ( msg != null && msg.trim().length() > 0 ) {
-                    System.out.println( msg );
+                String msg = "Activate row " + ( lrow + 1 );
+                String report = activator_.activateRow( lrow );
+                if ( report != null && report.trim().length() > 0 ) {
+                    msg += ": " + report;
                 }
+                logger_.info( msg );
             }
             if ( sendOut && 
                  rowSendModel_.isSelected() &&
