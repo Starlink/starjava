@@ -21834,6 +21834,13 @@ introduced since the last version:
         Fixes problem with evaluating void-typed expressions
         (especially user-supplied activation actions),
         and possibly some other obscure bugs.</li>
+    <li>Activation action summary messages are now written via an INFO
+        log message rather than just printing to standard output.
+        To see them you now need to run the application with the
+        <code>-verbose</code> flag.
+        The various <ref id="System"><code>exec</code></ref> functions
+        however do now write their output direct to stdout/stderr
+        rather than including them in a return value.</li>
     </ul>
     </p></dd>
 
