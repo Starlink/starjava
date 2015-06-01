@@ -16,7 +16,7 @@ import jsky.catalog.TableQueryResult;
 import jsky.util.JavaExpr;
 import jsky.util.TclUtil;
 
-import gnu.jel.DVResolver;
+import gnu.jel.DVMap;
 import jsky.util.StringUtil;
 
 
@@ -30,7 +30,7 @@ import jsky.util.StringUtil;
  * @version $Revision: 1.2 $
  * @author Allan Brighton
  */
-public class TablePlotSymbol implements DVResolver {
+public class TablePlotSymbol extends DVMap {
 
     // symbol shape constants
     public static final int CIRCLE = 0;
@@ -739,7 +739,7 @@ public class TablePlotSymbol implements DVResolver {
     }
 
 
-    /** Implements the DVResolver interface */
+    /** Implements the DVMap interface */
     public String getTypeName(String name) {
         if (name.startsWith("$"))
             name = name.substring(1);
@@ -755,7 +755,7 @@ public class TablePlotSymbol implements DVResolver {
     }
 
 
-    /** Called by reflection for the DVResolver interface to get the value of the named variable of type Double */
+    /** Called by reflection for the DVMap interface to get the value of the named variable of type Double */
     public double getDoubleProperty(String name) {
         if (name.startsWith("$"))
             name = name.substring(1);
@@ -770,7 +770,7 @@ public class TablePlotSymbol implements DVResolver {
         return 0.0;
     }
 
-    /** Called by reflection for the DVResolver interface to get the value of the named variable of type String */
+    /** Called by reflection for the DVMap interface to get the value of the named variable of type String */
     public String getStringProperty(String name) {
         if (name.startsWith("$"))
             name = name.substring(1);
