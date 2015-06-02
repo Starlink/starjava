@@ -157,7 +157,10 @@ public abstract class PaintMode {
                  + "<code>" + modeParam.getOutputParameter().getName()
                  + "</code> "
                  + "using the graphics format given by "
-                 + "<code>" + modeParam.getFormatParameter().getName()
+                 + "<code>"
+                 + "<ref id='graphicExporter'>"
+                 + modeParam.getFormatParameter().getName()
+                 + "</ref>"
                  + "</code>.";
         }
 
@@ -220,7 +223,10 @@ public abstract class PaintMode {
             return "Plot will be written in a way suitable for CGI use "
                  + "direct from a web server.\n"
                  + "The output is in the graphics format given by "
-                 + "<code>" + modeParam.getFormatParameter().getName()
+                 + "<code>"
+                 + "<ref id='graphicExporter'>"
+                 + modeParam.getFormatParameter().getName()
+                 + "</ref>"
                  + "</code>,\n"
                  + "preceded by a suitable \"Content-type\" declaration.";
         }
