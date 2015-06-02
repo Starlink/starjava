@@ -359,22 +359,9 @@ public class AdqlValidator {
             /* Note the value of vtable.getColumnNames may change over the
              * lifetime of the vtable object, so don't cache the result. */
             Collection<String> cnames = vtable_.getColumnNames();
-            if ( cnames == null ) {
-                return createDBColumn( colName );
-            }
-            else if ( cnames.contains( colName ) ) {
-                return createDBColumn( colName );
-            }
-            else {
-                String rawColName = syntax_.unquote( colName );
-                if ( ! colName.equals( rawColName ) &&
-                     cnames.contains( rawColName ) ) {
-                    return createDBColumn( rawColName );
-                }
-                else {
-                    return null;
-                }
-            }
+            return cnames == null || cnames.contains( colName )
+                 ? createDBColumn( colName )
+                 : null;
         }
 
         public Iterator<DBColumn> iterator() {
@@ -392,7 +379,7 @@ public class AdqlValidator {
                         return it.hasNext();
                     }
                     public DBColumn next() {
-                        return createDBColumn( syntax_.unquote( it.next() ) );
+                        return createDBColumn( it.next() );
                     }
                     public void remove() {
                         throw new UnsupportedOperationException();
@@ -416,7 +403,8 @@ public class AdqlValidator {
         }
 
         private DBColumn createDBColumn( String colName ) {
-            return new DefaultDBColumn( colName, colName, this );
+            String rawColName = syntax_.unquote( colName );
+            return new DefaultDBColumn( colName, rawColName, this );
         }
     }
 }
