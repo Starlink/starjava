@@ -85,7 +85,7 @@ public class ColumnMetadataStage implements Stage {
     /**
      * Returns the essence of a column name.
      * The result is the string that ought to be equal to the name of the
-     * same colum when it appears somewhere else.
+     * same column when it appears somewhere else.
      *
      * <p>Currently, this does two things: flattens case and unquotes
      * quoted names (delimited identifiers).
@@ -98,8 +98,8 @@ public class ColumnMetadataStage implements Stage {
      * comes back in a result table with name 'size'.  So this is probably
      * the right thing to do for comparisons.
      *
-     * @param   name  column name
-     * @param   normalised column name
+     * @param   colName  column name
+     * @return   normalised column name
      */
     public static String normaliseColumnName( String colName ) {
         return syntax_.unquote( colName ).toLowerCase();
