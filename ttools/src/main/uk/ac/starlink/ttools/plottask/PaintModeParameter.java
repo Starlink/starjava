@@ -37,7 +37,7 @@ public class PaintModeParameter extends ChoiceParameter<PaintMode> {
         formatParam_.setPrompt( "Graphics format for plot output" );
         StringBuffer fmtbuf = new StringBuffer()
             .append( "<p>Graphics format in which the plot is written to\n" )
-            .append( "the output file.\n" )
+            .append( "the output file, see <ref id='graphicExporter'/>.\n" )
             .append( "One of:\n" )
             .append( "<ul>\n" );
         for ( int ie = 0; ie < exporters.length; ie++ ) {
@@ -60,12 +60,17 @@ public class PaintModeParameter extends ChoiceParameter<PaintMode> {
 
         PaintMode[] modes = PaintMode.getKnownModes( exporters );
         StringBuffer modebuf = new StringBuffer()
-            .append( "<p>Determines how the drawn plot will be output.\n" )
+            .append( "<p>Determines how the drawn plot will be output, " )
+            .append( "see <ref id='paintMode'/>.\n" )
             .append( "<ul>\n" );
         for ( int im = 0; im < modes.length; im++ ) {
             PaintMode mode = modes[ im ];
             modebuf.append( "<li><code>" )
+                   .append( "<ref id='paintmode-" )
                    .append( mode.getName() )
+                   .append( "'>" )
+                   .append( mode.getName() )
+                   .append( "</ref>" )
                    .append( "</code>:\n" )
                    .append( mode.getDescription( this ) )
                    .append( "</li>" )
