@@ -38,6 +38,7 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JMenu;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
@@ -48,6 +49,7 @@ import javax.swing.JTextArea;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
+import javax.swing.MenuElement;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
 import javax.swing.event.ChangeEvent;
@@ -74,8 +76,8 @@ public class TapQueryPanel extends JPanel {
     private final JToggleButton syncToggle_;
     private final Action examplesAct_;
     private final Action parseErrorAct_;
-    private final AdqlExampleAction[] exampleActs_;
-    private final JMenu serviceExampleMenu_;
+    private final JPopupMenu examplesMenu_;
+    private final JMenu daliExampleMenu_;
     private final JTabbedPane textTabber_;
     private final CaretListener caretForwarder_;
     private final List<CaretListener> caretListeners_;
@@ -93,6 +95,7 @@ public class TapQueryPanel extends JPanel {
     private AdqlValidator.ValidatorTable[] extraTables_;
     private AdqlValidator validator_;
     private ParseTextArea textPanel_;
+    private int iCustomExampleMenu_;
     private int iTab_;
     private UndoManager undoer_;
 
@@ -113,11 +116,9 @@ public class TapQueryPanel extends JPanel {
     /**
      * Constructor.
      *
-     * @param   examples   list of example queries to be made available
-     *          from the examples menu
      * @param   urlHandler  handles URLs that the user clicks on; may be null
      */
-    public TapQueryPanel( AdqlExample[] examples, UrlHandler urlHandler ) {
+    public TapQueryPanel( UrlHandler urlHandler ) {
         super( new BorderLayout() );
 
         /* Prepare a panel for table metadata display. */
@@ -277,16 +278,20 @@ public class TapQueryPanel extends JPanel {
         } );
 
         /* Action for examples menu. */
-        final JPopupMenu examplesMenu = new JPopupMenu( "Examples" );
-        int nex = examples.length;
-        exampleActs_ = new AdqlExampleAction[ nex ];
-        for ( int ie = 0; ie < nex; ie++ ) {
-            exampleActs_[ ie ] = new AdqlExampleAction( examples[ ie ] );
-            examplesMenu.add( exampleActs_[ ie ] );
-        }
-        serviceExampleMenu_ = new JMenu( "Service-Specific" );
-        examplesMenu.add( serviceExampleMenu_ );
+        daliExampleMenu_ = new JMenu( "Service-Provided" );
         setDaliExamples( null );
+        examplesMenu_ = new JPopupMenu( "Examples" );
+        examplesMenu_.add( createExampleMenu( "Basic",
+                                              AbstractAdqlExample
+                                             .createSomeExamples() ) );
+        iCustomExampleMenu_ = examplesMenu_.getSubElements().length;
+        examplesMenu_.add( daliExampleMenu_ );
+        examplesMenu_.add( createExampleMenu( "ObsTAP",
+                                              DataModelAdqlExample
+                                             .createObsTapExamples() ) );
+        examplesMenu_.add( createExampleMenu( "RegTAP",
+                                              DataModelAdqlExample
+                                             .createRegTapExamples() ) );
         examplesAct_ = new AbstractAction( "Examples" ) {
             public void actionPerformed( ActionEvent evt ) {
                 Object src = evt.getSource();
@@ -300,7 +305,7 @@ public class TapQueryPanel extends JPanel {
                      * the state of constituent components, but it needs
                      * a lot of listeners and plumbing. */
                     configureExamples();
-                    examplesMenu.show( comp, 0, 0 );
+                    examplesMenu_.show( comp, 0, 0 );
                 }
             }
         };
@@ -429,8 +434,8 @@ public class TapQueryPanel extends JPanel {
                 public void showWaiting() {
                     setDaliExamples( null );
                 }
-                public void showResult( DaliExample[] examples ) {
-                    setDaliExamples( examples );
+                public void showResult( DaliExample[] daliExamples ) {
+                    setDaliExamples( daliExamples );
                 }
                 public void showError( IOException error ) {
                     logger_.info( "No TAP examples: " + error );
@@ -491,6 +496,34 @@ public class TapQueryPanel extends JPanel {
     }
 
     /**
+     * Adds a submenu to the examples menu giving a list of custom ADQL
+     * example queries.
+     *
+     * @param  menuName  name of submenu
+     * @param  examples  example list
+     */
+    public void addCustomExamples( String menuName, AdqlExample[] examples ) {
+        examplesMenu_.insert( createExampleMenu( menuName, examples ),
+                              iCustomExampleMenu_++ );
+        configureExamples();
+    }
+
+    /**
+     * Creates a new menu for display of ADQL example queries.
+     *
+     * @param  name  menu name
+     * @param  examples  list of examples
+     * @return   new menu
+     */
+    private JMenu createExampleMenu( String name, AdqlExample[] examples ) {
+        JMenu menu = new JMenu( name );
+        for ( AdqlExample ex : examples ) {
+            menu.add( new AdqlExampleAction( ex ) );
+        }
+        return menu;
+    }
+
+    /**
      * Works with the known table and service metadata currently displayed
      * to set up example queries.
      */
@@ -510,12 +543,47 @@ public class TapQueryPanel extends JPanel {
             tables = null;
         }
         TableMeta table = tmetaPanel_.getSelectedTable();
-        for ( int ie = 0; ie < exampleActs_.length; ie++ ) {
-            AdqlExampleAction exAct = exampleActs_[ ie ];
-            String adql =
-                exAct.getExample().getText( true, lang, tcap, tables, table );
-            exAct.setAdqlText( adql );
+        configureExamples( examplesMenu_, lang, tcap, tables, table );
+    }
+
+    /**
+     * Configures the examples displayed in the contents of a given menu.
+     * The examples are configured to provide the correct text,
+     * and the enabled status of the menu items is set appropriately.
+     *
+     * @param   menu  parent of menu items to configure
+     * @param  lang  ADQL language variant (e.g. "ADQL-2.0")
+     * @param  tcap  TAP capability object
+     * @param  tables  table metadata set
+     * @param  table  currently selected table
+     * @return   number of descendents of the supplied menu that are
+     *           enabled for use
+     */
+    private static int configureExamples( MenuElement menu, String lang,
+                                          TapCapability tcap,
+                                          TableMeta[] tables,
+                                          TableMeta table ) {
+        int nActive = 0;
+        for ( MenuElement el : menu.getSubElements() ) {
+            if ( el instanceof JMenuItem ) {
+                Action act = ((JMenuItem) el).getAction();
+                if ( act instanceof AdqlExampleAction ) {
+                    AdqlExampleAction exAct = (AdqlExampleAction) act;
+                    String adql = exAct.getExample()
+                                 .getText( true, lang, tcap, tables, table );
+                    exAct.setAdqlText( adql );
+                    if ( exAct.isEnabled() ) {
+                        nActive++;
+                    }
+                }
+            }
+            int nSubActive = configureExamples( el, lang, tcap, tables, table );
+            if ( el instanceof JMenu ) {
+                ((JMenu) el).setEnabled( nSubActive > 0 );
+            }
+            nActive += nSubActive;
         }
+        return nActive;
     }
 
     /**
@@ -524,20 +592,28 @@ public class TapQueryPanel extends JPanel {
      *
      * @param  examples  example list, may be null
      */
-    private void setDaliExamples( DaliExample[] examples ) {
-        JMenu menu = serviceExampleMenu_;
+    private void setDaliExamples( DaliExample[] daliExamples ) {
+        JMenu menu = daliExampleMenu_;
         menu.removeAll();
-        menu.setEnabled( examples != null && examples.length > 0 );
-        if ( examples != null ) {
-            for ( DaliExample example : examples ) {
-                String name = example.getName();
-                String adql = example.getGenericParameters().get( "QUERY" );
-                AdqlTextAction act = new AdqlTextAction( name, true );
-                act.setAdqlText( adql );
-                menu.add( act );
+        menu.setEnabled( daliExamples != null && daliExamples.length > 0 );
+        if ( daliExamples != null ) {
+            for ( DaliExample daliEx : daliExamples ) {
+                String name = daliEx.getName();
+                final String adql =
+                    daliEx.getGenericParameters().get( "QUERY" );
+                AdqlExample adqlEx = new AbstractAdqlExample( name, null ) {
+                    public String getText( boolean lineBreaks, String lang,
+                                           TapCapability tcap,
+                                           TableMeta[] tables,
+                                           TableMeta table ) {
+                        return adql;
+                    }
+                };
+                menu.add( new AdqlExampleAction( adqlEx ) );
             }
         }
-        tmetaPanel_.setHasExamples( examples != null && examples.length > 0 );
+        tmetaPanel_.setHasExamples( daliExamples != null &&
+                                    daliExamples.length > 0 );
     }
 
     /**

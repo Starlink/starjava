@@ -55,7 +55,6 @@ import uk.ac.starlink.table.gui.TableLoader;
 public class TapTableLoadDialog extends DalTableLoadDialog {
 
     private final Map<String,TapQueryPanel> tqMap_;
-    private final AdqlExample[] basicExamples_;
     private JTabbedPane tabber_;
     private JComponent tqContainer_;
     private TapQueryPanel tqPanel_;
@@ -100,7 +99,6 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
                "Query remote databases using SQL-like language",
                Capability.TAP, false, false );
         tqMap_ = new HashMap<String,TapQueryPanel>();
-        basicExamples_ = AbstractAdqlExample.createSomeExamples();
         metaPolicy_ = TapMetaPolicy.getDefaultInstance();
         setIconUrl( TapTableLoadDialog.class.getResource( "tap.gif" ) );
     }
@@ -486,7 +484,7 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
      * @return  new query panel
      */
     protected TapQueryPanel createTapQueryPanel() {
-        return new TapQueryPanel( basicExamples_, new UrlHandler() {
+        return new TapQueryPanel( new UrlHandler() {
             public void clickUrl( URL url ) {
                 logger_.warning( "Click :" + url );
             }

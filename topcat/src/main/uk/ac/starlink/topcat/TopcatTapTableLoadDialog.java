@@ -18,7 +18,6 @@ import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ButtonGroup;
-import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.ListModel;
@@ -30,7 +29,6 @@ import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableSequence;
 import uk.ac.starlink.table.Tables;
-import uk.ac.starlink.vo.AbstractAdqlExample;
 import uk.ac.starlink.vo.AdqlExample;
 import uk.ac.starlink.vo.AdqlSyntax;
 import uk.ac.starlink.vo.AdqlValidator;
@@ -51,7 +49,7 @@ import uk.ac.starlink.vo.UwsJob;
 public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
 
     private final RegistryDialogAdjuster adjuster_;
-    private AdqlExample[] examples_;
+    private AdqlExample[] uploadExamples_;
     private UrlHandler urlHandler_;
     private volatile DeletionPolicy deletionPolicy_;
 
@@ -240,8 +238,8 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
 
     @Override
     protected TapQueryPanel createTapQueryPanel() {
-        final TapQueryPanel tqp =
-            new TapQueryPanel( getExamples(), urlHandler_ );
+        final TapQueryPanel tqp = new TapQueryPanel( urlHandler_ );
+        tqp.addCustomExamples( "Upload", getUploadExamples() );
 
         /* Make sure the panel is kept up to date with the list of
          * tables known by the application. */
@@ -325,22 +323,19 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
     }
 
     /**
-     * Returns a lazily constructed list of ADQL examples suitable for
-     * this window. It includes basic and upload-based examples.
+     * Returns a lazily constructed list of examples of ADQL queries involving
+     * table upload suitable for this window.
      *
      * @return   example list
      */
-    private AdqlExample[] getExamples() {
-        if ( examples_ == null ) {
-            List<AdqlExample> exampleList = new ArrayList<AdqlExample>();
-            exampleList.addAll( Arrays.asList( AbstractAdqlExample
-                                              .createSomeExamples() ) );
-            JList tcList = ControlWindow.getInstance().getTablesList();
-            exampleList.addAll( Arrays.asList( UploadAdqlExample
-                                              .createSomeExamples( tcList ) ) );
-            examples_ = exampleList.toArray( new AdqlExample[ 0 ] );
+    private AdqlExample[] getUploadExamples() {
+        if ( uploadExamples_ == null ) {
+            uploadExamples_ =
+                UploadAdqlExample
+               .createSomeExamples( ControlWindow.getInstance()
+                                                 .getTablesList() );
         }
-        return examples_;
+        return uploadExamples_;
     }
 
     /**
