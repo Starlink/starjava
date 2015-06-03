@@ -24,6 +24,7 @@ public abstract class AbstractAdqlExample implements AdqlExample {
         Pattern.compile( "^pos.eq.ra[_;.]?(.*)", Pattern.CASE_INSENSITIVE ),
         Pattern.compile( "^pos.eq.dec[_;.]?(.*)", Pattern.CASE_INSENSITIVE ),
     };
+    private static final TableMeta DUMMY_TABLE = createDummyTable();
 
     /**
      * Constructor.
@@ -371,8 +372,12 @@ public abstract class AbstractAdqlExample implements AdqlExample {
                 public String getText( boolean lineBreaks, String lang,
                                        TapCapability tcap, TableMeta[] tables,
                                        TableMeta table ) {
+                    if ( table == null &&
+                         tables != null && tables.length > 0 ) {
+                        table = tables[ 0 ];
+                    }
                     if ( table == null ) {
-                        return null;
+                        table = DUMMY_TABLE;
                     }
                     return new StringBuffer()
                         .append( "SELECT TOP " )
@@ -389,16 +394,15 @@ public abstract class AbstractAdqlExample implements AdqlExample {
                 public String getText( boolean lineBreaks, String lang,
                                        TapCapability tcap, TableMeta[] tables,
                                        TableMeta table ) {
-                    if ( table == null ) {
-                        return null;
-                    }
+                    TableMeta ptable = getPopulatedTable( table, tables );
                     Breaker breaker = createBreaker( lineBreaks );
-                    TableRef tref = createTableRef( table, lang );
-                    ColumnMeta[] cols = table.getColumns();
+                    TableRef tref = createTableRef( ptable, lang );
+                    ColumnMeta[] cols = ptable.getColumns();
                     final String colSelection;
-                    if ( cols != null && cols.length > COL_COUNT ) {
+                    if ( cols != null && cols.length > 0 ) {
                         StringBuffer sbuf = new StringBuffer();
-                        for ( int i = 0; i < COL_COUNT; i++ ) {
+                        for ( int i = 0; i < COL_COUNT && i < cols.length;
+                              i++ ) {
                             if ( i > 0 ) {
                                 sbuf.append( ", " );
                             }
@@ -422,6 +426,29 @@ public abstract class AbstractAdqlExample implements AdqlExample {
                         .append( ' ' )
                         .append( tref.getIntroName() )
                         .toString();
+                }
+                private TableMeta getPopulatedTable( TableMeta table,
+                                                     TableMeta[] tables ) {
+                    if ( isPopulated( table ) ) {
+                        return table;
+                    }
+                    if ( tables != null ) {
+                        for ( TableMeta t : tables ) {
+                            if ( isPopulated( t ) ) {
+                                return t;
+                            }
+                        }
+                    }
+                    return DUMMY_TABLE;
+                }
+                private boolean isPopulated( TableMeta table ) {
+                    if ( table != null ) {
+                        ColumnMeta[] cols = table.getColumns();
+                        if ( cols != null ) {
+                            return cols.length >= COL_COUNT;
+                        }
+                    }
+                    return false;
                 }
             },
 
@@ -565,5 +592,21 @@ public abstract class AbstractAdqlExample implements AdqlExample {
                 }
             },
         };
+    }
+
+    /**
+     * Creates an uninteresting table which ought to be OK to use for examples.
+     *
+     * @return  metadata table
+     */
+    private static TableMeta createDummyTable() {
+
+        /* TAP_SCHEMA should always be present. */
+        TableMeta table = new TableMeta() {{ name_ = "TAP_SCHEMA.tables"; }};
+        table.setColumns( new ColumnMeta[] {
+            new ColumnMeta() {{ name_ = "table_name"; }},
+            new ColumnMeta() {{ name_ = "schema_name"; }},
+        } );
+        return table;
     }
 }
