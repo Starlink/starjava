@@ -19,6 +19,8 @@ public interface AdqlExample {
      * @param  tcap  TAP capability object
      * @param  tables  table metadata set
      * @param  table  currently selected table
+     * @return   example text, or null if no example can be constructed
+     *           given the input values
      */
     String getText( boolean lineBreaks, String lang, TapCapability tcap,
                     TableMeta[] tables, TableMeta table );
