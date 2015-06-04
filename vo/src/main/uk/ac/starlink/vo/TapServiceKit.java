@@ -179,7 +179,15 @@ public class TapServiceKit {
     public void acquireSchemas( final ResultHandler<SchemaMeta[]> handler ) {
         acquireData( handler, new DataCallable<SchemaMeta[]>() {
             public SchemaMeta[] call() throws IOException {
-                return getMetaReader().readSchemas();
+                TapMetaReader rdr = getMetaReader();
+                try {
+                    return rdr.readSchemas();
+                }
+                catch ( IOException e ) {
+                    throw (IOException)
+                          new IOException( rdr.getSource() + " error: " + e )
+                         .initCause( e );
+                }
             }
         } );
     }
