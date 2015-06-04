@@ -78,7 +78,7 @@ public class TableSetPanel extends JPanel {
     private final int itabTable_;
     private final int itabCol_;
     private final int itabForeign_;
-    private final JComponent metaPanel_;
+    private final JComponent treePanel_;
     private final JSplitPane metaSplitter_;
     private TapServiceKit serviceKit_;
     private SchemaMeta[] schemas_;
@@ -199,29 +199,27 @@ public class TableSetPanel extends JPanel {
         itabForeign_ = itab++;
         detailTabber_.setSelectedIndex( itabSchema_ );
 
-        JComponent treePanel = new JPanel( new BorderLayout() ) {
+        treePanel_ = new JPanel( new BorderLayout() ) {
             @Override
             public Dimension getMinimumSize() {
                 return new Dimension( 180, super.getMinimumSize().height );
             }
         };
-        treePanel.add( new JScrollPane( tTree_ ), BorderLayout.CENTER );
+        treePanel_.add( new JScrollPane( tTree_ ), BorderLayout.CENTER );
         JComponent searchLine = Box.createHorizontalBox();
         searchLine.add( searchLabel );
         searchLine.add( searchField_ );
         searchLine.setBorder( BorderFactory.createEmptyBorder( 0, 0, 5, 0 ) );
-        treePanel.add( searchLine, BorderLayout.NORTH );
+        treePanel_.add( searchLine, BorderLayout.NORTH );
 
         metaSplitter_ = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT );
         metaSplitter_.setBorder( BorderFactory.createEmptyBorder() );
-        treePanel.setMinimumSize( new Dimension( 100, 100 ) );
+        treePanel_.setMinimumSize( new Dimension( 100, 100 ) );
         detailTabber_.setMinimumSize( new Dimension( 100, 100 ) );
-        metaSplitter_.setLeftComponent( treePanel );
+        metaSplitter_.setLeftComponent( treePanel_ );
         metaSplitter_.setRightComponent( detailTabber_ );
+        add( metaSplitter_, BorderLayout.CENTER );
 
-        metaPanel_ = new JPanel( new BorderLayout() );
-        metaPanel_.add( metaSplitter_, BorderLayout.CENTER );
-        add( metaPanel_, BorderLayout.CENTER );
         setSchemas( null );
     }
 
@@ -271,17 +269,27 @@ public class TableSetPanel extends JPanel {
                 }
             } );
             serviceKit.acquireSchemas( new ResultHandler<SchemaMeta[]>() {
+                private JProgressBar progBar;
                 public boolean isActive() {
                     return serviceKit == serviceKit_;
                 }
                 public void showWaiting() {
-                    showFetchProgressBar( "Fetching Table Metadata" );
+                    progBar = showFetchProgressBar( "Fetching Table Metadata" );
                 }
                 public void showResult( SchemaMeta[] result ) {
+                    stopProgress();
                     setSchemas( result );
                 }
                 public void showError( IOException error ) {
+                    stopProgress();
                     showFetchFailure( error );
+                }
+                private void stopProgress() {
+                    if ( progBar != null ) {
+                        progBar.setIndeterminate( false );
+                        progBar.setValue( 0 );
+                        progBar = null;
+                    }
                 }
             } );
         }
@@ -339,10 +347,7 @@ public class TableSetPanel extends JPanel {
             countTxt = schemas.length + " schemas, " + nTable + " tables";
         }
         servicePanel_.setSize( countTxt );
-
-        metaPanel_.removeAll();
-        metaPanel_.add( metaSplitter_ );
-        metaPanel_.revalidate();
+        replaceTreeComponent( null );
         updateForTableSelection();
         firePropertyChange( SCHEMAS_PROPERTY, oldSchemas, schemas );
         repaint();
@@ -390,8 +395,9 @@ public class TableSetPanel extends JPanel {
      * Displays a progress bar to indicate that metadata fetching is going on.
      *
      * @param  message  message to display
+     * @return  the progress bar component
      */
-    private void showFetchProgressBar( String message ) {
+    private JProgressBar showFetchProgressBar( String message ) {
         JProgressBar progBar = new JProgressBar();
         progBar.setIndeterminate( true );
         JComponent msgLine = Box.createHorizontalBox();
@@ -410,9 +416,8 @@ public class TableSetPanel extends JPanel {
         workBox.add( Box.createVerticalGlue() );
         JComponent workPanel = new JPanel( new BorderLayout() );
         workPanel.add( workBox, BorderLayout.CENTER );
-        metaPanel_.removeAll();
-        metaPanel_.add( workPanel, BorderLayout.CENTER );
-        metaPanel_.revalidate();
+        replaceTreeComponent( workPanel );
+        return progBar;
     }
 
     /**
@@ -424,7 +429,7 @@ public class TableSetPanel extends JPanel {
         ErrorDialog.showError( this, "Table Metadata Error", error );
         JComponent msgLine = Box.createHorizontalBox();
         msgLine.setAlignmentX( 0 );
-        msgLine.add( new JLabel( "No table metadata available" ) );
+        msgLine.add( new JLabel( "No table metadata" ) );
         JComponent errLine = Box.createHorizontalBox();
         errLine.setAlignmentX( 0 );
         errLine.add( new JLabel( "Error: " ) );
@@ -448,9 +453,21 @@ public class TableSetPanel extends JPanel {
         linesHBox.add( Box.createHorizontalGlue() );
         JComponent panel = new JPanel( new BorderLayout() );
         panel.add( linesHBox, BorderLayout.CENTER );
-        metaPanel_.removeAll();
-        metaPanel_.add( panel, BorderLayout.CENTER );
-        metaPanel_.revalidate();
+        JScrollPane scroller = new JScrollPane( panel );
+        replaceTreeComponent( scroller );
+    }
+
+    /**
+     * Places a component where the schema metadata JTree normally goes.
+     * If the supplied component is null, the tree is put back.
+     *
+     * @param  content  component to replace tree, or null
+     */
+    private void replaceTreeComponent( JComponent content ) {
+        int divloc = metaSplitter_.getDividerLocation();
+        metaSplitter_.setLeftComponent( content != null ? content
+                                                        : treePanel_ );
+        metaSplitter_.setDividerLocation( divloc );
     }
 
     /**
