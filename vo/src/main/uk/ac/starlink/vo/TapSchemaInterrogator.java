@@ -491,6 +491,16 @@ public class TapSchemaInterrogator {
         }
 
         /**
+         * Returns the name of the TAP database table from the rows of which
+         * each metadata item can be read.
+         *
+         * @return  TAP_SCHEMA table name
+         */
+        public String getTableName() {
+            return tableName_;
+        }
+
+        /**
          * Constructs a metadata item from a database row.
          *
          * @param  row  database query response row, for a query containing

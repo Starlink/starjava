@@ -24,6 +24,8 @@ public class TapSchemaTapMetaReader implements TapMetaReader {
     private final boolean populateTables_;
     private final MetaNameFixer fixer_;
     private final boolean addOrphanTables_;
+    private final Object fkeyReadLock_;
+    private Map<String,List<ForeignMeta>> fkeyMap_;
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
@@ -39,14 +41,17 @@ public class TapSchemaTapMetaReader implements TapMetaReader {
      * @param  populateTables   whether TableMeta objects will be
      *                          filled in with column and foreign key lists
      *                          when they are acquired
-     * @param    fixer  object that fixes up syntactically incorrect
-     *                  table/column names; if null no fixing is done;
-     *                  has no effect for compliant TAP_SCHEMA services
+     * @param  fixer  object that fixes up syntactically incorrect
+     *                table/column names; if null no fixing is done;
+     *                has no effect for compliant TAP_SCHEMA services
+     * @param  preloadFkeys  if true, all foreign key info is loaded in one go,
+     *                       if false it's read per-table as required
      */
     public TapSchemaTapMetaReader( String serviceUrl, int maxrec,
                                    boolean populateSchemas,
                                    boolean populateTables,
-                                   MetaNameFixer fixer ) {
+                                   MetaNameFixer fixer,
+                                   boolean preloadFkeys ) {
         final URL url;
         try {
             url = new URL( serviceUrl );
@@ -66,6 +71,7 @@ public class TapSchemaTapMetaReader implements TapMetaReader {
         populateSchemas_ = populateSchemas;
         populateTables_ = populateTables;
         fixer_ = fixer == null ? MetaNameFixer.NONE : fixer;
+        fkeyReadLock_ = preloadFkeys ? new Object() : null;
         addOrphanTables_ = true;
     }
 
@@ -94,14 +100,16 @@ public class TapSchemaTapMetaReader implements TapMetaReader {
             tsi_.readList( TapSchemaInterrogator.TABLE_QUERIER, whereClause );
         if ( populateTables_ ) {
             Map<String,List<ForeignMeta.Link>> lMap =
-               tsi_.readMap( TapSchemaInterrogator.LINK_QUERIER,
-                             "NATURAL JOIN TAP_SCHEMA.keys "
-                           + "JOIN TAP_SCHEMA.tables ON from_table = table_name"
-                           + " " + whereClause );
+                tsi_.readMap( TapSchemaInterrogator.LINK_QUERIER,
+                              "NATURAL JOIN TAP_SCHEMA.keys "
+                            + "JOIN TAP_SCHEMA.tables "
+                            + "ON from_table = table_name "
+                            + whereClause );
             Map<String,List<ForeignMeta>> fMap =
-               tsi_.readMap( TapSchemaInterrogator.FKEY_QUERIER,
-                             "JOIN TAP_SCHEMA.tables ON from_table = table_name"
-                           + " " + whereClause );
+                tsi_.readMap( TapSchemaInterrogator.FKEY_QUERIER,
+                              "JOIN TAP_SCHEMA.tables "
+                            + "ON from_table = table_name "
+                            + whereClause );
             for ( List<ForeignMeta> flist : fMap.values() ) {
                 for ( ForeignMeta fmeta : flist ) {
                     tsi_.populateForeignKey( fmeta, lMap );
@@ -109,8 +117,8 @@ public class TapSchemaTapMetaReader implements TapMetaReader {
             }
             checkEmpty( lMap, "Foreign links" );
             Map<String,List<ColumnMeta>> cMap =
-               tsi_.readMap( TapSchemaInterrogator.COLUMN_QUERIER,
-                             "NATURAL JOIN TAP_SCHEMA.tables " + whereClause );
+                tsi_.readMap( TapSchemaInterrogator.COLUMN_QUERIER,
+                              "NATURAL JOIN TAP_SCHEMA.tables " + whereClause );
             for ( TableMeta tmeta : tableList ) {
                 tsi_.populateTable( tmeta, fMap, cMap );
             }
@@ -134,20 +142,54 @@ public class TapSchemaTapMetaReader implements TapMetaReader {
     }
 
     public ForeignMeta[] readForeignKeys( TableMeta table ) throws IOException {
-        String whereClause =
-            "WHERE from_table = '" + fixer_.getOriginalTableName( table ) + "'";
-        Map<String,List<ForeignMeta.Link>> lMap =
-            tsi_.readMap( TapSchemaInterrogator.LINK_QUERIER,
-                          "NATURAL JOIN TAP_SCHEMA.keys "
-                        + whereClause );
-        List<ForeignMeta> fList =
-            tsi_.readList( TapSchemaInterrogator.FKEY_QUERIER,
-                           whereClause );
-        for ( ForeignMeta fmeta : fList ) {
-            tsi_.populateForeignKey( fmeta, lMap );
+        String tname = fixer_.getOriginalTableName( table );
+        final List<ForeignMeta> fkeyList;
+
+        /* If we are preloading the foreign keys, make sure all the
+         * foreign key information is required, then pull out the
+         * one we need. */
+        if ( fkeyReadLock_ != null ) {
+            synchronized ( fkeyReadLock_ ) {
+                if ( fkeyMap_ == null ) {
+
+                    /* Lazily load foreign key information if required. */
+                    Map<String,List<ForeignMeta.Link>> lMap =
+                        tsi_.readMap( TapSchemaInterrogator.LINK_QUERIER,
+                                      null );
+                    Map<String,List<ForeignMeta>> fMap =
+                        tsi_.readMap( TapSchemaInterrogator.FKEY_QUERIER,
+                                      null );
+                    for ( List<ForeignMeta> flist : fMap.values() ) {
+                        for ( ForeignMeta fmeta : flist ) {
+                            tsi_.populateForeignKey( fmeta, lMap );
+                        }
+                    }
+                    checkEmpty( lMap, "Links" );
+                    fkeyMap_ = fMap;
+                }
+            }
+            fkeyList = fkeyMap_.get( tname );
         }
-        checkEmpty( lMap, "Foreign links" );
-        return fList.toArray( new ForeignMeta[ 0 ] );
+
+        /* Otherwise, query the TAP service for the required information
+         * directly. */
+        else {
+            String whereClause = "WHERE from_table = '" + tname + "'";
+            Map<String,List<ForeignMeta.Link>> lMap =
+                tsi_.readMap( TapSchemaInterrogator.LINK_QUERIER,
+                              "NATURAL JOIN TAP_SCHEMA.keys "
+                            + whereClause );
+            fkeyList = tsi_.readList( TapSchemaInterrogator.FKEY_QUERIER,
+                                      whereClause );
+            for ( ForeignMeta fmeta : fkeyList ) {
+                tsi_.populateForeignKey( fmeta, lMap );
+            }
+            checkEmpty( lMap, "Foreign links" );
+        }
+
+        /* Return the result. */
+        return fkeyList == null ? new ForeignMeta[ 0 ]
+                                : fkeyList.toArray( new ForeignMeta[ 0 ] );
     }
 
     /**
