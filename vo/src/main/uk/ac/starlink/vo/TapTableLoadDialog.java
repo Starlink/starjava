@@ -103,6 +103,12 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
         setIconUrl( TapTableLoadDialog.class.getResource( "tap.gif" ) );
     }
 
+    @Override
+    public void configure( StarTableFactory tfact, Action submitAct ) {
+        submitAct.putValue( Action.NAME, "Run Query" );
+        super.configure( tfact, submitAct );
+    }
+
     protected Component createQueryComponent() {
 
         /* Prepare a panel to search the registry for TAP services. */
