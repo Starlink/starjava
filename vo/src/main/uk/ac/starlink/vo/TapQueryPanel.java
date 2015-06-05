@@ -333,7 +333,6 @@ public class TapQueryPanel extends JPanel {
 
         /* Place components on ADQL panel. */
         JComponent adqlPanel = new JPanel( new BorderLayout() );
-        adqlPanel.setPreferredSize( new Dimension( 500, 200 ) );
         adqlPanel.add( buttLine, BorderLayout.NORTH );
         adqlPanel.add( textTabber_, BorderLayout.CENTER );
         JComponent qPanel = new JPanel( new BorderLayout() );
@@ -358,7 +357,9 @@ public class TapQueryPanel extends JPanel {
                 "Service Capabilities" ) );
         splitter.setTopComponent( servicePanel );
         splitter.setBottomComponent( qPanel );
-        splitter.setResizeWeight( 0.8 );
+        servicePanel.setPreferredSize( new Dimension( 500, 500 ) );
+        adqlPanel.setPreferredSize( new Dimension( 500, 200 ) );
+        splitter.setResizeWeight( 0.6 );
         add( splitter, BorderLayout.CENTER );
     }
 
