@@ -26,7 +26,13 @@ public abstract class TapMetaPolicy {
     /** Uses the /tables endpoint. */
     public static final TapMetaPolicy TABLESET;
 
-    /** Uses the TAP_SCHEMA tables. */
+    /** Uses the TAP_SCHEMA tables, with columns on demand. */
+    public static final TapMetaPolicy TAPSCHEMA_C;
+
+    /** Uses the TAP_SCHEMA tables, with columns and foreign keys on demand. */
+    public static final TapMetaPolicy TAPSCHEMA_CF;
+
+    /** Uses the TAP_SCHEMA tables, all data loaded at once. */
     public static final TapMetaPolicy TAPSCHEMA;
 
     /** Uses the non-standard VizieR two-level /tables endpoint. */
@@ -57,20 +63,11 @@ public abstract class TapMetaPolicy {
                 return new TableSetTapMetaReader( tablesetUrl, fixer );
             }
         },
-        TAPSCHEMA = new TapMetaPolicy( "TAP_SCHEMA",
-                                       "Reads metadata as required by making "
-                                     + "synchronous queries on the TAP_SCHEMA "
-                                     + "tables in the TAP service" ) {
-            public TapMetaReader createMetaReader( URL serviceUrl ) {
-                int maxrec = 99999;
-                boolean popSchemas = true;
-                boolean popTables = false;
-                MetaNameFixer fixer = MetaNameFixer.createDefaultFixer();
-                return new TapSchemaTapMetaReader( serviceUrl.toString(),
-                                                   maxrec, popSchemas,
-                                                   popTables, fixer );
-            }
-        },
+        TAPSCHEMA_C = createTapSchemaPolicy( "TAP_SCHEMA_C", false, true ),
+        TAPSCHEMA_CF =
+            createTapSchemaPolicy( "TAP_SCHEMA_CF", false, false ),
+        TAPSCHEMA =
+            createTapSchemaPolicy( "TAP_SCHEMA", true, false ),
         VIZIER = new TapMetaPolicy( "VizieR",
                                     "Uses TAPVizieR's non-standard two-stage "
                                   + "/tables endpoint" ) {
@@ -148,6 +145,47 @@ public abstract class TapMetaPolicy {
     }
 
     /**
+     * Returns a policy instance that uses TAP_SCHEMA metadata.
+     *
+     * @param  name  policy name
+     * @param  popTables  if true tables will be populated when read with
+     *                    both columns and foreign keys; if false with neither
+     * @param  preloadKeys  true to load all foreign keys in advance,
+     *                      false to load them on demand;
+     *                      must be false if <code>popTables</code> is true
+     */
+    private static TapMetaPolicy
+            createTapSchemaPolicy( String name, final boolean popTables,
+                                   final boolean preloadKeys ) {
+        StringBuffer sbuf = new StringBuffer()
+            .append( "Reads metadata by making synchronous queries " )
+            .append( "on the TAP_SCHEMA tables; " );
+        if ( popTables ) {
+            assert ! preloadKeys;
+            sbuf.append( "metadata for all tables is read at once" );
+        }
+        else if ( preloadKeys ) {
+            sbuf.append( "foreign keys are all read at once, " )
+                .append( "columns are read as required" );
+        }
+        else {
+            sbuf.append( "columns and foreign keys are read as required" );
+        }
+        String descrip = sbuf.toString();
+        return new TapMetaPolicy( name, sbuf.toString() ) {
+            public TapMetaReader createMetaReader( URL serviceUrl ) {
+                int maxrec = 99999;
+                boolean popSchemas = true;
+                MetaNameFixer fixer = MetaNameFixer.createDefaultFixer();
+                return new TapSchemaTapMetaReader( serviceUrl.toString(),
+                                                   maxrec, popSchemas,
+                                                   popTables, fixer,
+                                                   preloadKeys );
+            }
+        };
+    }
+
+    /**
      * Returns a TapMetaReader instance for a given service with policy
      * determined by the apparent size of the metadata set.
      *
@@ -171,34 +209,50 @@ public abstract class TapMetaPolicy {
             return new CadcTapMetaReader( serviceUrl + "/tables" );
         }
  
-        /* The columns table is almost certainly the longest one we would
+        /* Find out how many columns there are in total.
+         * The columns table is almost certainly the longest one we would
          * have to cope with.  In principle it could be the foreign key table,
          * but that seems very unlikely. */
-        final String colTableName = "TAP_SCHEMA.columns";
+        long ncol = readRowCount( serviceUrl,
+                                  TapSchemaInterrogator.COLUMN_QUERIER
+                                                       .getTableName() );
 
-        /* Find out how many columns there are in total. */
-        try {
-            long ncol = readRowCount( serviceUrl, colTableName );
-
-            /* If there are more columns than the threshold, read the tables
-             * now and defer column reads until later. */
-            if ( ncol > maxrow ) {
-                logger_.info( "Many columns in TAP service ("
-                            + ncol + " > " + maxrow + "); "
-                            + "use TAP_SCHEMA queries for " + serviceUrl );
-                int maxrec = (int) Math.min( Integer.MAX_VALUE, ncol + 1 );
-                return new TapSchemaTapMetaReader( serviceUrl.toString(),
-                                                   maxrec, true, false, fixer );
+        /* If there are more columns than the threshold, read the tables
+         * now and defer column reads until later. */
+        if ( ncol >= 0 && ncol > maxrow ) {
+            logger_.info( "Many columns in TAP service ("
+                        + ncol + " > " + maxrow + "); "
+                        + "use TAP_SCHEMA queries for " + serviceUrl );
+            String linkTableName =
+                TapSchemaInterrogator.LINK_QUERIER.getTableName();
+            long nlink = readRowCount( serviceUrl, linkTableName );
+            boolean preloadFkeys = nlink < 0 || nlink <= maxrow;
+            if ( nlink >= 0 ) {
+                String msg = new StringBuffer()
+                    .append( preloadFkeys ? "Not many" : "Many" )
+                    .append( " rows in " )
+                    .append( linkTableName )
+                    .append( " (" )
+                    .append( nlink )
+                    .append( preloadFkeys ? " <= " : " > " )
+                    .append( maxrow )
+                    .append( ");" )
+                    .append( preloadFkeys ? " preload all foreign keys"
+                                          : " no preload" )
+                    .toString();
+                logger_.info( msg );
             }
-            else {
-                logger_.info( "Not excessive column count for TAP service ("
-                            + ncol + " <= " + maxrow + ")" );
-            }
+            int maxrec = (int) Math.min( Integer.MAX_VALUE,
+                                         Math.max( ncol + 1, nlink + 1 ) );
+            boolean popSchema = true;
+            boolean popTable = false;
+            return new TapSchemaTapMetaReader( serviceUrl.toString(),
+                                               maxrec, popSchema, popTable,
+                                               fixer, preloadFkeys );
         }
-        catch ( IOException e ) {
-            logger_.log( Level.WARNING,
-                         "Row count for " + colTableName + " failed: " + e,
-                         e );
+        else {
+            logger_.info( "Not excessive column count for TAP service ("
+                        + ncol + " <= " + maxrow + ")" );
         }
 
         /* If there are fewer columns than the threshold, or the column
@@ -209,22 +263,28 @@ public abstract class TapMetaPolicy {
 
     /**
      * Return the number of rows in a named TAP table.
+     * In case of failure, a logging message is issued and -1 is returned.
      *
      * @param   serviceUrl  TAP service URL
      * @param   tableName  fully qualified ADQL table name
-     * @return   number of rows in table
-     * @throws   IOException   if the row count cannot be determined
-     *                         for some reason
+     * @return   number of rows in table, or -1
      */
-    private static long readRowCount( URL serviceUrl, String tableName )
-            throws IOException {
+    private static long readRowCount( URL serviceUrl, String tableName ) {
         String adql = "SELECT COUNT(*) AS nrow FROM " + tableName;
-        Number nrow = TapQuery.scalarQuery( serviceUrl, adql, Number.class );
-        if ( nrow != null ) {
-            return nrow.longValue();
+        Number nrow;
+        try {
+            nrow = TapQuery.scalarQuery( serviceUrl, adql, Number.class );
         }
-        else {
-            throw new IOException( "No count result" );
+        catch ( IOException e ) {
+            logger_.log( Level.WARNING,
+                         "Row count for " + tableName + " failed: " + e, e );
+            return -1;
         }
+        if ( nrow == null ) {
+            logger_.log( Level.WARNING,
+                         "No row count result for " + tableName );
+            return -1;
+        }
+        return nrow.longValue();
     }
 }
