@@ -752,9 +752,28 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
      */
     public static void main( String[] args ) {
         final String tapUrl = args.length > 0 ? args[ 0 ] : null;
-        TapTableLoadDialog tld = new TapTableLoadDialog();
-        tld.configure( new StarTableFactory(), new AbstractAction() {
+        final TapTableLoadDialog tld = new TapTableLoadDialog();
+        final StarTableFactory tfact = new StarTableFactory();
+        tld.configure( tfact, new AbstractAction() {
             public void actionPerformed( ActionEvent evt ) {
+                StarTable table;
+                try {
+                    table = tld.createTableLoader()
+                               .loadTables( tfact ).nextTable();
+                }
+                catch ( IOException e ) {
+                    e.printStackTrace();
+                    return;
+                }
+                uk.ac.starlink.table.gui.StarJTable jt =
+                    new uk.ac.starlink.table.gui.StarJTable( table, true );
+                jt.configureColumnWidths( 100, 10000 );
+                javax.swing.JFrame frm = new javax.swing.JFrame();
+                frm.getContentPane().add( new javax.swing.JScrollPane( jt ) );
+                frm.getContentPane()
+                   .setMaximumSize( new Dimension( 500, 200 ) );
+                frm.pack();
+                frm.setVisible( true );
             }
         } );
         Component qcomp = tld.getQueryComponent();
@@ -766,7 +785,9 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
         for ( JMenu menu : tld.getMenus() ) {
             frm.getJMenuBar().add( menu );
         }
-        frm.getContentPane().add( qcomp );
+        frm.getContentPane().add( qcomp, BorderLayout.CENTER );
+        frm.getContentPane().add( new JButton( tld.getSubmitAction() ),
+                                  BorderLayout.SOUTH );
         frm.pack();
         frm.setVisible( true );
     }
