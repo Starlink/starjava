@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,6 +20,7 @@ import java.util.logging.Logger;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -1148,6 +1150,7 @@ public class TableSetPanel extends JPanel {
         private final JTextComponent examplesurlField_;
         private final JTextComponent sizeField_;
         private final JTextComponent publisherField_;
+        private final JTextComponent creatorField_;
         private final JTextComponent contactField_;
         private final JTextComponent descripField_;
         private final JTextComponent dmField_;
@@ -1168,6 +1171,7 @@ public class TableSetPanel extends JPanel {
             examplesurlField_ = addUrlField( "Examples URL", urlHandler );
             sizeField_ = addLineField( "Size" );
             publisherField_ = addMultiLineField( "Publisher" );
+            creatorField_ = addMultiLineField( "Creator" );
             contactField_ = addMultiLineField( "Contact" );
             descripField_ = addMultiLineField( "Description" );
             dmField_ = addMultiLineField( "Data Models" );
@@ -1218,7 +1222,10 @@ public class TableSetPanel extends JPanel {
          */
         public void setResourceRoles( RegRole[] roles ) {
             setFieldText( publisherField_, getRoleText( roles, "publisher" ) );
+            setFieldText( creatorField_, getRoleText( roles, "creator" ) );
             setFieldText( contactField_, getRoleText( roles, "contact" ) );
+            URL logoUrl = getLogoUrl( roles );
+            setLogo( logoUrl == null ? null : new ImageIcon( logoUrl ) );
         }
 
         /**
@@ -1329,19 +1336,39 @@ public class TableSetPanel extends JPanel {
                         sbuf.append( '\n' );
                     }
                     if ( hasName ) {
-                        sbuf.append( name );
+                        sbuf.append( name.trim() );
                     }
                     if ( hasName && hasEmail ) {
                         sbuf.append( ' ' );
                     }
                     if ( hasEmail ) {
                         sbuf.append( '<' )
-                            .append( email )
+                            .append( email.trim() )
                             .append( '>' );
                     }
                 }
             }
             return sbuf.toString();
+        }
+
+        /**
+         * Returns the URL of a logo icon associated with a set of roles.
+         *
+         * @param  roles  registry roles
+         * @return   logo image URL, or null
+         */
+        private static URL getLogoUrl( RegRole[] roles ) {
+            for ( RegRole role : roles ) {
+                String logo = role.getLogo();
+                if ( logo != null && logo.trim().length() > 0 ) {
+                    try {
+                        return new URL( logo );
+                    }
+                    catch ( MalformedURLException e ) {
+                    }
+                }
+            }
+            return null;
         }
 
         /**
