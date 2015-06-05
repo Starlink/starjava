@@ -11,6 +11,7 @@ import java.net.URL;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JEditorPane;
 import javax.swing.JLabel;
@@ -33,12 +34,19 @@ import javax.swing.text.html.HTMLEditorKit;
  */
 public class MetaPanel extends JPanel implements Scrollable {
 
+    private final JLabel logoLabel_;
+
     /**
      * Constructor.
      */
     public MetaPanel() {
         setLayout( new BoxLayout( this, BoxLayout.Y_AXIS ) );
         setBorder( BorderFactory.createEmptyBorder( 5, 5, 5, 5 ) );
+        logoLabel_ = new JLabel();
+        JComponent logoLine = Box.createHorizontalBox();
+        logoLine.add( Box.createHorizontalGlue() );
+        logoLine.add( logoLabel_ );
+        add( logoLine );
     }
 
     /**
@@ -184,6 +192,15 @@ public class MetaPanel extends JPanel implements Scrollable {
                 }
             }
         } );
+    }
+
+    /**
+     * Sets an image to be displayed at the top of this panel.
+     *
+     * @param  logoIcon  image, may be null
+     */
+    public void setLogo( Icon logoIcon ) {
+        logoLabel_.setIcon( logoIcon );
     }
 
     public Dimension getPreferredScrollableViewportSize() {
