@@ -15,9 +15,12 @@ import javax.swing.JComponent;
 import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollBar;
+import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.Scrollable;
+import javax.swing.SwingUtilities;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.html.HTMLEditorKit;
 
@@ -131,16 +134,56 @@ public class MetaPanel extends JPanel implements Scrollable {
 
     /**
      * Sets the content of a field.
-     * As well as the obvious, it makes sure that the caret stays at
-     * the start.  If it doesn't do that, you end up seeing the end
-     * rather than the start of long strings.
+     * As well as the obvious, it fixes it so that after the text is
+     * added it's positioned correctly.
      *
      * @param  field  field
      * @param  text   new content
      */
     public void setFieldText( JTextComponent field, String text ) {
+
+        /* Record the current position of this component in an ancestor
+         * scroll pane, if any. */
+        JScrollPane scroller =
+            (JScrollPane)
+            SwingUtilities.getAncestorOfClass( JScrollPane.class, this );
+        final JScrollBar hbar = scroller == null
+                              ? null
+                              : scroller.getHorizontalScrollBar();
+        final JScrollBar vbar = scroller == null
+                              ? null
+                              : scroller.getVerticalScrollBar();
+        final int hpos = hbar == null ? -1 : hbar.getValue();
+        final int vpos = vbar == null ? -1 : vbar.getValue();
+
+        /* Set the text. */
         field.setText( text );
+
+        /* Reset the caret to the start.  This means that long strings in
+         * short one-line text fields are presented with the start,
+         * not the end, of the text visible. */
         field.setCaretPosition( 0 );
+
+        /* Restore the scrollbar state to whatever it was before the edit.
+         * This isn't necessarily exactly where you'd like to see it,
+         * but if you don't do this the thing scrolls all over the place.
+         * The most common case is that the panel is scrolled to the top,
+         * and you don't want it to scroll down as a consequence of editing
+         * the content - this achieves that.
+         * It has to be dispatched as a later event on the Event Dispatch
+         * Thread because JTextComponent.setText, labelled thread-safe,
+         * does not update the text in its own thread.  This EDT game is
+         * not bulletproof, but seems to do the trick. */
+        SwingUtilities.invokeLater( new Runnable() {
+            public void run() {
+                if ( hbar != null ) {
+                    hbar.setValue( hpos );
+                }
+                if ( vbar != null ) {
+                    vbar.setValue( vpos );
+                }
+            }
+        } );
     }
 
     public Dimension getPreferredScrollableViewportSize() {
