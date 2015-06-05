@@ -225,12 +225,21 @@ public class TapServiceKit {
                                  ResultHandler<Map<String,String>> handler ) {
         acquireData( handler, new DataCallable<Map<String,String>>() {
             public Map<String,String> call() throws IOException {
+                return readResourceInfo( getRegTapUrl(), ivoid_ );
+            }
+        } );
+    }
 
-                /* For now we have hardcoded the GAVO registry service here.
-                 * Perhaps it should be pluggable, but this information is not
-                 * critical, and this service is expected to be pretty
-                 * reliable. */
-                return readResourceInfo( RegTapRegistryQuery.GAVO_REG, ivoid_ );
+    /**
+     * Asynchronously acquires information from the RegTAP rr.res_role table
+     * corresponding to this service.
+     *
+     * @param  handler  receiver for role list
+     */
+    public void acquireRoles( final ResultHandler<RegRole[]> handler ) {
+        acquireData( handler, new DataCallable<RegRole[]>() {
+            public RegRole[] call() throws IOException {
+                return RegRole.readRoles( getRegTapUrl(), ivoid_ );
             }
         } );
     }
@@ -248,6 +257,21 @@ public class TapServiceKit {
                       .readExamples( new URL( serviceUrl_ + "/examples" ) );
             }
         } );
+    }
+
+    /**
+     * Returns the URL at which a RegTAP service lives that can be queried
+     * for information about this service's registry record.
+     *
+     * <p>The current implementation returns a hardcoded value,
+     * the main GAVO registry service.  Perhaps it should be pluggable,
+     * but this information is not critical (TAP can work without registry
+     * info), and the GAVO RegTAP service is expected to be pretty reliable.
+     *
+     * @return  RegTAP URL
+     */
+    public String getRegTapUrl() {
+        return RegTapRegistryQuery.GAVO_REG;
     }
 
     /**

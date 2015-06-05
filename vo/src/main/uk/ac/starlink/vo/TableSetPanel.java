@@ -268,6 +268,19 @@ public class TableSetPanel extends JPanel {
                     setResourceInfo( null );
                 }
             } );
+            serviceKit.acquireRoles( new ResultHandler<RegRole[]>() {
+                public boolean isActive() {
+                    return serviceKit == serviceKit_;
+                }
+                public void showWaiting() {
+                }
+                public void showResult( RegRole[] roles ) {
+                    setResourceRoles( roles );
+                }
+                public void showError( IOException error ) {
+                    setResourceRoles( null );
+                }
+            } );
             serviceKit.acquireSchemas( new ResultHandler<SchemaMeta[]>() {
                 private JProgressBar progBar;
                 public boolean isActive() {
@@ -389,6 +402,17 @@ public class TableSetPanel extends JPanel {
                                      ? new HashMap<String,String>()
                                      : map );
         detailTabber_.setIconAt( itabService_, activeIcon( map != null ) );
+    }
+
+    /**
+     * Displays information about registry resource roles corresponding
+     * to the TAP services represented by this panel.
+     *
+     * @param  roles  list of known roles, or null for no info
+     */
+    private void setResourceRoles( RegRole[] roles ) {
+        servicePanel_.setResourceRoles( roles == null ? new RegRole[ 0 ]
+                                                      : roles );
     }
 
     /**
@@ -1123,6 +1147,8 @@ public class TableSetPanel extends JPanel {
         private final JTextComponent refurlField_;
         private final JTextComponent examplesurlField_;
         private final JTextComponent sizeField_;
+        private final JTextComponent publisherField_;
+        private final JTextComponent contactField_;
         private final JTextComponent descripField_;
         private final JTextComponent dmField_;
         private final JTextComponent geoField_;
@@ -1141,6 +1167,8 @@ public class TableSetPanel extends JPanel {
             refurlField_ = addUrlField( "Reference URL", urlHandler );
             examplesurlField_ = addUrlField( "Examples URL", urlHandler );
             sizeField_ = addLineField( "Size" );
+            publisherField_ = addMultiLineField( "Publisher" );
+            contactField_ = addMultiLineField( "Contact" );
             descripField_ = addMultiLineField( "Description" );
             dmField_ = addMultiLineField( "Data Models" );
             geoField_ = addMultiLineField( "Geometry Functions" );
@@ -1181,6 +1209,16 @@ public class TableSetPanel extends JPanel {
             setFieldText( titleField_, info.remove( "res_title" ) );
             setFieldText( refurlField_, info.remove( "reference_url" ) );
             setFieldText( descripField_, info.remove( "res_description" ) );
+        }
+
+        /**
+         * Sets role information.
+         *
+         * @param  roles  list of known roles, may be empty but not null
+         */
+        public void setResourceRoles( RegRole[] roles ) {
+            setFieldText( publisherField_, getRoleText( roles, "publisher" ) );
+            setFieldText( contactField_, getRoleText( roles, "contact" ) );
         }
 
         /**
@@ -1268,6 +1306,42 @@ public class TableSetPanel extends JPanel {
                 }
                 return sbuf.toString();
             }
+        }
+
+        /**
+         * Returns a text string displaying information about a RegRole
+         * category.
+         *
+         * @param  roles  list of all known role entities
+         * @param  baseRole   role category
+         * @return  text, may be multi-line
+         */
+        private static String getRoleText( RegRole[] roles, String baseRole ) {
+            StringBuffer sbuf = new StringBuffer();
+            for ( RegRole role : roles ) {
+                String name = role.getName();
+                String email = role.getEmail();
+                boolean hasName = name != null && name.trim().length() > 0;
+                boolean hasEmail = email != null && email.trim().length() > 0;
+                if ( baseRole.equalsIgnoreCase( role.getBaseRole() )
+                     && ( hasName || hasEmail ) ) {
+                    if ( sbuf.length() > 0 ) {
+                        sbuf.append( '\n' );
+                    }
+                    if ( hasName ) {
+                        sbuf.append( name );
+                    }
+                    if ( hasName && hasEmail ) {
+                        sbuf.append( ' ' );
+                    }
+                    if ( hasEmail ) {
+                        sbuf.append( '<' )
+                            .append( email )
+                            .append( '>' );
+                    }
+                }
+            }
+            return sbuf.toString();
         }
 
         /**
