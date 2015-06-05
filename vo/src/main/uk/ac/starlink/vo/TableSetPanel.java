@@ -546,7 +546,11 @@ public class TableSetPanel extends JPanel {
         if ( table == null ||
              ! serviceKit_.onColumns( table, new Runnable() {
             public void run() {
-                displayColumns( table, table.getColumns() );
+                if ( table == getSelectedTable() ) {
+                    ColumnMeta[] cols = table.getColumns();
+                    displayColumns( table, cols );
+                    tablePanel_.setColumns( cols );
+                }
             }
         } ) ) {
             displayColumns( table, new ColumnMeta[ 0 ] );
@@ -554,7 +558,11 @@ public class TableSetPanel extends JPanel {
         if ( table == null ||
              ! serviceKit_.onForeignKeys( table, new Runnable() {
             public void run() {
-                displayForeignKeys( table, table.getForeignKeys() );
+                if ( table == getSelectedTable() ) {
+                    ForeignMeta[] fkeys = table.getForeignKeys();
+                    displayForeignKeys( table, fkeys );
+                    tablePanel_.setForeignKeys( fkeys );
+                }
             }
         } ) ) {
             displayForeignKeys( table, new ForeignMeta[ 0 ] );
@@ -619,15 +627,14 @@ public class TableSetPanel extends JPanel {
      * @param  cols  columns
      */
     private void displayColumns( TableMeta table, ColumnMeta[] cols ) {
-        if ( table == getSelectedTable() ) {
-            colTableModel_.setItems( cols );
-            detailTabber_.setIconAt( itabCol_, activeIcon( cols != null &&
-                                                           cols.length > 0 ) );
-            if ( table != null ) {
-                configureColumnWidths( colTable_ );
-            }
-            columnSelectionChanged();
+        assert table == getSelectedTable();
+        colTableModel_.setItems( cols );
+        detailTabber_.setIconAt( itabCol_, activeIcon( cols != null &&
+                                                       cols.length > 0 ) );
+        if ( table != null ) {
+            configureColumnWidths( colTable_ );
         }
+        columnSelectionChanged();
     }
 
     /**
@@ -637,14 +644,13 @@ public class TableSetPanel extends JPanel {
      * @param  fkeys  foreign keys
      */
     private void displayForeignKeys( TableMeta table, ForeignMeta[] fkeys ) {
-        if ( table == getSelectedTable() ) {
-            foreignTableModel_.setItems( fkeys );
-            detailTabber_.setIconAt( itabForeign_,
-                                     activeIcon( fkeys != null &&
-                                                 fkeys.length > 0 ) );
-            if ( table != null ) {
-                configureColumnWidths( foreignTable_ );
-            }
+        assert table == getSelectedTable();
+        foreignTableModel_.setItems( fkeys );
+        detailTabber_.setIconAt( itabForeign_,
+                                 activeIcon( fkeys != null &&
+                                             fkeys.length > 0 ) );
+        if ( table != null ) {
+            configureColumnWidths( foreignTable_ );
         }
     }
 
@@ -1093,12 +1099,29 @@ public class TableSetPanel extends JPanel {
                               table == null ? null : table.getName() );
                 setFieldText( descripField_,
                               table == null ? null : table.getDescription() );
-                ColumnMeta[] cols = table == null ? null : table.getColumns();
-                setFieldText( ncolField_, arrayLength( cols ) );
-                ForeignMeta[] fks = table == null ? null
-                                                  : table.getForeignKeys();
-                setFieldText( nfkField_, arrayLength( fks ) );
+                setColumns( table == null ? null : table.getColumns() );
+                setForeignKeys( table == null ? null : table.getForeignKeys() );
             }
+        }
+
+        /**
+         * Informs this panel of the column list for the currently displayed
+         * table.  Only the array size is used.
+         *
+         * @param  cols  column array, or null
+         */
+        public void setColumns( ColumnMeta[] cols ) {
+            setFieldText( ncolField_, arrayLength( cols ) );
+        }
+
+        /**
+         * Informs this panel of the foreign key list for the currently
+         * displayed table.  Only the array size is used.
+         *
+         * @param   fkeys  foreign key array, or null
+         */
+        public void setForeignKeys( ForeignMeta[] fkeys ) {
+            setFieldText( nfkField_, arrayLength( fkeys ) );
         }
     }
 
