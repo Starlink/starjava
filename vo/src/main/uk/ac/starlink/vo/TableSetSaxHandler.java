@@ -303,7 +303,20 @@ public class TableSetSaxHandler extends DefaultHandler {
      */
     public static SchemaMeta[] readTableSet( URL url )
             throws IOException, SAXException {
-        return populateHandler( url ).getSchemas();
+        TableSetSaxHandler handler = populateHandler( url );
+        List<SchemaMeta> schemaList = new ArrayList<SchemaMeta>();
+        schemaList.addAll( Arrays.asList( handler.getSchemas() ) );
+        TableMeta[] nakedTables = handler.getNakedTables();
+        int nNaked = nakedTables.length;
+        if ( nNaked > 0 ) {
+            logger_.warning( "Using " + nNaked
+                           + " tables declared outside of any schema" );
+            SchemaMeta dummySchema = new SchemaMeta();
+            dummySchema.name_ = "<no_schema>";
+            dummySchema.setTables( nakedTables );
+            schemaList.add( dummySchema );
+        }
+        return schemaList.toArray( new SchemaMeta[ 0 ] );
     }
 
     /**
