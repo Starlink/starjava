@@ -82,6 +82,10 @@ public class TableSetTapMetaReader implements TapMetaReader {
         return url_.toString();
     }
 
+    public String getMeans() {
+        return "VOSI TableSet, preload everything";
+    }
+
     /**
      * Returns a new UnsupportedOperationException indicating that a
      * read method is never needed.

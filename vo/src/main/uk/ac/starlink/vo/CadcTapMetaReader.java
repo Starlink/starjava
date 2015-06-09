@@ -138,6 +138,10 @@ public class CadcTapMetaReader implements TapMetaReader {
         return url_.toString();
     }
 
+    public String getMeans() {
+        return "CADC-variant VOSI TableSet, " + config_;
+    }
+
     /**
      * Reads a tableset document from the base URL of this reader,
      * as modified by a given subpath and detail query string.

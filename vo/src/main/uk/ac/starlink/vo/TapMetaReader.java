@@ -64,10 +64,18 @@ public interface TapMetaReader {
     ForeignMeta[] readForeignKeys( TableMeta table ) throws IOException;
 
     /**
-     * Returns a textual indication of where the metadata is coming from.
-     * Intended for presentation to the user.
+     * Returns a textual indication of where the metadata is coming from,
+     * typically a URL.
      *
-     * @return   short description of metadata source
+     * @return   address of metadata
      */
     String getSource();
+
+    /**
+     * Returns a textual indication of the method or protocol
+     * this reader uses to acquire TAP metadata.
+     * 
+     * @return   short description of metadata acquisition method
+     */
+    String getMeans();
 }

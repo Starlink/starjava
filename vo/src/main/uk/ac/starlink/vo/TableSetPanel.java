@@ -16,6 +16,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -254,14 +255,15 @@ public class TableSetPanel extends JPanel {
             servicePanel_.setId( null, null );
         }
         else {
-            servicePanel_.setId( serviceKit.getServiceUrl(),
-                                 serviceKit.getIvoid() );
+            final String ivoid = serviceKit.getIvoid();
+            servicePanel_.setId( serviceKit.getServiceUrl(), ivoid );
             serviceKit.acquireResource(
                            new ResultHandler<Map<String,String>>() {
                 public boolean isActive() {
                     return serviceKit == serviceKit_;
                 }
                 public void showWaiting() {
+                    logger_.info( "Reading resource record for " + ivoid );
                 }
                 public void showResult( Map<String,String> resourceMap ) {
                     setResourceInfo( resourceMap );
@@ -275,6 +277,7 @@ public class TableSetPanel extends JPanel {
                     return serviceKit == serviceKit_;
                 }
                 public void showWaiting() {
+                    logger_.info( "Reading res_role records for " + ivoid );
                 }
                 public void showResult( RegRole[] roles ) {
                     setResourceRoles( roles );
@@ -289,15 +292,19 @@ public class TableSetPanel extends JPanel {
                     return serviceKit == serviceKit_;
                 }
                 public void showWaiting() {
-                    progBar = showFetchProgressBar( "Fetching Table Metadata" );
+                    logger_.info( "Reading up-front table metadata" );
+                    progBar = showFetchProgressBar();
                 }
                 public void showResult( SchemaMeta[] result ) {
                     stopProgress();
+                    logger_.info( "Read " + getMetaDescrip() );
                     setSchemas( result );
                 }
                 public void showError( IOException error ) {
                     stopProgress();
-                    showFetchFailure( error );
+                    logger_.log( Level.WARNING,
+                                 "Error reading " + getMetaDescrip(), error );
+                    showFetchFailure( error, serviceKit.getMetaReader() );
                 }
                 private void stopProgress() {
                     if ( progBar != null ) {
@@ -305,6 +312,18 @@ public class TableSetPanel extends JPanel {
                         progBar.setValue( 0 );
                         progBar = null;
                     }
+                }
+                private String getMetaDescrip() {
+                    TapMetaReader metaRdr = serviceKit.getMetaReader();
+                    StringBuffer sbuf = new StringBuffer()
+                        .append( "up-front table metadata" );
+                    if ( metaRdr != null ) {
+                        sbuf.append( " from " )
+                            .append( metaRdr.getSource() )
+                            .append( " using " )
+                            .append( metaRdr.getMeans() );
+                    }
+                    return sbuf.toString();
                 }
             } );
         }
@@ -420,23 +439,18 @@ public class TableSetPanel extends JPanel {
     /**
      * Displays a progress bar to indicate that metadata fetching is going on.
      *
-     * @param  message  message to display
      * @return  the progress bar component
      */
-    private JProgressBar showFetchProgressBar( String message ) {
+    private JProgressBar showFetchProgressBar() {
         JProgressBar progBar = new JProgressBar();
         progBar.setIndeterminate( true );
-        JComponent msgLine = Box.createHorizontalBox();
-        msgLine.add( Box.createHorizontalGlue() );
-        msgLine.add( new JLabel( message ) );
-        msgLine.add( Box.createHorizontalGlue() );
         JComponent progLine = Box.createHorizontalBox();
         progLine.add( Box.createHorizontalGlue() );
         progLine.add( progBar );
         progLine.add( Box.createHorizontalGlue() );
         JComponent workBox = Box.createVerticalBox();
         workBox.add( Box.createVerticalGlue() );
-        workBox.add( msgLine );
+        workBox.add( createLabelLine( "Fetching table metadata" ) );
         workBox.add( Box.createVerticalStrut( 5 ) );
         workBox.add( progLine );
         workBox.add( Box.createVerticalGlue() );
@@ -450,12 +464,21 @@ public class TableSetPanel extends JPanel {
      * Displays an indication that metadata fetching failed.
      * 
      * @param  error   error that caused the failure
+     * @param  metaReader   metadata reader
      */
-    private void showFetchFailure( Throwable error ) {
-        ErrorDialog.showError( this, "Table Metadata Error", error );
-        JComponent msgLine = Box.createHorizontalBox();
-        msgLine.setAlignmentX( 0 );
-        msgLine.add( new JLabel( "No table metadata" ) );
+    private void showFetchFailure( Throwable error, TapMetaReader metaReader ) {
+
+        /* Pop up an error dialog. */
+        List<String> msgList = new ArrayList<String>();
+        msgList.add( "Error reading TAP service table metadata" );
+        if ( metaReader != null ) {
+            msgList.add( "Method: " + metaReader.getMeans() );
+            msgList.add( "Source: " + metaReader.getSource() );
+        }
+        String[] msgLines = msgList.toArray( new String[ 0 ] );
+        ErrorDialog.showError( this, "Table Metadata Error", error, msgLines );
+
+        /* Prepare a component describing what went wrong. */
         JComponent errLine = Box.createHorizontalBox();
         errLine.setAlignmentX( 0 );
         errLine.add( new JLabel( "Error: " ) );
@@ -467,20 +490,35 @@ public class TableSetPanel extends JPanel {
         errField.setEditable( false );
         errField.setBorder( BorderFactory.createEmptyBorder() );
         errLine.add( new ShrinkWrapper( errField ) );
-        JComponent linesVBox = Box.createVerticalBox();
-        linesVBox.add( Box.createVerticalGlue() );
-        linesVBox.add( msgLine );
-        linesVBox.add( Box.createVerticalStrut( 15 ) );
-        linesVBox.add( errLine );
-        linesVBox.add( Box.createVerticalGlue() );
-        JComponent linesHBox = Box.createHorizontalBox();
-        linesHBox.add( Box.createHorizontalGlue() );
-        linesHBox.add( linesVBox );
-        linesHBox.add( Box.createHorizontalGlue() );
+        JComponent linesBox = Box.createVerticalBox();
+        linesBox.add( Box.createVerticalGlue() );
+        linesBox.add( createLabelLine( "No table metadata" ) );
+        linesBox.add( Box.createVerticalStrut( 15 ) );
+        for ( String line : msgLines ) {
+            linesBox.add( createLabelLine( line ) );
+        }
+        linesBox.add( Box.createVerticalStrut( 15 ) );
+        linesBox.add( errLine );
+        linesBox.add( Box.createVerticalGlue() );
         JComponent panel = new JPanel( new BorderLayout() );
-        panel.add( linesHBox, BorderLayout.CENTER );
+        panel.add( linesBox, BorderLayout.CENTER );
         JScrollPane scroller = new JScrollPane( panel );
+
+        /* Post it in place of the metadata jtree display. */
         replaceTreeComponent( scroller );
+    }
+
+    /**
+     * Returns a component containing some text, suitable for adding to
+     * a list of text lines.
+     *
+     * @param  text  content
+     * @return  jlabel
+     */
+    private JComponent createLabelLine( String text ) {
+        JLabel label = new JLabel( text );
+        label.setAlignmentX( 0 );
+        return label;
     }
 
     /**
