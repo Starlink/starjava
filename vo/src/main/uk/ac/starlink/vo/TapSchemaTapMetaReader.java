@@ -3,6 +3,7 @@ package uk.ac.starlink.vo;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
@@ -76,7 +77,30 @@ public class TapSchemaTapMetaReader implements TapMetaReader {
     }
 
     public String getSource() {
-        return "TAP_SCHEMA(" + tsi_.getServiceUrl() + ")";
+        return tsi_.getServiceUrl().toString();
+    }
+
+    public String getMeans() {
+        List<String> preList = new ArrayList<String>();
+        preList.add( "schemas" );
+        if ( populateSchemas_ ) {
+            preList.add( "tables" );
+            if ( populateTables_ ) {
+                preList.add( "columns" );
+                preList.add( "fkeys" );
+            }
+        }
+        if ( ! preList.contains( "fkeys" ) && fkeyReadLock_ != null ) {
+            preList.add( "fkeys" );
+        }
+        StringBuffer ibuf = new StringBuffer();
+        for ( String item : preList ) {
+            if ( ibuf.length() != 0 ) {
+                ibuf.append( ", " );
+            }
+            ibuf.append( item );
+        }
+        return "TAP_SCHEMA queries; preload " + ibuf.toString();
     }
 
     public SchemaMeta[] readSchemas() throws IOException {

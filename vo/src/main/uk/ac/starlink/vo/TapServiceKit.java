@@ -179,7 +179,7 @@ public class TapServiceKit {
     public void acquireSchemas( final ResultHandler<SchemaMeta[]> handler ) {
         acquireData( handler, new DataCallable<SchemaMeta[]>() {
             public SchemaMeta[] call() throws IOException {
-                TapMetaReader rdr = getMetaReader();
+                TapMetaReader rdr = acquireMetaReader();
                 try {
                     return rdr.readSchemas();
                 }
@@ -284,10 +284,34 @@ public class TapServiceKit {
     }
 
     /**
+     * Returns the TapMetaReader in use by this kit.
+     * This method will not block, but may return null if the reader to use
+     * has not yet been determined.
+     *
+     * @return   metaReader in use, or null
+     */
+    public TapMetaReader getMetaReader() {
+        if ( rdrFuture_ != null && rdrFuture_.isDone() ) {
+            try {
+                return rdrFuture_.get( 0, TimeUnit.SECONDS );
+            }
+            catch ( Exception e ) {
+                return null;
+            }
+        }
+        else {
+            return null;
+        }
+    }
+
+    /**
      * Returns a TapMetaReader for use by this kit.
      * Thread safe, but should be called on a thread which is not the EDT.
+     * May be time consuming.
+     *
+     * @return  a tap meta reader for use by this object, not null
      */
-    private TapMetaReader getMetaReader() {
+    private TapMetaReader acquireMetaReader() {
         final boolean runNow;
 
         /* Prepare to initiate acquisition only if no other process has
@@ -319,10 +343,10 @@ public class TapServiceKit {
         }
         catch ( InterruptedException e ) {
             Thread.currentThread().interrupt();
-            return null;
+            return new ErrorMetaReader( "interrupted", e );
         }
         catch ( ExecutionException e ) {
-            return null;
+            return new ErrorMetaReader( e.getCause().getMessage(), e );
         }
     }
 
@@ -395,7 +419,7 @@ public class TapServiceKit {
         }
 
         /* Acquire the data synchronously. */
-        populator.populate( getMetaReader() );
+        populator.populate( acquireMetaReader() );
         populator.populateCompleted_ = true;
 
         /* Get the list of callbacks dependent on the data.
@@ -687,6 +711,56 @@ public class TapServiceKit {
         public boolean equals( Object o ) {
             return getClass().equals( o.getClass() )
                 && this.id_.equals( ((Populator) o).id_ );
+        }
+    }
+
+    /**
+     * Dummy TapMetaReader implementation that throws errors for everything.
+     */
+    private static class ErrorMetaReader implements TapMetaReader {
+        final Exception error_;
+        final String msg_;
+
+        /**
+         * Constructor.
+         *
+         * @param  msg  short message about what went wrong
+         * @param  error  cause of problem
+         */
+        ErrorMetaReader( String msg, Exception error ) {
+            error_ = error;
+            msg_ = msg;
+        }
+        public String getSource() {
+            return "No source (" + error_ + ")";
+        }
+        public String getMeans() {
+            return "No method (" + error_ + ")";
+        }
+        public SchemaMeta[] readSchemas() throws IOException {
+            throw rethrown();
+        }
+        public TableMeta[] readTables( SchemaMeta schema ) throws IOException {
+            throw rethrown();
+        }
+        public ColumnMeta[] readColumns( TableMeta table ) throws IOException {
+            throw rethrown();
+        }
+        public ForeignMeta[] readForeignKeys( TableMeta table )
+                throws IOException {
+            throw rethrown();
+        }
+
+        /**
+         * Returns a new IOException whose cause is the one on which this
+         * reader was constructed.
+         *
+         * @return   IOException
+         */
+        private IOException rethrown() {
+            return (IOException)
+                   new IOException( "No metadata reader: " + msg_ )
+                  .initCause( error_ );
         }
     }
 
