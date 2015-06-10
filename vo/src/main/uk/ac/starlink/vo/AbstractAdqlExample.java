@@ -1,5 +1,6 @@
 package uk.ac.starlink.vo;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -18,6 +19,7 @@ public abstract class AbstractAdqlExample implements AdqlExample {
 
     private final String name_;
     private final String description_;
+    private final URL url_;
     private static final int COL_COUNT = 3;
     private static final int ROW_COUNT = 1000;
     private static final Pattern[] RADEC_UCD_REGEXES = new Pattern[] {
@@ -35,6 +37,7 @@ public abstract class AbstractAdqlExample implements AdqlExample {
     protected AbstractAdqlExample( String name, String description ) {
         name_ = name;
         description_ = description;
+        url_ = null;
     }
 
     public String getName() {
@@ -43,6 +46,10 @@ public abstract class AbstractAdqlExample implements AdqlExample {
 
     public String getDescription() {
         return description_;
+    }
+
+    public URL getInfoUrl() {
+        return url_;
     }
 
     /**

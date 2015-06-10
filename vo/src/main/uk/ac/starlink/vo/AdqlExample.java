@@ -1,5 +1,7 @@
 package uk.ac.starlink.vo;
 
+import java.net.URL;
+
 /**
  * Represents a type of example ADQL query.
  * The query text can be generated as a function of given service metadata.
@@ -38,4 +40,11 @@ public interface AdqlExample {
      * @return   short description
      */
     String getDescription();
+
+    /**
+     * Returns a documentation URL associated with this example if available.
+     *
+     * @return  documentation URL (suitable for browser display), or null
+     */
+    URL getInfoUrl();
 }
