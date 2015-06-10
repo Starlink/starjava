@@ -24,7 +24,6 @@ public class TapExampleLine extends JPanel {
     private final JLabel titleLabel_;
     private final JTextField nameField_;
     private final Action infoAct_;
-    private final JComponent controlPanel_;
     private AdqlExample example_;
 
     /**
@@ -34,23 +33,25 @@ public class TapExampleLine extends JPanel {
      */
     public TapExampleLine( UrlHandler urlHandler ) {
         urlHandler_ = urlHandler;
-        titleLabel_ = new JLabel( "Example: " );
+        titleLabel_ = new JLabel();
         nameField_ = new JTextField();
         nameField_.setEditable( false );
+        nameField_.setBorder( BorderFactory.createEmptyBorder() );
         infoAct_ = new AbstractAction( "Info" ) {
             public void actionPerformed( ActionEvent evt ) {
                 urlHandler_.clickUrl( example_.getInfoUrl() );
             }
         };
-        controlPanel_ = Box.createHorizontalBox();
         setLayout( new BoxLayout( this, BoxLayout.LINE_AXIS ) );
-        setBorder( BorderFactory.createEmptyBorder( 2, 2, 2, 2 ) );
-        add( titleLabel_ );
-        add( nameField_ );
+        JComponent textBox = Box.createHorizontalBox();
+        textBox.setBorder( BorderFactory.createEtchedBorder() );
+        textBox.add( Box.createHorizontalStrut( 5 ) );
+        textBox.add( titleLabel_ );
+        textBox.add( nameField_ );
+        add( textBox );
         add( Box.createHorizontalGlue() );
         add( Box.createHorizontalStrut( 5 ) );
         add( new JButton( infoAct_ ) );
-        add( controlPanel_ );
         setExample( null, null );
     }
 
@@ -62,21 +63,9 @@ public class TapExampleLine extends JPanel {
      */
     public void setExample( AdqlExample example, String groupName ) {
         example_ = example;
-        final String label;
-        if ( example == null ) {
-            label = null;
-        }
-        else {
-            StringBuffer sbuf = new StringBuffer();
-            if ( groupName != null && groupName.length() > 0 ) {
-                sbuf.append( groupName )
-                    .append( ": " );
-            }
-            sbuf.append( example.getName() );
-            label = sbuf.toString();
-        }
+        titleLabel_.setText( groupName == null ? null : groupName + ": " );
         titleLabel_.setEnabled( example != null );
-        nameField_.setText( label );
+        nameField_.setText( example == null ? null : example.getName() );
         nameField_.setToolTipText( example == null ? null
                                                    : example.getDescription() );
         boolean hasInfo = example != null && example.getInfoUrl() != null;
@@ -95,15 +84,5 @@ public class TapExampleLine extends JPanel {
      */
     public AdqlExample getExample() {
         return example_;
-    }
-
-    /**
-     * Adds an action button to the display line.
-     *
-     * @param  act  action to add
-     */
-    public void addAction( Action act ) {
-        controlPanel_.add( Box.createHorizontalStrut( 5 ) );
-        controlPanel_.add( new JButton( act ) );
     }
 }

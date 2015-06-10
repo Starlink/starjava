@@ -12,6 +12,7 @@ import java.awt.Dimension;
 import java.awt.Event;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.Insets;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
@@ -32,6 +33,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
+import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.InputMap;
 import javax.swing.JButton;
@@ -62,6 +64,7 @@ import javax.swing.text.Element;
 import javax.swing.text.PlainDocument;
 import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoManager;
+import uk.ac.starlink.util.gui.ComboBoxBumper;
 
 /**
  * Panel for display of a TAP query for a given TAP service.
@@ -314,11 +317,11 @@ public class TapQueryPanel extends JPanel {
          * ADQL example text and information. */
         exampleLine_ = new TapExampleLine( urlHandler );
         prevExampleAct_ =
-            new DelegateAction( "Prev", "Previous example in group" );
+            new DelegateAction( null, ComboBoxBumper.DEC_ICON,
+                                "Previous example in group" );
         nextExampleAct_ =
-            new DelegateAction( "Next", "Next example in group" );
-        exampleLine_.addAction( prevExampleAct_ );
-        exampleLine_.addAction( nextExampleAct_ );
+            new DelegateAction( null, ComboBoxBumper.INC_ICON,
+                                "Next example in group" );
         docListener_ = new DocumentListener() {
             public void changedUpdate( DocumentEvent evt ) {
                 change();
@@ -335,6 +338,15 @@ public class TapQueryPanel extends JPanel {
                 nextExampleAct_.setDelegate( null );
             }
         };
+        JComponent exampleBox = Box.createHorizontalBox();
+        exampleBox.setBorder( BorderFactory.createEmptyBorder( 4, 0, 2, 0 ) );
+        exampleBox.add( new JButton( examplesAct_ ) );
+        exampleBox.add( Box.createHorizontalStrut( 5 ) );
+        exampleBox.add( createIconButton( prevExampleAct_ ) );
+        exampleBox.add( Box.createHorizontalStrut( 2 ) );
+        exampleBox.add( createIconButton( nextExampleAct_ ) );
+        exampleBox.add( Box.createHorizontalStrut( 5 ) );
+        exampleBox.add( exampleLine_ );
 
         /* Prepare initial ADQL entry text panel. */
         addTextTab();
@@ -351,7 +363,6 @@ public class TapQueryPanel extends JPanel {
         Box buttLine = Box.createHorizontalBox();
         buttLine.setBorder( BorderFactory.createEmptyBorder( 0, 2, 2, 0 ) );
         buttLine.add( controlBox_ );
-        buttLine.add( new JButton( examplesAct_ ) );
         buttLine.add( Box.createHorizontalGlue() );
         buttLine.add( toolbar );
 
@@ -359,7 +370,7 @@ public class TapQueryPanel extends JPanel {
         JComponent adqlPanel = new JPanel( new BorderLayout() );
         adqlPanel.add( buttLine, BorderLayout.NORTH );
         adqlPanel.add( textTabber_, BorderLayout.CENTER );
-        adqlPanel.add( exampleLine_, BorderLayout.SOUTH );
+        adqlPanel.add( exampleBox, BorderLayout.SOUTH );
         JComponent qPanel = new JPanel( new BorderLayout() );
         qPanel.add( tcapPanel_, BorderLayout.NORTH );
         qPanel.add( adqlPanel, BorderLayout.CENTER );
@@ -505,7 +516,8 @@ public class TapQueryPanel extends JPanel {
      * text entry panel.
      * This uses a CaretListener rather than (what might be more
      * appropriate) DocumentListener because the DocumentListener
-     * interface looks too hairy.
+     * interface looks too hairy for use by components that are themselves
+     * behaving asynchronously.
      *
      * @param  listener  listener to add
      */
@@ -552,11 +564,12 @@ public class TapQueryPanel extends JPanel {
         for ( int i = 0; i < nex; i++ ) {
             final int iex = i;
             final AdqlExample ex = examples[ iex ];
+            final String label = name + " " + ( iex + 1 ) + "/" + nex;
             exActs[ iex ] = new AdqlExampleAction( ex ) {
                 @Override
                 public void actionPerformed( ActionEvent evt ) {
                     super.actionPerformed( evt );
-                    exampleLine_.setExample( ex, name );
+                    exampleLine_.setExample( ex, label );
                     if ( iex > 0 ) {
                         prevExampleAct_.setDelegate( exActs[ iex - 1 ] );
                     }
@@ -923,6 +936,25 @@ public class TapQueryPanel extends JPanel {
     }
 
     /**
+     * Returns a button for a given action, with a shape suitable for a
+     * little icon in a row of tools.
+     *
+     * @param   act  action
+     * @return  icon
+     */
+    private static JButton createIconButton( Action act ) {
+        JButton butt = new JButton( act ) {
+            @Override
+            public Dimension getMaximumSize() {
+                return new Dimension( super.getMaximumSize().width,
+                                      Integer.MAX_VALUE );
+            }
+        };
+        butt.setMargin( new Insets( 2, 2, 2, 2 ) );
+        return butt;
+    }
+
+    /**
      * Action which replaces the current content of the ADQL text entry
      * area with some fixed string.
      */
@@ -1009,10 +1041,12 @@ public class TapQueryPanel extends JPanel {
          * Constructor.
          *
          * @param  name  action name
+         * @param  icon   icon
          * @param  descrip   action short_description
          */
-        DelegateAction( String name, String descrip ) {
+        DelegateAction( String name, Icon icon, String descrip ) {
             super( name );
+            putValue( SMALL_ICON, icon );
             putValue( SHORT_DESCRIPTION, descrip );
             setDelegate( null );
         }
