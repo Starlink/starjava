@@ -52,6 +52,8 @@ import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.text.BadLocationException;
@@ -77,6 +79,7 @@ public class TapQueryPanel extends JPanel {
     private final JMenu daliExampleMenu_;
     private final JTabbedPane textTabber_;
     private final JComponent controlBox_;
+    private final TapExampleLine exampleLine_;
     private final CaretListener caretForwarder_;
     private final List<CaretListener> caretListeners_;
     private final Map<ParseTextArea,UndoManager> undoerMap_;
@@ -88,6 +91,9 @@ public class TapQueryPanel extends JPanel {
     private final Action addTabAct_;
     private final Action copyTabAct_;
     private final Action removeTabAct_;
+    private final DocumentListener docListener_;
+    private final DelegateAction prevExampleAct_;
+    private final DelegateAction nextExampleAct_;
     private TapServiceKit serviceKit_;
     private Throwable parseError_;
     private AdqlValidator.ValidatorTable[] extraTables_;
@@ -304,6 +310,32 @@ public class TapQueryPanel extends JPanel {
         examplesAct_.putValue( Action.SHORT_DESCRIPTION,
                                "Choose from example ADQL queries" );
 
+        /* Set up the line which displays control and display of
+         * ADQL example text and information. */
+        exampleLine_ = new TapExampleLine( urlHandler );
+        prevExampleAct_ =
+            new DelegateAction( "Prev", "Previous example in group" );
+        nextExampleAct_ =
+            new DelegateAction( "Next", "Next example in group" );
+        exampleLine_.addAction( prevExampleAct_ );
+        exampleLine_.addAction( nextExampleAct_ );
+        docListener_ = new DocumentListener() {
+            public void changedUpdate( DocumentEvent evt ) {
+                change();
+            }
+            public void insertUpdate( DocumentEvent evt ) {
+                change();
+            }
+            public void removeUpdate( DocumentEvent evt ) {
+                change();
+            }
+            private void change() { 
+                exampleLine_.setExample( null, null );
+                prevExampleAct_.setDelegate( null );
+                nextExampleAct_.setDelegate( null );
+            }
+        };
+
         /* Prepare initial ADQL entry text panel. */
         addTextTab();
         setParseError( null );
@@ -327,6 +359,7 @@ public class TapQueryPanel extends JPanel {
         JComponent adqlPanel = new JPanel( new BorderLayout() );
         adqlPanel.add( buttLine, BorderLayout.NORTH );
         adqlPanel.add( textTabber_, BorderLayout.CENTER );
+        adqlPanel.add( exampleLine_, BorderLayout.SOUTH );
         JComponent qPanel = new JPanel( new BorderLayout() );
         qPanel.add( tcapPanel_, BorderLayout.NORTH );
         qPanel.add( adqlPanel, BorderLayout.CENTER );
@@ -504,15 +537,38 @@ public class TapQueryPanel extends JPanel {
 
     /**
      * Creates a new menu for display of ADQL example queries.
+     * Menu items not only install their own ADQL in the text panel,
+     * they also configure the Previous/Next actions to invoke the
+     * adjacent items in the menu.
      *
      * @param  name  menu name
      * @param  examples  list of examples
      * @return   new menu
      */
-    private JMenu createExampleMenu( String name, AdqlExample[] examples ) {
+    private JMenu createExampleMenu( final String name,
+                                     final AdqlExample[] examples ) {
+        final int nex = examples.length;
+        final AdqlExampleAction[] exActs = new AdqlExampleAction[ nex ];
+        for ( int i = 0; i < nex; i++ ) {
+            final int iex = i;
+            final AdqlExample ex = examples[ iex ];
+            exActs[ iex ] = new AdqlExampleAction( ex ) {
+                @Override
+                public void actionPerformed( ActionEvent evt ) {
+                    super.actionPerformed( evt );
+                    exampleLine_.setExample( ex, name );
+                    if ( iex > 0 ) {
+                        prevExampleAct_.setDelegate( exActs[ iex - 1 ] );
+                    }
+                    if ( iex < nex - 1 ) {
+                        nextExampleAct_.setDelegate( exActs[ iex + 1 ] );
+                    }
+                }
+            };
+        }
         JMenu menu = new JMenu( name );
-        for ( AdqlExample ex : examples ) {
-            menu.add( new AdqlExampleAction( ex ) );
+        for ( AdqlExampleAction act : exActs ) {
+            menu.add( act );
         }
         return menu;
     }
@@ -591,19 +647,38 @@ public class TapQueryPanel extends JPanel {
         menu.removeAll();
         menu.setEnabled( daliExamples != null && daliExamples.length > 0 );
         if ( daliExamples != null ) {
-            for ( DaliExample daliEx : daliExamples ) {
+
+            /* Prepare an array of AdqlExample instances based on the
+             * DaliExamples. */
+            int nex = daliExamples.length;
+            AdqlExample[] adqlExamples = new AdqlExample[ nex ];
+            for ( int iex = 0; iex < nex; iex++ ) {
+                final DaliExample daliEx = daliExamples[ iex ];
                 String name = daliEx.getName();
                 final String adql =
                     daliEx.getGenericParameters().get( "QUERY" );
-                AdqlExample adqlEx = new AbstractAdqlExample( name, null ) {
+                adqlExamples[ iex ] = new AbstractAdqlExample( name, null ) {
                     public String getText( boolean lineBreaks, String lang,
                                            TapCapability tcap,
                                            TableMeta[] tables,
                                            TableMeta table ) {
                         return adql;
                     }
+                    public URL getInfoUrl() {
+                        return daliEx.getUrl();
+                    }
                 };
-                menu.add( new AdqlExampleAction( adqlEx ) );
+            }
+
+            /* Create a menu from these; this call does more than simply
+             * wrap the actions into a menu, so use this call and then
+             * pull the menu items out into a different menu later. */
+            JMenu dummyMenu =
+                createExampleMenu( menu.getText(), adqlExamples );
+            while ( dummyMenu.getItemCount() > 0 ) {
+                JMenuItem item = dummyMenu.getItem( 0 );
+                dummyMenu.remove( 0 );
+                menu.add( item );
             }
         }
         tmetaPanel_.setHasExamples( daliExamples != null &&
@@ -670,11 +745,13 @@ public class TapQueryPanel extends JPanel {
     private void updateTextTab() {
         if ( textPanel_ != null ) {
             textPanel_.removeCaretListener( caretForwarder_ );
+            textPanel_.getDocument().removeDocumentListener( docListener_ );
         }
         textPanel_ = (ParseTextArea)
                      ((JScrollPane) textTabber_.getSelectedComponent())
                     .getViewport().getView();
         textPanel_.addCaretListener( caretForwarder_ );
+        textPanel_.getDocument().addDocumentListener( docListener_ );
         undoer_ = undoerMap_.get( textPanel_ );
         Caret caret = textPanel_.getCaret();
         final int dot = caret.getDot();
@@ -869,6 +946,7 @@ public class TapQueryPanel extends JPanel {
         public void actionPerformed( ActionEvent evt ) {
             if ( replace_ ) {
                 textPanel_.setText( text_ );
+                textPanel_.setCaretPosition( 0 );
             }
             else {
                 textPanel_.insert( text_, textPanel_.getCaretPosition() );
@@ -912,6 +990,45 @@ public class TapQueryPanel extends JPanel {
          */
         public AdqlExample getExample() {
             return example_;
+        }
+
+        @Override
+        public void actionPerformed( ActionEvent evt ) {
+            super.actionPerformed( evt );
+        }
+    }
+
+    /**
+     * Action which delegates some of its behaviour to an underlying and
+     * dynamically set action.
+     */
+    private class DelegateAction extends AbstractAction {
+        private Action act_;
+
+        /**
+         * Constructor.
+         *
+         * @param  name  action name
+         * @param  descrip   action short_description
+         */
+        DelegateAction( String name, String descrip ) {
+            super( name );
+            putValue( SHORT_DESCRIPTION, descrip );
+            setDelegate( null );
+        }
+
+        /**
+         * Sets the delegate.
+         *
+         * @param  act  new delegate, may be null
+         */
+        public void setDelegate( Action act ) {
+            act_ = act;
+            setEnabled( act_ != null );
+        }
+
+        public void actionPerformed( ActionEvent evt ) {
+            act_.actionPerformed( evt );
         }
     }
 
