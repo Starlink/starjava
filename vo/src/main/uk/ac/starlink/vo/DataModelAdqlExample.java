@@ -1,5 +1,8 @@
 package uk.ac.starlink.vo;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+
 /**
  * AdqlExample implementation that provides fixed-text examples
  * specific to a given standard declared data model.
@@ -13,6 +16,7 @@ public abstract class DataModelAdqlExample implements AdqlExample {
 
     private final String name_;
     private final String description_;
+    private final URL infoUrl_;
     private final String[] textLines_;
 
     /**
@@ -20,12 +24,19 @@ public abstract class DataModelAdqlExample implements AdqlExample {
      *
      * @param   name  example name
      * @param   description   example short description
+     * @param   infoUrl  URL for explanation
      * @param   textLines  lines of ADQL text
      */
     protected DataModelAdqlExample( String name, String description,
-                                    String[] textLines ) {
+                                    String infoUrl, String[] textLines ) {
         name_ = name;
         description_ = description;
+        try {
+            infoUrl_ = new URL( infoUrl );
+        }
+        catch ( MalformedURLException e ) {
+            throw new RuntimeException( "bad url: " + infoUrl, e );
+        }
         textLines_ = textLines;
     }
 
@@ -46,6 +57,10 @@ public abstract class DataModelAdqlExample implements AdqlExample {
 
     public String getDescription() {
         return description_;
+    }
+
+    public URL getInfoUrl() {
+        return infoUrl_;
     }
 
     public String getText( boolean lineBreaks, String lang, TapCapability tcap,
@@ -109,6 +124,7 @@ public abstract class DataModelAdqlExample implements AdqlExample {
             createRegTapExample(
                 "TAP accessURLs",
                 "Find all TAP services, return their accessURL strings",
+                "tth_sEc10.1",
                 new String[] {
                     "SELECT ivoid, access_url",
                     "FROM rr.capability",
@@ -122,6 +138,7 @@ public abstract class DataModelAdqlExample implements AdqlExample {
                 "SIA Services with Spirals",
                 "Find all Simple Image Access services "
                 + "that might have spiral galaxies",
+                "tth_sEc10.2",
                 new String[] {
                     "SELECT ivoid, access_url",
                     "FROM rr.capability",
@@ -141,6 +158,7 @@ public abstract class DataModelAdqlExample implements AdqlExample {
                 "Infrared SIA Services",
                 "Find all Simple Image Access services "
                 + "that provide infrared images",
+                "tth_sEc10.3",
                 new String[] {
                     "SELECT ivoid, access_url",
                     "FROM rr.capability",
@@ -156,6 +174,7 @@ public abstract class DataModelAdqlExample implements AdqlExample {
                 "Cone Searches with Redshifts",
                 "Find all cone search services "
                 + " that provide a column containing redshifts",
+                "tth_sEc10.4",
                 new String[] {
                     "SELECT ivoid, access_url",
                     "FROM rr.capability",
@@ -170,6 +189,7 @@ public abstract class DataModelAdqlExample implements AdqlExample {
             createRegTapExample(
                 "Names from an Authority",
                 "Find all the resources published by a certain authority",
+                "tth_sEc10.5",
                 new String[] {
                     "SELECT ivoid",
                     "FROM rr.resource",
@@ -180,6 +200,7 @@ public abstract class DataModelAdqlExample implements AdqlExample {
             createRegTapExample(
                 "Records Published by X",
                 "What registry records are there from a given publisher?",
+                "tth_sEc10.6",
                 new String[] {
                     "SELECT ivoid",
                     "FROM rr.res_role",
@@ -191,6 +212,7 @@ public abstract class DataModelAdqlExample implements AdqlExample {
             createRegTapExample(
                 "Records from Registry",
                 "What registry records are there originating from registry X?",
+                "tth_sEc10.7",
                 new String[] {
                     "SELECT ivoid FROM rr.resource",
                     "RIGHT OUTER JOIN (",
@@ -206,6 +228,7 @@ public abstract class DataModelAdqlExample implements AdqlExample {
             createRegTapExample(
                 "Locate RegTAP Services",
                 "Find all TAP endpoints offering the relational registry",
+                "tth_sEc10.8",
                 new String[] {
                     "SELECT access_url",
                     "FROM rr.interface",
@@ -222,6 +245,7 @@ public abstract class DataModelAdqlExample implements AdqlExample {
             createRegTapExample(
                 "TAP with Physics",
                 "Find all TAP services exposing a table with certain features",
+                "tth_sEc10.9",
                 new String[] {
                     "SELECT ivoid, access_url, name, ucd, column_description",
                     "FROM rr.capability",
@@ -238,6 +262,7 @@ public abstract class DataModelAdqlExample implements AdqlExample {
             createRegTapExample(
                 "Theoretical SSA",
                 "Find all SSAP services that provide theoretical spectra",
+                "tth_sEc10.10",
                 new String[] {
                     "SELECT access_url",
                     "FROM rr.res_detail",
@@ -253,6 +278,7 @@ public abstract class DataModelAdqlExample implements AdqlExample {
             createRegTapExample(
                 "Find Contact Persons",
                 "The service at a given access URL is down, who can fix it?",
+                "tth_sEc10.11",
                 new String[] {
                     "SELECT DISTINCT base_role, role_name, email",
                     "FROM rr.res_role",
@@ -265,6 +291,7 @@ public abstract class DataModelAdqlExample implements AdqlExample {
                 "Related Capabilities",
                 "Get the capabilities of all services serving a specific "
                 + "resource (typically, a data collection)",
+                "tth_sEc10.12",
                 new String[] {
                     "SELECT *",
                     "FROM rr.relationship AS a",
@@ -352,8 +379,12 @@ public abstract class DataModelAdqlExample implements AdqlExample {
      */
     private static DataModelAdqlExample
             createRegTapExample( String name, String description,
-                                 String[] textLines ) {
-        return new DataModelAdqlExample( name, description, textLines ) {
+                                 String regtapFrag, String[] textLines ) {
+        String regtapUrl =
+            "http://www.ivoa.net/documents/RegTAP/20141208/REC-RegTAP-1.0.html";
+        String url = regtapFrag != null ? ( regtapUrl + "#" + regtapFrag )
+                                        : null;
+        return new DataModelAdqlExample( name, description, url, textLines ) {
             public boolean isDataModel( String dm ) {
                 return dm.toLowerCase()
                          .startsWith( "ivo://ivoa.net/std/regtap" );
@@ -372,7 +403,9 @@ public abstract class DataModelAdqlExample implements AdqlExample {
     private static DataModelAdqlExample
             createObsTapExample( String name, String description,
                                  String[] textLines ) {
-        return new DataModelAdqlExample( name, description, textLines ) {
+        String obstapUrl = "http://www.ivoa.net/documents/ObsCore/index.html";
+        return new DataModelAdqlExample( name, description, obstapUrl,
+                                         textLines ) {
             public boolean isDataModel( String dm ) {
                 return dm.toLowerCase()
                          .startsWith( "ivo://ivoa.net/std/obscore" );
