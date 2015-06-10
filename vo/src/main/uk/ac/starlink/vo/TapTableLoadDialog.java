@@ -27,10 +27,14 @@ import java.util.regex.Pattern;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.Box;
+import javax.swing.ComboBoxModel;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JMenu;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
@@ -44,6 +48,8 @@ import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.TableSequence;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.gui.TableLoader;
+import uk.ac.starlink.util.gui.ErrorDialog;
+import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 /**
  * Load dialogue for TAP services.
@@ -63,8 +69,10 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
     private CaretListener adqlListener_;
     private Action reloadAct_;
     private ProxyAction[] proxyActs_;
+    private ComboBoxModel runModeModel_;
     private TapMetaPolicy metaPolicy_;
     private String ofmtName_;
+    private StarTableFactory tfact_;
     private int tqTabIndex_;
     private int jobsTabIndex_;
     private int resumeTabIndex_;
@@ -106,6 +114,7 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
     @Override
     public void configure( StarTableFactory tfact, Action submitAct ) {
         submitAct.putValue( Action.NAME, "Run Query" );
+        tfact_ = tfact;
         super.configure( tfact, submitAct );
     }
 
@@ -159,6 +168,9 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
         buttLine.add( Box.createHorizontalGlue() );
         buttLine.add( new JButton( tqAct ) );
         getControlBox().add( buttLine );
+
+        /* Set up TAP run modes. */
+        runModeModel_ = new DefaultComboBoxModel( createRunModes() );
 
         /* Only enable the query tab if a valid service URL has been
          * selected. */
@@ -365,6 +377,17 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
     }
 
     /**
+     * Returns the run modes provided by this dialogue.
+     *
+     * @return   run mode options
+     */
+    protected TapRunMode[] createRunModes() {
+        return new TapRunMode[] {
+            TapRunMode.SYNC, TapRunMode.ASYNC, TapRunMode.LOOK,
+        };
+    }
+
+    /**
      * Returns a new query TableLoader for the case when the QueryPanel
      * is the currently visible tab.
      *
@@ -373,7 +396,6 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
     private TableLoader createQueryPanelLoader() {
         final URL serviceUrl = checkUrl( getServiceUrl() );
         final String adql = tqPanel_.getAdql();
-        final boolean sync = tqPanel_.isSynchronous();
         final Map<String,StarTable> uploadMap =
             new LinkedHashMap<String,StarTable>();
         final String summary = createLoadLabel( adql );
@@ -420,32 +442,53 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
                                                             .toString() ) ) );
         final DescribedValue[] metas =
             metaList.toArray( new DescribedValue[ 0 ] );
-        return new TableLoader() {
-            public TableSequence loadTables( StarTableFactory tfact )
-                    throws IOException {
-                TapQuery tq =
-                    new TapQuery( serviceUrl, adql, extraParams, uploadMap,
-                                  byteUploadLimit, null );
-                if ( sync ) {
-                    StarTable table =
-                        tq.executeSync( tfact.getStoragePolicy() );
-                    table.getParameters().addAll( Arrays.asList( metas ) );
-                    return Tables.singleTableSequence( table );
+        final TapRunMode runMode = (TapRunMode) runModeModel_.getSelectedItem();
+        TapQuery tq0;
+        try {
+            tq0 = new TapQuery( serviceUrl, adql, extraParams, uploadMap,
+                                byteUploadLimit, null );
+        }
+        catch ( IOException e ) {
+            ErrorDialog.showError( getQueryComponent(), "Query Construction",
+                                   e );
+            return null;
+        }
+        final TapQuery tq = tq0;
+        if ( runMode.isLoader_ ) {
+            return new TableLoader() {
+                public TableSequence loadTables( StarTableFactory tfact )
+                        throws IOException {
+                    if ( runMode.isSync_ ) {
+                        assert runMode == TapRunMode.SYNC;
+                        StarTable table =
+                            tq.executeSync( tfact.getStoragePolicy() );
+                        table.getParameters().addAll( Arrays.asList( metas ) );
+                        return Tables.singleTableSequence( table );
+                    }
+                    else {
+                        assert runMode == TapRunMode.ASYNC;
+                        final UwsJob tapJob = tq.submitAsync();
+                        SwingUtilities.invokeLater( new Runnable() {
+                            public void run() {
+                                addRunningQuery( tapJob );
+                            }
+                        } );
+                        return createTableSequence( tfact, tapJob, metas );
+                    }
                 }
-                else {
-                    final UwsJob tapJob = tq.submitAsync();
-                    SwingUtilities.invokeLater( new Runnable() {
-                        public void run() {
-                            addRunningQuery( tapJob );
-                        }
-                    } );
-                    return createTableSequence( tfact, tapJob, metas );
+                public String getLabel() {
+                    return summary;
                 }
-            }
-            public String getLabel() {
-                return summary;
-            }
-        };
+            };
+        }
+        else {
+            assert runMode == TapRunMode.LOOK;
+            assert runMode.isSync_;
+            QuickLookWindow qlw = new QuickLookWindow( tq, tfact_ );
+            qlw.setVisible( true );
+            qlw.executeQuery();
+            return null;
+        }
     }
 
     /**
@@ -623,6 +666,14 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
              * if we haven't seen this service URL before now. */
             if ( ! tqMap_.containsKey( serviceUrl ) ) {
                 TapQueryPanel tqPanel = createTapQueryPanel();
+                if ( runModeModel_ != null && runModeModel_.getSize() > 1 ) {
+                    JComponent modeLine = Box.createHorizontalBox();
+                    modeLine.add( new JLabel( "Mode: " ) );
+                    modeLine.add( new ShrinkWrapper(
+                                      new JComboBox( runModeModel_ ) ) );
+                    modeLine.add( Box.createHorizontalStrut( 5 ) );
+                    tqPanel.addControl( modeLine );
+                }
                 tqPanel.setServiceKit( serviceKit );
                 tqMap_.put( serviceUrl, tqPanel );
             }
@@ -681,6 +732,58 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
             }
         }
         return null;
+    }
+
+    /**
+     * Enum for TAP run modes.
+     */
+    public enum TapRunMode {
+
+        /** Synchronous load into application. */
+        SYNC( true, true,
+               "Synchronous",
+               "Execute query in TAP synchronous mode"
+             + " and load result into application" ),
+
+        /** Asynchronous load into application. */
+        ASYNC( true, false,
+               "Asynchronous",
+               "Execute query in TAP asynchronous mode"
+             + " and load result into application when complete"  ),
+
+        /** Quick look in popup window. */
+        LOOK( false, true,
+              "Quick Look",
+              "Execute query in TAP synchronous mode"
+            + " and display the result in a popup window" );
+
+        private final boolean isLoader_;
+        private final boolean isSync_;
+        private final String name_;
+        private final String description_;
+
+        /**
+         * Constructor.
+         *
+         * @param  isLoader  true if this mode results in loading into
+         *                   the host application; false if it will be
+         *                   disposed of some other way
+         * @param  isSync    true for synchronous, false for asynchronous
+         * @param  name    mode name
+         * @param  description  mode description
+         */
+        TapRunMode( boolean isLoader, boolean isSync,
+                    String name, String description ) {
+            isLoader_ = isLoader;
+            isSync_ = isSync;
+            name_ = name;
+            description_ = description;
+        }
+
+        @Override
+        public String toString() {
+            return name_;
+        }
     }
 
     /**
@@ -752,28 +855,15 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
      */
     public static void main( String[] args ) {
         final String tapUrl = args.length > 0 ? args[ 0 ] : null;
-        final TapTableLoadDialog tld = new TapTableLoadDialog();
+        final TapTableLoadDialog tld = new TapTableLoadDialog() {
+            protected TapRunMode[] createRunModes() {
+                return new TapRunMode[] { TapRunMode.LOOK };
+            }
+        };
         final StarTableFactory tfact = new StarTableFactory();
         tld.configure( tfact, new AbstractAction() {
             public void actionPerformed( ActionEvent evt ) {
-                StarTable table;
-                try {
-                    table = tld.createTableLoader()
-                               .loadTables( tfact ).nextTable();
-                }
-                catch ( IOException e ) {
-                    e.printStackTrace();
-                    return;
-                }
-                uk.ac.starlink.table.gui.StarJTable jt =
-                    new uk.ac.starlink.table.gui.StarJTable( table, true );
-                jt.configureColumnWidths( 100, 10000 );
-                javax.swing.JFrame frm = new javax.swing.JFrame();
-                frm.getContentPane().add( new javax.swing.JScrollPane( jt ) );
-                frm.getContentPane()
-                   .setMaximumSize( new Dimension( 500, 200 ) );
-                frm.pack();
-                frm.setVisible( true );
+                tld.createTableLoader();
             }
         } );
         Component qcomp = tld.getQueryComponent();
