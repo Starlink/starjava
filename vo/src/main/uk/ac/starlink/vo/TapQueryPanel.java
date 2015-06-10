@@ -35,7 +35,6 @@ import javax.swing.Box;
 import javax.swing.ImageIcon;
 import javax.swing.InputMap;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -46,7 +45,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
-import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 import javax.swing.MenuElement;
@@ -73,12 +71,12 @@ public class TapQueryPanel extends JPanel {
 
     private final TableSetPanel tmetaPanel_;
     private final TapCapabilityPanel tcapPanel_;
-    private final JToggleButton syncToggle_;
     private final Action examplesAct_;
     private final Action parseErrorAct_;
     private final JPopupMenu examplesMenu_;
     private final JMenu daliExampleMenu_;
     private final JTabbedPane textTabber_;
+    private final JComponent controlBox_;
     private final CaretListener caretForwarder_;
     private final List<CaretListener> caretListeners_;
     private final Map<ParseTextArea,UndoManager> undoerMap_;
@@ -205,12 +203,6 @@ public class TapQueryPanel extends JPanel {
         configureAction( removeTabAct_, "remove_tab.gif",
                          "Delete the currently visible ADQL entry tab" );
 
-        /* Button for selecting sync/async mode of query. */
-        syncToggle_ = new JCheckBox( "Synchronous", true );
-        syncToggle_.setToolTipText( "Determines whether the TAP query will "
-                                  + "be carried out in synchronous (selected) "
-                                  + "or asynchronous (unselected) mode" );
-
         /* Action to display parse error text. */
         parseErrorAct_ = new AbstractAction( "Parse Errors" ) {
             public void actionPerformed( ActionEvent evt ) {
@@ -323,10 +315,10 @@ public class TapQueryPanel extends JPanel {
         for ( Action act : getEditActions() ) {
             toolbar.add( act );
         }
+        controlBox_ = Box.createHorizontalBox();
         Box buttLine = Box.createHorizontalBox();
         buttLine.setBorder( BorderFactory.createEmptyBorder( 0, 2, 2, 0 ) );
-        buttLine.add( syncToggle_ );
-        buttLine.add( Box.createHorizontalStrut( 5 ) );
+        buttLine.add( controlBox_ );
         buttLine.add( new JButton( examplesAct_ ) );
         buttLine.add( Box.createHorizontalGlue() );
         buttLine.add( toolbar );
@@ -380,15 +372,6 @@ public class TapQueryPanel extends JPanel {
      */
     public String getAdql() {
         return textPanel_.getText().replaceFirst( "\\s*\\Z", "" );
-    }
-
-    /**
-     * Indicates whether synchronous operation has been selected.
-     *
-     * @return   true for sync, false for async
-     */
-    public boolean isSynchronous() {
-        return syncToggle_.isSelected();
     }
 
     /**
@@ -472,6 +455,16 @@ public class TapQueryPanel extends JPanel {
             interpolateTableAct_, interpolateColumnsAct_,
             parseErrorAct_,
         };
+    }
+
+    /**
+     * Adds a given control to the line of buttons displayed at the top
+     * of this panel.
+     *
+     * @param  comp  component to add
+     */
+    public void addControl( JComponent comp ) {
+        controlBox_.add( comp );
     }
 
     /**
