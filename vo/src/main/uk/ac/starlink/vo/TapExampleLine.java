@@ -11,6 +11,7 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 
 /**
  * Displays information about a current displayed ADQL example.
@@ -42,16 +43,19 @@ public class TapExampleLine extends JPanel {
                 urlHandler_.clickUrl( example_.getInfoUrl() );
             }
         };
+        infoAct_.putValue( Action.SMALL_ICON, MetaPanel.LINK_ICON );
         setLayout( new BoxLayout( this, BoxLayout.LINE_AXIS ) );
         JComponent textBox = Box.createHorizontalBox();
         textBox.setBorder( BorderFactory.createEtchedBorder() );
         textBox.add( Box.createHorizontalStrut( 5 ) );
         textBox.add( titleLabel_ );
         textBox.add( nameField_ );
+        JButton infoButt = new JButton( infoAct_ );
+        infoButt.setHorizontalTextPosition( SwingConstants.LEADING );
         add( textBox );
         add( Box.createHorizontalGlue() );
         add( Box.createHorizontalStrut( 5 ) );
-        add( new JButton( infoAct_ ) );
+        add( infoButt );
         setExample( null, null );
     }
 
