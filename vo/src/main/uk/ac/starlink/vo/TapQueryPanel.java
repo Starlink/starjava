@@ -54,8 +54,6 @@ import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.text.BadLocationException;
@@ -94,7 +92,6 @@ public class TapQueryPanel extends JPanel {
     private final Action addTabAct_;
     private final Action copyTabAct_;
     private final Action removeTabAct_;
-    private final DocumentListener docListener_;
     private final DelegateAction prevExampleAct_;
     private final DelegateAction nextExampleAct_;
     private TapServiceKit serviceKit_;
@@ -206,7 +203,7 @@ public class TapQueryPanel extends JPanel {
                     undoerMap_.remove( textPanel_ );
                     textTabber_.removeTabAt( textTabber_.getSelectedIndex() );
                 }
-                updateTabState();
+                updateTextTab();
             }
         };
         configureAction( removeTabAct_, "remove_tab.gif",
@@ -322,22 +319,13 @@ public class TapQueryPanel extends JPanel {
         nextExampleAct_ =
             new DelegateAction( null, ComboBoxBumper.INC_ICON,
                                 "Next example in group" );
-        docListener_ = new DocumentListener() {
-            public void changedUpdate( DocumentEvent evt ) {
-                change();
-            }
-            public void insertUpdate( DocumentEvent evt ) {
-                change();
-            }
-            public void removeUpdate( DocumentEvent evt ) {
-                change();
-            }
-            private void change() { 
+        addCaretListener( new CaretListener() {
+            public void caretUpdate( CaretEvent evt ) {
                 exampleLine_.setExample( null, null );
                 prevExampleAct_.setDelegate( null );
                 nextExampleAct_.setDelegate( null );
             }
-        };
+        } );
         JComponent exampleBox = Box.createHorizontalBox();
         exampleBox.setBorder( BorderFactory.createEmptyBorder( 4, 0, 2, 0 ) );
         exampleBox.add( new JButton( examplesAct_ ) );
@@ -516,8 +504,8 @@ public class TapQueryPanel extends JPanel {
      * text entry panel.
      * This uses a CaretListener rather than (what might be more
      * appropriate) DocumentListener because the DocumentListener
-     * interface looks too hairy for use by components that are themselves
-     * behaving asynchronously.
+     * interface looks too hairy, especially for use by components
+     * that are themselves behaving asynchronously.
      *
      * @param  listener  listener to add
      */
@@ -758,28 +746,23 @@ public class TapQueryPanel extends JPanel {
     private void updateTextTab() {
         if ( textPanel_ != null ) {
             textPanel_.removeCaretListener( caretForwarder_ );
-            textPanel_.getDocument().removeDocumentListener( docListener_ );
         }
         textPanel_ = (ParseTextArea)
                      ((JScrollPane) textTabber_.getSelectedComponent())
                     .getViewport().getView();
         textPanel_.addCaretListener( caretForwarder_ );
-        textPanel_.getDocument().addDocumentListener( docListener_ );
         undoer_ = undoerMap_.get( textPanel_ );
         Caret caret = textPanel_.getCaret();
         final int dot = caret.getDot();
         final int mark = caret.getMark();
-        CaretEvent evt = new CaretEvent( textPanel_ ) {
+        caretForwarder_.caretUpdate( new CaretEvent( textPanel_ ) {
             public int getDot() {
                 return dot;
             }
             public int getMark() {
                 return mark;
             }
-        };
-        for ( CaretListener l : caretListeners_ ) {
-            l.caretUpdate( evt );
-        }
+        } );
         updateTabState();
         updateUndoState();
         validateAdql();
