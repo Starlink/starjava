@@ -1,17 +1,21 @@
 package uk.ac.starlink.vo;
 
 import java.awt.Color;
-import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.net.MalformedURLException;
 import java.net.URL;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JEditorPane;
 import javax.swing.JLabel;
@@ -22,6 +26,8 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.Scrollable;
 import javax.swing.SwingUtilities;
+import javax.swing.event.CaretEvent;
+import javax.swing.event.CaretListener;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.html.HTMLEditorKit;
 
@@ -35,6 +41,10 @@ import javax.swing.text.html.HTMLEditorKit;
 public class MetaPanel extends JPanel implements Scrollable {
 
     private final JLabel logoLabel_;
+
+    /** Icon indicating a link to an external URL. */
+    public static final Icon LINK_ICON = 
+        new ImageIcon( MetaPanel.class.getResource( "extlink.gif" ) );
 
     /**
      * Constructor.
@@ -113,27 +123,64 @@ public class MetaPanel extends JPanel implements Scrollable {
      */
     public JTextComponent addUrlField( String heading,
                                        final UrlHandler urlHandler ) {
-        final JTextComponent field = addLineField( heading );
+        final JTextField field = new JTextField() {
+            @Override
+            public Dimension getMinimumSize() {
+                return getPreferredSize();
+            }
+            @Override
+            public Dimension getMaximumSize() {
+                return getPreferredSize();
+            }
+        };
+        field.setEditable( false );
+        field.setOpaque( false );
+        field.setBorder( BorderFactory.createEmptyBorder() );
+        final Action linkAct = new AbstractAction( null ) {
+            public void actionPerformed( ActionEvent evt ) {
+                String txt = field.getText();
+                if ( txt != null && txt.length() > 0 && urlHandler != null ) {
+                    try {
+                        urlHandler.clickUrl( new URL( txt ) );
+                    }
+                    catch ( MalformedURLException e ) {
+                    }
+                }
+            }
+        };
+        linkAct.putValue( Action.SHORT_DESCRIPTION,
+                          "Open link in web browser" );
+        JButton linkButton = new JButton( linkAct );
+        linkButton.setBorder( BorderFactory.createEmptyBorder() );
+        linkButton.setMargin( new java.awt.Insets( 0, 0, 0, 0 ) );
+        JComponent line = Box.createHorizontalBox();
+        line.add( field );
+        line.add( Box.createHorizontalStrut( 5 ) );
+        line.add( linkButton );
+        line.add( Box.createHorizontalGlue() );
+        addHeadedComponent( heading, line );
         if ( urlHandler != null ) {
             field.setForeground( new Color( 0x0000ee ) );
-            try {
-                field.setCursor( Cursor.getPredefinedCursor( Cursor
-                                                            .HAND_CURSOR ) );
-            }
-            catch ( Exception e ) {
-                //
-            }
             field.addMouseListener( new MouseAdapter() {
                 public void mouseClicked( MouseEvent evt ) {
+                    linkAct.actionPerformed( null );
+                }
+            } );
+            field.addCaretListener( new CaretListener() {
+                public void caretUpdate( CaretEvent evt ) {
+                    boolean hasUrl = false;
                     String txt = field.getText();
-                    if ( evt.getButton() == evt.BUTTON1 && txt != null ) {
+                    if ( txt != null && txt.length() > 0 ) {
                         try {
-                            urlHandler.clickUrl( new URL( txt ) );
+                            new URL( txt );
+                            hasUrl = true;
                         }
                         catch ( MalformedURLException e ) {
-                            // no action
                         }
                     }
+                    linkAct.putValue( Action.SMALL_ICON,
+                                      hasUrl ? LINK_ICON : null );
+                    linkAct.setEnabled( hasUrl );
                 }
             } );
         }
