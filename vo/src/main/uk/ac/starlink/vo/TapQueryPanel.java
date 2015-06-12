@@ -92,6 +92,7 @@ public class TapQueryPanel extends JPanel {
     private final Action addTabAct_;
     private final Action copyTabAct_;
     private final Action removeTabAct_;
+    private final Action titleTabAct_;
     private final DelegateAction prevExampleAct_;
     private final DelegateAction nextExampleAct_;
     private TapServiceKit serviceKit_;
@@ -208,6 +209,27 @@ public class TapQueryPanel extends JPanel {
         };
         configureAction( removeTabAct_, "remove_tab.gif",
                          "Delete the currently visible ADQL entry tab" );
+        titleTabAct_ = new AbstractAction( "Title Tab" ) {
+            public void actionPerformed( ActionEvent evt ) {
+                int itab = textTabber_.getSelectedIndex();
+                if ( itab >= 0 ) {
+                    Object response =
+                        JOptionPane
+                       .showInputDialog( TapQueryPanel.this,
+                                         "Tab Title", "Re-title Edit Tab",
+                                         JOptionPane.QUESTION_MESSAGE, null,
+                                         null, textTabber_.getTitleAt( itab ) );
+                    if ( response instanceof String ) {
+                        String title = ((String) response).trim();
+                        if ( title.length() > 0 ) {
+                            textTabber_.setTitleAt( itab, title );
+                        }
+                    }
+                }
+            }
+        };
+        configureAction( titleTabAct_, "title_tab.gif",
+                         "Re-title the currently visible ADQL entry tab" );
 
         /* Action to display parse error text. */
         parseErrorAct_ = new AbstractAction( "Parse Errors" ) {
@@ -482,7 +504,7 @@ public class TapQueryPanel extends JPanel {
      */
     public Action[] getEditActions() {
         return new Action[] {
-            addTabAct_, copyTabAct_, removeTabAct_,
+            addTabAct_, copyTabAct_, removeTabAct_, titleTabAct_,
             clearAct_, undoAct_, redoAct_,
             interpolateTableAct_, interpolateColumnsAct_,
             parseErrorAct_,
@@ -785,6 +807,7 @@ public class TapQueryPanel extends JPanel {
         copyTabAct_.setEnabled( textPanel_ != null );
         removeTabAct_.setEnabled( textPanel_ != null &&
                                   textTabber_.getTabCount() > 1 );
+        titleTabAct_.setEnabled( textTabber_.getSelectedIndex() >= 0 );
     }
 
     /**
