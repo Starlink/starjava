@@ -10250,6 +10250,7 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>Upgrade JEL to v2.0.2.
         Fixes problem with evaluating void-typed expressions,
         and possibly some other obscure bugs.</li>
+    <li>Some taplint bug fixes.</li>
     </ul>
     </p></dd>
 
