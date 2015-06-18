@@ -104,7 +104,9 @@ public abstract class TableMetadataStage implements Stage, MetadataHolder {
         Map<String,SchemaMeta> schemaMap =
             createNameMap( reporter, "schema", 'S', smetas );
         for ( String sname : schemaMap.keySet() ) {
-            checkSchemaName( reporter, sname );
+            if ( sname != null ) {
+                checkSchemaName( reporter, sname );
+            }
         }
         List<TableMeta> tmList = new ArrayList<TableMeta>();
         for ( SchemaMeta smeta : smetas ) {
@@ -116,7 +118,9 @@ public abstract class TableMetadataStage implements Stage, MetadataHolder {
         Map<String,TableMeta> tableMap = 
             createNameMap( reporter, "table", 'T', tmetas );
         for ( String tname : tableMap.keySet() ) {
-            checkTableName( reporter, tname );
+            if ( tname != null ) {
+                checkTableName( reporter, tname );
+            }
         }
 
         Map<String,Map<String,ColumnMeta>> colsMap =
@@ -128,7 +132,9 @@ public abstract class TableMetadataStage implements Stage, MetadataHolder {
             Map<String,ColumnMeta> cmap =
                 createNameMap( reporter, "column", 'C', cols );
             for ( String cname : cmap.keySet() ) {
-                checkColumnName( reporter, cname, tmeta );
+                if ( cname != null ) {
+                    checkColumnName( reporter, cname, tmeta );
+                }
             }
             colsMap.put( tname, cmap );
         }
@@ -315,7 +321,9 @@ public abstract class TableMetadataStage implements Stage, MetadataHolder {
      * Creates a map from an array of objects.
      * The map keys are the results of calling <code>toString</code> on the
      * objects.  Any duplicates will be reported through the supplied
-     * reporter.
+     * reporter or blank values.  Note that some keys of the returned map
+     * may be null or empty strings (in that case a report will already
+     * have been made).
      *
      * @param   reporter   destination for validation messages
      * @param   dName  descriptive name of type of thing in map
