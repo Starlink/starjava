@@ -56,6 +56,7 @@ public abstract class JELRowReader extends DVMap {
     private final Object[] args_;
     private List constantList_;
     private boolean isNullExpression_;
+    private boolean failOnNull_;
 
     /**
      * The string which, when prefixed to a column identifier, indicates
@@ -93,6 +94,27 @@ public abstract class JELRowReader extends DVMap {
     public JELRowReader() {
         args_ = new Object[] { this };
         constantList_ = new ArrayList();
+    }
+
+    /**
+     * Configures the behaviour when a primitive integer or boolean
+     * value passed as an argument to a function for evaluation
+     * is represented by a null value in the column.
+     * If failOnNull is set false, then zero values are sent to the function,
+     * but the result of the evaluation is just returned as null.
+     * If failOnNull is set true, then a NullPointerException is thrown
+     * as soon as the substitution is attempted.
+     * False is generally much faster, since throwing exceptions is expensive.
+     * However, if it is important that the function is not evaluated at all
+     * with wrong arguments (zeroes instead of nulls), for instance because
+     * of side-effects, you can set it true.
+     *
+     * <p>The default behaviour is false.
+     *
+     * @param  failOnNull  failOnNull flag
+     */
+    public synchronized void setFailOnNull( boolean failOnNull ) {
+        failOnNull_ = failOnNull;
     }
 
     /**
@@ -231,6 +253,9 @@ public abstract class JELRowReader extends DVMap {
      */
     protected void foundNull() {
         isNullExpression_ = true;
+        if ( failOnNull_ ) {
+            throw new NullPointerException();
+        }
     }
 
     /**

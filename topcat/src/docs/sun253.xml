@@ -21841,6 +21841,17 @@ introduced since the last version:
         The various <ref id="System"><code>exec</code></ref> functions
         however do now write their output direct to stdout/stderr
         rather than including them in a return value.</li>
+    <li>Custom Code activation action invocation behaviour has subtly changed
+        when one of the values in the expression is from an integer or
+        boolean column, and that column has a blank value.
+        In that case, it's not possible to represent the column value
+        properly to the function (since integer/boolean values can't be null).
+        Previously, the function was invoked with a zero/false value where
+        the null would have been.  Now, the function is not invoked at all.
+        Note this only applies to Activation Actions (which are expected to
+        have side-effects); expressions evaluated as column values etc
+        are, as previously, executed but the result is ignored.
+        </li>
     </ul>
     </p></dd>
 
