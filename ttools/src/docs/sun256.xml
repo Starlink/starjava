@@ -10284,6 +10284,12 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         versions generating unreadable VOTable output.
         Now they convert them to columns with datatype
         <code>boolean</code> (not perfect, but better).</li>
+    <li>Added some functions to the
+        <ref id="uk.ac.starlink.ttools.func.Arrays">Arrays</ref> class
+        that return array-valued results from array-valued parameters:
+        <code>add</code>, <code>subtract</code>,
+        <code>multiply</code>, <code>divide</code>,
+        <code>reciprocal</code>, <code>condition</code>.</li>
     </ul>
     </p></dd>
 

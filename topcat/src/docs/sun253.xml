@@ -22274,6 +22274,12 @@ introduced since the last version:
             a CSV file is a header.</li>
         <li>Prevent submission of multi-cone/SIA queries for which the
             Search Radius parameter is blank.</li>
+        <li>Added some functions to the 
+            <ref id="Arrays">Arrays</ref> class
+            that return array-valued results from array-valued parameters:
+            <code>add</code>, <code>subtract</code>,
+            <code>multiply</code>, <code>divide</code>,
+            <code>reciprocal</code>, <code>condition</code>.</li>
         </ul>
         </p></dd>
     </dl>
