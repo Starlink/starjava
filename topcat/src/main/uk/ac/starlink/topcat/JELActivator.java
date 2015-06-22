@@ -41,7 +41,7 @@ public class JELActivator implements Activator {
          * so it's important not to evaluate functions with bogus
          * (zero-instead-of-null) parameters in this context.
          * The default behaviour, which is evaluating them and
-         * ignoring the result, is not sufficient here.
+         * ignoring the result, is not sufficient here. */
         rowReader_.setFailOnNull( true );
 
         /* Compile the expression. */

@@ -171,6 +171,9 @@ public class TopcatJELUtils extends JELUtils {
         else if ( prim == double.class ) {
             return Double.class;
         }
+        else if ( prim == void.class ) {
+            return Void.class;
+        }
         else {
             throw new IllegalArgumentException( prim + " is not primitive" );
         }
