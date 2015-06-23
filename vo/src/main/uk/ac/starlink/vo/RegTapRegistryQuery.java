@@ -351,7 +351,7 @@ public class RegTapRegistryQuery implements RegistryQuery {
         String contactEmail_;
         String publisherName_;
         String[] subjects_;
-        Map<Integer,RegCapabilityInterface> capMap_;
+        Map<Object,RegCapabilityInterface> capMap_;
 
         /**
          * Constructor.
@@ -369,7 +369,7 @@ public class RegTapRegistryQuery implements RegistryQuery {
             title_ = title;
             refUrl_ = refUrl;
             subjects_ = subjects;
-            capMap_ = new LinkedHashMap<Integer,RegCapabilityInterface>();
+            capMap_ = new LinkedHashMap<Object,RegCapabilityInterface>();
         }
 
         public String getIdentifier() {
@@ -476,7 +476,7 @@ public class RegTapRegistryQuery implements RegistryQuery {
             final String baseRole = getString( row, "base_role" );
             final String roleName = getString( row, "role_name" );
             final String email = getString( row, "email" );
-            final Number intfIndex = (Number) getEntry( row, "intf_index" );
+            final Object intfIndex = getEntry( row, "intf_index" );
             final String accessUrl = getString( row, "access_url" );
             final String standardId = getString( row, "standard_id" );
             final String capType = getString( row, "cap_type" );
@@ -503,9 +503,9 @@ public class RegTapRegistryQuery implements RegistryQuery {
                 resource.publisherName_ = roleName;
             }
             if ( intfIndex != null ) {
-                Integer ix = new Integer( intfIndex.intValue() );
-                if ( ! resource.capMap_.containsKey( ix ) ) {
-                    resource.capMap_.put( ix, new RegCapabilityInterface() {
+                if ( ! resource.capMap_.containsKey( intfIndex ) ) {
+                    resource.capMap_.put( intfIndex,
+                                          new RegCapabilityInterface() {
                         public String getAccessUrl() {
                             return accessUrl;
                         }
