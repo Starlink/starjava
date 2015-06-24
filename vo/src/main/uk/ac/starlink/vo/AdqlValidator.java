@@ -322,16 +322,26 @@ public class AdqlValidator {
          */
         ValidatorDBTable( ValidatorTable vtable ) {
             vtable_ = vtable;
-            String[] names =
-                 DefaultDBTable.splitTableName( vtable.getTableName() );
-            name_ = names[ 2 ];
-            catalogName_ = names[ 0 ];
-            schemaName_ = vtable.getSchemaName();
             syntax_ = AdqlSyntax.getInstance();
+            String[] names =
+                syntax_.getCatalogSchemaTable( vtable.getTableName() );
+
+            /* I'm still not certain I'm assigning the schema name here
+             * correctly, or exactly what it's used for. */
+            if ( names != null ) {
+                name_ = names[ 2 ];
+                schemaName_ = vtable.getSchemaName();
+                catalogName_ = names[ 0 ];
+            }
+            else {
+                name_ = vtable.getTableName();
+                schemaName_ = vtable.getSchemaName();
+                catalogName_ = null;
+            }
         }
 
         public String getADQLName() {
-            return name_;
+            return syntax_.unquote( name_ );
         }
 
         public String getDBName() {
@@ -339,7 +349,7 @@ public class AdqlValidator {
         }
 
         public String getADQLSchemaName() {
-            return schemaName_;
+            return syntax_.unquote( schemaName_ );
         }
 
         public String getDBSchemaName() {
@@ -347,7 +357,7 @@ public class AdqlValidator {
         }
 
         public String getADQLCatalogName() {
-            return catalogName_;
+            return syntax_.unquote( catalogName_ );
         }
 
         public String getDBCatalogName() {
