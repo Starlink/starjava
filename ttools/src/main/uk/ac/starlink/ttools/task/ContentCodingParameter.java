@@ -30,7 +30,7 @@ public class ContentCodingParameter extends BooleanParameter {
             "at the expense of more processing on the server and client.",
             "</p>",
         } );
-        setBooleanDefault( false );
+        setBooleanDefault( true );
     }
 
     /**
