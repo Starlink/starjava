@@ -99,7 +99,7 @@ public class UploadMatchPanel extends JPanel {
      */
     public UploadMatchPanel( JProgressBar progBar ) {
         super( new BorderLayout() );
-        coding_ = ContentCoding.NONE;
+        coding_ = ContentCoding.GZIP;
         progBar_ = progBar;
         progBar_.setStringPainted( true );
         JComponent main = Box.createVerticalBox();

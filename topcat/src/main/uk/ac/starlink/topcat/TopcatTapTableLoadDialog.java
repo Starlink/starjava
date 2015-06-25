@@ -164,7 +164,7 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
         codingButton.setToolTipText( "Determines whether HTTP-level compression"
                                    + " is used for results of TAP and metadata"
                                    + " queries" );
-        codingButton.setSelected( false );
+        codingButton.setSelected( true );
         tapMenu.add( codingButton );
 
         /* Prepare a handler for clickable URLs. */

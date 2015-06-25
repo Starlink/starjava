@@ -396,7 +396,7 @@ public class TableSetSaxHandler extends DefaultHandler {
     public static void main( String[] args ) throws IOException, SAXException {
         java.io.PrintStream out = System.out;
         TableSetSaxHandler tsHandler =
-            populateHandler( new URL( args[ 0 ] ), ContentCoding.NONE );
+            populateHandler( new URL( args[ 0 ] ), ContentCoding.GZIP );
         for ( SchemaMeta schema : tsHandler.getSchemas() ) {
             out.println( schema.getName() );
             for ( TableMeta table : schema.getTables() ) {
