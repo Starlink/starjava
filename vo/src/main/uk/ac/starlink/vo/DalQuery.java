@@ -7,6 +7,7 @@ import org.xml.sax.InputSource;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.util.CgiQuery;
+import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.votable.VOElementFactory;
 
 /**
@@ -21,6 +22,7 @@ public class DalQuery {
 
     private final CgiQuery cgi_;
     private final String serviceType_;
+    private final ContentCoding coding_;
     private String name_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
@@ -39,7 +41,8 @@ public class DalQuery {
     public DalQuery( RegResource resource, RegCapabilityInterface capability,
                      String serviceType,
                      double raPos, double decPos, double size ) {
-        this( capability.getAccessUrl(), serviceType, raPos, decPos, size );
+        this( capability.getAccessUrl(), serviceType, raPos, decPos, size,
+              ContentCoding.GZIP );
         String id = null;
         if ( id == null ) {
             id = resource.getShortName();
@@ -61,12 +64,15 @@ public class DalQuery {
      * @param  raPos     right ascension of ROI center in degrees
      * @param  decPos    declination of ROI center in degrees
      * @param  size      size in degrees
+     * @param  coding    controls HTTP-level byte-stream compression
      */
     public DalQuery( String baseURL, String serviceType,
-                     double raPos, double decPos, double size ) {
+                     double raPos, double decPos, double size,
+                     ContentCoding coding ) {
         cgi_ = new CgiQuery( baseURL );
         name_ = baseURL;
         serviceType_ = serviceType;
+        coding_ = coding;
         addArgument( "POS", doubleToString( raPos ) + "," 
                           + doubleToString( decPos ) );
         if ( ! Double.isNaN( size ) ) {
@@ -102,7 +108,7 @@ public class DalQuery {
         logger_.info( "Submitting query: " + qurl );
         VOElementFactory vofact =
             new VOElementFactory( tfact.getStoragePolicy() );
-        InputSource inSrc = new InputSource( qurl.openStream() );
+        InputSource inSrc = new InputSource( coding_.openStream( qurl ) );
         inSrc.setSystemId( qurl.toString() );
         return DalResultXMLFilter.getDalResultTable( vofact, inSrc );
     }

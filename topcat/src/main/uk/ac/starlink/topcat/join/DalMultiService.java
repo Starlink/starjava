@@ -8,6 +8,7 @@ import uk.ac.starlink.topcat.ColumnSelector;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.ttools.cone.ConeSearcher;
 import uk.ac.starlink.ttools.cone.Coverage;
+import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.vo.Capability;
 
 /**
@@ -76,8 +77,12 @@ public interface DalMultiService {
      *
      * @param   url  service URL
      * @param   tfact  table factory
+     * @param   coding  controls HTTP-level byte stream compression;
+     *                  this hint may be ignored by implementations
+     * @return   cone searcher object
      */
-    ConeSearcher createSearcher( URL url, StarTableFactory tfact );
+    ConeSearcher createSearcher( URL url, StarTableFactory tfact,
+                                 ContentCoding coding );
 
     /**
      * Indicates whether this service is capable of supplying coverage

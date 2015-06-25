@@ -197,7 +197,7 @@ public class CdsUploadMatcher implements UploadMatcher {
         String url = XMATCH_URL + "/tables?action=getPrettyNames";
         logger_.info( "Reading VizieR aliases from " + url );
         List<String> aliasList = new ArrayList<String>();
-        BufferedReader rdr = getLineReader( url );
+        BufferedReader rdr = getLineReader( url, ContentCoding.NONE );
         try {
             for ( String line; ( line = rdr.readLine() ) != null; ) {
                 aliasList.add( line );
@@ -223,7 +223,7 @@ public class CdsUploadMatcher implements UploadMatcher {
         String url = XMATCH_URL + "/tables?action=getVizieRTableNames";
         logger_.info( "Reading VizieR table names from " + url );
         List<String> nameList = new ArrayList<String>();
-        BufferedReader rdr = getLineReader( url );
+        BufferedReader rdr = getLineReader( url, ContentCoding.GZIP );
         try {
             for ( String line; ( line = rdr.readLine() ) != null; ) {
                 String name = line.replaceAll( "[\\[\\]\",]", "" ).trim();
@@ -254,7 +254,8 @@ public class CdsUploadMatcher implements UploadMatcher {
         query.addArgument( "tabName", vizName );
         URL url = query.toURL();
         logger_.info( "Reading " + vizName + " metadata from " + url );
-        InputStream in = new BufferedInputStream( url.openStream() );
+        InputStream in =
+            new BufferedInputStream( ContentCoding.NONE.openStream( url ) );
         JSONObject infoObj;
         try {
             JSONTokener jt = new JSONTokener( in );
@@ -360,13 +361,15 @@ public class CdsUploadMatcher implements UploadMatcher {
      * suitable for VizieR output.
      *
      * @param  urltxt  target URL
+     * @param  coding  defines HTTP-level compression
      * @return  UTF8 reader
      */
-    private static BufferedReader getLineReader( String urltxt )
+    private static BufferedReader getLineReader( String urltxt,
+                                                 ContentCoding coding )
             throws IOException {
         URL url = new URL( urltxt );
-        return new BufferedReader( new InputStreamReader( url.openStream(),
-                                                          "utf8" ) );
+        InputStream in = coding.openStream( url );
+        return new BufferedReader( new InputStreamReader( in, "utf8" ) );
     }
 
     /**
