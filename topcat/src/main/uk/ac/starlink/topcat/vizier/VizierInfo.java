@@ -13,6 +13,7 @@ import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
+import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.util.URLDataSource;
 import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.votable.ParamElement;
@@ -37,6 +38,7 @@ public class VizierInfo {
 
     private final Component parent_;
     private final URL vizierBaseUrl_;
+    private final ContentCoding coding_;
     private InfoItem[] surveyItems_;
     private InfoItem[] archiveItems_;
     private String[] lambdaKws_;
@@ -48,10 +50,13 @@ public class VizierInfo {
      * Constructor.
      *
      * @param   parent  parent component, used for placing error messages
+     * @param   vizierBaseUrl   base URL for VizieR service
+     * @param   coding   controls HTTP-level byte stream encoding
      */
-    VizierInfo( Component parent, URL vizierBaseUrl ) {
+    VizierInfo( Component parent, URL vizierBaseUrl, ContentCoding coding ) {
         parent_ = parent;
         vizierBaseUrl_ = vizierBaseUrl;
+        coding_ = coding;
         surveyItems_ = new InfoItem[ 0 ];
         archiveItems_ = new InfoItem[ 0 ];
         lambdaKws_ = new String[ 0 ];
@@ -165,7 +170,7 @@ public class VizierInfo {
         URL url = new URL( vizierBaseUrl_ + "?-meta.aladin=all" );
         logger_.info( url.toString() );
         VOElement top = new VOElementFactory( StoragePolicy.PREFER_MEMORY )
-                       .makeVOElement( new URLDataSource( url ) );
+                       .makeVOElement( new URLDataSource( url, coding_ ) );
 
         /* Get Survey and Archive lists. */
         NodeList tableList = top.getElementsByVOTagName( "TABLE" );

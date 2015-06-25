@@ -114,6 +114,20 @@ public abstract class ContentCoding {
     }
 
     /**
+     * Convenience method to return a byte stream from a given URL
+     * in accordance with this object's encoding policy.
+     * Opens the connection, prepares the request, and decodes the result.
+     *
+     * @param  url  target URL
+     * @return  unencoded stream from the URL
+     */
+    public InputStream openStream( URL url ) throws IOException {
+        URLConnection conn = url.openConnection();
+        prepareRequest( conn );
+        return getInputStream( conn );
+    }
+
+    /**
      * Creates a ContentCoding instance that optionally requests compression.
      *
      * @param   name   user-readable name of the coding instance

@@ -13,6 +13,7 @@ import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.util.CgiQuery;
+import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.votable.TableElement;
 import uk.ac.starlink.votable.VOElement;
 import uk.ac.starlink.votable.VOElementFactory;
@@ -32,21 +33,36 @@ import uk.ac.starlink.votable.VOTableBuilder;
 public class ConeSearch {
 
     private final String serviceUrl_;
+    private final ContentCoding coding_;
     private String label_;
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
 
     /**
-     * Constructs a new ConeSearch from its service URL.
+     * Constructs a new ConeSearch from its service URL with explicit
+     * content-coding.
+     *
+     * @param  serviceUrl   base URL for cone search
+     * @param  coding   controls HTTP-level compression requests
+     * @throws  IllegalArgumentException if the service URL is unsuitable
+     */
+    public ConeSearch( String serviceUrl, ContentCoding coding ) {
+        new CgiQuery( serviceUrl );  // may throw
+        serviceUrl_ = serviceUrl;
+        label_ = serviceUrl_;
+        coding_ = coding;
+    }
+
+    /**
+     * Constructs a new ConeSearch from its service URL with default
+     * content-coding.
      *
      * @param  serviceUrl   base URL for cone search
      * @throws  IllegalArgumentException if the service URL is unsuitable
      */
     public ConeSearch( String serviceUrl ) {
-        new CgiQuery( serviceUrl );  // may throw
-        serviceUrl_ = serviceUrl;
-        label_ = serviceUrl_;
+        this( serviceUrl, ContentCoding.GZIP );
     }
 
     /**
@@ -93,7 +109,8 @@ public class ConeSearch {
                                TableSink sink ) throws IOException {
         URL qurl = getSearchURL( ra, dec, sr, verb );
         logger_.info( "Submitting query: " + qurl );
-        new VOTableBuilder().streamStarTable( qurl.openStream(), sink, null );
+        new VOTableBuilder().streamStarTable( coding_.openStream( qurl ),
+                                              sink, null );
     }
 
     /**
@@ -117,7 +134,8 @@ public class ConeSearch {
         VOElement topEl;
         try {
             topEl = new VOElementFactory( storage )
-                   .makeVOElement( qurl.openStream(), qurl.toString() );
+                   .makeVOElement( coding_.openStream( qurl ),
+                                   qurl.toString() );
         }
         catch ( SAXException e ) {
             throw (IOException) new IOException( e.getMessage() )

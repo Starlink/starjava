@@ -6,6 +6,7 @@ import java.util.regex.Pattern;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
+import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.vo.DalQuery;
 
 /**
@@ -23,6 +24,7 @@ public class SsaConeSearcher extends DalConeSearcher implements ConeSearcher {
     private final String serviceUrl_; 
     private final String specFormat_;
     private final StarTableFactory tfact_;
+    private final ContentCoding coding_;
     private static final Logger logger_ = 
         Logger.getLogger( "uk.ac.starlink.ttools.cone" );
 
@@ -35,16 +37,19 @@ public class SsaConeSearcher extends DalConeSearcher implements ConeSearcher {
      * Constructor.
      */
     public SsaConeSearcher( String serviceUrl, String specFormat,
-                            boolean believeEmpty, StarTableFactory tfact ) {
+                            boolean believeEmpty, StarTableFactory tfact,
+                            ContentCoding coding ) {
         super( "SSA", "1.04", believeEmpty );
         serviceUrl_ = serviceUrl;
         specFormat_ = specFormat;
         tfact_ = tfact;
+        coding_ = coding;
     }
 
     public StarTable performSearch( double ra, double dec, double sr )
             throws IOException {
-        DalQuery query = new DalQuery( serviceUrl_, "SSA", ra, dec, sr * 2 );
+        DalQuery query =
+            new DalQuery( serviceUrl_, "SSA", ra, dec, sr * 2, coding_ );
         query.addArgument( "REQUEST", "queryData" );
         if ( specFormat_ != null && specFormat_.trim().length() > 0 ) {
             query.addArgument( "FORMAT", specFormat_ );

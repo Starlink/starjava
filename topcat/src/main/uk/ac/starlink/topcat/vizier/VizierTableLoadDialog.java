@@ -56,6 +56,7 @@ import uk.ac.starlink.table.gui.AbstractTableLoadDialog;
 import uk.ac.starlink.table.gui.TableLoader;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.util.CgiQuery;
+import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.util.URLDataSource;
 import uk.ac.starlink.util.gui.ArrayTableModel;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
@@ -71,6 +72,7 @@ import uk.ac.starlink.vo.SkyPositionEntry;
  */
 public class VizierTableLoadDialog extends AbstractTableLoadDialog {
 
+    private final ContentCoding coding_;
     private JComboBox serverSelector_;
     private SkyPositionEntry skyEntry_;
     private DoubleValueField srField_;
@@ -107,6 +109,7 @@ public class VizierTableLoadDialog extends AbstractTableLoadDialog {
         super( "VizieR Catalogue Service",
                "Access the VizieR library"
              + " of published astronomical catalogues" );
+        coding_ = ContentCoding.GZIP;
         setIcon( ResourceIcon.VIZIER );
     }
 
@@ -416,7 +419,8 @@ public class VizierTableLoadDialog extends AbstractTableLoadDialog {
                     throws IOException {
                 logger_.info( "VizieR query: " + url );
                 final TableSequence tseq =
-                    tfact.makeStarTables( new URLDataSource( url ), "votable" );
+                    tfact.makeStarTables( new URLDataSource( url, coding_ ),
+                                          "votable" );
                 return new TableSequence() {
                     int ix_;
                     public StarTable nextTable() throws IOException {
@@ -480,7 +484,8 @@ public class VizierTableLoadDialog extends AbstractTableLoadDialog {
                 Toolkit.getDefaultToolkit().beep();
                 return;
             }
-            VizierInfo vizinfo = new VizierInfo( getQueryComponent(), url );
+            VizierInfo vizinfo =
+                new VizierInfo( getQueryComponent(), url, coding_ );
             vizinfo_ = vizinfo;
             for ( int i = 0; i < vizModes_.length; i++ ) {
                 vizModes_[ i ].setVizierInfo( vizinfo );
