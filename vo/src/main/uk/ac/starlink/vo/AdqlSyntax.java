@@ -137,6 +137,18 @@ public class AdqlSyntax extends SqlSyntax {
     }
 
     /**
+     * Returns ADQL text representing a character literal.
+     * This quotes the supplied string by surrounding it with single quotes,
+     * escaping any internal single quote characters appropriately.
+     *
+     * @param  txt  raw text
+     * @return   character literal suitable for insertion into ADQL text
+     */
+    public String characterLiteral( String txt ) {
+        return "'" + txt.replaceAll( "'", "''" ) + "'";
+    }
+
+    /**
      * Returns the sole instance of this class.
      *
      * @return  AdqlSyntax instance
