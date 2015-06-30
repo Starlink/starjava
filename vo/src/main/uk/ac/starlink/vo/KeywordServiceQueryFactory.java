@@ -150,6 +150,7 @@ public class KeywordServiceQueryFactory implements RegistryQueryFactory {
             matchLine.add( checkBox );
             fieldSelMap_.put( rf, checkBox );
         }
+        matchLine.add( Box.createHorizontalGlue() );
         queryPanel_.add( matchLine );
     }
 
