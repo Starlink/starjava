@@ -186,6 +186,7 @@ public enum FixedCode implements ReportCode {
     F_NOTM( "Earlier metadata stages not completed" ),
     F_NOUP( "No upload methods listed" ),
     F_SXER( "Unexpected SAX parse error" ),
+    F_TBLA( "Table has no name" ),
     F_TIOF( "Error reading result table" ),
     F_TRND( "Table randomisation failure" ),
     F_UTF8( "Unknown UTF8 encoding" ),
