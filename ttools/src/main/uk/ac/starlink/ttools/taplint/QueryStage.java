@@ -77,8 +77,11 @@ public class QueryStage implements Stage {
         for ( SchemaMeta smeta : smetas ) {
             for ( TableMeta tmeta : smeta.getTables() ) {
                 allTables.add( tmeta );
-                if ( ! tmeta.getName().toUpperCase()
-                                      .startsWith( "TAP_SCHEMA." ) ) {
+                String tname = tmeta.getName();
+                boolean isTapSchema =
+                    tname != null &&
+                    tname.toUpperCase().startsWith( "TAP_SCHEMA." );
+                if ( ! isTapSchema ) {
                     dataTables.add( tmeta ); 
                 }
             }
@@ -270,7 +273,7 @@ public class QueryStage implements Stage {
          * @param  tmeta  table to test
          */
         private void runOneColumn( TableMeta tmeta ) {
-            if ( ! checkHasColumns( tmeta ) ) {
+            if ( ! checkIsQueryable( tmeta ) ) {
                 return;
             }
             final int nr0 = 10;
@@ -357,7 +360,7 @@ public class QueryStage implements Stage {
          * @param  tmeta  table to run tests on
          */
         private void runSomeColumns( TableMeta tmeta ) {
-            if ( ! checkHasColumns( tmeta ) ) {
+            if ( ! checkIsQueryable( tmeta ) ) {
                 return;
             }
 
@@ -415,7 +418,7 @@ public class QueryStage implements Stage {
          * @param  tmeta  table to run tests on
          */
         private void runJustMeta( TableMeta tmeta ) {
-            if ( ! checkHasColumns( tmeta ) ) {
+            if ( ! checkIsQueryable( tmeta ) ) {
                 return;
             }
 
@@ -477,21 +480,30 @@ public class QueryStage implements Stage {
         }
 
         /**
-         * Checks that at least one column exists in a table metadata item.
+         * Checks that a table satisfies minimal requirements for making
+         * ADQL queries; it must have a name and at least one column.
          * If not, a FAILURE report is made and false is returned.
          *
          * @param   tmeta  table metadata object
-         * @return  true iff tmeta has at least one column
+         * @return  true iff tmeta has a name and at least one column
          */
-        private boolean checkHasColumns( TableMeta tmeta ) {
+        private boolean checkIsQueryable( TableMeta tmeta ) {
+            String tname = tmeta.getName();
+            boolean hasName = tname != null && tname.length() > 0;
+            if ( ! hasName ) {
+                reporter_.report( FixedCode.F_TBLA,
+                                  "Table has no name"
+                                + ", impossible to phrase ADQL queries" );
+            }
             boolean hasColumns = tmeta.getColumns().length > 0;
             if ( ! hasColumns ) {
                 reporter_.report( FixedCode.F_ZCOL,
-                                  "No columns known for table "
-                                + tmeta.getName() );
-       
+                                  "No columns known for "
+                                + ( tname == null ? "unnamed table"
+                                                  : tname ) 
+                                + ", can't make column queries" );
             }
-            return hasColumns;
+            return hasName && hasColumns;
         }
 
         /**
