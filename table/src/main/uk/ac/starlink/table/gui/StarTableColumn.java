@@ -4,6 +4,7 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.ValueInfo;
 
 /**
  * A <tt>TableColumn</tt> representing a column in a <tt>StarJTable</tt>.
@@ -32,20 +33,8 @@ public class StarTableColumn extends TableColumn {
     public StarTableColumn( ColumnInfo colinfo, int modelIndex ) {
         super( modelIndex );
         this.colinfo = colinfo;
-        Class clazz = colinfo.getContentClass();
-        final TableCellRenderer cellRenderer;
-        if ( Number.class.isAssignableFrom( clazz ) ) {
-            cellRenderer = new NumericCellRenderer( clazz );
-        }
-        else if ( clazz.equals( Boolean.class ) ) {
-            cellRenderer = BooleanCellRenderer.getInstance();
-        }
-        else {
-            cellRenderer = new ValueInfoCellRenderer( colinfo );
-        }
-        TableCellEditor cellEditor = ValueInfoCellEditor.makeEditor( colinfo );
-        setCellRenderer( cellRenderer );
-        setCellEditor( cellEditor );
+        setCellRenderer( createCellRenderer( colinfo ) );
+        setCellEditor( createCellEditor( colinfo ) );
         setHeaderValue( colinfo.getName() );
     }
 
@@ -67,5 +56,36 @@ public class StarTableColumn extends TableColumn {
      */
     public ColumnInfo getColumnInfo() {
         return colinfo;
+    }
+
+    /**
+     * Utility method to create a table cell renderer suitable for a given
+     * value info.  This is used in StarTableColumn's constructor.
+     *
+     * @param   info  metadata describing table cell contents
+     * @return   cell renderer
+     */
+    public static TableCellRenderer createCellRenderer( ValueInfo info ) {
+        Class clazz = info.getContentClass();
+        if ( Number.class.isAssignableFrom( clazz ) ) {
+            return new NumericCellRenderer( clazz );
+        }
+        else if ( clazz.equals( Boolean.class ) ) {
+            return BooleanCellRenderer.getInstance();
+        }
+        else {
+            return new ValueInfoCellRenderer( info );
+        }
+    }
+
+    /**
+     * Utility method to create a table cell editor suitable for a given
+     * value info.  This is used in StarTableColumn's constructor.
+     *
+     * @param   info  metadata describing table cell contents
+     * @return   cell renderer
+     */
+    public static TableCellEditor createCellEditor( ValueInfo info ) {
+        return ValueInfoCellEditor.makeEditor( info );
     }
 }
