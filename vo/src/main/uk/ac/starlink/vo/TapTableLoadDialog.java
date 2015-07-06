@@ -148,7 +148,7 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
         tabber_ = new JTabbedPane();
         tabber_.add( "Select Service", searchPanel );
         tqContainer_ = new JPanel( new BorderLayout() );
-        String tqTitle = "Enter Query";
+        String tqTitle = "Use Service";
         tabber_.add( tqTitle, tqContainer_ );
         tqTabIndex_ = tabber_.getTabCount() - 1;
         tabber_.add( "Resume Job", resumePanel_ );
