@@ -68,7 +68,7 @@ public class TapServiceFinderPanel extends JPanel {
         serviceReaderExecutor_ = Executors.newCachedThreadPool();
 
         /* Actions to start and stop a search operation. */
-        startAct_ = new AbstractAction( "Find" ) {
+        startAct_ = new AbstractAction( "Find Services" ) {
             public void actionPerformed( ActionEvent evt ) {
                 if ( isEnabled() ) {
                     setWorker( createQueryWorker( createConstraint() ) );
@@ -84,7 +84,7 @@ public class TapServiceFinderPanel extends JPanel {
         /* Components for entering search parameters. */
         keywordField_ = new JTextField();
         keywordField_.addActionListener( startAct_ );
-        andButton_ = new AndButton( false );
+        andButton_ = new AndButton( true );
         JComponent targetLine = Box.createHorizontalBox();
         targetLine.add( new JLabel( "Match Fields: " ) );
         TapServiceFinder.Target[] targets = TapServiceFinder.Target.values();
@@ -131,17 +131,22 @@ public class TapServiceFinderPanel extends JPanel {
         } );
 
         JComponent keywordLine = Box.createHorizontalBox();
-        keywordLine.add( andButton_ );
-        keywordLine.add( new JLabel( " Keywords: " ) );
+        keywordLine.add( new JLabel( "Keywords: " ) );
         keywordLine.add( keywordField_ );
-        keywordLine.add( Box.createHorizontalStrut( 10 ) );
-        keywordLine.add( new JButton( startAct_ ) );
         keywordLine.add( Box.createHorizontalStrut( 5 ) );
-        keywordLine.add( new JButton( cancelAct_ ) );
+        keywordLine.add( andButton_ );
+
+        JComponent buttLine = Box.createHorizontalBox();
+        buttLine.add( Box.createHorizontalGlue() );
+        buttLine.add( new JButton( cancelAct_ ) );
+        buttLine.add( Box.createHorizontalStrut( 5 ) );
+        buttLine.add( new JButton( startAct_ ) );
 
         JComponent entryBox = Box.createVerticalBox();
         entryBox.add( keywordLine );
         entryBox.add( targetLine );
+        entryBox.add( buttLine );
+        entryBox.add( Box.createVerticalStrut( 5 ) );
 
         JComponent treePanel = new JScrollPane( sTree_ );
         

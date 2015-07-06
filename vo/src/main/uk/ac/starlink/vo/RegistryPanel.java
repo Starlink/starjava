@@ -87,12 +87,12 @@ public class RegistryPanel extends JPanel {
         activeItems_ = new ArrayList();
 
         /* Define actions for submit/cancel registry query. */
-        cancelQueryAction_ = new AbstractAction( "Cancel Query" ) {
+        cancelQueryAction_ = new AbstractAction( "Cancel" ) {
             public void actionPerformed( ActionEvent evt ) {
                 cancelQuery();
             }
         };
-        submitQueryAction_ = new AbstractAction( "Submit Query" ) {
+        submitQueryAction_ = new AbstractAction( "Find Services" ) {
             public void actionPerformed( ActionEvent evt ) {
                 submitQuery();
             }
