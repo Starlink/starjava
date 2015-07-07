@@ -1,6 +1,7 @@
 package uk.ac.starlink.vo;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
@@ -8,10 +9,7 @@ import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InterruptedIOException;
 import java.net.MalformedURLException;
-import java.net.URLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,30 +24,38 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JMenu;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JMenu;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
+import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
+import javax.swing.border.Border;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.TableSequence;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.table.gui.AbstractTableLoadDialog;
 import uk.ac.starlink.table.gui.TableLoader;
 import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.util.gui.ErrorDialog;
+import uk.ac.starlink.util.gui.ExampleTextField;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 /**
@@ -59,7 +65,8 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
  * @since    18 Jan 2011
  * @see <a href="http://www.ivoa.net/Documents/TAP/">IVOA TAP Recommendation</a>
  */
-public class TapTableLoadDialog extends DalTableLoadDialog {
+public class TapTableLoadDialog extends AbstractTableLoadDialog
+                                implements DalLoader {
 
     private final Map<String,TapQueryPanel> tqMap_;
     private JTabbedPane tabber_;
@@ -68,6 +75,7 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
     private UwsJobListPanel jobsPanel_;
     private ResumeTapQueryPanel resumePanel_;
     private CaretListener adqlListener_;
+    private Action tqpanelAct_;
     private Action reloadAct_;
     private ProxyAction[] proxyActs_;
     private ComboBoxModel runModeModel_;
@@ -75,6 +83,9 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
     private String ofmtName_;
     private StarTableFactory tfact_;
     private ContentCoding coding_;
+    private SearchPanel searchPanel_;
+    private JTextField urlField_;
+    private int searchTabIndex_;
     private int tqTabIndex_;
     private int jobsTabIndex_;
     private int resumeTabIndex_;
@@ -105,9 +116,8 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
      * Constructor.
      */
     public TapTableLoadDialog() {
-        super( "Table Access Protocol (TAP) Query", "TAP",
-               "Query remote databases using SQL-like language",
-               Capability.TAP, false, false );
+        super( "Table Access Protocol (TAP) Query",
+               "Query remote databases using SQL-like language" );
         tqMap_ = new HashMap<String,TapQueryPanel>();
         metaPolicy_ = TapMetaPolicy.getDefaultInstance();
         coding_ = ContentCoding.GZIP;
@@ -123,8 +133,35 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
 
     protected Component createQueryComponent() {
 
+        /* Field containing URL of selected TAP service. */
+        urlField_ = new ExampleTextField( "Select service from panel above "
+                                        + "or enter service URL here" );
+        urlField_.addCaretListener( new CaretListener() {
+            public void caretUpdate( CaretEvent evt ) {
+                updateForService();
+            }
+        } );
+
         /* Prepare a panel to search the registry for TAP services. */
-        final Component searchPanel = super.createQueryComponent();
+        searchPanel_ = new SearchPanel();
+        JComponent urlLine = Box.createHorizontalBox();
+        urlLine.add( new JLabel( "TAP URL: " ) );
+        urlLine.add( urlField_ );
+        JComponent sfootBox = Box.createVerticalBox();
+        sfootBox.add( urlLine );
+        Border lineBorder = BorderFactory.createLineBorder( Color.BLACK );
+        Border gapBorder = BorderFactory.createEmptyBorder( 5, 5, 5, 5 );
+        JComponent searchContainer = new JPanel( new BorderLayout() );
+        searchPanel_.setBorder(
+            BorderFactory.createTitledBorder(
+                BorderFactory.createCompoundBorder( lineBorder, gapBorder ),
+                "Locate TAP Service" ) );
+        sfootBox.setBorder(
+            BorderFactory.createTitledBorder(
+                BorderFactory.createCompoundBorder( lineBorder, gapBorder ),
+                "Selected TAP Service" ) );
+        searchContainer.add( searchPanel_, BorderLayout.CENTER );
+        searchContainer.add( sfootBox, BorderLayout.SOUTH );
 
         /* Prepare a panel for monitoring running jobs. */
         jobsPanel_ = new UwsJobListPanel() {
@@ -146,7 +183,8 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
 
         /* Prepare a tabbed panel to contain the components. */
         tabber_ = new JTabbedPane();
-        tabber_.add( "Select Service", searchPanel );
+        tabber_.add( "Select Service", searchContainer );
+        searchTabIndex_ = tabber_.getTabCount() - 1;
         tqContainer_ = new JPanel( new BorderLayout() );
         String tqTitle = "Use Service";
         tabber_.add( tqTitle, tqContainer_ );
@@ -159,41 +197,30 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
         /* Provide a button to move to the query tab.
          * Placing it near the service selector makes it more obvious that
          * that is what you need to do after selecting a TAP service. */
-        final Action tqAct = new AbstractAction( tqTitle ) {
+        tqpanelAct_ = new AbstractAction( tqTitle ) {
             public void actionPerformed( ActionEvent evt ) {
                 tabber_.setSelectedIndex( tqTabIndex_ );
             }
         };
-        tqAct.putValue( Action.SHORT_DESCRIPTION,
-                        "Go to " + tqTitle
-                      + " tab to prepare and execute TAP query" );
-        Box buttLine = Box.createHorizontalBox();
+        tqpanelAct_.putValue( Action.SHORT_DESCRIPTION,
+                              "Go to " + tqTitle
+                            + " tab to prepare and execute TAP query" );
+        urlField_.addActionListener( tqpanelAct_ );
+        JComponent buttLine = Box.createHorizontalBox();
         buttLine.add( Box.createHorizontalGlue() );
-        buttLine.add( new JButton( tqAct ) );
-        getControlBox().add( buttLine );
+        buttLine.add( new JButton( tqpanelAct_ ) );
+        sfootBox.add( Box.createVerticalStrut( 5 ) );
+        sfootBox.add( buttLine );
 
         /* Set up TAP run modes. */
         runModeModel_ = new DefaultComboBoxModel( createRunModes() );
 
         /* Only enable the query tab if a valid service URL has been
          * selected. */
-        tqAct.setEnabled( false );
+        tqpanelAct_.setEnabled( false );
         tabber_.setEnabledAt( tqTabIndex_, false );
         tabber_.setEnabledAt( jobsTabIndex_, false );
-        getServiceUrlField().addCaretListener( new CaretListener() {
-            public void caretUpdate( CaretEvent evt ) {
-                boolean hasUrl;
-                try {
-                    checkUrl( getServiceUrl() );
-                    hasUrl = true;
-                }
-                catch ( RuntimeException e ) {
-                    hasUrl = false;
-                }
-                tabber_.setEnabledAt( tqTabIndex_, hasUrl );
-                tqAct.setEnabled( hasUrl );
-            }
-        } );
+        updateForService();
 
         /* Arrange for the table query panel to get updated when it becomes
          * the visible tab. */
@@ -239,7 +266,7 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
         };
         tabber_.addChangeListener( reloadEnabler );
         reloadEnabler.stateChanged( null );
-        reloadAct_.putValue( Action.SMALL_ICON, 
+        reloadAct_.putValue( Action.SMALL_ICON,
                              new ImageIcon( TapTableLoadDialog.class
                                            .getResource( "reload.gif" ) ) );
         reloadAct_.putValue( Action.SHORT_DESCRIPTION,
@@ -273,17 +300,6 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
             new ArrayList<Action>( Arrays.asList( super.getToolbarActions() ) );
         actList.add( reloadAct_ );
         setToolbarActions( actList.toArray( new Action[ 0 ] ) );
-
-        /* Adjust message. */
-        RegistryPanel regPanel = getRegistryPanel();
-        regPanel.displayAdviceMessage( new String[] {
-            "Query registry for TAP services:",
-            "Enter search terms in Keywords field or leave it blank,",
-            "then click "
-            + regPanel.getSubmitQueryAction().getValue( Action.NAME ) + ".",
-            " ",
-            "Alternatively, enter TAP URL in field below.",
-        } );
 
         /* It's big. */
         tabber_.setPreferredSize( new Dimension( 700, 650 ) );
@@ -400,6 +416,40 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
         return reloadAct_;
     }
 
+    public boolean acceptResourceIdList( String[] ivoids, String msg ) {
+        return isComponentShowing()
+            && searchPanel_.acceptResourceIdList( ivoids, msg );
+    }
+
+    /**
+     * Returns the URL of the currently selected TAP service.
+     *
+     * @return  selected service URL, or null
+     */
+    public URL getServiceUrl() {
+        String surl = urlField_.getText();
+        if ( surl == null || surl.trim().length() == 0 ) {
+            return null;
+        }
+        try {
+            return new URL( surl );
+        }
+        catch ( MalformedURLException e ) {
+            return null;
+        }
+    }
+
+    /**
+     * Programmatically sets the content of the URL field to a given
+     * text string.
+     *
+     * @param  url   content of url field
+     */
+    private void setServiceUrl( String url ) {
+        urlField_.setText( url );
+        urlField_.setCaretPosition( 0 );
+    }
+
     /**
      * Returns the run modes provided by this dialogue.
      *
@@ -412,13 +462,25 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
     }
 
     /**
+     * Invoked to update GUI state if the selected TAP service may have changed.
+     */
+    private void updateForService() {
+        boolean hasUrl = getServiceUrl() != null;
+        tabber_.setEnabledAt( tqTabIndex_, hasUrl );
+        tqpanelAct_.setEnabled( hasUrl );
+    }
+
+    /**
      * Returns a new query TableLoader for the case when the QueryPanel
      * is the currently visible tab.
      *
      * @return   new loader
      */
     private TableLoader createQueryPanelLoader() {
-        final URL serviceUrl = checkUrl( getServiceUrl() );
+        final URL serviceUrl = getServiceUrl();
+        if ( serviceUrl == null ) {
+            return null;
+        }
         final String adql = tqPanel_.getAdql();
         final Map<String,StarTable> uploadMap =
             new LinkedHashMap<String,StarTable>();
@@ -439,7 +501,7 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
                 uploadMap.put( upLabel, upTable );
             }
             else {
-                throw new IllegalArgumentException( "No known table \"" 
+                throw new IllegalArgumentException( "No known table \""
                                                   + upLabel + "\" for upload" );
             }
         }
@@ -461,12 +523,8 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
                 extraParams.put( "FORMAT", ofmtSpec );
             }
         }
-        List<DescribedValue> metaList = new ArrayList<DescribedValue>();
-        metaList.addAll( Arrays.asList( getResourceMetadata( serviceUrl
-                                                            .toString() ) ) );
-        final DescribedValue[] metas =
-            metaList.toArray( new DescribedValue[ 0 ] );
         final TapRunMode runMode = (TapRunMode) runModeModel_.getSelectedItem();
+        final DescribedValue[] metas = new DescribedValue[ 0 ];
         TapQuery tq0;
         try {
             tq0 = new TapQuery( serviceUrl, adql, extraParams, uploadMap,
@@ -540,9 +598,9 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
                                             tfact.getStoragePolicy(), 4000 );
         }
         catch ( InterruptedException e ) {
-            throw (IOException)
-                  new InterruptedIOException( "Interrupted" )
-                 .initCause( e );
+            Thread.currentThread().interrupt();
+            throw (IOException) new IOException( "Interrupted" )
+                               .initCause( e );
         }
         table.getParameters().addAll( Arrays.asList( tapMeta ) );
         return Tables.singleTableSequence( table );
@@ -564,6 +622,7 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
         } );
     }
 
+    @Override
     public boolean isReady() {
         if ( tqPanel_ == null || tabber_.getSelectedIndex() != tqTabIndex_ ) {
             return false;
@@ -572,6 +631,10 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
             String adql = tqPanel_.getAdql();
             return super.isReady() && adql != null && adql.trim().length() > 0;
         }
+    }
+
+    public RegistryPanel getRegistryPanel() {
+        return searchPanel_.regPanel_;
     }
 
     /**
@@ -631,41 +694,12 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
      * @return  service kit, may be null if not ready
      */
     private TapServiceKit createServiceKit() {
-        String surl = getServiceUrl();
-        if ( surl == null || metaPolicy_ == null ) {
-            return null;
-        }
-        URL serviceUrl;
-        try {
-            serviceUrl = new URL( surl );
-        }
-        catch ( MalformedURLException e ) {
-            return null;
-        }
-        return new TapServiceKit( serviceUrl, getIvoid( serviceUrl ),
+        URL serviceUrl = getServiceUrl();
+        return serviceUrl == null
+             ? null
+             : new TapServiceKit( serviceUrl,
+                                  searchPanel_.getIvoid( serviceUrl ),
                                   metaPolicy_, coding_, META_QUEUE_LIMIT );
-    }
-
-    /**
-     * Returns the IVORN apparently corresponding to a selected service URL.
-     *
-     * @param   serviceUrl  service URL
-     * @return   corresponding IVORN, or null
-     */
-    private String getIvoid( URL serviceUrl ) {
-        RegResource[] resources = getRegistryPanel().getSelectedResources();
-        if ( resources == null || serviceUrl == null ) {
-            return null;
-        }
-        String surl = serviceUrl.toString();
-        for ( RegResource res : resources ) {
-            for ( RegCapabilityInterface cap : res.getCapabilities() ) {
-                if ( surl.equals( cap.getAccessUrl() ) ) {
-                    return res.getIdentifier();
-                }
-            }
-        }
-        return null;
     }
 
     /**
@@ -675,7 +709,7 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
      */
     private void setSelectedService( TapServiceKit serviceKit ) {
 
-        /* We have to install a TapQueryPanel for this service in the 
+        /* We have to install a TapQueryPanel for this service in the
          * appropriate tab of the tabbed pane.
          * First remove any previously installed query panel. */
         if ( tqPanel_ != null ) {
@@ -756,6 +790,113 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
             }
         }
         return null;
+    }
+
+    /**
+     * Panel used to search for and select TAP services.
+     * This currently has two options: selection by table
+     * (TapServiceFinderPanel) and by service (RegistryPanel, like the
+     * other DAL load dialogues).  They are presented in a JTabbedPane
+     * so the user can use one or the other.
+     */
+    private class SearchPanel extends JPanel {
+
+        private final JTabbedPane serviceTabber_;
+        private final TapServiceFinderPanel finderPanel_;
+        private final KeywordServiceQueryFactory qfact_;
+        private final RegistryPanel regPanel_;
+
+        /**
+         * Constructor.
+         */
+        SearchPanel() {
+            super( new BorderLayout() );
+
+            /* Panel for selection by table properties. */
+            finderPanel_ = new TapServiceFinderPanel();
+            finderPanel_
+                .addPropertyChangeListener( TapServiceFinderPanel
+                                           .TAP_SERVICE_PROPERTY,
+                                            new PropertyChangeListener() {
+                public void propertyChange( PropertyChangeEvent evt ) {
+                    TapServiceFinder.Service service =
+                        finderPanel_.getSelectedService();
+                    setServiceUrl( service == null ? null
+                                                   : service.getServiceUrl() );
+                }
+            } );
+
+            /* Panel for selection by service properties. */
+            qfact_ = new KeywordServiceQueryFactory( Capability.TAP );
+            regPanel_ = new RegistryPanel( qfact_, false );
+            regPanel_.displayAdviceMessage( new String[] {
+                "Query registry for TAP services:",
+                "Enter search terms in Keywords field or leave it blank,",
+                "then click " +
+                regPanel_.getSubmitQueryAction().getValue( Action.NAME ) + ". ",
+            } );
+            ListSelectionModel selModel = regPanel_.getResourceSelectionModel();
+            selModel.setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
+            selModel.addListSelectionListener( new ListSelectionListener() {
+                public void valueChanged( ListSelectionEvent evt ) {
+                    RegCapabilityInterface[] caps =
+                        regPanel_.getSelectedCapabilities();
+                    setServiceUrl( caps.length == 1 ? caps[ 0 ].getAccessUrl()
+                                                    : null );
+                }
+            } );
+
+            /* Cosmetics and placement in the JTabbedPane. */
+            Border gapBorder = BorderFactory.createEmptyBorder( 5, 5, 5, 5 );
+            finderPanel_.setBorder( gapBorder );
+            regPanel_.setBorder( gapBorder );
+            serviceTabber_ = new JTabbedPane();
+            serviceTabber_.add( "By Table Properties", finderPanel_ );
+            serviceTabber_.add( "By Service Properties", regPanel_ );
+            add( serviceTabber_, BorderLayout.CENTER );
+        }
+
+        /**
+         * Returns the IVORN apparently corresponding to a selected service URL.
+         *
+         * @param  serviceUrl  TAP service URL
+         * @return   corresponding IVORN, or null if not known
+         */
+        public String getIvoid( URL serviceUrl ) {
+            return finderPanel_.getIvoid( serviceUrl );
+        }
+   
+        /**
+         * Takes a list of resource ID values and may load them or a subset
+         * into this object's dialogue as appropriate.
+         *
+         * @param  ivoids  ivo:-type identifier strings
+         * @param  msg   text of user-directed message to explain where the
+         *         IDs came from
+         * @return  true iff at least some of the resources were, or may be,
+         *          loaded into this window
+         * @see   DalLoader#acceptResourceIdList
+         */
+        public boolean acceptResourceIdList( String[] ivoids, String msg ) {
+            RegistryQuery query;
+            try {
+                query = qfact_.getIdListQuery( ivoids );
+            }
+            catch ( MalformedURLException e ) {
+                logger_.warning( "Resource ID list not accepted: "
+                               + "bad registry endpoint " + e );
+                return false;
+            }
+            if ( query != null ) {
+                tabber_.setSelectedIndex( searchTabIndex_ );
+                serviceTabber_.setSelectedComponent( regPanel_ );
+                regPanel_.performQuery( query, msg );
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
     }
 
     /**
@@ -892,7 +1033,8 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
         } );
         Component qcomp = tld.getQueryComponent();
         if ( tapUrl != null ) {
-            tld.getServiceUrlField().setText( tapUrl );
+            tld.setServiceUrl( tapUrl );
+            tld.updateForService();
         }
         javax.swing.JFrame frm = new javax.swing.JFrame();
         frm.setJMenuBar( new javax.swing.JMenuBar() );

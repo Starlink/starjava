@@ -9,7 +9,7 @@ import javax.swing.Box;
 import javax.swing.JComponent;
 import javax.swing.JMenu;
 import uk.ac.starlink.topcat.interop.Transmitter;
-import uk.ac.starlink.vo.DalTableLoadDialog;
+import uk.ac.starlink.vo.DalLoader;
 import uk.ac.starlink.vo.RegistryPanel;
 import uk.ac.starlink.vo.SkyDalTableLoadDialog;
 import uk.ac.starlink.vo.SkyPositionEntry;
@@ -22,7 +22,8 @@ import uk.ac.starlink.vo.SkyPositionEntry;
  * @since    16 Aug 2010
  */
 public class RegistryDialogAdjuster {
-    private final DalTableLoadDialog dalLoader_;
+
+    private final DalLoader dalLoader_;
     private final SkyDalTableLoadDialog skyDalLoader_;
     private final String resourceType_;
     private final ToggleButtonModel acceptResourceModel_;
@@ -38,12 +39,11 @@ public class RegistryDialogAdjuster {
      * @param  isSky  true if the dialogue should be capable of receiving
      *         skyPositions
      */
-    public RegistryDialogAdjuster( DalTableLoadDialog dalLoader,
+    public RegistryDialogAdjuster( DalLoader dalLoader,
                                    String resourceType, boolean isSky ) {
         dalLoader_ = dalLoader;
         resourceType_ = resourceType;
-        skyDalLoader_ = isSky ? (SkyDalTableLoadDialog) dalLoader
-                              : null;
+        skyDalLoader_ = isSky ? (SkyDalTableLoadDialog) dalLoader : null;
         acceptResourceModel_ = createAcceptResourceIdListModel();
         acceptPositionModel_ =
             new ToggleButtonModel( "Accept Sky Positions", ResourceIcon.LISTEN,

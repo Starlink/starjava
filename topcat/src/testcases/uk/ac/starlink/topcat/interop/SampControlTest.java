@@ -13,7 +13,7 @@ import org.astrogrid.samp.client.HubConnector;
 import org.astrogrid.samp.client.MessageHandler;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.gui.TableLoadDialog;
-import uk.ac.starlink.vo.DalTableLoadDialog;
+import uk.ac.starlink.vo.DalLoader;
 import uk.ac.starlink.vo.TapTableLoadDialog;
 import uk.ac.starlink.topcat.ControlWindow;
 import uk.ac.starlink.topcat.LoadWindow;
@@ -84,9 +84,9 @@ public class SampControlTest extends TestCase {
         /* For each resource handler, make sure it is matched by an
          * appropriate number of the known dialogue types. */
         for ( TopcatSampControl.ResourceListHandler rh : rhlist ) {
-            Class ldClazz = rh.dalLoadDialogClass_;
+            Class ldClazz = rh.dalLoaderClass_;
             Class mwClazz = rh.dalMultiWindowClass_;
-            boolean isGeneral = ldClazz == DalTableLoadDialog.class;
+            boolean isGeneral = ldClazz == DalLoader.class;
             boolean isTap = ldClazz == TapTableLoadDialog.class;
             int gotTld = 0;
             for ( int id = 0; id < tlds.length; id++ ) {

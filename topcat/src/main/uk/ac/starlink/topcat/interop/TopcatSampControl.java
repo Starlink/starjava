@@ -59,6 +59,7 @@ import uk.ac.starlink.util.URLDataSource;
 import uk.ac.starlink.util.URLUtils;
 import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.vo.ConeSearchDialog;
+import uk.ac.starlink.vo.DalLoader;
 import uk.ac.starlink.vo.DalTableLoadDialog;
 import uk.ac.starlink.vo.SiapTableLoadDialog;
 import uk.ac.starlink.vo.SsapTableLoadDialog;
@@ -407,7 +408,7 @@ public class TopcatSampControl {
 
             /* Accept list of VOResources. */
             new ResourceListHandler( "voresource.loadlist",
-                                     DalTableLoadDialog.class,
+                                     DalLoader.class,
                                      DalMultiWindow.class ),
             new ResourceListHandler( "voresource.loadlist.cone",
                                      ConeSearchDialog.class,
@@ -783,24 +784,24 @@ public class TopcatSampControl {
      */
     class ResourceListHandler extends ResponseMessageHandler {
 
-        final Class dalLoadDialogClass_;
-        final Class dalMultiWindowClass_;
+        final Class<? extends DalLoader> dalLoaderClass_;
+        final Class<? extends DalMultiWindow> dalMultiWindowClass_;
 
         /**
          * Constructor.
          *
          * @param  mtype  mtype this responds to
-         * @param  dalLoadDialogClass   DalTableLoadDialog subclass for
+         * @param  dalLoaderClass   DalLoader subclass for
          *         dialogues specific to this mtype
          * @param  dalMultiWindowClass  DalMultiWindow subclass for
          *         dialogues specific to this mtype
          */
         ResourceListHandler(
                 String mtype,
-                Class<? extends DalTableLoadDialog> dalLoadDialogClass,
+                Class<? extends DalLoader> dalLoaderClass,
                 Class<? extends DalMultiWindow> dalMultiWindowClass ) {
             super( mtype );
-            dalLoadDialogClass_ = dalLoadDialogClass;
+            dalLoaderClass_ = dalLoaderClass;
             dalMultiWindowClass_ = dalMultiWindowClass;
         }
 
@@ -820,7 +821,7 @@ public class TopcatSampControl {
                 boolean accepted =
                     controlWindow_
                    .acceptResourceIdList( ids, mbuf.toString(),
-                                          dalLoadDialogClass_,
+                                          dalLoaderClass_,
                                           dalMultiWindowClass_ );
                 return createAcceptanceResponse( null, accepted,
                                                  "resource list" );
