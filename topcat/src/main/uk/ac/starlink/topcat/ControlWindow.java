@@ -134,7 +134,7 @@ import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.util.gui.MemoryMonitor;
 import uk.ac.starlink.util.gui.StringPaster;
 import uk.ac.starlink.vo.ConeSearchDialog;
-import uk.ac.starlink.vo.DalTableLoadDialog;
+import uk.ac.starlink.vo.DalLoader;
 import uk.ac.starlink.vo.SiapTableLoadDialog;
 import uk.ac.starlink.vo.SkyDalTableLoadDialog;
 import uk.ac.starlink.vo.SkyPositionEntry;
@@ -1158,14 +1158,14 @@ public class ControlWindow extends AuxWindow
      *
      * @param  ids  array of candidate ivo:-type resource identifiers to load
      * @param  msg  text to explain to the user what's being loaded
-     * @param  dalLoadDialogClass   DalTableLoadDialog subclass for
+     * @param  dalLoaderClass   DalLoader subclass for
      *         dialogues which may be affected by the loaded IDs
      * @param  dalMultiWindowClass  DalMultiWindow subclass for
      *         dialogues which may be affected by the loaded IDs
      */
     public boolean acceptResourceIdList(
                        String[] ids, String msg,
-                       Class<? extends DalTableLoadDialog> dalLoadDialogClass,
+                       Class<? extends DalLoader> dalLoaderClass,
                        Class<? extends DalMultiWindow> dalMultiWindowClass ) {
         boolean accepted = false;
 
@@ -1173,8 +1173,8 @@ public class ControlWindow extends AuxWindow
         if ( loadWindow_ != null ) {
             TableLoadDialog[] tlds = loadWindow_.getKnownDialogs();
             for ( int i = 0; i < tlds.length; i++ ) {
-                if ( loadDialogMatches( tlds[ i ], dalLoadDialogClass ) ) {
-                    boolean acc = ((DalTableLoadDialog) tlds[ i ])
+                if ( loadDialogMatches( tlds[ i ], dalLoaderClass ) ) {
+                    boolean acc = ((DalLoader) tlds[ i ])
                                  .acceptResourceIdList( ids, msg );
                     accepted = accepted || acc;
                 }
