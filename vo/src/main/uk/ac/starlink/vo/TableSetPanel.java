@@ -1457,10 +1457,12 @@ public class TableSetPanel extends JPanel {
                  * may be ugly. */
                 StringBuffer sbuf = new StringBuffer();
                 for ( TapLanguage lang : langs ) {
+                    String lname = lang.getName();
                     String udfHtml = getUdfHtml( lang );
                     if ( udfHtml != null && udfHtml.length() > 0 ) {
                         sbuf.append( "<dt>" )
-                            .append( escapeHtml( lang.getName() ) )
+                            .append( escapeHtml( lname == null ? "??"
+                                                               : lname ) )
                             .append( "</dt>\n" )
                             .append( "<dd>" )
                             .append( udfHtml )
@@ -1518,14 +1520,18 @@ public class TableSetPanel extends JPanel {
             }
             StringBuffer sbuf = new StringBuffer();
             for ( TapLanguageFeature feat : udfFeats ) {
+                String form = feat.getForm();
+                String descrip = feat.getDescription();
                 sbuf.append( "<dt>" )
                     .append( "<strong><code>" )
-                    .append( escapeHtml( feat.getForm() ) )
+                    .append( escapeHtml( form == null ? "??" : form ) )
                     .append( "</code></strong>" )
-                    .append( "</dt>\n" )
-                    .append( "<dd>" )
-                    .append( escapeHtml( feat.getDescription() ) )
-                    .append( "</dd>\n" );
+                    .append( "</dt>\n" );
+                if ( descrip != null ) {
+                    sbuf.append( "<dd>" )
+                        .append( escapeHtml( descrip ) )
+                        .append( "</dd>\n" );
+                }
             }
             return sbuf.length() > 0 ? "<dl>\n" + sbuf + "</dl>"
                                      : null;
