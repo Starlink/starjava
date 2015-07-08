@@ -245,7 +245,10 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
         reloadAct_ = new AbstractAction( "Reload" ) {
             public void actionPerformed( ActionEvent evt ) {
                 int itab = tabber_.getSelectedIndex();
-                if ( itab == tqTabIndex_ ) {
+                if ( itab == searchTabIndex_ ) {
+                    searchPanel_.reload();
+                }
+                else if ( itab == tqTabIndex_ ) {
                     tqPanel_.setServiceKit( createServiceKit() );
                 }
                 else if ( itab == resumeTabIndex_ ) {
@@ -259,7 +262,8 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
         ChangeListener reloadEnabler = new ChangeListener() {
             public void stateChanged( ChangeEvent evt ) {
                 int itab = tabber_.getSelectedIndex();
-                reloadAct_.setEnabled( itab == tqTabIndex_
+                reloadAct_.setEnabled( itab == searchTabIndex_
+                                    || itab == tqTabIndex_
                                     || itab == resumeTabIndex_
                                     || itab == jobsTabIndex_ );
             }
@@ -802,6 +806,8 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
     private class SearchPanel extends JPanel {
 
         private final JTabbedPane serviceTabber_;
+        private final int itabByTable_;
+        private final int itabByService_;
         private final TapServiceFinderPanel finderPanel_;
         private final KeywordServiceQueryFactory qfact_;
         private final RegistryPanel regPanel_;
@@ -852,7 +858,9 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
             regPanel_.setBorder( gapBorder );
             serviceTabber_ = new JTabbedPane();
             serviceTabber_.add( "By Table Properties", finderPanel_ );
+            itabByTable_ = serviceTabber_.getTabCount() - 1;
             serviceTabber_.add( "By Service Properties", regPanel_ );
+            itabByService_ = serviceTabber_.getTabCount() - 1;
             add( serviceTabber_, BorderLayout.CENTER );
         }
 
@@ -864,6 +872,21 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
          */
         public String getIvoid( URL serviceUrl ) {
             return finderPanel_.getIvoid( serviceUrl );
+        }
+
+        /**
+         * Reloads data for the currently visible panel.
+         */
+        public void reload() {
+            int itab = serviceTabber_.getSelectedIndex();
+            if ( itab == itabByTable_ ) {
+                finderPanel_.setServiceFinder( finderPanel_
+                                              .getServiceFinder() );
+            }
+            else if ( itab == itabByService_ ) {
+                regPanel_.getSubmitQueryAction()
+                         .actionPerformed( new ActionEvent( this, 0, "go" ) );
+            }
         }
    
         /**
@@ -889,7 +912,7 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
             }
             if ( query != null ) {
                 tabber_.setSelectedIndex( searchTabIndex_ );
-                serviceTabber_.setSelectedComponent( regPanel_ );
+                serviceTabber_.setSelectedIndex( itabByService_ );
                 regPanel_.performQuery( query, msg );
                 return true;
             }
