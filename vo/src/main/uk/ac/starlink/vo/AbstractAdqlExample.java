@@ -459,6 +459,25 @@ public abstract class AbstractAdqlExample implements AdqlExample {
                 }
             },
 
+            new AbstractAdqlExample( "Count rows",
+                                     "Count the rows in a table" ) {
+                public String getText( boolean lineBreaks, String lang,
+                                       TapCapability tcap, TableMeta[] tables,
+                                       TableMeta table ) {
+                    if ( table == null &&
+                         tables != null && tables.length > 0 ) {
+                        table = tables[ 0 ];
+                    }
+                    if ( table == null ) {
+                        table = DUMMY_TABLE;
+                    }
+                    return new StringBuffer()
+                        .append( "SELECT COUNT(*) FROM " )
+                        .append( table.getName() )
+                        .toString();
+                }
+            },
+
             new AbstractAdqlExample( "Box selection",
                                      "Select rows based on rectangular "
                                    + "RA/Dec position constraints" ) {
