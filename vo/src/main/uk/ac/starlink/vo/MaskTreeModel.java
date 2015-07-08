@@ -141,6 +141,11 @@ public class MaskTreeModel implements TreeModel {
      * A null mask is used for full inclusion (and will be more efficient
      * than one for which <code>isIncluded</code> always returns true).
      *
+     * <p>If the supplied <code>mask</code> matches the previously installed
+     * one by equality, no action is performed.  So it's not essential
+     * that mask implementations implement equals/hashCode, but it may be
+     * beneficial.
+     *
      * @param  mask  new mask, or null for full inclusion
      */
     public void setMask( Mask mask ) {

@@ -3,6 +3,8 @@ package uk.ac.starlink.vo;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -22,6 +24,7 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -35,6 +38,7 @@ import javax.swing.JTextField;
 import javax.swing.JTree;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
 import javax.swing.event.ListSelectionEvent;
@@ -64,7 +68,10 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
 public class TableSetPanel extends JPanel {
 
     private final JTree tTree_;
-    private final JTextField searchField_;
+    private final JTextField keywordField_;
+    private final AndButton keyAndButt_;
+    private final JCheckBox useNameButt_;
+    private final JCheckBox useDescripButt_;
     private final TreeSelectionModel selectionModel_;
     private final JTable colTable_;
     private final JTable foreignTable_;
@@ -81,8 +88,7 @@ public class TableSetPanel extends JPanel {
     private final int itabTable_;
     private final int itabCol_;
     private final int itabForeign_;
-    private final JComponent treePanel_;
-    private final JSplitPane metaSplitter_;
+    private final JComponent treeContainer_;
     private TapServiceKit serviceKit_;
     private SchemaMeta[] schemas_;
     private ColumnMeta[] selectedColumns_;
@@ -140,17 +146,44 @@ public class TableSetPanel extends JPanel {
             }
         } );
 
-        searchField_ = new JTextField();
-        searchField_.addCaretListener( new CaretListener() {
+        keywordField_ = new JTextField();
+        keywordField_.addCaretListener( new CaretListener() {
             public void caretUpdate( CaretEvent evt ) {
                 updateTree( false );
             }
         } );
-        JLabel searchLabel = new JLabel( "Find: " );
-        String searchTip = "Enter one or more strings to restrict the content "
-                         + "of the schema display tree";
-        searchField_.setToolTipText( searchTip );
-        searchLabel.setToolTipText( searchTip );
+        JLabel keywordLabel = new JLabel( " Find: " );
+        String keywordTip = "Enter one or more search terms to restrict "
+                          + "the content of the metadata display tree";
+        keywordField_.setToolTipText( keywordTip );
+        keywordLabel.setToolTipText( keywordTip );
+
+        keyAndButt_ = new AndButton( false );
+        keyAndButt_.setMargin( new java.awt.Insets( 0, 0, 0, 0 ) );
+        keyAndButt_.setToolTipText( "Choose to match either "
+                                  + "all (And) or any (Or) "
+                                  + "of the entered search terms "
+                                  + "against table metadata" );
+        useNameButt_ = new JCheckBox( "Name", true );
+        useNameButt_.setToolTipText( "Select to match search terms against "
+                                   + "table/schema names" );
+        useDescripButt_ = new JCheckBox( "Descrip", false );
+        useDescripButt_.setToolTipText( "Select to match search terms against "
+                                      + "table/schema descriptions" );
+        ActionListener findParamListener = new ActionListener() {
+            public void actionPerformed( ActionEvent evt ) {
+                if ( ! useNameButt_.isSelected() &&
+                     ! useDescripButt_.isSelected() ) {
+                    ( evt.getSource() == useNameButt_ ? useDescripButt_
+                                                      : useNameButt_ )
+                   .setSelected( true );
+                }
+                updateTree( false );
+            }
+        };
+        keyAndButt_.addAndListener( findParamListener );
+        useNameButt_.addActionListener( findParamListener );
+        useDescripButt_.addActionListener( findParamListener );
 
         colTableModel_ = new ArrayTableModel( createColumnMetaColumns(),
                                               new ColumnMeta[ 0 ] );
@@ -202,26 +235,38 @@ public class TableSetPanel extends JPanel {
         itabForeign_ = itab++;
         detailTabber_.setSelectedIndex( itabSchema_ );
 
-        treePanel_ = new JPanel( new BorderLayout() ) {
+        final JComponent findParamLine = Box.createHorizontalBox();
+        JComponent treePanel = new JPanel( new BorderLayout() ) {
             @Override
-            public Dimension getMinimumSize() {
-                return new Dimension( 180, super.getMinimumSize().height );
+            public Dimension getPreferredSize() {
+                return new Dimension( findParamLine.getPreferredSize().width
+                                      + 20,
+                                      super.getPreferredSize().height );
             }
         };
-        treePanel_.add( new JScrollPane( tTree_ ), BorderLayout.CENTER );
-        JComponent searchLine = Box.createHorizontalBox();
-        searchLine.add( searchLabel );
-        searchLine.add( searchField_ );
-        searchLine.setBorder( BorderFactory.createEmptyBorder( 0, 0, 5, 0 ) );
-        treePanel_.add( searchLine, BorderLayout.NORTH );
+        treeContainer_ = new JPanel( new BorderLayout() );
+        treeContainer_.add( new JScrollPane( tTree_ ), BorderLayout.CENTER );
+        treePanel.add( treeContainer_, BorderLayout.CENTER );
+        JComponent keywordLine = Box.createHorizontalBox();
+        keywordLine.add( keywordLabel );
+        keywordLine.add( keywordField_ );
+        findParamLine.add( useNameButt_ );
+        findParamLine.add( useDescripButt_ );
+        findParamLine.add( Box.createHorizontalGlue() );
+        findParamLine.add( keyAndButt_ );
+        JComponent findBox = Box.createVerticalBox();
+        findBox.add( keywordLine );
+        findBox.add( findParamLine );
+        findBox.setBorder( BorderFactory.createEmptyBorder( 0, 0, 5, 5 ) );
+        treePanel.add( findBox, BorderLayout.NORTH );
 
-        metaSplitter_ = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT );
-        metaSplitter_.setBorder( BorderFactory.createEmptyBorder() );
-        treePanel_.setMinimumSize( new Dimension( 100, 100 ) );
+        JSplitPane metaSplitter = new JSplitPane( JSplitPane.HORIZONTAL_SPLIT );
+        metaSplitter.setBorder( BorderFactory.createEmptyBorder() );
+        treePanel.setMinimumSize( new Dimension( 100, 100 ) );
         detailTabber_.setMinimumSize( new Dimension( 100, 100 ) );
-        metaSplitter_.setLeftComponent( treePanel_ );
-        metaSplitter_.setRightComponent( detailTabber_ );
-        add( metaSplitter_, BorderLayout.CENTER );
+        metaSplitter.setLeftComponent( treePanel );
+        metaSplitter.setRightComponent( detailTabber_ );
+        add( metaSplitter, BorderLayout.CENTER );
 
         setSchemas( null );
     }
@@ -365,7 +410,7 @@ public class TableSetPanel extends JPanel {
             new TapMetaTreeModel( schemas_ == null ? new SchemaMeta[ 0 ]
                                                    : schemas_ );
         tTree_.setModel( new MaskTreeModel( treeModel, true ) );
-        searchField_.setText( null );
+        keywordField_.setText( null );
         selectionModel_.setSelectionPath( null );
         updateTree( true );
 
@@ -455,6 +500,8 @@ public class TableSetPanel extends JPanel {
         workBox.add( progLine );
         workBox.add( Box.createVerticalGlue() );
         JComponent workPanel = new JPanel( new BorderLayout() );
+        workPanel.setBackground( UIManager.getColor( "Tree.background" ) );
+        workPanel.setBorder( BorderFactory.createEtchedBorder() );
         workPanel.add( workBox, BorderLayout.CENTER );
         replaceTreeComponent( workPanel );
         return progBar;
@@ -528,10 +575,10 @@ public class TableSetPanel extends JPanel {
      * @param  content  component to replace tree, or null
      */
     private void replaceTreeComponent( JComponent content ) {
-        int divloc = metaSplitter_.getDividerLocation();
-        metaSplitter_.setLeftComponent( content != null ? content
-                                                        : treePanel_ );
-        metaSplitter_.setDividerLocation( divloc );
+        treeContainer_.removeAll();
+        treeContainer_.add( content != null ? content
+                                            : new JScrollPane( tTree_ ),
+                            BorderLayout.CENTER );
     }
 
     /**
@@ -704,7 +751,7 @@ public class TableSetPanel extends JPanel {
                 StarJTable.configureColumnWidths( jtable, 360, 9999 );
             }
         };
-        if ( metaSplitter_.getSize().width > 0 ) {
+        if ( detailTabber_.getSize().width > 0 ) {
             configer.run();
         }
         else {
@@ -728,11 +775,22 @@ public class TableSetPanel extends JPanel {
         }
         MaskTreeModel mModel = (MaskTreeModel) treeModel;
 
-        /* Get a node mask object from the text entry field. */
-        String text = searchField_.getText();
-        MaskTreeModel.Mask mask = text == null || text.trim().length() == 0
-                                ? null
-                                : new TextMask( text );
+        /* Get a node mask object from the GUI components. */
+        final MaskTreeModel.Mask mask;
+        String text = keywordField_.getText();
+        if ( text == null || text.trim().length() == 0 ) {
+            mask = null;
+        }
+        else {
+            String[] searchTerms = text.split( "\\s+" );
+            assert searchTerms.length > 0;
+            boolean isAnd = keyAndButt_.isAnd();
+            boolean useName = useNameButt_.isSelected();
+            boolean useDescrip = useDescripButt_.isSelected();
+            NodeStringer stringer =
+                NodeStringer.createInstance( useName, useDescrip );
+            mask = new WordMatchMask( searchTerms, stringer, isAnd );
+        }
 
         /* We will be changing the mask, which will cause a
          * treeStructureChanged TreeModelEvent to be sent to listeners,
@@ -1065,27 +1123,140 @@ public class TableSetPanel extends JPanel {
     }
 
     /**
-     * Tree node mask that selects on simple matches of node name strings
-     * to one or more space-separated words entered in the search field.
+     * Extracts text elements from tree nodes for comparison with search terms.
      */
-    private static class TextMask implements MaskTreeModel.Mask {
-        private final Set<String> lwords_;
+    private static abstract class NodeStringer {
+        private final boolean useName_;
+        private final boolean useDescription_;
 
         /**
          * Constructor.
          *
-         * @param  txt  entered text
+         * @param  useName  true to use the node name as one of the strings
+         * @param  useDescription  true to use the node description as one
+         *                         of the strings
          */
-        TextMask( String txt ) {
-            lwords_ = new HashSet<String>( Arrays.asList( txt.trim()
-                                          .toLowerCase().split( "\\s+" ) ) );
+        private NodeStringer( boolean useName, boolean useDescription ) {
+            useName_ = useName;
+            useDescription_ = useDescription;
+        }
+
+        /**
+         * Supplies a list of strings that characterise a given tree node.
+         *
+         * @param  node  tree node
+         * @return   list of strings associated with the node
+         */
+        public abstract List<String> getStrings( Object node );
+
+        @Override
+        public int hashCode() {
+            int code = 5523;
+            code = 23 * code + ( useName_ ? 11 : 13 );
+            code = 23 * code + ( useDescription_ ? 23 : 29 );
+            return code;
+        }
+
+        @Override
+        public boolean equals( Object o ) {
+            if ( o instanceof NodeStringer ) {
+                NodeStringer other = (NodeStringer) o;
+                return this.useName_ == other.useName_
+                    && this.useDescription_ == other.useDescription_;
+            }
+            else {
+                return false;
+            }
+        }
+
+        /**
+         * Constructs an instance of this class.
+         *
+         * @param  useName  true to use the node name as one of the strings
+         * @param  useDescrip  true to use the node description as
+         *                     one of the strings
+         */
+        public static NodeStringer createInstance( final boolean useName,
+                                                   final boolean useDescrip ) {
+
+            /* Treat name only as a special case for efficiency. */
+            if ( useName && ! useDescrip ) {
+                final List<String> emptyList = Arrays.asList( new String[ 0 ] );
+                return new NodeStringer( useName, useDescrip ) {
+                    public List<String> getStrings( Object node ) {
+                        return node == null
+                             ? emptyList
+                             : Collections.singletonList( node.toString() );
+                    }
+                };
+            }
+
+            /* Otherwise treat it more generally. */
+            else {
+                return new NodeStringer( useName, useDescrip ) {
+                    public List<String> getStrings( Object node ) {
+                        List<String> list = new ArrayList<String>();
+                        if ( node != null ) {
+                            if ( useName ) {
+                                list.add( node.toString() );
+                            }
+                            if ( useDescrip ) {
+                                String descrip = null;
+                                if ( node instanceof TableMeta ) {
+                                    descrip =
+                                        ((TableMeta) node).getDescription();
+                                }
+                                else if ( node instanceof SchemaMeta ) {
+                                    descrip =
+                                        ((SchemaMeta) node).getDescription();
+                                }
+                                if ( descrip != null ) {
+                                    list.add( descrip );
+                                }
+                            }
+                        }
+                        return list;
+                    }
+                };
+            }
+        }
+    }
+
+    /**
+     * Tree node mask that selects on simple matches of node name strings
+     * to one or more space-separated words entered in the search field.
+     *
+     * <p>Implements equals/hashCode for equality, which isn't essential,
+     * but somewhat beneficial for efficiency.
+     */
+    private static class WordMatchMask implements MaskTreeModel.Mask {
+        private final Set<String> lwords_;
+        private final NodeStringer stringer_;
+        private final boolean isAnd_;
+
+        /**
+         * Constructor.
+         *
+         * @param  words   search terms
+         * @param  stringer  converts node to text strings for matching
+         * @param  isAnd  true to require matching of a node string against
+         *                all search terms, false to match against any
+         */
+        WordMatchMask( String[] words, NodeStringer stringer, boolean isAnd ) {
+            lwords_ = new HashSet<String>( words.length );
+            for ( String word : words ) {
+                lwords_.add( word.toLowerCase() );
+            }
+            stringer_ = stringer;
+            isAnd_ = isAnd;
         }
 
         public boolean isIncluded( Object node ) {
-            if ( node != null && node.toString() != null ) {
-                String nodeTxt = node.toString().toLowerCase();
-                for ( String lword : lwords_ ) {
-                    if ( nodeTxt.indexOf( lword ) >= 0 ) {
+            for ( String nodeTxt : stringer_.getStrings( node ) ) {
+                if ( nodeTxt != null ) {
+                    String nodetxt = nodeTxt.toLowerCase();
+                    if ( isAnd_ ? matchesAllWords( nodetxt )
+                                : matchesAnyWord( nodetxt ) ) {
                         return true;
                     }
                 }
@@ -1093,15 +1264,56 @@ public class TableSetPanel extends JPanel {
             return false;
         }
 
-        @Override
-        public int hashCode() {
-            return lwords_.hashCode();
+        /**
+         * Tests whether a given string matches any of this mask's search terms.
+         *
+         * @param  txt  test string
+         * @return  true iff txt matches any search term
+         */
+        private boolean matchesAnyWord( String txt ) {
+            for ( String lword : lwords_ ) {
+                if ( txt.indexOf( lword ) >= 0 ) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /**
+         * Tests whether a given string matches all of this mask's search terms.
+         *
+         * @param  txt  test string
+         * @return   true iff txt matches all search terms
+         */
+        private boolean matchesAllWords( String txt ) {
+            for ( String lword : lwords_ ) {
+                if ( txt.indexOf( lword ) < 0 ) {
+                    return false;
+                }
+            }
+            return true;
         }
 
         @Override
-        public boolean equals( Object other ) {
-            return other instanceof TextMask
-                && this.lwords_.equals( ((TextMask) other).lwords_ );
+        public int hashCode() {
+            int code = 324223;
+            code = 23 * code + lwords_.hashCode();
+            code = 23 * code + stringer_.hashCode();
+            code = 23 * code + ( isAnd_ ? 11 : 17 );
+            return code;
+        }
+
+        @Override
+        public boolean equals( Object o ) {
+            if ( o instanceof WordMatchMask ) {
+                WordMatchMask other = (WordMatchMask) o;
+                return this.lwords_.equals( other.lwords_ )
+                    && this.stringer_.equals( other.stringer_ )
+                    && this.isAnd_ == other.isAnd_;
+            }
+            else {
+                return false;
+            }
         }
     }
 
