@@ -242,7 +242,16 @@ public class TapServiceFinderPanel extends JPanel {
 
         /* Schedule a worker to display the result when it is obtained,
          * if no other worker has been installed by then. */
-        setWorker( createQueryWorker( null ) );
+        setWorker( createQueryWorker( createConstraint() ) );
+    }
+
+    /**
+     * Returns the object which locates TAP services.
+     *
+     * @return  finder
+     */
+    public TapServiceFinder getServiceFinder() {
+        return serviceFinder_;
     }
 
     /**
