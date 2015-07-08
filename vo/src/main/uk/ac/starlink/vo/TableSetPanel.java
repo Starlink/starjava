@@ -1115,7 +1115,23 @@ public class TableSetPanel extends JPanel {
             if ( value instanceof SchemaMeta ) {
                 TableMeta[] tables = ((SchemaMeta) value).getTables();
                 if ( tables != null ) {
-                    setText( getText() + " (" + tables.length + ")" );
+                    int ntTotal = tables.length;
+                    TreeModel model = tree.getModel();
+                    int ntPresent =
+                        model.isLeaf( value ) ? -1
+                                              : model.getChildCount( value );
+                    boolean hasMask = model instanceof MaskTreeModel
+                                   && ((MaskTreeModel) model).getMask() != null;
+                    StringBuffer sbuf = new StringBuffer();
+                    sbuf.append( getText() )
+                        .append( " (" );
+                    if ( hasMask ) {
+                        sbuf.append( ntPresent )
+                            .append( "/" );
+                    }
+                    sbuf.append( ntTotal )
+                        .append( ")" );
+                    setText( sbuf.toString() );
                 }
             }
             return comp;
