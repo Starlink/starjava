@@ -1102,6 +1102,7 @@ public class TableSetPanel extends JPanel {
      */
     private static class CountTableTreeCellRenderer
             extends DefaultTreeCellRenderer {
+        final Icon tableIcon_ = TapServiceTreeModel.tableIcon_;
         @Override
         public Component getTreeCellRendererComponent( JTree tree, Object value,
                                                        boolean isSelected,
@@ -1132,6 +1133,11 @@ public class TableSetPanel extends JPanel {
                     sbuf.append( ntTotal )
                         .append( ")" );
                     setText( sbuf.toString() );
+                }
+            }
+            else if ( value instanceof TableMeta ) {
+                if ( tableIcon_ != null ) {
+                    setIcon( tableIcon_ );
                 }
             }
             return comp;

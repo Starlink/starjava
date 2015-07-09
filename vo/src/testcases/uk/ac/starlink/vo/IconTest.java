@@ -23,6 +23,11 @@ public class IconTest extends TestCase {
         }
     }
 
+    public void testTreeIcons() {
+        assertNotNull( TapServiceTreeModel.serviceIcon_ );
+        assertNotNull( TapServiceTreeModel.tableIcon_ );
+    }
+
     private void assert24( Icon icon ) {
         assertEquals( 24, icon.getIconWidth() );
         assertEquals( 24, icon.getIconHeight() );
