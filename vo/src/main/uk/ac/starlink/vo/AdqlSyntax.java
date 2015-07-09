@@ -102,14 +102,17 @@ public class AdqlSyntax extends SqlSyntax {
      *           or null for parse failure
      */
     public String[] getCatalogSchemaTable( String tableName ) {
-        Matcher matcher = CST_REGEX.matcher( tableName );
-        return matcher.matches()
-             ? new String[] {
-                   matcher.group( 1 ),
-                   matcher.group( 2 ),
-                   matcher.group( 3 ),
-               }
-             : null;
+        if ( tableName != null ) {
+            Matcher matcher = CST_REGEX.matcher( tableName );
+            if ( matcher.matches() ) {
+                return new String[] {
+                    matcher.group( 1 ),
+                    matcher.group( 2 ),
+                    matcher.group( 3 ),
+                };
+            }
+        }
+        return null;
     }
 
     /**
