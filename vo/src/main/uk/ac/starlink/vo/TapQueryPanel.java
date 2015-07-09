@@ -306,6 +306,9 @@ public class TapQueryPanel extends JPanel {
                                              .createSomeExamples() ) );
         iCustomExampleMenu_ = examplesMenu_.getSubElements().length;
         examplesMenu_.add( daliExampleMenu_ );
+        examplesMenu_.add( createExampleMenu( "TAP_SCHEMA",
+                                              AbstractAdqlExample
+                                             .createTapSchemaExamples() ) );
         examplesMenu_.add( createExampleMenu( "ObsTAP",
                                               DataModelAdqlExample
                                              .createObsTapExamples() ) );
