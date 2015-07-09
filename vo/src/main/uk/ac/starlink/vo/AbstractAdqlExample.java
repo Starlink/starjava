@@ -624,6 +624,143 @@ public abstract class AbstractAdqlExample implements AdqlExample {
     }
 
     /**
+     * Returns a selection of examples using the TAP_SCHEMA tables.
+     *
+     * @return  example list
+     */
+    public static AdqlExample[] createTapSchemaExamples() {
+        return new AdqlExample[] {
+
+            createSimpleExample(
+                "Table descriptions",
+                "Lists all tables in the service, apart from TAP_SCHEMA, "
+                + "along with their descriptions",
+                new String[] {
+                    "SELECT schema_name, table_name, description",
+                    "FROM tap_schema.tables",
+                    "WHERE schema_name != 'tap_schema'",
+                    "ORDER BY schema_name, table_name",
+                }
+            ),
+
+            createSimpleExample(
+                "Table column counts",
+                "List all tables in the service "
+                + "along with the number of columns for each",
+                new String[] {
+                    "SELECT table_name, count(column_name) AS ntable",
+                    "FROM TAP_SCHEMA.columns",
+                    "GROUP BY table_name",
+                    "ORDER BY ntable desc",
+                }
+            ),
+
+            createSimpleExample(
+                "UCDs in use",
+                "List all the Uniform Content Descriptors appearing in "
+                + "this service, with a count of how many columns "
+                + "each one appears in",
+                new String[] {
+                    "SELECT ucd, count(*) AS ncol",
+                    "FROM tap_schema.columns",
+                    "GROUP BY ucd",
+                    "ORDER BY ucd",
+                }
+            ),
+
+            createSimpleExample(
+                "Tables with Redshifts",
+                "List all tables having a redshift column",
+                new String[] {
+                    "SELECT t.table_name, t.description, c.column_name AS zcol",
+                    "FROM tap_schema.tables AS t",
+                    "JOIN tap_schema.columns AS c USING (table_name)",
+                    "WHERE c.ucd = 'src.redshift'",
+                }
+            ),
+
+            createSimpleExample(
+                "X-Ray QSO observations",
+                "List all quasar-related tables with X-ray-related columns",
+                new String[] {
+                    "SELECT DISTINCT t.table_name",
+                    // should be able to add "t.table_description" here,
+                    // but TAPVizier doesn't like it at time of writing
+                    "FROM tap_schema.tables AS t",
+                    "JOIN tap_schema.columns AS c USING (table_name)",
+                    "WHERE (t.description LIKE '%qso%' " +
+                        "OR t.description LIKE '%quasar%')",
+                    "  AND c.ucd LIKE '%em.X-ray%'",
+                }
+            ),
+
+            createSimpleExample(
+                "J/H/K band observations",
+                "List all tables with columns for all of "
+                + "J, H and K band magnitudes",
+                new String[] {
+                    "SELECT t.table_name AS tname, t.description AS tdesc,",
+                    "       h.column_name AS hcol,",
+                    "       j.column_name AS jcol,",
+                    "       k.column_name AS kcol",
+                    "FROM tap_schema.tables AS t",
+                    "JOIN (SELECT table_name, column_name",
+                    "      FROM tap_schema.columns",
+                    "      WHERE ucd='phot.mag;em.IR.H') AS h"
+                       + " USING (table_name)",
+                    "JOIN (SELECT table_name, column_name",
+                    "      FROM tap_schema.columns",
+                    "      WHERE ucd='phot.mag;em.IR.J') AS j"
+                       + " USING (table_name)",
+                    "JOIN (SELECT table_name, column_name",
+                    "      FROM tap_schema.columns",
+                    "      WHERE ucd='phot.mag;em.IR.K') AS k"
+                       + " USING (table_name)",
+                }
+            ),
+
+        };
+    }
+
+    /**
+     * Creates a static example.
+     * Only name, description and static example text are supplied.
+     *
+     * @param   name  example name
+     * @param   description   example short description
+     * @param   textLines  lines of ADQL text
+     * @return   example
+     */
+    public static AdqlExample createSimpleExample( final String name,
+                                                   final String description,
+                                                   final String[] textLines ) {
+        return new AbstractAdqlExample( name, description ) {
+            public String getText( boolean lineBreaks, String lang,
+                                   TapCapability tcap, TableMeta[] tables,
+                                   TableMeta table ) {
+                if ( lineBreaks ) {
+                    StringBuffer sbuf = new StringBuffer();
+                    for ( String line : textLines ) {
+                        sbuf.append( line )
+                            .append( '\n' );
+                    }
+                    return sbuf.toString();
+                }
+                else {
+                    StringBuffer sbuf = new StringBuffer();
+                    for ( String line : textLines ) {
+                        if ( sbuf.length() != 0 ) {
+                            sbuf.append( ' ' );
+                        }
+                        sbuf.append( line.trim().replaceAll( "--.*", "" ) );
+                    }
+                    return sbuf.toString();
+                }
+            }
+        };
+    }
+
+    /**
      * Creates an uninteresting table which ought to be OK to use for examples.
      *
      * @return  metadata table
