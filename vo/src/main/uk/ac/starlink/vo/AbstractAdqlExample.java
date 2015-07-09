@@ -241,9 +241,12 @@ public abstract class AbstractAdqlExample implements AdqlExample {
      * @return  alias
      */
     private static String getAlias( TableMeta table ) {
-        String subname = table.getName().replaceFirst( "^[^\\.]*\\.", "" );
+        String tname = table.getName();
+        String subname = tname == null
+                       ? null
+                       : tname.replaceFirst( "^[^\\.]*\\.", "" );
         char letter = '\0';
-        if ( subname.length() > 0 ) {
+        if ( subname != null && subname.length() > 0 ) {
             letter = subname.charAt( 0 );
         }
         if ( ( letter >= 'a' && letter <= 'z' ) ||

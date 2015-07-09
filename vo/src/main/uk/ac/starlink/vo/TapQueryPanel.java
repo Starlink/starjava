@@ -849,51 +849,63 @@ public class TapQueryPanel extends JPanel {
             createValidatorTables( SchemaMeta[] schemas ) {
         List<AdqlValidator.ValidatorTable> vtList =
             new ArrayList<AdqlValidator.ValidatorTable>();
+        int nNoName = 0;
         for ( SchemaMeta smeta : schemas ) {
             final String sname = smeta.getName();
             for ( TableMeta tmeta : smeta.getTables() ) {
                 final TableMeta tmeta0 = tmeta;
-                vtList.add( new AdqlValidator.ValidatorTable() {
-                    public String getSchemaName() {
-                        return sname;
-                    }
-                    public String getTableName() {
-                        return tmeta0.getName();
-                    }
-                    public Collection<String> getColumnNames() {
-                        ColumnMeta[] cmetas = tmeta0.getColumns();
-
-                        /* If the table knows its columns, report them. */
-                        if ( cmetas != null ) {
-                            Collection<String> list = new HashSet<String>();
-                            for ( ColumnMeta cmeta : cmetas ) {
-                                list.add( cmeta.getName() );
-                            }
-                            return list;
+                final String tname = tmeta0.getName();
+                if ( tname != null && tname.trim().length() > 0 ) {
+                    vtList.add( new AdqlValidator.ValidatorTable() {
+                        public String getSchemaName() {
+                            return sname;
                         }
-
-                        /* Otherwise, return null to indicate that no
-                         * column information is available, but also schedule
-                         * a request to acquire the column information
-                         * and subsequently have another go at validating
-                         * the ADQL; this method will have been called by
-                         * a current validation attempt, but next time it
-                         * should be able to report the columns. */
-                        else {
-                            TapServiceKit serviceKit =
-                                tmetaPanel_.getServiceKit();
-                            if ( serviceKit != null ) {
-                                serviceKit.onColumns( tmeta0, new Runnable() {
-                                    public void run() {
-                                        validateAdql();
-                                    }
-                                } );
-                            }
-                            return null;
+                        public String getTableName() {
+                            return tname;
                         }
-                    }
-                } );
+                        public Collection<String> getColumnNames() {
+                            ColumnMeta[] cmetas = tmeta0.getColumns();
+
+                            /* If the table knows its columns, report them. */
+                            if ( cmetas != null ) {
+                                Collection<String> list = new HashSet<String>();
+                                for ( ColumnMeta cmeta : cmetas ) {
+                                    list.add( cmeta.getName() );
+                                }
+                                return list;
+                            }
+
+                            /* Otherwise, return null to indicate that no
+                             * column information is available,
+                             * but also schedule a request
+                             * to acquire the column information
+                             * and subsequently have another go at validating
+                             * the ADQL; this method will have been called by
+                             * a current validation attempt, but next time it
+                             * should be able to report the columns. */
+                            else {
+                                TapServiceKit serviceKit =
+                                    tmetaPanel_.getServiceKit();
+                                if ( serviceKit != null ) {
+                                    serviceKit.onColumns( tmeta0,
+                                                          new Runnable() {
+                                        public void run() {
+                                            validateAdql();
+                                        }
+                                    } );
+                                }
+                                return null;
+                            }
+                        }
+                    } );
+                }
+                else {
+                    nNoName++;
+                }
             }
+        }
+        if ( nNoName > 0 ) {
+            logger_.warning( "Ignoring " + nNoName + " nameless tables" );
         }
         return vtList.toArray( new AdqlValidator.ValidatorTable[ 0 ] );
     }
