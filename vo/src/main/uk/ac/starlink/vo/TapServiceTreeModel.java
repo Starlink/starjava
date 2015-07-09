@@ -7,6 +7,9 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JTree;
 import javax.swing.event.TreeModelListener;
@@ -31,6 +34,10 @@ public class TapServiceTreeModel implements TreeModel {
     private final Service[] services_;
     private final Map<Service,Table[]> tableMap_;
     private final List<TreeModelListener> listeners_;
+    private static final Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.vo" );
+    static final Icon serviceIcon_ = createIcon( "service_node.gif" );
+    static final Icon tableIcon_ = createIcon( "table_node.gif" );
 
     /**
      * Constructor.
@@ -229,7 +236,7 @@ public class TapServiceTreeModel implements TreeModel {
      */
     private Node asNode( final Object item ) {
         if ( item instanceof Service[] ) {
-            return new Node( (Service[]) item ) {
+            return new Node( (Service[]) item, null ) {
                 public String toString() {
                     return rootLabel_;
                 }
@@ -238,7 +245,8 @@ public class TapServiceTreeModel implements TreeModel {
         else if ( item instanceof Service ) {
             final Service service = (Service) item;
             return new Node( tableMap_ == null ? null
-                                               : tableMap_.get( service ) ) {
+                                               : tableMap_.get( service ),
+                             serviceIcon_ ) {
                 public String toString() {
                     String nameTxt = null;
                     if ( nameTxt == null || nameTxt.trim().length() == 0 ) {
@@ -268,7 +276,7 @@ public class TapServiceTreeModel implements TreeModel {
         }
         else if ( item instanceof Table ) {
             final Table table = (Table) item;
-            return new Node( null ) {
+            return new Node( null, tableIcon_ ) {
                 public String toString() {
                     String descrip = table.getDescription();
                     String txt = table.getName();
@@ -281,7 +289,7 @@ public class TapServiceTreeModel implements TreeModel {
         }
         else {
             assert false;
-            return new Node( null ) {
+            return new Node( null, null ) {
                 public String toString() {
                     return item.toString();
                 }
@@ -318,6 +326,23 @@ public class TapServiceTreeModel implements TreeModel {
     }
 
     /**
+     * Creates an icon from an image resource.
+     *
+     * @param  filename  filename in the directory of the current class
+     * @return  icon, or null if there's a problem
+     */
+    private static Icon createIcon( String filename ) {
+        try {
+            return new ImageIcon( TapServiceTreeModel.class
+                                 .getResource( filename ) );
+        }
+        catch ( Exception e ) {
+            logger_.warning( "No icon " + filename );
+            return null;
+        }
+    }
+
+    /**
      * Returns a cell renderer suitable for rendering nodes of a JTree
      * using a model of this class.
      *
@@ -336,10 +361,17 @@ public class TapServiceTreeModel implements TreeModel {
                 TreeModel model = tree.getModel();
 
                 /* Prepare text for labelling the node. */
-                String text =
-                      model instanceof TapServiceTreeModel
-                    ? ((TapServiceTreeModel) model).asNode( value ).toString()
-                    : value.toString();
+                final String text;
+                final Icon icon;
+                if ( model instanceof TapServiceTreeModel ) {
+                    Node node = ((TapServiceTreeModel) model).asNode( value );
+                    text = node.toString();
+                    icon = node.getIcon();
+                }
+                else {
+                    text = value.toString();
+                    icon = null;
+                }
 
                 /* Adjust presentation for nodes that are present in the
                  * selection model, but which don't represent services
@@ -362,7 +394,11 @@ public class TapServiceTreeModel implements TreeModel {
                                                         isExpanded, isLeaf,
                                                         irow, hasFocus );
                 if ( comp instanceof JLabel ) {
-                    ((JLabel) comp).setText( text );
+                    JLabel label = (JLabel) comp;
+                    label.setText( text );
+                    if ( icon != null ) {
+                        label.setIcon( icon );
+                    }
                 }
                 return comp;
             }
@@ -374,14 +410,17 @@ public class TapServiceTreeModel implements TreeModel {
      */
     private static abstract class Node {
         final Object[] children_;
+        final Icon icon_;
 
         /**
          * Constructor.
          *
-         * @return   child nodes, null for tree leaves
+         * @param  children   child nodes, null for tree leaves
+         * @param  icon       custom tree node icon, or null
          */
-        Node( Object[] children ) {
+        Node( Object[] children, Icon icon ) {
             children_ = children;
+            icon_ = icon;
         }
 
         /**
@@ -391,6 +430,15 @@ public class TapServiceTreeModel implements TreeModel {
          */
         boolean isLeaf() {
             return children_ == null;
+        }
+
+        /**
+         * Returns a custom tree node icon.
+         *
+         * @return   icon, or null
+         */
+        Icon getIcon() {
+            return icon_;
         }
 
         /**
