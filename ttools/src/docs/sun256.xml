@@ -10251,6 +10251,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         Fixes problem with evaluating void-typed expressions,
         and possibly some other obscure bugs.</li>
     <li>Some taplint bug fixes.</li>
+    <li>Modify the heuristics that determine whether the first row of
+        a CSV file is a header.</li>
     </ul>
     </p></dd>
 

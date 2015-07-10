@@ -21852,6 +21852,8 @@ introduced since the last version:
         have side-effects); expressions evaluated as column values etc
         are, as previously, executed but the result is ignored.
         </li>
+    <li>Modify the heuristics that determine whether the first row of
+        a CSV file is a header.</li>
     </ul>
     </p></dd>
 
