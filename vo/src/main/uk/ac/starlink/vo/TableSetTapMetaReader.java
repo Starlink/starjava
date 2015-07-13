@@ -65,6 +65,13 @@ public class TableSetTapMetaReader implements TapMetaReader {
         if ( fixer_ != null ) {
             fixer_.fixSchemas( schemas );
         }
+        TapSchemaTapMetaReader.sortSchemas( schemas );
+        for ( SchemaMeta smeta : schemas ) {
+            TableMeta[] tmetas = smeta.getTables();
+            if ( tmetas != null ) {
+                TapSchemaTapMetaReader.sortTables( tmetas );
+            }
+        }
         return schemas;
     }
 
