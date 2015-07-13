@@ -68,6 +68,7 @@ import uk.ac.starlink.util.gui.ShrinkWrapper;
 public class TableSetPanel extends JPanel {
 
     private final JTree tTree_;
+    private final CountTableTreeCellRenderer renderer_;
     private final JTextField keywordField_;
     private final AndButton keyAndButt_;
     private final JCheckBox useNameButt_;
@@ -124,11 +125,12 @@ public class TableSetPanel extends JPanel {
      */
     public TableSetPanel( UrlHandler urlHandler ) {
         super( new BorderLayout() );
+        renderer_ = new CountTableTreeCellRenderer();
         tTree_ = new JTree();
-        tTree_.setRootVisible( false );
-        tTree_.setShowsRootHandles( true );
+        tTree_.setRootVisible( true );
+        tTree_.setShowsRootHandles( false );
         tTree_.setExpandsSelectedPaths( true );
-        tTree_.setCellRenderer( new CountTableTreeCellRenderer() );
+        tTree_.setCellRenderer( renderer_ );
         selectionModel_ = tTree_.getSelectionModel();
         selectionModel_.setSelectionMode( TreeSelectionModel
                                          .SINGLE_TREE_SELECTION );
@@ -464,6 +466,17 @@ public class TableSetPanel extends JPanel {
      *              or null for no info
      */
     private void setResourceInfo( Map<String,String> map ) {
+        String rootName = null;
+        if ( map != null ) {
+            if ( rootName == null || rootName.trim().length() == 0 ) {
+                rootName = map.get( "short_name" );
+            }
+            if ( rootName == null || rootName.trim().length() == 0 ) {
+                rootName = map.get( "res_title" );
+            }
+        }
+        renderer_.rootName_ = rootName;
+        tTree_.repaint();
         servicePanel_.setResourceInfo( map == null
                                      ? new HashMap<String,String>()
                                      : map );
@@ -579,6 +592,8 @@ public class TableSetPanel extends JPanel {
         treeContainer_.add( content != null ? content
                                             : new JScrollPane( tTree_ ),
                             BorderLayout.CENTER );
+        treeContainer_.revalidate();
+        treeContainer_.repaint();
     }
 
     /**
@@ -1102,6 +1117,8 @@ public class TableSetPanel extends JPanel {
      */
     private static class CountTableTreeCellRenderer
             extends DefaultTreeCellRenderer {
+        String rootName_;
+        final Icon serviceIcon_ = TapServiceTreeModel.serviceIcon_;
         final Icon tableIcon_ = TapServiceTreeModel.tableIcon_;
         @Override
         public Component getTreeCellRendererComponent( JTree tree, Object value,
@@ -1113,6 +1130,34 @@ public class TableSetPanel extends JPanel {
                 super.getTreeCellRendererComponent( tree, value, isSelected,
                                                     isExpanded, isLeaf, irow,
                                                     hasFocus );
+            if ( value instanceof SchemaMeta[] ) {
+                SchemaMeta[] schemas = (SchemaMeta[]) value;
+                setIcon( serviceIcon_ );
+                StringBuffer sbuf = new StringBuffer();
+                sbuf.append( rootName_ == null ? "TAP Service" : rootName_ );
+                int ntTotal = 0;
+                for ( SchemaMeta schema : schemas ) {
+                    TableMeta[] tables = schema.getTables();
+                    if ( tables != null ) {
+                        ntTotal += tables.length;
+                    }
+                }
+                sbuf.append( " (" );
+                TreeModel model = tree.getModel();
+                boolean hasMask = model instanceof MaskTreeModel
+                               && ((MaskTreeModel) model).getMask() != null;
+                if ( hasMask ) {
+                    int ntPresent = 0;
+                    for ( SchemaMeta schema : schemas ) {
+                        ntPresent += model.getChildCount( schema );
+                    }
+                    sbuf.append( ntPresent )
+                        .append( "/" );
+                }
+                sbuf.append( ntTotal )
+                    .append( ")" );
+                setText( sbuf.toString() );
+            }
             if ( value instanceof SchemaMeta ) {
                 TableMeta[] tables = ((SchemaMeta) value).getTables();
                 if ( tables != null ) {
