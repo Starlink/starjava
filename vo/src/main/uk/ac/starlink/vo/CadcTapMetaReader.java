@@ -66,6 +66,7 @@ public class CadcTapMetaReader implements TapMetaReader {
     public SchemaMeta[] readSchemas() throws IOException {
         SchemaMeta[] schemas = populateHandler( "", config_.schemaDetail_ )
                               .getSchemas();
+        TapSchemaTapMetaReader.sortSchemas( schemas );
         int nTable = 0;
         int nHasCols = 0;
         int nHasFkeys = 0;
@@ -74,6 +75,7 @@ public class CadcTapMetaReader implements TapMetaReader {
             String sname = schema.getName();
             TableMeta[] tables = schema.getTables();
             if ( tables != null ) {
+                TapSchemaTapMetaReader.sortTables( tables );
                 for ( TableMeta table : tables ) {
                     nTable++;
                     schemaMap_.put( table.getName(), sname );
@@ -118,6 +120,7 @@ public class CadcTapMetaReader implements TapMetaReader {
         int ns = schemas.length;
         if ( ns == 1 ) {
             TableMeta[] tables = schemas[ 0 ].getTables();
+            TapSchemaTapMetaReader.sortTables( tables );
             for ( TableMeta table : tables ) {
                 schemaMap_.put( table.getName(), sname );
             }
