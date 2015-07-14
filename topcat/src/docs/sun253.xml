@@ -16124,8 +16124,9 @@ VO data access windows.
 <figureimage src="&FIG.RegistryPanel;"/>
 </figure>
 
-<p>The Registry Query Panel appears in all VO query windows and 
-allows you to search for entries
+<p>The Registry Query Panel appears in all VO query windows
+(though by default the TAP window uses an alternative registry search panel)
+and allows you to search for entries
 in <ref id="registry">the Registry</ref> representing data services
 of the type appropriate to the window.
 Note that if you know the service URL for the service that you want
@@ -16806,12 +16807,13 @@ using the <ref id="ActivationQueryWindow">Activation Window</ref>.
 
 <figure>
 <caption><px>Table Access Protocol Window</px></caption>
-<figureimage src="&FIG.TapTableLoadDialog;"/>
+<figureimage src="&FIG.TapTableLoadDialog_query;"/>
 </figure>
 
 <p>The Table Access Protocol (TAP) load window can be opened using the
 <label>TAP Query</label> button (&IMG.TAP_DIALOG;)
-in the Control Window's toolbar or <label>VO</label> menu,
+in the <ref id="ControlWindow">Control Window</ref>'s toolbar
+or <label>VO</label> menu,
 or the Load Window's toolbar.
 It allows you to use the TAP protocol to
 make freeform queries of remote database services 
@@ -16823,34 +16825,36 @@ but using the IVOA-endorsed TAP standard means that you can use
 the same interface for many different remote datasets.
 </p>
 
-<p>TAP is more involved than the other VO protocols implemented by TOPCAT,
-and this window is correspondingly more complicated than the Cone, SIA
-and SSA dialogues, though it does share some features with them.
+<p>Using TAP is one of the more complicated things you can do in TOPCAT,
+but it's well worth getting to grips with because of the
+capabilities it gives you for customised access to all kinds of remote data.
 </p>
 
 <p>In order to interrogate the remote database you will have to
 write queries in Astronomical Data Query Language (ADQL).
-This is a powerful tool, but to do complicated things in it 
-is not trivial.  ADQL is essentially a particular dialect of SQL,
-so if you know SQL already, you should be able to write ADQL queries.
-If you have used systems like SDSS's CasJobs, the concept
-should be quite familiar.
+ADQL is essentially a particular dialect of SQL,
+so if you have used SQL before, you should be able to write ADQL queries.
 A tutorial on writing ADQL/SQL is beyond the scope of this manual,
-but the <ref id="TapTableLoadDialog_query">Enter Query</ref> tab
+but the <ref id="TapTableLoadDialog_query">Use Service</ref> tab
 provides an <label>Examples</label> menu which
 will give you a good start in using it.
-You can find a nice introduction written by Markus Demleitner of GAVO
-at <webref url="http://docs.g-vo.org/adql"/>.
+You can find some introductions and tutorials elsewhere,
+for instance at
+<webref url="http://docs.g-vo.org/adql"/> (Markus Demleitner) or
+<webref url="http://is.gd/ADQLTutorial"/> (Simon Murphy).
+Some TAP services also provide tutorials or examples on their web pages.
 </p>
 
 <p>Once your query is written, you can submit it in either
 <em>synchronous</em> or <em>asynchronous</em> mode.
-Synchronous queries begin to execute right away and must be relatively short;
+Synchronous queries begin to execute right away and should have a
+relatively short runtime;
 asynchronous queries are submitted to a server, run for a potentially 
 long time, and retrieve the result later.
 </p>
 
-<p>The window is composed of four tabs, of which you can see one at a time.
+<p>The window is composed of four tabs, of which you can see one at a time
+(some of these tabs themselves contain tabbed parts).
 You will use two or three of them when submitting a TAP query.
 Each tab is described in more detail in the following subsections,
 but an overview of their operation is like this:
@@ -16859,12 +16863,12 @@ but an overview of their operation is like this:
 <dd><p>Chooses the TAP service you wish to query, either using a registry
     search or by entering the service URL directly.
     Once you have chosen a service you can move to the
-    <label>Enter Query</label> tab.
+    <label>Use Service</label> tab.
     </p></dd>
-<dt><ref id="TapTableLoadDialog_query">Enter Query</ref> tab</dt>
+<dt><ref id="TapTableLoadDialog_query">Use Service</ref> tab</dt>
 <dd><p>Displays information about the service and the tables it holds,
     and allows you to enter the text of the query and submit the job.
-    If the job is submitted synchronously, load will begin directly,
+    If the job is submitted synchronously, loading will begin directly,
     but in the asynchronous case, you will move to the
     <label>Running Jobs</label> tab.
     </p></dd>
@@ -16884,25 +16888,25 @@ tab will be visible, and when an asynchronous query has been submitted the
 <label>Running Jobs</label> tab will be visible.
 If you want to submit another query to the same service,
 or use a different service,
-just select <label>Enter Query</label> or 
+just select <label>Use Service</label> or 
 <label>Select Service</label> respectively,
 by clicking on the appropriate tab at the top.
 </p>
 
-<p>This window offers one menu additional to the standard
-<ref id="RegistryPanel">VO windows</ref> menus:
+<p>This window offers some menus additional to the standard
+<ref id="RegistryPanel">VO window</ref> menus:
 <dl>
 <dt>TAP menu</dt>
 <dd><p>This contains some configuration options specific to Table Access
     Protocol service interaction.  It has the following sub-items:
     <dl>
-    <dt>&IMG.REDO;: Reload</dt>
+    <dt>Reload (&IMG.REDO;)</dt>
     <dd><p>Reloads information displayed in the window from the server.
         This may be updating job status information or reloading table
         or service metadata; the exact behaviour depends on which tab
         is currently visible.
         </p></dd>
-    <dt>Deletion menu</dt>
+    <dt>Delete Jobs submenu</dt>
     <dd><p>Allows you to choose when asynchronously submitted jobs will
         by default be
         deleted from the server.  Once they are deleted they will no longer
@@ -16923,26 +16927,92 @@ by clicking on the appropriate tab at the top.
         </ul>
         You can override these settings once a job has started
         by using the controls at the bottom of the 
-        <ref id="TapTableLoadDialog_jobs">running jobs</ref> tab.
+        <ref id="TapTableLoadDialog_jobs">Running Jobs</ref> tab.
         The settings in this menu affect the default value of the
         <label>Delete On Exit</label> checkbox.
         If you want to <ref id="TapTableLoadDialog_resume">resume</ref>
         the job in a later session, you'll have to make sure that the
         job is not deleted on completion or exit.
         </p></dd>
+    <dt>Metadata Acquisition submenu</dt>
+    <dd><p>Controls how the application loads service metadata - information
+        about the tables and columns provided by the service.
+        The following options are available:
+        <ul>
+        <li><label>Auto:</label>
+            make a sensible decision; this generally means
+            <label>TAP_SCHEMA_C</label> for services with very many tables,
+            and <label>TableSet</label> otherwise.
+            </li>
+        <li><label>TableSet:</label>
+            reads the document at the <code>/tables</code> endpoint of
+            the TAP service; all table metadata is loaded up front.
+            </li>
+        <li><label>TAP_SCHEMA_C:</label>
+            reads metadata from TAP_SCHEMA tables;
+            all schemas, tables and foreign keys are read at once,
+            columns are read only when required.
+            </li>
+        <li><label>TAP_SCHEMA_CF:</label>
+            reads metadata from TAP_SCHEMA tables;
+            all schemas and tables are read at once,
+            columns and foreign keys are read only when required.
+            </li>
+        <li><label>TAP_SCHEMA:</label>
+            reads all metadata at once from the TAP_SCHEMA tables.
+            </li>
+        <li><label>VizieR:</label>
+            uses the 2-stage TableSet from <code>/tables</code>
+            as implemented (at time of writing) by the TAPVizieR service;
+            columns are read only when required
+            (experimental, may be withdrawn).
+            </li>
+        <li><label>CADC:</label>
+            uses the 2-stage TableSet from <code>/tables</code>
+            as implemented (at time of writing) by CADC services;
+            columns are read only when required
+            (experimental, may be withdrawn).
+            </li>
+        </ul>
+        You will usually want to stick with the default
+        value of <label>Auto</label>.
+        However, if you're on a slow link, and it's taking a long time
+        to display any metadata for medium-sized services, you might want
+        to switch to TAP_SCHEMA_C/CF, or VizieR for talking to TAPVizier.
+        </p></dd>
+    <dt>Transfer Format submenu</dt>
+    <dd><p>Configures how the application requests that VOTable results
+        are to be returned.  The options
+        (<label>TABLEDATA</label>,
+         <label>BINARY</label>,
+         <label>BINARY2</label>)
+        correspond to the different defined VOTable serialization formats.
+        The selected format is only actually requested if the service
+        has indicated support for it, otherwise the service default is used.
+        </p></dd>
+    <dt>HTTP gzip</dt>
+    <dd><p>If checked, this option sends <code>Accept-Encoding: gzip</code>
+        headers with most of the HTTP requests when communicating with the
+        TAP service.  That ought to reduce required bandwidth considerably,
+        but only if the service chooses to honour this request.
+        The setting should have no effect on the actual results,
+        but may affect performance.
+        </p></dd>
     </dl>
     </p></dd>
+    <dt>Edit menu</dt>
+    <dd><p>Provides options concerned with editing ADQL text.
+        This is only active when the
+        <label>Use Service</label> tab is visible, and it is described
+        in <ref id="TapTableLoadDialog_query">that section</ref>.
+        </p></dd>
 </dl>
 </p>
 
-<p><strong>Note:</strong> The TAP dialogue has been introduced at version
-3.8 of TOPCAT, at a time
-when most available TAP services are quite new and may not fully conform
-to the standard, and usage patterns are still settling down.
-For this reason you may find that some TAP services visible do not
-behave quite as expected; it is also possible that in future versions
-the user interface will change in line with changing service profiles
-or in the light of user experience.
+<p><strong>Note:</strong> TAP is a complex protocol, and at time of
+writing, many TAP services still do not provide full and error-free
+implementations.  Unexpected behaviour may be a result of service
+implementation deficiencies.  Hopefully that will improve over time.
 </p>
 
 <subsubsubsect id="TapTableLoadDialog_service">
@@ -16953,99 +17023,196 @@ or in the light of user experience.
 <figureimage src="&FIG.TapTableLoadDialog_service;"/>
 </figure>
 
-<p>The <label>Select Service</label> tab of the TAP load dialogue
+<p>The <label>Select Service</label> tab of the
+<ref id="TapTableLoadDialog">TAP load dialogue</ref>
 allows you to choose which TAP service you wish to query.
 You need to do this before submitting a new TAP query.
-This tab is essentially the same as the 
-<ref id="RegistryPanel">Registry Query Panel</ref> of the other
-VO query windows.
-Having queried the registry, click on one of the rows to enter its
-service URL in the <label>TAP URL</label> field at the bottom.
+</p>
+
+<p>There are two separate tabs within the <label>Locate TAP Service</label>
+sub-panel, corresponding to two different ways to select the service
+you want to use.
+<dl>
+<dt>By Table Properties</dt>
+<dd><p>Use this tab to find TAP services that contain particular tables,
+    or tables relating to particular topics.
+    When first opened (or if no search terms are entered),
+    it shows a list by name of all the known TAP services,
+    ordered by the number of tables they contain.
+    If you enter one or more search terms in the <label>Keywords</label>
+    field and hit <label>Find Services</label> (or return),
+    then the list will be redisplayed as a tree in which the children
+    of each service are the tables whose name and/or description matches
+    the search terms you entered
+    (click on the node handles to display/hide the children).
+    You can choose whether to match the table <label>Name</label>
+    or <label>Description</label>
+    using the <label>Match Fields</label> checkboxes,
+    while clicking the <label>And</label>/<label>Or</label> button to
+    toggle its value determines whether the name/description of
+    displayed tables are required to match all your search terms,
+    or just one of them.
+    When you've decided which service you want to use, click it, and
+    its access URL will be filled in the <label>TAP URL</label> selector
+    at the bottom.  Clicking on a table will automatically select its
+    parent service.
+    If you double-click on a service it will take you directly to
+    the Use Service tab.
+    </p></dd>
+
+<dt>By Service Properties</dt>
+<dd><p>Use this tab to find TAP services based on properties
+    of the service itself, such as the service name or publisher.
+    It is the same as the 
+    <ref id="RegistryPanel">Registry Query Panel</ref> of the other
+    VO query windows.
+    Having queried the registry, click on one of the rows to enter its
+    service URL in the <label>TAP URL</label> field at the bottom.
+    At time of writing there are only about a hundred TAP services registered,
+    so it's feasible to query the registry for them all
+    (hit <label>Find Services</label> without entering any keywords),
+    and choose the one you want by eye, perhaps sorting the displayed services
+    by one of the metadata items (click on the column header to sort).
+    </p></dd>
+   
+</dl>
 </p>
 
 <p>If you know the URL of the TAP service you wish to query, you can
-enter it directly into the <label>TAP URL</label> field without a 
-registry search.
-</p>
-
-<p>At time of writing, there are only a couple of dozen TAP services 
-registered, and it is feasible to query the registry for them all,
-by clicking the <label>Find Services</label> button without entering
-any search terms.
-Note however that for technical reasons (the registry records for 
-some of these services are large) the search can take a while
-(typically 30sec on a fast link).
+enter it directly into the <label>TAP URL</label> field at the bottom
+of the window without a registry search.
+This field remembers URLs previously entered into it,
+so if you click the little down-arrow on the right, you can easily
+return to services you visited earlier in the same session.
+The state (entered ADQL etc) of those sessions is also retained.
 </p>
 
 <p>Once a service URL has been chosen in one of these ways, you can
-click the <label>Enter Query</label> button at the bottom 
+click the <label>Use Service</label> button at the bottom 
 (or equivalently the tab header at the top), 
 and you will be moved to the
-<ref id="TapTableLoadDialog_query">Enter Query</ref> tab.
+<ref id="TapTableLoadDialog_query">Use Service</ref> tab.
 </p>
 
 </subsubsubsect>
 
 <subsubsubsect id="TapTableLoadDialog_query">
-<subhead><title>Enter Query tab</title></subhead>
+<subhead><title>Use Service tab</title></subhead>
 
 <figure>
-<caption><px>TAP window with Enter Query tab visible</px></caption>
+<caption><px>TAP window with Use Service tab visible</px></caption>
 <figureimage src="&FIG.TapTableLoadDialog_query;"/>
 </figure>
 
-<p>The <label>Enter Query</label> tab of the TAP load dialogue
+<p>The <label>Use Service</label> tab of the 
+<ref id="TapTableLoadDialog">TAP load dialogue</ref>
 displays information about the service you have selected to query,
-principally what tables are available and what columns they have,
+including what tables are available and what columns they contain,
 and allows you to enter the query text and some additional options
 about how the query is to be executed.
 The panel has three parts: 
-<label>Table Metadata</label>,
+<label>Metadata</label>,
 <label>Service Capabilities</label>, and
 <label>ADQL Text</label>.
 </p>
 
-<p>The <label>Table Metadata</label> panel displays information about
+<p>The <label>Metadata</label> panel displays information about
 the tables held by the selected service.
-When the panel is first displayed the service is contacted to obtain
-this information, and a progress bar will appear until it has arrived.
-If the service does not provide it in an appropriate form, nothing
-can be shown; it's still possible to submit a query, but you'll need
-some other way of knowing what tables and columns are available.
-Once the metadata has loaded, the following information will be
-available:
+On the left of the panel is a searchable tree summarising the
+schemas and tables in the service, and on the right are some tabs
+containing more detail.
+Note all this information has to be loaded from the server,
+so in some cases you may have to wait before it is visible.
+</p>
+
+<p>The tree on the left contains a listing of the service's <em>Schemas</em>,
+and under them the <em>Tables</em> they contain.
+A Schema in this context is just a subject grouping that
+contains one or more tables.
+Each schema notes in brackets the number of tables it contains;
+you can reveal or hide the tables by clicking on the schema node's handle.
+If the service contains only a small number of tables it may be
+convenient just to scroll up and down to see them all.
+But for services with hundreds or thousands of tables, 
+you may need to restrict the displayed tables to those you're interested in.
+To do this, type one or more search terms into the <label>Keywords</label>
+field.  The nodes displayed in the tree will be filtered to include only
+those that match the search terms as you type them.
+The <label>Name</label> and <label>Descrip</label> checkboxes indicate
+whether you want your search terms to match tables/schemas by name
+and/or by description.
+The <label>And</label>/<label>Or</label> toggle button determines
+whether each displayed table/schema has to match all of the search
+terms or just one.
+So for instance if you want to list just two tables, you can type in
+both table full names, uncheck the Descrip control,
+and set the toggle button to "Or".
+</p>
+
+<p>To the right of the tree is a tabbed panel giving detail relating
+to the currently selected tree node.
+Select a tree node by clicking on it.
+Each tab has a little circle next to the title which may be empty
+or filled, according to whether it contains information.
+If it's empty it's either because that information doesn't make sense
+for the selected node in the tree
+(e.g. if a schema is selected, there is no column information)
+or because the information has not been retrieved from the service;
+either it's on its way and will be filled in later, or there's an error.
+The tabs are as follows:
 <dl>
 <dt>Service</dt>
-<dd><p>The service URL selected in the Select Service tab.
-    It also notes the number of tables available from this service.
+<dd><p>Provides various items of information about the TAP service itself,
+    gathered from the service and its registry record if available.
+    This includes the service's name, Service URL, Reference URL,
+    curation and contact information, detailed description,
+    declared data models, and listing with description of any
+    service-specific User-Defined Functions it supports.
+    This may provide some useful reference information
+    for writing queries (available UDFs especially).
+    If a Reference URL or Examples URL are provided,
+    clicking on the URLs or the little link icon (&IMG.EXTLINK;)
+    in the panel will try to open the relevant pages in
+    an external web browser (or you can copy and paste them yourself).
+    The content of this tab is not sensitive to which node of the tree
+    is currently selected.
+    </p></dd>
+<dt>Schema</dt>
+<dd><p>Provides a textual description of the currently selected schema,
+    or the schema of the currently selected table.
+    A schema is just a higher-level grouping of tables within the TAP service.
+    Depending on how the service has arranged its tables this may or may
+    not provide useful information that's not available at the table level.
     </p></dd>
 <dt>Table</dt>
-<dd><p>This selector contains an entry for each table contained in the
-    remote database.  There may be just one, or there may be hundreds.
-    When you select one, information about it is displayed below.
-    An expanded title or description may also be displayed next to the
-    selector - hovering over this description with the mouse 
-    may provide further detail in a tool tip.
+<dd><p>Provides a textual description of the currently selected table (if any).
     </p></dd>
 <dt>Columns</dt>
-<dd><p>Tabulates metadata about each of the columns in the remote
-    table selected in the Table selector above.
-    Column names, types, descriptions, UCDs etc are shown.
-    Columns which are known to be indexed within the remote database
-    have the "Indexed" column ticked; this may help to to formulate
-    efficient queries.
+<dd><p>Tabulates a list of all the columns in the currently selected table;
+    column names, data types, units, descriptions, UCDs, and possibly other
+    metadata are shown.  This is generally the information you will need
+    to know about a table before you can write queries.
+    You can sort the entries by clicking on the column header
+    (clicking cycles between <em>ascending</em>, <em>descending</em>,
+    and <em>unsorted</em>),
+    so for instance to list the columns in alphabetical order click on
+    the <label>Name</label> column header,
+    or to group together all the columns with units of <code>mag</code>
+    click on the <label>Unit</label> column header.
+    If no table is selected in the tree, this tab will be empty.
     </p></dd>
 <dt>Foreign Keys</dt>
 <dd><p>If the service provides information about foreign keys
     (links between fields in different tables in the database)
-    they will be tabulated here.  They may help you to formulate
-    efficient queries.
+    they will be tabulated here for the currently selected table.
+    They may help you to formulate efficient queries.
+    If no table is selected in the tree, this tab will be empty.
     </p></dd>
 </dl>
 </p>
 
 <p>The <label>Service Capabilities</label> panel shows capability
-metadata that the service provides about itself; again, this has to
+metadata that the service provides about itself. This has to
 be loaded from the server and may not appear immediately.
 It contains the following information:
 <dl>
@@ -17068,7 +17235,7 @@ It contains the following information:
     the <code>nnn</code> limit may override the value supplied here.
     </p></dd>
 <dt>Uploads</dt>
-<dd><p>Indicates if table uploads are permitted, and perhaps what is the
+<dd><p>Indicates whether table uploads are permitted, and perhaps what is the
     largest upload size (in terms of rows and/or bytes) which will be
     accepted.
     See below for more about table uploads.
@@ -17080,73 +17247,226 @@ It contains the following information:
 query text for the request.
 It has the following parts:
 <dl>
-<dt>Synchronous checkbox</dt>
-<dd><p>Determines whether your job will be executed on the server in
-    synchronous or asychronous mode (check the box for synchronous).
-    Synchronous means that TOPCAT sends the query to the server and
-    waits for the result as the response of the same HTTP request.
-    It's simpler and faster, but if the job takes a long time,
-    the request may time out and the results be lost.
-    In asynchronous mode TOPCAT sends the query to the server and gets
-    a message back telling it where to look for information about the
-    job's progress; TOPCAT then keeps polling the server to find out 
-    when it has completed.
-    Synchronous is suitable for short jobs (it may typically execute
+<dt>Mode selector</dt>
+<dd><p>Provides the following options to control how your job is executed:
+    Synchronous, Asynchronous or Quick Look.
+    <ul>
+    <li><label>Synchronous</label> means that TOPCAT sends the query
+        to the server and
+        waits for the result as the response of the same HTTP request.
+        It's simpler and faster than async, but if the job takes a long time,
+        the request may time out and the results be lost.
+        </li>
+    <li><label>Asynchronous</label> means that TOPCAT sends the query
+        to the server and gets
+        a message back telling it where to look for information about the
+        job's progress; the application then keeps polling the server
+        to find out when it has completed.
+        </li>
+    <li><label>Quick Look</label> runs the query as for Synchronous mode
+        above, but when the result comes back it is just displayed in
+        a new popup window rather than loading it into TOPCAT for
+        further analysis.
+        </li>
+    </ul>
+    Synchronous mode is suitable for short jobs (it may typically execute
     with a few seconds less delay), but for longer jobs aysnchronous is
     more reliable.  It is possible to submit an asynchronous job
     on one day from one machine, and pick up the results on a different
     day from another machine, using another invocation of TOPCAT or of
-    a different application altogther.
+    a different application altogether.
+    Quick look is good if you just want to see the result but don't want
+    to do any detailed analysis of it.  One example is if you just want
+    to know the number of rows in a table
+    (<code>SELECT COUNT(*) FROM table</code>);
+    the result of the query is the row count in a one-column, one-row table,
+    and there's not much point loading that table into TOPCAT.
     </p></dd>
-<dt>Examples button</dt>
-<dd><p>This button presents you with a short menu of example queries.
-    These are tailored to the table metadata obtained for this service,
-    and, where appropriate, to the table currently selected by the
-    Table selector and/or the table list in the Control Window,
-    so they should in most cases be runnable as they stand
-    (though there is no guarantee they will produce useful results).
-    A better idea though is to use them as starting points for your
-    own queries.  By picking one which is something like what you want
-    to do, you can hopefully work out the syntax for the query you need
-    without having to read the ADQL specification.
-    Some of the options in the list may be disabled,
-    depending on what capabilities the service has declared.
-    In some cases, especially ones using geometric functions, the
-    service may reject the example, since TOPCAT can't always tell
-    which functions are supported by the server.
+<dt>Edit toolbar</dt>
+<dd><p>This contains a number of actions that affect the 
+    <label>Text Entry panel</label>:
+    <dl>
+    <dt>&IMG.ADQL_ADDTAB; Add Tab</dt>
+    <dd><p>Adds a new blank editing tab, so you can start editing a new query
+        without affecting any existing ones.
+        </p></dd>
+    <dt>&IMG.ADQL_COPYTAB; Copy Tab</dt>
+    <dd><p>Adds a new editing tab with text initially copied from that
+        in the currently visible one.
+        </p></dd>
+    <dt>&IMG.ADQL_REMOVETAB; Remove Tab</dt>
+    <dd><p>Deletes the currently visible tab.
+        </p></dd>
+    <dt>&IMG.ADQL_TITLETAB; Title Tab</dt>
+    <dd><p>Sets the title of the currently visible tab.
+        By default the titles are consecutive integers (the first is "1",
+        the second "2" etc), but you can give them more meaningful names
+        if you like.
+        </p></dd>
+    <dt>&IMG.ADQL_CLEAR; Clear</dt>
+    <dd><p>Erases all the text in the currently visible tab.
+        The text can be retrieved using the Undo action.
+        </p></dd>
+    <dt>&IMG.ADQL_UNDO; Undo</dt>
+    <dd><p>Undoes the most recent editing action in the currently visible tab.
+        You can do the same thing from the keyboard using
+        <label>Ctrl-Z</label>.
+        </p></dd>
+    <dt>&IMG.ADQL_REDO; Redo</dt>
+    <dd><p>Reverses the most recent Undo action in the currently visible tab.
+        You can do the same thing from the keyboard using
+        <label>Ctrl-Shift-Z</label> or <label>Ctrl-Y</label>.
+        </p></dd>
+    <dt>&IMG.ADQL_INSERTTABLE; Insert Table</dt>
+    <dd><p>Inserts into the text at the current cursor position
+        the name of the table (if any) that is currently selected
+        in the metadata tree above.
+        This is a convenience that may save some typing,
+        especially for long or complicated table names.
+        </p></dd>
+    <dt>&IMG.ADQL_INSERTCOLS; Insert Columns</dt>
+    <dd><p>Inserts into the text at the current cursor position
+        a comma-separated list of the names of any columns that
+        are currently selected in the <label>Columns</label>
+        tab of the Metadata panel above.
+        In order to select columns, click on the rows in the Columns panel;
+        you may need to hold down the Ctrl key while clicking
+        or something similar (depends on your OS) to select more than one.
+        Columns are inserted in the text in the order they were selected.
+        This is a convenience that may save some typing,
+        but note that you may still need to edit the inserted text,
+        for instance to add table name/alias prefixes.
+        </p></dd>
+    <dt>&IMG.ADQL_ERROR; Parse Errors</dt>
+    <dd><p>If this button is enabled, it means that the parser has detected
+        an error in the currently visible ADQL text.
+        The error will usually be highlighted in pink in the editing panel.
+        Clicking this button pops up the actual parser error message,
+        which may give you more idea what's wrong.
+        </p></dd>
+    </dl>
+    These actions are also available from the <label>Edit</label> menu.
     </p></dd>
-<dt>Clear button</dt>
-<dd><p>Clicking this button clears any text currently shown in the
-    text entry field.
+<dt>Text Entry panel</dt>
+<dd><p>This panel is where you type ADQL text that forms the query to send
+    to the TAP service for execution.
+    The <label>Edit</label> actions described above, along with
+    Undo/Redo actions from the keyboard, can also help.
+    You can have multiple queries on the go at once in different tabs;
+    add/remove/retitle tabs with the toolbar actions, and move between
+    them by clicking on the tab headers at the top.
+    The tab you can see is the one that will be executed if you hit
+    the <label>Run Query</label> button.
+    </p>
+    <p>As you enter the query text, it will be checked for syntax errors.
+    If an error is found, the place in the text which appears
+    to have caused it
+    will be highlighted in pink (as in the figure above).
+    To see more detail on the error,
+    click the <label>Parse Errors (&IMG.ADQL_ERROR;)</label> button.
+    The checking itself is reasonably reliable, but the position of the
+    highlighted error, and the text of the error message, can sometimes
+    be a bit misleading, so don't take the details too seriously.
+    The error highlighting is just used as a warning, you are not prevented
+    from submitting a query marked as erroneous, since
+    in some cases TAP services may accept ADQL which is not strictly correct,
+    and in some cases the error checking may not be perfect.
+    Note also that for various reasons the service may not be able to
+    accept all queries that count as syntactically valid ADQL,
+    so even if TOPCAT doesn't report any errors, the service may still
+    respond with an error message.
     </p></dd>
-<dt>Parse Errors button</dt>
-<dd><p>If a syntax error is detected in the entered ADQL text, it
-    will be highlighted in the text field, and this button will be
-    enabled.  Clicking this button will show a popup window with 
-    more detail on the error.
-    </p></dd>
-<dt>Text entry field</dt>
-<dd><p>This is where you enter the text of the ADQL query you wish to make.
-    The syntax of ADQL (Astronomical Data Query Language) is defined by an
-    <webref url="http://www.ivoa.net/Documents/latest/ADQL.html"
-            >IVOA Recommendation</webref>;
-    it is effectively a dialect of SQL, but a good way to write a query
-    is to start with one of the examples from the <label>Examples</label>
-    button above.
-    If any errors are detected in the syntax of the ADQL as entered,
-    they are highlighted in pink as in the figure above.
+<dt>Examples line</dt>
+<dd><p>Clicking on the <label>Examples</label> button
+    at the bottom left of the panel will pop up a menu
+    that allows you to select from a number of example ADQL queries.
+    If you select one, the relevant ADQL text will be pasted into
+    the editing panel; you should be able to hit the <label>Run Query</label>
+    button straight away and execute it to get a result.
+    In some cases the example text is influenced by the
+    table you're currently looking at in the metadata panel.
+    Until you are experienced with ADQL,
+    starting from one of these examples and editing it to taste
+    is often a good way to write a query of your own.
+    </p>
+    <p>The Examples menu is divided into a number of sub-menus,
+    though not all will be enabled for all services.
+    The sub-menus are:
+    <ul>
+    <li><label>Basic:</label>
+        Basic examples that should be applicable to most services.
+        </li>
+    <li><label>Upload:</label>
+        Examples that involve uploading a tables from TOPCAT to the TAP
+        server and executing queries using it.
+        Only enabled if the service supports table uploads and
+        at least one table is currently loaded into TOPCAT.
+        </li>
+    <li><label>Service-Provided:</label>
+        Examples provided by the TAP service.
+        These are likely to provide some insight into the kinds of query
+        that make sense and make good use of the particular tables
+        available from the service,
+        so it is often instructive to look at these.
+        Only enabled if the service actually provides some examples
+        (at time of writing, not many do, but hopefully this will improve).
+        </li>
+    <li><label>TAP_SCHEMA:</label>
+        Examples using the tables in the TAP_SCHEMA schema,
+        which describes metadata about the tables in the service.
+        You can use these to do things like count tables or columns
+        in the current service,
+        or locate tables with columns having particular physical meaning.
+        </li>
+    <li><label>ObsTAP:</label>
+        Examples using the IVOA
+        <webref url="http://www.ivoa.net/documents/ObsCore/index.html"
+                >ObsCore</webref> data model
+        (<code>ivoa.obscore</code> table),
+        which describes astronomical observations in a standardised way.
+        You can use these to do things like search for all observations
+        at a particular sky position, or observation time, or waveband etc.
+        Only available if the service declares support for the ObsCore
+        data model.
+        </li>
+    <li><label>RegTAP:</label>
+        Examples using the IVOA
+        <webref url="http://www.ivoa.net/documents/RegTAP/"
+                >RegTAP</webref> data model
+        (tables in the <code>rr</code> schema).
+        You can use these to do things like search for
+        all TAP services containing tables having columns with particular
+        physical meanings,
+        or all cone search services relating to particular wavebands, etc.
+        You can use queries like this to perform more sophisticated searches
+        for TAP services than you can do using the
+        <ref id="TapTableLoadDialog_service">Select Service</ref> tab.
+        Only available if the TAP service declares support for the RegTAP
+        data model (i.e. if it hosts an IVOA searchable registry).
+        </li>
+    </ul>
+    </p>
+    <p>When you select an example from one of the sub-menus,
+    its name and title will be displayed to the right of the Examples button.
+    Little left and right arrow buttons
+    allow you to cycle through the examples in the current submenu
+    so you can browse what's available.
+    </p>
+    <p>Some examples come with additional explanation on the web.
+    If the example you're currently looking at has such additional
+    documentation then the <label>Info</label> &IMG.EXTLINK; button
+    to the right will be enabled, and clicking on that should open
+    the relevant page in a browser on your desktop.
     </p></dd>
 </dl>
 </p>
 
-<p>Some services permit <label>Table Uploads</label>
-(at time of writing only the GAVO service implements this capability,
-but hopefully more will do so in future).
+<p>Some TAP services permit <label>Table Uploads</label>.
 What this means is that you can upload tables from TOPCAT into the
 remote database and perform queries on your table directly.
 In this way you can perform joins between your own tables
 (anything loaded into TOPCAT) and any of the tables in the remote
-database.  This is extremely powerful feature.
+database.  This is an extremely powerful feature.
 To take advantage of it, you just need to use a special form for
 the table name to reference a TOPCAT-based table:
 you write "<code>TAP_UPLOAD.t&lt;n&gt;</code>", where
@@ -17155,33 +17475,31 @@ that is the number before the colon in the
 <ref id="ControlWindow">Control Window</ref> Table List.
 So, if a table identified as "<code>1: messier.xml</code>"
 in the table list, you can reference it in ADQL as
-"<code>TAP_UPLOAD.t1</code>".
+"<code>TAP_UPLOAD.t1</code>" - see the <label>Upload</label>
+sub-menu of the <label>Examples</label> menu described above for
+some examples.
 Note the table uploaded in this way is the 
 <ref id="apparent">Apparent Table</ref> corresponding to the
-given ID number.
-</p>
-
-<p>As you enter the query text, it will be checked for syntax errors.
-If an error is found, the place in the text which appears to have caused it
-will be highlighted in pink (as in the figure above).
-To see more detail on the error, click the <label>Parse Errors</label> button.
-The checking itself is reasonably reliable, but the position of the
-highlighted error, and the text of the error message, can sometimes
-be a bit misleading, so don't take the details too seriously.
-The error highlighting is just used as a warning, you are not prevented
-from submitting a query marked as erroneous, since
-in some cases TAP services may accept ADQL which is not strictly correct,
-and in some cases the error checking may not be perfect.
+given ID number, i.e. current subset and column selections apply.
+It's a good idea to ensure that any table you are uploading has
+columns with sensible names, otherwise the service may rename the
+columns or otherwise have trouble handling it.
 </p>
 
 <p>Having entered suitable query text,
-click the <label>OK</label> button at the bottom of the window
-to submit the job.  When you do this, one of two things will happen.
-In synchronous mode, the <ref id="LoadWindow">Load Window</ref> will appear,
-and the progress will indicate when loading is complete in the normal way.
-In asynchronous mode, you will be taken to the
+click the <label>Run Query</label> button at the bottom of the window
+to submit the job.  What happens then depends on the <label>Query Mode</label>
+described above:
+in <label>Synchronous</label> mode,
+the <ref id="LoadWindow">Load Window</ref> will appear
+with a load progress indicator,
+and when it's done the table will be loaded into TOPCAT in the usual way.
+In <label>Asynchronous</label> mode, you will be taken to the
 <ref id="TapTableLoadDialog_jobs">Running Jobs</ref> tab
-where you can see the progress of your submitted job.
+where you can see the progress of your submitted job;
+when it's ready it will be loaded into TOPCAT.
+In <label>Quick Look</label> mode, a window will pop up to display
+the results when they are ready.
 </p>
 
 
@@ -17195,7 +17513,8 @@ where you can see the progress of your submitted job.
 <figureimage src="&FIG.TapTableLoadDialog_jobs;"/>
 </figure>
 
-<p>The <label>Running Jobs</label> tab of the TAP load dialogue
+<p>The <label>Running Jobs</label> tab of the 
+<ref id="TapTableLoadDialog">TAP load dialogue</ref>
 shows a list of the asynchronous jobs you have submitted,
 with information about their current progress.
 </p>
@@ -17300,7 +17619,8 @@ have all been deleted), this tab is inaccessible.
 <figureimage src="&FIG.TapTableLoadDialog_resume;"/>
 </figure>
 
-<p>The <label>Resume Job</label> tab of the TAP load dialogue
+<p>The <label>Resume Job</label> tab of the 
+<ref id="TapTableLoadDialog">TAP load dialogue</ref>
 allows you to continue execution of an asynchronous job which was started
 outside of this run of TOPCAT, either during an earlier TOPCAT run,
 or using some other mechanism.
@@ -21808,50 +22128,122 @@ introduced since the last version:
 
 <dt>Next version</dt>
 <dd><p>
-    <ul>
-    <li>Minor improvement to version reporting 
-        (reports java specification version,
-         no longer issues warning for absent revision string).</li>
-    <li>Fix serious bug in time conversion for CDF TIME_TT2000 data types.
-        This was giving completely wrong (deep future) labels when using
-        TIME_TT2000 columns in time plots.</li>
-    <li>Update JCDF library to v1.1
-        (minor changes to do with leap seconds).</li>
-    <li>Now only runs in PLASTIC mode if the <code>-plastic</code> flag is
-        set explicitly (otherwise runs in the default SAMP mode).
-        Previously it ran in PLASTIC mode if a <code>.plastic</code>
-        lockfile was present.</li>
-    <li>Change in the way that TAP service metadata is interpreted,
-        table/column names now expected to be delimited if required.
-        May cause some ADQL examples to work incorrectly in presence
-        of non-compliant service table metadata reports.</li>
-    <li>Fix sky plot vector bug: delta latitude and delta longitude values
-        were being used the wrong way round.</li>
-    <li>Upgrade JEL to v2.0.2.
-        Fixes problem with evaluating void-typed expressions
-        (especially user-supplied activation actions),
-        and possibly some other obscure bugs.</li>
-    <li>Activation action summary messages are now written via an INFO
-        log message rather than just printing to standard output.
-        To see them you now need to run the application with the
-        <code>-verbose</code> flag.
-        The various <ref id="System"><code>exec</code></ref> functions
-        however do now write their output direct to stdout/stderr
-        rather than including them in a return value.</li>
-    <li>Custom Code activation action invocation behaviour has subtly changed
-        when one of the values in the expression is from an integer or
-        boolean column, and that column has a blank value.
-        In that case, it's not possible to represent the column value
-        properly to the function (since integer/boolean values can't be null).
-        Previously, the function was invoked with a zero/false value where
-        the null would have been.  Now, the function is not invoked at all.
-        Note this only applies to Activation Actions (which are expected to
-        have side-effects); expressions evaluated as column values etc
-        are, as previously, executed but the result is ignored.
-        </li>
-    <li>Modify the heuristics that determine whether the first row of
-        a CSV file is a header.</li>
-    </ul>
+    <dl>
+    <dt>TAP client enhancements:</dt>
+    <dd><p>The TAP client GUI and implementation in the
+        <ref id="TapTableLoadDialog">TAP Load Window</ref>
+        have been much improved.
+        As well as being generally more capable and easy to use,
+        the GUI is now quite usable for services providing very large
+        datasets, for instance TAPVizieR (~30,000 tables).
+        In detail:
+        <ul>
+        <li>TAP service discovery is now done by default by requesting
+            search terms relating to the <em>tables</em>,
+            rather than the <em>services</em>, that you're interested in.
+            The old (by service) GUI is still available in a different tab.</li>
+        <li>The TAP metadata display has been reorganised; schemas and
+            tables are displayed in a searchable tree on the left of the panel,
+            with details of the currently highlighted schema/table
+            in tabs on the right.
+            Organisation of tables at the schema level is now visible.
+            Much more information about the schemas and tables is available,
+            and it's displayed better.</li>
+        <li>The Columns and Foreign Keys metadata display tables can now
+            be sorted by clicking on column headers.</li>
+        <li>Much more information about the TAP service is displayed,
+            including a full service description and listing of available
+            geometry functions, user-defined functions and data models
+            (if the service/registry provides this information).</li>
+        <li>For large services, metadata acquisition is now done as required,
+            rather than attempting to download all the metadata up front.
+            This works much better for services with very many tables.</li>
+        <li>The query entry panel has many new features,
+            including multiple tabs, full undo/redo, and limited support
+            for entering selected table and column names.</li>
+        <li>A new <label>Quick Look</label> mode has been introduced alongside
+            the Synchronous and Asynchronous modes, to execute a query
+            whose result is displayed but not loaded into TOPCAT.</li>
+        <li>The <label>Examples</label> menu has been extended to include
+            various sub-menus with more ADQL query examples appropriate
+            to the current service,
+            including examples provided by the service itself for
+            services supporting the <code>/examples</code> endpoint.</li>
+        <li>The Examples menu GUI has been modified to facilitate browsing,
+            and a button is provided to link to web pages describing the
+            selected example in more detail.</li>
+        <li>The <label>TAP</label> menu has new options for configuring
+            metadata acquisition, transfer format,
+            and HTTP-level compression.
+            The old Deletion menu has been withdrawn, ant its items
+            added to the TAP menu.</li>
+        <li>Where supported by the service, the BINARY2 VOTable serialization
+            is used by default to retrieve TAP results,
+            which should reduce bandwidth and (marginally) improve handling
+            of null values.</li>
+        <li>There is a change in the way that TAP service metadata
+            is interpreted: table/column names are now expected
+            to be delimited if required.  An attempt is made to fix up names
+            that not delimited when they obviously should be.
+            May cause some ADQL examples to work incorrectly in the presence
+            of non-compliant service table metadata reports.</li>
+        </ul>
+        </p></dd>
+
+    <dt>Other:</dt>
+    <dd><p>
+        <ul>
+        <li>HTTP-level compression is now requested
+            (<code>Accept-Encoding gzip</code> request headers included)
+            in most places where it makes sense.
+            This should substantially reduce required bandwidth in
+            communications with HTTP services that support this.</li>
+        <li>When clicking on the headers of columns to sort the rows
+            in displayed JTables that show registry services and VizieR
+            catalogues, clicks now cycle between three options
+            (up, down, none) rather than just two (up, down).</li>
+        <li>Minor improvement to version reporting
+            (reports java specification version,
+             no longer issues warning for absent revision string).</li>
+        <li>Fix serious bug in time conversion for CDF TIME_TT2000 data types.
+            This was giving completely wrong (deep future) labels when using
+            TIME_TT2000 columns in time plots.</li>
+        <li>Update JCDF library to v1.1
+            (minor changes to do with leap seconds).</li>
+        <li>Now only runs in PLASTIC mode if the <code>-plastic</code> flag is
+            set explicitly (otherwise runs in the default SAMP mode).
+            Previously it ran in PLASTIC mode if a <code>.plastic</code>
+            lockfile was present.</li>
+        <li>Fix sky plot vector bug: delta latitude and delta longitude values
+            were being used the wrong way round.</li>
+        <li>Upgrade JEL to v2.0.2.
+            Fixes problem with evaluating void-typed expressions
+            (especially user-supplied activation actions),
+            and possibly some other obscure bugs.</li>
+        <li>Activation action summary messages are now written via an INFO
+            log message rather than just printing to standard output.
+            To see them you now need to run the application with the
+            <code>-verbose</code> flag.
+            The various <ref id="System"><code>exec</code></ref> functions
+            however do now write their output direct to stdout/stderr
+            rather than including them in a return value.</li>
+        <li>Custom Code activation action invocation behaviour has subtly
+            changed when one of the values in the expression is from
+            an integer or boolean column, and that column has a blank value.
+            In that case, it's not possible to represent the column value
+            properly to the function
+            (since integer/boolean values can't be null).
+            Previously, the function was invoked with a zero/false value where
+            the null would have been.  Now, the function is not invoked at all.
+            Note this only applies to Activation Actions (which are expected to
+            have side-effects); expressions evaluated as column values etc
+            are, as previously, executed but the result is ignored.
+            </li>
+        <li>Modify the heuristics that determine whether the first row of
+            a CSV file is a header.</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>
