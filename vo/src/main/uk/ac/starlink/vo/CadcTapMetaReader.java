@@ -219,17 +219,6 @@ public class CadcTapMetaReader implements TapMetaReader {
     }
 
     /**
-     * Indicates whether a given TAP service URL is thought to work with
-     * the protocol assumed by this TapMetaReader implementation.
-     *
-     * @param  serviceUrl  base TAP service URL
-     * @return   true if that looks like CADC
-     */
-    public static boolean isCadcTapService( URL serviceUrl ) {
-        return serviceUrl.getHost().matches( ".*cadc.*ca" );
-    }
-
-    /**
      * Defines what parts of the tableset tree are acquired at what
      * types of read query on this object.
      */

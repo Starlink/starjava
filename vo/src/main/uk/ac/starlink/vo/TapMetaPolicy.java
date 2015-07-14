@@ -210,21 +210,6 @@ public abstract class TapMetaPolicy {
                                                        ContentCoding coding,
                                                        int maxrow ) {
         MetaNameFixer fixer = MetaNameFixer.createDefaultFixer();
-
-        /* Special non-standard protocol for TAPVizieR. */
-        if ( VizierTapMetaReader.isVizierTapService( serviceUrl ) ) {
-            logger_.info( "Using VizieR-specific metadata acquisition" );
-            return new VizierTapMetaReader( serviceUrl + "/tables", fixer,
-                                            coding ); 
-        }
-
-        /* Proposed VOSI 1.1 protocol implemented at CADC. */
-        if ( CadcTapMetaReader.isCadcTapService( serviceUrl ) ) {
-            logger_.info( "Using CADC-specific metadata acquisition" );
-            return new CadcTapMetaReader( serviceUrl + "/tables",
-                                          CadcTapMetaReader.Config
-                                         .POPULATE_SCHEMAS, coding );
-        }
  
         /* Find out how many columns there are in total.
          * The columns table is almost certainly the longest one we would

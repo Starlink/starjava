@@ -130,16 +130,4 @@ public class VizierTapMetaReader implements TapMetaReader {
     public String getMeans() {
         return "VizieR-variant 2-stage VOSI TableSet";
     }
-
-    /**
-     * Indicates whether a given TAP service URL is thought to work with
-     * the protocol assumed by this TapMetaReader implementation.
-     *
-     * @param  serviceUrl  base TAP service URL
-     * @return   true if that looks like TAPVizieR
-     */
-    public static boolean isVizierTapService( URL serviceUrl ) {
-        return serviceUrl.toString().toLowerCase()
-              .startsWith( "http://tapvizier.u-strasbg.fr/beta/tapvizier" );
-    }
 }
