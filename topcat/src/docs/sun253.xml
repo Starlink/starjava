@@ -16201,8 +16201,8 @@ This consists of the following parts:
     By default the Short Name, Title, Subjects and ID fields are matched - 
     click the checkboxes to change the selection
     </p></dd>
-<dt>Submit Query button</dt>
-<dd><p>When the other fields have been filled in, hit the Submit button
+<dt>Find Services button</dt>
+<dd><p>When the other fields have been filled in, hit the Find button
     and the registry will be searched to find data services that match
     the constraints you have given.
     </p></dd>
@@ -16216,7 +16216,7 @@ a manageable number of these.  There are thousands of cone searches
 however, so for the cone search windows you need to fill in a query
 and submit it yourself.
 In either case, you can resubmit a query 
-(hit the <label>Cancel Query</label> button first if necessary)
+(hit the <label>Cancel</label> button first if necessary)
 to make another selection of registry entries.
 </p>
 
@@ -16970,7 +16970,7 @@ registry search.
 
 <p>At time of writing, there are only a couple of dozen TAP services 
 registered, and it is feasible to query the registry for them all,
-by clicking the <label>Submit Query</label> button without entering
+by clicking the <label>Find Services</label> button without entering
 any search terms.
 Note however that for technical reasons (the registry records for 
 some of these services are large) the search can take a while
