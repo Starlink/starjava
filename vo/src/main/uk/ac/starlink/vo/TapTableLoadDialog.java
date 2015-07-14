@@ -34,6 +34,7 @@ import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
@@ -55,7 +56,7 @@ import uk.ac.starlink.table.gui.AbstractTableLoadDialog;
 import uk.ac.starlink.table.gui.TableLoader;
 import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.util.gui.ErrorDialog;
-import uk.ac.starlink.util.gui.ExampleTextField;
+import uk.ac.starlink.util.gui.ExampleSelectField;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 
 /**
@@ -75,7 +76,6 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
     private UwsJobListPanel jobsPanel_;
     private ResumeTapQueryPanel resumePanel_;
     private CaretListener adqlListener_;
-    private Action tqpanelAct_;
     private Action reloadAct_;
     private ProxyAction[] proxyActs_;
     private ComboBoxModel runModeModel_;
@@ -84,7 +84,7 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
     private StarTableFactory tfact_;
     private ContentCoding coding_;
     private SearchPanel searchPanel_;
-    private JTextField urlField_;
+    private ExampleSelectField urlField_;
     private int searchTabIndex_;
     private int tqTabIndex_;
     private int jobsTabIndex_;
@@ -134,13 +134,8 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
     protected Component createQueryComponent() {
 
         /* Field containing URL of selected TAP service. */
-        urlField_ = new ExampleTextField( "Select service from panel above "
-                                        + "or enter service URL here" );
-        urlField_.addCaretListener( new CaretListener() {
-            public void caretUpdate( CaretEvent evt ) {
-                updateForService();
-            }
-        } );
+        urlField_ = new ExampleSelectField( "Select service from panel above "
+                                          + "or enter service URL here" );
 
         /* Prepare a panel to search the registry for TAP services. */
         searchPanel_ = new SearchPanel();
@@ -197,18 +192,17 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
         /* Provide a button to move to the query tab.
          * Placing it near the service selector makes it more obvious that
          * that is what you need to do after selecting a TAP service. */
-        tqpanelAct_ = new AbstractAction( tqTitle ) {
+        Action tqpanelAct = new AbstractAction( tqTitle ) {
             public void actionPerformed( ActionEvent evt ) {
                 tabber_.setSelectedIndex( tqTabIndex_ );
             }
         };
-        tqpanelAct_.putValue( Action.SHORT_DESCRIPTION,
-                              "Go to " + tqTitle
-                            + " tab to prepare and execute TAP query" );
-        urlField_.addActionListener( tqpanelAct_ );
+        tqpanelAct.putValue( Action.SHORT_DESCRIPTION,
+                             "Go to " + tqTitle
+                           + " tab to prepare and execute TAP query" );
         JComponent buttLine = Box.createHorizontalBox();
         buttLine.add( Box.createHorizontalGlue() );
-        buttLine.add( new JButton( tqpanelAct_ ) );
+        buttLine.add( new JButton( tqpanelAct ) );
         sfootBox.add( Box.createVerticalStrut( 5 ) );
         sfootBox.add( buttLine );
 
@@ -217,17 +211,24 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
 
         /* Only enable the query tab if a valid service URL has been
          * selected. */
-        tqpanelAct_.setEnabled( false );
-        tabber_.setEnabledAt( tqTabIndex_, false );
         tabber_.setEnabledAt( jobsTabIndex_, false );
-        updateForService();
 
         /* Arrange for the table query panel to get updated when it becomes
          * the visible tab. */
         tabber_.addChangeListener( new ChangeListener() {
             public void stateChanged( ChangeEvent evt ) {
                 if ( tabber_.getSelectedIndex() == tqTabIndex_ ) {
-                    setSelectedService( createServiceKit() );
+                    TapServiceKit serviceKit = createServiceKit();
+                    if ( serviceKit == null ) {
+                        tabber_.setSelectedIndex( searchTabIndex_ );
+                        JOptionPane
+                       .showMessageDialog( urlField_, "No TAP service URL",
+                                           "No Service Selected",
+                                            JOptionPane.ERROR_MESSAGE );
+                    }
+                    else {
+                        setSelectedService( serviceKit );
+                    }
                 }
                 updateReady();
             }
@@ -451,7 +452,6 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
      */
     private void setServiceUrl( String url ) {
         urlField_.setText( url );
-        urlField_.setCaretPosition( 0 );
     }
 
     /**
@@ -463,15 +463,6 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
         return new TapRunMode[] {
             TapRunMode.SYNC, TapRunMode.ASYNC, TapRunMode.LOOK,
         };
-    }
-
-    /**
-     * Invoked to update GUI state if the selected TAP service may have changed.
-     */
-    private void updateForService() {
-        boolean hasUrl = getServiceUrl() != null;
-        tabber_.setEnabledAt( tqTabIndex_, hasUrl );
-        tqpanelAct_.setEnabled( hasUrl );
     }
 
     /**
@@ -723,6 +714,7 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
         }
         if ( serviceKit != null ) {
             String serviceUrl = serviceKit.getServiceUrl().toString();
+            urlField_.chooseText( serviceUrl );
 
             /* Construct, configure and cache a suitable query panel
              * if we haven't seen this service URL before now. */
@@ -1057,7 +1049,6 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
         Component qcomp = tld.getQueryComponent();
         if ( tapUrl != null ) {
             tld.setServiceUrl( tapUrl );
-            tld.updateForService();
         }
         javax.swing.JFrame frm = new javax.swing.JFrame();
         frm.setJMenuBar( new javax.swing.JMenuBar() );
