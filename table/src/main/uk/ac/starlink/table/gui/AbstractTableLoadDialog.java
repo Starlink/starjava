@@ -80,6 +80,7 @@ public abstract class AbstractTableLoadDialog implements TableLoadDialog {
                 logger_.warning( "getQueryComponent called before configure" );
             }
             queryComponent_ = createQueryComponent();
+            updateReady();
         }
         return queryComponent_;
     }
