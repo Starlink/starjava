@@ -77,6 +77,7 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
     private ResumeTapQueryPanel resumePanel_;
     private CaretListener adqlListener_;
     private Action reloadAct_;
+    private JMenu editMenu_;
     private ProxyAction[] proxyActs_;
     private ComboBoxModel runModeModel_;
     private TapMetaPolicy metaPolicy_;
@@ -188,6 +189,7 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
         resumeTabIndex_ = tabber_.getTabCount() - 1;
         tabber_.add( "Running Jobs", jobsPanel_ );
         jobsTabIndex_ = tabber_.getTabCount() - 1;
+        tabber_.setEnabledAt( jobsTabIndex_, false );
 
         /* Provide a button to move to the query tab.
          * Placing it near the service selector makes it more obvious that
@@ -208,31 +210,6 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
 
         /* Set up TAP run modes. */
         runModeModel_ = new DefaultComboBoxModel( createRunModes() );
-
-        /* Only enable the query tab if a valid service URL has been
-         * selected. */
-        tabber_.setEnabledAt( jobsTabIndex_, false );
-
-        /* Arrange for the table query panel to get updated when it becomes
-         * the visible tab. */
-        tabber_.addChangeListener( new ChangeListener() {
-            public void stateChanged( ChangeEvent evt ) {
-                if ( tabber_.getSelectedIndex() == tqTabIndex_ ) {
-                    TapServiceKit serviceKit = createServiceKit();
-                    if ( serviceKit == null ) {
-                        tabber_.setSelectedIndex( searchTabIndex_ );
-                        JOptionPane
-                       .showMessageDialog( urlField_, "No TAP service URL",
-                                           "No Service Selected",
-                                            JOptionPane.ERROR_MESSAGE );
-                    }
-                    else {
-                        setSelectedService( serviceKit );
-                    }
-                }
-                updateReady();
-            }
-        } );
 
         /* Arrange that the TAP query submit action's enabledness status
          * can be sensitive to the content of the ADQL entry field. */
@@ -260,17 +237,6 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
                 }
             }
         };
-        ChangeListener reloadEnabler = new ChangeListener() {
-            public void stateChanged( ChangeEvent evt ) {
-                int itab = tabber_.getSelectedIndex();
-                reloadAct_.setEnabled( itab == searchTabIndex_
-                                    || itab == tqTabIndex_
-                                    || itab == resumeTabIndex_
-                                    || itab == jobsTabIndex_ );
-            }
-        };
-        tabber_.addChangeListener( reloadEnabler );
-        reloadEnabler.stateChanged( null );
         reloadAct_.putValue( Action.SMALL_ICON,
                              new ImageIcon( TapTableLoadDialog.class
                                            .getResource( "reload.gif" ) ) );
@@ -281,9 +247,9 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
         /* Set up an Edit menu. */
         List<JMenu> menuList =
             new ArrayList<JMenu>( Arrays.asList( super.getMenus() ) );
-        JMenu editMenu = new JMenu( "Edit" );
-        editMenu.setMnemonic( KeyEvent.VK_E );
-        menuList.add( editMenu );
+        editMenu_ = new JMenu( "Edit" );
+        editMenu_.setMnemonic( KeyEvent.VK_E );
+        menuList.add( editMenu_ );
         setMenus( menuList.toArray( new JMenu[ 0 ] ) );
 
         /* Add actions from the query panel to this dialogue's Edit menu.
@@ -295,7 +261,7 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
         for ( Action templateAct : createTapQueryPanel().getEditActions() ) {
             ProxyAction proxyAct = new ProxyAction( templateAct );
             pacts.add( proxyAct );
-            editMenu.add( proxyAct );
+            editMenu_.add( proxyAct );
         }
         proxyActs_ = pacts.toArray( new ProxyAction[ 0 ] );
         updateQueryPanel();
@@ -308,6 +274,14 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
 
         /* It's big. */
         tabber_.setPreferredSize( new Dimension( 700, 650 ) );
+
+        /* Configure GUI changes dependent on the currently visible tab. */
+        tabber_.addChangeListener( new ChangeListener() {
+            public void stateChanged( ChangeEvent evt ) {
+                updateForTab();
+            }
+        } );
+        updateForTab();
 
         /* Return the tabbed pane which is the main query component. */
         return tabber_;
@@ -760,6 +734,32 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
         for ( ProxyAction act : proxyActs_ ) {
             act.setTarget( actMap.get( act.getValue( Action.NAME ) ) );
         }
+    }
+
+    /**
+     * Configures GUI changes that may be senstive to the currently selected
+     * tab in the main tabbed panel.
+     */
+    private void updateForTab() {
+        int itab = tabber_.getSelectedIndex();
+        if ( itab == tqTabIndex_ ) {
+            TapServiceKit serviceKit = createServiceKit();
+            if ( serviceKit == null ) {
+                tabber_.setSelectedIndex( searchTabIndex_ );
+                JOptionPane.showMessageDialog( urlField_, "No TAP service URL",
+                                               "No Service Selected",
+                                               JOptionPane.ERROR_MESSAGE );
+            }
+            else {
+                setSelectedService( serviceKit );
+            }
+        }
+        reloadAct_.setEnabled( itab == searchTabIndex_
+                            || itab == tqTabIndex_
+                            || itab == resumeTabIndex_
+                            || itab == jobsTabIndex_ );
+        editMenu_.setEnabled( itab == tqTabIndex_ );
+        updateReady();
     }
 
     /**
