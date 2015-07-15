@@ -14,7 +14,6 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JEditorPane;
@@ -41,10 +40,6 @@ import javax.swing.text.html.HTMLEditorKit;
 public class MetaPanel extends JPanel implements Scrollable {
 
     private final JLabel logoLabel_;
-
-    /** Icon indicating a link to an external URL. */
-    public static final Icon LINK_ICON = 
-        new ImageIcon( MetaPanel.class.getResource( "extlink.gif" ) );
 
     /**
      * Constructor.
@@ -179,7 +174,7 @@ public class MetaPanel extends JPanel implements Scrollable {
                         }
                     }
                     linkAct.putValue( Action.SMALL_ICON,
-                                      hasUrl ? LINK_ICON : null );
+                                      hasUrl ? ResourceIcon.EXTLINK : null );
                     linkAct.setEnabled( hasUrl );
                 }
             } );

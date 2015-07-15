@@ -40,8 +40,6 @@ public class TapServiceTreeModel implements TreeModel {
     private final List<TreeModelListener> listeners_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
-    static final Icon serviceIcon_ = createIcon( "service_node.gif" );
-    static final Icon tableIcon_ = createIcon( "table_node.gif" );
 
     /**
      * Constructor.
@@ -250,7 +248,7 @@ public class TapServiceTreeModel implements TreeModel {
             final Service service = (Service) item;
             return new Node( tableMap_ == null ? null
                                                : tableMap_.get( service ),
-                             serviceIcon_ ) {
+                             ResourceIcon.NODE_SERVICE ) {
                 public String toString() {
                     String nameTxt = null;
                     if ( nameTxt == null || nameTxt.trim().length() == 0 ) {
@@ -280,7 +278,7 @@ public class TapServiceTreeModel implements TreeModel {
         }
         else if ( item instanceof Table ) {
             final Table table = (Table) item;
-            return new Node( null, tableIcon_ ) {
+            return new Node( null, ResourceIcon.NODE_TABLE ) {
                 public String toString() {
                     String descrip = table.getDescription();
                     String txt = table.getName();

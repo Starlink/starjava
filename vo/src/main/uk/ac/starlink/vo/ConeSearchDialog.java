@@ -39,7 +39,7 @@ public class ConeSearchDialog extends SkyDalTableLoadDialog {
                "Obtain source catalogues using cone search web services",
                Capability.CONE, true, false );
         coding_ = ContentCoding.GZIP;
-        setIconUrl( ConeSearchDialog.class.getResource( "cone.gif" ) );
+        setIcon( ResourceIcon.TLD_CONE );
     }
 
     protected Component createQueryComponent() {
