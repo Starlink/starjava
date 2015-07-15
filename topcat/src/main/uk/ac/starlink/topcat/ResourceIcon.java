@@ -634,26 +634,31 @@ public class ResourceIcon implements Icon {
                          new ImageIcon( JHelp.class
                         .getResource( "plaf/basic/images/SearchNav.gif" ) ) );
 
-        /* Pull in icons from TTOOLS package. */
-        Field[] fields = uk.ac.starlink.ttools.gui.ResourceIcon.class
-                        .getDeclaredFields();
-        for ( int i = 0; i < fields.length; i++ ) {
-            Field field = fields[ i ];
-            int mods = field.getModifiers();
-            String name = field.getName();
-            if ( Icon.class.isAssignableFrom( field.getType() ) &&
-                 Modifier.isPublic( mods ) &&
-                 Modifier.isStatic( mods ) &&
-                 Modifier.isFinal( mods ) &&
-                 name.equals( name.toUpperCase() ) ) {
-                 Icon icon;
-                 try {
-                     icon = (Icon) field.get( null );
-                 }
-                 catch ( IllegalAccessException e ) {
-                     throw new AssertionError( e );
-                 }
-                 putMap( nameMap, name, icon );
+        /* Pull in icons from external packages. */
+        Class[] riClazzes = new Class[] {
+            uk.ac.starlink.ttools.gui.ResourceIcon.class,
+            uk.ac.starlink.vo.ResourceIcon.class,
+        };
+        for ( Class riClazz : riClazzes ) {
+            Field[] fields = riClazz.getDeclaredFields();
+            for ( int i = 0; i < fields.length; i++ ) {
+                Field field = fields[ i ];
+                int mods = field.getModifiers();
+                String name = field.getName();
+                if ( Icon.class.isAssignableFrom( field.getType() ) &&
+                     Modifier.isPublic( mods ) &&
+                     Modifier.isStatic( mods ) &&
+                     Modifier.isFinal( mods ) &&
+                     name.equals( name.toUpperCase() ) ) {
+                     Icon icon;
+                     try {
+                         icon = (Icon) field.get( null );
+                     }
+                     catch ( IllegalAccessException e ) {
+                         throw new AssertionError( e );
+                     }
+                     putMap( nameMap, name, icon );
+                }
             }
         }
 
