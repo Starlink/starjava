@@ -153,7 +153,7 @@ public class TapQueryPanel extends JPanel {
         undoer0.setLimit( 0 );
         undoerMap_.put( null, undoer0 );
         undoer_ = undoer0;
-        undoAct_ = new AbstractAction( "Undo" ) {
+        undoAct_ = new AbstractAction( "Undo", ResourceIcon.ADQL_UNDO ) {
             public void actionPerformed( ActionEvent evt ) {
                 try {
                     undoer_.undo();
@@ -163,10 +163,10 @@ public class TapQueryPanel extends JPanel {
                 updateUndoState();
             }
         };
-        configureAction( undoAct_, "undo.gif",
-                         "Undo most recent edit to text" );
+        undoAct_.putValue( Action.SHORT_DESCRIPTION,
+                           "Undo most recent edit to text" );
         undoAct_.putValue( Action.ACCELERATOR_KEY, UNDO_KEYS[ 0 ] );
-        redoAct_ = new AbstractAction( "Redo" ) {
+        redoAct_ = new AbstractAction( "Redo", ResourceIcon.ADQL_REDO ) {
             public void actionPerformed( ActionEvent evt ) {
                 try {
                     undoer_.redo();
@@ -176,29 +176,31 @@ public class TapQueryPanel extends JPanel {
                 updateUndoState();
             }
         };
-        configureAction( redoAct_, "redo.gif",
-                         "Redo most recently undone edit to text" );
+        redoAct_.putValue( Action.SHORT_DESCRIPTION,
+                           "Redo most recently undone edit to text" );
         redoAct_.putValue( Action.ACCELERATOR_KEY, REDO_KEYS[ 0 ] );
 
         /* Actions for adding and removing text entry tabs. */
-        addTabAct_ = new AbstractAction( "Add Tab" ) {
+        addTabAct_ = new AbstractAction( "Add Tab", ResourceIcon.ADQL_ADDTAB ) {
             public void actionPerformed( ActionEvent evt ) {
                 addTextTab();
             }
         };
-        configureAction( addTabAct_, "add_tab.gif",
-                         "Add a new ADQL entry tab" );
-        copyTabAct_ = new AbstractAction( "Copy Tab" ) {
+        addTabAct_.putValue( Action.SHORT_DESCRIPTION,
+                             "Add a new ADQL entry tab" );
+        copyTabAct_ = new AbstractAction( "Copy Tab",
+                                          ResourceIcon.ADQL_COPYTAB ) {
             public void actionPerformed( ActionEvent evt ) {
                 String text = textPanel_ == null ? null : textPanel_.getText();
                 addTextTab();
                 textPanel_.setText( text );
             }
         };
-        configureAction( copyTabAct_, "copy_tab.gif",
-                         "Add a new ADQL entry tab, with initial content "
-                       + "copied from the currently visible one" );
-        removeTabAct_ = new AbstractAction( "Remove Tab" ) {
+        copyTabAct_.putValue( Action.SHORT_DESCRIPTION,
+                              "Add a new ADQL entry tab, with initial content "
+                            + "copied from the currently visible one" );
+        removeTabAct_ = new AbstractAction( "Remove Tab",
+                                            ResourceIcon.ADQL_REMOVETAB ) {
             public void actionPerformed( ActionEvent evt ) {
                 if ( textTabber_.getTabCount() > 1 ) {
                     undoerMap_.remove( textPanel_ );
@@ -207,9 +209,10 @@ public class TapQueryPanel extends JPanel {
                 updateTextTab();
             }
         };
-        configureAction( removeTabAct_, "remove_tab.gif",
-                         "Delete the currently visible ADQL entry tab" );
-        titleTabAct_ = new AbstractAction( "Title Tab" ) {
+        removeTabAct_.putValue( Action.SHORT_DESCRIPTION,
+                                "Delete the currently visible ADQL entry tab" );
+        titleTabAct_ = new AbstractAction( "Title Tab",
+                                           ResourceIcon.ADQL_TITLETAB ) {
             public void actionPerformed( ActionEvent evt ) {
                 int itab = textTabber_.getSelectedIndex();
                 if ( itab >= 0 ) {
@@ -228,22 +231,26 @@ public class TapQueryPanel extends JPanel {
                 }
             }
         };
-        configureAction( titleTabAct_, "title_tab.gif",
-                         "Re-title the currently visible ADQL entry tab" );
+        titleTabAct_.putValue( Action.SHORT_DESCRIPTION,
+                               "Re-title the currently visible "
+                             + "ADQL entry tab" );
 
         /* Action to display parse error text. */
-        parseErrorAct_ = new AbstractAction( "Parse Errors" ) {
+        parseErrorAct_ = new AbstractAction( "Parse Errors",
+                                             ResourceIcon.ADQL_ERROR ) {
             public void actionPerformed( ActionEvent evt ) {
                 showParseError();
             }
         };
-        configureAction( parseErrorAct_, "error.gif",
-                         "Show details of error parsing current query text" );
+        parseErrorAct_.putValue( Action.SHORT_DESCRIPTION,
+                                 "Show details of error "
+                               + "parsing current query text" );
 
         /* Action to clear text in ADQL panel. */
         clearAct_ = new AdqlTextAction( "Clear", true );
-        configureAction( clearAct_, "clear.gif",
-                         "Delete currently visible ADQL text from editor" );
+        clearAct_.putValue( Action.SMALL_ICON, ResourceIcon.ADQL_CLEAR );
+        clearAct_.putValue( Action.SHORT_DESCRIPTION,
+                            "Delete currently visible ADQL text from editor" );
         clearAct_.setAdqlText( "" );
         clearAct_.setEnabled( false );
 
@@ -262,9 +269,11 @@ public class TapQueryPanel extends JPanel {
 
         /* Action to insert table name. */
         interpolateTableAct_ = new AdqlTextAction( "Insert Table", false );
-        configureAction( interpolateTableAct_, "insert_table.gif",
-                         "Insert name of currently selected table "
-                       + "into ADQL text panel" );
+        interpolateTableAct_.putValue( Action.SMALL_ICON,
+                                       ResourceIcon.ADQL_INSERTTABLE );
+        interpolateTableAct_.putValue( Action.SHORT_DESCRIPTION,
+                                       "Insert name of currently selected "
+                                     + "table into ADQL text panel" );
         tmetaPanel_.addPropertyChangeListener( TableSetPanel
                                               .TABLE_SELECTION_PROPERTY,
                                                new PropertyChangeListener() {
@@ -277,9 +286,11 @@ public class TapQueryPanel extends JPanel {
 
         /* Action to insert column names. */
         interpolateColumnsAct_ = new AdqlTextAction( "Insert Columns", false );
-        configureAction( interpolateColumnsAct_, "insert_columns.gif",
-                         "Insert names of currently selected columns "
-                       + "into ADQL text panel" );
+        interpolateColumnsAct_.putValue( Action.SMALL_ICON,
+                                         ResourceIcon.ADQL_INSERTCOLS );
+        interpolateColumnsAct_.putValue( Action.SHORT_DESCRIPTION,
+                                         "Insert names of currently selected "
+                                       + "columns into ADQL text panel" );
         tmetaPanel_.addPropertyChangeListener( TableSetPanel
                                               .COLUMNS_SELECTION_PROPERTY,
                                                new PropertyChangeListener() {
@@ -934,26 +945,6 @@ public class TapQueryPanel extends JPanel {
         parseError_ = parseError;
         textPanel_.setParseError( parseError );
         parseErrorAct_.setEnabled( parseError != null );
-    }
-
-    /**
-     * Adds description text and an icon to a given action.
-     *
-     * @param   act  action
-     * @param   iconName  name of icon filename in this class's directory
-     * @param   description  description of action
-     */
-    private static void configureAction( Action act, String iconName,
-                                         String description ) {
-        if ( iconName != null ) {
-            URL iconUrl = TapQueryPanel.class.getResource( iconName );
-            if ( iconUrl != null ) {
-                act.putValue( Action.SMALL_ICON, new ImageIcon( iconUrl ) );
-            }
-        }
-        if ( description != null ) {
-            act.putValue( Action.SHORT_DESCRIPTION, description );
-        }
     }
 
     /**

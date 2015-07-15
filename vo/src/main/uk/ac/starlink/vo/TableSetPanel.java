@@ -1118,8 +1118,6 @@ public class TableSetPanel extends JPanel {
     private static class CountTableTreeCellRenderer
             extends DefaultTreeCellRenderer {
         String rootName_;
-        final Icon serviceIcon_ = TapServiceTreeModel.serviceIcon_;
-        final Icon tableIcon_ = TapServiceTreeModel.tableIcon_;
         @Override
         public Component getTreeCellRendererComponent( JTree tree, Object value,
                                                        boolean isSelected,
@@ -1132,7 +1130,7 @@ public class TableSetPanel extends JPanel {
                                                     hasFocus );
             if ( value instanceof SchemaMeta[] ) {
                 SchemaMeta[] schemas = (SchemaMeta[]) value;
-                setIcon( serviceIcon_ );
+                setIcon( ResourceIcon.NODE_SERVICE );
                 StringBuffer sbuf = new StringBuffer();
                 sbuf.append( rootName_ == null ? "TAP Service" : rootName_ );
                 int ntTotal = 0;
@@ -1181,9 +1179,7 @@ public class TableSetPanel extends JPanel {
                 }
             }
             else if ( value instanceof TableMeta ) {
-                if ( tableIcon_ != null ) {
-                    setIcon( tableIcon_ );
-                }
+                setIcon( ResourceIcon.NODE_TABLE );
             }
             return comp;
         }

@@ -123,7 +123,7 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
         tqMap_ = new HashMap<String,TapQueryPanel>();
         metaPolicy_ = TapMetaPolicy.getDefaultInstance();
         coding_ = ContentCoding.GZIP;
-        setIconUrl( TapTableLoadDialog.class.getResource( "tap.gif" ) );
+        setIcon( ResourceIcon.TLD_TAP );
     }
 
     @Override

@@ -43,7 +43,7 @@ public class TapExampleLine extends JPanel {
                 urlHandler_.clickUrl( example_.getInfoUrl() );
             }
         };
-        infoAct_.putValue( Action.SMALL_ICON, MetaPanel.LINK_ICON );
+        infoAct_.putValue( Action.SMALL_ICON, ResourceIcon.EXTLINK );
         setLayout( new BoxLayout( this, BoxLayout.LINE_AXIS ) );
         JComponent textBox = Box.createHorizontalBox();
         textBox.setBorder( BorderFactory.createEtchedBorder() );

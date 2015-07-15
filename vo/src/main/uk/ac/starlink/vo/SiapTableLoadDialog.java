@@ -48,7 +48,7 @@ public class SiapTableLoadDialog extends SkyDalTableLoadDialog {
                "Get results of a Simple Image Access Protocol query",
                Capability.SIA, true, true );
         coding_ = ContentCoding.GZIP;
-        setIconUrl( SiapTableLoadDialog.class.getResource( "sia.gif" ) );
+        setIcon( ResourceIcon.TLD_SIA );
     }
 
     protected Component createQueryComponent() {
