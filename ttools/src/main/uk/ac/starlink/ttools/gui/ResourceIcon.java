@@ -69,7 +69,7 @@ public class ResourceIcon {
         ZERO = readIcon( "ozero.png" ),
 
         /* Placeholder and terminator. */
-        DO_WHAT = readIcon( "burst.gif" );
+        TTOOLS_DOWHAT = readIcon( "burst.gif" );
 
     /**
      * Private constructor prevents instantiation.
