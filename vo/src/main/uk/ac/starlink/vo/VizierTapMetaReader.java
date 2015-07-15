@@ -22,6 +22,7 @@ public class VizierTapMetaReader implements TapMetaReader {
     private final URL url_;
     private final MetaNameFixer fixer_;
     private final ContentCoding coding_;
+    private final AdqlSyntax syntax_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
 
@@ -44,6 +45,7 @@ public class VizierTapMetaReader implements TapMetaReader {
         }
         fixer_ = fixer == null ? MetaNameFixer.NONE : fixer;
         coding_ = coding;
+        syntax_ = AdqlSyntax.getInstance();
     }
 
     public SchemaMeta[] readSchemas() throws IOException {
@@ -89,9 +91,11 @@ public class VizierTapMetaReader implements TapMetaReader {
      *         from service
      */
     private TableMeta readSingleTable( TableMeta table ) throws IOException {
-        String tname = fixer_.getOriginalTableName( table );
-        URL turl = 
-            new URL( url_ + "/" + AdqlSyntax.getInstance().unquote( tname ) );
+        String[] cstNames = syntax_.getCatalogSchemaTable( table.getName() );
+        String tName = cstNames != null
+                     ? cstNames[ 2 ]
+                     : fixer_.getOriginalTableName( table );
+        URL turl = new URL( url_ + "/" + syntax_.unquote( tName ) );
         SchemaMeta[] schemas = readSchemas( turl );
         if ( schemas.length == 1 ) {
             TableMeta[] tables = schemas[ 0 ].getTables();
