@@ -24,8 +24,7 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import javax.help.JHelp;
@@ -468,17 +467,14 @@ public class ResourceIcon implements Icon {
     /**
      * Checks that all the required resource files are present for 
      * this class.  If any of the image files are not present, it will
-     * return throw an informative FileNotFoundException.
+     * throw an informative FileNotFoundException.
      *
      * @throws  FileNotFoundException   if any of the graphics 
      *          files are missing
      */
     public static void checkResourcesPresent() throws FileNotFoundException {
-        List notFound = new ArrayList();
-        for ( Iterator it = getMemberNameMap().entrySet().iterator(); 
-              it.hasNext(); ) {
-            ResourceIcon icon =
-                (ResourceIcon) ((Map.Entry) it.next()).getValue();
+        List<String> notFound = new ArrayList<String>();
+        for ( ResourceIcon icon : getMemberNameMap().values() ) {
             icon.readBaseIcon();
             if ( ! icon.resourceFound.booleanValue() ) {
                 notFound.add( icon.location );
@@ -487,9 +483,9 @@ public class ResourceIcon implements Icon {
         if ( notFound.size() > 0 ) {
             StringBuffer msg = new StringBuffer()
                               .append( "Resource files not found:" );
-            for ( Iterator it = notFound.iterator(); it.hasNext(); ) {
+            for ( String loc : notFound ) {
                 msg.append( ' ' )
-                   .append( it.next() );
+                   .append( loc );
             }
             throw new FileNotFoundException( msg.toString() );
         }
@@ -523,12 +519,11 @@ public class ResourceIcon implements Icon {
         pstrm.println( "\n<map version='1.0'>" );
 
         /* Write an entry for each known icon. */
-        Map iconMap = getMemberNameMap();
-        List iconList = new ArrayList( iconMap.keySet() );
+        Map<String,ResourceIcon> iconMap = getMemberNameMap();
+        List<String> iconList = new ArrayList<String>( iconMap.keySet() );
         Collections.sort( iconList );
-        for ( Iterator it = iconList.iterator(); it.hasNext(); ) {
-            String name = (String) it.next();
-            ResourceIcon icon = (ResourceIcon) iconMap.get( name );
+        for ( String name : iconList ) {
+            ResourceIcon icon = iconMap.get( name );
             String mapID = new StringBuffer()
                 .append( "  <mapID target='" )
                 .append( name )
@@ -554,8 +549,9 @@ public class ResourceIcon implements Icon {
      * @return  member name => member value mapping for all static
      *          ResourceIcon objects defined by this class
      */
-    private static Map getMemberNameMap() {
-        Map nameMap = new HashMap();
+    private static Map<String,ResourceIcon> getMemberNameMap() {
+        Map<String,ResourceIcon> nameMap =
+            new LinkedHashMap<String,ResourceIcon>();
         Field[] fields = ResourceIcon.class.getDeclaredFields();
         for ( int i = 0; i < fields.length; i++ ) {
             Field field = fields[ i ];
@@ -595,46 +591,47 @@ public class ResourceIcon implements Icon {
      *
      * @return  member name => member value mapping for hand-drawn icons
      */
-    private static Map getDiyIconMap() {
-        Map nameMap = new HashMap();
+    private static Map<String,Icon> getDiyIconMap() {
+        Map<String,Icon> nameMap = new LinkedHashMap<String,Icon>();
         ErrorModeSelectionModel errX = new ErrorModeSelectionModel( 0, "X" );
         ErrorModeSelectionModel errY = new ErrorModeSelectionModel( 1, "Y" );
         ErrorModeSelectionModel errZ = new ErrorModeSelectionModel( 2, "Z" );
-        nameMap.put( "ERROR_X", errX.createOnOffButton().getIcon() );
-        nameMap.put( "ERROR_Y", errY.createOnOffButton().getIcon() );
-        nameMap.put( "ERROR_Z", errZ.createOnOffButton().getIcon() );
-        nameMap.put( "ERROR_TANGENT", SphereWindow.createTangentErrorIcon() );
-        nameMap.put( "ERROR_NONE",
-                     errX.getIcon( ErrorMode.NONE, 24, 24, 1, 1 ) );
-        nameMap.put( "ERROR_SYMMETRIC",
-                     errX.getIcon( ErrorMode.SYMMETRIC, 24, 24, 1, 1 ) );
-        nameMap.put( "ERROR_LOWER",
-                     errX.getIcon( ErrorMode.LOWER, 24, 24, 1, 1 ) );
-        nameMap.put( "ERROR_UPPER",
-                     errX.getIcon( ErrorMode.UPPER, 24, 24, 1, 1 ) );
-        nameMap.put( "ERROR_BOTH",
-                     errX.getIcon( ErrorMode.BOTH, 24, 24, 1, 1 ) );
-        nameMap.put( "FILESTORE_DIALOG",
-                     new FilestoreTableLoadDialog().getIcon() );
-        nameMap.put( "FILECHOOSER_DIALOG",
-                     new FileChooserTableLoadDialog().getIcon() );
-        nameMap.put( "SQL_DIALOG",
-                     new SQLTableLoadDialog().getIcon() );
-        nameMap.put( "CONE_DIALOG",
-                     new ConeSearchDialog().getIcon() );
-        nameMap.put( "SIAP_DIALOG",
-                     new SiapTableLoadDialog().getIcon() );
-        nameMap.put( "SSAP_DIALOG",
-                     new SsapTableLoadDialog().getIcon() );
-        nameMap.put( "TAP_DIALOG",
-                     new TapTableLoadDialog().getIcon() );
-        nameMap.put( "REGISTRY_DIALOG",
-                     new Ri1RegistryTableLoadDialog().getIcon() );
-        nameMap.put( "HELP_TOC",
-                     new ImageIcon( JHelp.class
-                        .getResource( "plaf/basic/images/TOCNav.gif" ) ) );
-        nameMap.put( "HELP_SEARCH",
-                     new ImageIcon( JHelp.class
+        putMap( nameMap, "ERROR_X", errX.createOnOffButton().getIcon() );
+        putMap( nameMap, "ERROR_Y", errY.createOnOffButton().getIcon() );
+        putMap( nameMap, "ERROR_Z", errZ.createOnOffButton().getIcon() );
+        putMap( nameMap, "ERROR_TANGENT",
+                         SphereWindow.createTangentErrorIcon() );
+        putMap( nameMap, "ERROR_NONE",
+                         errX.getIcon( ErrorMode.NONE, 24, 24, 1, 1 ) );
+        putMap( nameMap, "ERROR_SYMMETRIC",
+                         errX.getIcon( ErrorMode.SYMMETRIC, 24, 24, 1, 1 ) );
+        putMap( nameMap, "ERROR_LOWER",
+                         errX.getIcon( ErrorMode.LOWER, 24, 24, 1, 1 ) );
+        putMap( nameMap, "ERROR_UPPER",
+                         errX.getIcon( ErrorMode.UPPER, 24, 24, 1, 1 ) );
+        putMap( nameMap, "ERROR_BOTH",
+                         errX.getIcon( ErrorMode.BOTH, 24, 24, 1, 1 ) );
+        putMap( nameMap, "FILESTORE_DIALOG",
+                         new FilestoreTableLoadDialog().getIcon() );
+        putMap( nameMap, "FILECHOOSER_DIALOG",
+                         new FileChooserTableLoadDialog().getIcon() );
+        putMap( nameMap, "SQL_DIALOG",
+                         new SQLTableLoadDialog().getIcon() );
+        putMap( nameMap, "CONE_DIALOG",
+                         new ConeSearchDialog().getIcon() );
+        putMap( nameMap, "SIAP_DIALOG",
+                         new SiapTableLoadDialog().getIcon() );
+        putMap( nameMap, "SSAP_DIALOG",
+                         new SsapTableLoadDialog().getIcon() );
+        putMap( nameMap, "TAP_DIALOG",
+                         new TapTableLoadDialog().getIcon() );
+        putMap( nameMap, "REGISTRY_DIALOG",
+                         new Ri1RegistryTableLoadDialog().getIcon() );
+        putMap( nameMap, "HELP_TOC",
+                         new ImageIcon( JHelp.class
+                            .getResource( "plaf/basic/images/TOCNav.gif" ) ) );
+        putMap( nameMap, "HELP_SEARCH",
+                         new ImageIcon( JHelp.class
                         .getResource( "plaf/basic/images/SearchNav.gif" ) ) );
 
         /* Pull in icons from TTOOLS package. */
@@ -656,33 +653,53 @@ public class ResourceIcon implements Icon {
                  catch ( IllegalAccessException e ) {
                      throw new AssertionError( e );
                  }
-                 nameMap.put( name, icon );
+                 putMap( nameMap, name, icon );
             }
         }
 
         /* Icons which are the result of calling toAddIcon on existing ones. */
         uk.ac.starlink.ttools.gui.ResourceIcon TTRI =
             uk.ac.starlink.ttools.gui.ResourceIcon.REF;
-        nameMap.put( "ADD_PLOT_DATA", toAddIcon( PLOT_DATA ) );
-        nameMap.put( "ADD_PLOT_PAIR", toAddIcon( PLOT_PAIR ) );
-        nameMap.put( "ADD_PLOT_HISTO", toAddIcon( PLOT_HISTO ) );
-        nameMap.put( "ADD_FORM_MARK", toAddIcon( TTRI.FORM_MARK ) );
-        nameMap.put( "ADD_FORM_SIZE", toAddIcon( TTRI.FORM_SIZE ) );
-        nameMap.put( "ADD_FORM_VECTOR", toAddIcon( TTRI.FORM_VECTOR ) );
-        nameMap.put( "ADD_FORM_ERROR", toAddIcon( TTRI.FORM_ERROR ) );
-        nameMap.put( "ADD_FORM_ELLIPSE", toAddIcon( TTRI.FORM_ELLIPSE ) );
-        nameMap.put( "ADD_PLOT_LINE", toAddIcon( TTRI.PLOT_LINE ) );
-        nameMap.put( "ADD_FORM_LINEARFIT", toAddIcon( TTRI.FORM_LINEARFIT ) );
-        nameMap.put( "ADD_PLOT_LABEL", toAddIcon( TTRI.PLOT_LABEL ) );
-        nameMap.put( "ADD_PLOT_CONTOUR", toAddIcon( TTRI.PLOT_CONTOUR ) );
-        nameMap.put( "ADD_FORM_HISTOGRAM", toAddIcon( TTRI.FORM_HISTOGRAM ) );
-        nameMap.put( "ADD_FORM_KDE", toAddIcon( TTRI.FORM_KDE ) );
-        nameMap.put( "ADD_FORM_KNN", toAddIcon( TTRI.FORM_KNN ) );
-        nameMap.put( "ADD_FORM_DENSOGRAM", toAddIcon( TTRI.FORM_DENSOGRAM ) );
-        nameMap.put( "ADD_FORM_MARKS2", toAddIcon( TTRI.FORM_MARKS2 ) );
-        nameMap.put( "ADD_FORM_LINK2", toAddIcon( TTRI.FORM_LINK2 ) );
+        putMap( nameMap, "ADD_PLOT_DATA", toAddIcon( PLOT_DATA ) );
+        putMap( nameMap, "ADD_PLOT_PAIR", toAddIcon( PLOT_PAIR ) );
+        putMap( nameMap, "ADD_PLOT_HISTO", toAddIcon( PLOT_HISTO ) );
+        putMap( nameMap, "ADD_FORM_MARK", toAddIcon( TTRI.FORM_MARK ) );
+        putMap( nameMap, "ADD_FORM_SIZE", toAddIcon( TTRI.FORM_SIZE ) );
+        putMap( nameMap, "ADD_FORM_VECTOR", toAddIcon( TTRI.FORM_VECTOR ) );
+        putMap( nameMap, "ADD_FORM_ERROR", toAddIcon( TTRI.FORM_ERROR ) );
+        putMap( nameMap, "ADD_FORM_ELLIPSE", toAddIcon( TTRI.FORM_ELLIPSE ) );
+        putMap( nameMap, "ADD_PLOT_LINE", toAddIcon( TTRI.PLOT_LINE ) );
+        putMap( nameMap, "ADD_FORM_LINEARFIT",
+                         toAddIcon( TTRI.FORM_LINEARFIT ) );
+        putMap( nameMap, "ADD_PLOT_LABEL", toAddIcon( TTRI.PLOT_LABEL ) );
+        putMap( nameMap, "ADD_PLOT_CONTOUR", toAddIcon( TTRI.PLOT_CONTOUR ) );
+        putMap( nameMap, "ADD_FORM_HISTOGRAM",
+                         toAddIcon( TTRI.FORM_HISTOGRAM ) );
+        putMap( nameMap, "ADD_FORM_KDE", toAddIcon( TTRI.FORM_KDE ) );
+        putMap( nameMap, "ADD_FORM_KNN", toAddIcon( TTRI.FORM_KNN ) );
+        putMap( nameMap, "ADD_FORM_DENSOGRAM",
+                         toAddIcon( TTRI.FORM_DENSOGRAM ) );
+        putMap( nameMap, "ADD_FORM_MARKS2", toAddIcon( TTRI.FORM_MARKS2 ) );
+        putMap( nameMap, "ADD_FORM_LINK2", toAddIcon( TTRI.FORM_LINK2 ) );
 
         return nameMap;
+    }
+
+    /**
+     * Adds an entry to a map, making sure that it doesn't overwrite
+     * any previous entry.
+     *
+     * @param    map  map to update
+     * @param   key   new key
+     * @param   value  new value
+     * @throws   IllegalArgumentException  iff map already contains key
+     */
+    private static void putMap( Map<String,Icon> map, String key, Icon value ) {
+        if ( map.containsKey( key ) ) {
+            throw new IllegalArgumentException( "Map already contains key "
+                                              + key );
+        }
+        map.put( key, value );
     }
 
     /**
@@ -756,9 +773,7 @@ public class ResourceIcon implements Icon {
             writeHelpMapXML( System.out, "../" );
         }
         else if ( "-files".equals( mode ) ) {
-            Map iconMap = getMemberNameMap();
-            for ( Iterator it = iconMap.keySet().iterator(); it.hasNext(); ) {
-                ResourceIcon icon = (ResourceIcon) iconMap.get( it.next() );
+            for ( ResourceIcon icon : getMemberNameMap().values() ) {
                 System.out.println( icon.location );
             }
         }
@@ -767,23 +782,30 @@ public class ResourceIcon implements Icon {
             String t1 = "  <!ENTITY IMG.";
             String t2 = " '<img src=\"../" + PREFIX;
             String t3 = "\"/>'>";
-            for ( Iterator it = iconMap.keySet().iterator(); it.hasNext(); ) {
-                String name = (String) it.next();
-                ResourceIcon icon = (ResourceIcon) iconMap.get( name );
-                System.out.println( t1 + name + t2 + icon.location + t3 );
+            for ( Map.Entry<String,ResourceIcon> entry :
+                  getMemberNameMap().entrySet() ) {
+                System.out.println( new StringBuffer()
+                                   .append( t1 )
+                                   .append( entry.getKey() )
+                                   .append( t2 )
+                                   .append( entry.getValue().location )
+                                   .append( t3 ) );
             }
-            Map diyMap = getDiyIconMap();
-            for ( Iterator it = diyMap.keySet().iterator(); it.hasNext(); ) {
-                String name = (String) it.next();
-                System.out.println( t1 + name + t2 + name + ".gif" + t3 );
+            for ( String name : getDiyIconMap().keySet() ) {
+                System.out.println( new StringBuffer()
+                                   .append( t1 )
+                                   .append( name )
+                                   .append( t2 )
+                                   .append( name )
+                                   .append( ".gif" )
+                                   .append( t3 ) );
             }
         }
         else if ( "-writegifs".equals( mode ) ) {
             Map diyMap = getDiyIconMap();
-            for ( Iterator it = diyMap.keySet().iterator(); it.hasNext(); ) {
-                String name = (String) it.next();
-                Icon icon = (Icon) diyMap.get( name );
-                writeGif( icon, new File( name + ".gif" ) );
+            for ( Map.Entry<String,Icon> entry : getDiyIconMap().entrySet() ) {
+                writeGif( entry.getValue(),
+                          new File( entry.getKey() + ".gif" ) );
             }
         }
         else {
