@@ -11,6 +11,7 @@ import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.URLParameter;
+import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.vo.UwsJob;
 import uk.ac.starlink.vo.UwsStage;
 
@@ -23,6 +24,7 @@ import uk.ac.starlink.vo.UwsStage;
 public class TapResume extends ConsumerTask {
 
     private final URLParameter urlParam_;
+    private final ContentCodingParameter codingParam_;
     private final TapResultReader resultReader_;
 
     public TapResume() {
@@ -44,6 +46,9 @@ public class TapResume extends ConsumerTask {
         } );
         paramList.add( urlParam_ );
 
+        codingParam_ = new ContentCodingParameter();
+        paramList.add( codingParam_ );
+
         resultReader_ = new TapResultReader();
         paramList.addAll( Arrays.asList( resultReader_.getParameters() ) );
 
@@ -54,8 +59,9 @@ public class TapResume extends ConsumerTask {
     public TableProducer createProducer( Environment env )
             throws TaskException {
         final URL jobUrl = urlParam_.objectValue( env );
+        ContentCoding coding = codingParam_.codingValue( env );
         final TapResultProducer resultProducer =
-            resultReader_.createResultProducer( env );
+            resultReader_.createResultProducer( env, coding );
         return new TableProducer() {
             public StarTable getTable() throws IOException {
                 UwsJob uwsJob = new UwsJob( jobUrl );

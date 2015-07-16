@@ -10,6 +10,7 @@ import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.vo.ColumnMeta;
 import uk.ac.starlink.vo.ForeignMeta;
 import uk.ac.starlink.vo.SchemaMeta;
@@ -271,7 +272,7 @@ public class TapSchemaStage extends TableMetadataStage {
          */
         public LintTapSchemaInterrogator( Reporter reporter, URL serviceUrl,
                                           int maxrec, TapRunner tapRunner ) {
-            super( serviceUrl, maxrec );
+            super( serviceUrl, maxrec, ContentCoding.NONE );
             reporter_ = reporter;
             tapRunner_ = tapRunner;
         }

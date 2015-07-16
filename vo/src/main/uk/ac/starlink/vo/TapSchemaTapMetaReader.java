@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.util.ContentCoding;
 
 /**
  * TapMetaReader implementation that uses TAP queries on the TAP_SCHEMA
@@ -36,6 +37,7 @@ public class TapSchemaTapMetaReader implements TapMetaReader {
      *
      * @param  serviceUrl  TAP service URL
      * @param  maxrec   maximum number of records to be requested at once
+     * @param  coding  configures HTTP compression
      * @param  populateSchemas   whether SchemaMeta objects will be
      *                           filled in with table lists when they are
      *                           acquired
@@ -49,6 +51,7 @@ public class TapSchemaTapMetaReader implements TapMetaReader {
      *                       if false it's read per-table as required
      */
     public TapSchemaTapMetaReader( String serviceUrl, int maxrec,
+                                   ContentCoding coding,
                                    boolean populateSchemas,
                                    boolean populateTables,
                                    MetaNameFixer fixer,
@@ -62,7 +65,7 @@ public class TapSchemaTapMetaReader implements TapMetaReader {
                   new IllegalArgumentException( "Bad URL: " + serviceUrl )
                  .initCause( e );
         }
-        tsi_ = new TapSchemaInterrogator( url, maxrec ) {
+        tsi_ = new TapSchemaInterrogator( url, maxrec, coding ) {
             @Override
             protected StarTable executeQuery( TapQuery tq ) throws IOException {
                 logger_.info( tq.getAdql() );

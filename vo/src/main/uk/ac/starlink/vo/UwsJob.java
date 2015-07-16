@@ -22,6 +22,7 @@ import java.util.regex.Pattern;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.table.ByteStore;
 import uk.ac.starlink.table.StoragePolicy;
+import uk.ac.starlink.util.ContentCoding;
 
 /**
  * Job submitted using the Universal Worker Service pattern.
@@ -343,7 +344,8 @@ public class UwsJob {
                                     Map<String,HttpStreamParam> streamParamMap )
             throws IOException {
         HttpURLConnection hconn =
-            postForm( new URL( jobListUrl ), stringParamMap, streamParamMap );
+            postForm( new URL( jobListUrl ), ContentCoding.NONE,
+                      stringParamMap, streamParamMap );
         int code = hconn.getResponseCode();
         if ( code != HttpURLConnection.HTTP_SEE_OTHER ) {  // 303
             String msg = "Non-" + HttpURLConnection.HTTP_SEE_OTHER + " response"
@@ -373,7 +375,7 @@ public class UwsJob {
             throws IOException {
         Map<String,String> paramMap = new HashMap<String,String>();
         paramMap.put( name, value );
-        return postUnipartForm( url, paramMap );
+        return postUnipartForm( url, ContentCoding.NONE, paramMap );
     }
 
     /**
@@ -382,18 +384,22 @@ public class UwsJob {
      * parameters, and posts them in an appropriate way.
      *
      * @param   url   destination URL
+     * @param   coding  HTTP content coding; connection output should be
+     *                  decoded using the same value
      * @param   stringParams  name-&gt;value map for POST parameters;
      *          values will be URL encoded as required
      * @param   streamParams  name-&gt;parameter map for POST parameters
      * @return   URL connection corresponding to the completed POST
      */
     public static HttpURLConnection
-                  postForm( URL url, Map<String,String> stringParams,
+                  postForm( URL url, ContentCoding coding,
+                            Map<String,String> stringParams,
                             Map<String,HttpStreamParam> streamParams )
             throws IOException {
         return ( streamParams == null || streamParams.isEmpty() )
-             ? postUnipartForm( url, stringParams )
-             : postMultipartForm( url, stringParams, streamParams, null );
+             ? postUnipartForm( url, coding, stringParams )
+             : postMultipartForm( url, coding, stringParams, streamParams,
+                                  null );
     }
 
     /**
@@ -401,18 +407,22 @@ public class UwsJob {
      * They are posted with MIME type "application/x-www-form-urlencoded".
      *
      * @param   url  destination URL
+     * @param   coding  HTTP content coding; connection output should be
+     *                  decoded using the same value
      * @param   paramMap   name-&gt;value map of parameters; values will be
      *          encoded as required
      * @return   URL connection corresponding to the completed POST
      */
     public static HttpURLConnection
-                  postUnipartForm( URL url, Map<String,String> paramMap )
+                  postUnipartForm( URL url, ContentCoding coding,
+                                   Map<String,String> paramMap )
             throws IOException {
         HttpURLConnection hconn = openHttpConnection( url );
         byte[] postBytes = toPostedBytes( paramMap );
         hconn.setRequestMethod( "POST" );
         hconn.setRequestProperty( "Content-Type",
                                   "application/x-www-form-urlencoded" );
+        coding.prepareRequest( hconn );
         // We could stream this request, which would seem tidier.
         // However, that inhibits automatic handling of 401 Unauthorized
         // responses if a java.net.Authenticator is in use, and the 
@@ -439,13 +449,17 @@ public class UwsJob {
      * The form is written in multipart/form-data format.
      * See <a href="http://www.ietf.org/rfc/rfc2046.txt">RFC 2046</a> Sec 5.1.
      *
+     * @param   url  destination URL
+     * @param   coding  HTTP content coding; connection output should be
+     *                  decoded using the same value
      * @param   stringMap   name-&gt;value map of parameters
      * @param   streamMap   name-&gt;stream map of parameters
      * @param  boundary  multipart boundary; if null a default value is used
      * @return   URL connection corresponding to the completed POST
      */
     public static HttpURLConnection
-                  postMultipartForm( URL url, Map<String,String> stringMap,
+                  postMultipartForm( URL url, ContentCoding coding,
+                                     Map<String,String> stringMap,
                                      Map<String,HttpStreamParam> streamMap,
                                      String boundary )
             throws IOException {
@@ -463,6 +477,7 @@ public class UwsJob {
         hconn.setRequestProperty( "Content-Type",
                                   "multipart/form-data"
                                 + "; boundary=\"" + boundary + "\"" );
+        coding.prepareRequest( hconn );
         hconn.setInstanceFollowRedirects( false );
         hconn.setDoOutput( true );
         logger_.info( "POST params to " + url );

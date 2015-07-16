@@ -3,8 +3,9 @@ package uk.ac.starlink.ttools.taplint;
 import java.io.IOException;
 import java.net.URL;
 import org.xml.sax.SAXException;
+import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.vo.SchemaMeta;
-import uk.ac.starlink.vo.TapQuery;
+import uk.ac.starlink.vo.TableSetSaxHandler;
 
 /**
  * Validation stage for checking table metadata from the /tables endpoint
@@ -22,11 +23,12 @@ public class TablesEndpointStage extends TableMetadataStage {
 
     protected SchemaMeta[] readTableMetadata( Reporter reporter,
                                               URL serviceUrl ) {
+        String turl = serviceUrl + "/tables";
         reporter.report( FixedCode.I_TURL,
-                         "Reading table metadata from "
-                       + serviceUrl + "/tables" );
+                         "Reading table metadata from " + turl );
         try {
-            return TapQuery.readTableMetadata( serviceUrl );
+            return TableSetSaxHandler.readTableSet( new URL( turl ),
+                                                    ContentCoding.NONE );
         }
         catch ( SAXException e ) {
             reporter.report( FixedCode.E_FLSX,

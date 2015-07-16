@@ -3,6 +3,7 @@ package uk.ac.starlink.ttools.taplint;
 import java.io.IOException;
 import java.net.URL;
 import org.xml.sax.SAXException;
+import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.vo.SchemaMeta;
 import uk.ac.starlink.vo.TableSetSaxHandler;
 
@@ -54,7 +55,8 @@ public class TapSchemaMetadataHolder implements MetadataHolder {
         else {
             try {
                 SchemaMeta[] smetas =
-                    TableSetSaxHandler.readTableSet( schemaTablesUrl );
+                    TableSetSaxHandler.readTableSet( schemaTablesUrl,
+                                                     ContentCoding.NONE );
                 if ( reporter_ != null ) {
                     reporter_.report( FixedCode.I_SCHM,
                                       "Using standard TAP_SCHEMA tables for "

@@ -28,6 +28,7 @@ import org.xml.sax.SAXException;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.util.ContentCoding;
 
 /**
  * Handles asynchronous population of the TAP metadata hierarchy. 
@@ -46,6 +47,7 @@ public class TapServiceKit {
     private final URL serviceUrl_;
     private final String ivoid_;
     private final TapMetaPolicy metaPolicy_;
+    private final ContentCoding coding_;
     private final Map<Populator,Collection<Runnable>> runningMap_;
     private final ExecutorService metaExecutor_;
     private volatile FutureTask<TapMetaReader> rdrFuture_;
@@ -59,15 +61,18 @@ public class TapServiceKit {
      * @param   serviceUrl  base URL of TAP service
      * @param   ivoid       IVORN of TAP service, if known (may be null)
      * @param   metaPolicy  implementation for reading table metadata
+     * @param   coding      configures HTTP compression
      * @param   queueLimit  maximum number of table metadata requests queued
      *                      to service; more than that and older ones
      *                      will be dropped
      */
     public TapServiceKit( URL serviceUrl, String ivoid,
-                          TapMetaPolicy metaPolicy, int queueLimit ) {
+                          TapMetaPolicy metaPolicy, ContentCoding coding,
+                          int queueLimit ) {
         serviceUrl_ = serviceUrl;
         ivoid_ = ivoid;
         metaPolicy_ = metaPolicy;
+        coding_ = coding;
         metaExecutor_ = createExecutorService( queueLimit );
         runningMap_ = new HashMap<Populator,Collection<Runnable>>();
     }
@@ -239,7 +244,7 @@ public class TapServiceKit {
     public void acquireRoles( final ResultHandler<RegRole[]> handler ) {
         acquireData( handler, new DataCallable<RegRole[]>() {
             public RegRole[] call() throws IOException {
-                return RegRole.readRoles( getRegTapUrl(), ivoid_ );
+                return RegRole.readRoles( getRegTapUrl(), ivoid_, coding_ );
             }
         } );
     }
@@ -322,7 +327,8 @@ public class TapServiceKit {
                 rdrFuture_ = new FutureTask<TapMetaReader>(
                                  new Callable<TapMetaReader>() {
                     public TapMetaReader call() {
-                        return metaPolicy_.createMetaReader( serviceUrl_ );
+                        return metaPolicy_
+                              .createMetaReader( serviceUrl_, coding_ );
                     }
                 } );
             }
@@ -516,7 +522,8 @@ public class TapServiceKit {
             .append( ivoid )
             .append( "'" );
         TapQuery tq = new TapQuery( new URL( regUrl ), adql.toString(), null );
-        StarTable result = tq.executeSync( StoragePolicy.PREFER_MEMORY );
+        StarTable result = tq.executeSync( StoragePolicy.PREFER_MEMORY,
+                                           ContentCoding.NONE );
         result = Tables.randomTable( result );
         Map<String,String> resultMap = new LinkedHashMap<String,String>();
         int ncol = result.getColumnCount();

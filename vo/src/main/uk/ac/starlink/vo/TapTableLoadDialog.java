@@ -48,6 +48,7 @@ import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.TableSequence;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.gui.TableLoader;
+import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.util.gui.ShrinkWrapper;
 
@@ -73,6 +74,7 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
     private TapMetaPolicy metaPolicy_;
     private String ofmtName_;
     private StarTableFactory tfact_;
+    private ContentCoding coding_;
     private int tqTabIndex_;
     private int jobsTabIndex_;
     private int resumeTabIndex_;
@@ -108,6 +110,7 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
                Capability.TAP, false, false );
         tqMap_ = new HashMap<String,TapQueryPanel>();
         metaPolicy_ = TapMetaPolicy.getDefaultInstance();
+        coding_ = ContentCoding.GZIP;
         setIconUrl( TapTableLoadDialog.class.getResource( "tap.gif" ) );
     }
 
@@ -366,6 +369,27 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
     }
 
     /**
+     * Sets the HTTP content coding policy to use for TAP queries and
+     * some metadata requests.  Subsequent communications will use this
+     * setting.
+     *
+     * @param  coding  configures HTTP compression
+     */
+    public void setContentCoding( ContentCoding coding ) {
+        coding_ = coding;
+    }
+
+    /**
+     * Returns the HTTP content coding policy used for TAP queries and
+     * some metadata requests.
+     *
+     * @return   current HTTP compression configuration
+     */
+    public ContentCoding getContentCoding() {
+        return coding_;
+    }
+
+    /**
      * Returns a panel-specific reload action.
      * When enabled, this performs some kind of update action
      * relevant to the currently visible tab.
@@ -461,7 +485,7 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
                     if ( runMode.isSync_ ) {
                         assert runMode == TapRunMode.SYNC;
                         StarTable table =
-                            tq.executeSync( tfact.getStoragePolicy() );
+                            tq.executeSync( tfact.getStoragePolicy(), coding_ );
                         table.getParameters().addAll( Arrays.asList( metas ) );
                         return Tables.singleTableSequence( table );
                     }
@@ -484,7 +508,7 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
         else {
             assert runMode == TapRunMode.LOOK;
             assert runMode.isSync_;
-            QuickLookWindow qlw = new QuickLookWindow( tq, tfact_ );
+            QuickLookWindow qlw = new QuickLookWindow( tq, tfact_, coding_ );
             qlw.setVisible( true );
             qlw.executeQuery();
             return null;
@@ -512,8 +536,8 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
         tapJob.start();
         StarTable table;
         try {
-            table = TapQuery
-                   .waitForResult( tapJob, tfact.getStoragePolicy(), 4000 );
+            table = TapQuery.waitForResult( tapJob, coding_,
+                                            tfact.getStoragePolicy(), 4000 );
         }
         catch ( InterruptedException e ) {
             throw (IOException)
@@ -619,7 +643,7 @@ public class TapTableLoadDialog extends DalTableLoadDialog {
             return null;
         }
         return new TapServiceKit( serviceUrl, getIvoid( serviceUrl ),
-                                  metaPolicy_, META_QUEUE_LIMIT );
+                                  metaPolicy_, coding_, META_QUEUE_LIMIT );
     }
 
     /**

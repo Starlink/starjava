@@ -17,6 +17,7 @@ import org.xml.sax.Attributes;
 import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
+import uk.ac.starlink.util.ContentCoding;
 
 /**
  * Parses an XML document which describes Tabular Data as prescribed by
@@ -299,11 +300,12 @@ public class TableSetSaxHandler extends DefaultHandler {
      * URL and extract the SchemaMeta objects it represents.
      *
      * @param  url  containing a TableSet document or similar
-     * @return   list of all schemas with contents
+     * @param  coding  configures HTTP content-coding
+     * @return   array of schema metadata objects giving table metadata
      */
-    public static SchemaMeta[] readTableSet( URL url )
+    public static SchemaMeta[] readTableSet( URL url, ContentCoding coding )
             throws IOException, SAXException {
-        TableSetSaxHandler handler = populateHandler( url );
+        TableSetSaxHandler handler = populateHandler( url, coding );
         List<SchemaMeta> schemaList = new ArrayList<SchemaMeta>();
         schemaList.addAll( Arrays.asList( handler.getSchemas() ) );
         TableMeta[] nakedTables = handler.getNakedTables();
@@ -327,11 +329,12 @@ public class TableSetSaxHandler extends DefaultHandler {
      * any <code>&lt;schema&gt;</code> element.
      *
      * @param  url  containing a TableSet document or similar
+     * @param  coding  configures HTTP content-coding
      * @return  flat list of all tables
      */
-    public static TableMeta[] readTables( URL url )
+    public static TableMeta[] readTables( URL url, ContentCoding coding )
             throws IOException, SAXException {
-        TableSetSaxHandler handler = populateHandler( url );
+        TableSetSaxHandler handler = populateHandler( url, coding );
         List<TableMeta> tlist = new ArrayList<TableMeta>();
         for ( SchemaMeta schema : handler.getSchemas() ) {
             tlist.addAll( Arrays.asList( schema.getTables() ) );
@@ -344,9 +347,11 @@ public class TableSetSaxHandler extends DefaultHandler {
      * Uses an instance of this class to parse the document at a given URL.
      *
      * @param  url  containing a TableSet document or similar
+     * @param  coding  configures HTTP content-coding
      * @return   handler containing located items
      */
-    public static TableSetSaxHandler populateHandler( URL url )
+    public static TableSetSaxHandler populateHandler( URL url,
+                                                      ContentCoding coding )
             throws IOException, SAXException {
         SAXParserFactory spfact = SAXParserFactory.newInstance();
         SAXParser parser;
@@ -363,6 +368,7 @@ public class TableSetSaxHandler extends DefaultHandler {
         }
         TableSetSaxHandler tsHandler = new TableSetSaxHandler();
         URLConnection conn = url.openConnection();
+        coding.prepareRequest( conn );
         if ( conn instanceof HttpURLConnection ) {
             HttpURLConnection hconn = (HttpURLConnection) conn;
             int code = hconn.getResponseCode();
@@ -371,7 +377,8 @@ public class TableSetSaxHandler extends DefaultHandler {
                                      + " " + hconn.getResponseMessage() + ")" );
             }
         }
-        InputStream in = new BufferedInputStream( conn.getInputStream() );
+        InputStream in =
+            new BufferedInputStream( coding.getInputStream( conn ) );
         try {
             parser.parse( in, tsHandler );
             return tsHandler;
@@ -388,7 +395,8 @@ public class TableSetSaxHandler extends DefaultHandler {
      */
     public static void main( String[] args ) throws IOException, SAXException {
         java.io.PrintStream out = System.out;
-        TableSetSaxHandler tsHandler = populateHandler( new URL( args[ 0 ] ) );
+        TableSetSaxHandler tsHandler =
+            populateHandler( new URL( args[ 0 ] ), ContentCoding.NONE );
         for ( SchemaMeta schema : tsHandler.getSchemas() ) {
             out.println( schema.getName() );
             for ( TableMeta table : schema.getTables() ) {
