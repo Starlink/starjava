@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -821,6 +822,13 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
                         finderPanel_.getSelectedService();
                     setServiceUrl( service == null ? null
                                                    : service.getServiceUrl() );
+                }
+            } );
+            finderPanel_.addActionListener( new ActionListener() {
+                public void actionPerformed( ActionEvent evt ) {
+                    if ( getServiceUrl() != null ) {
+                        tabber_.setSelectedIndex( tqTabIndex_ );
+                    }
                 }
             } );
 
