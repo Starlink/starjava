@@ -18,6 +18,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.util.ContentCoding;
 
 /**
  * Registry Query implementation that uses TAP to access a Relational Registry.
@@ -31,6 +32,7 @@ public class RegTapRegistryQuery implements RegistryQuery {
 
     private final URL tapUrl_;
     private final String adql_;
+    private final ContentCoding coding_;
 
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
@@ -107,6 +109,7 @@ public class RegTapRegistryQuery implements RegistryQuery {
     public RegTapRegistryQuery( String tapurl, String standardId,
                                 String adqlWhere ) {
         tapUrl_ = Ri1RegistryQuery.toUrl( tapurl );
+        coding_ = ContentCoding.GZIP;
 
         /* SELECT clause.  The columns are required both to support the
          * restrictions we need to make and to provide information to
@@ -200,7 +203,7 @@ public class RegTapRegistryQuery implements RegistryQuery {
         QuerySink sink = new QuerySink();
         boolean overflow;
         try {
-            overflow = query.executeSync( sink );
+            overflow = query.executeSync( sink, coding_ );
         }
         catch ( SAXException e ) {
             throw (IOException) new IOException( e.getMessage() )
@@ -329,7 +332,8 @@ public class RegTapRegistryQuery implements RegistryQuery {
         TapQuery query =
             new TapQuery( Ri1RegistryQuery.toUrl( regUrl ), adql, null );
         logger_.info( adql );
-        StarTable table = query.executeSync( StoragePolicy.PREFER_MEMORY );
+        StarTable table = query.executeSync( StoragePolicy.PREFER_MEMORY,
+                                             ContentCoding.NONE );
         List<String> urlList = new ArrayList<String>();
         RowSequence rseq = table.getRowSequence();
         while ( rseq.next() ) {

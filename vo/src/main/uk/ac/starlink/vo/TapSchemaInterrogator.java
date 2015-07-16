@@ -13,6 +13,7 @@ import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
+import uk.ac.starlink.util.ContentCoding;
 
 /**
  * Interrogates the TAP_SCHEMA tables from a TAP service to acquire
@@ -28,6 +29,7 @@ public class TapSchemaInterrogator {
     private final URL serviceUrl_;
     private final Map<String,String> extraParams_;
     private final int maxrec_;
+    private final ContentCoding coding_;
 
     /**
      * Acquires ForeignMeta.Link objects from TAP_SCHEMA.key_columns.
@@ -68,23 +70,17 @@ public class TapSchemaInterrogator {
         Logger.getLogger( "uk.ac.starlink.vo" );
 
     /**
-     * Constructs an interrogator with a default maxrec limit.
-     *
-     * @param  serviceUrl  TAP base service URL
-     */
-    public TapSchemaInterrogator( URL serviceUrl ) {
-        this( serviceUrl, 100000 );
-    }
-
-    /**
-     * Constructs an interrogator with a given maxrec limit.
+     * Constructs an interrogator with explicit configuration.
      *
      * @param  serviceUrl  TAP base service URL
      * @param  maxrec  maximum number of records to retrieve per query
+     * @param  coding  configures HTTP compression
      */
-    public TapSchemaInterrogator( URL serviceUrl, int maxrec ) {
+    public TapSchemaInterrogator( URL serviceUrl, int maxrec,
+                                  ContentCoding coding ) {
         serviceUrl_ = serviceUrl;
         maxrec_ = maxrec;
+        coding_ = coding;
         extraParams_ = new LinkedHashMap<String,String>();
         if ( maxrec > 0 ) {
             extraParams_.put( "MAXREC", Integer.toString( maxrec_ ) );
@@ -296,7 +292,7 @@ public class TapSchemaInterrogator {
      * @return  output table
      */
     protected StarTable executeQuery( TapQuery tq ) throws IOException {
-        return tq.executeSync( StoragePolicy.getDefaultPolicy() );
+        return tq.executeSync( StoragePolicy.getDefaultPolicy(), coding_ );
     }
 
     /**
@@ -720,8 +716,10 @@ public class TapSchemaInterrogator {
      */
     public static void main( String[] args ) throws IOException {
         String url = args[ 0 ];
+        int maxrec = 100000;
+        ContentCoding coding = ContentCoding.GZIP;
         SchemaMeta[] smetas =
-            new TapSchemaInterrogator( new URL( args[ 0 ] ), 100000 )
+            new TapSchemaInterrogator( new URL( url ), maxrec, coding )
            .readSchemas( true, true, true );
         for ( int is = 0; is < smetas.length; is++ ) {
             SchemaMeta smeta = smetas[ is ];

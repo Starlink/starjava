@@ -27,6 +27,7 @@ import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.TableSequence;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.gui.TableLoader;
+import uk.ac.starlink.util.ContentCoding;
 
 /**
  * Panel used as part of the TAP load dialogue to resume execution of or
@@ -235,7 +236,8 @@ class ResumeTapQueryPanel extends JPanel {
                 public TableSequence loadTables( StarTableFactory tfact )
                         throws IOException {
                     StarTable table =
-                        TapQuery.getResult( job, tfact.getStoragePolicy() );
+                        TapQuery.getResult( job, tld_.getContentCoding(),
+                                            tfact.getStoragePolicy() );
                     return Tables.singleTableSequence( table );
                 }
                 public String getLabel() {
@@ -266,8 +268,8 @@ class ResumeTapQueryPanel extends JPanel {
                     StarTable table;
                     try {
                        table = TapQuery
-                              .waitForResult( job, tfact.getStoragePolicy(),
-                                              4000 );
+                              .waitForResult( job, tld_.getContentCoding(),
+                                              tfact.getStoragePolicy(), 4000 );
                     }
                     catch ( InterruptedException e ) {
                         throw (IOException)

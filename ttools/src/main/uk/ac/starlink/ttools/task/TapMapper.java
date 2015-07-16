@@ -22,6 +22,7 @@ import uk.ac.starlink.task.ParameterValueException;
 import uk.ac.starlink.task.StringParameter;
 import uk.ac.starlink.task.TaskException;
 import uk.ac.starlink.task.URLParameter;
+import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.vo.AdqlValidator;
 import uk.ac.starlink.vo.TapQuery;
 import uk.ac.starlink.vo.UwsJob;
@@ -40,6 +41,7 @@ public class TapMapper implements TableMapper {
     private final BooleanParameter syncParam_;
     private final StringParameter langParam_;
     private final LongParameter maxrecParam_;
+    private final ContentCodingParameter codingParam_;
     private final TapResultReader resultReader_;
     private final Parameter[] params_;
 
@@ -118,8 +120,10 @@ public class TapMapper implements TableMapper {
         } );
         maxrecParam_.setMinimum( 0L );
         maxrecParam_.setNullPermitted( true );
-     
         paramList.add( maxrecParam_ );
+
+        codingParam_ = new ContentCodingParameter();
+        paramList.add( codingParam_ );
 
         langParam_ = new StringParameter( "language" );
         langParam_.setPrompt( "TAP query language" );
@@ -176,6 +180,7 @@ public class TapMapper implements TableMapper {
                 createUploadNameParameter( Integer.toString( iu + 1 ) )
                .stringValue( env );
         }
+        final ContentCoding coding = codingParam_.codingValue( env );
         final StarTableFactory tfact =
             LineTableEnvironment.getTableFactory( env );
         final long uploadLimit = -1;
@@ -186,13 +191,13 @@ public class TapMapper implements TableMapper {
                     TapQuery tq =
                         createTapQuery( serviceUrl, adql, extraParams, upNames,
                                         inSpecs, uploadLimit );
-                    return tq.executeSync( tfact.getStoragePolicy() );
+                    return tq.executeSync( tfact.getStoragePolicy(), coding );
                 }
             };
         }
         else {
             final TapResultProducer resultProducer =
-                resultReader_.createResultProducer( env );
+                resultReader_.createResultProducer( env, coding );
             final boolean progress =
                 resultReader_.getProgressParameter().booleanValue( env );
             final PrintStream errStream = env.getErrorStream();

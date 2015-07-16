@@ -28,6 +28,7 @@ import javax.swing.SwingUtilities;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.gui.StarJTable;
+import uk.ac.starlink.util.ContentCoding;
 
 /**
  * Window which displays a simple view of a TAP query and its result.
@@ -39,6 +40,7 @@ public class QuickLookWindow extends JFrame {
 
     private final TapQuery tq_;
     private final StarTableFactory tfact_;
+    private final ContentCoding coding_;
     private final JTabbedPane tabber_;
     private final JComponent resultPanel_;
     private final ExecutorService executor_;
@@ -49,11 +51,14 @@ public class QuickLookWindow extends JFrame {
      *
      * @param   tq  tap query to execute
      * @param   tfact   table factory
+     * @param   coding  configures HTTP compression
      */
-    public QuickLookWindow( TapQuery tq, StarTableFactory tfact ) {
+    public QuickLookWindow( TapQuery tq, StarTableFactory tfact,
+                            ContentCoding coding ) {
         setTitle( "TAP Quick Look" );
         tq_ = tq;
         tfact_ = tfact;
+        coding_ = coding;
 
         /* Set up task cancellation on window close. */
         setDefaultCloseOperation( DISPOSE_ON_CLOSE );
@@ -100,7 +105,7 @@ public class QuickLookWindow extends JFrame {
             public void run() {
                 try {
                     final StarTable table =
-                        tq_.executeSync( tfact_.getStoragePolicy() );
+                        tq_.executeSync( tfact_.getStoragePolicy(), coding_ );
                     schedule( new Runnable() {
                         public void run() {
                             displayTable( table );

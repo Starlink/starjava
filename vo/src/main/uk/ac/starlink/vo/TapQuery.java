@@ -12,7 +12,6 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -30,7 +29,7 @@ import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.storage.DiscardByteStore;
 import uk.ac.starlink.table.storage.LimitByteStore;
-import uk.ac.starlink.util.CountInputStream;
+import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.util.DOMUtils;
 import uk.ac.starlink.votable.DataFormat;
 import uk.ac.starlink.votable.TableElement;
@@ -203,10 +202,13 @@ public class TapQuery {
      * Executes this query synchronously and returns the resulting table.
      *
      * @param  storage  storage policy for caching table data
+     * @param  coding   configures HTTP compression
      * @return   result table
      */
-    public StarTable executeSync( StoragePolicy storage ) throws IOException {
-        return readResultVOTable( createSyncConnection(), storage );
+    public StarTable executeSync( StoragePolicy storage, ContentCoding coding )
+            throws IOException {
+        return readResultVOTable( createSyncConnection( coding ), coding,
+                                  storage );
     }
 
     /**
@@ -217,21 +219,26 @@ public class TapQuery {
      * Overflow status of a successful result is provided by the return value.
      *
      * @param  sink  table destination
+     * @param  coding   configures HTTP compression
      * @return   true iff the result was marked as overflowed
      */
-    public boolean executeSync( TableSink sink )
+    public boolean executeSync( TableSink sink, ContentCoding coding )
             throws IOException, SAXException {
-        return streamResultVOTable( createSyncConnection(), sink );
+        return streamResultVOTable( createSyncConnection( coding ), coding,
+                                    sink );
     }
 
     /**
      * Opens a URL connection for the result of synchronously executing
      * this query.
      *
+     * @param   coding  HTTP content-coding policy
+     *                  result should be interpreted with same coding
      * @return   HTTP connection containing query result
      */
-    public HttpURLConnection createSyncConnection() throws IOException {
-        return UwsJob.postForm( new URL( serviceUrl_ + "/sync" ),
+    public HttpURLConnection createSyncConnection( ContentCoding coding )
+            throws IOException {
+        return UwsJob.postForm( new URL( serviceUrl_ + "/sync" ), coding,
                                 stringMap_, streamMap_ );
     }
 
@@ -310,11 +317,13 @@ public class TapQuery {
      * In case of job failure, an exception will be thrown instead.
      *
      * @param  uwsJob  started UWS job representing an async TAP query
+     * @param  coding  configures HTTP compression
      * @param  storage  storage policy for caching table data
      * @param  pollMillis  polling interval in milliseconds
      * @return  result table
      */
-    public static StarTable waitForResult( UwsJob uwsJob, StoragePolicy storage,
+    public static StarTable waitForResult( UwsJob uwsJob, ContentCoding coding,
+                                           StoragePolicy storage,
                                            long pollMillis )
             throws IOException, InterruptedException {
         URL resultUrl;
@@ -324,7 +333,8 @@ public class TapQuery {
         catch ( UwsJob.UnexpectedResponseException e ) {
             throw asIOException( e, null );
         }
-        return readResultVOTable( resultUrl.openConnection(), storage );
+        return readResultVOTable( coding.openConnection( resultUrl ), coding,
+                                  storage );
     }
 
     /**
@@ -335,29 +345,16 @@ public class TapQuery {
      *
      * @param  uwsJob  successfully completed UWS job representing 
      *                 an async TAP query
+     * @param  coding  configures HTTP compression
      * @param  storage  storage policy for caching table data
      * @return   the result of reading the TAP result as a table
      */
-    public static StarTable getResult( UwsJob uwsJob, StoragePolicy storage )
+    public static StarTable getResult( UwsJob uwsJob, ContentCoding coding,
+                                       StoragePolicy storage )
             throws IOException {
         URL url = new URL( uwsJob.getJobUrl() + "/results/result" );
-        return readResultVOTable( url.openConnection(), storage );
-    }
-
-    /**
-     * Reads table metadata from a TAP service.
-     *
-     * <p>The returned metadata objects contain all the available tables
-     * and columns, they are not in need of subsequent reads.
-     *
-     * @param  serviceUrl  base TAP service URL
-     * @return   fully populated table metadata
-     */
-    public static SchemaMeta[] readTableMetadata( URL serviceUrl )
-            throws IOException, SAXException {
-        URL turl = new URL( serviceUrl + "/tables" );
-        logger_.info( "Reading table metadata from " + turl );
-        return TableSetSaxHandler.readTableSet( turl );
+        return readResultVOTable( coding.openConnection( url ), coding,
+                                  storage );
     }
 
     /**
@@ -387,7 +384,8 @@ public class TapQuery {
                                      Class<T> clazz )
             throws IOException {
         TapQuery tq = new TapQuery( serviceUrl, adql, null );
-        StarTable result = tq.executeSync( StoragePolicy.PREFER_MEMORY );
+        StarTable result = tq.executeSync( StoragePolicy.PREFER_MEMORY,
+                                           ContentCoding.NONE );
         int ncol = result.getColumnCount();
         if ( ncol != 1 ) {
             throw new IOException( "Unexpected column count: "
@@ -575,15 +573,17 @@ public class TapQuery {
      * expressing this), an exception will be thrown.
      *
      * @param   conn  connection to table resource
+     * @param  coding  HTTP content coding policy used to prepare connection
      * @param  storage  storage policy
      * @return   table result of successful query
      */
     public static StarTable readResultVOTable( URLConnection conn,
+                                               ContentCoding coding,
                                                StoragePolicy storage )
             throws IOException {
 
         /* Get input stream. */
-        InputStream in = getVOTableStream( conn );
+        InputStream in = getVOTableStream( conn, coding );
 
         /* Read the result as a VOTable DOM. */
         VOElement voEl;
@@ -651,13 +651,15 @@ public class TapQuery {
      * Overflow status of a successful result is provided by the return value.
      *
      * @param   conn  connection to table resource
+     * @param  coding  HTTP content coding policy used to prepare connection
      * @param   sink   destination for table result of succesful query
      * @return   true iff the result was marked as overflowed
      */
     public static boolean streamResultVOTable( URLConnection conn,
+                                               ContentCoding coding,
                                                TableSink sink )
             throws IOException, SAXException {
-        InputStream in = getVOTableStream( conn );
+        InputStream in = getVOTableStream( conn, coding );
         boolean overflow =
             DalResultStreamer.streamResultTable( new InputSource( in ), sink );
         return overflow;
@@ -668,9 +670,11 @@ public class TapQuery {
      * a VOTable.
      *
      * @param  conn  connection to result of TAP service call
+     * @param  coding  HTTP content coding policy used to prepare connection
      * @return  stream containing a response table (error or result)
      */
-    public static InputStream getVOTableStream( URLConnection conn )
+    public static InputStream getVOTableStream( URLConnection conn,
+                                                ContentCoding coding )
             throws IOException {
 
         /* Follow 303 redirects as required. */
@@ -679,37 +683,25 @@ public class TapQuery {
         /* Get an input stream representing the content of the resource.
          * HttpURLConnection may provide this from the getInputStream or
          * getErrorStream method, depending on the response code. */
-        InputStream in = null;
         try { 
-            in = conn.getInputStream();
+            return coding.getInputStream( conn );
         }
         catch ( IOException e ) {
-            if ( conn instanceof HttpURLConnection ) {
-                in = ((HttpURLConnection) conn).getErrorStream();
+            InputStream errStrm = coding.getErrorStream( conn );
+            if ( errStrm != null ) {
+                return errStrm;
             }
-            if ( in == null ) {
+            else {
                 throw e;
             }
         }
-
-        /* Log result size if required. */
-        final Level countLevel = Level.CONFIG;
-        if ( logger_.isLoggable( countLevel ) ) {
-            in = new CountInputStream( in ) {
-                @Override
-                public void close() throws IOException {
-                    logger_.log( countLevel, getReadCount() + " bytes read" );
-                    super.close();
-                }
-            };
-        }
-        return in;
     }
 
     /**
      * Takes a URLConnection and repeatedly follows 303 redirects
      * until a non-303 status is achieved.  Infinite loops are defended
-     * against.
+     * against.  The Accept-Encoding header, if present, is propagated
+     * to redirect targets.
      *
      * @param  conn   initial URL connection
      * @return   target URL connection
@@ -749,7 +741,16 @@ public class TapQuery {
             if ( ! ( conn1 instanceof HttpURLConnection ) ) {
                 return conn1;
             }
+
+            /* Propagate the Accept-Encoding header to the redirect target,
+             * otherwise it will get lost. */
+            String acceptEncoding =
+                hconn.getRequestProperty( ContentCoding.ACCEPT_ENCODING );
             hconn = (HttpURLConnection) conn1; 
+            if ( acceptEncoding != null ) {
+                hconn.setRequestProperty( ContentCoding.ACCEPT_ENCODING,
+                                          acceptEncoding );
+            }
         }
         return hconn;
     }

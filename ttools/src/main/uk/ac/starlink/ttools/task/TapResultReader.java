@@ -16,6 +16,7 @@ import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.IntegerParameter;
 import uk.ac.starlink.task.Parameter;
 import uk.ac.starlink.task.TaskException;
+import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.vo.TapQuery;
 import uk.ac.starlink.vo.UwsJob;
 import uk.ac.starlink.vo.UwsStage;
@@ -116,9 +117,11 @@ public class TapResultReader {
      * Returns an object which can acquire a table from a TAP query object.
      *
      * @param  env  execution environment
+     * @param  coding  configures HTTP compression
      * @return   TAP table producer
      */
-    public TapResultProducer createResultProducer( Environment env )
+    public TapResultProducer createResultProducer( Environment env,
+                                                   final ContentCoding coding )
             throws TaskException {
         final int pollMillis = pollParam_.intValue( env );
         final boolean progress = progressParam_.booleanValue( env );
@@ -162,7 +165,8 @@ public class TapResultReader {
                 }
                 try {
                     table = TapQuery
-                           .waitForResult( tapJob, tfact.getStoragePolicy(),
+                           .waitForResult( tapJob, coding,
+                                           tfact.getStoragePolicy(),
                                            pollMillis );
                 }
                 catch ( InterruptedException e ) {

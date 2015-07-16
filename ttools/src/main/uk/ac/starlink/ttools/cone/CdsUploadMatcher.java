@@ -21,6 +21,7 @@ import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.util.CgiQuery;
+import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.vo.HttpStreamParam;
 import uk.ac.starlink.vo.TapQuery;
 import uk.ac.starlink.vo.UwsJob;
@@ -42,6 +43,7 @@ public class CdsUploadMatcher implements UploadMatcher {
     private final String tableId_;
     private final double srArcsec_;
     private final ServiceFindMode serviceMode_;
+    private final ContentCoding coding_;
     private final boolean uploadFirst_;
 
     /** URL for the CDS Xmatch service. */
@@ -69,13 +71,16 @@ public class CdsUploadMatcher implements UploadMatcher {
      * @param  tableId      identifier of remote table
      * @param  srArcsec     match radius in arcseconds
      * @param  serviceMode  type of match
+     * @param  coding       configures HTTP compression for result
      */
     public CdsUploadMatcher( URL serviceUrl, String tableId, double srArcsec,
-                             ServiceFindMode serviceMode ) {
+                             ServiceFindMode serviceMode,
+                             ContentCoding coding ) {
         serviceUrl_ = serviceUrl;
         tableId_ = tableId;
         srArcsec_ = srArcsec;
         serviceMode_ = serviceMode;
+        coding_ = coding;
         uploadFirst_ = serviceMode_ != ServiceFindMode.BEST_REMOTE;
     }
 
@@ -140,9 +145,9 @@ public class CdsUploadMatcher implements UploadMatcher {
         /* Invoke the service using HTTP POST, and stream the output
          * to the supplied table sink. */
         URLConnection conn =
-            UwsJob.postForm( serviceUrl_, stringMap, streamMap );
+            UwsJob.postForm( serviceUrl_, coding_, stringMap, streamMap );
         try {
-            return TapQuery.streamResultVOTable( conn, rawResultSink );
+            return TapQuery.streamResultVOTable( conn, coding_, rawResultSink );
         }
         catch ( SAXException e ) {
             throw (IOException)

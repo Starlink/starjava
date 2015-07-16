@@ -9,6 +9,7 @@ import java.util.Map;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
+import uk.ac.starlink.util.ContentCoding;
 
 /**
  * Characterises a role item from the registry resource model.
@@ -55,9 +56,11 @@ public abstract class RegRole {
      *
      * @param   regTapUrl  service URL for RegTAP service
      * @param   ivoid    identifier for resource
+     * @param  coding  configures HTTP compression
      * @return  role records for resource
      */
-    public static RegRole[] readRoles( String regTapUrl, String ivoid )
+    public static RegRole[] readRoles( String regTapUrl, String ivoid,
+                                       ContentCoding coding )
             throws IOException {
         final String NAME = "role_name";
         final String EMAIL = "email";
@@ -79,7 +82,8 @@ public abstract class RegRole {
             .append( "'" );
         TapQuery tq =
             new TapQuery( new URL( regTapUrl ), sbuf.toString(), null );
-        StarTable result = tq.executeSync( StoragePolicy.PREFER_MEMORY );
+        StarTable result =
+            tq.executeSync( StoragePolicy.PREFER_MEMORY, coding );
         int nc = colNames.length;
         List<RegRole> list = new ArrayList<RegRole>();
         RowSequence rseq = result.getRowSequence();

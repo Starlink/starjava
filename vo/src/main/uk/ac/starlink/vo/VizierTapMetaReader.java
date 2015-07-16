@@ -5,6 +5,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.logging.Logger;
 import org.xml.sax.SAXException;
+import uk.ac.starlink.util.ContentCoding;
 
 /**
  * TapMetaReader implementation that works with VizieR's non-standard
@@ -20,6 +21,7 @@ public class VizierTapMetaReader implements TapMetaReader {
 
     private final URL url_;
     private final MetaNameFixer fixer_;
+    private final ContentCoding coding_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
 
@@ -30,8 +32,10 @@ public class VizierTapMetaReader implements TapMetaReader {
      * @param    fixer  object that fixes up syntactically incorrect
      *                  table/column names; if null no fixing is done;
      *                  has no effect for compliant VODataService documents
+     * @param    coding  configures HTTP content-coding
      */
-    public VizierTapMetaReader( String tablesetUrl, MetaNameFixer fixer ) {
+    public VizierTapMetaReader( String tablesetUrl, MetaNameFixer fixer,
+                                ContentCoding coding ) {
         try {
             url_ = new URL( tablesetUrl );
         }
@@ -39,6 +43,7 @@ public class VizierTapMetaReader implements TapMetaReader {
             throw new IllegalArgumentException( "Not a URL: " + tablesetUrl );
         }
         fixer_ = fixer == null ? MetaNameFixer.NONE : fixer;
+        coding_ = coding;
     }
 
     public SchemaMeta[] readSchemas() throws IOException {
@@ -108,7 +113,7 @@ public class VizierTapMetaReader implements TapMetaReader {
         logger_.info( "Reading table metadata from " + url );
         final SchemaMeta[] schemas;
         try {
-            schemas = TableSetSaxHandler.readTableSet( url );
+            schemas = TableSetSaxHandler.readTableSet( url, coding_ );
         }
         catch ( SAXException e ) {
             throw (IOException)

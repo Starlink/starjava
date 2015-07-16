@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import uk.ac.starlink.util.ContentCoding;
 
 /**
  * Defines the policy for acquiring TAP metadata from a remote service.
@@ -49,18 +50,20 @@ public abstract class TapMetaPolicy {
                                 + "Otherwise, use the /tables endpoint "
                                 + "when there are a moderate number of tables, "
                                 + "or TAP_SCHEMA queries if there are many" ) {
-            public TapMetaReader createMetaReader( URL serviceUrl ) {
-                return createAutoMetaReader( serviceUrl, 5000 );
+            public TapMetaReader createMetaReader( URL serviceUrl,
+                                                   ContentCoding coding ) {
+                return createAutoMetaReader( serviceUrl, coding, 5000 );
             }
         },
         TABLESET = new TapMetaPolicy( "TableSet",
                                       "Reads all metadata in one go from the "
                                     + "vs:TableSet document at the /tables "
                                     + "endpoint of the TAP service" ) {
-            public TapMetaReader createMetaReader( URL serviceUrl ) {
+            public TapMetaReader createMetaReader( URL serviceUrl,
+                                                   ContentCoding coding ) {
                 String tablesetUrl = serviceUrl + "/tables";
                 MetaNameFixer fixer = MetaNameFixer.createDefaultFixer();
-                return new TableSetTapMetaReader( tablesetUrl, fixer );
+                return new TableSetTapMetaReader( tablesetUrl, fixer, coding );
             }
         },
         TAPSCHEMA_C = createTapSchemaPolicy( "TAP_SCHEMA_C", false, true ),
@@ -71,18 +74,22 @@ public abstract class TapMetaPolicy {
         VIZIER = new TapMetaPolicy( "VizieR",
                                     "Uses TAPVizieR's non-standard two-stage "
                                   + "/tables endpoint" ) {
-            public TapMetaReader createMetaReader( URL serviceUrl ) {
+            public TapMetaReader createMetaReader( URL serviceUrl,
+                                                   ContentCoding coding ) {
                 String tablesetUrl = serviceUrl + "/tables";
                 MetaNameFixer fixer = MetaNameFixer.createDefaultFixer();
-                return new VizierTapMetaReader( tablesetUrl, fixer );
+                return new VizierTapMetaReader( tablesetUrl, fixer, coding );
             }
         },
         CADC = new TapMetaPolicy( "CADC",
                                   "Uses CADC's non-standard multi-stage "
                                 + "/tables endpoint" ) {
-            public TapMetaReader createMetaReader( URL serviceUrl ) {
+            public TapMetaReader createMetaReader( URL serviceUrl,
+                                                   ContentCoding coding ) {
                 String tablesetUrl = serviceUrl + "/tables";
-                return new CadcTapMetaReader( tablesetUrl );
+                CadcTapMetaReader.Config config =
+                    CadcTapMetaReader.Config.POPULATE_SCHEMAS;
+                return new CadcTapMetaReader( tablesetUrl, config, coding );
             }
         },
     };
@@ -121,9 +128,13 @@ public abstract class TapMetaPolicy {
      * at a given URL.
      *
      * @param    serviceUrl   base URL of the TAP service
+     * @param    coding  configures HTTP compression;
+     *                   implementations may honour this hint but are not
+     *                   required to
      * @return   new metadata reader
      */
-    public abstract TapMetaReader createMetaReader( URL serviceUrl );
+    public abstract TapMetaReader createMetaReader( URL serviceUrl,
+                                                    ContentCoding coding );
 
     /**
      * Returns a list of some general-purpose concrete implementations
@@ -173,12 +184,13 @@ public abstract class TapMetaPolicy {
         }
         String descrip = sbuf.toString();
         return new TapMetaPolicy( name, sbuf.toString() ) {
-            public TapMetaReader createMetaReader( URL serviceUrl ) {
+            public TapMetaReader createMetaReader( URL serviceUrl,
+                                                   ContentCoding coding ) {
                 int maxrec = 99999;
                 boolean popSchemas = true;
                 MetaNameFixer fixer = MetaNameFixer.createDefaultFixer();
                 return new TapSchemaTapMetaReader( serviceUrl.toString(),
-                                                   maxrec, popSchemas,
+                                                   maxrec, coding, popSchemas,
                                                    popTables, fixer,
                                                    preloadKeys );
             }
@@ -190,23 +202,28 @@ public abstract class TapMetaPolicy {
      * determined by the apparent size of the metadata set.
      *
      * @param  serviceUrl   TAP service URL
+     * @param    coding  configures HTTP compression
      * @param  maxrow     maximum number of records to tolerate from a single
      *                    TAP metadata query 
      */
     private static TapMetaReader createAutoMetaReader( URL serviceUrl,
+                                                       ContentCoding coding,
                                                        int maxrow ) {
         MetaNameFixer fixer = MetaNameFixer.createDefaultFixer();
 
         /* Special non-standard protocol for TAPVizieR. */
         if ( VizierTapMetaReader.isVizierTapService( serviceUrl ) ) {
             logger_.info( "Using VizieR-specific metadata acquisition" );
-            return new VizierTapMetaReader( serviceUrl + "/tables", fixer ); 
+            return new VizierTapMetaReader( serviceUrl + "/tables", fixer,
+                                            coding ); 
         }
 
         /* Proposed VOSI 1.1 protocol implemented at CADC. */
         if ( CadcTapMetaReader.isCadcTapService( serviceUrl ) ) {
             logger_.info( "Using CADC-specific metadata acquisition" );
-            return new CadcTapMetaReader( serviceUrl + "/tables" );
+            return new CadcTapMetaReader( serviceUrl + "/tables",
+                                          CadcTapMetaReader.Config
+                                         .POPULATE_SCHEMAS, coding );
         }
  
         /* Find out how many columns there are in total.
@@ -243,11 +260,11 @@ public abstract class TapMetaPolicy {
                 logger_.info( msg );
             }
             int maxrec = (int) Math.min( Integer.MAX_VALUE,
-                                         Math.max( ncol + 1, nlink + 1 ) );
+                                     Math.max( ncol + 1, nlink + 1 ) );
             boolean popSchema = true;
             boolean popTable = false;
-            return new TapSchemaTapMetaReader( serviceUrl.toString(),
-                                               maxrec, popSchema, popTable,
+            return new TapSchemaTapMetaReader( serviceUrl.toString(), maxrec,
+                                               coding, popSchema, popTable,
                                                fixer, preloadFkeys );
         }
         else {
@@ -258,7 +275,8 @@ public abstract class TapMetaPolicy {
         /* If there are fewer columns than the threshold, or the column
          * count failed, use the VOSI /tables endpoint instead. */
         logger_.info( "Use /tables endpoint for " + serviceUrl );
-        return new TableSetTapMetaReader( serviceUrl + "/tables", fixer );
+        return new TableSetTapMetaReader( serviceUrl + "/tables",
+                                          fixer, coding );
     }
 
     /**

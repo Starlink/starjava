@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.regex.Pattern;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.util.ByteList;
+import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.vo.SchemaMeta;
 import uk.ac.starlink.vo.TableMeta;
 import uk.ac.starlink.vo.TapQuery;
@@ -544,7 +545,8 @@ public class JobStage implements Stage {
             int code;
             String responseMsg;
             try {
-                HttpURLConnection conn = UwsJob.postUnipartForm( url, map );
+                HttpURLConnection conn =
+                    UwsJob.postUnipartForm( url, ContentCoding.NONE, map );
                 code = conn.getResponseCode();
                 responseMsg = conn.getResponseMessage();
             }

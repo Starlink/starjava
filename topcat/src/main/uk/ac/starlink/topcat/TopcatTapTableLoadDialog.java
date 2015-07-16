@@ -3,6 +3,7 @@ package uk.ac.starlink.topcat;
 import edu.stanford.ejalbert.BrowserLauncher;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.net.URL;
@@ -18,6 +19,7 @@ import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ButtonGroup;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenu;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.ListModel;
@@ -29,6 +31,7 @@ import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableSequence;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.vo.AdqlExample;
 import uk.ac.starlink.vo.AdqlSyntax;
 import uk.ac.starlink.vo.AdqlValidator;
@@ -148,6 +151,22 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
         }
         tapMenu.add( ofmtMenu );
 
+        /* Add menu item for HTTP-level compression. */
+        final JCheckBoxMenuItem codingButton =
+            new JCheckBoxMenuItem( "HTTP gzip" );
+        codingButton.addActionListener( new ActionListener() {
+            public void actionPerformed( ActionEvent evt ) {
+                setContentCoding( codingButton.isSelected()
+                                      ? ContentCoding.GZIP
+                                      : ContentCoding.NONE );
+            }
+        } );
+        codingButton.setToolTipText( "Determines whether HTTP-level compression"
+                                   + " is used for results of TAP and metadata"
+                                   + " queries" );
+        codingButton.setSelected( false );
+        tapMenu.add( codingButton );
+
         /* Prepare a handler for clickable URLs. */
         urlHandler_ = createUrlHandler();
 
@@ -213,7 +232,9 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
              * read (is stored locally) before deleting the job, since
              * otherwise subsequent attempts might be made to read it from
              * its URL, which would no longer be there. */
-            StarTable table = TapQuery.waitForResult( tapJob, storage, 4000 );
+            StarTable table =
+                TapQuery.waitForResult( tapJob, getContentCoding(),
+                                        storage, 4000 );
             if ( table != null ) {
                 table = storage.randomTable( table );
             }

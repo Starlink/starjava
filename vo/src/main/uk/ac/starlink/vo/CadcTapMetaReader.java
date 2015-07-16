@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 import org.xml.sax.SAXException;
+import uk.ac.starlink.util.ContentCoding;
 
 /**
  * TapMetaReader implementation that works with the proposed VOSI-1.1
@@ -26,6 +27,7 @@ public class CadcTapMetaReader implements TapMetaReader {
 
     private final URL url_;
     private final Config config_;
+    private final ContentCoding coding_;
     private final Map<String,String> schemaMap_;
 
     private static final Logger logger_ =
@@ -37,7 +39,7 @@ public class CadcTapMetaReader implements TapMetaReader {
      * @param    tablesetUrl  URL of TAPVizieR service followed by /tables
      */
     public CadcTapMetaReader( String tablesetUrl ) {
-        this( tablesetUrl, Config.POPULATE_SCHEMAS );
+        this( tablesetUrl, Config.POPULATE_SCHEMAS, ContentCoding.GZIP );
     }
 
     /**
@@ -46,8 +48,10 @@ public class CadcTapMetaReader implements TapMetaReader {
      *
      * @param    tablesetUrl  URL of TAPVizieR service followed by /tables
      * @param   config  population configuration
+     * @param    coding   configures HTTP content-coding
      */
-    public CadcTapMetaReader( String tablesetUrl, Config config ) {
+    public CadcTapMetaReader( String tablesetUrl, Config config,
+                              ContentCoding coding ) {
         try {
             url_ = new URL( tablesetUrl );
         }
@@ -55,6 +59,7 @@ public class CadcTapMetaReader implements TapMetaReader {
             throw new IllegalArgumentException( "Not a URL: " + tablesetUrl );
         }
         config_ = config;
+        coding_ = coding;
         schemaMap_ = new HashMap<String,String>();
     }
 
@@ -163,7 +168,7 @@ public class CadcTapMetaReader implements TapMetaReader {
         URL url = new URL( surl );
         logger_.info( "Reading table metadata from " + url );
         try {
-            return TableSetSaxHandler.populateHandler( url );
+            return TableSetSaxHandler.populateHandler( url, coding_ );
         }
         catch ( SAXException e ) {
             throw (IOException)
