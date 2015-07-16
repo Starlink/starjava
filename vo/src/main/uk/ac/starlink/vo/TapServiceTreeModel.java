@@ -1,5 +1,6 @@
 package uk.ac.starlink.vo;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -8,10 +9,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+import javax.swing.Box;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JTree;
+import javax.swing.UIManager;
 import javax.swing.event.TreeModelListener;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.TreeCellRenderer;
@@ -349,8 +353,13 @@ public class TapServiceTreeModel implements TreeModel {
      * @return  tree cell renderer
      */
     public static TreeCellRenderer createCellRenderer() {
-        return new DefaultTreeCellRenderer() {
-            @Override
+        final JComponent line = Box.createHorizontalBox();
+        final DefaultTreeCellRenderer rend1 = new DefaultTreeCellRenderer();
+        final DefaultTreeCellRenderer rend2 = new DefaultTreeCellRenderer();
+        final Color fg2 = UIManager.getColor( "Label.disabledForeground" );
+        line.add( rend1 );
+        line.add( rend2 );
+        return new TreeCellRenderer() {
             public Component getTreeCellRendererComponent( JTree tree,
                                                            Object value,
                                                            boolean isSelected,
@@ -362,14 +371,19 @@ public class TapServiceTreeModel implements TreeModel {
 
                 /* Prepare text for labelling the node. */
                 final String text;
+                final String text2;
                 final Icon icon;
                 if ( model instanceof TapServiceTreeModel ) {
                     Node node = ((TapServiceTreeModel) model).asNode( value );
                     text = node.toString();
+                    text2 = (value instanceof Service)
+                          ? " - " + ((Service) value).getId()
+                          : null;
                     icon = node.getIcon();
                 }
                 else {
                     text = value.toString();
+                    text2 = null;
                     icon = null;
                 }
 
@@ -388,19 +402,26 @@ public class TapServiceTreeModel implements TreeModel {
                     isSelected = false;
                 }
 
-                /* Configure the renderer (this object) and return. */
-                Component comp =
-                    super.getTreeCellRendererComponent( tree, value, isSelected,
+                /* Configure the renderer and return. */
+                Component comp1 =
+                    rend1.getTreeCellRendererComponent( tree, value, isSelected,
                                                         isExpanded, isLeaf,
                                                         irow, hasFocus );
-                if ( comp instanceof JLabel ) {
-                    JLabel label = (JLabel) comp;
-                    label.setText( text );
-                    if ( icon != null ) {
-                        label.setIcon( icon );
-                    }
+                Component comp2 =
+                    rend2.getTreeCellRendererComponent( tree, value, false,
+                                                        isExpanded, isLeaf,
+                                                        irow, false );
+                assert comp1 == rend1;
+                assert comp2 == rend2;
+                rend1.setText( text );
+                rend2.setText( text2 );
+                rend2.setForeground( fg2 );
+                rend2.setIcon( null );
+                if ( icon != null ) {
+                    rend1.setIcon( icon );
                 }
-                return comp;
+                line.revalidate();
+                return line;
             }
         };
     }
