@@ -2,6 +2,9 @@ package uk.ac.starlink.vo;
 
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -50,6 +53,7 @@ public class TapServiceFinderPanel extends JPanel {
     private final JTree sTree_;
     private final Action startAct_;
     private final Action cancelAct_;
+    private final List<ActionListener> listeners_;
     private final Map<TapServiceFinder.Target,JCheckBox> targetSelMap_;
     private final ExecutorService serviceReaderExecutor_;
     private TapServiceFinder serviceFinder_;
@@ -65,6 +69,7 @@ public class TapServiceFinderPanel extends JPanel {
      */
     public TapServiceFinderPanel() {
         super( new BorderLayout() );
+        listeners_ = new ArrayList<ActionListener>();
         serviceReaderExecutor_ = Executors.newCachedThreadPool();
 
         /* Actions to start and stop a search operation. */
@@ -130,6 +135,19 @@ public class TapServiceFinderPanel extends JPanel {
             }
         } );
 
+        /* Notify listeners if a selection is made (double-click). */
+        sTree_.addMouseListener( new MouseAdapter() {
+            public void mousePressed( MouseEvent evt ) {
+                if ( evt.getClickCount() == 2 &&
+                     sTree_.getRowForLocation( evt.getX(), evt.getY() ) >= 0 ) {
+                    ActionEvent actEvt = new ActionEvent( this, 0, "click2" );
+                    for ( ActionListener l : listeners_ ) {
+                        l.actionPerformed( actEvt );
+                    }
+                }
+            }
+        } );
+
         JComponent keywordLine = Box.createHorizontalBox();
         keywordLine.add( new JLabel( "Keywords: " ) );
         keywordLine.add( keywordField_ );
@@ -189,6 +207,25 @@ public class TapServiceFinderPanel extends JPanel {
             }
         }
         return null;
+    }
+
+    /**
+     * Adds a listener that is notified if a selection is made.
+     * This currently corresponds to a double-click on the tree.
+     *
+     * @param   l  listener to add
+     */
+    public void addActionListener( ActionListener l ) {
+        listeners_.add( l );
+    }
+
+    /**
+     * Removes a previously added action listener.
+     *
+     * @param  l  listener to remove
+     */
+    public void removeActionListener( ActionListener l ) {
+        listeners_.remove( l );
     }
 
     /**
