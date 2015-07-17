@@ -35,7 +35,7 @@ public class GlotsServiceFinder implements TapServiceFinder {
     private final URL tapUrl_;
     private final ContentCoding coding_;
     private final AdqlSyntax syntax_;
-    public static final String GAVO_DC_TAP_URL = "http://dc.g-vo.org/tap";
+    public static final String GAVO_DC_TAP_URL = "http://reg.g-vo.org/tap";
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
 
