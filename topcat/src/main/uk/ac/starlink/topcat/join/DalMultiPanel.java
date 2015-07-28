@@ -625,6 +625,11 @@ public class DalMultiPanel extends JPanel {
         if ( decData == null ) {
             throw new NullPointerException( "No Dec column given" );
         }
+        if ( srData == null && ! service_.allowNullSize() ) {
+            throw new NullPointerException( "No "
+                                          + service_.getSizeInfo().getName()
+                                          + " column given" );
+        }
         Number parNum = parallelModel_.getNumber();
         int parallelism = parNum == null ? 1 : parNum.intValue();
         MulticoneMode mcMode = (MulticoneMode) modeSelector_.getSelectedItem();

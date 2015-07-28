@@ -99,6 +99,10 @@ public class ConeMultiWindow extends DalMultiWindow {
             sizeSelector.setStringValue( "1.0" );
         }
 
+        public boolean allowNullSize() {
+            return false;
+        }
+
         public JComponent getControlPanel() {
             return controlBox_;
         }

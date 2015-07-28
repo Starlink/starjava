@@ -66,6 +66,14 @@ public interface DalMultiService {
     void setSizeDefault( ColumnSelector sizeSelector );
 
     /**
+     * Indicates whether a blank value is permissible for the search
+     * radius (or diameter, or whatever).
+     *
+     * @return  true iff null size values make sense for this service type
+     */
+    boolean allowNullSize();
+
+    /**
      * Returns a panel with custom controls specific to this service type.
      *
      * @return   custom component container, or null
