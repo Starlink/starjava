@@ -103,6 +103,10 @@ public class SsaMultiWindow extends DalMultiWindow {
             sizeSelector.setStringValue( "" );
         }
 
+        public boolean allowNullSize() {
+            return true;
+        }
+
         public JComponent getControlPanel() {
             return controlBox_;
         }

@@ -22246,6 +22246,8 @@ introduced since the last version:
             </li>
         <li>Modify the heuristics that determine whether the first row of
             a CSV file is a header.</li>
+        <li>Prevent submission of multi-cone/SIA queries for which the
+            Search Radius parameter is blank.</li>
         </ul>
         </p></dd>
     </dl>
