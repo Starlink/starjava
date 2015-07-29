@@ -370,6 +370,17 @@ abstract class ColumnReader {
                 };
                 return reader;
 
+            /* Bit vector (1-element). */
+            case 'X':
+                reader = new ColumnReader( Boolean.class, 1, false ) {
+                    Object readValue( BasicInput stream )
+                            throws IOException {
+                        int b = stream.readByte();
+                        return Boolean.valueOf( ( b & 0x01 ) != 0 );
+                    }
+                };
+                return reader;
+
             /* Unsigned byte - this is a bit fiddly, since a java byte is
              * signed and a FITS byte is unsigned.  We cope with this in
              * general by reading the byte as a short.  However, in the
