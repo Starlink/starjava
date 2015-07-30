@@ -376,7 +376,7 @@ abstract class ColumnReader {
                     Object readValue( BasicInput stream )
                             throws IOException {
                         int b = stream.readByte();
-                        return Boolean.valueOf( ( b & 0x01 ) != 0 );
+                        return Boolean.valueOf( ( b & 0x80 ) != 0 );
                     }
                 };
                 return reader;
@@ -727,8 +727,8 @@ abstract class ColumnReader {
                                 ibit = 8;
                                 b = stream.readByte();
                             }
-                            value[ i ] = ( b & 0x01 ) != 0;
-                            b = b >>> 1;
+                            value[ i ] = ( b & 0x80 ) != 0;
+                            b = b << 1;
                             ibit--;
                         }
                         return value;
