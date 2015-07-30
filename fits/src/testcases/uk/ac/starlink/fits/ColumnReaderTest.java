@@ -14,6 +14,7 @@ import nom.tam.util.BufferedDataOutputStream;
 import uk.ac.starlink.table.ArrayColumn;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnStarTable;
+import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.StoragePolicy;
@@ -70,6 +71,29 @@ public class ColumnReaderTest extends TestCase {
                                          StoragePolicy.PREFER_MEMORY );
         table = StoragePolicy.PREFER_MEMORY.randomTable( table );
         checkIntegersTable( table );
+    }
+
+    public void testTformX() throws IOException {
+        URL url = ColumnReaderTest.class.getResource( "testFlags.fits" );
+        StarTable table = new FitsTableBuilder()
+                         .makeStarTable( new URLDataSource( url ), true,
+                                         StoragePolicy.PREFER_MEMORY );
+        int nflag = 75;
+        RowSequence rseq = table.getRowSequence();
+        for ( int irow = 0; rseq.next(); irow++ ) {
+            boolean[] flags = (boolean[]) rseq.getCell( 0 );
+            assertEquals( flags.length, nflag );
+            for ( int ic = 0; ic < nflag; ic++ ) {
+                boolean flag = flags[ ic ];
+                if ( ic == irow ) {
+                    assertTrue( flag );
+                }
+                else {
+                    assertFalse( flag );
+                }
+            }
+        }
+        rseq.close();
     }
 
     /**
