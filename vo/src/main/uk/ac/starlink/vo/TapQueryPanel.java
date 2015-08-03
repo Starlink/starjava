@@ -468,10 +468,12 @@ public class TapQueryPanel extends JPanel {
                 public void showWaiting() {
                     tcapPanel_.setCapability( null );
                     tmetaPanel_.setCapability( null );
+                    validator_ = null;
                 }
                 public void showResult( TapCapability tcap ) {
                     tcapPanel_.setCapability( tcap );
                     tmetaPanel_.setCapability( tcap );
+                    validator_ = null;
                 }
                 public void showError( IOException error ) {
                     logger_.log( Level.WARNING,
@@ -844,7 +846,7 @@ public class TapQueryPanel extends JPanel {
             }
             AdqlValidator.ValidatorTable[] vtables =
                 vtList.toArray( new AdqlValidator.ValidatorTable[ 0 ] );
-            TapLanguage tapLang = null;
+            TapLanguage tapLang = tcapPanel_.getQueryLanguage();
             validator_ = AdqlValidator.createValidator( vtables, tapLang );
         }
         return validator_;
