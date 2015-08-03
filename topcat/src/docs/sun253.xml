@@ -22187,6 +22187,11 @@ introduced since the last version:
             that not delimited when they obviously should be.
             May cause some ADQL examples to work incorrectly in the presence
             of non-compliant service table metadata reports.</li>
+        <li>The ADQL syntax highlighting is now sensitive to User-Defined
+            Functions declared by the service (if any are declared),
+            so that misuse of UDFs or use of non-existent UDFs can signalled.
+            This is thanks to an upgrade to Gr&#x00e9;gory Mantelet's
+            ADQL parser library.</li>
         </ul>
         </p></dd>
 
