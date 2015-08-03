@@ -74,6 +74,7 @@ public class ColumnReaderTest extends TestCase {
     }
 
     public void testTformX() throws IOException {
+        // Tests a 75-bit vector column (TFORM1='75X')
         URL url = ColumnReaderTest.class.getResource( "testFlags.fits" );
         StarTable table = new FitsTableBuilder()
                          .makeStarTable( new URLDataSource( url ), true,
@@ -90,6 +91,32 @@ public class ColumnReaderTest extends TestCase {
                 }
                 else {
                     assertFalse( flag );
+                }
+            }
+        }
+        rseq.close();
+    }
+
+    public void testTformX1() throws IOException {
+        // Tests a number of 1-bit vector columns (TFORMn='X' or '1X').
+        // The 1-element case is handled differently in code,
+        // so it's useful to have a separate test.
+        // It doesn't prove much to have lots of columns like this,
+        // but that's the test file I have to hand.
+        URL url = ColumnReaderTest.class.getResource( "testFlags2.fits" );
+        StarTable table = new FitsTableBuilder()
+                         .makeStarTable( new URLDataSource( url ), true,
+                                         StoragePolicy.PREFER_MEMORY );
+        int nflag = 75;
+        RowSequence rseq = table.getRowSequence();
+        for ( int irow = 0; rseq.next(); irow++ ) {
+            for ( int ic = 0; ic < nflag; ic++ ) {
+                boolean flag = ((Boolean) rseq.getCell( ic )).booleanValue();
+                if ( ic == irow ) {
+                    assertTrue( flag );
+                }
+                else {
+                    assertFalse( flag  );
                 }
             }
         }
