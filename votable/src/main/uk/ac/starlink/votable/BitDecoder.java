@@ -29,12 +29,16 @@ class BitDecoder extends NumericDecoder {
     public Object decodeStream( DataInput strm ) throws IOException {
         int num = getNumItems( strm );
         boolean[] result = new boolean[ num ];
-        for ( int i = 0; i < num;  ) {
-            byte b = strm.readByte();
-            for ( int j = 0; j < 8 && i++ > 0; j++, i++ ) {
-                boolean set = ( ( b >>> ( 7 - j ) ) & ( (byte) 1 ) ) == 1;
-                result[ i ] = set;
+        int ibit = 0;
+        int b = 0;
+        for ( int i = 0; i < num; i++ ) {
+            if ( ibit == 0 ) {
+                ibit = 8;
+                b = strm.readByte();
             }
+            result[ i ] = ( b & 0x80 ) != 0;
+            b = b << 1;
+            ibit--;
         }
         return result;
     }
