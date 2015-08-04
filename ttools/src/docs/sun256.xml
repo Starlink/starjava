@@ -10274,6 +10274,12 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         In the case of converting to a binary serialization,
         since v3.0-3 this was causing it to generate unreadable VOTable
         output.</li>
+    <li>Fix a bug in <code>votcopy</code> that failed to handle
+        columns with datatype <code>bit</code>.  In the case of
+        converting to a binary serialization, these were in all previous
+        versions generating unreadable VOTable output.
+        Now they convert them to columns with datatype
+        <code>boolean</code> (not perfect, but better).</li>
     </ul>
     </p></dd>
 
