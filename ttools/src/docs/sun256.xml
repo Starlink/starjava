@@ -10268,6 +10268,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         resulted in an error making the file unreadable.
         Values read from such columns are now presented as
         Boolean scalars.</li>
+    <li>Fix a VOTable reading bug relating to similar data
+        (<code>datatype="bit"</code>) appearing in BINARY/BINARY2
+        serializations.  This one was more obvious, it would usually
+        generate an error when attempting to read the file.</li>
     <li>Fix a bug in <code>votcopy</code> that converted columns from
         datatype <code>unsignedByte</code> to <code>short</code> when
         transforming.  Since v3.0-3 this is no longer necessary.
