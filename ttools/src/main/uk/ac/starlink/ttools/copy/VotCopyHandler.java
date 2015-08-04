@@ -38,6 +38,10 @@ import uk.ac.starlink.votable.VOTableVersion;
  * unchanged apart from events within a DATA element, which are written
  * in one of the VOTable encodings as selected by the user.
  *
+ * <p>One exception to the rule is that, for implementation-specific 
+ * reasons, FIELD elements with <tt>datatype="bit"</tt> are
+ * changed to have <tt>datatype="boolean"</tt> instead.
+ *
  * @author   Mark Taylor (Starlink)
  * @since    18 Apr 2005
  */
@@ -195,6 +199,18 @@ public class VotCopyHandler
         }
         else if ( "FIELD".equals( localName ) ) {
             String datatype = atts.getValue( "datatype" );
+
+            /* We have to translate bit datatypes to boolean arrays here,
+             * since at present STIL does not write bit vectors.
+             * Could be fixed. */
+            if ( "bit".equals( datatype ) ) {
+                AttributesImpl newAtts = new AttributesImpl( atts );
+                int itype = newAtts.getIndex( "datatype" );
+                newAtts.setValue( itype, "boolean" );
+                atts = newAtts;
+                log( Level.WARNING, "FIELD datatype has been changed from " +
+                                    "bit to boolean" );
+            }
 
             /* Fix up arraysize values here. */
             if ( ( "char".equals( datatype ) ||
