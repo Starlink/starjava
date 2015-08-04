@@ -122,6 +122,29 @@ public class TestCaseTest extends TestCase {
         }
     }
 
+    public void testArrays() {
+        assertArrayEquals( new int[] { 1, 2, 3 }, new int[] { 1, 2, 3 } );
+        for ( int[] cmp :
+              new int[][] {
+                  new int[ 0 ],
+                  new int[] { 1, 2, 4 },
+                  new int[] { 1, 2 },
+                  new int[] { 1, 2, 3, 4 },
+              } ) {
+            assertArrayNotEquals( new int[] { 1, 2, 3 }, cmp );
+        }
+
+        assertArrayEquals( new Object[] { new int[] { 1, 2 },
+                                          new double[] { 3.5, 4.5 } },
+                           new Object[] { new int[] { 1, 2 },
+                                          new double[] { 3.5, 4.5 } } );
+
+        assertArrayNotEquals( new Object[] { new int[] { 1, 2 },
+                                             new double[] { 3.5, 4.5 } },
+                              new Object[] { new short[] { 1, 2 },
+                                             new double[] { 3.5, 4.5 } } );
+    }
+
     private void validateString( String text )
             throws IOException, SAXException {
         assertValidXML( new InputSource( 
