@@ -38,10 +38,6 @@ import uk.ac.starlink.votable.VOTableVersion;
  * unchanged apart from events within a DATA element, which are written
  * in one of the VOTable encodings as selected by the user.
  *
- * <p>One exception to the rule is that, for implementation-specific 
- * reasons, FIELD elements with <tt>datatype="unsignedByte"</tt> are
- * changed to have <tt>datatype="short"</tt> instead.
- *
  * @author   Mark Taylor (Starlink)
  * @since    18 Apr 2005
  */
@@ -65,7 +61,7 @@ public class VotCopyHandler
     private int iTable_;
 
     private final static Logger logger_ =
-        Logger.getLogger( "uk.ac.starlink.ttools" );
+        Logger.getLogger( "uk.ac.starlink.ttools.copy" );
 
     /**
      * Constructor.  The copy can be done in either cached or streamed
@@ -199,20 +195,6 @@ public class VotCopyHandler
         }
         else if ( "FIELD".equals( localName ) ) {
             String datatype = atts.getValue( "datatype" );
-
-            /* Unfortunately we have to translate unsignedByte datatypes
-             * to short ones here.  This is because the serializers in the
-             * VOTable package all use short as an internal representation
-             * for unsignedByte because of the difficulties of representing
-             * an unsigned value in Java. */
-            if ( "unsignedByte".equals( datatype ) ) {
-                AttributesImpl newAtts = new AttributesImpl( atts );
-                int itype = newAtts.getIndex( "datatype" );
-                newAtts.setValue( itype, "short" );
-                atts = newAtts;
-                log( Level.WARNING, "FIELD datatype has been changed from " +
-                                    "unsignedByte to short" );
-            }
 
             /* Fix up arraysize values here. */
             if ( ( "char".equals( datatype ) ||
