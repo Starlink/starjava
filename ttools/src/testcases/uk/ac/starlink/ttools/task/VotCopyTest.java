@@ -39,6 +39,8 @@ public class VotCopyTest extends TableTestCase {
     public VotCopyTest( String name ) throws Exception {
         super( name );
         Logger.getLogger( "uk.ac.starlink.table" ).setLevel( Level.WARNING );
+        Logger.getLogger( "uk.ac.starlink.ttools.copy" )
+              .setLevel( Level.SEVERE );
         multiDOM_ = checkAndRemoveData( new VOElementFactory()
                                        .makeVOElement( multiLoc_ ),
                                         "TABLEDATA" );
