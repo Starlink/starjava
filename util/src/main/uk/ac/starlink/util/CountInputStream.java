@@ -26,7 +26,7 @@ public class CountInputStream extends FilterInputStream {
 
     @Override
     public int read() throws IOException {
-        int value = super.read();
+        int value = in.read();
         if ( value >= 0 ) {
             nRead_++;
         }
@@ -35,7 +35,7 @@ public class CountInputStream extends FilterInputStream {
 
     @Override
     public int read( byte[] b ) throws IOException {
-        int c = super.read( b );
+        int c = in.read( b );
         if ( c >= 0 ) {
             nRead_ += c;
         }
@@ -44,7 +44,7 @@ public class CountInputStream extends FilterInputStream {
 
     @Override
     public int read( byte[] b, int off, int len ) throws IOException {
-        int c = super.read( b, off, len );
+        int c = in.read( b, off, len );
         if ( c >= 0 ) {
             nRead_ += c;
         }
@@ -53,7 +53,7 @@ public class CountInputStream extends FilterInputStream {
 
     @Override 
     public long skip( long n ) throws IOException {
-        long c = super.skip( n );
+        long c = in.skip( n );
         nSkip_ += c;
         return c;
     }
