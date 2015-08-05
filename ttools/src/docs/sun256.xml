@@ -10295,6 +10295,10 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <li>As a diagnostic tool, the <code>curl(1)</code> command roughly
         equivalent to TAP queries is now logged at the CONFIG level
         (visible with <code>-verbose -verbose</code> flags).</li>
+    <li>New <code>taplint</code> parameter <code>maxtable</code>
+        limits the number of tables tested in the stage that
+        queries data from each individual table (<code>MDQ</code>).
+        May be useful for very large services.</li>
     </ul>
     </p></dd>
 

@@ -42,6 +42,9 @@ public class TapLinter {
     private final ObsTapStage obstapStage_;
     private final TapSchemaMetadataHolder tapSchemaMetadata_;
 
+    /** Name of the MDQ stage. */
+    public static final String MDQ_NAME = "MDQ";
+
     /**
      * Constructor.
      */
@@ -91,7 +94,7 @@ public class TapLinter {
         colMetaStage_ =
             new ColumnMetadataStage( VotLintTapRunner
                                     .createGetSyncRunner( false ),
-                                     declaredMetaHolder, 0 );
+                                     declaredMetaHolder, -1 );
         uploadStage_ =
             new UploadStage( VotLintTapRunner.createAsyncRunner( 500, true ),
                              tcapStage_ );
@@ -115,7 +118,7 @@ public class TapLinter {
         stageSet_.add( "QPO", postQueryStage_, true );
         stageSet_.add( "QAS", asyncQueryStage_, true );
         stageSet_.add( "UWS", jobStage_, true );
-        stageSet_.add( "MDQ", colMetaStage_, true );
+        stageSet_.add( MDQ_NAME, colMetaStage_, true );
         stageSet_.add( "OBS", obstapStage_, true );
         stageSet_.add( "UPL", uploadStage_, true );
     }
@@ -148,11 +151,14 @@ public class TapLinter {
      * @param  serviceUrl  TAP service URL
      * @param  stageCodeSet  unordered collection of code strings indicating
      *         which stages should be run
+     * @param  maxTestTables  limit on the number of tables to test,
+     *                        or &lt;=0 for no limit
      * @return   tap validator executable
      */
     public Executable createExecutable( final Reporter reporter,
                                         final URL serviceUrl,
-                                        Set<String> stageCodeSet )
+                                        Set<String> stageCodeSet,
+                                        int maxTestTables )
             throws TaskException {
 
         /* Prepare a checked and ordered sequence of codes determining
@@ -179,6 +185,7 @@ public class TapLinter {
 
         /* Other initialisation. */
         tapSchemaMetadata_.setReporter( reporter );
+        colMetaStage_.setMaxTestTables( maxTestTables );
 
         /* Create and return an executable which will run the
          * requested stages. */

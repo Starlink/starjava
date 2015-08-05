@@ -29,7 +29,7 @@ public class ColumnMetadataStage implements Stage {
 
     private final TapRunner tapRunner_;
     private final MetadataHolder metaHolder_;
-    private final int maxTables_;
+    private int maxTables_;
     private static final AdqlSyntax syntax_ = AdqlSyntax.getInstance();
 
     /**
@@ -45,6 +45,16 @@ public class ColumnMetadataStage implements Stage {
                                 int maxTables ) {
         tapRunner_ = tapRunner;
         metaHolder_ = metaHolder;
+        maxTables_ = maxTables;
+    }
+
+    /**
+     * Resets the limit on the number of tables to test.
+     *
+     * @param  maxTables  limit on the number of tables to test,
+     *                    or &lt;=0 for no limit
+     */
+    public void setMaxTestTables( int maxTables ) {
         maxTables_ = maxTables;
     }
 
