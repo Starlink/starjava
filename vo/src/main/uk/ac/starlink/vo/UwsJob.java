@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -396,6 +397,11 @@ public class UwsJob {
                             Map<String,String> stringParams,
                             Map<String,HttpStreamParam> streamParams )
             throws IOException {
+        if ( logger_.isLoggable( Level.CONFIG ) ) {
+            logger_.config( "Doing something like: "
+                          + getCurlPostEquivalent( url, coding, stringParams,
+                                                   streamParams ) );
+        }
         return ( streamParams == null || streamParams.isEmpty() )
              ? postUnipartForm( url, coding, stringParams )
              : postMultipartForm( url, coding, stringParams, streamParams,
@@ -534,6 +540,75 @@ public class UwsJob {
         writeBoundary( hout, boundary, true );
         hout.close();
         return hconn;
+    }
+
+    /**
+     * Returns a snippet of text representing a shell invocation of the
+     * <code>curl(1)</code> command that posts a query corresponding
+     * to the given parameters.
+     *
+     * <p>This can be a useful diagnostic tool when attempting to
+     * reproduce service invocations.  Use with care however,
+     * the returned string is not guaranteed to do exactly what
+     * this java code does.
+     *
+     * @param   url   destination URL
+     * @param   coding  HTTP content coding; connection output should be
+     *                  decoded using the same value
+     * @param   stringParams  name-&gt;value map for POST parameters;
+     *          values will be URL encoded as required
+     * @param   streamParams  name-&gt;parameter map for POST parameters
+     * @return   line of pseudo-shell script giving curl invocation
+     * @see   <a href="http://curl.haxx.se/">curl</a>
+     * @see   #postForm
+     */
+    public static String
+            getCurlPostEquivalent( URL url, ContentCoding coding,
+                                   Map<String,String> stringParams,
+                                   Map<String,HttpStreamParam> streamParams ) {
+        StringBuffer sbuf = new StringBuffer()
+            .append( "curl" )
+            .append( " --url " )
+            .append( url )
+            .append( " --location " );
+        if ( coding == ContentCoding.GZIP ) {
+            sbuf.append( " --compress" );
+        }
+        for ( Map.Entry<String,String> entry : stringParams.entrySet() ) {
+            sbuf.append( " --form " )
+                .append( entry.getKey() )
+                .append( '=' )
+                .append( shellEscape( entry.getValue() ) );
+        }
+        for ( String key : streamParams.keySet() ) {
+            sbuf.append( " --form " )
+                .append( key )
+                .append( "=" )
+                .append( "@<..data..>" );
+        }
+        return sbuf.toString();
+    }
+
+    /**
+     * Escapes a given text string to make it usable as a word in a
+     * (generic) un*x shell-scripting language.
+     * Implementation may not be bullet-proof.
+     *
+     * @param  txt  raw text
+     * @return  escaped text
+     */
+    private static String shellEscape( String txt ) {
+        txt = txt.trim().replaceAll( "\\s+", " " );
+        if ( ! txt.matches( ".*[ $?'\"].*" ) ) {
+            return txt;
+        }
+        if ( txt.indexOf( "'" ) < 0 ) {
+            return "'" + txt + "'";
+        }
+        if ( txt.indexOf( '"' ) < 0 ) {
+            return '"' + txt + '"';
+        }
+        return "'" + txt.replaceAll( "'", "'\"'\"'" ) + "'";
     }
 
     /**
