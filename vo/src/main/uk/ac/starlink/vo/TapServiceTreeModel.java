@@ -171,24 +171,38 @@ public class TapServiceTreeModel implements TreeModel {
      * May require a read of service data, hence should not be executed
      * on the Event Dispatch Thread.
      *
-     * @param   services   list of all services that may be relevant
+     * @param   allServices   list of all services that may be relevant
      * @param   finder    object that can search for TAP services
      * @param   constraint  defines the services of interest;
      *                      if null, all are used
      * @return   tree model
      */
     public static TapServiceTreeModel 
-            readTreeModel( Service[] services, TapServiceFinder finder, 
+            readTreeModel( Service[] allServices, TapServiceFinder finder, 
                            TapServiceFinder.Constraint constraint ) 
             throws IOException {
         if ( constraint == null ) {
-            return createModel( services );
+            return createModel( allServices );
         }               
         else {          
             TapServiceFinder.Table[] tables =
                 finder.readSelectedTables( constraint );
-            return createModel( services, tables );
-        }               
+            Service[] extraServices = null;
+            for ( TapServiceFinder.Target target : constraint.getTargets() ) {
+                if ( target.isServiceMeta() ) {
+                    String[] keywords = constraint.getKeywords();
+                    boolean isAnd = constraint.isAndKeywords();
+                    List<Service> extras = new ArrayList<Service>();
+                    for ( Service serv : allServices ) {
+                        if ( target.matchesService( serv, keywords, isAnd ) ) {
+                            extras.add( serv );
+                        }
+                    }
+                    extraServices = extras.toArray( new Service[ 0 ] );
+                }
+            }
+            return createModel( allServices, tables, extraServices );
+        }
     }
 
     /**
@@ -209,12 +223,18 @@ public class TapServiceTreeModel implements TreeModel {
      * @return  new tree model
      */
     private static TapServiceTreeModel createModel( Service[] allServices,
-                                                    Table[] tables ) {
+                                                    Table[] tables,
+                                                    Service[] extraServices ) {
         Map<String,Service> serviceMap = new LinkedHashMap<String,Service>();
         for ( Service serv : allServices ) {
             serviceMap.put( serv.getId(), serv );
         }
         Map<String,List<Table>> tMap = new LinkedHashMap<String,List<Table>>();
+        if ( extraServices != null ) {
+            for ( Service service : extraServices ) {
+                tMap.put( service.getId(), new ArrayList<Table>() );
+            }
+        }
         for ( Table table : tables ) {
             String ivoid = table.getServiceId();
             if ( ! tMap.containsKey( ivoid ) ) {
@@ -474,7 +494,7 @@ public class TapServiceTreeModel implements TreeModel {
          * @return  true for leaf, false for branch
          */
         boolean isLeaf() {
-            return children_ == null;
+            return children_ == null || children_.length == 0;
         }
 
         /**

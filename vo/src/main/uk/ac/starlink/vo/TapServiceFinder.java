@@ -150,7 +150,10 @@ public interface TapServiceFinder {
         TABLE_NAME( "Table Name", false, "table_name" ),
 
         /** Table description. */
-        TABLE_DESCRIP( "Table Description", true, "table_desc" );
+        TABLE_DESCRIP( "Table Description", true, "table_desc" ),
+
+        /** Service name. */
+        SERVICE_META( "Service", false, null );
 
         private final String displayName_;
         private final boolean isWords_;
@@ -164,7 +167,8 @@ public interface TapServiceFinder {
          *                    interpreted as a bag of words,
          *                    false if it's more like a single string
          * @param  glotsTablesCol  column name in GAVO glots.tables table
-         *                         corresponding to this value
+         *                         corresponding to this value;
+         *                         null if not applicable
          */
         Target( String displayName, boolean isWords, String glotsTablesCol ) {
             displayName_ = displayName;
@@ -193,6 +197,18 @@ public interface TapServiceFinder {
         }
 
         /**
+         * Indicates whether this target is for matching against service
+         * metadata.  Currently, all targets are either SERVICE_META
+         * or one of the ones with a GLoTS column.  If that changes,
+         * the definition or implementation of this method will change.
+         *
+         * @return  true iff this instance is SERVICE_META
+         */
+        boolean isServiceMeta() {
+            return glotsTablesCol_ == null;
+        }
+
+        /**
          * Returns name of the column in the glots.tables table to which 
          * this target corresponds.
          *
@@ -200,6 +216,62 @@ public interface TapServiceFinder {
          */
         String getGlotsTablesCol() {
             return glotsTablesCol_;
+        }
+
+        /**
+         * Tests whether a given service matches given search terms
+         * under the rules of this constraint.  May only be executed
+         * if {@link #isServiceMeta} returns true.
+         * 
+         * @param   service   service to test
+         * @param   keywords  search terms
+         * @param   isAnd  true to combine search terms with AND, false for OR
+         * @return  true iff service matches search terms
+         * @throws   UnsupportedOperationException if isServiceMeta()==false
+         */
+        boolean matchesService( Service service, String[] keywords,
+                                boolean isAnd ) {
+            if ( isServiceMeta() ) {
+                String[] kws = keywords.clone();
+                for ( int i = 0; i < kws.length; i++ ) {
+                    kws[ i ] = kws[ i ].toLowerCase();
+                }
+                return matchText( service.getId(), kws, isAnd )
+                    || matchText( service.getName(), kws, isAnd )
+                    || matchText( service.getTitle(), kws, isAnd );
+            }
+            else {
+                throw new UnsupportedOperationException( "Wrong target type" );
+            }
+        }
+
+        /**
+         * Determines whether a test string matches a list of keywords.
+         *
+         * @param   txt   string to test
+         * @param   lcKeywords  search terms folded to lower case
+         * @param   isAnd  true to combine search terms with AND, false for OR
+         * @return   true iff txt matches search terms
+         */
+        private static boolean matchText( String txt, String[] lcKeywords,
+                                          boolean isAnd ) {
+            txt = txt.toLowerCase();
+            if ( isAnd ) {
+                for ( String kw : lcKeywords ) {
+                    if ( txt.indexOf( kw ) < 0 ) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+            else {
+                for ( String kw : lcKeywords ) {
+                    if ( txt.indexOf( kw ) >= 0 ) {
+                        return true;
+                    }
+                }
+                return false;
+            }
         }
     }
 }
