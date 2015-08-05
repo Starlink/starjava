@@ -22195,6 +22195,9 @@ introduced since the last version:
             ADQL parser library.</li>
         <li>Improve error reporting in the face of non-VOTable
             TAP error responses.</li>
+        <li>As a diagnostic tool, the <code>curl(1)</code> command roughly
+            equivalent to TAP queries is now logged at the CONFIG level
+            (visible with <code>-verbose -verbose</code> flags).</li>
         </ul>
         </p></dd>
 
