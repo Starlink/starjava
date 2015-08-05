@@ -161,7 +161,15 @@ public class GlotsServiceFinder implements TapServiceFinder {
             throws IOException {
         String[] words = constraint.getKeywords();
         boolean isAnd = constraint.isAndKeywords();
-        Target[] targets = constraint.getTargets();
+        List<Target> tTargets = new ArrayList<Target>();
+        for ( Target targ : constraint.getTargets() ) {
+            if ( targ.getGlotsTablesCol() != null ) {
+                tTargets.add( targ );
+            }
+            else {
+                assert targ.isServiceMeta();
+            }
+        }
         final String SERVICE_ID;
         final String NAME;
         final String DESCRIP;
@@ -181,11 +189,11 @@ public class GlotsServiceFinder implements TapServiceFinder {
                 sbuf.append( isAnd ? " AND" : " OR" );
             }
             sbuf.append( " (" );
-            for ( int it = 0; it < targets.length; it++ ) {
+            for ( int it = 0; it < tTargets.size(); it++ ) {
                 if ( it > 0 ) {
                     sbuf.append( " OR " );
                 }
-                sbuf.append( getAdqlTest( word, targets[ it ] ) );
+                sbuf.append( getAdqlTest( word, tTargets.get( it ) ) );
             }
             sbuf.append( ")" );
         }

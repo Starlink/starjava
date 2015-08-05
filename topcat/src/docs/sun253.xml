@@ -17058,13 +17058,16 @@ you want to use.
     of each service are the tables whose name and/or description matches
     the search terms you entered
     (click on the node handles to display/hide the children).
-    You can choose whether to match the table <label>Name</label>
-    or <label>Description</label>
-    using the <label>Match Fields</label> checkboxes,
-    while clicking the <label>And</label>/<label>Or</label> button to
-    toggle its value determines whether the name/description of
-    displayed tables are required to match all your search terms,
-    or just one of them.
+    You can choose whether to match the <label>Table Name</label> or
+    <label>Table Description</label> using the <label>Match Fields</label>
+    checkboxes;
+    basic <label>Service</label> metadata can also be matched
+    (just name, title, ID; for more complex searches by service metadata
+    use the By Service Properties tab, described below).
+    Clicking the <label>And</label>/<label>Or</label> button to
+    toggle its value determines whether the text from the
+    displayed tables/service text are required to match
+    all of your search terms, or just one of them.
     When you've decided which service you want to use, click it, and
     its access URL will be filled in the <label>TAP URL</label> selector
     at the bottom.  Clicking on a table will automatically select its
