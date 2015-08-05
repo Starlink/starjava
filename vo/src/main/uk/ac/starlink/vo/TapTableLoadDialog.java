@@ -55,6 +55,7 @@ import uk.ac.starlink.table.TableSequence;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.gui.AbstractTableLoadDialog;
 import uk.ac.starlink.table.gui.TableLoader;
+import uk.ac.starlink.votable.VOTableWriter;
 import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.util.gui.ExampleSelectField;
@@ -83,6 +84,7 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
     private ComboBoxModel runModeModel_;
     private TapMetaPolicy metaPolicy_;
     private String ofmtName_;
+    private VOTableWriter vowriter_;
     private StarTableFactory tfact_;
     private ContentCoding coding_;
     private SearchPanel searchPanel_;
@@ -365,6 +367,16 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
     }
 
     /**
+     * Sets the VOTableWriter used to serialise tables for upload
+     * to the TAP service when upload queries are performed.
+     *
+     * @param  vowriter  new votable serializer
+     */
+    public void setVOTableWriter( VOTableWriter vowriter ) {
+        vowriter_ = vowriter;
+    }
+
+    /**
      * Sets the HTTP content coding policy to use for TAP queries and
      * some metadata requests.  Subsequent communications will use this
      * setting.
@@ -498,7 +510,7 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
         TapQuery tq0;
         try {
             tq0 = new TapQuery( serviceUrl, adql, extraParams, uploadMap,
-                                byteUploadLimit, null );
+                                byteUploadLimit, vowriter_ );
         }
         catch ( IOException e ) {
             ErrorDialog.showError( getQueryComponent(), "Query Construction",
