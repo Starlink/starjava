@@ -2,6 +2,7 @@ package uk.ac.starlink.vo;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -166,6 +167,31 @@ public class TapServiceTreeModel implements TreeModel {
     }
 
     /**
+     * Constructs a tree model based on some given constraints.
+     * May require a read of service data, hence should not be executed
+     * on the Event Dispatch Thread.
+     *
+     * @param   services   list of all services that may be relevant
+     * @param   finder    object that can search for TAP services
+     * @param   constraint  defines the services of interest;
+     *                      if null, all are used
+     * @return   tree model
+     */
+    public static TapServiceTreeModel 
+            readTreeModel( Service[] services, TapServiceFinder finder, 
+                           TapServiceFinder.Constraint constraint ) 
+            throws IOException {
+        if ( constraint == null ) {
+            return createModel( services );
+        }               
+        else {          
+            TapServiceFinder.Table[] tables =
+                finder.readSelectedTables( constraint );
+            return createModel( services, tables );
+        }               
+    }
+
+    /**
      * Creates a tree model from a list of tables to be displayed,
      * along with a list of services containing at least the owners
      * of the supplied tables.
@@ -182,8 +208,8 @@ public class TapServiceTreeModel implements TreeModel {
      * @param   tables    list of TAP tables for display by this model
      * @return  new tree model
      */
-    public static TapServiceTreeModel createModel( Service[] allServices,
-                                                   Table[] tables ) {
+    private static TapServiceTreeModel createModel( Service[] allServices,
+                                                    Table[] tables ) {
         Map<String,Service> serviceMap = new LinkedHashMap<String,Service>();
         for ( Service serv : allServices ) {
             serviceMap.put( serv.getId(), serv );
@@ -219,7 +245,7 @@ public class TapServiceTreeModel implements TreeModel {
      * @param  services to form nodes of tree
      * @return  new tree model
      */
-    public static TapServiceTreeModel createModel( Service[] services ) {
+    private static TapServiceTreeModel createModel( Service[] services ) {
         Service[] displayServices = services.clone();
         Arrays.sort( displayServices, byTableCount( null ) );
         String label = "All TAP services (" + services.length + ")";

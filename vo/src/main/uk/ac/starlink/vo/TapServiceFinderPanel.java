@@ -386,17 +386,10 @@ public class TapServiceFinderPanel extends JPanel {
 
                         /* Create a tree to display.  This may require
                          * another search. */
-                        final TreeModel tModel;
-                        if ( constraint == null ) {
-                            tModel = TapServiceTreeModel
-                                    .createModel( services );
-                        }
-                        else {
-                            TapServiceFinder.Table[] tables =
-                                serviceFinder_.readSelectedTables( constraint );
-                            tModel = TapServiceTreeModel
-                                    .createModel( services, tables );
-                        }
+                        final TreeModel tModel =
+                            TapServiceTreeModel
+                           .readTreeModel( services, serviceFinder_,
+                                           constraint );
 
                         /* On success, pass the result to the GUI. */
                         submit( new Runnable() {
