@@ -10299,6 +10299,9 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         limits the number of tables tested in the stage that
         queries data from each individual table (<code>MDQ</code>).
         May be useful for very large services.</li>
+    <li>New <code>tapquery</code> parameter <code>upvotformat</code>
+        to determine what VOTable serialization variant is used to
+        transmit uploaded tables to the TAP server.</li>
     </ul>
     </p></dd>
 
