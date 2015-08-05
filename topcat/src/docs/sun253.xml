@@ -16980,7 +16980,7 @@ by clicking on the appropriate tab at the top.
         to display any metadata for medium-sized services, you might want
         to switch to TAP_SCHEMA_C/CF, or VizieR for talking to TAPVizier.
         </p></dd>
-    <dt>Transfer Format submenu</dt>
+    <dt>Response Format submenu</dt>
     <dd><p>Configures how the application requests that VOTable results
         are to be returned.  The options
         (<label>TABLEDATA</label>,
@@ -16989,6 +16989,19 @@ by clicking on the appropriate tab at the top.
         correspond to the different defined VOTable serialization formats.
         The selected format is only actually requested if the service
         has indicated support for it, otherwise the service default is used.
+        </p></dd>
+    <dt>Upload Format submenu</dt>
+    <dd><p>Configures how tables are transmitted to the service for upload
+        if an upload query
+        (one involving a <code>TAP_UPLOAD.*</code> table) is performed.
+        The options
+        (<label>TABLEDATA</label>,
+         <label>BINARY</label>,
+         <label>BINARY2</label>)
+        correspond to the different defined VOTable serialization formats.
+        The choice shouldn't affect any results, but it may affect
+        required bandwidth and some services may (though shouldn't)
+        have non-standard requirements for serialization format.
         </p></dd>
     <dt>HTTP gzip</dt>
     <dd><p>If checked, this option sends <code>Accept-Encoding: gzip</code>
@@ -22174,7 +22187,7 @@ introduced since the last version:
             and a button is provided to link to web pages describing the
             selected example in more detail.</li>
         <li>The <label>TAP</label> menu has new options for configuring
-            metadata acquisition, transfer format,
+            metadata acquisition, response format, upload format,
             and HTTP-level compression.
             The old Deletion menu has been withdrawn, ant its items
             added to the TAP menu.</li>

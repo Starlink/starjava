@@ -42,6 +42,9 @@ import uk.ac.starlink.vo.TapQueryPanel;
 import uk.ac.starlink.vo.TapTableLoadDialog;
 import uk.ac.starlink.vo.UrlHandler;
 import uk.ac.starlink.vo.UwsJob;
+import uk.ac.starlink.votable.DataFormat;
+import uk.ac.starlink.votable.VOTableVersion;
+import uk.ac.starlink.votable.VOTableWriter;
 
 /**
  * TapTableLoadDialog subclass customised for use with TOPCAT.
@@ -123,7 +126,7 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
         tapMenu.add( metaMenu );
 
         /* Add sub-menu for output format preference. */
-        JMenu ofmtMenu = new JMenu( "Transfer Format" );
+        JMenu ofmtMenu = new JMenu( "Response Format" );
         ButtonGroup ofmtButtGroup = new ButtonGroup();
         Map<String,String> ofmtMap = new LinkedHashMap<String,String>();
         ofmtMap.put( "Service Default", null );
@@ -150,6 +153,36 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
             }
         }
         tapMenu.add( ofmtMenu );
+
+        /* Add sub-menu for upload format preference. */
+        JMenu ufmtMenu = new JMenu( "Upload Format" );
+        ButtonGroup ufmtButtGroup = new ButtonGroup();
+        for ( DataFormat datfmt :
+              new DataFormat[] { DataFormat.TABLEDATA,
+                                 DataFormat.BINARY,
+                                 DataFormat.BINARY2 } ) {
+            String fname = datfmt.toString();
+            VOTableVersion version = datfmt == DataFormat.BINARY2
+                                   ? VOTableVersion.V13
+                                   : VOTableVersion.V12;
+            final VOTableWriter vowriter =
+                new VOTableWriter( datfmt, true, version );
+            Action act = new AbstractAction( fname ) {
+                public void actionPerformed( ActionEvent evt ) {
+                    setVOTableWriter( vowriter );
+                }
+            };
+            act.putValue( Action.SHORT_DESCRIPTION,
+                          "Upload tables using VOTable " + fname
+                        + " serialization" );
+            JRadioButtonMenuItem menuItem = new JRadioButtonMenuItem( act );
+            ufmtButtGroup.add( menuItem );
+            ufmtMenu.add( menuItem );
+            if ( datfmt == DataFormat.BINARY ) {
+                menuItem.doClick();
+            }
+        }
+        tapMenu.add( ufmtMenu );
 
         /* Add menu item for HTTP-level compression. */
         final JCheckBoxMenuItem codingButton =
