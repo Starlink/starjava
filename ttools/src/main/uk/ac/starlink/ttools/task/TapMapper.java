@@ -14,6 +14,7 @@ import java.util.Map;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.task.BooleanParameter;
+import uk.ac.starlink.task.ChoiceParameter;
 import uk.ac.starlink.task.Environment;
 import uk.ac.starlink.task.ExecutionException;
 import uk.ac.starlink.task.LongParameter;
@@ -26,6 +27,9 @@ import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.vo.AdqlValidator;
 import uk.ac.starlink.vo.TapQuery;
 import uk.ac.starlink.vo.UwsJob;
+import uk.ac.starlink.votable.DataFormat;
+import uk.ac.starlink.votable.VOTableVersion;
+import uk.ac.starlink.votable.VOTableWriter;
 
 /**
  * Mapper that does the work for {@link TapQuerier}.
@@ -42,6 +46,7 @@ public class TapMapper implements TableMapper {
     private final StringParameter langParam_;
     private final LongParameter maxrecParam_;
     private final ContentCodingParameter codingParam_;
+    private final Parameter<VOTableWriter> vowriterParam_;
     private final TapResultReader resultReader_;
     private final Parameter[] params_;
 
@@ -125,6 +130,33 @@ public class TapMapper implements TableMapper {
         codingParam_ = new ContentCodingParameter();
         paramList.add( codingParam_ );
 
+        VOTableWriter[] vowriters = new VOTableWriter[] {
+            new VOTableWriter( DataFormat.TABLEDATA, true, VOTableVersion.V12 ),
+            new VOTableWriter( DataFormat.BINARY, true, VOTableVersion.V12 ),
+            new VOTableWriter( DataFormat.BINARY2, true, VOTableVersion.V13 ),
+        };
+        vowriterParam_ = new ChoiceParameter<VOTableWriter>( "upvotformat",
+                                                             vowriters ) {
+            @Override
+            public String stringifyOption( VOTableWriter vowriter ) {
+                return vowriter.getDataFormat().toString();
+            }
+        };
+        vowriterParam_.setPrompt( "VOTable serialization "
+                                + "used for table upload" );
+        vowriterParam_.setDescription( new String[] {
+            "<p>Determines how any uploaded tables will be serialized",
+            "for transmission to the TAP server.",
+            "The supplied string is the name of one of the defined",
+            "VOTable serialization formats.",
+            "The choice shouldn't affect any results, though it may affect",
+            "required bandwidth, and some services may (though should not)",
+            "have non-standard requirements for serialization format.",
+            "</p>",
+        } );
+        vowriterParam_.setStringDefault( DataFormat.BINARY.toString() );
+        paramList.add( vowriterParam_ );
+
         langParam_ = new StringParameter( "language" );
         langParam_.setPrompt( "TAP query language" );
         langParam_.setDescription( new String[] {
@@ -183,6 +215,7 @@ public class TapMapper implements TableMapper {
         final ContentCoding coding = codingParam_.codingValue( env );
         final StarTableFactory tfact =
             LineTableEnvironment.getTableFactory( env );
+        final VOTableWriter vowriter = vowriterParam_.objectValue( env );
         final long uploadLimit = -1;
         if ( sync ) {
             return new TableMapping() {
@@ -190,7 +223,7 @@ public class TapMapper implements TableMapper {
                         throws TaskException, IOException {
                     TapQuery tq =
                         createTapQuery( serviceUrl, adql, extraParams, upNames,
-                                        inSpecs, uploadLimit );
+                                        inSpecs, uploadLimit, vowriter );
                     return tq.executeSync( tfact.getStoragePolicy(), coding );
                 }
             };
@@ -206,7 +239,7 @@ public class TapMapper implements TableMapper {
                         throws TaskException, IOException {
                     TapQuery tq =
                         createTapQuery( serviceUrl, adql, extraParams, upNames,
-                                        inSpecs, uploadLimit );
+                                        inSpecs, uploadLimit, vowriter );
                     UwsJob tapJob = tq.submitAsync();
                     if ( progress ) {
                         errStream.println( "SUBMITTED ..." );
@@ -232,6 +265,7 @@ public class TapMapper implements TableMapper {
      * @param  inSpecs   upload input table specifier array
      *                   (must be same size as <code>upNames</code>)
      * @param  uploadLimit  maximum number of bytes that may be uploaded;
+     * @param  vowriter   serializer for uploaded tables
      *                      if negative, no limit is applied
      * @return   new TAP query object
      */
@@ -239,7 +273,8 @@ public class TapMapper implements TableMapper {
                                             Map<String,String> extraParams,
                                             String[] upNames,
                                             InputTableSpec[] inSpecs,
-                                            long uploadLimit ) 
+                                            long uploadLimit,
+                                            VOTableWriter vowriter ) 
             throws IOException, TaskException {
         int nup = upNames.length; 
         Map<String,StarTable> uploadMap = new LinkedHashMap<String,StarTable>();
@@ -247,7 +282,7 @@ public class TapMapper implements TableMapper {
             uploadMap.put( upNames[ iu ], inSpecs[ iu ].getWrappedTable() );
         }
         return new TapQuery( serviceUrl, adql, extraParams, uploadMap, 
-                             uploadLimit, null );
+                             uploadLimit, vowriter );
     }
 
     /**
