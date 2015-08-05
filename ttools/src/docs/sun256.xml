@@ -10290,6 +10290,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         <code>add</code>, <code>subtract</code>,
         <code>multiply</code>, <code>divide</code>,
         <code>reciprocal</code>, <code>condition</code>.</li>
+    <li>Improve error reporting in the face of non-VOTable 
+        TAP error responses.</li>
     </ul>
     </p></dd>
 

@@ -22193,6 +22193,8 @@ introduced since the last version:
             so that misuse of UDFs or use of non-existent UDFs can signalled.
             This is thanks to an upgrade to Gr&#x00e9;gory Mantelet's
             ADQL parser library.</li>
+        <li>Improve error reporting in the face of non-VOTable
+            TAP error responses.</li>
         </ul>
         </p></dd>
 

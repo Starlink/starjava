@@ -31,6 +31,7 @@ import uk.ac.starlink.table.storage.DiscardByteStore;
 import uk.ac.starlink.table.storage.LimitByteStore;
 import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.util.DOMUtils;
+import uk.ac.starlink.util.HeadBufferInputStream;
 import uk.ac.starlink.votable.DataFormat;
 import uk.ac.starlink.votable.TableElement;
 import uk.ac.starlink.votable.VOElement;
@@ -583,7 +584,10 @@ public class TapQuery {
             throws IOException {
 
         /* Get input stream. */
-        InputStream in = getVOTableStream( conn, coding );
+        int headSize = 2048;
+        HeadBufferInputStream in =
+            new HeadBufferInputStream( getVOTableStream( conn, coding ),
+                                       headSize );
 
         /* Read the result as a VOTable DOM. */
         VOElement voEl;
@@ -592,9 +596,22 @@ public class TapQuery {
                   .makeVOElement( in, conn.getURL().toString() );
         }
         catch ( SAXException e ) {
+            StringBuffer sbuf = new StringBuffer()
+                .append( "TAP response is not a VOTable" );
+            byte[] buf = in.getHeadBuffer();
+            int nb = in.getReadCount();
+            if ( nb > 0 ) {
+                sbuf.append( " - " )
+                    .append( new String( buf, 0, nb, "UTF-8" ) );
+                if ( nb == buf.length ) {
+                    sbuf.append( " ..." );
+                }
+            }
             throw (IOException)
-                  new IOException( "TAP response is not a VOTable" )
-                 .initCause( e );
+                  new IOException( sbuf.toString() ).initCause( e );
+        }
+        finally {
+            in.close();
         }
 
         /* Navigate the DOM to find the status and table of interest. */
@@ -687,14 +704,67 @@ public class TapQuery {
             return coding.getInputStream( conn );
         }
         catch ( IOException e ) {
+
+            /* In case of an error (non-200 response code), the connection's
+             * error stream really should contain a VOTable.
+             * But sometimes it doesn't, either because of incorrect
+             * implementation or because the error is generated at the
+             * HTTP rather than TAP level.  If the content-type looks like
+             * it is a VOTable, return it in a stream.
+             * Otherwise, grab all the useful information from
+             * the connection and bundle it up as the message content
+             * of an IOException. */
             InputStream errStrm = coding.getErrorStream( conn );
-            if ( errStrm != null ) {
+            if ( isVOTableType( conn.getContentType() ) && errStrm != null ) {
                 return errStrm;
             }
             else {
-                throw e;
+                StringBuffer sbuf = new StringBuffer()
+                    .append( "Non-VOTable service error response" );
+                if ( conn instanceof HttpURLConnection ) {
+                    HttpURLConnection hconn = (HttpURLConnection) conn;
+                    sbuf.append( " " )
+                        .append( hconn.getResponseCode() )
+                        .append( ": " )
+                        .append( hconn.getResponseMessage() );
+                }
+                if ( errStrm != null ) {
+                    byte[] buf = new byte[ 2048 ];
+                    int count = errStrm.read( buf );
+                    if ( count > 0 ) {
+                        sbuf.append( " - " )
+                            .append( new String( buf, 0, count, "UTF-8" ) );
+                        if ( errStrm.read() >= 0 ) {
+                            sbuf.append( " ..." );
+                        }
+                    }
+                }
+                try {
+                    errStrm.close();
+                }
+                catch ( IOException e2 ) {
+                    // never mind
+                }
+                throw (IOException) new IOException( sbuf.toString() )
+                                   .initCause( e );
             }
         }
+    }
+
+    /**
+     * Tries to determines whether a MIME type (probably) indicates VOTable
+     * content or not.
+     *
+     * @param  contentType  content-type string
+     * @return  false if the contentType really doesn't look like VOTable
+     */
+    private static boolean isVOTableType( String contentType ) {
+        if ( contentType == null ) {
+            return true;
+        }
+        String ctype = contentType.trim().toLowerCase();
+        return ctype.indexOf( "xml" ) >= 0
+            || ctype.indexOf( "votable" ) >= 0;
     }
 
     /**
