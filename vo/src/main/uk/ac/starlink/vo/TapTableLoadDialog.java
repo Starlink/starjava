@@ -367,6 +367,20 @@ public class TapTableLoadDialog extends AbstractTableLoadDialog
     }
 
     /**
+     * Sets the object that can locate TAP services by table metadata.
+     * Invoking this with a new finder instance initiates an asynchronous
+     * search for TAP services.
+     *
+     * @param  finder  new finder
+     */
+    public void setServiceFinder( TapServiceFinder finder ) {
+        TapServiceFinderPanel finderPanel = searchPanel_.finderPanel_;
+        if ( ! finder.equals( finderPanel.getServiceFinder() ) ) {
+            finderPanel.setServiceFinder( finder );
+        }
+    }
+
+    /**
      * Sets the VOTableWriter used to serialise tables for upload
      * to the TAP service when upload queries are performed.
      *

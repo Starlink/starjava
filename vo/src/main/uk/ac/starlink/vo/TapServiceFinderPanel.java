@@ -33,6 +33,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.JTree;
 import javax.swing.SwingUtilities;
+import javax.swing.event.AncestorEvent;
+import javax.swing.event.AncestorListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.TreeModel;
@@ -171,10 +173,25 @@ public class TapServiceFinderPanel extends JPanel {
         add( entryBox, BorderLayout.NORTH );
         add( treePanel, BorderLayout.CENTER );
 
+        /* Ensure that when the window is first posted if not before
+         * (e.g. by another component calling setServiceFinder),
+         * a search for services is initiated. */
+        addAncestorListener( new AncestorListener() {
+            public void ancestorAdded( AncestorEvent evt ) {
+                if ( serviceFinder_ == null ) {
+                    setServiceFinder( new GlotsServiceFinder() );
+                }
+                TapServiceFinderPanel.this.removeAncestorListener( this );
+            }
+            public void ancestorMoved( AncestorEvent evt ) {
+            }
+            public void ancestorRemoved( AncestorEvent evt ) {
+            }
+        } );
+
         /* Initialise state. */
         setTreeModel( null );
         setWorker( null );
-        setServiceFinder( new GlotsServiceFinder() );
     }
 
     /**

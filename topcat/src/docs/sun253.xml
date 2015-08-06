@@ -16906,7 +16906,7 @@ by clicking on the appropriate tab at the top.
         or service metadata; the exact behaviour depends on which tab
         is currently visible.
         </p></dd>
-    <dt>Delete Jobs submenu</dt>
+    <dt>Job Deletion submenu</dt>
     <dd><p>Allows you to choose when asynchronously submitted jobs will
         by default be
         deleted from the server.  Once they are deleted they will no longer
@@ -17002,6 +17002,15 @@ by clicking on the appropriate tab at the top.
         The choice shouldn't affect any results, but it may affect
         required bandwidth and some services may (though shouldn't)
         have non-standard requirements for serialization format.
+        </p></dd>
+    <dt>Service Discovery</dt>
+    <dd><p>Configures how TOPCAT searches for available TAP services.
+        There are currently two options,
+        <label>GLoTS</label>, which uses the Global TAP Schema
+        service list maintained by GAVO, and
+        <label>Reg Prototype</label> which uses a proposed convention
+        based on the IVOA Registry.  You are advised to use the default
+        value (currently GLoTS) unless you understand what you're doing here.
         </p></dd>
     <dt>HTTP gzip</dt>
     <dd><p>If checked, this option sends <code>Accept-Encoding: gzip</code>
@@ -22199,10 +22208,13 @@ introduced since the last version:
             and a button is provided to link to web pages describing the
             selected example in more detail.</li>
         <li>The <label>TAP</label> menu has new options for configuring
-            metadata acquisition, response format, upload format,
-            and HTTP-level compression.
-            The old Deletion menu has been withdrawn, ant its items
-            added to the TAP menu.</li>
+            <label>Metadata Acquisition</label>,
+            <label>Response Format</label>,
+            <label>Upload Format</label>,
+            <label>Service Discovery</label>, and
+            <label>HTTP-level compression</label>.
+            The old Deletion menu has been moved under this TAP menu
+            as <label>Job Deletion</label>.</li>
         <li>Where supported by the service, the BINARY2 VOTable serialization
             is used by default to retrieve TAP results,
             which should reduce bandwidth and (marginally) improve handling
