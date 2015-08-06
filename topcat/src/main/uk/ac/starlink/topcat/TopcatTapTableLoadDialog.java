@@ -35,10 +35,13 @@ import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.vo.AdqlExample;
 import uk.ac.starlink.vo.AdqlSyntax;
 import uk.ac.starlink.vo.AdqlValidator;
+import uk.ac.starlink.vo.AuxServiceFinder;
+import uk.ac.starlink.vo.GlotsServiceFinder;
 import uk.ac.starlink.vo.TapCapability;
 import uk.ac.starlink.vo.TapMetaPolicy;
 import uk.ac.starlink.vo.TapQuery;
 import uk.ac.starlink.vo.TapQueryPanel;
+import uk.ac.starlink.vo.TapServiceFinder;
 import uk.ac.starlink.vo.TapTableLoadDialog;
 import uk.ac.starlink.vo.UrlHandler;
 import uk.ac.starlink.vo.UwsJob;
@@ -85,7 +88,7 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
         tapMenu.add( getReloadAction() );
 
         /* Add sub-menu for job deletion. */
-        JMenu delMenu = new JMenu( "Delete Jobs" );
+        JMenu delMenu = new JMenu( "Job Deletion" );
         ButtonGroup delButtGroup = new ButtonGroup();
         for ( DeletionPolicy p : DeletionPolicy.values() ) {
             final DeletionPolicy delPolicy = p;
@@ -183,6 +186,33 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
             }
         }
         tapMenu.add( ufmtMenu );
+
+        /* Add sub-menu for by-type service finder implementation. */
+        JMenu finderMenu = new JMenu( "Service Discovery" );
+        Map<String,TapServiceFinder> finderMap =
+            new LinkedHashMap<String,TapServiceFinder>();
+        finderMap.put( "GLoTS", new GlotsServiceFinder() );
+        finderMap.put( "Reg Prototype", new AuxServiceFinder() );
+        ButtonGroup finderButtGroup = new ButtonGroup();
+        for ( Map.Entry<String,TapServiceFinder> entry :
+              finderMap.entrySet() ) {
+            String optName = entry.getKey();
+            final TapServiceFinder finder = entry.getValue();
+            Action act = new AbstractAction( optName ) {
+                public void actionPerformed( ActionEvent evt ) {
+                    setServiceFinder( finder );
+                }
+            };
+            act.putValue( Action.SHORT_DESCRIPTION,
+                          "Locate services using " + optName );
+            JRadioButtonMenuItem menuItem = new JRadioButtonMenuItem( act );
+            finderButtGroup.add( menuItem );
+            finderMenu.add( menuItem );
+            if ( optName.equals( finderMap.keySet().iterator().next() ) ) {
+                menuItem.doClick();
+            }
+        }
+        tapMenu.add( finderMenu );
 
         /* Add menu item for HTTP-level compression. */
         final JCheckBoxMenuItem codingButton =
