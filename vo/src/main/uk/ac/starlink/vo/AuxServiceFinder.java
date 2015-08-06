@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -14,50 +13,43 @@ import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.util.ContentCoding;
 
 /**
- * TapServiceFinder implementation that uses the GLOTS schema
- * maintained (at time of writing) at the GAVO Data Center.
- * GLOTS is a non-standard registry containing metadata gathered
- * by hook or by crook from all known registered TAP services.
- *
- * <p>It is not very respectable to use this resource;
- * the correct way to find out this kind of thing is using the
- * standard interfaces of the IVOA Registry.
- * However, at time of writing (June 2015) the Registry does not
- * contain sufficiently detailed metadata (in particular, lists of
- * table names and descriptions for each service) to do the job,
- * while GLOTS does.
- *
+ * TapServiceFinder implementation that uses the IVOA registry
+ * along with "auxiliary" labelling of tableset resources.
+ * This is (an early version of) the scheme proposed by
+ * Markus Demleitner's "Discovering Data Collections within Services"
+ * IVOA Note.
+ * 
  * @author   Mark Taylor
- * @since    30 Jun 2015
+ * @since    6 Aug 2015
  */
-public class GlotsServiceFinder implements TapServiceFinder {
+public class AuxServiceFinder implements TapServiceFinder {
 
-    private final URL tapUrl_;
+    private final URL regtapUrl_;
     private final ContentCoding coding_;
     private final AdqlSyntax syntax_;
-    public static final String GAVO_DC_TAP_URL = "http://reg.g-vo.org/tap";
+
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
 
     /**
      * Constructs a default instance.
      */
-    public GlotsServiceFinder() {
-        this( GAVO_DC_TAP_URL, ContentCoding.GZIP );
+    public AuxServiceFinder() {
+        this( RegTapRegistryQuery.GAVO_REG, ContentCoding.GZIP );
     }
 
     /**
      * Constructs an instance with custom configuration.
      *
-     * @param  glotsUrl   base URL of a TAP service containing GLOTS tables
-     * @param  coding   controls HTTP-level compression during TAP queries
+     * @param  regtapUrl  URL for a TAP service with the RegTAP tables
+     * @param  coding  controls HTTP-level compression during TAP queries
      */
-    public GlotsServiceFinder( String glotsUrl, ContentCoding coding ) {
+    public AuxServiceFinder( String regtapUrl, ContentCoding coding ) {
         try {
-            tapUrl_ = new URL( glotsUrl );
+            regtapUrl_ = new URL( regtapUrl );
         }
         catch ( MalformedURLException e ) {
-            throw new IllegalArgumentException( "Bad URL " + glotsUrl, e );
+            throw new IllegalArgumentException( "Bad URL " + regtapUrl, e );
         }
         coding_ = coding;
         syntax_ = AdqlSyntax.getInstance();
@@ -75,37 +67,48 @@ public class GlotsServiceFinder implements TapServiceFinder {
             NAME = "short_name",
             TITLE = "res_title",
             DESCRIP = "res_description",
-            URL = "accessurl",
+            URL = "access_url",
             NTABLE = "ntable",
         };
         String adql = new StringBuffer()
             .append( "SELECT" )
-            .append( commaJoin( colNames ) )
+            .append( GlotsServiceFinder.commaJoin( colNames ) )
             .append( " FROM" )
             .append( " (SELECT" )
-            .append( commaJoin( new String[] { IVOID, URL } ) )
-            .append( ", COUNT(" )
-            .append( IVOID )
-            .append( ") AS " )
-            .append( NTABLE )
-            .append( " FROM glots.services" )
-            .append( " JOIN glots.tables USING (" )
-            .append( IVOID )
-            .append( ")" )
-            .append( " GROUP BY " )
-            .append( IVOID )
-            .append( ") AS t" )
-            .append( " JOIN rr.resource USING (" )
-            .append( IVOID )
-            .append( ")" )
+            .append( GlotsServiceFinder
+                    .commaJoin( new String[] { IVOID, NAME, TITLE,
+                                               DESCRIP, URL } ) )
+            .append( " FROM rr.resource" )
+            .append( " NATURAL JOIN rr.capability" )
+            .append( " NATURAL JOIN rr.interface" )
+            .append( " WHERE standard_id = 'ivo://ivoa.net/std/tap'" )
+            .append( " AND intf_type = 'vs:paramhttp'" )
+            .append( ") AS serv" )
+            .append( " JOIN" )
+            .append( " (SELECT service_id, COUNT(*) AS ntable" )
+            .append( " FROM" )
+            .append( " (SELECT DISTINCT" )
+            .append( " related_id AS service_id, ivoid, table_index" )
+            .append( " FROM rr.relationship" )
+            .append( " NATURAL JOIN rr.capability" )
+            .append( " NATURAL JOIN rr.interface" )
+            .append( " NATURAL JOIN rr.res_table" )
+            .append( " WHERE relationship_type = 'served-by'" )
+            .append( " AND standard_id = 'ivo://ivoa.net/std/tap#aux'" )
+            .append( " AND intf_type = 'vs:paramhttp'" )
+            .append( ") AS s" )
+            .append( " GROUP BY service_id" )
+            .append( ") AS aux" )
+            .append( " ON aux.service_id = serv.ivoid" )
             .toString();
         logger_.info( "TAP Query: " + adql );
-        TapQuery tq = new TapQuery( tapUrl_, adql, null );
+        TapQuery tq = new TapQuery( regtapUrl_, adql, null );
         final List<Service> serviceList = new ArrayList<Service>();
-        try { 
+        try {
             boolean isTrunc = tq.executeSync( new TableSink() {
                 public void acceptRow( Object[] row ) {
-                    Map<String,String> valueMap = toValueMap( colNames, row );
+                    Map<String,String> valueMap =
+                        GlotsServiceFinder.toValueMap( colNames, row );
                     final String id = valueMap.get( IVOID );
                     final String name = valueMap.get( NAME );
                     final String title = valueMap.get( TITLE );
@@ -164,23 +167,39 @@ public class GlotsServiceFinder implements TapServiceFinder {
         List<Target> tTargets = new ArrayList<Target>();
         for ( Target targ : constraint.getTargets() ) {
             if ( ! targ.isServiceMeta() ) {
-                assert targ.getGlotsTablesCol() != null;
+                assert targ.getRrTablesCol() != null;
                 tTargets.add( targ );
             }
         }
-        final String SERVICE_ID;
+        final String SERVICE_ID; 
         final String NAME;
         final String DESCRIP;
         final String[] colNames = {
-            SERVICE_ID = "ivoid",
+            SERVICE_ID = "related_id",
             NAME = "table_name",
-            DESCRIP = "table_desc"
+            DESCRIP = "table_description",
         };
+
+        /* This query doesn't bother checking that the related_id resource
+         * is in fact a TAP service (standard_id='ivo://ivoa.net/std/tap').
+         * It could do, but it's likely that most/all services it recovers
+         * will be, and if any are recoved that are not, they will be
+         * ignored by later processing anyway, since the results of this
+         * query get matched up with the results of the readAllServices
+         * query, which are so constrained, anyway. */
         StringBuffer sbuf = new StringBuffer()
             .append( "SELECT" )
-            .append( commaJoin( colNames ) )
-            .append( " FROM glots.tables" )
-            .append( " WHERE" );
+            .append( " DISTINCT" )
+            .append( GlotsServiceFinder.commaJoin( colNames ) )
+            .append( " FROM rr.relationship" )
+            .append( " NATURAL JOIN rr.capability" )
+            .append( " NATURAL JOIN rr.interface" )
+            .append( " NATURAL JOIN rr.res_table" )
+            .append( " WHERE relationship_type = 'served-by'" )
+            .append( " AND standard_id = 'ivo://ivoa.net/std/tap#aux'" )
+            .append( " AND intf_type = 'vs:paramhttp'" )
+            .append( " AND" )
+            .append( " (" );
         for ( int iw = 0; iw < words.length; iw++ ) {
             String word = words[ iw ];
             if ( iw > 0 ) {
@@ -195,13 +214,15 @@ public class GlotsServiceFinder implements TapServiceFinder {
             }
             sbuf.append( ")" );
         }
+        sbuf.append( " )" );
         logger_.info( "TAP Query: " + sbuf );
-        TapQuery tq = new TapQuery( tapUrl_, sbuf.toString(), null );
+        TapQuery tq = new TapQuery( regtapUrl_, sbuf.toString(), null );
         final List<Table> tableList = new ArrayList<Table>();
         try {
             boolean isTrunc = tq.executeSync( new TableSink() {
                 public void acceptRow( Object[] row ) {
-                    Map<String,String> valueMap = toValueMap( colNames, row );
+                    Map<String,String> valueMap =
+                        GlotsServiceFinder.toValueMap( colNames, row );
                     final String serviceId = valueMap.get( SERVICE_ID );
                     final String name = valueMap.get( NAME );
                     final String descrip = valueMap.get( DESCRIP );
@@ -240,63 +261,24 @@ public class GlotsServiceFinder implements TapServiceFinder {
      * @return   ADQL text
      */
     private String getAdqlTest( String keyword, Target target ) {
-        String glotsName = target.getGlotsTablesCol();
+        String auxName = target.getRrTablesCol();
         if ( target.isWords() ) {
             return new StringBuffer()
                 .append( "1=ivo_hasWord(" )
-                .append( glotsName )
+                .append( auxName )
                 .append( ", " )
                 .append( syntax_.characterLiteral( keyword ) )
                 .append( ")" )
-                .toString();
-        }
+                .toString(); 
+        }   
         else {
             return new StringBuffer()
                 .append( "1=ivo_nocasematch(" )
-                .append( glotsName )
+                .append( auxName )
                 .append( ", " )
                 .append( syntax_.characterLiteral( "%" + keyword + "%" ) )
                 .append( ")" )
                 .toString();
         }
-    }
-
-    /**
-     * Utility method to join an array of words together with commas
-     * between them.
-     *
-     * @param  words  words to join
-     * @return   concatenated string
-     */
-    static String commaJoin( String[] words ) {
-        StringBuffer sbuf = new StringBuffer();
-        for ( String word : words ) {
-            if ( sbuf.length() > 0 ) {
-                sbuf.append( "," );
-            }
-            sbuf.append( " " );
-            sbuf.append( word );
-        }
-        return sbuf.toString();
-    }
-
-    /**
-     * Turns matched arrays of keys and values in to a key-&gt;value map.
-     * The input arrays should have the same length N, and the output map
-     * will (in absence of duplicated keys) have N entries.
-     *
-     * @param   keys   key list
-     * @param   values   value list
-     * @return  map
-     */
-    static Map<String,String> toValueMap( String[] keys, Object[] values ) {
-        int n = keys.length;
-        Map<String,String> map = new HashMap<String,String>( n );
-        for ( int i = 0; i < n; i++ ) {
-            String key = keys[ i ];
-            Object val = values[ i ];
-            map.put( key, val == null ? null : val.toString() );
-        }
-        return map;
     }
 }
