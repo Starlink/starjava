@@ -39,6 +39,7 @@ public class TapServiceTreeModel implements TreeModel {
     private final Service[] services_;
     private final Map<Service,Table[]> tableMap_;
     private final List<TreeModelListener> listeners_;
+    private static final Comparator<Table> BY_TABLE_NAME = byTableName();
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.vo" );
 
@@ -247,6 +248,7 @@ public class TapServiceTreeModel implements TreeModel {
             Service service = serviceMap.get( entry.getKey() );
             if ( service != null ) {
                 Table[] ts = entry.getValue().toArray( new Table[ 0 ] );
+                Arrays.sort( ts, BY_TABLE_NAME );
                 tableMap.put( service, ts );
             }
         }
@@ -386,6 +388,27 @@ public class TapServiceTreeModel implements TreeModel {
                 }
                 int da = s2.hashCode() - s1.hashCode();
                 return da;
+            }
+        };
+    }
+
+    /**
+     * Returns a comparator that sorts tables alphabetically by name.
+     *
+     * @return  table comparator
+     */
+    private static Comparator<Table> byTableName() {
+        return new Comparator<Table>() {
+            public int compare( Table t1, Table t2 ) {
+                String n1 = t1.getName();
+                String n2 = t2.getName();
+                if ( n1 != null && n2 != null ) {
+                    int cmp = n1.compareTo( n2 );
+                    if ( cmp != 0 ) {
+                        return cmp;
+                    }
+                }
+                return t1.hashCode() - t2.hashCode();
             }
         };
     }
