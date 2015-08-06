@@ -147,17 +147,20 @@ public interface TapServiceFinder {
     public enum Target {
 
         /** Table name. */
-        TABLE_NAME( "Table Name", false, "table_name" ),
+        TABLE_NAME( "Table Name", false,
+                    "table_name", "table_name" ),
 
         /** Table description. */
-        TABLE_DESCRIP( "Table Description", true, "table_desc" ),
+        TABLE_DESCRIP( "Table Description", true,
+                       "table_desc", "table_description" ),
 
         /** Service name. */
-        SERVICE_META( "Service", false, null );
+        SERVICE_META( "Service", false, null, null );
 
         private final String displayName_;
         private final boolean isWords_;
         private final String glotsTablesCol_;
+        private final String rrTablesCol_;
 
         /**
          * Constructor.
@@ -169,11 +172,16 @@ public interface TapServiceFinder {
          * @param  glotsTablesCol  column name in GAVO glots.tables table
          *                         corresponding to this value;
          *                         null if not applicable
+         * @param  rrTablesCol   column name in RegTAP rr.tables table
+         *                       corresponding to this value;
+         *                       null if not applicable
          */
-        Target( String displayName, boolean isWords, String glotsTablesCol ) {
+        Target( String displayName, boolean isWords,
+                String glotsTablesCol, String rrTablesCol ) {
             displayName_ = displayName;
             isWords_ = isWords;
             glotsTablesCol_ = glotsTablesCol;
+            rrTablesCol_ = rrTablesCol;
         }
 
         /**
@@ -212,10 +220,20 @@ public interface TapServiceFinder {
          * Returns name of the column in the glots.tables table to which 
          * this target corresponds.
          *
-         * @return  glots.tables column name
+         * @return  glots.tables column name; null iff isServiceMeta()==true
          */
         String getGlotsTablesCol() {
             return glotsTablesCol_;
+        }
+
+        /**
+         * Returns the name of the column in the RegTAP rr.tables table
+         * to which this target corresponds.
+         *
+         * @return  rr.tables column name; null iff isServiceMeta()==true
+         */
+        String getRrTablesCol() {
+            return rrTablesCol_;
         }
 
         /**
