@@ -17426,6 +17426,15 @@ It has the following parts:
         so it is often instructive to look at these.
         Only enabled if the service actually provides some examples
         (at time of writing, not many do, but hopefully this will improve).
+        <em>Note to TAP service implementers:
+        at time of writing, there are two variants of the standard way
+        for services to provide examples
+        (<webref url="http://www.ivoa.net/documents/DALI/">DALI</webref>
+        sec 2.3 and
+        <webref url="http://www.ivoa.net/documents/Notes/TAPNotes/20131213/NOTE-TAPNotes-1.0-20131213.html#tf-examples"
+                >TAPNotes</webref> sec 4.2.1),
+        and it's not clear which is preferred.
+        For now, TOPCAT will recognise either.</em>
         </li>
     <li><label>TAP_SCHEMA:</label>
         Examples using the tables in the TAP_SCHEMA schema,
