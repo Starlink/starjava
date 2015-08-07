@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -91,10 +92,12 @@ public class DaliExampleReader {
                                  + url + ": " + e )
                  .initCause( e );
         }
-        String exPath = "//"
-                      + "*[@vocab='ivo://ivoa.net/std/DALI-examples#']"
-                      + "//"
-                      + "*[@typeof='example']";
+
+        /* I think it should be @vocab='ivo://ivoa.net/std/DALI-examples',
+         * but sometimes it seems to have a trailing '#'. */
+        String exPath =
+              "//*[starts-with(@vocab,'ivo://ivoa.net/std/DALI-examples')]"
+            + "//*[@typeof='example']";
         List<DaliExample> list = new ArrayList<DaliExample>();
         for ( Element exampleEl :
               findElements( doc.getDocumentElement(), exPath ) ) {
@@ -125,6 +128,15 @@ public class DaliExampleReader {
             String value = getPropertyText( paramEl, "value" );
             paramMap.put( key, value );
         }
+        final Map<String,String> propMap = new LinkedHashMap<String,String>();
+        String propPath = ".//*[@property"
+                            + " and not(@property='generic-parameter')"
+                            + " and not(../@property='generic-parameter')]";
+        for ( Element propEl : findElements( exEl, propPath ) ) {
+            String key = propEl.getAttribute( "property" );
+            String value = getElementText( propEl );
+            propMap.put( key, value );
+        }
         return new DaliExample() {
             public URL getUrl() {
                 return exUrl;
@@ -144,6 +156,9 @@ public class DaliExampleReader {
             public Map<String,String> getGenericParameters() {
                 return Collections.unmodifiableMap( paramMap );
             }
+            public Map<String,String> getProperties() {
+                return Collections.unmodifiableMap( propMap );
+            }
         };
     }
 
@@ -162,8 +177,9 @@ public class DaliExampleReader {
                                              XPathConstants.NODESET );
         }
         catch ( XPathExpressionException e ) {
-            throw (IOException) new IOException( "Xpath: " + findPath )
-                               .initCause( e );
+            logger_.log( Level.WARNING,
+                         "Bad XPath expression: " + findPath, e );
+            return new Element[ 0 ];
         }
         int nn = nl.getLength();
         List<Element> elList = new ArrayList<Element>( nn );
@@ -189,8 +205,6 @@ public class DaliExampleReader {
      */
     private String getPropertyText( Element contextEl, String propName )
             throws IOException {
-
-        /* Identify the target element. */
         String propPath = ".//*[@property='" + propName + "']";
         Element propEl;
         try {
@@ -198,18 +212,54 @@ public class DaliExampleReader {
                                                 XPathConstants.NODE );
         }
         catch ( XPathExpressionException e ) {
-            throw (IOException) new IOException( "XPath: " + propPath )
-                               .initCause( e );
+            logger_.log( Level.WARNING,
+                         "Bad XPath expression: " + propPath, e );
+            return null;
         }
-        if ( propEl == null ) {
+        return getElementText( propEl );
+    }
+
+    /**
+     * Returns the text content of an RDFa element.
+     * If the element sports the (RDFa) @content attribute, its value is used.
+     * Otherwise, all descendent text nodes are concatenated
+     * (ignoring markup).
+     *
+     * @param  el  element
+     * @return   text content
+     */
+    private String getElementText( Element el ) {
+        if ( el == null ) {
             return null;
         }
 
         /* If RDFa content attribute is present, use its value, otherwise
          * extract the plain text content of the element and use that. */
-        return propEl.hasAttribute( "content" )
-             ? propEl.getAttribute( "content" )
-             : DOMUtils.getTextContent( propEl );
+        else if ( el.hasAttribute( "content" ) ) {
+            return el.getAttribute( "content" );
+        }
+        else {
+            NodeList nl;
+            final String txtPath = ".//text()";
+            try {
+                nl = (NodeList) xpath_.evaluate( txtPath, el,
+                                                 XPathConstants.NODESET );
+            }
+
+            /* XPath error shouldn't happen, but if it does fall back on
+             * a safer approach. */
+            catch ( XPathExpressionException e ) {
+                logger_.log( Level.WARNING,
+                             "Bad XPath expression: " + txtPath, e );
+                return DOMUtils.getTextContent( el );
+            }
+            StringBuffer sbuf = new StringBuffer();
+            int nn = nl.getLength();
+            for ( int i = 0; i < nn; i++ ) {
+                sbuf.append( nl.item( i ).getTextContent() );
+            }
+            return sbuf.toString();
+        }
     }
 
     /**
@@ -220,10 +270,17 @@ public class DaliExampleReader {
         for ( DaliExample ex :
               new DaliExampleReader().readExamples( new URL( args[ 0 ] ) ) ) {
             System.out.println( ex.getId() + ": " + ex.getName() );
+            System.out.println( "\tgeneric-parameters:" );
             for ( Map.Entry<String,String> entry :
                   ex.getGenericParameters().entrySet() ) {
-                System.out.println( "\t" + entry.getKey()
-                                  + "\t" + entry.getValue() );
+                System.out.println( "\t\t" + entry.getKey()
+                                  + "\t\t" + entry.getValue() );
+            }
+            System.out.println( "\tproperties:" );
+            for ( Map.Entry<String,String> entry :
+                  ex.getProperties().entrySet() ) {
+                System.out.println( "\t\t" + entry.getKey()
+                                  + "\t\t" + entry.getValue() );
             }
             System.out.println();
         }

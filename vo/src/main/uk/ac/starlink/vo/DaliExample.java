@@ -53,10 +53,19 @@ public interface DaliExample {
     String getName();
 
     /**
-     * Returns a map of name->value pairs giving stated parameter values
-     * for this example.
+     * Returns a map of name-&gt;value pairs giving DALI 1.0-style
+     * generic-parameters for this example.
      *
-     * @return  map of parameter values
+     * @return  map of generic-parameter values
      */
     Map<String,String> getGenericParameters();
+
+    /**
+     * Returns a map of name-&gt;value pairs giving RDFa properties for
+     * this example, <em>excluding</em> those that form part of a
+     * <code>generic-parameter</code> key/value pair.
+     *
+     * @return  map of non-generic-parameter property values
+     */
+    Map<String,String> getProperties();
 }

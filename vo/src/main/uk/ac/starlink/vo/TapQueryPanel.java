@@ -694,8 +694,7 @@ public class TapQueryPanel extends JPanel {
             for ( int iex = 0; iex < nex; iex++ ) {
                 final DaliExample daliEx = daliExamples[ iex ];
                 String name = daliEx.getName();
-                final String adql =
-                    daliEx.getGenericParameters().get( "QUERY" );
+                final String adql = getExampleQueryText( daliEx );
                 adqlExamples[ iex ] = new AbstractAdqlExample( name, null ) {
                     public String getText( boolean lineBreaks, String lang,
                                            TapCapability tcap,
@@ -722,6 +721,39 @@ public class TapQueryPanel extends JPanel {
         }
         tmetaPanel_.setHasExamples( daliExamples != null &&
                                     daliExamples.length > 0 );
+    }
+
+    /**
+     * Returns the ADQL text corresponding to the query part of an example.
+     * Implementation is contentious; override it if you want.
+     *
+     * @param  daliEx  example object
+     * @return   ADQL query text
+     */
+    public String getExampleQueryText( DaliExample daliEx ) {
+
+        /* At time of writing (Aug 2015) there is dispute about how example
+         * query text is correctly encoded into RDFa at the /examples
+         * endpoint of a TAP service.
+         * Here we take a belt and braces approach - look for a query
+         * marked up in either of the two standard(?) ways. */
+ 
+        /* If a TAP Note 1.0-style "property='query'" element is present,
+         * use that. */
+        String propQuery = daliEx.getProperties().get( "query" );
+        if ( propQuery != null ) {
+            return propQuery;
+        }
+
+        /* Otherwise, if a DALI 1.0-style generic-parameter key/value
+         * property pair is present, use that. */
+        String genericQuery = daliEx.getGenericParameters().get( "QUERY" );
+        if ( genericQuery != null ) {
+            return genericQuery;
+        }
+
+        /* Or nothing. */
+        return null;
     }
 
     /**
