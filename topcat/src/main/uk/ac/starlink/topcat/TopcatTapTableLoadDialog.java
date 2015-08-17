@@ -160,6 +160,7 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
         /* Add sub-menu for upload format preference. */
         JMenu ufmtMenu = new JMenu( "Upload Format" );
         ButtonGroup ufmtButtGroup = new ButtonGroup();
+        boolean hasDflt = false;
         for ( DataFormat datfmt :
               new DataFormat[] { DataFormat.TABLEDATA,
                                  DataFormat.BINARY,
@@ -181,10 +182,12 @@ public class TopcatTapTableLoadDialog extends TapTableLoadDialog {
             JRadioButtonMenuItem menuItem = new JRadioButtonMenuItem( act );
             ufmtButtGroup.add( menuItem );
             ufmtMenu.add( menuItem );
-            if ( datfmt == DataFormat.BINARY ) {
+            if ( datfmt == (DataFormat) TapQuery.DFLT_UPLOAD_SER ) {
                 menuItem.doClick();
+                hasDflt = true;
             }
         }
+        assert hasDflt;
         tapMenu.add( ufmtMenu );
 
         /* Add sub-menu for by-type service finder implementation. */

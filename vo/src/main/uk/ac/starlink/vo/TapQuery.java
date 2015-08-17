@@ -62,6 +62,18 @@ public class TapQuery {
         Logger.getLogger( "uk.ac.starlink.vo" );
 
     /**
+     * Default VOTable serialization format for uploading VOTables
+     * to a TAP service.
+     * The value is currently
+     * {@link uk.ac.starlink.votable.DataFormat#TABLEDATA}.
+     * BINARY would be more efficient and ought to be OK,
+     * but at time of writing at least CADC, and under some circumstances
+     * other services, work properly with TABLEDATA but not BINARY
+     * uploaded tables, so for now conform to the lowest common denominator.
+     */
+    public static final DataFormat DFLT_UPLOAD_SER = DataFormat.TABLEDATA;
+
+    /**
      * Private constructor, performs common initialisation and
      * invoked by public constructors.
      *
@@ -137,7 +149,7 @@ public class TapQuery {
         StringBuffer ubuf = new StringBuffer();
         if ( uploadMap != null ) {
             if ( vowriter == null ) {
-                vowriter = new VOTableWriter( DataFormat.BINARY, true,
+                vowriter = new VOTableWriter( DFLT_UPLOAD_SER, true,
                                               VOTableVersion.V12 );
             }
             for ( Map.Entry<String,StarTable> upload : uploadMap.entrySet() ) {

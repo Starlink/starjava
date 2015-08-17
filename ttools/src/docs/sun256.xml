@@ -10300,8 +10300,12 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         queries data from each individual table (<code>MDQ</code>).
         May be useful for very large services.</li>
     <li>New <code>tapquery</code> parameter <code>upvotformat</code>
-        to determine what VOTable serialization variant is used to
-        transmit uploaded tables to the TAP server.</li>
+        determines what VOTable serialization variant is used to
+        transmit uploaded tables to the TAP server.
+        Previously uploads were always BINARY which ought to work,
+        but the parameter now defaults to TABLEDATA,
+        since some services (e.g. CADC)
+        currently fail with binary uploads.</li>
     </ul>
     </p></dd>
 

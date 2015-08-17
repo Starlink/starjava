@@ -22219,6 +22219,12 @@ introduced since the last version:
             is used by default to retrieve TAP results,
             which should reduce bandwidth and (marginally) improve handling
             of null values.</li>
+        <li>For upload queries, tables are now by default uploaded
+            to the service using the TABLEDATA rather than BINARY
+            VOTable serialization.  BINARY ought to work, but at least
+            some services (e.g. CADC) currently fail with BINARY uploads.
+            The default can be changed using the
+            <label>TAP|Upload Format</label> menu item.</li>
         <li>There is a change in the way that TAP service metadata
             is interpreted: table/column names are now expected
             to be delimited if required.  An attempt is made to fix up names
