@@ -284,7 +284,7 @@
 
 <docnumber>253</docnumber>
 
-<docdate>14 April 2015</docdate>
+<docdate>17 August 2015</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -375,7 +375,8 @@ Here is a summary of its main capabilities:
 <li>Concatenate the rows of existing tables to create new ones</li>
 <li>Acquire tables from web services, external filestores or other 
     customisable sources</li>
-<li>Perform single and multiple queries to Virtual Observatory services</li>
+<li>Perform single and multiple queries to Virtual Observatory services
+    including TAP services</li>
 <li>Interoperate with other desktop tools using SAMP</li>
 <li>Write modified tables out in original or different format</li>
 </ul>
@@ -22161,7 +22162,7 @@ introduced since the last version:
     </dl>
     </p></dd>
 
-<dt>Next version</dt>
+<dt>Version 4.3 (17 August 2015)</dt>
 <dd><p>
     <dl>
     <dt>TAP client enhancements:</dt>
@@ -22190,12 +22191,15 @@ introduced since the last version:
             including a full service description and listing of available
             geometry functions, user-defined functions and data models
             (if the service/registry provides this information).</li>
-        <li>For large services, metadata acquisition is now done as required,
-            rather than attempting to download all the metadata up front.
+        <li>For large services, metadata acquisition is now done as required
+            on a table-by-table basis, rather than attempting to download
+            all the metadata up front.
             This works much better for services with very many tables.</li>
         <li>The query entry panel has many new features,
-            including multiple tabs, full undo/redo, and limited support
-            for entering selected table and column names.</li>
+            including multiple query entry tabs,
+            full query text Undo/Redo, and limited support
+            for pasting table and column names that have been
+            selected in the GUI.</li>
         <li>A new <label>Quick Look</label> mode has been introduced alongside
             the Synchronous and Asynchronous modes, to execute a query
             whose result is displayed but not loaded into TOPCAT.</li>
@@ -22203,7 +22207,8 @@ introduced since the last version:
             various sub-menus with more ADQL query examples appropriate
             to the current service,
             including examples provided by the service itself for
-            services supporting the <code>/examples</code> endpoint.</li>
+            services supporting the (somewhat) standard
+            <code>/examples</code> endpoint.</li>
         <li>The Examples menu GUI has been modified to facilitate browsing,
             and a button is provided to link to web pages describing the
             selected example in more detail.</li>
@@ -22237,14 +22242,17 @@ introduced since the last version:
             This is thanks to an upgrade to Gr&#x00e9;gory Mantelet's
             ADQL parser library.</li>
         <li>Improve error reporting in the face of non-VOTable
-            TAP error responses.</li>
-        <li>As a diagnostic tool, the <code>curl(1)</code> command roughly
-            equivalent to TAP queries is now logged at the CONFIG level
-            (visible with <code>-verbose -verbose</code> flags).</li>
+            TAP error responses.
+            In many cases this makes it much easier to see what's going wrong
+            with a TAP query.</li>
+        <li>As a diagnostic tool, when making TAP queries,
+            a log message giving a roughly equivalent <code>curl(1)</code>
+            command is now issued at the CONFIG level
+            (visible using flags <code>-verbose -verbose</code>).</li>
         </ul>
         </p></dd>
 
-    <dt>Bugfix:</dt>
+    <dt>Bugfixes:</dt>
     <dd><p>
         <ul>
         <li>Fix a serious bug in processing of FITS bit vector
@@ -22262,16 +22270,33 @@ introduced since the last version:
             resulted in an error making the file unreadable.
             Values read from such columns are now presented as 
             Boolean scalars.</li>
-        <li>Fix a VOTable reading bug relating to similar data
+        <li>Fix a VOTable reading bug relating to bit vector columns
             (<code>datatype="bit"</code>) appearing in BINARY/BINARY2
             serializations.  This one was more obvious, it would usually
             generate an error when attempting to read the file.</li>
+        <li>Fix serious bug in time conversion for CDF TIME_TT2000 data types.
+            This was giving completely wrong (deep future) labels when using
+            TIME_TT2000 columns in time plots.</li>
+        <li>Fix sky plot vector bug: delta latitude and delta longitude values
+            were being used the wrong way round.</li>
+        <li>Upgrade JEL to v2.0.2.
+            Fixes problem with evaluating void-typed expressions
+            (especially user-supplied activation actions),
+            and possibly some other obscure bugs.</li>
+        <li>Prevent submission of multi-cone/SIA queries for which the
+            Search Radius parameter is blank.</li>
         </ul>
         </p></dd>
 
-    <dt>Other:</dt>
+    <dt>Minor enhancements and behaviour changes:</dt>
     <dd><p>
         <ul>
+        <li>Added some functions to the 
+            <ref id="Arrays">Arrays</ref> class
+            that return array-valued results from array-valued parameters:
+            <code>add</code>, <code>subtract</code>,
+            <code>multiply</code>, <code>divide</code>,
+            <code>reciprocal</code>, <code>condition</code>.</li>
         <li>HTTP-level compression is now requested
             (<code>Accept-Encoding gzip</code> request headers included)
             in most places where it makes sense.
@@ -22284,21 +22309,12 @@ introduced since the last version:
         <li>Minor improvement to version reporting
             (reports java specification version,
              no longer issues warning for absent revision string).</li>
-        <li>Fix serious bug in time conversion for CDF TIME_TT2000 data types.
-            This was giving completely wrong (deep future) labels when using
-            TIME_TT2000 columns in time plots.</li>
         <li>Update JCDF library to v1.1
             (minor changes to do with leap seconds).</li>
         <li>Now only runs in PLASTIC mode if the <code>-plastic</code> flag is
             set explicitly (otherwise runs in the default SAMP mode).
             Previously it ran in PLASTIC mode if a <code>.plastic</code>
             lockfile was present.</li>
-        <li>Fix sky plot vector bug: delta latitude and delta longitude values
-            were being used the wrong way round.</li>
-        <li>Upgrade JEL to v2.0.2.
-            Fixes problem with evaluating void-typed expressions
-            (especially user-supplied activation actions),
-            and possibly some other obscure bugs.</li>
         <li>Activation action summary messages are now written via an INFO
             log message rather than just printing to standard output.
             To see them you now need to run the application with the
@@ -22320,14 +22336,6 @@ introduced since the last version:
             </li>
         <li>Modify the heuristics that determine whether the first row of
             a CSV file is a header.</li>
-        <li>Prevent submission of multi-cone/SIA queries for which the
-            Search Radius parameter is blank.</li>
-        <li>Added some functions to the 
-            <ref id="Arrays">Arrays</ref> class
-            that return array-valued results from array-valued parameters:
-            <code>add</code>, <code>subtract</code>,
-            <code>multiply</code>, <code>divide</code>,
-            <code>reciprocal</code>, <code>condition</code>.</li>
         </ul>
         </p></dd>
     </dl>
