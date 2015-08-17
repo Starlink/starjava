@@ -132,7 +132,7 @@
 
 <docnumber>256</docnumber>
 
-<docdate>14 April 2015</docdate>
+<docdate>17 August 2015</docdate>
 
 <contactlist>
 <contact>STILTS web page:
@@ -10230,83 +10230,104 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </ul>
     </p></dd>
 
-<dt>Next version</dt>
+<dt>Version 3.0-4 (17 August 2015)</dt>
 <dd><p>
-    <ul>
-    <li>Minor improvement to version reporting
-        (reports java specification version,
-         no longer issues warning for absent revision string).</li>
-    <li>Fix serious bug in time conversion for CDF TIME_TT2000 data types.</li>
-    <li>Update JCDF library to v1.1
-        (minor changes to do with leap seconds).</li>
-    <li>Changes to the way that TAP service table/column name reports are
-        interpreted (to conform to original intention of TAP standard).
-        Taplint now checks that table/column names from TAP_SCHEMA and /tables
-        endpoint are regular-or-delimited-identifiers, but no longer
-        submits example queries using supplied column names wrapped in
-        additional quotes.</li>
-    <li>Fix <code>skyvector</code> bug: <code>dlat</code> and <code>dlon</code>
-        values were being used the wrong way round.</li>
-    <li>Upgrade JEL to v2.0.2.
-        Fixes problem with evaluating void-typed expressions,
-        and possibly some other obscure bugs.</li>
-    <li>Some taplint bug fixes.</li>
-    <li>Modify the heuristics that determine whether the first row of
-        a CSV file is a header.</li>
-    <li>Fix a serious bug in processing of FITS bit vector
-        (<code>TFORMn='rX'</code>) columns.
-        Values read from these columns are presented as a
-        <code>boolean[]</code> array.  In all previous versions of STIL
-        the bits have appeared in that array in the wrong sequence
-        (LSB..MSB per byte rather than the other way round).
-        Apologies to anyone who may have got incorrect science results
-        from this error in the past, and thanks to Paul Price for helping
-        to diagnose it.</li>
-    <li>Fix a less serious bug with <code>TFORMn='rX'</code> processing;
-        attempting to read a single-element bit vector column
-        (<code>TFORMn=1X</code> or <code>X</code>) previously
-        resulted in an error making the file unreadable.
-        Values read from such columns are now presented as
-        Boolean scalars.</li>
-    <li>Fix a VOTable reading bug relating to similar data
-        (<code>datatype="bit"</code>) appearing in BINARY/BINARY2
-        serializations.  This one was more obvious, it would usually
-        generate an error when attempting to read the file.</li>
-    <li>Fix a bug in <code>votcopy</code> that converted columns from
-        datatype <code>unsignedByte</code> to <code>short</code> when
-        transforming.  Since v3.0-3 this is no longer necessary.
-        In the case of converting to a binary serialization,
-        since v3.0-3 this was causing it to generate unreadable VOTable
-        output.</li>
-    <li>Fix a bug in <code>votcopy</code> that failed to handle
-        columns with datatype <code>bit</code>.  In the case of
-        converting to a binary serialization, these were in all previous
-        versions generating unreadable VOTable output.
-        Now they convert them to columns with datatype
-        <code>boolean</code> (not perfect, but better).</li>
-    <li>Added some functions to the
-        <ref id="uk.ac.starlink.ttools.func.Arrays">Arrays</ref> class
-        that return array-valued results from array-valued parameters:
-        <code>add</code>, <code>subtract</code>,
-        <code>multiply</code>, <code>divide</code>,
-        <code>reciprocal</code>, <code>condition</code>.</li>
-    <li>Improve error reporting in the face of non-VOTable 
-        TAP error responses.</li>
-    <li>As a diagnostic tool, the <code>curl(1)</code> command roughly
-        equivalent to TAP queries is now logged at the CONFIG level
-        (visible with <code>-verbose -verbose</code> flags).</li>
-    <li>New <code>taplint</code> parameter <code>maxtable</code>
-        limits the number of tables tested in the stage that
-        queries data from each individual table (<code>MDQ</code>).
-        May be useful for very large services.</li>
-    <li>New <code>tapquery</code> parameter <code>upvotformat</code>
-        determines what VOTable serialization variant is used to
-        transmit uploaded tables to the TAP server.
-        Previously uploads were always BINARY which ought to work,
-        but the parameter now defaults to TABLEDATA,
-        since some services (e.g. CADC)
-        currently fail with binary uploads.</li>
-    </ul>
+    <dl>
+    <dt>Bugfixes (some significant):</dt>
+    <dd><p>
+        <ul>
+        <li>Fix a serious bug in processing of FITS bit vector
+            (<code>TFORMn='rX'</code>) columns.
+            Values read from these columns are presented as a
+            <code>boolean[]</code> array.  In all previous versions of STIL
+            the bits have appeared in that array in the wrong sequence
+            (LSB..MSB per byte rather than the other way round).
+            Apologies to anyone who may have got incorrect science results
+            from this error in the past, and thanks to Paul Price for helping
+            to diagnose it.</li>
+        <li>Fix a less serious bug with <code>TFORMn='rX'</code> processing;
+            attempting to read a single-element bit vector column
+            (<code>TFORMn=1X</code> or <code>X</code>) previously
+            resulted in an error making the file unreadable.
+            Values read from such columns are now presented as
+            Boolean scalars.</li>
+        <li>Fix a VOTable reading bug relating to bit vector data
+            (<code>datatype="bit"</code>) appearing in BINARY/BINARY2
+            serializations.  This one was more obvious, it would usually
+            generate an error when attempting to read the file.</li>
+        <li>Fix serious bug in time conversion for CDF TIME_TT2000
+            data types.</li>
+        <li>Fix a bug in <code>votcopy</code> that converted columns from
+            datatype <code>unsignedByte</code> to <code>short</code> when
+            transforming.  Since v3.0-3 this is no longer necessary.
+            In the case of converting to a binary serialization,
+            since v3.0-3 this was causing it to generate unreadable VOTable
+            output.</li>
+        <li>Fix a bug in <code>votcopy</code> that failed to handle
+            columns with datatype <code>bit</code>.  In the case of
+            converting to a binary serialization, these were in all previous
+            versions generating unreadable VOTable output.
+            Now they convert them to columns with datatype
+            <code>boolean</code> (not perfect, but better).</li>
+        <li>Fix <code>skyvector</code> bug:
+            <code>dlat</code> and <code>dlon</code>
+            values were being used the wrong way round.</li>
+        <li>Upgrade JEL to v2.0.2.
+            Fixes problem with evaluating void-typed expressions,
+            and possibly some other obscure bugs.</li>
+        <li>Some taplint bug fixes.</li>
+        </ul>
+        </p></dd>
+    <dt>Behaviour changes:</dt>
+    <dd><p>
+        <ul>
+        <li>Changes to the way that TAP service table/column name reports are
+            interpreted (to conform to original intention of TAP standard).
+            Taplint now checks that table/column names from TAP_SCHEMA
+            and /tables
+            endpoint are regular-or-delimited-identifiers, but no longer
+            submits example queries using supplied column names wrapped in
+            additional quotes.</li>
+        <li>Modify the heuristics that determine whether the first row of
+            a CSV file is a header.</li>
+        </ul>
+        </p></dd>
+    <dt>Enhancements (mostly minor):</dt>
+    <dd><p>
+        <ul>
+        <li>Added some functions to the
+            <ref id="uk.ac.starlink.ttools.func.Arrays">Arrays</ref> class
+            that return array-valued results from array-valued parameters:
+            <code>add</code>, <code>subtract</code>,
+            <code>multiply</code>, <code>divide</code>,
+            <code>reciprocal</code>, <code>condition</code>.</li>
+        <li>Improve error reporting in the face of non-VOTable 
+            TAP error responses.
+            In many cases this makes it much easier to see what's going wrong
+            with a TAP query.</li>
+        <li>As a diagnostic tool, when making TAP queries,
+            a log message giving a roughly equivalent <code>curl(1)</code>
+            command is now issued at the CONFIG level
+            (visible using flags <code>-verbose -verbose</code>).</li>
+        <li>New <code>taplint</code> parameter <code>maxtable</code>
+            limits the number of tables tested in the stage that
+            queries data from each individual table (<code>MDQ</code>).
+            May be useful for very large services.</li>
+        <li>New <code>tapquery</code> parameter <code>upvotformat</code>
+            to determine what VOTable serialization variant is used to
+            transmit uploaded tables to the TAP server.
+            Previously uploads were always BINARY which ought to work,
+            but the parameter now defaults to TABLEDATA,
+            since some services (e.g. CADC)
+            currently fail with binary uploads.</li>
+        <li>Minor improvement to version reporting
+            (reports java specification version,
+             no longer issues warning for absent revision string).</li>
+        <li>Update JCDF library to v1.1
+            (minor changes to do with leap seconds).</li>
+        </ul>
+        </p></dd>
+    </dl>
     </p></dd>
 
 </dl>
