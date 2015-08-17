@@ -296,16 +296,6 @@ public class TapServiceTreeModel implements TreeModel {
                                                : tableMap_.get( service ),
                              ResourceIcon.NODE_SERVICE ) {
                 public String toString() {
-                    String nameTxt = null;
-                    if ( nameTxt == null || nameTxt.trim().length() == 0 ) {
-                        nameTxt = service.getName();
-                    }
-                    if ( nameTxt == null || nameTxt.trim().length() == 0 ) {
-                        nameTxt = service.getTitle();
-                    }
-                    if ( nameTxt == null || nameTxt.trim().length() == 0 ) {
-                        nameTxt = service.getId();
-                    }
                     int ntTotal = service.getTableCount();
                     int ntPresent = children_ == null ? -1 : children_.length;
                     StringBuffer cbuf = new StringBuffer()
@@ -317,8 +307,7 @@ public class TapServiceTreeModel implements TreeModel {
                     cbuf.append( ntTotal <= 0 ? "?"
                                               : Integer.toString( ntTotal ) )
                         .append( ")" );
-                    String countTxt = cbuf.toString();
-                    return nameTxt + countTxt;
+                    return getServiceLabel( service ) + cbuf.toString();
                 }
             };
         }
@@ -346,6 +335,29 @@ public class TapServiceTreeModel implements TreeModel {
     }
 
     /**
+     * Returns a short text label by which a service will be identified
+     * in the GUI.
+     *
+     * @param  service  service
+     * @return   short human-readable text string, not null
+     */
+    private static String getServiceLabel( Service service ) {
+        String name = service.getName();
+        if ( name != null && name.trim().length() > 0 ) {
+            return name.trim();
+        }
+        String title = service.getTitle();
+        if ( title != null && title.trim().length() > 0 ) {
+            return title.trim();
+        }
+        String ivoid = service.getId();
+        if ( ivoid != null && ivoid.trim().length() > 0 ) {
+            return ivoid.trim();
+        }
+        return "<nameless>";
+    }
+
+    /**
      * Returns a comparator to sort services by the number of tables.
      * It sorts first by the number of children it has in this tree,
      * and as a tie-breaker by the total number of tables in the service.
@@ -366,6 +378,11 @@ public class TapServiceTreeModel implements TreeModel {
                 int dt = s2.getTableCount() - s1.getTableCount();
                 if ( dt != 0 ) {
                     return dt;
+                }
+                int dn = getServiceLabel( s1 )
+                        .compareTo( getServiceLabel( s2 ) );
+                if ( dn != 0 ) {
+                    return dn;
                 }
                 int da = s2.hashCode() - s1.hashCode();
                 return da;
