@@ -154,7 +154,7 @@ public class TapMapper implements TableMapper {
             "have non-standard requirements for serialization format.",
             "</p>",
         } );
-        vowriterParam_.setStringDefault( DataFormat.BINARY.toString() );
+        vowriterParam_.setStringDefault( ((DataFormat) TapQuery.DFLT_UPLOAD_SER)                                        .toString() );
         paramList.add( vowriterParam_ );
 
         langParam_ = new StringParameter( "language" );
