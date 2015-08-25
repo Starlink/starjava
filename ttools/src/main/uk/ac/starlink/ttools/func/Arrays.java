@@ -526,7 +526,7 @@ public class Arrays {
      * <p>This has the same effect as applying the expression
      * <code>outArray[i] = flagArray[i] ? trueValue : falseValue</code>.
      *
-     * @example   condition([true, false, true], 1, 0) = [1, 0, 1]</code>
+     * @example   <code>condition([true, false, true], 1, 0) = [1, 0, 1]</code>
      *
      * @param   flagArray   array of boolean values
      * @param   trueValue   output value corresponding to an input true value
