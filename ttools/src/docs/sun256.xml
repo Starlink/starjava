@@ -10330,6 +10330,14 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     </dl>
     </p></dd>
 
+<dt>Next version</dt>
+<dd><p>
+    <ul>
+    <li>Fix error reporting bug when a non-VOTable response is received
+        from a TAP service.</li>
+    </ul>
+    </p></dd>
+
 </dl>
 </p>
 </subsect>

@@ -611,7 +611,7 @@ public class TapQuery {
             StringBuffer sbuf = new StringBuffer()
                 .append( "TAP response is not a VOTable" );
             byte[] buf = in.getHeadBuffer();
-            int nb = in.getReadCount();
+            int nb = Math.min( in.getReadCount(), buf.length );
             if ( nb > 0 ) {
                 sbuf.append( " - " )
                     .append( new String( buf, 0, nb, "UTF-8" ) );
