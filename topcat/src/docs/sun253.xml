@@ -22350,6 +22350,9 @@ introduced since the last version:
         in By Tables tab with only Service field selected.</li>
     <li>Fix bug in ADQL parsing that failed to recognise column names that
         are delimited identifiers when qualified by table names.</li>
+    <li>Bugfix updates to ADQL library:
+        disallow use of spurious schema names for tables with no schema name;
+        disallow table-qualified names in ORDER/GROUP BY clauses.</li>
     </ul>
     </p></dd>
 
