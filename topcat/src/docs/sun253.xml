@@ -22348,6 +22348,8 @@ introduced since the last version:
         from a TAP service.</li>
     <li>Fix TAP service location bug that caused an error if searching
         in By Tables tab with only Service field selected.</li>
+    <li>Fix bug in ADQL parsing that failed to recognise column names that
+        are delimited identifiers when qualified by table names.</li>
     </ul>
     </p></dd>
 

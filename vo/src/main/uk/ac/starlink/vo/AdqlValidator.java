@@ -371,9 +371,18 @@ public class AdqlValidator {
             /* Note the value of vtable.getColumnNames may change over the
              * lifetime of the vtable object, so don't cache the result. */
             Collection<String> cnames = vtable_.getColumnNames();
-            return cnames == null || cnames.contains( colName )
-                 ? createDBColumn( colName )
-                 : null;
+            if ( cnames == null ) {
+                return createDBColumn( colName );
+            }
+            else {
+                for ( String cn : cnames ) {
+                    if ( colName.equals( isAdqlName ? syntax_.unquote( cn )
+                                                    : cn ) ) {
+                        return createDBColumn( cn );
+                    }
+                }
+                return null;
+            }
         }
 
         public Iterator<DBColumn> iterator() {
