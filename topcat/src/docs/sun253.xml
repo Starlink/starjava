@@ -22346,6 +22346,8 @@ introduced since the last version:
     <ul>
     <li>Fix error reporting bug when a non-VOTable response is received
         from a TAP service.</li>
+    <li>Fix TAP service location bug that caused an error if searching
+        in By Tables tab with only Service field selected.</li>
     </ul>
     </p></dd>
 

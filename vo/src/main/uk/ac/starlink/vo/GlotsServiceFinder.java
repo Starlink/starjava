@@ -168,6 +168,9 @@ public class GlotsServiceFinder implements TapServiceFinder {
                 tTargets.add( targ );
             }
         }
+        if ( tTargets.size() == 0 ) {
+            return new Table[ 0 ];
+        }
         final String SERVICE_ID;
         final String NAME;
         final String DESCRIP;
