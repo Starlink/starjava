@@ -200,6 +200,18 @@ public class Shaders {
     /** Shader copied from Matplotlib Set1 lookup table. */
     public static final Shader LUT_SET1;
 
+    /** Shader copied from Matplotlib 2.0 Magma lookup table. */
+    public static final Shader LUT_MPL2MAGMA;
+
+    /** Shader copied from Matplotlib 2.0 Inferno lookup table. */
+    public static final Shader LUT_MPL2INFERNO;
+
+    /** Shader copied from Matplotlib 2.0 Plasma lookup table. */
+    public static final Shader LUT_MPL2PLASMA;
+
+    /** Shader copied from Matplotlib 2.0 Viridis lookup table. */
+    public static final Shader LUT_MPL2VIRIDIS;
+
     /** Selection of lookup table-based shaders. */
     public final static Shader[] LUT_SHADERS = new Shader[] {
         LUT_AIPS0 = new ResourceLutShader( "AIPS0", "aips0.lut" ),
@@ -230,6 +242,12 @@ public class Shaders {
         LUT_RAINBOW3 = new ResourceLutShader( "Rainbow3", "gist_rainbow.lut" ),
         LUT_PAIRED = new ResourceLutShader( "Paired", "paired.lut" ),
         LUT_SET1 = new ResourceLutShader( "Set1", "set1.lut" ),
+        LUT_MPL2MAGMA = new ResourceLutShader( "Magma", "mpl2_magma.lut" ),
+        LUT_MPL2INFERNO = new ResourceLutShader( "Inferno",
+                                                 "mpl2_inferno.lut" ),
+        LUT_MPL2PLASMA = new ResourceLutShader( "Plasma", "mpl2_plasma.lut" ),
+        LUT_MPL2VIRIDIS = new ResourceLutShader( "Viridis",
+                                                 "mpl2_viridis.lut" ),
     };
 
     /* ColorBrewer.
