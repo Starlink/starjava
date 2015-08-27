@@ -116,6 +116,10 @@ public class Shaders {
     public static final Shader BLACK_WHITE =
         createInterpolationShader( "Greyscale", Color.BLACK, Color.WHITE );
 
+    /** Rainbow shader copied from SRON technical note SRON/EPS/TN/09-002. */
+    public static final Shader SRON_RAINBOW =
+        createSronRainbowShader( "SRON" );
+
     /** Shader based on lookup table Aips0. */
     public static final Shader LUT_AIPS0;
 
@@ -477,6 +481,39 @@ public class Shaders {
                     float f1 = rgba1[ i ];
                     rgba[ i ] = f0 + ( f1 - f0 ) * value;
                 }
+            }
+        };
+    }
+
+    /**
+     * Constructs a shader to give the rainbow colour map favoured
+     * (though only above other rainbow colour maps) by SRON.
+     * SRON is the Netherlands Institute for Space Research.
+     * This colourmap is described in document SRON/EPS/TN/09-002,
+     * by Paul Tol.  It's in equation 3 of that paper.
+     *
+     * @param  name  colour map name
+     * @return  colour map
+     * @see   <a href="https://personal.sron.nl/~pault/">Paul Tol's notes</a>
+     */
+    private static Shader createSronRainbowShader( String name ) {
+        return new BasicShader( name ) {
+            public void adjustRgba( float[] rgba, float value ) {
+                double x = value;
+                double x2 = x * x;
+                double x3 = x * x2;
+                double x4 = x * x3;
+                double x5 = x * x4;
+                double x6 = x * x5;
+                double r = ( 0.472 - 0.567*x + 4.05*x2 )
+                         / ( 1 + 8.72*x - 19.17*x2 + 14.1*x3);
+                double g = 0.108932 - 1.22635*x + 27.284*x2
+                         - 98.577*x3 + 163.3*x4 - 131.395*x5 + 40.634*x6;
+                double b = 1./( 1.97 + 3.54*x - 68.5*x2 + 243*x3
+                              - 297*x4 + 125*x5 );
+                rgba[ 0 ] = (float) r;
+                rgba[ 1 ] = (float) g;
+                rgba[ 2 ] = (float) b;
             }
         };
     }
