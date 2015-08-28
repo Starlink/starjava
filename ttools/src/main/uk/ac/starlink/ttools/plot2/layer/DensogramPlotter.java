@@ -10,6 +10,7 @@ import javax.swing.Icon;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot.Shader;
+import uk.ac.starlink.ttools.plot.Shaders;
 import uk.ac.starlink.ttools.plot.Style;
 import uk.ac.starlink.ttools.plot2.Axis;
 import uk.ac.starlink.ttools.plot2.LayerOpt;
@@ -257,7 +258,7 @@ public class DensogramPlotter
         }
 
         public Icon getLegendIcon() {
-            return shader_.createIcon( true, 10, 8, 1, 2 );
+            return Shaders.createShaderIcon( shader_, true, 10, 8, 1, 2 );
         }
 
         @Override

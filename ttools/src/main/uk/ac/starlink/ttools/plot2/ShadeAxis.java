@@ -10,6 +10,7 @@ import java.awt.geom.AffineTransform;
 import java.util.Arrays;
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.plot.Shader;
+import uk.ac.starlink.ttools.plot.Shaders;
 
 /**
  * Graphical representation of aux shading range which can be placed
@@ -164,19 +165,53 @@ public class ShadeAxis {
             Graphics2D g2 = (Graphics2D) g;
             Color color0 = g2.getColor();
 
-            /* Paint the ramp. */
-            float[] baseRgba = Color.DARK_GRAY.getRGBComponents( null );
+            /* Paint the ramp.  First prepare a line of pixels that
+             * appear in the ramp transversely to the shading direction.
+             * If the shader is absolute these will have no effect,
+             * but for non-absoloute shaders they form the base colours
+             * which the shader modifies for output.  So you see a ramp
+             * of stripes, showing how the shader affects a range of
+             * different input colours.  The initial range is given by
+             * a base shader. */
+            Shader baseShader = Shaders.DFLT_GRID_SHADER;
+            float[] baseRgba = Color.BLACK.getRGBComponents( null );
+            int nx = box_.width;
+            float[][] baseRgbas = new float[ nx ][ 4 ];
+            for ( int ix = 0; ix < nx; ix++ ) {
+                baseRgbas[ ix ] = baseRgba.clone();
+                baseShader.adjustRgba( baseRgbas[ ix ],
+                                       ix / (float) ( nx - 1 ) );
+            }
+
+            /* Then shade each row of pixels in turn along the shading
+             * direction of the axis. */
             Scaler scaler = scaling_.createScaler( dlo_, dhi_ );
             for ( int iy = 0; iy < box_.height; iy++ ) {
                 int gy = box_.y + iy;
                 int hy = box_.y + ( box_.height - iy );
+
+                /* Work out the fractional value to pass to the shader. */
                 double dval = axis_.graphicsToData( gy + 0.5 );
                 float frac = (float) scaler.scaleValue( dval );
-                float[] rgba = baseRgba.clone();
-                shader_.adjustRgba( rgba, frac );
-                g.setColor( new Color( rgba[ 0 ], rgba[ 1 ], rgba[ 2 ],
-                                       rgba[ 3 ] ) );
-                g.fillRect( box_.x, hy, box_.width, 1 );
+
+                /* Then draw the pixels, either as a block for an absolute
+                 * shader, or a pixel at a time for non-absoloute. */
+                if ( shader_.isAbsolute() ) {
+                    float[] rgba = baseRgbas[ 0 ].clone();
+                    shader_.adjustRgba( rgba, frac );
+                    g.setColor( new Color( rgba[ 0 ], rgba[ 1 ], rgba[ 2 ],
+                                           rgba[ 3 ] ) );
+                    g.fillRect( box_.x, hy, nx, 1 );
+                }
+                else {
+                    for ( int ix = 0; ix < nx; ix++ ) {
+                        float[] rgba = baseRgbas[ ix ].clone();
+                        shader_.adjustRgba( rgba, frac );
+                        g.setColor( new Color( rgba[ 0 ], rgba[ 1 ], rgba[ 2 ],
+                                               rgba[ 3 ] ) );
+                        g.fillRect( box_.x + ix, hy, 1, 1 );
+                    }
+                }
             }
 
             /* Paint the ramp frame and axis annotations. */

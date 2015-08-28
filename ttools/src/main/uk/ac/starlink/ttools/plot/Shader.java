@@ -1,7 +1,5 @@
 package uk.ac.starlink.ttools.plot;
 
-import javax.swing.Icon;
-
 /**
  * Defines an object which can modify an sRGB colour as defined by a scalar
  * parameter.
@@ -39,18 +37,4 @@ public interface Shader {
      * @return  short human-readable label
      */
     String getName();
-
-    /**
-     * Returns an icon which displays this shader in action.
-     *
-     * @param  horizontal  true for shading running horizontally,
-     *                     false for vertically
-     * @param  width  total icon width in pixels
-     * @param  height total icon height in pixels
-     * @param  xpad   internal padding in the X direction
-     * @param  ypad   internal padding in the Y direction
-     * @return  icon
-     */
-    Icon createIcon( boolean horizontal, int width, int height,
-                     int xpad, int ypad );
 }

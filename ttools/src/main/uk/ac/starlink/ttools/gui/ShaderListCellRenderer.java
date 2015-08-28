@@ -12,6 +12,7 @@ import javax.swing.JList;
 import javax.swing.ListCellRenderer;
 import javax.swing.plaf.basic.BasicComboBoxRenderer;
 import uk.ac.starlink.ttools.plot.Shader;
+import uk.ac.starlink.ttools.plot.Shaders;
 import uk.ac.starlink.util.IconUtils;
 
 /**
@@ -76,7 +77,7 @@ public class ShaderListCellRenderer extends BasicComboBoxRenderer {
      */
     private static Icon getRendererIcon( Shader shader ) {
         if ( ! rendererIconMap_.containsKey( shader ) ) {
-            Icon icon = shader.createIcon( true, 48, 16, 4, 1 );
+            Icon icon = Shaders.createShaderIcon( shader, true, 48, 16, 4, 1 );
 
             /* Store the image icon based on the painted icon in the map.
              * This has two advantages: first it doesn't need to be

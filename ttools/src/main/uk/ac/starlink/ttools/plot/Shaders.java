@@ -3,8 +3,6 @@ package uk.ac.starlink.ttools.plot;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.geom.AffineTransform;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.DataInputStream;
@@ -37,8 +35,6 @@ import uk.ac.starlink.util.FloatList;
  * @since    5 Jun 2007
  */
 public class Shaders {
-
-    private static final Color DARK_GREEN = new Color( 0, 160, 0 );
 
     /**
      * Property containing a File.pathSeparator-separated list of text
@@ -283,6 +279,9 @@ public class Shaders {
     public static final Shader BREWER_PURD =
         new SampleShader( "PuRd", new int[] {
             0xf1eef6, 0xd4b9da, 0xc994c7, 0xdf65b0, 0xdd1c77, 0x980043, } );
+
+    /** Shader used by default for the transverse axis of non-absolute ramps. */
+    public static final Shader DFLT_GRID_SHADER = LUT_BRG;
     
     /** Base directory for locating binary colour map lookup table resources. */
     private final static String LUT_BASE = "/uk/ac/starlink/ttools/colormaps/";
@@ -298,7 +297,7 @@ public class Shaders {
     private static abstract class BasicShader implements Shader {
 
         private final String name_;
-        private final Color baseColor_;
+        private final boolean isAbsolute_;
 
         /**
          * Constructs an absolute shader (one with no dependence on original
@@ -307,35 +306,27 @@ public class Shaders {
          * @param   name  shader name
          */
         BasicShader( String name ) {
-            this( name, null );
+            this( name, true );
         }
 
         /**
-         * Constructs a non-absolute shader.  The supplied 
-         * <code>baseColor</code> is the one which is used for constructing
-         * an icon.
+         * Constructs a shader that may or may not be absolute.
          *
          * @param  name  shader name
-         * @param   baseColor  base colour for constructing icon
+         * @param  isAbsolute  true iff shader output is not dependent
+         *                     on input colour
          */
-        BasicShader( String name, Color baseColor ) {
+        BasicShader( String name, boolean isAbsolute ) {
             name_ = name;
-            baseColor_ = baseColor;
+            isAbsolute_ = isAbsolute;
         }
 
         public String getName() {
             return name_;
         }
 
-        public Icon createIcon( boolean horizontal, int width, int height,
-                                int xpad, int ypad ) {
-            return create1dIcon( this, horizontal,
-                                 baseColor_ == null ? Color.BLACK : baseColor_,
-                                 width, height, xpad, ypad );
-        }
-
         public boolean isAbsolute() {
-            return baseColor_ == null;
+            return isAbsolute_;
         }
 
         public String toString() {
@@ -357,14 +348,12 @@ public class Shaders {
          * Constructor.
          *
          * @param  name   name
-         * @param  baseColor  base colour for generating icon
          * @param  icomp   modified component index
          * @param  fix    if true, component is fixed at given value,
          *                if false, it is scaled to given value
          */
-        ColorSpaceComponentShader( String name, Color baseColor, int icomp,
-                                   boolean fix ) {
-            super( name, baseColor );
+        ColorSpaceComponentShader( String name, int icomp, boolean fix ) {
+            super( name, false );
             icomp_ = icomp;
             fix_ = fix;
         }
@@ -394,15 +383,14 @@ public class Shaders {
     }
 
     /** Shader which does nothing. */
-    public static final Shader NULL =
-            new BasicShader( "None", new Color( 1, 1, 1, 0 ) ) {
+    public static final Shader NULL = new BasicShader( "None", false ) {
         public void adjustRgba( float[] rgba, float value ) {
         }
     };
 
     /** Scales alpha channel by parameter value. */
     public static final Shader TRANSPARENCY =
-            new BasicShader( "Transparency", Color.BLACK ) {
+            new BasicShader( "Transparency", false ) {
         public void adjustRgba( float[] rgba, float value ) {
 
             /* Squaring seems to adjust the range better. */
@@ -412,7 +400,7 @@ public class Shaders {
 
     /** Shader which sets intensity. */
     public static final Shader FIX_INTENSITY =
-            new BasicShader( "Intensity", Color.BLUE ) {
+            new BasicShader( "Intensity", false ) {
         public void adjustRgba( float[] rgba, float value ) {
             float max = Math.max( rgba[ 0 ], Math.max( rgba[ 1 ], rgba[ 2 ] ) );
             float m1 = 1f / max;
@@ -424,7 +412,7 @@ public class Shaders {
 
     /** Shader which scales intensity. */
     public static final Shader SCALE_INTENSITY =
-            new BasicShader( "Scale Intensity", Color.BLUE ) {
+            new BasicShader( "Scale Intensity", false ) {
         public void adjustRgba( float[] rgba, float value ) {
             for ( int i = 0; i < 3; i++ ) {
                 rgba[ i ] = 1f - value * ( 1f - rgba[ i ] );
@@ -552,7 +540,7 @@ public class Shaders {
                                            final float minMask,
                                            final float maxMask,
                                            final boolean sense ) {
-        return new BasicShader( name, Color.GRAY ) {
+        return new BasicShader( name, false ) {
             public void adjustRgba( float[] rgba, float value ) {
                 if ( ( value > minMask && value < maxMask ) ^ sense ) {
                     rgba[ 3 ] = 0;
@@ -612,7 +600,7 @@ public class Shaders {
          * @param  icomp   modified component index
          */
         FixRGBComponentShader( String name, int icomp ) {
-            super( name, Color.BLACK );
+            super( name, false );
             icomp_ = icomp;
         }
         
@@ -635,7 +623,7 @@ public class Shaders {
          * @param  fix    true for fix, false for scale
          */
         YuvShader( String name, int icomp, boolean fix ) {
-            super( name, DARK_GREEN, icomp, fix );
+            super( name, icomp, fix );
         }
 
         protected void toSpace( float[] rgb ) {
@@ -696,7 +684,7 @@ public class Shaders {
          * @param  fix    true for fix, false for scale
          */
         YPbPrShader( String name, int icomp, boolean fix ) {
-            super( name, DARK_GREEN, icomp, fix );
+            super( name, icomp, fix );
         }
 
         protected void toSpace( float[] rgb ) {
@@ -738,7 +726,7 @@ public class Shaders {
          * @param  fix    true for fix, false for scale
          */
         HsvShader( String name, int icomp, boolean fix ) {
-            super( name, Color.RED, icomp, fix );
+            super( name, icomp, fix );
         }
 
         protected void toSpace( float[] rgb ) {
@@ -921,16 +909,6 @@ public class Shaders {
             baseShader_.adjustRgba( rgba, f0_ + fScale_ * value );
         }
 
-        public Icon createIcon( boolean horizontal, int width, int height,
-                                int xpad, int ypad ) {
-            Color baseColor = baseShader_ instanceof BasicShader
-                            ? ((BasicShader) baseShader_).baseColor_
-                            : null;
-            return create1dIcon( this, horizontal,
-                                 baseColor == null ? Color.BLACK : baseColor,
-                                 width, height, xpad, ypad );
-        }
-
         public boolean equals( Object o ) {
             if ( o instanceof StretchedShader ) {
                 StretchedShader other = (StretchedShader) o;
@@ -977,30 +955,6 @@ public class Shaders {
 
         public String getName() {
             return "-" + base_.getName();
-        }
-
-        public Icon createIcon( final boolean horizontal, final int width,
-                                final int height, int xpad, int ypad ) {
-            final Icon icon =
-                base_.createIcon( horizontal, width, height, xpad, ypad );
-            return new Icon() {
-                public int getIconWidth() {
-                    return icon.getIconWidth();
-                }
-                public int getIconHeight() {
-                    return icon.getIconHeight();
-                }
-                public void paintIcon( Component c, Graphics g,
-                                       int x, int y ) {
-                    Graphics2D g2 = (Graphics2D) g;
-                    AffineTransform trans = g2.getTransform();
-                    g2.translate( x + width / 2, y + height / 2 );
-                    g2.scale( horizontal ? -1 : +1,
-                              horizontal ? +1 : -1 );
-                    icon.paintIcon( c, g2, -width / 2, -height / 2 );
-                    g2.setTransform( trans );
-                }
-            };
         }
 
         public boolean equals( Object o ) {
@@ -1054,16 +1008,6 @@ public class Shaders {
             return base_.getName() + "-" + (int) Math.round( nlevel_ );
         }
 
-        public Icon createIcon( boolean horizontal, int width, int height,
-                                int xpad, int ypad ) {
-            Color baseColor = base_ instanceof BasicShader   
-                            ? ((BasicShader) base_).baseColor_
-                            : null;
-            return create1dIcon( this, horizontal,
-                                 baseColor == null ? Color.BLACK : baseColor,
-                                 width, height, xpad, ypad );
-        }
-
         @Override
         public int hashCode() {
             int code = 4392;
@@ -1105,7 +1049,7 @@ public class Shaders {
          * @param   icomp  modified component index
          */
         ScaleRGBComponentShader( String name, int icomp ) {
-            super( name, Color.GRAY );
+            super( name, false );
             icomp_ = icomp;
         }
  
@@ -1483,6 +1427,54 @@ public class Shaders {
     }
 
     /**
+     * Returns an icon which displays a shader in action,
+     * using an explicitly provided grid shader.
+     *
+     * @param  shader   shader to illustrate
+     * @param  gridShader  defines the pixels along the transverse direction
+     *                     of the shader; ignored (may be null) for absolute
+     *                     shaders
+     * @param  horizontal  true for shading running horizontally,
+     *                     false for vertically
+     * @param  width  total icon width in pixels
+     * @param  height total icon height in pixels
+     * @param  xpad   internal padding in the X direction
+     * @param  ypad   internal padding in the Y direction
+     * @return  icon
+     */
+    public static Icon createShaderIcon( Shader shader, Shader gridShader,
+                                         boolean horizontal, int width,
+                                         int height, int xpad, int ypad ) {
+        return shader.isAbsolute()
+             ? create1dIcon( shader, horizontal, Color.BLACK,
+                             width, height, xpad, ypad )
+             : create2dIcon( horizontal ? shader : gridShader,
+                             horizontal ? gridShader : shader,
+                             ! horizontal, Color.BLACK,
+                             width, height, xpad, ypad );
+    }
+
+    /**
+     * Returns an icon which displays a shader in action,
+     * using a default grid shader if required.
+     *
+     * @param  shader   shader to illustrate
+     * @param  horizontal  true for shading running horizontally,
+     *                     false for vertically
+     * @param  width  total icon width in pixels
+     * @param  height total icon height in pixels
+     * @param  xpad   internal padding in the X direction
+     * @param  ypad   internal padding in the Y direction
+     * @return  icon
+     */
+    public static Icon createShaderIcon( Shader shader,
+                                         boolean horizontal, int width,
+                                         int height, int xpad, int ypad ) {
+        return createShaderIcon( shader, DFLT_GRID_SHADER, horizontal,
+                                 width, height, xpad, ypad );
+    }
+
+    /**
      * Indicates whether the given shader object is capable of introducing
      * transparency into a colour (modifying rgba[3] from 1 to a lower value).
      *
@@ -1646,7 +1638,7 @@ public class Shaders {
             for ( int ix = 0; ix < nx; ix++ ) {
                 for ( int iy = 0; iy < ny; iy++ ) {
                     g.setColor( getColor( ix * nx1, iy * ny1 ) );
-                    g.drawRect( ix + xpad_, iy + ypad_, 1, 1 );
+                    g.drawRect( x + ix + xpad_, y + iy + ypad_, 1, 1 );
                 }
             }
             g.setColor( origColor );
