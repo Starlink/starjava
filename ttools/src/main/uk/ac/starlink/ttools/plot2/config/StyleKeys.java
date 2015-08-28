@@ -763,36 +763,11 @@ public class StyleKeys {
      * @return  shaders
      */
     private static Shader[] createDensityShaders() {
-        return new Shader[] {
-            Shaders.invert( Shaders.SCALE_V ),
-            Shaders.invert( Shaders.LUT_PASTEL ),
-            Shaders.invert( Shaders.LUT_RAINBOW ),
-            Shaders.invert( Shaders.LUT_GLNEMO2 ),
-            Shaders.invert( Shaders.LUT_RAINBOW3 ),
-            Shaders.invert( Shaders.LUT_ACCENT ),
-            Shaders.invert( Shaders.LUT_GNUPLOT ),
-            Shaders.invert( Shaders.LUT_GNUPLOT2 ),
-            Shaders.invert( Shaders.LUT_CUBEHELIX ),
-            Shaders.invert( Shaders.LUT_SPECXB2Y ),
-            Shaders.LUT_SET1,
-            Shaders.LUT_PAIRED,
-            Shaders.CYAN_MAGENTA,
-            Shaders.RED_BLUE,
-            Shaders.LUT_BRG,
-            Shaders.invert( Shaders.LUT_HEAT ),
-            Shaders.invert( Shaders.LUT_COLD ), 
-            Shaders.invert( Shaders.LUT_LIGHT ),
-            Shaders.WHITE_BLACK,
-            Shaders.SCALE_V,
-            Shaders.SCALE_S,
-            Shaders.LUT_COLOR,
-            Shaders.LUT_STANDARD,
-            Shaders.BREWER_BUGN,
-            Shaders.BREWER_BUPU,
-            Shaders.BREWER_ORRD,
-            Shaders.BREWER_PUBU,
-            Shaders.BREWER_PURD,
-        };
+        List<Shader> list = new ArrayList<Shader>();
+        list.add( clip( Shaders.FADE_BLACK, 0, false ) );
+        list.add( clip( Shaders.FADE_WHITE, 0.1, false ) );
+        list.addAll( Arrays.asList( createColorShaders() ) );
+        return list.toArray( new Shader[ 0 ] );
     }
 
     /**
@@ -801,45 +776,106 @@ public class StyleKeys {
      * @return  shaders
      */
     public static Shader[] createAuxShaders() {
-        return new Shader[] {
-            Shaders.LUT_RAINBOW,
-            Shaders.LUT_GLNEMO2,
-            Shaders.LUT_PASTEL,
-            Shaders.LUT_ACCENT,
-            Shaders.LUT_GNUPLOT,
-            Shaders.LUT_GNUPLOT2,
-            Shaders.LUT_CUBEHELIX,
-            Shaders.LUT_SPECXB2Y,
-            Shaders.LUT_SET1,
-            Shaders.LUT_PAIRED,
-            Shaders.CYAN_MAGENTA,
-            Shaders.RED_BLUE,
-            Shaders.LUT_BRG,
-            Shaders.LUT_HEAT,
-            Shaders.LUT_COLD,
-            Shaders.LUT_LIGHT,
-            Shaders.LUT_COLOR,
-            Shaders.WHITE_BLACK,
-            Shaders.LUT_STANDARD,
-            Shaders.LUT_RAINBOW3,
+        List<Shader> list = new ArrayList<Shader>();
+        list.addAll( Arrays.asList( createColorShaders() ) );
+        list.addAll( Arrays.asList( new Shader[] {
             Shaders.createMaskShader( "Mask", 0f, 1f, true ),
-            Shaders.FIX_HUE,
-            Shaders.TRANSPARENCY,
-            Shaders.FIX_INTENSITY,
-            Shaders.FIX_RED,
-            Shaders.FIX_GREEN,
-            Shaders.FIX_BLUE,
-            Shaders.HSV_H,
-            Shaders.HSV_S,
-            Shaders.HSV_V,
-            Shaders.FIX_Y,
-            Shaders.FIX_U,
-            Shaders.FIX_V, 
-            Shaders.BREWER_BUGN,
-            Shaders.BREWER_BUPU,
-            Shaders.BREWER_ORRD,
-            Shaders.BREWER_PUBU, 
-            Shaders.BREWER_PURD,
+            clip( Shaders.FADE_BLACK, 0, false ),
+            clip( Shaders.FADE_WHITE, 0.1, false ),
+            clip( Shaders.TRANSPARENCY, 0.1, false ),
+        } ) );
+        return list.toArray( new Shader[ 0 ] );
+    }
+
+    /**
+     * Returns a generic list of shaders suitable for all purposes.
+     * They are provided in a reasonably uniform way; where applicable
+     * the "lighter" end is near zero, and the entire range ought to
+     * be distinguishable from white.
+     * 
+     * @return  general-purpose shader list
+     */
+    private static Shader[] createColorShaders() {
+        return new Shader[] {
+            clip( Shaders.LUT_RAINBOW, 0, true ),
+            clip( Shaders.LUT_MPL2VIRIDIS, 0.06, true ),
+            clip( Shaders.LUT_MPL2MAGMA, 0.1, true ),
+            clip( Shaders.LUT_MPL2INFERNO, 0.1, true ),
+            clip( Shaders.LUT_MPL2PLASMA, 0.1, true ),
+            clip( Shaders.LUT_CUBEHELIX, 0.2, true ),
+            clip( Shaders.SRON_RAINBOW, 0, true ),
+            clip( Shaders.LUT_GLNEMO2, 0.03, true ),
+            clip( Shaders.LUT_RAINBOW3, 0, true ),
+            clip( Shaders.LUT_PASTEL, 0.06, true ),
+            clip( Shaders.LUT_ACCENT, 0, true ),
+            clip( Shaders.LUT_GNUPLOT, 0.1, true ),
+            clip( Shaders.LUT_GNUPLOT2, 0.2, true ),
+            clip( Shaders.LUT_SPECXB2Y, 0.1, true ),
+            clip( Shaders.LUT_SET1, 0, true ),
+            clip( Shaders.LUT_PAIRED, 0, true ),
+            clip( Shaders.CYAN_MAGENTA, 0, false ),
+            clip( Shaders.RED_BLUE, 0, false ),
+            clip( Shaders.LUT_BRG, 0, true ),
+            clip( Shaders.LUT_HEAT, 0.15, true ),
+            clip( Shaders.LUT_COLD, 0.15, true ),
+            clip( Shaders.LUT_LIGHT, 0.15, true ),
+            clip( Shaders.WHITE_BLACK, 0.1, false ),
+            clip( Shaders.LUT_COLOR, 0, true ),
+            clip( Shaders.LUT_STANDARD, 0, true ),
+            clip( Shaders.BREWER_BUGN, 0.15, false ),
+            clip( Shaders.BREWER_BUPU, 0.15, false ),
+            clip( Shaders.BREWER_ORRD, 0.15, false ),
+            clip( Shaders.BREWER_PUBU, 0.15, false ),
+            clip( Shaders.BREWER_PURD, 0.15, false ),
+            clip( Shaders.FIX_HUE, 0, false ),
+            clip( Shaders.FIX_INTENSITY, 0, true ),
+            clip( Shaders.FIX_RED, 0, false ),
+            clip( Shaders.FIX_GREEN, 0, false ),
+            clip( Shaders.FIX_BLUE, 0, false ),
+            clip( Shaders.HSV_H, 0, false ),
+            clip( Shaders.HSV_S, 0, false ),
+            clip( Shaders.HSV_V, 0, true ),
+            clip( Shaders.FIX_Y, 0, true ),
+            clip( Shaders.FIX_U, 0, false ),
+            clip( Shaders.FIX_V, 0, false ),
+            clip( Shaders.SCALE_S, 0, false ),
+            clip( Shaders.SCALE_V, 0, true ),
+            clip( Shaders.SCALE_Y, 0, true ),
         };
+    }
+
+    /**
+     * Adjusts a shader implementation to taste.
+     * The output value has the same name as the input one,
+     * even if it has been adjusted.
+     *
+     * @param  shader  base instance
+     * @param  clip  fraction of the base range amount to exclude
+     *               at the (output) low end
+     * @param  flip  true iff the sense of the input shader is to be inverted
+     * @return  output shader
+     */
+    private static Shader clip( Shader shader, double clip, boolean flip ) {
+        String name = shader.getName();
+        final float f0;
+        final float f1;
+        if ( flip ) {
+            f0 = 1f - (float) clip;
+            f1 = 0f;
+        }
+        else {
+            f0 = (float) clip;
+            f1 = 1f;
+        }
+        if ( f0 == 1f && f1 == 0f ) {
+            shader = Shaders.invert( shader );
+        }
+        else if ( f0 != 0f || f1 != 1f ) {
+            shader = Shaders.stretch( shader, f0, f1 );
+        }
+        if ( ! name.equals( shader.getName() ) ) {
+            shader = Shaders.rename( shader, name );
+        }
+        return shader;
     }
 }

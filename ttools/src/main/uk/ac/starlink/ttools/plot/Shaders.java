@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -78,6 +79,10 @@ public class Shaders {
     /** Fixes V in YUV colour space. */
     public static final Shader FIX_V = new YuvShader( "YUV V", 2, true );
 
+    /** Scales Y in YUV colour space. */
+    public static final Shader SCALE_Y = new YuvShader( "Scale YUV Y",
+                                                        0, false );
+
     /** Fixes H in HSV colour space. */
     public static final Shader HSV_H = new HsvShader( "HSV H", 0, true );
  
@@ -88,13 +93,16 @@ public class Shaders {
     public static final Shader HSV_V = new HsvShader( "HSV V", 2, true );
 
     /** Scales H in HSV colour space. */
-    public static final Shader SCALE_H = new HsvShader( "SCALE H", 0, false );
+    public static final Shader SCALE_H =
+        new HsvShader( "Scale HSV H", 0, false );
 
     /** Scales S in HSV colour space. */
-    public static final Shader SCALE_S = new HsvShader( "SCALE S", 1, false );
+    public static final Shader SCALE_S =
+        new HsvShader( "Scale HSV S", 1, false );
 
     /** Scales V in HSV colour space. */
-    public static final Shader SCALE_V = new HsvShader( "SCALE V", 2, false );
+    public static final Shader SCALE_V =
+        new HsvShader( "Scale HSV V", 2, false );
 
     /** Interpolates between red (0) and blue (1). */
     public static final Shader RED_BLUE =
@@ -419,6 +427,14 @@ public class Shaders {
             }
         }
     };
+
+    /** Shader which interpolates between the base colour and black. */
+    public static final Shader FADE_BLACK =
+        new FadeShader( "Blacker", Color.BLACK );
+
+    /** Shader which interpolates between the base colour and white. */
+    public static final Shader FADE_WHITE =
+        new FadeShader( "Whiter", Color.WHITE );
 
     /** Shader which fixes hue. */
     public static final Shader FIX_HUE = new BasicShader( "Hue" ) {
@@ -798,7 +814,47 @@ public class Shaders {
             hsv[ 1 ] = g;
             hsv[ 2 ] = b;
         }
+    }
 
+    /**
+     * Shader implementation that interpolates between the base
+     * colour and a given fixed colour.
+     */
+    private static class FadeShader extends BasicShader {
+        private final float[] fadeRgba_;
+
+        /**
+         * Constructor.
+         *
+         * @param   name  shader name
+         * @param   fadeColor  common output colour for value=1
+         */
+        FadeShader( String name, Color fadeColor ) {
+            super( name, false );
+            fadeRgba_ = fadeColor.getComponents( new float[ 4 ] );
+        }
+
+        public void adjustRgba( float[] rgba, float value ) {
+            for ( int i = 0; i < 4; i++ ) {
+                rgba[ i ] += value * ( fadeRgba_[ i ] - rgba[ i ] );
+            }
+        }
+
+        public int hashCode() {
+            int code = 3344;
+            code = 23 * code + Arrays.hashCode( fadeRgba_ );
+            return code;
+        }
+
+        public boolean equals( Object o ) {
+            if ( o instanceof FadeShader ) {
+                FadeShader other = (FadeShader) o;
+                return Arrays.equals( this.fadeRgba_, other.fadeRgba_ );
+            }
+            else {
+                return false;
+            }
+        }
     }
 
     /**
@@ -1031,6 +1087,56 @@ public class Shaders {
         @Override
         public String toString() {
             return getName();
+        }
+    }
+
+    /**
+     * Wrapper shader which just changes the supplied name.
+     * All other behaviour is delegated to the supplied base instance.
+     */
+    private static class RenamedShader implements Shader {
+        private final Shader base_;
+        private final String name_;
+
+        /**
+         * Constructor.
+         *
+         * @param  base  base shader
+         * @param  name  shader name
+         */
+        public RenamedShader( Shader base, String name ) {
+            base_ = base;
+            name_ = name;
+        }
+
+        public String getName() {
+            return name_;
+        }
+
+        public boolean isAbsolute() {
+            return base_.isAbsolute();
+        }
+
+        public void adjustRgba( float[] rgba, float value ) {
+            base_.adjustRgba( rgba, value );
+        }
+
+        public int hashCode() {
+            int code = 9191;
+            code = 23 * code + base_.hashCode();
+            code = 23 * code + name_.hashCode();
+            return code;
+        }
+
+        public boolean equals( Object o ) {
+            if ( o instanceof RenamedShader ) {
+                RenamedShader other = (RenamedShader) o;
+                return this.base_.equals( other.base_ )
+                    && this.name_.equals( other.name_ );
+            }
+            else {
+                return false;
+            }
         }
     }
 
@@ -1341,6 +1447,18 @@ public class Shaders {
      */
     public static Shader invert( Shader shader ) {
         return new InvertedShader( shader );
+    }
+
+    /**
+     * Returns a shader which delegates all behaviour to a supplied base
+     * instance, except it has a given name.
+     *
+     * @param  shader  base shader
+     * @param  name  new name
+     * @return  new shader
+     */
+    public static Shader rename( Shader shader, String name ) {
+        return new RenamedShader( shader, name );
     }
 
     /**
