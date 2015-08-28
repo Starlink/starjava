@@ -114,7 +114,7 @@ public class StyleKeys {
     public static final ConfigKey<Color> COLOR =
         new ColorConfigKey( ColorConfigKey
                            .createColorMeta( "color", "Color", "plotted data" ),
-                            Color.RED, false );
+                            ColorConfigKey.COLORNAME_RED, false );
 
     /** Config key for the opacity limit of transparent plots.
      *  This is the number of times a point has to be hit to result in
@@ -188,7 +188,7 @@ public class StyleKeys {
         new ColorConfigKey( ColorConfigKey
                            .createColorMeta( "gridcolor", "Grid Color",
                                              "the plot grid" ),
-                            Color.LIGHT_GRAY, false );
+                            ColorConfigKey.COLORNAME_LIGHTGREY, false );
 
     /** Config key for axis label colour. */
     public static final ConfigKey<Color> AXLABEL_COLOR =
@@ -196,7 +196,7 @@ public class StyleKeys {
             ColorConfigKey 
            .createColorMeta( "labelcolor", "Label Color",
                              "axis labels and other plot annotations" )
-            , Color.BLACK, false );
+            , ColorConfigKey.COLORNAME_BLACK, false );
 
     private static final BarStyle.Form[] BARFORMS = new BarStyle.Form[] {
         BarStyle.FORM_OPEN,
@@ -684,7 +684,7 @@ public class StyleKeys {
                 "value will not be plotted at all.",
                 "</p>",
             } )
-            , Color.GRAY, true );
+            , ColorConfigKey.COLORNAME_GREY, true );
     }
 
     /**
