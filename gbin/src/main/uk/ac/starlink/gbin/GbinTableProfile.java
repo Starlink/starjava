@@ -70,10 +70,23 @@ public interface GbinTableProfile {
      * coming up with a list of columns for an object.
      * Any methods matching strings in the return value will not
      * be used to generate columns in an output table.
-     * Only public instance methods of the form getXxx()
+     * Only public instance methods of the form
+     * <code>getXxx()</code> or <code>isXxx()</code>
      * are used in any case.
      *
      * @return   list of accessor method names to ignore
      */
     String[] getIgnoreMethodNames();
+
+    /**
+     * Returns an object which can represent a particular data type returned
+     * from an accessor method of a GBIN object (or one of its descendants).
+     * If null is returned, the object should not appear in the output
+     * table at all.
+     *
+     * @param   clazz   return type of an accessor method
+     * @return    object indicating how accessed objects should appear
+     *            in the output table; null to truncate the hierarchy here
+     */
+    Representation<?> createRepresentation( Class<?> clazz );
 }
