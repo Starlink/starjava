@@ -53,6 +53,9 @@ public class RegTapRegistryQuery implements RegistryQuery {
     /** TAP endpoint for GAVO registry hosted at AIP. */
     public static final String AIP_REG = "http://gavo.aip.de/tap";
 
+    /** TAP endpoint for registry hosted at ObsPM, synced with GAVO. */
+    public static final String PARIS_REG = "http://voparis-cdpp.obspm.fr/tap";
+
     /** TAP endpoint for INAF registry (not sure if this is permanent). */
     public static final String INAF_REG =
         "http://ia2-vo.oats.inaf.it:8080/registry";
@@ -62,6 +65,7 @@ public class RegTapRegistryQuery implements RegistryQuery {
         GAVO_REG,
         ARI_REG,
         AIP_REG,
+        PARIS_REG,
     };
 
     /** Description of metadata item describing registry location. */
