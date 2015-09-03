@@ -15,6 +15,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.RowSequence;
 
@@ -39,6 +40,8 @@ public class GbinTableReader implements RowSequence {
     private static final String GET = "get";
 
     private static final Map<Class,Class> primitiveMap_ = createPrimitiveMap();
+    private static final Logger logger_ =
+        Logger.getLogger( GbinTableReader.class.getName() );
 
     /**
      * Constructor.
@@ -160,7 +163,7 @@ public class GbinTableReader implements RowSequence {
     private static ItemReader[] createItemReaders( Class rootClazz,
                                                    GbinTableProfile profile ) {
         List<ItemReader> rdrList = new ArrayList<ItemReader>();
-        addItemReaders( rootClazz, ItemReader.ROOT, rdrList,
+        addItemReaders( rootClazz, ItemReader.ROOT, rdrList, 0,
                         profile.isSortedMethods(),
                         new HashSet<String>(
                             Arrays.asList( profile.getIgnoreMethodNames() ) ) );
@@ -174,14 +177,33 @@ public class GbinTableReader implements RowSequence {
      * @param  parentClazz  content class of parent reader
      * @param  parentRdr    parent item reader
      * @param  rdrList      list of item readers so far assembled
+     * @param  iLevel       recursion depth
      * @param  sortMethods  true iff object methods are to be sorted
      *                      alphabetically before being added to the list
      * @param  ignoreNames  method names that should not be used for columns
      */
     private static void addItemReaders( Class parentClazz, ItemReader parentRdr,
-                                        List<ItemReader> rdrList,
+                                        List<ItemReader> rdrList, int iLevel,
                                         boolean sortMethods,
                                         Collection<String> ignoreNames ) {
+ 
+        /* Logging indentation. */
+        StringBuffer pbuf = new StringBuffer();
+        for ( int i = 0; i < iLevel; i++ ) {
+            pbuf.append( "  " );
+        }
+        String prefix = pbuf.toString();
+        if ( ! parentRdr.isRoot() ) {
+            logger_.config( new StringBuffer()
+                           .append( "GBIN obj: " )
+                           .append( prefix )
+                           .append( "+ " )
+                           .append( parentRdr.getItemName() )
+                           .append( "  (" )
+                           .append( parentRdr.getItemContentClass().getName() )
+                           .append( ")" )
+                           .toString() );
+        }
 
         /* Get all methods provided by the parent class. */
         Method[] methods = parentClazz.getMethods();
@@ -210,9 +232,18 @@ public class GbinTableReader implements RowSequence {
                 if ( isColumnType( clazz ) ||
                      hasAncestorType( rdr.getParentReader(), clazz ) ) {
                     rdrList.add( rdr );
+                    logger_.config( new StringBuffer()
+                                  .append( "GBIN col: " )
+                                  .append( prefix )
+                                  .append( "  - " )
+                                  .append( rdr.getItemName() )
+                                  .append( "  (" )
+                                  .append( clazz.getName() )
+                                  .append( ")" )
+                                  .toString() );
                 }
                 else {
-                    addItemReaders( clazz, rdr, rdrList,
+                    addItemReaders( clazz, rdr, rdrList, iLevel + 1,
                                     sortMethods, ignoreNames );
                 }
             }
