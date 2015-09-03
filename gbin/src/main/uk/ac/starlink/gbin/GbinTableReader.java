@@ -36,8 +36,9 @@ public class GbinTableReader implements RowSequence {
     private final ColumnInfo[] colInfos_;
     private boolean started_;
 
-    /** Accessor method name prefix. */
+    /* Accessor method name prefixes. */
     private static final String GET = "get";
+    private static final String IS = "is";
 
     private static final Map<Class,Class> primitiveMap_ = createPrimitiveMap();
     private static final Logger logger_ =
@@ -267,22 +268,26 @@ public class GbinTableReader implements RowSequence {
     private static boolean isDataMethod( Method method,
                                          Collection<String> ignoreNames ) {
         String name = method.getName();
+        Class<?> clazz = method.getReturnType();
         int mods = method.getModifiers();
         return
 
-            /* Check method name. */
-            ( name.startsWith( GET ) &&
-              ! ignoreNames.contains( name ) ) &&
+            /* Check method name and return type. */
+            ( ( name.matches( "^" + GET + "[A-Z0-9_].*$" ) &&
+                ! void.class.equals( clazz ) ) ||
+              ( name.matches( "^" + IS + "[A-Z0-9_].*$" ) &&
+                ( boolean.class.equals( clazz ) ||
+                  Boolean.class.equals( clazz ) ) ) ) &&
+
+            /* Check not ignored. */
+            ( ! ignoreNames.contains( name ) ) &&
 
             /* Check modifiers. */
             ( Modifier.isPublic( mods ) &&
               ! Modifier.isStatic( mods ) ) &&
 
             /* Check parameter list. */
-            ( method.getParameterTypes().length == 0 ) &&
-
-            /* Check it returns something. */
-            ( method.getReturnType() != void.class );
+            ( method.getParameterTypes().length == 0 );
     }
 
     /**
@@ -396,6 +401,7 @@ public class GbinTableReader implements RowSequence {
 
         private final ItemReader parentReader_;
         private final Method method_;
+        private final String itemName_;
 
         /** Special instance used as the reader root. */
         public static final ItemReader ROOT = new ItemReader( null, null );
@@ -411,6 +417,18 @@ public class GbinTableReader implements RowSequence {
         public ItemReader( ItemReader parentReader, Method method ) {
             parentReader_ = parentReader;
             method_ = method;
+            String methodName = method.getName();
+            String itemName = null;
+            for ( String prefix : new String[] { GET, IS } ) {
+                if ( methodName.startsWith( prefix ) ) {
+                    itemName = methodName.substring( prefix.length() );
+                }
+            }
+            if ( itemName == null ) {
+                throw new IllegalArgumentException( "Method name "
+                                                  + "has wrong form" );
+            }
+            itemName_ = itemName;
         }
 
         /**
@@ -435,10 +453,10 @@ public class GbinTableReader implements RowSequence {
          * Returns the (non-hierarchical) name of the data item represented
          * by this reader.
          *
-         * @return  the Xxx for method getXxx
+         * @return  the Xxx for method getXxx() or isXxx()
          */
         public String getItemName() {
-            return method_.getName().substring( GET.length() );
+            return itemName_;
         }
 
         /**
