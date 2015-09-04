@@ -2,12 +2,10 @@ package uk.ac.starlink.ttools.plot2.layer;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Rectangle;
-import java.awt.Transparency;
-import java.awt.image.BufferedImage;
 import java.awt.image.IndexColorModel;
-import java.awt.image.WritableRaster;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -358,8 +356,10 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                 }
 
                 /* Colour it using a 2-colour colour model. */
-                IndexColorModel colorModel = createMaskColorModel( color_ );
-                return new PixelImage( counts, colorModel );
+                IndexColorModel colorModel =
+                    PixelImage.createMaskColorModel( color_ );
+                Dimension size = drawSpec_.surface_.getPlotBounds().getSize();
+                return new PixelImage( size, counts, colorModel );
             }
         }
 
@@ -412,25 +412,6 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             public ReportMap getReport( Object plan ) {
                 return null;
             }
-        }
-
-        /**
-         * Returns a 2-colour indexed colour model.
-         *
-         * @param  color  non-blank colour
-         * @return  colour map with two entries,
-         *          <code>color</code> and transparent
-         */
-        private static IndexColorModel createMaskColorModel( Color color ) {
-            IndexColorModel model =
-                new IndexColorModel( 1, 2,
-                                     new byte[] { 0, (byte) color.getRed() },
-                                     new byte[] { 0, (byte) color.getGreen() },
-                                     new byte[] { 0, (byte) color.getBlue() },
-                                     0 );
-            assert model.getTransparency() == Transparency.BITMASK;
-            assert model.getTransparentPixel() == 0;
-            return model;
         }
     }
 
@@ -718,9 +699,11 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                  * Trashing the data wouldn't hurt this time,
                  * but the plan may get re-used later. */
                 int[] counts = getBinCounts( plan ).clone();
-                IndexColorModel colorModel = createColorModel( shader_ );
+                IndexColorModel colorModel =
+                    PixelImage.createColorModel( shader_, true );
                 scaleLevels( counts, colorModel.getMapSize() - 1 );
-                return new PixelImage( counts, colorModel );
+                Dimension size = drawSpec_.surface_.getPlotBounds().getSize();
+                return new PixelImage( size, counts, colorModel );
             }
 
             /**
@@ -757,50 +740,6 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                     }
                 }
             }
-        }
-
-        /**
-         * Returns an indexed colour model whose entries range from one end
-         * to the other of a given shader object.
-         *
-         * @param  shader   absolute shader
-         * @return  colour model
-         */
-        private static IndexColorModel createColorModel( Shader shader ) {
-            assert shader.isAbsolute();
-            byte[] red = new byte[ COLOR_MAP_SIZE ];
-            byte[] green = new byte[ COLOR_MAP_SIZE ];
-            byte[] blue = new byte[ COLOR_MAP_SIZE ];
-            float[] rgb = new float[ 4 ];
-            float scale = 1f / ( COLOR_MAP_SIZE - 1 );
-            int iTransparent = 0;
-            for ( int i = 1; i < COLOR_MAP_SIZE; i++ ) {
-                assert i != iTransparent;
-                rgb[ 3 ] = 1f;
-                double level = ( i - 1 ) * scale;
-                shader.adjustRgba( rgb, (float) level );
-                red[ i ] = (byte) ( rgb[ 0 ] * 255 );
-                green[ i ] = (byte) ( rgb[ 1 ] * 255 );
-                blue[ i ] = (byte) ( rgb[ 2 ] * 255 );
-            }
-
-            /* Set the transparent colour to transparent white
-             * not transparent black.
-             * In most cases this makes no difference, but for rendering
-             * targets which ignore transparency (PostScript) it can
-             * help a bit, though such renderers are not going to work
-             * well for multi-layer plots. */
-            red[ iTransparent ] = (byte) 0xff;
-            green[ iTransparent ] = (byte) 0xff;
-            blue[ iTransparent ] = (byte) 0xff;
-            IndexColorModel model =
-                new IndexColorModel( 8, COLOR_MAP_SIZE, red, green, blue,
-                                     iTransparent );
-            assert model.getTransparency() == Transparency.BITMASK;
-            assert model.getMapSize() == COLOR_MAP_SIZE;
-            assert model.getTransparentPixel() == 0;
-            assert model.getPixelSize() == 8;
-            return model;
         }
     }
 
@@ -1458,9 +1397,10 @@ public abstract class ShapeMode implements ModePlotter.Mode {
 
         public void paintData( Object plan, Paper paper, DataStore dataStore ) {
             final PixelImage pim = createPixelImage( plan );
+            final Rectangle bounds = drawSpec_.surface_.getPlotBounds();
             drawSpec_.paperType_.placeDecal( paper, new Decal() {
                 public void paintDecal( Graphics g ) {
-                    paintPixels( g, pim );
+                    pim.paintPixels( g, bounds.getLocation() );
                 }
                 public boolean isOpaque() {
                     return true;
@@ -1470,50 +1410,6 @@ public abstract class ShapeMode implements ModePlotter.Mode {
 
         public ReportMap getReport( Object plan ) {
             return null;
-        }
-
-        /**
-         * Does the work for painting the image for this drawing (decal).
-         *
-         * @param  g  graphics context
-         * @param  pim  coloured pixel image
-         */
-        private void paintPixels( Graphics g, PixelImage pim ) {
-            int[] pixels = pim.pixels_;
-            IndexColorModel colorModel = pim.colorModel_;
-            final Rectangle bounds = drawSpec_.surface_.getPlotBounds();
-            int width = bounds.width;
-            int height = bounds.height;
-            final BufferedImage image =
-                new BufferedImage( width, height,
-                                   BufferedImage.TYPE_BYTE_INDEXED,
-                                   colorModel );
-            WritableRaster raster = image.getRaster();
-            assert raster.getNumBands() == 1;
-            raster.setSamples( 0, 0, width, height, 0, pixels );
-            assert raster.getWidth() == width;
-            assert raster.getHeight() == height;
-            g.drawImage( image, bounds.x, bounds.y, null );
-        }
-    }
-
-    /**
-     * Information for generating a colour-mapped image.
-     */
-    private static class PixelImage {
-        final int[] pixels_;
-        final IndexColorModel colorModel_;
-
-        /**
-         * Constructor.
-         *
-         * @param  pixels  pixel array,
-         *                 all values to fall in range of colour model
-         * @param  colorModel  indexed colour model
-         */
-        PixelImage( int[] pixels, IndexColorModel colorModel ) {
-            pixels_ = pixels;
-            colorModel_ = colorModel;
         }
     }
 }
