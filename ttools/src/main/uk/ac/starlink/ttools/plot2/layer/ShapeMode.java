@@ -681,7 +681,8 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             final Shader shader = ((DensityStamper) stamper).shader_;
             final Scaling scaling = ((DensityStamper) stamper).scaling_;
             ShapeStyle style = new ShapeStyle( outliner, stamper );
-            LayerOpt opt = LayerOpt.OPAQUE;
+            LayerOpt opt = Shaders.isTransparent( shader ) ? LayerOpt.NO_SPECIAL
+                                                           : LayerOpt.OPAQUE;
             return new ShapePlotLayer( plotter, geom, dataSpec, style, opt,
                                        outliner ) {
                 public Drawing createDrawing( DrawSpec drawSpec ) {
@@ -1048,8 +1049,9 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             final Color nullColor = shStamper.nullColor_;
             final float scaleAlpha = shStamper.scaleAlpha_;
             Style style = new ShapeStyle( outliner, stamper );
-            LayerOpt opt = scaleAlpha == 1f ? LayerOpt.OPAQUE
-                                            : LayerOpt.NO_SPECIAL;
+            LayerOpt opt = scaleAlpha < 1f || Shaders.isTransparent( shader )
+                         ? LayerOpt.NO_SPECIAL
+                         : LayerOpt.OPAQUE;
             return new AbstractPlotLayer( plotter, geom, dataSpec,
                                           style, opt ) {
                 @Override
