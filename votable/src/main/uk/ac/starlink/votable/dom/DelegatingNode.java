@@ -36,6 +36,13 @@ public class DelegatingNode implements Node {
     // subclasses.
     //
 
+    /**
+     * Sets the value returned by the getOwnerDocument method.
+     * This must be the parent of the root element, otherwise there
+     * will be trouble later.
+     *
+     * @param  doc   root document
+     */
     void setDocument( DelegatingDocument doc ) {
 
         /* Make sure that the document this node belongs to (the delegating
@@ -113,7 +120,21 @@ public class DelegatingNode implements Node {
     }
 
     public Node getParentNode() {
-        return doc_.getDelegator( base_.getParentNode() );
+
+        /* Normally, we return the delegator of the base node's parent.
+         * However, as a special case, if the node corresponding to the
+         * root document is required, the Document instance in use by
+         * this DOM is returned.  It seems that the root node has to be
+         * identical to the Document (at least for certain XPath
+         * implementations). */
+        Node baseParent = base_.getParentNode();
+        if ( baseParent != null &&
+             baseParent == base_.getOwnerDocument() ) {
+            return doc_;
+        }
+        else {
+            return doc_.getDelegator( baseParent );
+        }
     }
 
     public NodeList getChildNodes() {
