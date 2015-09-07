@@ -229,7 +229,7 @@ implements ActionListener, ItemListener
         dataSourcePanel.add(src_art);
         srcGroup = new ButtonGroup();
         
-    
+      
         srcGroup.add(src_sur);
         srcGroup.add(src_tmod);
         srcGroup.add(src_point);
@@ -243,6 +243,7 @@ implements ActionListener, ItemListener
         // the status information line
         JPanel statusPanel = new JPanel(new BorderLayout() );
         statusLabel = new JLabel( "", JLabel.CENTER );
+        statusLabel.getAccessibleContext().setAccessibleName("Status");
         statusPanel.add( statusLabel );
         centrePanel.add( statusPanel );
         
@@ -417,6 +418,10 @@ implements ActionListener, ItemListener
     public String getShortName()
     {
         return newResource.getShortName();
+    }
+    public String getServerTitle()
+    {
+        return newResource.getTitle();
     }
     public String getAccessURL()
     {
