@@ -179,7 +179,8 @@ public abstract class BlockMappedInput implements BasicInput {
             }
         }
         assert ib == iblock_;
-        assert ib * blockSize_ + ioff == offset;
+        assert ib * blockSize_ + ioff == offset
+            || ib == -1 && buffer_.limit() == 0 && buffer_.position() == 0;
 
         /* The current buffer is the one we want.  Set its position. */
         try {
@@ -191,7 +192,14 @@ public abstract class BlockMappedInput implements BasicInput {
     }
 
     public long getOffset() {
-        return iblock_ * blockSize_ + buffer_.position();
+        if ( iblock_ >= 0 ) {
+            return iblock_ * blockSize_ + buffer_.position();
+        }
+        else {
+            assert iblock_ == -1;
+            assert buffer_.limit() == 0 && buffer_.position() == 0;
+            return 0;
+        }
     }
 
     public void skip( long nbyte ) throws IOException {
