@@ -10335,6 +10335,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
     <ul>
     <li>Fix error reporting bug when a non-VOTable response is received
         from a TAP service.</li>
+    <li>Upgrade to JCDF v1.2 - fixes a bug when reading large (multi-2Gb)
+        CDF files.</li>
     </ul>
     </p></dd>
 

@@ -22353,6 +22353,8 @@ introduced since the last version:
     <li>Bugfix updates to ADQL library:
         disallow use of spurious schema names for tables with no schema name;
         disallow table-qualified names in ORDER/GROUP BY clauses.</li>
+    <li>Upgrade to JCDF v1.2 - fixes a bug when reading large (multi-Gb)
+        CDF files.</li>
     </ul>
     </p></dd>
 
