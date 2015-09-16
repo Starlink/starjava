@@ -580,10 +580,15 @@ public class StyleKeys {
         new RampKeySet( "aux", "Aux",
                         createAuxShaders(), Scaling.LINEAR, false );
 
-    /** Config key set for density shading. */
+    /** Config key set for density point shading. */
     public static final RampKeySet DENSITY_RAMP =
         new RampKeySet( "dense", "Density",
                         createDensityShaders(), Scaling.LOG, true );
+
+    /** Config key set for density map shading. */
+    public static final RampKeySet DENSEMAP_RAMP =
+        new RampKeySet( "dense", "Density",
+                        createDensityMapShaders(), Scaling.LINEAR, true );
 
     /** Config key set for spectrogram shading. */
     public static final RampKeySet SPECTRO_RAMP =
@@ -758,7 +763,7 @@ public class StyleKeys {
     }
 
     /**
-     * Returns a list of shaders suitable for density shading.
+     * Returns a list of shaders suitable for density point shading.
      *
      * @return  shaders
      */
@@ -767,6 +772,21 @@ public class StyleKeys {
         list.add( clip( Shaders.FADE_BLACK, 0, false ) );
         list.add( clip( Shaders.FADE_WHITE, 0.1, false ) );
         list.addAll( Arrays.asList( createColorShaders() ) );
+        return list.toArray( new Shader[ 0 ] );
+    }
+
+    /**
+     * Returns a list of shaders suitable for density map shading.
+     *
+     * @return  shaders
+     */
+    private static Shader[] createDensityMapShaders() {
+        List<Shader> list = new ArrayList<Shader>();
+        for ( Shader shader : createColorShaders() ) {
+            if ( shader.isAbsolute() ) {
+                list.add( shader );
+            }
+        }
         return list.toArray( new Shader[ 0 ] );
     }
 

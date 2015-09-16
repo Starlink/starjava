@@ -1029,6 +1029,56 @@ public class Shaders {
     }
 
     /**
+     * Shader implementation which scales the alpha component of an existing
+     * one by a fixed factor.
+     */
+    private static class FadedShader implements Shader {
+        private final Shader base_;
+        private final float scaleAlpha_;
+
+        /**
+         * Constructor.
+         *
+         * @param  base  base shader
+         */
+        public FadedShader( Shader base, float scaleAlpha ) {
+            base_ = base;
+            scaleAlpha_ = scaleAlpha;
+        }
+
+        public void adjustRgba( float[] rgba, float value ) {
+            base_.adjustRgba( rgba, value );
+            rgba[ 3 ] *= scaleAlpha_;
+        }
+
+        public boolean isAbsolute() {
+            return base_.isAbsolute();
+        }
+
+        public String getName() {
+            return base_.getName() + "*" + scaleAlpha_;
+        }
+
+        public boolean equals( Object o ) {
+            if ( o instanceof FadedShader ) {
+                FadedShader other = (FadedShader) o;
+                return this.base_.equals( other.base_ )
+                    && this.scaleAlpha_ == other.scaleAlpha_;
+            }
+            else {
+                return false;
+            }
+        }
+
+        public int hashCode() {
+            int code = 2223432;
+            code = 23 * code + base_.hashCode();
+            code = 23 * code + Float.floatToIntBits( scaleAlpha_ );
+            return code;
+        }
+    }
+
+    /**
      * Shader implementation which quantises the colour map into a
      * set of discrete colour values.
      */
@@ -1447,6 +1497,19 @@ public class Shaders {
      */
     public static Shader invert( Shader shader ) {
         return new InvertedShader( shader );
+    }
+
+    /**
+     * Returns a shader which scales the alpha value of all its colours
+     * by a given constant.
+     *
+     * @param  shader  input shader
+     * @param  scaleAlpha  alpha scaling factor, in range 0..1
+     * @return   fading shader; same as input if <code>scaleAlpha</code>==1
+     */
+    public static Shader fade( Shader shader, float scaleAlpha ) {
+        return scaleAlpha == 1f ? shader
+                                : new FadedShader( shader, scaleAlpha );
     }
 
     /**

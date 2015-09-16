@@ -51,6 +51,26 @@ public class Gridder {
     }
 
     /**
+     * Returns the X index corresponding to a pixel index.
+     *
+     * @param  index  1-d index
+     * @return  X position
+     */
+    public int getX( int index ) {
+        return index % nx_;
+    }
+
+    /**
+     * Returns the Y index corresponding to a pixel index.
+     *
+     * @param  index  1-d index
+     * @return  Y position
+     */
+    public int getY( int index ) {
+        return index / nx_;
+    }
+
+    /**
      * Returns the number of points in the grid and array.
      *
      * @return  size
