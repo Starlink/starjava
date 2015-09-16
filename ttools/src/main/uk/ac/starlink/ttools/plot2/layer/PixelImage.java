@@ -113,18 +113,22 @@ public class PixelImage {
         byte[] red = new byte[ MAP_SIZE ];
         byte[] green = new byte[ MAP_SIZE ];
         byte[] blue = new byte[ MAP_SIZE ];
-        float[] rgb = new float[ 4 ];
+        byte[] alpha = new byte[ MAP_SIZE ];
+        float[] rgba = new float[ 4 ];
         int iStart = zeroTransparent ? 1 : 0;
         float scale = 1f / ( MAP_SIZE - 1 );
         int iTransparent = zeroTransparent ? 0 : -1;
+        boolean hasAlpha = false;
         for ( int i = iStart; i < MAP_SIZE; i++ ) {
             assert i != iTransparent;
-            rgb[ 3 ] = 1f;
+            rgba[ 3 ] = 1f;
             double level = ( i - iStart ) * scale;
-            shader.adjustRgba( rgb, (float) level );
-            red[ i ] = (byte) ( rgb[ 0 ] * 255 );
-            green[ i ] = (byte) ( rgb[ 1 ] * 255 );
-            blue[ i ] = (byte) ( rgb[ 2 ] * 255 );
+            shader.adjustRgba( rgba, (float) level );
+            red[ i ] = (byte) ( rgba[ 0 ] * 255 );
+            green[ i ] = (byte) ( rgba[ 1 ] * 255 );
+            blue[ i ] = (byte) ( rgba[ 2 ] * 255 );
+            alpha[ i ] = (byte) ( rgba[ 3 ] * 255 );
+            hasAlpha = hasAlpha || alpha[ i ] != (byte) 255;
         }
         final IndexColorModel model;
         if ( iTransparent >= 0 ) {
@@ -138,6 +142,14 @@ public class PixelImage {
             red[ iTransparent ] = (byte) 0xff;
             green[ iTransparent ] = (byte) 0xff;
             blue[ iTransparent ] = (byte) 0xff;
+            alpha[ iTransparent ] = (byte) 0x00;
+        }
+        if ( hasAlpha ) {
+            model = new IndexColorModel( NBIT, MAP_SIZE, red, green, blue,
+                                         alpha );
+            assert model.getTransparency() == Transparency.TRANSLUCENT;
+        }
+        else if ( iTransparent >= 0 ) {
             model = new IndexColorModel( NBIT, MAP_SIZE, red, green, blue,
                                          iTransparent );
             assert model.getTransparency() == Transparency.BITMASK;
@@ -145,6 +157,7 @@ public class PixelImage {
         }
         else {
             model = new IndexColorModel( NBIT, MAP_SIZE, red, green, blue );
+            assert model.getTransparency() == Transparency.OPAQUE;
         }
         assert model.getMapSize() == MAP_SIZE;
         assert model.getPixelSize() == NBIT;
