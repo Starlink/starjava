@@ -771,7 +771,7 @@ public class StyleKeys {
         List<Shader> list = new ArrayList<Shader>();
         list.add( clip( Shaders.FADE_BLACK, 0, false ) );
         list.add( clip( Shaders.FADE_WHITE, 0.1, false ) );
-        list.addAll( Arrays.asList( createColorShaders() ) );
+        list.addAll( Arrays.asList( createColorShaders( true ) ) );
         return list.toArray( new Shader[ 0 ] );
     }
 
@@ -782,7 +782,7 @@ public class StyleKeys {
      */
     private static Shader[] createDensityMapShaders() {
         List<Shader> list = new ArrayList<Shader>();
-        for ( Shader shader : createColorShaders() ) {
+        for ( Shader shader : createColorShaders( false ) ) {
             if ( shader.isAbsolute() ) {
                 list.add( shader );
             }
@@ -797,7 +797,7 @@ public class StyleKeys {
      */
     public static Shader[] createAuxShaders() {
         List<Shader> list = new ArrayList<Shader>();
-        list.addAll( Arrays.asList( createColorShaders() ) );
+        list.addAll( Arrays.asList( createColorShaders( true ) ) );
         list.addAll( Arrays.asList( new Shader[] {
             Shaders.createMaskShader( "Mask", 0f, 1f, true ),
             clip( Shaders.FADE_BLACK, 0, false ),
@@ -810,43 +810,49 @@ public class StyleKeys {
     /**
      * Returns a generic list of shaders suitable for all purposes.
      * They are provided in a reasonably uniform way; where applicable
-     * the "lighter" end is near zero, and the entire range ought to
-     * be distinguishable from white.
+     * the "lighter" end is near zero.
+     * If the <code>isAllVisible</code> flag is set true,
+     * then the resulting shaders will (where possible) supply a colour
+     * range which is visually distinguishable from white over its
+     * entire range.
      * 
+     * @param  isAllVisible  if true, tweaks are applied as necesary
+     *         so that all the whole range is distinguishable from white
      * @return  general-purpose shader list
      */
-    private static Shader[] createColorShaders() {
+    private static Shader[] createColorShaders( boolean isAllVisible ) {
+        double c = isAllVisible ? 1 : 0;
         return new Shader[] {
             clip( Shaders.LUT_RAINBOW, 0, true ),
-            clip( Shaders.LUT_MPL2VIRIDIS, 0.06, true ),
-            clip( Shaders.LUT_MPL2MAGMA, 0.1, true ),
-            clip( Shaders.LUT_MPL2INFERNO, 0.1, true ),
-            clip( Shaders.LUT_MPL2PLASMA, 0.1, true ),
-            clip( Shaders.LUT_CUBEHELIX, 0.2, true ),
+            clip( Shaders.LUT_MPL2VIRIDIS, c * 0.06, true ),
+            clip( Shaders.LUT_MPL2MAGMA, c * 0.1, true ),
+            clip( Shaders.LUT_MPL2INFERNO, c * 0.1, true ),
+            clip( Shaders.LUT_MPL2PLASMA, c * 0.1, true ),
+            clip( Shaders.LUT_CUBEHELIX, c * 0.2, true ),
             clip( Shaders.SRON_RAINBOW, 0, true ),
-            clip( Shaders.LUT_GLNEMO2, 0.03, true ),
+            clip( Shaders.LUT_GLNEMO2, c * 0.03, true ),
             clip( Shaders.LUT_RAINBOW3, 0, true ),
-            clip( Shaders.LUT_PASTEL, 0.06, true ),
+            clip( Shaders.LUT_PASTEL, c * 0.06, true ),
             clip( Shaders.LUT_ACCENT, 0, true ),
-            clip( Shaders.LUT_GNUPLOT, 0.1, true ),
-            clip( Shaders.LUT_GNUPLOT2, 0.2, true ),
-            clip( Shaders.LUT_SPECXB2Y, 0.1, true ),
+            clip( Shaders.LUT_GNUPLOT, c * 0.1, true ),
+            clip( Shaders.LUT_GNUPLOT2, c * 0.2, true ),
+            clip( Shaders.LUT_SPECXB2Y, c * 0.1, true ),
             clip( Shaders.LUT_SET1, 0, true ),
             clip( Shaders.LUT_PAIRED, 0, true ),
             clip( Shaders.CYAN_MAGENTA, 0, false ),
             clip( Shaders.RED_BLUE, 0, false ),
             clip( Shaders.LUT_BRG, 0, true ),
-            clip( Shaders.LUT_HEAT, 0.15, true ),
-            clip( Shaders.LUT_COLD, 0.15, true ),
-            clip( Shaders.LUT_LIGHT, 0.15, true ),
-            clip( Shaders.WHITE_BLACK, 0.1, false ),
+            clip( Shaders.LUT_HEAT, c * 0.15, true ),
+            clip( Shaders.LUT_COLD, c * 0.15, true ),
+            clip( Shaders.LUT_LIGHT, c * 0.15, true ),
+            clip( Shaders.WHITE_BLACK, c * 0.1, false ),
             clip( Shaders.LUT_COLOR, 0, true ),
             clip( Shaders.LUT_STANDARD, 0, true ),
-            clip( Shaders.BREWER_BUGN, 0.15, false ),
-            clip( Shaders.BREWER_BUPU, 0.15, false ),
-            clip( Shaders.BREWER_ORRD, 0.15, false ),
-            clip( Shaders.BREWER_PUBU, 0.15, false ),
-            clip( Shaders.BREWER_PURD, 0.15, false ),
+            clip( Shaders.BREWER_BUGN, c * 0.15, false ),
+            clip( Shaders.BREWER_BUPU, c * 0.15, false ),
+            clip( Shaders.BREWER_ORRD, c * 0.15, false ),
+            clip( Shaders.BREWER_PUBU, c * 0.15, false ),
+            clip( Shaders.BREWER_PURD, c * 0.15, false ),
             clip( Shaders.FIX_HUE, 0, false ),
             clip( Shaders.FIX_INTENSITY, 0, true ),
             clip( Shaders.FIX_RED, 0, false ),
