@@ -299,6 +299,7 @@ public class StyleKeys {
         }.setOptionUsage()
          .addOptionsXml();
 
+
     /** Config key for line antialiasing. */
     public static final ConfigKey<Boolean> ANTIALIAS =
         new BooleanConfigKey(

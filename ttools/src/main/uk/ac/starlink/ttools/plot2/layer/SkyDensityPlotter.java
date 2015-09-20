@@ -33,6 +33,7 @@ import uk.ac.starlink.ttools.plot2.config.ConfigKey;
 import uk.ac.starlink.ttools.plot2.config.ConfigMap;
 import uk.ac.starlink.ttools.plot2.config.ConfigMeta;
 import uk.ac.starlink.ttools.plot2.config.IntegerConfigKey;
+import uk.ac.starlink.ttools.plot2.config.OptionConfigKey;
 import uk.ac.starlink.ttools.plot2.config.RampKeySet;
 import uk.ac.starlink.ttools.plot2.config.StyleKeys;
 import uk.ac.starlink.ttools.plot2.data.Coord;
@@ -77,6 +78,7 @@ public class SkyDensityPlotter
                 "</p>",
             } )
         , 4, 0, 29, false );
+    private static final ConfigKey<Combiner> COMBINER_KEY = createCombinerKey();
     private static final ConfigKey<Double> OPAQUE_KEY = StyleKeys.AUX_OPAQUE;
 
     /**
@@ -97,7 +99,7 @@ public class SkyDensityPlotter
     }
 
     public String getPlotterName() {
-        return "Density";
+        return "SkyDensity";
     }
 
     public Icon getPlotterIcon() {
@@ -122,6 +124,9 @@ public class SkyDensityPlotter
     public ConfigKey[] getStyleKeys() {
         List<ConfigKey> keyList = new ArrayList<ConfigKey>();
         keyList.add( LEVEL_KEY );
+        if ( weightCoord_ != null ) {
+            keyList.add( COMBINER_KEY );
+        }
         keyList.addAll( Arrays.asList( RAMP_KEYS.getKeys() ) );
         if ( transparent_ ) {
             keyList.add( OPAQUE_KEY );
@@ -135,7 +140,9 @@ public class SkyDensityPlotter
         Scaling scaling = ramp.getScaling();
         float scaleAlpha = (float) ( 1.0 / config.get( OPAQUE_KEY ) );
         Shader shader = Shaders.fade( ramp.getShader(), scaleAlpha );
-        return new SkyDenseStyle( level, scaling, shader );
+        Combiner combiner = weightCoord_ == null ? Combiner.SUM
+                                                 : config.get( COMBINER_KEY );
+        return new SkyDenseStyle( level, scaling, shader, combiner );
     }
 
     public PlotLayer createLayer( final DataGeom geom, final DataSpec dataSpec,
@@ -195,6 +202,43 @@ public class SkyDensityPlotter
     }
 
     /**
+     * Constructs the config key used to solicit a Combiner value
+     * from the user.
+     *
+     * @return  combiner key
+     */ 
+    private static ConfigKey<Combiner> createCombinerKey() {
+        ConfigMeta meta = new ConfigMeta( "combine", "Combine" );
+        meta.setShortDescription( "Value combination mode" );
+        meta.setXmlDescription( new String[] {
+            "<p>Defines how values contributing to the same",
+            "density map bin are combined together to produce",
+            "the value assigned to that bin (and hence its colour).",
+            "</p>",
+            "<p>For unweighted values (a pure density map),",
+            "it usually makes sense to use",
+            "<code>" + Combiner.SUM + "</code>.",
+            "However, if the input is weighted by an additional",
+            "data coordinate, one of the other values such as",
+            "<code>" + Combiner.MEAN + "</code>",
+            "may be more revealing.",
+            "</p>", 
+        } );
+        Combiner[] options = Combiner.getKnownCombiners();
+        Combiner dflt = Combiner.SUM;
+        OptionConfigKey<Combiner> key =
+                new OptionConfigKey<Combiner>( meta, Combiner.class,
+                                               options, dflt ) {
+            public String getXmlDescription( Combiner combiner ) {
+                return combiner.getDescription();
+            }
+        };
+        key.setOptionUsage();
+        key.addOptionsXml();
+        return key;
+    }
+
+    /**
      * Style for configuring with the sky density plot.
      */
     public static class SkyDenseStyle implements Style {
@@ -202,6 +246,7 @@ public class SkyDensityPlotter
         private final int level_;
         private final Scaling scaling_;
         private final Shader shader_;
+        private final Combiner combiner_;
 
         /**
          * Constructor.
@@ -214,11 +259,14 @@ public class SkyDensityPlotter
          * @param   scaling   scaling function for mapping densities to
          *                    colour map entries
          * @param   shader   colour map
+         * @param   combiner  value combination mode for bin calculation
          */
-        public SkyDenseStyle( int level, Scaling scaling, Shader shader ) {
+        public SkyDenseStyle( int level, Scaling scaling, Shader shader,
+                              Combiner combiner ) {
             level_ = level;
             scaling_ = scaling;
             shader_ = shader;
+            combiner_ = combiner;
         }
 
         /**
@@ -243,6 +291,7 @@ public class SkyDensityPlotter
             code = 23 * code + level_;
             code = 23 * code + scaling_.hashCode();
             code = 23 * code + shader_.hashCode();
+            code = 23 * code + combiner_.hashCode();
             return code;
         }
 
@@ -252,7 +301,8 @@ public class SkyDensityPlotter
                 SkyDenseStyle other = (SkyDenseStyle) o;
                 return this.level_ == other.level_
                     && this.scaling_.equals( other.scaling_ )
-                    && this.shader_.equals( other.shader_ );
+                    && this.shader_.equals( other.shader_ )
+                    && this.combiner_.equals( other.combiner_ );
             }
             else {
                 return false;
@@ -297,7 +347,8 @@ public class SkyDensityPlotter
             for ( Object plan : knownPlans ) {
                 if ( plan instanceof SkyDensityPlan ) {
                     SkyDensityPlan skyPlan = (SkyDensityPlan) plan;
-                    if ( skyPlan.matches( level_, dataSpec_, geom_ ) ) {
+                    if ( skyPlan.matches( level_, style_.combiner_,
+                                          dataSpec_, geom_ ) ) {
                         return skyPlan;
                     }
                 }
@@ -333,7 +384,8 @@ public class SkyDensityPlotter
         private IntegerBinBag readBins( DataStore dataStore ) {
             SkyPixer skyPixer = createSkyPixer();
             IntegerBinBag binBag =
-                IntegerBinBag.createBinBag( skyPixer.getPixelCount() );
+                IntegerBinBag.createBinBag( skyPixer.getPixelCount(),
+                                            style_.combiner_ );
             int icPos = coordGrp_.getPosCoordIndex( 0, geom_ );
             int icWeight = weightCoord_ == null
                          ? -1
@@ -465,12 +517,14 @@ public class SkyDensityPlotter
          * specification.
          *
          * @param   level  HEALPix level giving sky pixel resolution
+         * @param   combiner  value combination mode
          * @param   dataSpec  input data specification
          * @param   geom    sky geometry
          */
-        public boolean matches( int level, DataSpec dataSpec,
-                                SkyDataGeom geom ) {
+        public boolean matches( int level, Combiner combiner,
+                                DataSpec dataSpec, SkyDataGeom geom ) {
              return binBag_.getSize() == new SkyPixer( level ).getPixelCount()
+                 && binBag_.getCombiner().equals( combiner )
                  && dataSpec_.equals( dataSpec )
                  && geom_.equals( geom );
         }
