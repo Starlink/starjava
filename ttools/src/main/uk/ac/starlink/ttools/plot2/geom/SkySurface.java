@@ -673,6 +673,19 @@ public class SkySurface implements Surface {
         }
     }
 
+    /**
+     * Returns the screen position corresponding to the center of the
+     * projection used by this surface.  That position will typically,
+     * but not necessarily, be the least distorted point.
+     * The returned position is not necessarily within the currently
+     * visible plot bounds.
+     *
+     * @return   central position in graphics coordinates
+     */
+    public Point getSkyCenter() {
+        return new Point( gXoff_, gYoff_ );
+    }
+
     @Override
     public boolean equals( Object o ) {
         if ( o instanceof SkySurface ) {

@@ -1,6 +1,7 @@
 package uk.ac.starlink.ttools.plot2.layer;
 
 import java.awt.Graphics;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.Point2D;
 import java.awt.image.IndexColorModel;
@@ -10,6 +11,8 @@ import java.util.List;
 import java.util.Map;
 import javax.swing.Icon;
 import uk.ac.starlink.ttools.gui.ResourceIcon;
+import uk.ac.starlink.ttools.func.Tilings;
+import uk.ac.starlink.ttools.plot.Matrices;
 import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot.Shader;
 import uk.ac.starlink.ttools.plot.Shaders;
@@ -150,6 +153,48 @@ public class SkyDensityPlotter
     }
 
     /**
+     * Calculates the HEALPix level whose pixels are of approximately
+     * the same size as the screen pixels for a given SkySurface.
+     * There is not an exact correspondance here.
+     * An attempt is made to return the result for the "largest" screen pixel
+     * (the one covering more of the sky than any other).
+     *
+     * @param  surface
+     * @return  approximately corresponding HEALPix level
+     */
+    private static int getPixelLevel( SkySurface surface ) {
+
+        /* Identify the graphics pixel at the center of the sky projection.
+         * It may be off the currently visible part of the screen;
+         * that doesn't matter.  This is likely to be the largest
+         * screen pixel. */
+        Point p = surface.getSkyCenter();
+        double[] p1 =
+            surface.graphicsToData( new Point( p.x - 1, p.y - 1 ), null );
+        double[] p2 =
+            surface.graphicsToData( new Point( p.x + 1, p.y + 1 ), null );
+        double pixTheta = vectorSeparation( p1, p2 ) / Math.sqrt( 4 + 4 );
+        return Tilings.healpixK( Math.toDegrees( pixTheta * 2 ) );
+    }
+
+    /**
+     * Angle in radians between two (not necessarily unit) vectors.
+     * The code follows that of SLA_SEPV from SLALIB.
+     * The straightforward thing to do would just be to use the cosine rule,
+     * but that may suffer numeric instabilities for small angles,
+     * so this more complicated approach is more robust.
+     *
+     * @param  p1  first input vector
+     * @param  p2  second input vector
+     * @return   angle between p1 and p2 in radians
+     */
+    private static double vectorSeparation( double[] p1, double[] p2 ) {
+        double modCross = Matrices.mod( Matrices.cross( p1, p2 ) );
+        double dot = Matrices.dot( p1, p2 );
+        return modCross == 0 && dot == 0 ? 0 : Math.atan2( modCross, dot );
+    }
+
+    /**
      * Style for configuring with the sky density plot.
      */
     public static class SkyDenseStyle implements Style {
@@ -161,7 +206,11 @@ public class SkyDensityPlotter
         /**
          * Constructor.
          *
-         * @param   level   HEALPix level defining the map resolution
+         * @param   level   HEALPix level defining the requested map resolution;
+         *                  note the actual resolution at which the densities
+         *                  are calculated may be different from this,
+         *                  in particular if the screen pixel grid is coarser
+         *                  than that defined by this level
          * @param   scaling   scaling function for mapping densities to
          *                    colour map entries
          * @param   shader   colour map
@@ -221,6 +270,7 @@ public class SkyDensityPlotter
         private final DataSpec dataSpec_;
         private final SkyDenseStyle style_;
         private final PaperType paperType_;
+        private final int level_;
 
         /**
          * Constructor.
@@ -239,6 +289,7 @@ public class SkyDensityPlotter
             dataSpec_ = dataSpec;
             style_ = style;
             paperType_ = paperType;
+            level_ = Math.min( style_.level_, getPixelLevel( surface ) );
         }
 
         public Object calculatePlan( Object[] knownPlans,
@@ -246,7 +297,7 @@ public class SkyDensityPlotter
             for ( Object plan : knownPlans ) {
                 if ( plan instanceof SkyDensityPlan ) {
                     SkyDensityPlan skyPlan = (SkyDensityPlan) plan;
-                    if ( skyPlan.matches( style_.level_, dataSpec_, geom_ ) ) {
+                    if ( skyPlan.matches( level_, dataSpec_, geom_ ) ) {
                         return skyPlan;
                     }
                 }
@@ -379,7 +430,7 @@ public class SkyDensityPlotter
          * @return   sky pixer for this drawing
          */
         private SkyPixer createSkyPixer() {
-            return new SkyPixer( style_.level_ );
+            return new SkyPixer( level_ );
         }
     }
 
