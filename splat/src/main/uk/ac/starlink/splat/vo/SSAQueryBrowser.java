@@ -30,8 +30,14 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.beans.XMLDecoder;
+import java.beans.XMLEncoder;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -41,6 +47,8 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -63,8 +71,10 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JRadioButton;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
@@ -79,6 +89,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import jsky.catalog.BasicQueryArgs;
+import jsky.catalog.Catalog;
 import jsky.catalog.QueryArgs;
 import jsky.catalog.QueryResult;
 import jsky.catalog.TableQueryResult;
@@ -107,6 +118,7 @@ import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.gui.StarJTable;
+import uk.ac.starlink.table.gui.StarTableModel;
 import uk.ac.starlink.util.ProxySetup;
 import uk.ac.starlink.util.gui.BasicFileChooser;
 import uk.ac.starlink.util.gui.BasicFileFilter;
@@ -241,6 +253,13 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
     protected JButton nameLookup = null;
 
     /**
+     * Clear input fields button
+     * @uml.property  name="clear"
+     * @uml.associationEnd  
+     */
+    protected JButton clearButton = null;
+
+    /**
      * Download and display selected spectra
      * @uml.property  name="displaySelectedButton"
      * @uml.associationEnd  
@@ -295,12 +314,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
      * @uml.associationEnd  readOnly="true"
      */
     protected JRadioButton  customSearchButton;
-
-    /** Display GET DATA  parameters and activation status */
-//    protected JButton  getDataButton;
-    
-//    protected boolean getDataEnabled = false;
-   
+  
     /**
      * Display  DATA Link parameters and activation status
      * @uml.property  name="dataLinkButton"
@@ -327,12 +341,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
      */
     JButton showQueryButton = null;
 
-    /**
-     * Allows user to customize search parameters
-     * @uml.property  name="customButton"
-     * @uml.associationEnd  
-     */
-    protected JButton customButton = null;
+    
 
     /**
      * Central RA
@@ -354,6 +363,13 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
      * @uml.associationEnd  
      */
     protected JTextField radiusField = null;
+    
+    /**
+     * Region MAXREC
+     * @uml.property  name="maxrexField"
+     * @uml.associationEnd  
+     */
+    protected JTextField maxRecField = null;
 
     /**
      * Lower limit for BAND
@@ -446,7 +462,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
      * @uml.property  name="starJTables"
      * @uml.associationEnd  multiplicity="(0 -1)" elementType="uk.ac.starlink.table.gui.StarJTable"
      */
-    protected ArrayList<StarJTable> starJTables = null;
+    protected ArrayList<StarPopupTable> starJTables = null;
 
     /**
      * NED name resolver catalogue
@@ -492,6 +508,13 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
      */
     protected JButton deselectAllParamsButton = null;
     
+    /**
+     * The Button for querying services for parameters
+     * @uml.property  name="updateParamsButton"
+     * @uml.associationEnd  
+     */
+    protected JButton updateParamsButton = null;
+    
     /** The list of all input parameters read from the servers */
    // protected static SSAMetadataFrame metaFrame = null;
     protected static SSAMetadataPanel metaPanel = null;
@@ -509,7 +532,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
     private SSAQuery queryLine;
     
     /** The list of all input parameters read from the servers as a hash map */
-    private static HashMap<String, MetadataInputParameter> metaParam=null;  
+  //  private static HashMap<String, MetadataInputParameter> metaParam=null;  
     
     /** The list of all input parameters read from the servers as a hash map */
     private static HashMap< JTextField, String > queryMetaParam=null; 
@@ -517,38 +540,28 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
     
     /** the authenticator for access control **/
     private static SSAPAuthenticator authenticator;
-    
-    /** two way mapping servers-metadata parameters **/
-    private static ServerParamRelation serverParam;
-    
+       
     /**
-     * the serverlist as a tree
-     * @uml.property  name="tree"
+     * the serverlist as a serverTable
+     * @uml.property  name="serverTable"
      * @uml.associationEnd  
      */
-    private SSAServerTree tree;
+    private SSAServerTable serverTable;
     
     /**
      * @uml.property  name="isLookup"
      */
     private boolean isLookup = false;
-    /**
-     * @uml.property  name="getDataSelection"
-     */
-    private boolean getDataSelection = false;
-   
+  
     static ProgressPanelFrame progressFrame = null;
 
-    /**
-     * @uml.property  name="getDataFrame"
-     * @uml.associationEnd  
-     */
-    private GetDataQueryFrame getDataFrame = null;
     /**
      * @uml.property  name="dataLinkFrame"
      * @uml.associationEnd  
      */
     private DataLinkQueryFrame dataLinkFrame = null;
+
+    private JPopupMenu specPopupMenu;
 
     /**
      * Create an instance.
@@ -562,23 +575,37 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         authenticator = new SSAPAuthenticator();
         Authenticator.setDefault(authenticator);
         specDataFactory.setAuthenticator(authenticator);
-        serverParam = new ServerParamRelation();
         queryMetaParam = new HashMap< JTextField, String >();
-        if (serverList != null) customParameters();
-       
-       
+                
+        metaPanel = new SSAMetadataPanel();
+        metaPanel.addPropertyChangeListener(this);
+
+    /*    try {
+            metaPanel.restoreParams();
+            // = metaPanel.getParams();
+        } catch (Exception e) {
+            logger.info("Exception during deserialization: " + e);
+         //   if (serverList != null)
+         //      queryCustomParameters();   
+        }
+     */   
         initUI();
         this.pack();
-      
         this.setVisible(true);
         initMenusAndToolbar();
         initFrame(); 
-        
+ /*       try {
+            metaPanel.backupParams();
+        } catch (Exception e) {
+            logger.info("Exception during serialization: " + e);
+        }
+  */      
     }
 
     public SSAPAuthenticator getAuthenticator() {
         return authenticator;
     }
+    
     /**
      * Create and display the UI components.
      */
@@ -619,7 +646,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
          gbcentre.fill=GridBagConstraints.BOTH;
          initResultsComponent();
          
-         setDefaultNameServers();
+      //   setDefaultNameServers();
       //   tabPane.addTab("Query", centrePanel);
          
      //    tabPane.setSelectedComponent(centrePanel);
@@ -637,8 +664,9 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
         leftPanel.setAlignmentY((float) 1.);
 
-        tree=new SSAServerTree( serverList, serverParam );   
-        leftPanel.add(tree);
+        serverTable=new SSAServerTable( serverList );
+        serverTable.addPropertyChangeListener(this);
+        leftPanel.add(serverTable);
     }
     
     
@@ -693,6 +721,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         JButton readButton = new JButton( readAction );
         actionBarContainer.add( readButton );
 
+
         //  Add an action to close the window.
         LocalAction closeAction = new LocalAction( LocalAction.CLOSE,
                 "Close", closeImage,
@@ -727,7 +756,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         initWaveCalibOptions( optionsMenu );
         initFluxCalibOptions( optionsMenu );
 */
-        //  Create a menu containing all the name resolvers.
+     //  Create a menu containing all the name resolvers.
         JMenu resolverMenu = new JMenu( "Resolver" );
         resolverMenu.setMnemonic( KeyEvent.VK_R );
         menuBar.add( resolverMenu );
@@ -754,11 +783,11 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         jrbmi.setSelected( true );
         bg.add( jrbmi );
         jrbmi.setAction( new ResolverAction( "CDS Sesame", null  ) );
-        resolverCatalogue = null;
+       
         jrbmi.setToolTipText
         ( "CDS Sesame service queries SIMBAD, NED and Vizier" );
 
-
+        resolverCatalogue = null;
         //  Create a menu for inter-client communications.
         JMenu interopMenu = new JMenu( "Interop" );
         interopMenu.setMnemonic( KeyEvent.VK_I );
@@ -840,37 +869,48 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         //------------------------
            
        // GridBagLayouter layouter =  new GridBagLayouter( queryPanel, GridBagLayouter.SCHEME3 /*SCHEME4*/ );
-        GridBagLayouter layouter =  new GridBagLayouter( simpleQueryPanel, GridBagLayouter.SCHEME4 /*SCHEME4*/ );
+      //  GridBagLayouter layouter1 =  new GridBagLayouter( simpleQueryPanel, GridBagLayouter.SCHEME4 ); // label:[field         ]
+        GridBagLayouter layouter =  new GridBagLayouter( simpleQueryPanel, GridBagLayouter.SCHEME4 ); // label:[field] label;[field]
+       // GridBagLayouter layouter1 =  new GridBagLayouter( simpleQueryPanel, GridBagLayouter.SCHEME4 );
        // GridBagLayouter layouter2 =  new GridBagLayouter( simpleQuery2/*Panel*/, GridBagLayouter.SCHEME4 /*SCHEME4*/ );
 
 
         //  Object name. Arrange for a resolver to look up the coordinates of
         //  the object name, when return or the lookup button are pressed.
         JLabel nameLabel = new JLabel( "Object:" );
-        nameField = new JTextField( 10 );
+        nameField = new JTextField( 15 );
         nameField.setFocusable(true);
         nameField.setToolTipText( "Enter the name of an object " +
                 " -- press return to get coordinates" );
         nameField.addActionListener( this );
         nameField.getDocument().putProperty("owner", nameField); //set the owner
         nameField.getDocument().addDocumentListener( this );
-      //  nameField.addMouseListener( this );
-        
+          
+        JPanel clearLookupPanel = new JPanel();
         nameLookup = new JButton( "Lookup" );
         nameLookup.addActionListener( this );
         nameLookup.setToolTipText( "Press to get coordinates of Object" );
+        clearLookupPanel.add(nameLookup);
+        
+        clearButton = new JButton( "Clear" );
+        clearButton.addActionListener( this );
+        clearButton.setToolTipText( "Clear all fields" );
+        clearLookupPanel.add(clearButton);
         
         JPanel objPanel = new JPanel( new GridBagLayout());
         GridBagConstraints gbcs = new GridBagConstraints();
         gbcs.weightx = 1.0;
         gbcs.fill = GridBagConstraints.HORIZONTAL;
         gbcs.ipadx = 15;
+        gbcs.gridx=0;
         objPanel.add(nameField, gbcs);
+        gbcs.gridx=1;
         objPanel.add(nameLookup, gbcs);
+        gbcs.gridx=2;
+        objPanel.add(clearButton, gbcs);
         layouter.add( nameLabel, false );
      
         layouter.add(objPanel, true);
- 
         layouter.eatLine();
 
        
@@ -910,17 +950,44 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
 
         //  Radius field.
         JLabel radiusLabel = new JLabel( "Radius:" );
-        radiusField = new JTextField( "10.0", 10 );
+        radiusField = new JTextField( "10.0", 12 );
         queryLine.setRadius(10.0);
         radiusField.addActionListener( this );
-        layouter.add( radiusLabel, false );
-        layouter.add( radiusField, true );
+  //      layouter.add( radiusLabel, false );
+  //      layouter.add( radiusField, false );
         radiusField.setToolTipText( "Enter radius of field to search" +
                 " from given centre, arcminutes" );
         radiusField.addActionListener( this );
         radiusField.getDocument().putProperty("owner", radiusField); //set the owner
         radiusField.getDocument().addDocumentListener( this );
-
+        
+        // Maxrec Field
+        
+        JLabel maxRecLabel = new JLabel( "MAXREC:" );
+        maxRecField = new JTextField( "", 9 );
+        maxRecField.addActionListener( this );
+     //   layouter.add( maxRecLabel, false );
+    //    layouter.add( maxRecField, true );
+        maxRecField.setToolTipText( "The maximum number of records to be returned from a service" );
+        maxRecField.addActionListener( this );
+        maxRecField.getDocument().putProperty("owner", maxRecField); //set the owner
+        maxRecField.getDocument().addDocumentListener( this );
+        JPanel radmaxrecPanel = new JPanel( new GridBagLayout() );
+        
+        gbc = new GridBagConstraints();
+     
+        gbc.weightx = 1.0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        radmaxrecPanel.add( radiusField, gbc );
+        gbc.weightx=0.0;
+        gbc.fill = GridBagConstraints.NONE;
+        radmaxrecPanel.add(maxRecLabel, gbc);
+        gbc.weightx = 1.0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        radmaxrecPanel.add(maxRecField, gbc);
+        
+        layouter.add(radiusLabel, false);
+        layouter.add(radmaxrecPanel,true);
 
         //  Band fields.
         JLabel bandLabel = new JLabel( "Band:" );
@@ -1003,14 +1070,13 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         JPanel calibOptions = new JPanel(new GridLayout(3,2));
    //     calibOptions.setPreferredSize(new Dimension(100,200));
         // Formats
-        String[] formats =  { "None", "ALL", "COMPLIANT", "votable", "fits", "xml", "native" };
+        String[] formats =  { "None", "ALL", "COMPLIANT", "votable", "fits", "xml", "native", "image/fits" };
         formatList = new JComboBox(formats);
         formatList.setSelectedIndex(0);
         formatList.addActionListener(this);
-        calibOptions.add(new JLabel("Query Format:"));
-        
+        calibOptions.add(new JLabel("Query Format:"));       
         calibOptions.add( formatList, true);
-        
+       
         //Wavelength Calibration
         String[] wlcalibs = { "None", "any", "absolute", "relative" };
         wlcalibList = new JComboBox(wlcalibs);      
@@ -1040,14 +1106,12 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         //----------------------------------------------
      
         optionalQueryPanel.setLayout( new BoxLayout(optionalQueryPanel, BoxLayout.PAGE_AXIS) );
-       metaPanel = new SSAMetadataPanel();
-       metaPanel.addPropertyChangeListener(this);
        //showParameters();
       // metaPanel.setVisible(false);
       // layouter.add(metaPanel, true);
     //   metaPanel.setTableWidth(200);
        optionalQueryPanel.add(metaPanel);//, BorderLayout.NORTH);
-       showParameters();
+         showParameters();
     //   queryTextPanel.add(new JLabel("Query:"));
         JPanel paramButtonsPanel = new JPanel( );
         selectAllParamsButton = new JButton("Select all");
@@ -1059,9 +1123,15 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         deselectAllParamsButton.addActionListener( this );
      //   deselectAllParamsButton.setToolTipText("Remove selected parameters");
         deselectAllParamsButton.setMargin(new Insets(2,2,2,2));  
+        
+        updateParamsButton = new JButton("Update");
+        updateParamsButton.addActionListener( this );
+        updateParamsButton.setToolTipText("query services to update parameters");
+        updateParamsButton.setMargin(new Insets(2,2,2,2));  
     //    optionalQueryPanel.add(deselectAllParamsButton, BorderLayout.EAST);
         paramButtonsPanel.add( selectAllParamsButton );
         paramButtonsPanel.add( deselectAllParamsButton );
+        paramButtonsPanel.add( updateParamsButton );
         optionalQueryPanel.add(paramButtonsPanel, BorderLayout.SOUTH);
     
          
@@ -1135,15 +1205,9 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                         if (dataLinkFrame != null && dataLinkEnabled) {
                             dataLinkFrame.setServer(resultsPane.getTitleAt(resultsPane.getSelectedIndex()));
                             dataLinkFrame.setVisible(true);
-                        } else 
-
-                            if (getDataFrame != null && dataLinkEnabled) {
-                                getDataFrame.setService(resultsPane.getTitleAt(resultsPane.getSelectedIndex()));
-                            } 
-
+                        } 
                     } else {
                         dataLinkFrame=null;
-                        getDataFrame=null;
                     }
                 }
             }
@@ -1213,17 +1277,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
      //   controlPanel2.add( deselectAllButton );
         gbcontrol.gridx=5;
         controlPanel.add( deselectAllButton , gbcontrol);
-/*
-        getDataButton = new JButton( "<html>GET<BR> DATA</html>" );
-        getDataButton.addActionListener( this );
-        getDataButton.setMargin(new Insets(1,10,1,10));  
-        getDataButton.setToolTipText ( "Server-side processing parameters" );
-        getDataButton.setEnabled(false);
-        getDataButton.setVisible(false);
-     //   controlPanel2.add( deselectAllButton );
-        gbcontrol.gridx=6;
-        controlPanel.add( getDataButton, gbcontrol );
- */     
+    
         dataLinkButton = new JButton( "<html>DataLink<BR>Services</html>" );
         dataLinkButton.addActionListener( this );
         dataLinkButton.setMargin(new Insets(1,10,1,10));  
@@ -1240,7 +1294,23 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         gbc.fill=GridBagConstraints.HORIZONTAL;
         resultsPanel.add( controlPanel, gbc );
         centrePanel.add( resultsPanel, gbcentre );
+        specPopupMenu = makeSpecPopup(); // create the popup menu to appear when right clicking one item
      
+    }
+    
+    private JPopupMenu makeSpecPopup() {
+        JPopupMenu popup = new JPopupMenu();
+
+        JMenuItem dlMenuItem = new JMenuItem("Download");
+        dlMenuItem.addActionListener(new SpecPopupMenuAction());
+        popup.add(dlMenuItem);
+        JMenuItem infoMenuItem = new JMenuItem("Info");
+        infoMenuItem.addActionListener(new SpecPopupMenuAction());
+        popup.add(infoMenuItem);
+        JMenuItem dispMenuItem = new JMenuItem("Display");
+        dispMenuItem.addActionListener(new SpecPopupMenuAction());
+        popup.add(dispMenuItem);
+        return popup;
     }
 
     /**
@@ -1251,7 +1321,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
     {
         JMenu formatMenu = new JMenu( "Query format" );
         String[] names =
-            { "None", "ALL", "COMPLIANT", "votable", "fits", "xml", "native" };
+            { "None", "ALL", "COMPLIANT", "votable", "fits", "xml", "native", "image/fits" };
         JRadioButtonMenuItem item;
         formatGroup = new ButtonGroup();
         for ( int i = 0; i < names.length; i++ ) {
@@ -1318,6 +1388,8 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
      */
     protected void resolveName()
     {
+        
+        
         String name = nameField.getText().trim();
         if ( name != null && name.length() > 0 ) {
 
@@ -1480,15 +1552,26 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         queryLine.setFluxCalib(flcalibList.getSelectedItem().toString());
         queryLine.setFormat(formatList.getSelectedItem().toString());
      */   
-       // !!!!!
        
-        // update serverlist from servertree class
-        final SSAServerList slist=tree.getServerList();
+       
+        // update serverlist from serverTable class
+        final SSAServerList slist=serverTable.getServerList();
         
         //  Create a stack of all queries to perform.
         ArrayList<SSAQuery> queryList = new ArrayList<SSAQuery>();
         
-        //serverList = tree.getServerList();
+        // SSAP recommended and optional parameters - service will be queried even if not supported
+        String [] recParams = {"APERTURE", "SPECRP", "SPATRES", "TIMERES", "SNR", "REDSHIFT", "VARAMPL", 
+                "TARGETCLASS", "PUBDID", "CREATORDID", "COLLECTION", "TOP", "MTIME", "MAXREC", "RUNID" };
+      
+        ArrayList <String>  recommendedParams = new ArrayList<String>();
+        for (int i=0;i<recParams.length;i++)
+            recommendedParams.add(recParams[i]);
+        
+    //    ArrayList<String> recomendedParams = new ArrayList<>(Arrays.asList("APERTURE", "SPECRP", "SPATRES", "TIMERES", "SNR", "REDSHIFT", "VARAMPL", 
+    //                                                   "TARGETCLASS", "PUBDID", "CREATORDID", "COLLECTION", "TOP", "MTIME", "MAXREC", "RUNID" ));
+        
+        //serverList = serverTable.getServerList();
         Iterator i = slist.getIterator();
 
         SSAPRegResource server = null;
@@ -1496,7 +1579,8 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             server = (SSAPRegResource) i.next();
             if (server != null )
                 try {
-                    if (slist.isServerSelected(server.getShortName())) {
+                    
+                    if (serverTable.isServerSelected(server.getShortName())) {
 
                         SSAQuery ssaQuery =  new SSAQuery( server );
                         // ssaQuery.setServer(server) ; //Parameters(queryLine); // copy the query parameters to the new query
@@ -1505,13 +1589,14 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                         if ( extp != null ) {
 
                             boolean supportsAll = true;
-                            boolean supportsSome = false;
+                         //   boolean supportsSome = false;
                             for (int j=0; j<extp.size(); j++) {
-
-                                supportsAll = supportsAll && serverParam.paramSupported(server.getShortName(), extp.get(j));
-                                supportsSome = supportsSome || serverParam.paramSupported(server.getShortName(), extp.get(j));
+                                if (! recommendedParams.contains( extp.get(j)) ) {
+                                    // parameter is a service specific parameter - query only ifsuported
+                                    supportsAll = supportsAll && paramSupported(server, extp.get(j));
+                                }
                             }
-                            if (supportsSome ) // or supportsAll...  
+                            if (supportsAll )  
                                 queryList.add(ssaQuery);
                         } else  //  or the query has no extra parameters
                             queryList.add(ssaQuery);
@@ -1537,6 +1622,15 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         }
     }
 
+    private boolean paramSupported(SSAPRegResource server, String param) {
+        
+        ArrayList<MetadataInputParameter> mips = (ArrayList<MetadataInputParameter>) server.getMetadata();
+        for (int i=0;i<mips.size();i++)
+            if (mips.get(i).getName().replace("INPUT:", "").equals(param))
+                return true;
+        return false;
+        
+    }
     /**
      * Process a list of URL queries to SSA servers and display the
      * results. All processing is performed in a background Thread.
@@ -1614,7 +1708,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         //  We just download VOTables, so avoid attempting to build the other
         //  formats.
         StarTable starTable = null;
-        GetDataTable getDataTable = null;
+
         DataLinkParams dataLinkParams = null;
       
         URL queryURL = null;
@@ -1622,7 +1716,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         logger.info( "Querying: " + queryURL );
         progressPanel.logMessage( ssaQuery.getBaseURL() );
       
-        try { //!!!!!
+        try { 
             
             //queryURL = ssaQuery.getBaseURL();
  
@@ -1673,21 +1767,12 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             
             VOElement voe = DalResourceXMLFilter.parseDalResult(vofact, inSrc);
            
-        
-            getDataTable = DalResourceXMLFilter.getDalGetDataTable( voe );
             starTable = DalResourceXMLFilter.getDalResultTable( voe );
             
-            
-            if (getDataTable != null) {
-                ssaQuery.setGetDataTable( getDataTable);
-
-            }
-            
             // if the VOTable contains datalink service definitions, add to the SSAQuery.
-            dataLinkParams = DalResourceXMLFilter.getDalGetServiceElement(voe); //!!!!!!!!!!!!!!!!!
+            dataLinkParams = DalResourceXMLFilter.getDalGetServiceElement(voe); 
             if (dataLinkParams != null) {
                 ssaQuery.setDataLinkParams( dataLinkParams );
-
             }
 
           
@@ -1771,7 +1856,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
       
         
         if ( starJTables == null ) {
-            starJTables = new ArrayList<StarJTable>();
+            starJTables = new ArrayList<StarPopupTable>();
         }
 
         //  Remove existing tables.
@@ -1791,9 +1876,8 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         DescribedValue dValue = null;
         JScrollPane scrollPane = null;
         SSAQuery ssaQuery = null;
-        StarJTable table = null;
+        StarPopupTable table = null;
         StarTable starTable = null;
-        GetDataTable getDataTable = null;
         DataLinkParams  dataLinkParams = null;
         String shortName = null;
      
@@ -1802,9 +1886,12 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         ImageIcon cutImage = new ImageIcon( ImageHolder.class.getResource("smallcutter.gif") );
    
         if ( next instanceof SSAQuery && next != null ) {
-            ssaQuery = (SSAQuery) next;
+            ssaQuery = (SSAQuery) next; 
             starTable = ssaQuery.getStarTable();
-            getDataTable = ssaQuery.getGetDataTable();
+            // check for duplicate pubdid and different mimetypes
+            // !! assume for now that tables are sorted by pubdid - change later !!!!
+            // make one line
+        
             dataLinkParams = ssaQuery.getDataLinkParams(); // get the data link services information
             shortName = ssaQuery.getDescription();
             if ( starTable != null ) {
@@ -1836,8 +1923,9 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             //  Check if table has rows, if not skip.
             int nrows = (int) starTable.getRowCount();
             if (  nrows > 0 ) {
-                table = new StarJTable( starTable, true );
+                table = new StarPopupTable( starTable, true );
                 scrollPane = new JScrollPane( table );
+                table.setComponentPopupMenu(specPopupMenu);
               //  scrollPane.setPreferredSize(new Dimension(600,400));
                 
                 if (dataLinkParams != null) { // if datalink services are present, create a frame
@@ -1852,25 +1940,11 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                     dataLinkButton.setForeground(Color.GRAY);
                     resultsPane.addTab( shortName, cutImage, scrollPane );
                 }
-                else if (getDataTable != null) { // if no dataLink services present, check if there are getData services
-                    if ( getDataFrame == null ) {
-                         getDataFrame = new GetDataQueryFrame();
-                    } 
-                  
-                    getDataFrame.addService(shortName, getDataTable);                    
-  //                  getDataButton.setEnabled(true);
-  //                  getDataButton.setVisible(true);
-  //                  getDataButton.setForeground(Color.GRAY);
-                    dataLinkButton.setEnabled(true);
-                    dataLinkButton.setVisible(true);
-                    dataLinkButton.setForeground(Color.GRAY);
-                    resultsPane.addTab( shortName, cutImage, scrollPane );
-                }
                 else resultsPane.addTab( shortName, scrollPane );
                 starJTables.add( table );
 
                 //  Set widths of columns.
-                if ( nrows > 1 ) {
+                if ( nrows >= 1 ) {
                     nrows = ( nrows > 5 ) ? 5 : nrows;
                     table.configureColumnWidths( 200, nrows );
                 }
@@ -1891,7 +1965,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             return;
         if ( all ) {
             //  Visit all the tabbed StarJTables.
-            Iterator<StarJTable> i = starJTables.iterator();
+            Iterator<StarPopupTable> i = starJTables.iterator();
             while ( i.hasNext() ) {
                 i.next().clearSelection();
             }
@@ -1928,7 +2002,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             if (starJTables == null)  // avoids NPE if no results are present
                 return;
             //  Visit all the tabbed StarJTables.
-            Iterator<StarJTable> i = starJTables.iterator();
+            Iterator<StarPopupTable> i = starJTables.iterator();
             while ( i.hasNext() ) {
                 extractSpectraFromTable( i.next(), specList,
                         selected, -1 );
@@ -1988,8 +2062,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             int row )
     {
         int[] selection = null;
-      
-        HashMap< String, String > getDataParam = null;
         
         HashMap< String, String > dataLinkQueryParams = null;
         String idSource = null;
@@ -1999,11 +2071,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             idSource = dataLinkFrame.getIDSource(); 
             accessURL = dataLinkFrame.getAccessURL();
         }
-        else if ( getDataFrame != null && getDataFrame.isVisible() ) {
-            getDataParam = getDataFrame.getParams();
-            idSource="PUBDid";
-        }
-        
        
         
         //  Check for a selection if required, otherwise we're using the given
@@ -2042,7 +2109,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             ColumnInfo colInfo;
             String ucd;
             String utype;
-            String getDataRequest="";
             String dataLinkRequest="";
             
             for( int k = 0; k < ncol; k++ ) {
@@ -2129,28 +2195,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                                                 dataLinkRequest+="&"+key+"="+URLEncoder.encode(value, "UTF-8");
                                             }
                                        
-                                    } catch (UnsupportedEncodingException e) {
-                                        // TODO Auto-generated catch block
-                                        e.printStackTrace();
-                                    }                                     
-                                }
-                    }
-                }
-            } else if (pubdidcol != -1  && getDataParam != null ) { // if we have a pubDID col, check if the getData parameters are set.    
-                if ( ! getDataParam.isEmpty() ) {                   
-                    for (String key : getDataParam.keySet()) {
-                        String value = getDataParam.get(key);
-                                if (value == null || value.length() > 0) {
-                                    try {//
-                                       
-                                        ///
-                                        // float specstart = Float.parseFloat(rseq.getCell( linkcol ).);
-                                       //  float specstop = Float.parseFloat();
-                                      //  double specend = Double.parseDouble(params[i].getAttribute("ssa_specend"));
-                                      //  double  maxval =   double specstart = Double.parseDouble(values.getMaximum());
-                                     //   double  minval =   double specstart = Double.parseDouble(values.getMinimum());
-                                        ///
-                                        getDataRequest+="&"+key+"="+URLEncoder.encode(value, "UTF-8");
                                     } catch (UnsupportedEncodingException e) {
                                         // TODO Auto-generated catch block
                                         e.printStackTrace();
@@ -2250,7 +2294,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                                 }
                             }
                          
-                            if (idsrccol != -1  && dataLinkQueryParams != null) { //!!!!!
+                            if (idsrccol != -1  && dataLinkQueryParams != null) { 
                                 
                                 if (! dataLinkQueryParams.isEmpty()) { 
                                    props.setIdValue(rseq.getCell(idsrccol).toString());
@@ -2262,16 +2306,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                                        props.setDataLinkFormat(format);
                                        props.setType(specDataFactory.mimeToSPLATType( format ));
                                    }
-                                }
-                            } else if (pubdidcol != -1  && getDataParam != null) {
-                               
-                                if (! getDataParam.isEmpty()) { 
-                                   props.setIdValue(rseq.getCell(pubdidcol).toString());
-                                   props.setGetDataRequest(getDataRequest);
-                                   props.setServerURL(starTable.getURL().toString());
-                                   String format = getDataParam.get("FORMAT");
-                                   if (format != "")
-                                       props.setGetDataFormat(format);
                                 }
                             }
                             specList.add( props );
@@ -2341,20 +2375,9 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                                         props.setDataUnits( units[1] );
                                     }
                                 }
-                               /*
-                                *  if (pubdidcol != -1  && getDataParam != null) {
-                                
-                                    if (! getDataParam.isEmpty()) { 
-                                       props.setPubdidValue(rseq.getCell(pubdidcol).toString());
-                                       props.setGetDataRequest(getDataRequest);
-                                       props.setServerURL(starTable.getURL().toString());
-                                       String format = getDataParam.get("FORMAT");
-                                       if (format != "")
-                                           props.setGetDataFormat(format);
-                                       props.setShortName(props.getShortName() + " [" + getDataParam.get("BAND") + "]" );
-                                    }
-                                }*/
-                                if (idsrccol != -1  && dataLinkQueryParams != null) {  // !!!!!
+                              
+                                if (idsrccol != -1  && dataLinkQueryParams != null) {  
+                                    
                                     if (! dataLinkQueryParams.isEmpty()) { 
                                         props.setIdValue(rseq.getCell(idsrccol).toString());
                                         props.setIdSource(idSource);
@@ -2365,21 +2388,9 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                                        if (format != null && format != "") {
                                            props.setDataLinkFormat(format);
                                            props.setType(specDataFactory.mimeToSPLATType( format ) );
-                                      // props.setShortName(props.getShortName() + " [" + getDataParam.get("BAND") + "]" );
                                        }
                                     }
-                                } else  if (pubdidcol != -1  && getDataParam != null) {
-                                
-                                if (! getDataParam.isEmpty()) { 
-                                   props.setIdValue(rseq.getCell(pubdidcol).toString());
-                                   props.setGetDataRequest(getDataRequest);
-                                   props.setServerURL(starTable.getURL().toString());
-                                   String format = getDataParam.get("FORMAT");
-                                   if (format != "")
-                                       props.setGetDataFormat(format);
-                                   props.setShortName(props.getShortName() + " [" + getDataParam.get("BAND") + "]" );
                                 }
-                            }
                                 specList.add( props );
 
                                 //  Move to next selection.
@@ -2439,6 +2450,29 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
     protected void readQuery( File file )
             throws SplatException
             {
+    /*    XMLDecoder xmlreader = null;
+        try {
+            xmlreader = new XMLDecoder(new BufferedInputStream(new FileInputStream(file)));
+        } catch (IOException e) {
+            throw new SplatException( "Failed to open query result:"+ e.getMessage() );
+            
+        }
+        try {
+            ArrayList<StarPopupTable> table = (ArrayList<StarPopupTable>) xmlreader.readObject();
+            starJTables = table;
+            
+        } catch (Exception e) {
+            throw new SplatException( "Failed to read query result", e );
+            
+        }
+        try {    
+            dataLinkFrame = (DataLinkQueryFrame) xmlreader.readObject();
+            deactivateDataLinkSupport();
+        } catch (Exception e) { 
+            logger.info("Could not read DataLink table");
+        }*/
+            
+        
         VOElement rootElement = null;
         try {
             rootElement = new VOElementFactory().makeVOElement( file );
@@ -2463,6 +2497,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                     if ( "TABLE".equals( tagName ) ) {
                         try {
                             table = new VOStarTable( (TableElement) child[j] );
+                            
                         }
                         catch (IOException e) {
                             throw new SplatException( "Failed to read query result", e );
@@ -2478,7 +2513,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         else {
             throw new SplatException( "No query results found" );
         }
-            }
+     }
 
     /**
      *  Interactively get a file name and save current query results to it as
@@ -2511,22 +2546,31 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
      */
     protected void saveQuery( File file )
             throws SplatException
-            {
+     {
         BufferedWriter writer = null;
+/*        XMLEncoder xmlwriter = null;
+        String path = file.getPath();
+        String name = file.getName();
+        int index = name.lastIndexOf(".");
+        if ( String ext name.last
+        path.replace(ext, "_dl"+ext);*/
+       // File dlfile = new File();
         try {
             writer = new BufferedWriter( new FileWriter( file ) );
+ //           xmlwriter = new XMLEncoder( new )
         }
         catch (IOException e) {
             throw new SplatException( e );
         }
-        saveQuery( writer );
-        try {
+        saveQuery(writer);
+      /*  try {
             writer.close();
         }
         catch (IOException e) {
-            throw new SplatException( e );
-        }
-            }
+          throw new SplatException( e );
+        }*/
+      //  saveDatalinkParams(writer);
+     }
 
     /**
      *  Save current query results to a BufferedWriter. The resulting document
@@ -2536,7 +2580,9 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
     protected void saveQuery( BufferedWriter writer )
             throws SplatException
             {
+
         String xmlDec = VOTableWriter.DEFAULT_XML_DECLARATION;
+    
         try {
             writer.write( xmlDec );
             writer.newLine();
@@ -2554,11 +2600,19 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             StarJTable starJTable = null;
             StarTable table = null;
             VOSerializer serializer = null;
-            Iterator<StarJTable> i = starJTables.iterator();
+           
+            Iterator<StarPopupTable> i = starJTables.iterator();
+
             while ( i.hasNext() ) {
                 starJTable = i.next();
                 table = starJTable.getStarTable();
-
+                String name = table.getName();
+//                DataLinkParams dlp = null; 
+               
+               
+//                dlp =  dataLinkFrame.getServerParams(resultsPane.getTitleAt(pane));
+//                pane++;
+                
                 //  Write <TABLE> element. First need to remove FIELD
                 //  IDS. These are no longer unique for the whole document.
                 int n = table.getColumnCount();
@@ -2568,17 +2622,33 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                 }
                 serializer = VOSerializer.makeSerializer( DataFormat.TABLEDATA, table );
                 serializer.writeInlineTableElement( writer );
+                
+                
             }
             writer.write( "</RESOURCE>" );
             writer.newLine();
+            saveDataLinkParams(writer);
             writer.write( "</VOTABLE>" );
             writer.newLine();
             writer.close();
+            
         }
         catch (IOException e) {
             throw new SplatException( "Failed to save queries", e );
         }
-            }
+    }
+    
+    protected void saveDataLinkParams( BufferedWriter writer ) throws IOException 
+    {
+        
+        String [] servers = dataLinkFrame.getServers();
+        for (int i=0;i<servers.length; i++) {
+            DataLinkParams dlp = dataLinkFrame.getServerParams(servers[i]);
+            dlp.writeParamToFile(writer, servers[i]);
+            
+        } 
+
+    }
 
     /**
      * Return a StarTable of the currently selected tab of query results.
@@ -2671,21 +2741,31 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
 
         if ( source.equals( goButton ) ) {
             {
-               // deactivateGetDataSupport();
-               // getDataButton.setVisible(false);
-                deactivateDataLinkSupport(); //!!!!
+                if (dataLinkFrame != null) 
+                    dataLinkFrame.setVisible(false);
+                deactivateDataLinkSupport(); 
                 dataLinkButton.setVisible(false);
                 doQuery();
                
             }        
             return;
         } 
-     
+        if ( source.equals( clearButton ) ) {
+ 
+            
+            raField.setText("");
+            decField.setText("");
+            nameField.setText("");
+            radiusField.setText("10.0");//default value
+            lowerBandField.setText("");
+            upperBandField.setText("");
+            lowerTimeField.setText("");
+            upperTimeField.setText("");
+
+            return;
+        } 
         if ( source.equals( nameLookup ) /*|| source.equals( nameField ) */) {
-            
-            
-          
-          
+           
             resolveName();
            // queryLine.setPosition(raField.getText(), decField.getText());
             //updateQueryText();
@@ -2759,7 +2839,29 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                 }
                 return;            
             }
+            if ( source.equals( maxRecField )  ) {
+                
+                String maxrecText = maxRecField.getText();
+                int maxrec = 0;
+                if ( maxrecText != null && maxrecText.length() > 0 ) {
+                    try {
+                        maxrec = Integer.parseInt(maxrecText);
+                    }
+                    catch (NumberFormatException e1) {
+                        ErrorDialog.showError( this, "Cannot understand maxrec value", e1);                         
+                        return;
+                    }
+                }
+                queryLine.setMaxrec(maxrec);
             
+                try {
+                    queryText.setText(queryLine.getQueryURLText());
+                } catch (UnsupportedEncodingException e1) {
+                // TODO Auto-generated catch block
+                    e1.printStackTrace();
+                }
+                return;            
+            }
             //  Spectral bandpass. These should be in meters. XXX allow other
             //  units and do the conversion.
             if (  source.equals( lowerBandField ) || source.equals( upperBandField )) {
@@ -2802,8 +2904,9 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                   return;            
             }
             if ( source.equals(formatList)) {
-                    queryLine.setFormat(formatList.getSelectedItem().toString());
+                   
                     try {
+                        queryLine.setFormat(formatList.getSelectedItem().toString());
                         queryText.setText(queryLine.getQueryURLText());
                     } catch (UnsupportedEncodingException e1) {
                         // TODO Auto-generated catch block
@@ -2840,23 +2943,12 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         if ( source.equals( selectAllParamsButton ) ) 
         {
             metaPanel.selectAll();
-            //tree.setParamMap(serverParam);
-           /* addParameter();
-            if (extendedQueryText != null && extendedQueryText.length() > 0) 
-            {
-                try {
-                    queryText.setText(queryLine.getQueryURLText() + extendedQueryText );
-                } catch (UnsupportedEncodingException e1) {
-                        // TODO Auto-generated catch block
-                    e1.printStackTrace();
-                }
-            }
-          */
+          
             return;
         } 
         if ( source.equals( deselectAllParamsButton ) ) 
         {
-            // de-select and update query text
+            
             metaPanel.deselectAll();
            // metaPanel.removeSelectedMetadata();
         /*    if (extendedQueryText != null && extendedQueryText.length() > 0) 
@@ -2872,14 +2964,14 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             return;
         } 
 
-        if ( source.equals( customButton ) ) {
+  //      if ( source.equals( updateParamsButton ) ) {
    //         if (metaFrame == null) {
-                customParameters();
+    //            queryCustomParameters();
    //         } else {
    //             metaFrame.openWindow();
     //        }
-            return;
-        }
+    //        return;
+   //     }
 
         if ( source.equals( displaySelectedButton ) ) {
             displaySpectra( true, true, null, -1 );
@@ -2906,101 +2998,29 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         if ( source.equals( deselectAllButton ) ) {
             deselectSpectra( true );
             return;
-        }/*
-        if ( source.equals( getDataButton ) ) {
-            if (getDataFrame == null || getDataFrame.getParams() == null)
-                return;
-            if (getDataFrame.isVisible()) { // deactivate
-                getDataFrame.setVisible(false);
-                //getDataButton.set.setEnabled(false);
-                deactivateGetDataSupport();
-            
-            } else {
-                getDataFrame.setVisible(true);
-               // getDataButton.setEnabled(true);
-                activateGetDataSupport();
-               
-            }
-            return;
         }
-        */
         if ( source.equals( dataLinkButton ) ) {
             if (dataLinkFrame != null && dataLinkFrame.getParams() != null) {
                 if (dataLinkFrame.isVisible()) { // deactivate
                     dataLinkFrame.setVisible(false);
-                    //getDataButton.set.setEnabled(false);
                     deactivateDataLinkSupport();
             
                 } else {
                     activateDataLinkSupport();
                     if (resultsPane.isEnabledAt(resultsPane.getSelectedIndex()))
-                        dataLinkFrame.setVisible(true);
-                    // getDataButton.setEnabled(true);
-                  
-               
+                        dataLinkFrame.setVisible(true);               
                 }
-            } else if (getDataFrame != null && getDataFrame.getParams() != null) {
-                if (getDataFrame == null || getDataFrame.getParams() == null)
-                    return;
-                if (getDataFrame.isVisible()) { // deactivate
-                    getDataFrame.setVisible(false);
-                    //getDataButton.set.setEnabled(false);
-                   // deactivateGetDataSupport();
-                    deactivateDataLinkSupport();
-                
-                } else {
-                    getDataFrame.setVisible(true);
-                   // getDataButton.setEnabled(true);
-                   // activateGetDataSupport();
-                    activateDataLinkSupport();
-                   
-                }
-            } 
+            }
                 
             return;
         }
 
     }
-    /**
-     * ActivateGetDataSupport
-     * deactivate all sites that do not support getData
-     * activate getData queries on supported sites
-     *//*
-    private void activateGetDataSupport() {
-        
-        getDataEnabled=true;
-        int selected=-1;
-        int anyGDIndex = -1;
-        getDataButton.setForeground(Color.BLACK);
-        int nrTabs = resultsPane.getTabCount();
-        for(int i = 0; i < nrTabs; i++)
-        {
-           if (resultsPane.getIconAt(i) == null) {
-               resultsPane.setEnabledAt(i, false);
-           }
-           else {
-               if (resultsPane.getSelectedIndex() == i)
-                   selected = i;
-               anyGDIndex = i;
-              // resultsPane.setSelectedIndex(i);
-           }
-        }
-        
-        // if current selection is a getData service, keep it. If not,
-        // set selection to one getData service.
-        if (selected < 0)
-            selected=anyGDIndex;
-        resultsPane.setSelectedIndex(selected);
-        
-        //getDataFrame.setService(resultsPane.getTitleAt(selected));
-        dataLinkFrame.setService(resultsPane.getTitleAt(selected));
-            
-    }
-    */
+
     /**
      * ActivateDataLinkSupport
-     * deactivate all sites that do not support DataLink/getData
-     * activate DataLink/getData queries on supported sites
+     * deactivate all sites that do not support DataLink
+     * activate DataLink queries on supported sites
      */
     private void activateDataLinkSupport() {
        
@@ -3027,63 +3047,62 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         if (selected < 0)
             return;
             //selected=anyIndex;
-            //resultsPane.setSelectedIndex(selected);
-        
-        //getDataFrame.setService(resultsPane.getTitleAt(selected));
-        if (dataLinkFrame.setServer(resultsPane.getTitleAt(selected)) == null)
-            getDataFrame.setService(resultsPane.getTitleAt(selected));
-            
+            //resultsPane.setSelectedIndex(selected);        
+         dataLinkFrame.setServer(resultsPane.getTitleAt(selected));            
     }
-    /**
-     * DeactivateGetDataSupport
-     * activate all sites, without getData support
-     */
-  /*
-   *   private void deactivateGetDataSupport() {
   
-        getDataEnabled=false;
-        getDataButton.setForeground(Color.GRAY);
-        int nrTabs = resultsPane.getTabCount();
-        for(int i = 0; i < nrTabs; i++)
-        {
-            resultsPane.setEnabledAt(i, true);      
-        }
-    }
-  */  
     /**
      * DeactivateDataLinkSupport
-     * activate all sites, without getData support
+     * activate all sites, without Datalink support
      */
     private void deactivateDataLinkSupport() {
         
         dataLinkEnabled=false;
         dataLinkButton.setForeground(Color.GRAY);
         int nrTabs = resultsPane.getTabCount();
+        
         for(int i = 0; i < nrTabs; i++)
         {
             resultsPane.setEnabledAt(i, true);      
         }
+        
     }
 
     /**
      * Event listener 
      * 
      */
-    public void propertyChange(PropertyChangeEvent pvt) //!!!!!!!!!!!!!!!!!!
+    public void propertyChange(PropertyChangeEvent pvt)
     {
         // trigger a metadata update if metadata has been added
         if (pvt.getPropertyName().equals("changeQuery")) {
-            updateQueryText(); 
-            String txt = "";
+            updateQueryText();
         }
-            // update if the server list has been modifyed at ssaservertree (for example, new registry query)
+        else if (pvt.getPropertyName().equals("changedValue")) {
+            serverList = serverTable.getServerList();
+            serverList.addMetadata((MetadataInputParameter) pvt.getNewValue()); 
+            serverTable.setServerList(serverList);
+            updateQueryText(); 
+        }
+            // update if the server list has been modifyed at ssaservertable (for example, new registry query)
         else if (pvt.getPropertyName().equals("changeServerlist")) {
-            serverList = tree.getServerList();
+            serverList = serverTable.getServerList();
+            queryCustomParameters();
+            updateParameters();
+            metaPanel.updateUI();
+            try {
+                serverList.saveServers();
+            } catch (SplatException e) {
+                logger.info("serverList backup failed"+e.getMessage());
+            }
+ 
+        }
+        else if (pvt.getPropertyName().equals("selectionChanged")) {
+            updateQueryText();
             updateParameters();
             metaPanel.updateUI();
         }
     }
-    
     private void updateQueryText() {
         
         if (metaPanel != null)
@@ -3109,49 +3128,18 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
     {
         // check serverlist (selected servers!!)
         // update serverlist
-        serverList = tree.getServerList();
+        //serverList = serverTable.getServerList();
         ArrayList<String> parameters = new ArrayList();
         Iterator srv=serverList.getIterator();
-        while ( srv.hasNext() ) {
+        while ( srv.hasNext() ) {    
             SSAPRegResource server = (SSAPRegResource) srv.next();
-            if (serverList.isServerSelected(server.getShortName())) {
-                ArrayList<String> serverpars = serverParam.getParams(server.getShortName());
-                if (serverpars != null )
-                    parameters.addAll(serverpars);
+            if (serverTable.isServerSelected(server.getShortName())) {
+                    metaPanel.addParams((ArrayList<MetadataInputParameter>) server.getMetadata());
             }
-        }
-        // make the list unique 
-        HashSet<String> hs = new HashSet<String>();
-        hs.addAll(parameters);
-        parameters.clear();
-        parameters.addAll(hs);
-        Collections.sort(parameters);
-        
-        // remove the INPUT: Prefix from the parameters
-        for (int i=0; i<parameters.size(); i++) {
-            String param = parameters.get(i); //.substring(6); // INPUT: = 6 characters
-           // parameters.set(i,parameters.get(i).substring(6));// INPUT: = 6 characters
-            metaPanel.addRow(metaParam.get(param), false); 
-            
-        }
-        
-        /* 
-        Object selectedValue = JOptionPane.showInputDialog(this, "Supported Parameters", "Input", JOptionPane.INFORMATION_MESSAGE, null, 
-                (Object[]) parameters.toArray(), null);
-        if (selectedValue != null) {
-            
-            metaPanel.addRow(metaParam.get("INPUT:"+selectedValue.toString()), false); // INPUT: has to be added again
-    //        metaPanel.
-            metaPanel.setVisible(true);
-        }
-        */
+        }            
         metaPanel.setVisible(true);
         metaPanel.repaint();
-       // queryMetaParam.put(txtf, selectedValue.toString());
-      //  JLabel label = new JLabel(selectedValue.toString() + ":");
-      //  customQueryPanel.add(label); queryPanel.add(txtf);
-       // customQueryPanel.repaint();
-      
+          
     }
     
     /**
@@ -3160,29 +3148,70 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
      * 
      */
     private void updateParameters() {
-        metaPanel.removeAll();
+        if (serverTable.getSelectionCount() == 1)
+            metaPanel.removeAll();
         showParameters();
     }
+    /**
+     * Customize metadata parameters
+     * Read metadata from pre-stored file
+     */
+    private void restoreCustomParameters() 
+    {
+        HashMap<String, MetadataInputParameter> params = null;
+        try {
+           metaPanel.restoreParams();
+           params = metaPanel.getParams();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+     //   if (params != null) 
+     //       createRelation();//params);
+        
+    } // readcustomParameters
+    
+/*    private void createRelation( ) { //HashMap<String, MetadataInputParameter> params) {
+      //  Collection<MetadataInputParameter> mp = params.values();
+      //  Iterator<MetadataInputParameter> it = mp.iterator();
+        
+        Iterator<SSAPRegResource> it = serverList.getIterator();
+        
+     
+        while (it.hasNext()) {
+            
+            SSAPRegResource sr = (SSAPRegResource) it.next();
+            ArrayList<MetadataInputParameter> params = sr.getMetadataList();
+            for (int i=0;i<params.size();i++) {
+                addRelation(sr.getShortName(), params.get(i).getName());
+            }
+            
+      /*
+            MetadataInputParameter mip = it.next();
+            ArrayList<String> servers = mip.getServers();
+       
+            for (int i=0; i<servers.size(); i++) {
+                addRelation(servers.get(i), mip.getName());
+            }
+            *
+        }
+        
+    }*/
+
     /**
      * Customize metadata parameters
      * Query metadata from known servers to retrieve all possible parameters. Every
      * query is performed in a different thread, which will perform the query and
      * update the parameter table
      */
-    private void customParameters() 
+    private void queryCustomParameters() 
     {
         int nrServers = serverList.getSize();
         final WorkQueue workQueue = new WorkQueue(nrServers);
-
-        metaParam = new HashMap<String, MetadataInputParameter>();
-     
-/*
-        if ( metaFrame == null ) {
-            metaFrame = new SSAMetadataFrame( metaParam );
-            metaFrame.addPropertyChangeListener(this);
-        } else
-            metaFrame.updateMetadata( metaParam );
-*/
+    
         final ProgressPanelFrame metadataProgressFrame = new ProgressPanelFrame( "Querying Metadata" );
 
         Iterator i = serverList.getIterator();
@@ -3200,12 +3229,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
 
         }// while
 
-
-        /*
-         *  XXX to do eventually: create the parameter frame only after the first parameter has been found. After all threads are
-         *  done, show a dialog message in case no parameters have been found.
-         */
-       // tree.setParamMap(serverParam);
     } // customParameters
 
     /**
@@ -3302,8 +3325,9 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         {
             //  display the final status of the query
             if ( metadata != null ) {
+              //  server.setMetadata(metadata);
                 // adds parameter information into the metaParam hash
-                logger.info("RESPONSE "+queryURL+"returned "+ metadata.length +"parameters ");
+                logger.info("RESPONSE "+queryURL+"---"+server.getShortName()+"returned "+ metadata.length +"parameters ");
                 progressPanel.logMessage( metadata.length +"  input parameters found");
             } else {
                 logger.info( "RESPONSE No input parameters loaded from " + queryURL );                
@@ -3342,6 +3366,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             catch (InterruptedException e) {
             }
             catch (Exception e) {
+                e.printStackTrace();
             }
 
             return null;
@@ -3416,59 +3441,41 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
      * @param - metadata the parameters read from all servers 
      * 
      */
-    private void processMetadata( ParamElement[] metadata, SSAPRegResource server) {
+    private synchronized static void processMetadata( ParamElement[] metadata, SSAPRegResource server) {
 
         int i=0;
-        //boolean changed = false;
-
+        int p=0;//params index
+        ArrayList<MetadataInputParameter> serverparams = new ArrayList<MetadataInputParameter>();
+               
         while ( i < metadata.length ) {
             String paramName = metadata[i].getName();
-            if (! paramName.equalsIgnoreCase("INPUT:POS") &&        // these parameters should be entered in the main browser
+            if (    ! paramName.equalsIgnoreCase("INPUT:REQUEST") &&  // these parameters should be ignored
+                    ! paramName.equalsIgnoreCase("INPUT:COLLECTION") && 
+                    ! paramName.equalsIgnoreCase("INPUT:COMPRESS") && 
+                    ! paramName.equalsIgnoreCase("INPUT:OUTPUTFORMAT") &&
+                    ! paramName.equalsIgnoreCase("INPUT:COLLECTION") && 
+                    ! paramName.equalsIgnoreCase("INPUT:POS") &&        // these parameters should be entered in the main browser
                     ! paramName.equalsIgnoreCase("INPUT:SIZE") &&
+                    ! paramName.equalsIgnoreCase("INPUT:MAXREC") &&
                     ! paramName.equalsIgnoreCase("INPUT:BAND") &&
                     ! paramName.equalsIgnoreCase("INPUT:TIME") && 
                     ! paramName.equalsIgnoreCase("INPUT:FORMAT") && 
                     ! paramName.equalsIgnoreCase("INPUT:WAVECALIB") && 
                     ! paramName.equalsIgnoreCase("INPUT:FLUXCALIB") && 
-                    ! paramName.equalsIgnoreCase("INPUT:TARGETNAME") ) 
+                    ! paramName.equalsIgnoreCase("INPUT:TARGETNAME")  ) 
             {
-                addRelation( server.getShortName(), paramName);
-                MetadataInputParameter mip = new MetadataInputParameter(metadata[i]);
-                addMetaParam(mip);    // call static synchronized method to change the data with mutual exclusion             
+              
+                MetadataInputParameter mip = new MetadataInputParameter(metadata[i], server.getShortName());
+                serverparams.add(mip);                
             } // if
             i++;
         } // while
+        server.setMetadata(serverparams);
+        metaPanel.refreshParams();
 
     }//processMetadata
-    private synchronized static void addRelation( String server, String param ) {
-        
-        serverParam.addRelation(server, param);
+    
 
-    }
-
-    /*
-     * Adds parameters to the hash and to the parameter table
-     * 
-     * @param mip - the metadata parameter object
-     */
-    private synchronized static void addMetaParam( MetadataInputParameter mip) {
-
-        if (! metaParam.containsKey(mip.getName())) 
-        {
-            metaParam.put( mip.getName(), mip );
-            // add new element to the parameter table
-         //   metaPanel.addRow(mip); //!! frame
-
-        } else {
-            // increase counter of existing hash member
-            mip = metaParam.get(mip.getName());
-            mip.increase();
-            metaParam.put( mip.getName(), mip );
-            // update nr server column in the table
-    //        metaPanel.setNrServers(mip.getCounter(), mip.getName()); // !! Frame
-        }
-        
-    }
     //
     // MouseListener interface. Double clicks display the clicked spectrum.
     //
@@ -3576,122 +3583,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
 
 
  
-    /**
-     * A Metadata input parameter class, to contain the parameter element and the number of servers that accept this parameter
-     */
-
-    public class MetadataInputParameter
-    {
-        ParamElement param;
-        String paramName = null;
-        
-        String description = null;
-        
-        String unit = null;
-        String UCD = null;
-        String value = null;
-        String nullValue = null;
-        String[] options;
-        //ValuesElement values = null;
-       
-        String datatype = null;
-        String min=null;    
-        String max=null;
-
-
-       
-        int counter;
-
-        MetadataInputParameter(ParamElement param) {
-
-            this.param = param; // TO DO  decide if it is really necessary to keep this object here...
-            counter=1; 
-            paramName = param.getName();
-            description = param.getDescription();
-            if (description == null)
-                description = "";
-            datatype = param.getDatatype();
-            value = param.getValue();
-            //if (value.equals("NaN") || value.contains("null") || value.contains("NULL") || value.contains("Null"))
-            //    value = "";
-            unit = param.getUnit();
-            
-            UCD = param.getUcd();
-            
-            /* To be done later after some questions have been cleared:
-             * 
-             * 
-    		ValuesElement values = param.getActualValues(); // or legal values??
-    		if  (values != null) {
-    		        options = values.getOptions();
-    		        max = values.getMaximum();
-    		        min = values.getMinimum();
-    		        nullValue=values.getNull();
-    		}
-             */	    		
-        }
-        /**
-         * @return
-         * @uml.property  name="counter"
-         */
-        protected int getCounter() {
-            return counter;
-        }
-        protected String getName() {
-            return paramName;
-        }
-        /**
-         * @return
-         * @uml.property  name="value"
-         */
-        protected String getValue() {
-            return value;
-        }
-        /**
-         * @return
-         * @uml.property  name="description"
-         */
-        protected String getDescription() {
-            return description;
-        }
-        /**
-         * @return
-         * @uml.property  name="datatype"
-         */
-        protected String getDatatype() {
-            return datatype;
-        }
-        /**
-         * @return
-         * @uml.property  name="unit"
-         */
-        protected String getUnit() {
-            return unit;
-        }
-        /**
-         * @return
-         * @uml.property  name="UCD"
-         */
-        protected String getUCD() {
-            return UCD;
-        }
-        /*
-    	protected void setDescription(String description) {
-    		 this.description = description;
-    	}
-    	protected void setDatatype(String datatype) {
-   		 this.datatype = datatype;
-    	}
-    	protected void setUnit(String unit) {
-      		 this.datatype = unit;
-       	}
-         */
-        protected void increase() {
-            counter++;
-        }
-    } // MetadataInputParameter
-
-
+   
     public void changedUpdate(DocumentEvent de) {
         // Plain text components don't fire these events.
     }
@@ -3726,6 +3618,23 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
                 }
                 queryLine.setRadius(radius);
             }
+            if (owner == maxRecField ) {
+                String maxRecText = maxRecField.getText();
+                int maxRec = 0;
+                if ( maxRecText != null && maxRecText.length() > 0 ) {
+                    try {
+                        maxRec = Integer.parseInt( maxRecText );
+                    }
+                    catch (NumberFormatException e1) {
+                        maxRecField.setForeground(Color.red);
+                        //ErrorDialog.showError( this, "Cannot understand maxRec value", e1);                         
+                        return;
+                    }
+                    maxRecField.setForeground(Color.black);
+                }
+                if (maxRec > 0)
+                    queryLine.setMaxrec(maxRec);
+            }
             if (owner == raField || owner == decField ) {
                 if (raField.getText().length() > 0 && decField.getText().length() > 0 ) {
                     try {
@@ -3745,8 +3654,6 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
            
             if (owner == upperBandField || owner == lowerBandField ) {
                 queryLine.setBand(lowerBandField.getText(), upperBandField.getText());
-                //if (getDataFrame != null)
-                //    getDataFrame.setBandParams(lowerBandField.getText(), upperBandField.getText());
             }
             
             if (owner == upperTimeField || owner == lowerTimeField) {
@@ -3757,6 +3664,30 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         updateQueryText();
         
     }
+    
+    private class SpecPopupMenuAction extends AbstractAction
+    {
+        
+        public void actionPerformed( ActionEvent e) {
+            JMenuItem jmi  = (JMenuItem) e.getSource();
+            JPopupMenu jpm = (JPopupMenu) jmi.getParent();
+            StarPopupTable table = (StarPopupTable) jpm.getInvoker();
+           
+           int row = table.getPopupRow();
+          
+            if (e.getActionCommand().equals("Info")) {
+                table.showInfo(row);
+            }
+            else if (e.getActionCommand().equals("Display")) {
+                displaySpectra( false, true, (StarJTable) table, row );
+            }   
+            else if (e.getActionCommand().equals("Download")) {
+                displaySpectra( false, true, (StarJTable) table, row );
+            } 
+            
+        }
+    }
+
 
     /*     public void removeUpdate(DocumentEvent de) {
         
