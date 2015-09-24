@@ -9,7 +9,7 @@ import uk.ac.starlink.vo.RegCapabilityInterface;
  *  allows mutability and bean access.
  */
 public class SSAPRegCapability 
-  //  implements RegCapabilityInterface
+     implements RegCapabilityInterface
 {
     private String accessUrl;
     private String standardId;
@@ -18,8 +18,10 @@ public class SSAPRegCapability
     private String xsiType;
     private String dataSource;
     private String creationType;
+    private int intfIndex;
+  // for backwards compatibility
     private String dataType;
-  
+   
 
     /**
      * Constructor.
@@ -42,8 +44,7 @@ public class SSAPRegCapability
         xsiType = rci.getXsiType();
         dataSource = rci.getDataSource();
         creationType = rci.getCreationType();
-        dataType = rci.getDataType();
-      
+        intfIndex=rci.getIntfIndex();
     }
 
    
@@ -119,7 +120,7 @@ public class SSAPRegCapability
     public String getDataSource() {
         return dataSource;
     }
-    public void setDataSource( String dataSource )
+    public void setDataSource( String dataSource ) 
     {
         this.dataSource = dataSource;
     }
@@ -130,10 +131,19 @@ public class SSAPRegCapability
     {
         this.creationType = creationType;
     }
+    public int getIntfIndex() {
+        return intfIndex;
+    }
+    public void setIntfIndex( int index )
+    {
+        this.intfIndex = index;
+    }
+    
+    // for Backwards compatibility -  DataType = SSPARegResource->ContentType
     public String getDataType() {
         return dataType;
     }
-    public void setDataType( String dataType )
+    public void setDataType( String dataType ) 
     {
         this.dataType = dataType;
     }
