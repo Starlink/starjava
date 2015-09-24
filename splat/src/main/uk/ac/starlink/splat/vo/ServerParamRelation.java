@@ -36,15 +36,17 @@ public class ServerParamRelation {
      */    
     public static synchronized void addRelation( String server, String param) {
        
+        
         logger.info( "Add Relation " + server + ", "+param );
-        if ( ! server2param.containsKey(server)) {
+        if ( ! server2param.containsKey(server.trim())) {
             ArrayList<String> list =  new ArrayList<String>();
-            server2param.put(server, list);
+            server2param.put(server.trim(), list); //initialize
         } 
         server2param.get(server).add(param);
-        if ( ! param2server.containsKey(param)) {
+  
+        if ( ! param2server.containsKey(param.trim())) {
             ArrayList<String> list =  new ArrayList<String>();
-            param2server.put(param, list);
+            param2server.put(param.trim(), list);//initialize
         } 
         param2server.get(param).add(server);
     } //addRelation
