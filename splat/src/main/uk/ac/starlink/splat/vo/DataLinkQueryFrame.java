@@ -9,10 +9,13 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
@@ -24,6 +27,7 @@ import javax.swing.border.Border;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.votable.ParamElement;
 import uk.ac.starlink.votable.VOElement;
 import uk.ac.starlink.votable.ValuesElement;
@@ -52,7 +56,13 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
     private JButton clearButton;
     private ArrayList<Component> queryComponents;
     private JComboBox optbox;
-    private JScrollPane scroller; 
+    private JScrollPane scroller;
+
+    private JLabel okLabel;
+
+    private ImageIcon okImage;
+
+    private ImageIcon notOkImage; 
    
     
     public DataLinkQueryFrame() {
@@ -62,15 +72,16 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
         accessURL= new HashMap<String, String>();
         idSource= new HashMap<String, String>();
         queryComponents = new ArrayList<Component>();
+        
        
         initUI();        
     }
    
     public void addServer( String server, DataLinkParams dlparams ) {
-        DataLinkParams dlp = servers.get(server);
-        if (dlp == null) {          
+      //  DataLinkParams dlp = servers.get(server);
+      //  if (dlp == null) {          
             servers.put(server, dlparams);           
-        }
+      //  }
    //     } else {
             // DO WHAT? Compare parameters?
    //     }
@@ -92,7 +103,9 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
     protected void initUI()
     {
         this.setSize(450, 250);
-   
+        okImage = new ImageIcon( ImageHolder.class.getResource( "OK.gif" ) );
+        notOkImage = new ImageIcon( ImageHolder.class.getResource( "notOK.gif" ) );
+
              dataLinkPanel = (JPanel) this.getContentPane();
           //  dataLinkPanel.setPreferredSize(new Dimension(480,180));
             dataLinkPanel.setLayout(new GridBagLayout());
@@ -120,6 +133,16 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
             clearButton.setName("clearButton");
            // clearButton.setMargin(new Insets(2,10,2,10));  
             buttonsPanel.add(clearButton);
+            
+            submitButton = new JButton("Set parameters");
+            submitButton.addActionListener(this);
+            submitButton.setName("setButton");
+           // clearButton.setMargin(new Insets(2,10,2,10));  
+            buttonsPanel.add(submitButton);
+            
+            okLabel = new JLabel();
+            buttonsPanel.add(okLabel);
+            
             
             gbc.anchor = GridBagConstraints.NORTHWEST;
             gbc.gridx=0;
@@ -177,20 +200,21 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
                    //     inputPanel.setAlignmentY(CENTER_ALIGNMENT);
 
                    String description = params[i].getDescription();                  
-                   String datatype = params[i].getAttribute("datatype");
+                   //String datatype = params[i].getAttribute("datatype");
                    String value = params[i].getValue();
                    ValuesElement values = (ValuesElement) params[i].getChildByName("VALUES");
                    String [] options = null;
                    if (values != null )
                        options = values.getOptions();
+                   
 
                    // TO DO: add MIN/MAX values to description!!!!!!!!!!!!
 
                    if ( options != null && options.length > 0 ) {
                        optbox = new JComboBox(options);
-                       optbox.addItem("");
-                       value="";
-                      /* if (paramName.equals("FORMAT")) { // choose best format for SPLAT as default
+                      
+                     
+                       if (paramName.equals("FORMAT")) { // choose best format for SPLAT as default
                            for (i=0;i<options.length; i++) {
                                if ( options[i].contains("application/x-votable")) {
                                    value = options[i];
@@ -198,7 +222,11 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
                                    value = options[i];
                                }
                            }
-                       } */
+                       } 
+                       else  {
+                           optbox.addItem("");
+                           value="";
+                       }
                        optbox.setSelectedItem(value);
                        optbox.setMaximumSize( optbox.getPreferredSize() );
 
@@ -293,35 +321,55 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
         
         Component source = (Component) e.getSource();   
         
-        if (source.equals(clearButton))
+        okLabel.setIcon(null);
+        if (source.equals(clearButton)) {
             dataLinkParam.clear();
-        
-        for (int i = 0; i < queryComponents.size(); i++) 
-        {      
-               Component c = queryComponents.get(i);
-               if (c instanceof JComboBox) {
-                   JComboBox cb = (JComboBox) c;
-                   String name = cb.getName();
-                   if (source.equals(clearButton)) {
-                       cb.setSelectedItem("");
-                   } else /*if (source.equals(submitButton))*/ {
-                      // if ( cb.getSelectedItem().toString().length() > 0)
-                           dataLinkParam.put(name, cb.getSelectedItem().toString());
-                   } 
-               }
-               if (c instanceof JTextField) {
-                   JTextField tf = (JTextField) c;
-                   String name = tf.getName();
-                   if (source.equals(clearButton)) {
-                       tf.setText("");
-                   } else if (source.equals(submitButton)) {
-                       dataLinkParam.put(name, tf.getText());                 
-                   }
-                   
-               }
-        } // for
-     
-       
+
+            for (int i = 0; i < queryComponents.size(); i++) 
+            {      
+                Component c = queryComponents.get(i);
+                if (c instanceof JComboBox) {
+                    JComboBox cb = (JComboBox) c;              
+                    cb.setSelectedItem("");
+                }
+                if (c instanceof JTextField) {
+                    JTextField tf = (JTextField) c;
+                    tf.setText("");
+                }
+            }
+            
+        } else if (source.equals(submitButton)) {
+            
+            boolean ok = true;
+            for (int i = 0; i < queryComponents.size(); i++) 
+            {      
+                Component c = queryComponents.get(i);
+                if (c instanceof JComboBox) {
+                    JComboBox cb = (JComboBox) c;
+                    String name = cb.getName();
+                    // if ( cb.getSelectedItem().toString().length() > 0)
+                    dataLinkParam.put(name, cb.getSelectedItem().toString());
+
+                }
+                if (c instanceof JTextField) {
+                    JTextField tf = (JTextField) c;
+                    String name = tf.getName();
+
+                    // to do: consistency checking, add values/ranges
+                    dataLinkParam.put(name, tf.getText());   
+
+                }
+            } // for    
+
+            if (ok)
+                okLabel.setIcon(okImage);
+            else 
+                okLabel.setIcon(notOkImage);
+
+         //   okLabel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+            
+        } 
+        dataLinkPanel.updateUI();
     }
     
     
@@ -349,21 +397,34 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
             return null;
       //  return servers.get(currentServer);
     }
+    
+    public DataLinkParams getServerParams(String currentServer) {
+        
+        if (servers == null )
+            return null;
+        return servers.get(currentServer);
+    }
 
     public void changedUpdate(DocumentEvent arg0) {
      // Plain text components don't fire these events.
-        
+        okLabel.setIcon(null);
+        okLabel.updateUI();
     }
 
     public void insertUpdate(DocumentEvent de) {
         
-        //get the owner of this document
-        Object owner = de.getDocument().getProperty("owner");
-        JTextField param=(JTextField) owner;
+        okLabel.setIcon(null);
+        okLabel.updateUI();
+        dataLinkPanel.updateUI();
         
+        
+        //get the owner of this document
+      Object owner = de.getDocument().getProperty("owner");
+        JTextField param=(JTextField) owner;
+ /*       
         dataLinkParam.put(param.getName(), param.getText());
         
-        /*
+        
         String inputText = (String) ((JTextField) owner).getText();
        
         
@@ -377,15 +438,24 @@ public class DataLinkQueryFrame extends JFrame implements ActionListener, Docume
                 return;
             }
         }
-        */
+  */      
         
     }
 
     public void removeUpdate(DocumentEvent arg0) {
         // TODO Auto-generated method stub
-        
+        okLabel.setIcon(null);
+        okLabel.updateUI();
+        dataLinkPanel.updateUI();
+ 
     }
+
+    /** get the list of datalink supporting services **/
+    public String[] getServers() {
+               
+        Set<String>  s = servers.keySet();
+        return (String[]) s.toArray(new String[s.size()]);
+    }
+
     
-
-
 }
