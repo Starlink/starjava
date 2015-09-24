@@ -3,6 +3,7 @@
  */
 package uk.ac.starlink.splat.vo;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -16,6 +17,7 @@ import uk.ac.starlink.util.URLDataSource;
 import uk.ac.starlink.votable.ParamElement;
 import uk.ac.starlink.votable.VOElement;
 import uk.ac.starlink.votable.VOTableBuilder;
+import uk.ac.starlink.votable.ValuesElement;
 
 /**
  * @author Margarida Castro Neves
@@ -30,6 +32,7 @@ public class DataLinkParams {
     private String accessURL; // the access URL for the service
     private String contentType; // 
     private String format;
+    private ArrayList<VOElement> serviceElement;
 
     HashMap <String,String> paramMap= new HashMap<String,String>(); 
     int queryIndex = -1;
@@ -48,6 +51,7 @@ public class DataLinkParams {
         accessURL=null;
         contentType=null;
         format = null;
+        serviceElement=null;
     }
     
     
@@ -272,8 +276,8 @@ public class DataLinkParams {
     public String  getQueryFormat(int queryIndex) {   
         if (queryIndex >= 0 && queryIndex < getServiceCount()) {
             String format = service.get(queryIndex).getQueryParam("FORMAT");
-            if (format == null)
-               format = service.get(queryIndex).getQueryParam("content_type");
+            //if (format == null)
+            //   format = service.get(queryIndex).getQueryParam("content_type");
             return format;
         }
         else return null;
@@ -282,7 +286,75 @@ public class DataLinkParams {
  //       return (ParamElement[]) paramList.toArray( new ParamElement[ 0 ] );
  //   }
 
+
+    public void setServiceElement(ArrayList<VOElement> serviceEl) {
+        serviceElement=serviceEl;
+        
+    }
+    public ArrayList<VOElement> getServiceElement() {
+        return serviceElement;        
+    }
    
+    public void writeParamToFile( BufferedWriter writer, String sname ) throws IOException {
+        //writer.write( "<RESOURCE type=\"meta\" utype=\"adhoc:service\" name=\""+name+"\">" );
+        // 
+
+        for (int i=0; i<service.size(); i++) {
+            writer.write( "<RESOURCE utype=\"adhoc:service\" name=\""+sname+"\">" );
+            ParamElement[] pel = service.get(i).getQueryParams();
+            if (pel.length >0) 
+                writer.write( "<GROUP name\"inputparams\">");
+            /* writer.write("<PARAM arraysize="*" datatype="char" name="ID" ref="ssa_pubDID" ucd="meta.id;meta.main" value="">");
+            writer.write("<DESCRIPTION>The pubisher DID of the dataset of interest</DESCRIPTION>");                
+            writer.write("<LINK content-role="ddl:id-source" value="#ssa_pubDID"/> );
+            writer.write("</PARAM>"); */
+            for (int j=0;j<pel.length; j++) {
+                String arraysize=pel[j].getAttribute("arraysize");
+                String datatype=pel[j].getAttribute("datatype");
+                String name=pel[j].getAttribute("name");
+                String ucd=pel[j].getAttribute("ucd");
+                String utype=pel[j].getAttribute("utype");
+                String attrvalue=pel[j].getAttribute("value");
+
+
+                String value = pel[j].getValue();                               
+                ValuesElement values = (ValuesElement) pel[j].getChildByName("VALUES");
+                if (values != null ) {
+                    String [] options = values.getOptions(); 
+                    if (options != null && options.length >0) {                   
+                        writer.write("<PARAM arraysize=\""+arraysize+ "\" datatype=\""+datatype+"\" name=\""+name+ 
+                                "\" ucd=\""+ucd+ "\" utype=\""+utype+ "\" value=\"\""+attrvalue+">");
+                        writer.write("<DESCRIPTION>"+pel[j].getDescription()+"<\\DESCRIPTION>");
+
+                        writer.write("<VALUES>" );
+                        for (int k=0;k<options.length; k++) {
+                            writer.write("<OPTION name=\""+options[k]+ "\">" );
+                        }
+                        writer.write("<\\VALUES>");
+                    } else {
+                        writer.write("<PARAM ID=x datatype=\""+datatype+"\" name=\""+name+ 
+                                "\" ucd=\""+ucd+ "\" utype=\""+utype+"\" unit=\""+pel[j].getUnit()+ "\" value=\"\""+attrvalue+">");
+                        writer.write("<DESCRIPTION>"+pel[j].getDescription()+"<\\DESCRIPTION>");
+                        String max = values.getMaximum();
+                        String min=values.getMinimum();
+                        if (! max.isEmpty() || !min.isEmpty() ) {
+                            writer.write("<VALUES>" );
+                            if (!min.isEmpty())
+                                writer.write("<MIN value=\""+min+"\" >" );
+                            if (!max.isEmpty())
+                                writer.write("<MAX value=\""+max+"\" >" );
+                            writer.write("<\\VALUES>");
+                        }
+                    }
+                } else {
+                    writer.write("<PARAM ID=x datatype=\""+datatype+"\" name=\""+name+ 
+                            "\" ucd=\""+ucd+ "\" utype=\""+utype+"\" unit=\""+pel[j].getUnit()+ "\" value=\"\""+attrvalue+">");
+                    writer.write("<DESCRIPTION>"+pel[j].getDescription()+"<\\DESCRIPTION>");
+                }
+            } // for j
+        } // for i       
+        writer.write("<\\RESOURCE>");
+    }
     
   /*
    *********************************************************
@@ -298,7 +370,7 @@ public class DataLinkParams {
     protected class DataLinkService {
         
         //  parameter -  value 
-        HashMap <String,String> paramMap= null; 
+        HashMap <String,String> paramMap = null; 
         // parameters inside a GROUP element
         ArrayList <ParamElement> groupParams = null;
         
