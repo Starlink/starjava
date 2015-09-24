@@ -285,6 +285,7 @@ public class SSAPRegistryClient extends AbstractRegistryClient<SSAPRegResource> 
             resource.setReferenceUrl( rStore.removeScalar( REFURL_PATH ) );
             resource.setSubjects( rStore.removeArray( SUBJECT_PATH ) );
             String status = rStore.removeScalar( STATUS_PATH );
+            resource.setContentType( rStore.removeScalar( DATATYPE_PATH ) );
             resource.setWaveband( wband );
             assert rStore.keySet().isEmpty();
             return resource;
@@ -304,7 +305,7 @@ public class SSAPRegistryClient extends AbstractRegistryClient<SSAPRegResource> 
             cap.setVersion( cStore.removeScalar( VERSION_PATH ) );
             cap.setXsiType( cStore.removeScalar( XSITYPE_PATH ) );
             cap.setDataSource( cStore.removeScalar( DATASOURCE_PATH ) );
-            cap.setDataType( cStore.removeScalar( DATATYPE_PATH ) );
+            
             cap.setCreationType( cStore.removeScalar( CREATIONTYPE_PATH ) );
             assert cStore.keySet().isEmpty();
             return cap;
