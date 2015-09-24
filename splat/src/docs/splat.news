@@ -1,5 +1,12 @@
 1 Starlink SPLAT news.
 
+   3.10-8
+   ======
+
+   - registry interface uses now RegTap
+   - new service and metadata selection GUI
+   - several problems corrected
+
    3.10-7
    ======
 
