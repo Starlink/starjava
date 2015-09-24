@@ -15,13 +15,23 @@ import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutput;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
@@ -45,7 +55,7 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 
 import uk.ac.starlink.splat.iface.images.ImageHolder;
-import uk.ac.starlink.splat.vo.SSAQueryBrowser.MetadataInputParameter;
+import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.util.gui.BasicFileChooser;
 import uk.ac.starlink.util.gui.BasicFileFilter;
 import uk.ac.starlink.util.gui.ErrorDialog;
@@ -72,7 +82,7 @@ public class SSAMetadataPanel extends JPanel implements ActionListener, TableMod
      * File chooser for storing and restoring server lists.
      */
     protected BasicFileChooser fileChooser = null;
-
+    private static String configFile = "SSAPMetaParams.txt";
 
     private static JTable metadataTable;
 
@@ -80,18 +90,20 @@ public class SSAMetadataPanel extends JPanel implements ActionListener, TableMod
   
 
     /** The list of all input parameters read from the servers as a hash map */
-    private HashMap<String, MetadataInputParameter> metaParam=null;
+    private static HashMap<String, MetadataInputParameter> metaParam=null;
 
     // the metadata table
     private static final int NRCOLS = 6;					// the number of columns in the table
     // the table indexes
 
     private static final int SELECTED_INDEX = 0;
-    private static final int NR_SERVERS_INDEX = 1;
-    private static final int NAME_INDEX = 2;
-    private static final int VALUE_INDEX = 3;    
+    private static final int NAME_INDEX = 1;
+    private static final int VALUE_INDEX = 2;    
+    private static final int UCD_INDEX = 3;
     private static final int DESCRIPTION_INDEX = 4;
-    private static final int UCD_INDEX = 5;
+    private static final int SERVERS_INDEX = 5;
+
+    
 
     // total number of servers that returned parameters
     // private int nrServers;
@@ -112,7 +124,7 @@ public class SSAMetadataPanel extends JPanel implements ActionListener, TableMod
     {
 
         this.metaParam = metaParam;
-        //this.nrServers = nrServers;
+        
       
         initMetadataTable();
         initUI();
@@ -127,7 +139,7 @@ public class SSAMetadataPanel extends JPanel implements ActionListener, TableMod
     public SSAMetadataPanel( )
     {
 
-        metaParam = null;
+        metaParam = new HashMap<String, MetadataInputParameter>();
         // nrServers = 0;
        
         initMetadataTable();
@@ -136,6 +148,11 @@ public class SSAMetadataPanel extends JPanel implements ActionListener, TableMod
  
     } //
 
+    
+    public HashMap<String, MetadataInputParameter> getParams() {
+        return metaParam;
+    }
+    
     /**
      * Initialize the metadata table
      */
@@ -143,40 +160,43 @@ public class SSAMetadataPanel extends JPanel implements ActionListener, TableMod
     {
 
         metadataTable = new JTable( );    
+        metadataTable.putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
+        
         // the table headers
         headers = new String[NRCOLS];
 
         headers[SELECTED_INDEX] = "Use";     
-        headers[NR_SERVERS_INDEX] = "Nr servers";
         headers[NAME_INDEX] = "Name";
         headers[VALUE_INDEX] = "Value";
         headers[DESCRIPTION_INDEX] = "Description";
         headers[UCD_INDEX] = "UCD";
+        headers[SERVERS_INDEX] = "Supported by";
         // the tooltip Texts for the headers
         headersToolTips = new String[NRCOLS];
 
         headersToolTips[SELECTED_INDEX] = "Select for Query";     
-        headersToolTips[NR_SERVERS_INDEX] = "Nr servers supporting this parameter";
         headersToolTips[NAME_INDEX] = "Parameter name";
         headersToolTips[VALUE_INDEX] = "Parameter value";
         headersToolTips[DESCRIPTION_INDEX] = "Description";
         headersToolTips[UCD_INDEX] = "UCD";
+        headersToolTips[SERVERS_INDEX] = "Servers supporting this parameter";
 
         //  Table of metadata parameters goes into a scrollpane in the center of
         //  window (along with a set of buttons, see initUI).
         // set the model and change the appearance
         // the table data
+        
+        metadataTableModel = new MetadataTableModel(headers);
+       
+        metadataTable.setModel( metadataTableModel );
+        metadataTableModel.addTableModelListener(this);
+        
         if (metaParam != null)
         {
-            String[][]  paramList = getParamList();
-            metadataTableModel = new MetadataTableModel(paramList, headers);         
-        } else 
-            metadataTableModel = new MetadataTableModel(headers);
+            addRows();        
+        } 
         
-        metadataTableModel.addTableModelListener(this);
-      
-        metadataTable.setModel( metadataTableModel );
-        
+         
         metadataTable.setShowGrid(true);
         metadataTable.setGridColor(Color.lightGray);
         metadataTable.getTableHeader().setReorderingAllowed(false);
@@ -210,7 +230,7 @@ public class SSAMetadataPanel extends JPanel implements ActionListener, TableMod
      *
      * @return the metadata array
      */
-    public String[][] getParamList()
+  /*  public String[][] getParamList()
     {
 
         // Iterate through metaParam, add the entries, populate the table
@@ -229,6 +249,7 @@ public class SSAMetadataPanel extends JPanel implements ActionListener, TableMod
             metadataList[row][NAME_INDEX] = mip.getName().replace("INPUT:", "");                // name
             metadataList[row][VALUE_INDEX] =  ""; //mip.getValue();  
             metadataList[row][UCD_INDEX] =  mip.getUCD(); 
+            metadataList[row][SERVERS_INDEX] =  mip.getServers().toString(); 
             String unit = mip.getUnit();
             String desc = mip.getDescription();
             desc = desc.replaceAll("\n+", "<br>");
@@ -246,16 +267,21 @@ public class SSAMetadataPanel extends JPanel implements ActionListener, TableMod
         Arrays.sort(metadataList, new SupportedComparator());
         return metadataList;
     }
-
+*/
     /**
      * comparator to sort the parameter list by the nr of servers that support a parameter
      */
-    class SupportedComparator  implements Comparator<String[]>
-    { 
-        public int compare(String[] object1, String[] object2) {
-            // compare the frequency counter
-            return ( Integer.parseInt(object2[NR_SERVERS_INDEX]) - Integer.parseInt(object1[NR_SERVERS_INDEX]) );
-        }
+ //   class SupportedComparator  implements Comparator<String[]>
+ //   { 
+ //       public int compare(String[] object1, String[] object2) {
+ //           // compare the frequency counter
+ //           return ( object2[NR_SERVERS_INDEX]) - Integer.parseInt(object1[NR_SERVERS_INDEX]) );
+  //      }
+ //   }
+    
+    public void refreshParams() {
+        adjustColumns();
+        this.updateUI();
     }
 
 
@@ -266,23 +292,34 @@ public class SSAMetadataPanel extends JPanel implements ActionListener, TableMod
         JCheckBox  cb = new JCheckBox();
         JTextField  tf = new JTextField();
 
-        metadataTable.getColumnModel().getColumn(SELECTED_INDEX).setCellEditor(new DefaultCellEditor(cb));
-        metadataTable.getColumnModel().getColumn(SELECTED_INDEX).setMaxWidth(30);
-        metadataTable.getColumnModel().getColumn(SELECTED_INDEX).setMinWidth(30);
-        metadataTable.getColumnModel().getColumn(NR_SERVERS_INDEX).setMaxWidth(0);
-        metadataTable.getColumnModel().getColumn(NAME_INDEX).setMinWidth(100);
-        metadataTable.getColumnModel().getColumn(VALUE_INDEX).setMinWidth(100);
-        metadataTable.getColumnModel().getColumn(VALUE_INDEX).setCellEditor(new DefaultCellEditor(tf));
-        metadataTable.getColumnModel().getColumn(NAME_INDEX).setCellRenderer(paramRenderer);
-        metadataTable.getColumnModel().getColumn(UCD_INDEX).setMinWidth(100);
-        metadataTable.getColumnModel().getColumn (DESCRIPTION_INDEX).setMaxWidth(0);
-        // Remove the description column. Its contents will not be removed. They'll be displayed as tooltip text in the NAME_INDEX column.  
-        metadataTable.removeColumn(metadataTable.getColumnModel().getColumn (DESCRIPTION_INDEX));
-        // Remove the Nr Servers column. Its contents will not be removed.  
-        metadataTable.removeColumn(metadataTable.getColumnModel().getColumn (NR_SERVERS_INDEX));
+       
+        metadataTable.getColumn(metadataTable.getColumnName(SELECTED_INDEX)).setCellEditor(new DefaultCellEditor(cb));
+        metadataTable.getColumn(metadataTable.getColumnName(SELECTED_INDEX)).setMaxWidth(30);
+        metadataTable.getColumn(metadataTable.getColumnName(SELECTED_INDEX)).setMinWidth(30);      
+        metadataTable.getColumn(metadataTable.getColumnName(NAME_INDEX)).setMinWidth(100);
+        metadataTable.getColumn(metadataTable.getColumnName(VALUE_INDEX)).setMinWidth(100);
+        metadataTable.getColumn(metadataTable.getColumnName(VALUE_INDEX)).setCellEditor(new DefaultCellEditor(tf));
+        metadataTable.getColumn(metadataTable.getColumnName(NAME_INDEX)).setCellRenderer(paramRenderer);
+        metadataTable.getColumn(metadataTable.getColumnName(UCD_INDEX)).setMinWidth(100);
+        
+        if ( metadataTable.getColumnCount() > 4) { // remove columns that are not visible, it not removed yet
+            //metadataTable.getColumn(metadataTable.getColumnName(NR_SERVERS_INDEX)).setMaxWidth(0);
+           //metadataTable.getColumn(metadataTable.getColumnName(DESCRIPTION_INDEX)).setMaxWidth(0);
+           //metadataTable.getColumn(metadataTable.getColumnName(SERVERS_INDEX)).setMaxWidth(0);
+
+            // Remove the Servers column. Its contents will not be removed.  
+            metadataTable.removeColumn(metadataTable.getColumn(metadataTable.getColumnName(SERVERS_INDEX)));
+            // Remove the description column. Its contents will not be removed. They'll be displayed as tooltip text in the NAME_INDEX column.  
+            metadataTable.removeColumn(metadataTable.getColumn(metadataTable.getColumnName(DESCRIPTION_INDEX)));
+           
+        }
+
     }
 
 
+  //  public void setParams( HashMap<String, MetadataInputParameter> mp) {
+ //       this.metaParam = mp;
+//    }
     /**
      * Retrieve parameter names and values from table and returns a query substring 
      * Only the parameters on selected rows, and having non-empty values will be added to the table 
@@ -443,7 +480,7 @@ public class SSAMetadataPanel extends JPanel implements ActionListener, TableMod
         readFile.setMnemonic( KeyEvent.VK_F );
         readFile.addActionListener(this);
         readFile.setActionCommand( "restore" );
-        JMenuItem loadFile = new JMenuItem("(U)pdate Params from servers", updateImage);
+        JMenuItem loadFile = new JMenuItem("(U)pdate Params from services", updateImage);
         fileMenu.add(loadFile);
         loadFile.setMnemonic( KeyEvent.VK_U );
         loadFile.addActionListener(this);
@@ -478,12 +515,12 @@ public class SSAMetadataPanel extends JPanel implements ActionListener, TableMod
         restoreButton.addActionListener( this );
         buttonsPanel.add( restoreButton  );
 
-        //  Add action to query the servers for parameters 
-//        JButton queryButton = new JButton( "Update" , updateImage); 
-//        queryButton.setActionCommand( "refresh" );
-//        queryButton.setToolTipText( "Query the servers for a current list of parameters" );
-//        queryButton.addActionListener( this );
-//        buttonsPanel.add( queryButton );
+        // Add action to query the servers for parameters 
+        JButton queryButton = new JButton( "Update" , updateImage); 
+        queryButton.setActionCommand( "refresh" );
+        queryButton.setToolTipText( "Query the servers for a current list of parameters" );
+        queryButton.addActionListener( this );
+        buttonsPanel.add( queryButton );
 
         //  Add action to do reset the form
         JButton resetButton = new JButton( "Reset", resetImage );
@@ -513,6 +550,9 @@ public class SSAMetadataPanel extends JPanel implements ActionListener, TableMod
     public void actionPerformed(ActionEvent e) {
 
         Object command = e.getActionCommand();
+        
+        if (metadataTable.isEditing())
+            metadataTable.getCellEditor().stopCellEditing();
 
         if ( command.equals( "save" ) ) // save table values to a file
         {
@@ -607,9 +647,9 @@ public class SSAMetadataPanel extends JPanel implements ActionListener, TableMod
             fileChooser.setMultiSelectionEnabled( false );
 
             //  Add a filter for XML files.
-            BasicFileFilter csvFileFilter =
-                    new BasicFileFilter( "csv", "CSV files" );
-            fileChooser.addChoosableFileFilter( csvFileFilter );
+            BasicFileFilter xmlFileFilter =
+                    new BasicFileFilter( "xml", "XML files" );
+            fileChooser.addChoosableFileFilter( xmlFileFilter );
 
             //  But allow all files as well.
             fileChooser.addChoosableFileFilter
@@ -622,6 +662,17 @@ public class SSAMetadataPanel extends JPanel implements ActionListener, TableMod
      *  Restore  metadata that has been previously written to a
      *  CSV file. The file name is obtained interactively.
      */
+    public void readMetadataFromFile(File file) {
+         try {
+            readParams(file);
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
     public void readMetadataFromFile()
     {
         initFileChooser();
@@ -656,7 +707,7 @@ public class SSAMetadataPanel extends JPanel implements ActionListener, TableMod
         if ( result == JFileChooser.APPROVE_OPTION ) {
             File file = fileChooser.getSelectedFile();
             try {
-                saveTable( file );
+                saveParams( file );
             }
             catch (Exception e) {
                 ErrorDialog.showError( this, e );
@@ -671,9 +722,10 @@ public class SSAMetadataPanel extends JPanel implements ActionListener, TableMod
      * @param paramFile     - file where to save the table 
      * @throws IOException
      */
-    private void saveTable(File paramFile) throws IOException
+ /*   private void saveTable(File paramFile) throws IOException
     {
 
+        
         BufferedWriter tableWriter = new BufferedWriter(new FileWriter(paramFile));
 
         MetadataTableModel mtm = (MetadataTableModel) metadataTable.getModel();
@@ -685,15 +737,79 @@ public class SSAMetadataPanel extends JPanel implements ActionListener, TableMod
             tableWriter.append(mtm.getValueAt(row, VALUE_INDEX).toString());
             tableWriter.append(';');
             tableWriter.append(mtm.getValueAt(row, DESCRIPTION_INDEX).toString());
-        //    tableWriter.append(';');
-       //     tableWriter.append(p.getValueAt(row, DESCRIPTION_INDEX).toString());
+         //   tableWriter.append(';');
+         //   tableWriter.append(mtm.getServers().toString());
             tableWriter.append('\n');
         }
         tableWriter.flush();
         tableWriter.close();
 
     } //saveTable()
+    */
+    public void backupParams() throws IOException {
+        File paramsFile = Utilities.getConfigFile( configFile );
+        saveParams(paramsFile);
+    } 
+    /**
+     * saveParams(file)
+     * saves the metadata table to a file in csv format 
+     * 
+     * @param paramFile     - file where to save the table 
+     * @throws IOException
+     */
+    private void saveParams(File paramFile) throws IOException
+    {
 
+    //    Collection<MetadataInputParameter> mp = metaParam.values();
+      
+
+      //  Iterator<MetadataInputParameter> it = mp.iterator();
+        FileOutputStream out = new FileOutputStream(paramFile);
+        OutputStream buffer = new BufferedOutputStream(out);
+        ObjectOutputStream paramWriter = new ObjectOutputStream(buffer);
+
+        
+     //   while (it.hasNext()) {
+      //      MetadataInputParameter mip = it.next();
+            paramWriter.writeObject(metaParam);
+      
+     //   }
+        
+        paramWriter.flush();
+        paramWriter.close();
+
+    } //saveTable()
+    
+    public void restoreParams() throws IOException, ClassNotFoundException {
+        File paramsFile = Utilities.getConfigFile( configFile );
+        readParams(paramsFile);
+    }
+    private void readParams(File paramFile) throws IOException, ClassNotFoundException
+    {
+   
+        metaParam = new HashMap<String, MetadataInputParameter>();
+   
+        
+        FileInputStream in = new FileInputStream(paramFile);
+        InputStream buffer = new BufferedInputStream(in);
+        ObjectInputStream paramReader = new ObjectInputStream(buffer);
+
+        
+       // while (paramReader != null) {
+           // MetadataInputParameter mip ;        
+              //  mip = (MetadataInputParameter) paramReader.readObject();
+                metaParam = (HashMap<String, MetadataInputParameter>) paramReader.readObject();
+               // metaParam.put( mip.getName(), mip );
+              //  addRow(mip, newmodel);     
+       // }
+         
+        paramReader.close();
+        addRows();
+     
+        //adjustColumns(); // adjust column sizes in the new model
+
+    } //readParams()
+    
     /**
      * readTable( File paramFile)
      * reads the metadata table previously saved with saveTable() from a file in csv format 
@@ -705,6 +821,7 @@ public class SSAMetadataPanel extends JPanel implements ActionListener, TableMod
     private void readTable(File paramFile) throws  IOException, FileNotFoundException
     {
 
+        metaParam = new HashMap<String, MetadataInputParameter>();
         MetadataTableModel newmodel = new MetadataTableModel(headers);
         BufferedReader CSVFile = new BufferedReader(new FileReader(paramFile)); 	
 
@@ -714,6 +831,7 @@ public class SSAMetadataPanel extends JPanel implements ActionListener, TableMod
             paramRow = tableRow.split(";", NRCOLS);	 		
             newmodel.addRow(paramRow);
             tableRow = CSVFile.readLine(); 
+         //   MetadataInputParameter mip = new MetadataInputParameter();
         }
         // Close the file once all data has been read.
         CSVFile.close();
@@ -728,28 +846,108 @@ public class SSAMetadataPanel extends JPanel implements ActionListener, TableMod
      * Remove all rows from the table 
      * @param mip the metadata parameter that will be added to the table
      */
-    // checkbox included 
+    
     public void removeAll( ) {
+        metaParam.clear();
         MetadataTableModel mtm = (MetadataTableModel) metadataTable.getModel();
-        mtm.setRowCount(0);
-       
+        int rowCount = mtm.getRowCount();
+        // empty the table
+        for (int i = rowCount - 1; i >= 0; i--) {
+            mtm.removeRow(i);
+        }       
     }
     
+    public static synchronized void addParam( MetadataInputParameter mip ) {
+        String paramname = mip.getName().replace("INPUT:", "");
+        if (metaParam.containsKey(mip.getName())) {
+           MetadataInputParameter mmip = metaParam.get(mip.getName()) ;
+        // if two servers support same parameter with different initial values, don't write any value.
+           if (! mmip.getValue().equals(mip.getValue()))
+               mmip.setValue(""); 
+        // if one entry has an UCD, and the other not, keep the UCD
+           if ( mmip.getUCD() == null || mmip.getUCD().isEmpty())   
+               mmip.setUCD(mip.getUCD());
+        // if one entry has a description, and the other not, keep the (first) non empty
+           if (mmip.getDescription() == null || mmip.getDescription().isEmpty())
+           mmip.setDescription(mip.getDescription());
+           metaParam.put(mip.getName(), mmip);
+           replaceRow(mip);
+           // eventually reload the row - right now the servers are not displayed
+        } else {
+            metaParam.put(mip.getName(), mip);
+            addRow(mip);
+        }       
+    }
+    
+    public synchronized void addParams( ArrayList<MetadataInputParameter> mips ) {
+        if (mips==null)
+            return;
+       for (int i=0;i<mips.size();i++)
+           addParam(mips.get(i));
+    }
+    
+    /**
+     * create new table from metaParams
+     * @param mip the metadata parameter that will be added to the table
+     */
+    
+    public void addRows() {
+        removeAll();
+        MetadataTableModel mtm = (MetadataTableModel) metadataTable.getModel();
+       
+        Collection<MetadataInputParameter> mp = metaParam.values();
+        Iterator<MetadataInputParameter> it = mp.iterator();
+        
+        while (it.hasNext()) {
+           MetadataInputParameter mip = it.next();         
+           addRow ( mip, mtm, false );
+        }
+    }
+    
+    
+    /**
+     * Replaces a row to the table 
+     * @param mip the metadata parameter that will be added to the table
+     */
+    public static void replaceRow(MetadataInputParameter mip ) {
+        MetadataTableModel mtm = (MetadataTableModel) metadataTable.getModel();
+        boolean found = false;
+       
+        String paramName = mip.getName().replace("INPUT:", "");
+        for (int row=0; (row<mtm.getRowCount() && !found);row++) {
+            String name = (String) mtm.getValueAt(row, NAME_INDEX);
+            if (name.equals(paramName)) {
+                found=true;
+                mtm.removeRow(row);
+                addRow ( mip, mtm, false );
+            }
+        }
+      
+    }
     /**
      * Adds a new row to the table 
      * @param mip the metadata parameter that will be added to the table
      */
     // checkbox included 
-    public void addRow(MetadataInputParameter mip ) {
-        addRow ( mip, false );
+    public static void addRow(MetadataInputParameter mip, MetadataTableModel mtm ) {
+        addRow ( mip, mtm, false );
+    }
+    
+    public static void addRow(MetadataInputParameter mip ) {
+        MetadataTableModel mtm = (MetadataTableModel) metadataTable.getModel();
+        addRow ( mip, mtm, false );
+    }
+    
+    public static void addRow(MetadataInputParameter mip, boolean selected ) {
+        MetadataTableModel mtm = (MetadataTableModel) metadataTable.getModel();
+        addRow ( mip, mtm, false );
     }
     
     // useCheckBox true: checkbox included
     // useCheckBox false: checkbox not included, parameter automatically "checked"
-    public void addRow (MetadataInputParameter mip, boolean selected) {
+    public static void addRow (MetadataInputParameter mip,  MetadataTableModel mtm, boolean selected) {
 
         String [] paramRow = new String [NRCOLS];
-        paramRow[NR_SERVERS_INDEX] = Integer.toString(mip.getCounter());//+"/"+Integer.toString(nrServers);       // nr supporting servers
         paramRow[NAME_INDEX] = mip.getName().replace("INPUT:", "");                // name
         paramRow[VALUE_INDEX] =  mip.getValue();                         // value (default value or "")
         paramRow[UCD_INDEX] =  mip.getUCD();  
@@ -784,8 +982,6 @@ public class SSAMetadataPanel extends JPanel implements ActionListener, TableMod
             desc = desc + "  ("+unit+")"; //  (unit)
         }
         paramRow[DESCRIPTION_INDEX] = desc; // description
-
-        MetadataTableModel mtm = (MetadataTableModel) metadataTable.getModel();
         mtm.addRow( paramRow );
 
         if ( selected ) {         
@@ -796,29 +992,6 @@ public class SSAMetadataPanel extends JPanel implements ActionListener, TableMod
     
 
 
-    /**
-     * Set number of servers to the respective column in the table
-     * @param counter the nr of servers supporting the parameter
-     * @param name the name of the parameter
-     */
-    public void setNrServers(int counter, String UCD) {
-
-        // boolean found=false;
-        int row=0;
-       // String paramName = name.replace("INPUT:", ""); 
-        MetadataTableModel mtm = (MetadataTableModel) metadataTable.getModel();
-       
-        while (row<mtm.getRowCount() )
-        {
-            if ( mtm.getValueAt(row, UCD_INDEX).toString().equalsIgnoreCase(UCD)) {
-              
-                mtm.setValueAt(counter, row, NR_SERVERS_INDEX); 
-                return;
-            }
-            row++;
-        }
-
-    }//setnrServers
 
     /** 
      * TableModelListener method
@@ -826,8 +999,14 @@ public class SSAMetadataPanel extends JPanel implements ActionListener, TableMod
      */
     public void tableChanged(TableModelEvent tme) {
       
-        if ( (tme.getColumn() != TableModelEvent.ALL_COLUMNS) && (tme.getColumn() == SELECTED_INDEX  || tme.getColumn() == VALUE_INDEX) )
-             this.firePropertyChange("changeQuery", false, true);      
+        if ( (tme.getColumn() != TableModelEvent.ALL_COLUMNS) && (tme.getColumn() == SELECTED_INDEX  || tme.getColumn() == VALUE_INDEX) ) {
+                        
+             MetadataTableModel mtm = (MetadataTableModel) tme.getSource();
+             String paramname = (String) mtm.getValueAt(tme.getFirstRow(), NAME_INDEX);
+             
+             this.firePropertyChange("changedValue", null, metaParam.get("INPUT:"+paramname) );
+         //    this.firePropertyChange("changeQuery", false, true);      
+        }
     }
     // fire this only in certain events
     public void fireProperty() 
