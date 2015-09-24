@@ -26,7 +26,7 @@ import uk.ac.starlink.votable.VOStarTable;
 
 /**
  * SAX filter which ignores any tables in a VOTable document, except those
- * in a RESOURCE which has type="results" or name="getDataMeta".
+ * in a RESOURCE which has type="results" or type="service".
  * This is suitable for getting the basic table from the result of an
  * SIA or SSA service.
  * Under some circumstances the results can come with a large amount
@@ -45,15 +45,17 @@ import uk.ac.starlink.votable.VOStarTable;
  * @see <a href="http://www.ivoa.net/Documents/SIA/"
  *         >Simple Image Access Protocol</a>
  *         
- *         Adapted from uk.ac.starlink.vo.DalResultXMLFilter to recognise tables with 
+ *         Adapted from uk.ac.starlink.vo.DalResultXMLFilter to recognize tables with 
  *         name = "getDataMeta" by Margarida Castro Neves
+ *         Adapted from uk.ac.starlink.vo.DalResultXMLFilter to recognize tables with 
+ *         type = "service"  (DataLink service) by Margarida Castro Neves
+ *         GetData support removed by Margarida Castro Neves
  */
 public class DalResourceXMLFilter extends XMLFilterImpl {
 
     private final Namespacing namespacing_;
     private final StringBuffer path_;
     private String resultsPath_;
-    private String getDataPath_;
     private String ignorePath_;
     private String servicePath_;
 
@@ -93,13 +95,7 @@ public class DalResourceXMLFilter extends XMLFilterImpl {
              "results".equals( atts.getValue( "type" ) ) ) {
             resultsPath_ = path_.toString();
         } else 
-        if ( "RESOURCE".equals( voTagName ) &&
-                "getDataMeta".equals( atts.getValue( "name" ) ) ) {
-               getDataPath_ = path_.toString();
-        } else         
-        if ( "TABLE".equals( voTagName ) && (resultsPath_ == null && getDataPath_ == null) ) {
-            ignorePath_ = path_.toString();
-        } else
+ 
         if ( "RESOURCE".equals( voTagName ) && "service".equals( atts.getValue( "type" ) ) ) {
             servicePath_ = path_.toString();
         } 
@@ -118,8 +114,6 @@ public class DalResourceXMLFilter extends XMLFilterImpl {
         String path = path_.toString();
         if ( path.equals( resultsPath_ ) ) {
             resultsPath_ = null;
-        } else if ( path.equals( getDataPath_ )) {
-            getDataPath_ = null;
         } else if (path.equals( servicePath_ )) {
             servicePath_ = null;
         } else if ( path.equals( ignorePath_ ) ) {
@@ -204,58 +198,11 @@ public class DalResourceXMLFilter extends XMLFilterImpl {
         }
     }
 
-    
-    /**
-     * Utility method which can return the single results table from a
-     * DAL-type response.  This is the single table within the RESOURCE
-     * element marked with type="getDataMeta", as described by the SIA and SSA
-     * standards.
-     * The QUERY_STATUS INFO element is checked; in case of ERROR, 
-     * an exception is thrown.
-     *
-     * @param   vofact  factory which can generate VOTable DOMs
-     * @param   inSrc   source of the SAX stream
-     * @return  result table, never null
-     * @throws  IOException  in case of error, including an ERROR-valued
-     *          QUERY_STATUS in the response, or no suitable table found
-     */
-    public static GetDataTable getDalGetDataTable( VOElement voEl )
-            throws IOException {
-
-       
-        if (voEl == null) {
-            // write error msg here
-            return null;
-        }
-      
-        VOElement getDataEl =
-                locateElement( voEl, "RESOURCE", "name", "getDataMeta" );
-        if ( getDataEl == null ) {
-            return null;    // don't complain, as the presence of getdata parameters is not mandatory
-        }
- 
-        /* Locate result TABLE element. */
-        NodeList tableNodes = getDataEl.getElementsByVOTagName( "TABLE" );
-        int nTable = tableNodes.getLength();
-        if ( nTable == 0 ) {
-            throw new IOException( "No table found"
-                                 + " in <RESOURCE name='getDataMeta'>" );
-        }
-        if ( nTable > 1 ) {
-            logger_.warning( "Found " + nTable + " tables"
-                           + " in <RESOURCE name='getDataMeta'>"
-                           + " - just returning first" );
-        }
-
-        /* Return it as a StarTable. */
-        return new GetDataTable( (TableElement) tableNodes.item( 0 ) );
-    }
 
     /**
      * Utility method which can return the single results table from a
      * DAL-type response.  This is the single table within the RESOURCE
-     * element marked with type="getDataMeta", as described by the SIA and SSA
-     * standards.
+     * element containing DataLink information.
      * The QUERY_STATUS INFO element is checked; in case of ERROR, 
      * an exception is thrown.
      *
@@ -282,6 +229,7 @@ public class DalResourceXMLFilter extends XMLFilterImpl {
         }
         
         DataLinkParams dlParams = new DataLinkParams();
+        dlParams.setServiceElement( serviceEl);
         
         for (int i=0; i< serviceEl.size(); i++) {
             VOElement voel = serviceEl.get(i);
