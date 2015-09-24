@@ -18,13 +18,16 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.logging.Logger;
 
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.table.BeanStarTable;
+import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.gui.StarJTable;
 import uk.ac.starlink.vo.RegResource;
 
@@ -41,14 +44,63 @@ import uk.ac.starlink.vo.RegResource;
 public class SSAServerList
 {
     private HashMap<String, SSAPRegResource> serverList = new HashMap<String, SSAPRegResource>();
-    private HashMap<String, Boolean> selectionList = new HashMap<String, Boolean>();
-    private static String configFile = "SSAPServerListV3.xml";
+   
+ //   private HashMap<String, Boolean> selectionList = new HashMap<String, Boolean>();
+    private static String oldconfigFile = "SSAPServerListV3.xml";
+    private static String configFile = "SSAPServerListV4.xml";
     private static String defaultFile = "serverlist.xml";
+    
+    // Logger.
+    private static Logger logger =
+            Logger.getLogger( "uk.ac.starlink.splat.vo.SSAServerList" );
+
 
     public SSAServerList()
         throws SplatException
     {
         restoreKnownServers();
+    }
+    
+    public SSAServerList(StarTable table)  throws SplatException
+    {    
+            addNewServers(table);      
+    }
+
+
+
+    public void addNewServers(StarTable table ) {
+
+        if ( table != null ) {
+            if ( table instanceof BeanStarTable ) {
+                Object[] resources = ((BeanStarTable)table).getData();
+                for ( int i = 0; i < resources.length; i++ ) {
+
+                    SSAPRegResource server = (SSAPRegResource)resources[i];
+                    String shortname = server.getShortName();
+                    if (shortname == null || shortname.length()==0)
+                        shortname = server.getTitle(); // avoid problems if server has no name (should not happen, but it does!!!)
+                    SSAPRegCapability caps[] = server.getCapabilities();
+                    int nrcaps = server.getCapabilities().length;
+                    int nrssacaps=0;
+                    // create one serverlist entry for each ssap capability  !!!! TO DO DO THIS ALREADY ON SSAPREGISTRYQUERY!
+                    for (int c=0; c< nrcaps; c++) {
+                //       String xsi= caps[c].getXsiType();
+                //       if (xsi != null && xsi.startsWith("ssa")) {
+                        SSAPRegResource ssapserver = new SSAPRegResource(server);
+                        SSAPRegCapability onecap[] = new SSAPRegCapability[1];
+                        onecap[0] = caps[c];  
+                        String name = shortname;
+                        ssapserver.setCapabilities(onecap);
+                        if (nrssacaps > 0) 
+                            name =  name + "(" + nrssacaps + ")";
+                        ssapserver.setShortName(name);
+                        addServer( ssapserver, false );
+                        nrssacaps++;
+                   }                    
+                }
+            }
+        }      
+        
     }
 
     /**
@@ -355,12 +407,13 @@ public class SSAServerList
         //  Note these have to be SSAPRegResource instances, not RegResource.
         //  So that they can be serialised as beans.
         SSAPRegResource server = null;
-        SSAPRegResource resource = null;
+        
         while ( i.hasNext() ) {
             server = (SSAPRegResource) i.next();
             try {
-                resource = new SSAPRegResource( server );
+                SSAPRegResource resource = new SSAPRegResource( server );
                 encoder.writeObject( resource );
+             //   encoder.writeObject( resource.getMetadata());
             }
             catch (Exception e) {
                 e.printStackTrace();
@@ -373,9 +426,28 @@ public class SSAServerList
         return serverList.size();
     }
     
+    // add new value to metadata list in servers
+    public void addMetadata(MetadataInputParameter mip) {
+
+
+        ArrayList<String> servers = (ArrayList<String>) mip.getServers(); // list of shortnames 
+        for (int i=0;i<servers.size();i++) {
+            SSAPRegResource srv = getResource(servers.get(i)); 
+            ArrayList<MetadataInputParameter> srvmeta = (ArrayList<MetadataInputParameter>) srv.getMetadata();
+            for (int j=0;j<srvmeta.size();j++) {
+                MetadataInputParameter srvmip = srvmeta.get(j);
+                if (srvmip.getName().equals(mip.getName())) {
+                    srvmeta.set(j, mip);
+                }
+            }
+            srv.setMetadata(srvmeta);
+            serverList.put(servers.get(i), srv);
+        }
+    }
+
     /**
      * set selection tag
-     */
+     *
      public void selectServer(String shortname) {
          if (shortname != null)
             shortname = shortname.trim();
@@ -384,7 +456,7 @@ public class SSAServerList
      }
      /**
       * set selection tag
-      */
+      *
       public void unselectServer(String shortname) {
           if (shortname != null)
               shortname = shortname.trim();
@@ -393,14 +465,27 @@ public class SSAServerList
       }
       /**
        * returns selection tag
-       */
+       *
        public boolean isServerSelected(String shortname) {
            if (shortname == null)
                return false; //this should not happen! 
-           else
+           else {
                shortname = shortname.trim();
-           if (serverList.containsKey(shortname))
-                   return selectionList.get(shortname);
+               if (shortname.isEmpty())
+                   return false;
+           }
+           if (serverList.containsKey(shortname)) {
+               if (selectionList.containsKey(shortname)) {
+                   // should not happen, but...
+                   // in case get() returns null:
+                   // need to test for null to avoid NPE on Windows
+                  
+                   boolean b = selectionList.get(shortname).booleanValue();
+                   return b;
+               }
+               else return false;
+           }
            return false;
        }
+       */
 }
