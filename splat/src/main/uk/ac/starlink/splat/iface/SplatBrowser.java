@@ -6,6 +6,12 @@
  *  History:
  *     25-SEP-2000 (Peter W. Draper):
  *       Original version.
+ *     2012 (Margarida Castro Neves)
+ *      added getData support
+ *     2013
+ *      added DataLink support 
+ *     JUL-2015
+ *      removed getData support
  */
 
 //  XXX Need to use SpectrumIO consistently for opening all spectra
@@ -2144,16 +2150,9 @@ public class SplatBrowser
                 String specstr = props.getSpectrum();
                 SpecData spectrum;
                 List<SpecData> spectra;
-                if ( specstr.contains("REQUEST=getData") && props.getGetDataFormat() != null ) { 
-                    spectrum = specDataFactory.get( props.getSpectrum(), props.getGetDataFormat() );
-                    addSpectrum( spectrum );
-                    props.apply( spectrum );
-                // if the access_url is a datalink, then we have to get first the Datalink VOTable to get the real access_url of the spectrum.
-                } 
-                else { 
                     if (props.getType() == SpecDataFactory.DATALINK) {
                         DataLinkParams dlparams = new DataLinkParams(props.getSpectrum());
-                        props.setSpectrum(dlparams.getQueryAccessURL(0)); // get the accessURL for the first service read, in case there are more services !?!?!?!?!?!?!?!?!?!?!?
+                        props.setSpectrum(dlparams.getQueryAccessURL(0)); // get the accessURL for the first service read 
                         if (props.getDataLinkFormat() != null ) // see if user has changed the output format
                             props.setType(SpecDataFactory.mimeToSPLATType(props.getDataLinkFormat()));                 
                         else if ( dlparams.getQueryContentType(0) == null || dlparams.getQueryContentType(0).isEmpty()) //if not, use contenttype
@@ -2171,10 +2170,9 @@ public class SplatBrowser
                         props.apply( spectrum );
                         
                     }
-                }
+                //}
                 
             }
-           // catch (Exception e ) {
             catch (SEDSplatException se) {
 
                 // Is the spectrum in a file or url?
