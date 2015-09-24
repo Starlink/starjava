@@ -9,6 +9,7 @@ import java.awt.GridLayout;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.beans.PropertyChangeEvent;
@@ -25,6 +26,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Logger;
 
+import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -33,12 +35,17 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
+import javax.swing.JTextPane;
+import javax.swing.SwingUtilities;
+//import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.ScrollPaneConstants;
@@ -63,16 +70,20 @@ import uk.ac.starlink.splat.iface.SpectrumIO;
 import uk.ac.starlink.splat.iface.SpectrumIO.Props;
 import uk.ac.starlink.splat.iface.SplatBrowser;
 import uk.ac.starlink.splat.util.SplatException;
+import uk.ac.starlink.splat.vo.SSAServerTable.PopupMenuAction;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.gui.StarJTable;
+import uk.ac.starlink.table.gui.StarTableModel;
+import uk.ac.starlink.table.gui.TableLoadPanel;
 import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.util.gui.GridBagLayouter;
 import uk.ac.starlink.vo.ResolverInfo;
 import uk.ac.starlink.vo.TapQuery;
+import uk.ac.starlink.vo.TapTableLoadDialog;
 
 
 public class ObsCorePanel extends JFrame implements ActionListener, MouseListener,  DocumentListener, PropertyChangeListener
@@ -125,7 +136,7 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
     protected SkycatCatalog resolverCatalogue = null;
 
     /** list of manually added servers **/
-    DefaultTableModel addedServers= new DefaultTableModel();
+ //   StarTableModel addedServers= new StarTableModel(null);
 
     /**
      *  Simple query window like SSAP
@@ -179,22 +190,10 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
     protected JTabbedPane resultsTabPane = null;
     protected JScrollPane resultScroller = null;
     protected JPanel buttonsPanel = new JPanel();
-   // protected BorderLayout controlAreaLayout = new BorderLayout();
-  //  protected SplatSelectedProperties selectedProperties =
-  //      new SplatSelectedProperties( specList );
+
     protected TitledBorder resultsTitle =
         BorderFactory.createTitledBorder( "Query results" );
-    
-    
-    private URL registry = null; 
-
-    private String regquery = "SELECT access_url, short_name, res_description, cap_type " /*+", intf_role, role_name, email" */ +" FROM rr.interface NATURAL JOIN rr.resource NATURAL JOIN rr.capability NATURAL JOIN rr.res_detail " +
-                               /* " NATURAL JOIN rr.res_role*/ " WHERE standard_id='ivo://ivoa.net/std/tap' " +
-        ///    "AND intf_role='std'  "+
-            "AND detail_xpath='/capability/dataModel/@ivo-id' "+
-            "AND (1=ivo_nocasematch(detail_value, 'ivo://ivoa.net/std/obscore-1.0') " +
-            "OR   1=ivo_nocasematch(detail_value, 'ivo://ivoa.net/std/obscore/v1.0'))";
-    private String specquery = "SELECT TOP 50000 * from ivoa.Obscore WHERE dataproduct_type=\'spectrum\'";
+ 
     private String[] parameters = {"", "target_name", "s_ra", "s_dec", "s_fov", "s_region", "s_resolution", 
                                   "t_min", "t_max", "t_exptime", "em_min", "em_max", "em_res_power", "pol_states", "calib_level"};
     private String[] comparisons = {"", "=", "!=", "<>", "<", ">", "<=", ">="};
@@ -205,8 +204,7 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
 
     
     private String[] subquery = null;
-    private JList serverList = null;
-    private StarTable servers = null;
+ //   private StarTable servers = null;
     private JPanel servPanel;
     private JPanel rightPanel;
     private JPanel leftPanel;
@@ -215,9 +213,11 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
 
     private JTextArea querytext;
 
-    private JTable serverTable;
+    private ServerPopupTable serverTable;
     
-    private SSAServerTree serverTree;
+    JPopupMenu specPopup=null;
+    
+ //   private SSAServerTable serverTable;
     
     /** the authenticator for access control **/
     private static SSAPAuthenticator authenticator;
@@ -240,19 +240,19 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
         subquery = new String[4];
         setSize(new Dimension(800, 600) );
       //  setPreferredSize(new Dimension(800, 600) );
-        serverList=new JList();
+
         getContentPane().setLayout(new BoxLayout(getContentPane(), BoxLayout.LINE_AXIS) );
        
         queryParams = queryPrefix;
         
-        try {
-            addServers();
-         } catch (MalformedURLException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace(); // to do: write error message!
-            this.dispose();
-        }
-      
+        serverTable=new ServerPopupTable();
+        getServers();
+        
+        JPopupMenu serverPopup = makeServerPopup();
+        serverTable.setComponentPopupMenu(serverPopup);
+       // serverTable.addMouseListener(new ServerTableMouseListener());
+        
+        specPopup = makeSpecPopup();
         
         initComponents();
         initQueryComponents();
@@ -262,6 +262,34 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
 
     }
     
+    
+    
+    private JPopupMenu makeServerPopup() {
+        JPopupMenu popup = new JPopupMenu();
+
+        JMenuItem infoMenuItem = new JMenuItem("Info");
+        infoMenuItem.addActionListener(new ServerPopupMenuAction());
+        popup.add(infoMenuItem);
+        return popup;
+    }
+    
+    private JPopupMenu makeSpecPopup() {
+        JPopupMenu popup = new JPopupMenu();
+
+        JMenuItem dlMenuItem = new JMenuItem("Download");
+        dlMenuItem.addActionListener(new SpecPopupMenuAction());
+        popup.add(dlMenuItem);
+        JMenuItem infoMenuItem = new JMenuItem("Info");
+        infoMenuItem.addActionListener(new SpecPopupMenuAction());
+        popup.add(infoMenuItem);
+        JMenuItem dispMenuItem = new JMenuItem("Display");
+        dispMenuItem.addActionListener(new SpecPopupMenuAction());
+        popup.add(dispMenuItem);
+        return popup;
+    }
+
+
+
     /**
      *  Initialise all visual components.
      */
@@ -274,16 +302,7 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
 
         setTitle( "SPLAT ObsCore Browser" );
 
-        //  Set up menus and toolbar.
-  //      setupMenusAndToolbar();
-
   
-  
-         //  Set the ListModel of the list of servers.
-     //   serverList.setModel(new SpecListModel(serverList.getSelectionModel()));
-     //   serverList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION );
-        
-   
         //  Set up split pane.
         splitPane.setOneTouchExpandable( true );     
         splitPane.setOrientation( JSplitPane.HORIZONTAL_SPLIT );
@@ -327,8 +346,8 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
        //  servPanel.setSize(new Dimension(200,200));
        //  Add the list of servers to its scroller.
      
-    //   serverScroller = new JScrollPane(serverList); // has to be a JList
-      
+       serverScroller = new JScrollPane(serverTable); 
+       serverScroller.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
        servPanel.add(serverScroller);
        
        //queryPanel = new JPanel();
@@ -383,7 +402,6 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
         TapQuery tq=null;
         StarTableFactory tfact = new StarTableFactory();
         boolean ok=true;
-        int totalResults=0;
         resultsPanel.removeAll();
         resultsTabPane.removeAll();
         resultsPanel.updateUI();
@@ -393,9 +411,9 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
             String s=null;
             String shortname=null;
             try {
-                 s = servers.getCell(services[i], 0).toString();
+                 s = serverTable.getAccessURL(services[i]);
                  // if shortname is empty, go on using the accessURL
-                 shortname= (String) servers.getCell(services[i], 1);
+                 shortname = serverTable.getShortName(services[i]);
                  if (shortname == null)
                      shortname = s;
                
@@ -423,14 +441,14 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
                  
                     if ( table != null &&  table.getRowCount() > 0 ) {
                         
-                        StarJTable jtable = new StarJTable(table, false);
+                        StarPopupTable jtable = new StarPopupTable(table, false);
+                        jtable.setComponentPopupMenu(specPopup);
                         jtable.configureColumnWidths(200, jtable.getRowCount());
                        
                        resultScroller=new JScrollPane(jtable);
                        jtable.addMouseListener( this );
                        resultsTabPane.addTab(shortname, resultScroller );
                     
-                       totalResults += jtable.getRowCount();
                     } 
                     
                 }
@@ -445,83 +463,31 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
     
  
     @SuppressWarnings("null")
-    private void addServers() throws MalformedURLException {
-    ArrayList <String> slist = new ArrayList <String> (); 
-    //    JPanel serverPanel = new JPanel();
-    Object[] tab1;
-    DescribedValue dv;
-        try {
-            registry = new URL("http://dc.g-vo.org/tap");
-        } catch (MalformedURLException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        servers =  queryRegistry();
-        if (servers != null || servers.getRowCount() > 0 ) {
-           // serverTable = new StarJTable(servers, false);
-            String val="";
-            String [] rowData = new String [(int) servers.getRowCount()];
-            DefaultTableModel serverModel = new DefaultTableModel();            
-   //         ArrayList <String> colname = new ArrayList<String>();
-            
-            for (int j=0; j<servers.getColumnCount();j++) {
-                String column = ((ColumnInfo) servers.getColumnInfo(j)).getName();
-               
-                for (int i=0;i<servers.getRowCount(); i++) {
-                   try {
-                       Object obj = servers.getCell( (long) i, j /*- extraCols*/ );
-                       if (obj != null) {
-                           rowData[i] =  obj.toString();
-                       } else {
-                           rowData[i] = "";
-                       }
-                     } catch (IOException e) {
-                             // TODO Auto-generated catch block
-                         e.printStackTrace();
-                         logger.info("servers" + column + "  "+ val);
-                     }
-                     
-                   
-                } // for i
-                     
-                 serverModel.addColumn(column, rowData);
-            } // for j
-            
-            
-          
-            serverTable = new JTable( serverModel) ;
-         //   DefaultTableModel serverModel = new DefaultTableModel();
-    //        serverTable.configureColumnWidths(280, serverTable.getRowCount());
-            serverScroller = new JScrollPane(serverTable);
-            serverScroller.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
-        }
-//        servPanel.add(serverPanel);
-       // serverList=new JList(slist.toArray());
-        //serverTable.add
-        //servPanel.add(serverList);
+    private void getServers() {
+
+        StarTable st = queryRegistry();
+        serverTable.updateServers(st);
+        
+       // serverTable.updateServers(table);
+       //serverScroller = new JScrollPane(serverTable);
+       //serverScroller.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
+       
     }
-
-
+    
     private StarTable queryRegistry() {
-        TapQuery tq=null;
-        StarTableFactory tfact = new StarTableFactory();
-        //try {
-            tq = new TapQuery( registry, regquery,  null );
-        //} catch (IOException e) {
-            // TODO Auto-generated catch block
-         //   e.printStackTrace();
-         //   return null;
-        //}
-
-        StarTable table = null; 
+        
+        StarTable table;
         try {
-            table = tq.executeSync( tfact.getStoragePolicy() ); // to do check storagepolicy
-            return table;
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            
+            table = TableLoadPanel.loadTable( this, new SSARegistryQueryDialog("ObsCore"), new StarTableFactory() );
+         }
+        catch ( IOException e ) {
+            ErrorDialog.showError( this, "Registry query failed", e );
+            return null;
         }
-        return  null;
+        
+        return table;
+ 
     }
  
    private void addQueryADQLPanel() {
@@ -600,28 +566,7 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
         
     }
     
-    private StarTable queryObscoreRegistry() {
-        TapQuery tq=null;
-        StarTableFactory tfact = new StarTableFactory();
-        //try {
-            tq = new TapQuery( registry, regquery,  null );
-        //} catch (IOException e) {
-            // TODO Auto-generated catch block
-         //   e.printStackTrace();
-          //  return null;
-       // }
 
-        StarTable table = null;
-        try {
-            table = tq.executeSync( tfact.getStoragePolicy() ); // to do check storagepolicy
-            return table;
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        return  null;
-    }
-    
     private void initQueryComponents()
     {
       
@@ -1024,77 +969,15 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
         {
             addNewServer();
         }
-        if ( command.equals( "REFRESH" ) ) // add new server
-        {
-            try {
-                addServers();
-            } catch (MalformedURLException e1) {
-                // TODO Auto-generated catch block
-                e1.printStackTrace();
-            }
+        if ( command.equals( "REFRESH" ) ) // query registry - refresh server table
+        {         
+            getServers();           
         }
         querySearchPanel.updateUI();
         queryADQLPanel.updateUI();
     }
 
-    /**
-     *  action performed
-     *  process the actions
-     */
-    /******* ORIGINAL
-    public void actionPerformed(ActionEvent e) {
-
-        Object command = e.getActionCommand();
-        Object obj = e.getSource();
-        JComboBox cb; String str;
-       
-        if ( command.equals( "QUERY" ) ) // query
-        {
-             querySelectedServices();       
-        }
-        if ( command.equals( "PARAM" ) ) 
-        {
-            subquery[0] = (String) ((JComboBox) e.getSource()).getSelectedItem();
-         //   querytext.append(" AND "+ subquery[0] );
-        }
-        if ( command.equals( "COMPARE" ) ) 
-        {
-            subquery[1] = (String) ((JComboBox) e.getSource()).getSelectedItem();
-           // querytext.append(" "+ subquery[1] );
-        }
-        if ( command.equals( "VALUE" ) ) 
-        {
-            subquery[2] = (String) ((JTextField) e.getSource()).getText();
-            // querytext.append(" "+ subquery[2] );
-        }
-        if ( command.equals( "AND" ) || command.equals("OK")) 
-        {
-           if(command.equals("OK"))
-               querytext.append( " AND " + subquery[0]+" "+ subquery[1]+" "+subquery[2]);
-           else 
-               querytext.append( " AND " + subquery[0]+" "+ subquery[1]+" "+subquery[2]);
-           
-       //    subquery[0]=subquery[1]=subquery[2]="";
-        }
-        
-   //     if ( command.equals( "reset" ) ) // reset text fields
-   //     {
-   //         statusLabel.setText(new String(""));
-    //        resetFields();
-   //     }
-   ///     if ( command.equals( "close" ) ) // close window
-   //     {
-   //         closeWindowEvent();
-   //     }
-        
-        if ( command.equals( "NEWSERVICE" ) ) // reset text fields
-        {
-            addNewServer();
-        }
-        queryPanel.updateUI();
-    }
-    *******************/
-   
+    
    
         
     
@@ -1213,10 +1096,7 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
     
     private void querySelectedServices( boolean conesearch ) {
         
-      //  String str=querytext.getText();
-       // if (str.endsWith(" AND")) {
-    //        str = str.substring(0, str.lastIndexOf("AND"));
-    //    }
+
         if (conesearch ) {
             String queryText=getQueryText();
             if (queryText == null)
@@ -1239,22 +1119,8 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
         
     }
 
-    public void mouseClicked(MouseEvent me) {
 
-        if ( me.getClickCount() == 2 ) {
-            StarJTable table = (StarJTable) me.getSource();
-            Point p = me.getPoint();
-            int row = table.rowAtPoint( p );
-            displaySpectra( false, true, table, row );
-        }
-        
-    }
-
-    public void mouseEntered(MouseEvent arg0) {}
-    public void mouseExited(MouseEvent arg0) {}
-    public void mousePressed(MouseEvent arg0) {}
-    public void mouseReleased(MouseEvent arg0) {}
-    
+ 
     
     /**
      * Event listener to trigger a list update when a new server is
@@ -1266,8 +1132,8 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
       //  serverList.unselectServer(addServerWindow.getResource().getShortName());
         DefaultTableModel model = (DefaultTableModel) serverTable.getModel();
         
-        model.addRow(new Object[]{addServerWindow.getAccessURL(), addServerWindow.getShortName(), addServerWindow.getDescription()});
-  
+        model.addRow(new Object[]{ addServerWindow.getShortName(), addServerWindow.getServerTitle(),addServerWindow.getDescription(),"","","", addServerWindow.getAccessURL()});
+        serverTable.setModel( model );
       //  updateTree();
     }
  
@@ -1351,11 +1217,6 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
     {
         int[] selection = null;
         
-       
-        HashMap< String, String > getDataParam = null;
-   //     if ( getDataFrame != null && getDataFrame.isVisible() ) 
-   //         getDataParam = getDataFrame.getParams();
-
         //  Check for a selection if required, otherwise we're using the given
         //  row.
         if ( selected && row == -1 ) {
@@ -1392,7 +1253,6 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
             ColumnInfo colInfo;
             String ucd;
             String utype;
-            String getDataRequest="";
             
             for( int k = 0; k < ncol; k++ ) {
                 colInfo = starTable.getColumnInfo( k );
@@ -1465,31 +1325,6 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
                 
             } // for
             
-            // if we have a pubDID col, check if the getData parameters are set.
-            if (pubdidcol != -1  && getDataParam != null )
-                if ( ! getDataParam.isEmpty() ) {                   
-                    for (String key : getDataParam.keySet()) {
-                        String value = getDataParam.get(key);
-                                if (value == null || value.length() > 0) {
-                                    try {//
-                                       
-                                        ///
-                                        // float specstart = Float.parseFloat(rseq.getCell( linkcol ).);
-                                       //  float specstop = Float.parseFloat();
-                                      //  double specend = Double.parseDouble(params[i].getAttribute("ssa_specend"));
-                                      //  double  maxval =   double specstart = Double.parseDouble(values.getMaximum());
-                                     //   double  minval =   double specstart = Double.parseDouble(values.getMinimum());
-                                        ///
-                                        getDataRequest+="&"+key+"="+URLEncoder.encode(value, "UTF-8");
-                                    } catch (UnsupportedEncodingException e) {
-                                        // TODO Auto-generated catch block
-                                        e.printStackTrace();
-                                    }                                     
-                                }
-                    }
-                }
-            
-
             //  If we have a DATA_LINK column, gather the URLs it contains
             //  that are appropriate.
             if ( linkcol != -1 ) {
@@ -1578,16 +1413,7 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
                                     props.setDataUnits( value );
                                 }
                             }
-                            if (pubdidcol != -1  && getDataParam != null) {
-                                if (! getDataParam.isEmpty()) { 
-                                   props.setIdValue(rseq.getCell(pubdidcol).toString());
-                                   props.setGetDataRequest(getDataRequest);
-                                   props.setServerURL(starTable.getURL().toString());
-                                   String format = getDataParam.get("FORMAT");
-                                   if (format != "")
-                                       props.setGetDataFormat(format);
-                                }
-                            }
+
                             specList.add( props );
                         } //while
                     } // if selected
@@ -1655,17 +1481,7 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
                                         props.setDataUnits( units[1] );
                                     }
                                 }
-                                if (pubdidcol != -1  && getDataParam != null) {
-                                    if (! getDataParam.isEmpty()) { 
-                                       props.setIdValue(rseq.getCell(pubdidcol).toString());
-                                       props.setGetDataRequest(getDataRequest);
-                                       props.setServerURL(starTable.getURL().toString());
-                                       String format = getDataParam.get("FORMAT");
-                                       if (format != "")
-                                           props.setGetDataFormat(format);
-                                       props.setShortName(props.getShortName() + " [" + getDataParam.get("BAND") + "]" );
-                                    }
-                                }
+
                                 specList.add( props );
 
                                 //  Move to next selection.
@@ -1840,5 +1656,55 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
         // TODO Auto-generated method stub
         
     }
+    
+    protected class ServerPopupMenuAction extends AbstractAction
+    {
+        
+        public void actionPerformed( ActionEvent e) {
+            int r = serverTable.getPopupRow();
+                serverTable.showInfo(r, "OBSCore");        
+            
+        }
+    }
+    
+    
+    private class SpecPopupMenuAction extends AbstractAction
+    {
+        
+        public void actionPerformed( ActionEvent e) {
+            JMenuItem jmi  = (JMenuItem) e.getSource();
+            JPopupMenu jpm = (JPopupMenu) jmi.getParent();
+            StarPopupTable table = (StarPopupTable) jpm.getInvoker();
+           
+           int row = table.getPopupRow();
+          
+            if (e.getActionCommand().equals("Info")) {
+                table.showInfo(row);
+            }
+            else if (e.getActionCommand().equals("Display")) {
+                displaySpectra( false, true, (StarJTable) table, row );
+            }   
+            else if (e.getActionCommand().equals("Download")) {
+                displaySpectra( false, true, (StarJTable) table, row );
+            } 
+            
+        }
+    }
+
+    public void mouseClicked(MouseEvent me) {
+
+        if ( me.getClickCount() == 2 ) { // display if StarJTable
+
+            StarPopupTable table = (StarPopupTable) me.getSource();
+            Point p = me.getPoint();
+            int row = table.rowAtPoint( p );
+            displaySpectra( false, true, table, row );
+        }
+    }
+
+    public void mouseEntered(MouseEvent me) {}
+    public void mouseExited(MouseEvent me) {}
+    public void mousePressed(MouseEvent me) {}
+    public void mouseReleased(MouseEvent me) {}
 
 }
