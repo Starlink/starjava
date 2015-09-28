@@ -4576,9 +4576,14 @@ existing GUI.
 A working example of this
 can be found in the source code for the example
 <webref url="&starjavasrc;ttools/src/main/uk/ac/starlink/ttools/example/EnvPlanePlotter.java">EnvPlanePlotter</webref>
-class
-(see also the <code>SinePlot</code> and <code>ApiPlanePlotter</code>
-example classes in the same place).
+class.
+For some more tutorial introductions to using the plotting classes
+programmatically, see also the example classes
+<webref url="&starjavasrc;ttools/src/main/uk/ac/starlink/ttools/example/SinePlot.java">SinePlot</webref>,
+<webref url="&starjavasrc;ttools/src/main/uk/ac/starlink/ttools/example/ApiPlanePlotter.java">ApiPlanePlotter</webref>,
+and
+<webref url="&starjavasrc;ttools/src/main/uk/ac/starlink/ttools/example/BasicPlotGui.java">BasicPlotGui</webref>
+in the same place.
 </p>
 
 </sect>
@@ -10337,6 +10342,8 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         from a TAP service.</li>
     <li>Upgrade to JCDF v1.2 - fixes a bug when reading large (multi-2Gb)
         CDF files.</li>
+    <li>Added source code for an example basic GUI plot application,
+        <code>uk.ac.starlink.ttools.example.BasicPlotGui</code>.</li>
     </ul>
     </p></dd>
 
