@@ -382,6 +382,12 @@ public class SplatBrowser
     protected JCheckBoxMenuItem searchCoordsItem = null;
 
     /**
+     * Whether to plot the spectra to the same window
+     */
+    protected JCheckBoxMenuItem plotSampSpectraToSameWindowItem = null;
+    protected boolean plotSampSpectraToSameWindow = false;
+
+    /**
      * Controls communications for SAMP interoperability.
      */
     protected SplatCommunicator communicator = null;
