@@ -69,7 +69,7 @@ public abstract class PixOutliner implements Outliner {
         final int xoff_;
         final int yoff_;
         final int[] counts_;
-        int pointCount_;
+        long pointCount_;
 
         /**
          * Constructor.
