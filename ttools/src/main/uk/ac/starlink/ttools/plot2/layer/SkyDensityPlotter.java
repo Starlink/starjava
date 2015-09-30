@@ -25,7 +25,9 @@ import uk.ac.starlink.ttools.plot2.LayerOpt;
 import uk.ac.starlink.ttools.plot2.PlotLayer;
 import uk.ac.starlink.ttools.plot2.PlotUtil;
 import uk.ac.starlink.ttools.plot2.Plotter;
+import uk.ac.starlink.ttools.plot2.ReportKey;
 import uk.ac.starlink.ttools.plot2.ReportMap;
+import uk.ac.starlink.ttools.plot2.ReportMeta;
 import uk.ac.starlink.ttools.plot2.Scaler;
 import uk.ac.starlink.ttools.plot2.Scaling;
 import uk.ac.starlink.ttools.plot2.Surface;
@@ -63,21 +65,35 @@ public class SkyDensityPlotter
     private final CoordGroup coordGrp_;
     private final FloatingCoord weightCoord_;
 
+    /** Report key for the HEALPix level actually plotted. */
+    public static final ReportKey<Integer> DISPLAYLEVEL_KEY =
+        new ReportKey<Integer>( new ReportMeta( "level", "HEALPix Level" ),
+                                Integer.class, false );
+
     private static FloatingCoord WEIGHT_COORD = FloatingCoord.WEIGHT_COORD;
     private static final RampKeySet RAMP_KEYS = StyleKeys.DENSEMAP_RAMP;
     private static final ConfigKey<Integer> LEVEL_KEY =
-        IntegerConfigKey.createSliderKey(
+        IntegerConfigKey.createSpinnerPairKey(
             new ConfigMeta( "level", "HEALPix Level" )
-           .setStringUsage( "<level>" )
-           .setShortDescription( "HEALPix level (0-29)" )
+           .setStringUsage( "<-rel-level|+abs-level>" )
+           .setShortDescription( "HEALPix level, negative for relative" )
            .setXmlDescription( new String[] {
-                "<p>Gives the HEALPix level of pixels which are averaged",
+                "<p>Determines the HEALPix level of pixels which are averaged",
                 "over to calculate density.",
-                "At level 0 there are 12 pixels on the sky,",
+                "</p>",
+                "<p>If the supplied value is a non-negative integer,",
+                "it gives the absolute level to use;",
+                "at level 0 there are 12 pixels on the sky, and",
                 "the count multiplies by 4 for each increment.",
                 "</p>",
+                "<p>If the value is negative, it represents a relative level;",
+                "it is approximately the (negative) number of screen pixels",
+                "along one side of a HEALPix sky pixel.",
+                "In this case the actual HEALPix level will depend on",
+                "the current zoom.",
+                "</p>",
             } )
-        , 4, 0, 29, false );
+        , -3, 29, -8, "Abs", "Rel", DISPLAYLEVEL_KEY );
     private static final ConfigKey<Combiner> COMBINER_KEY = createCombinerKey();
     private static final ConfigKey<Double> OPAQUE_KEY = StyleKeys.AUX_OPAQUE;
 
@@ -181,7 +197,7 @@ public class SkyDensityPlotter
         double[] p2 =
             surface.graphicsToData( new Point( p.x + 1, p.y + 1 ), null );
         double pixTheta = vectorSeparation( p1, p2 ) / Math.sqrt( 4 + 4 );
-        return Tilings.healpixK( Math.toDegrees( pixTheta * 2 ) );
+        return Tilings.healpixK( Math.toDegrees( pixTheta ) );
     }
 
     /**
@@ -339,7 +355,10 @@ public class SkyDensityPlotter
             dataSpec_ = dataSpec;
             style_ = style;
             paperType_ = paperType;
-            level_ = Math.min( style_.level_, getPixelLevel( surface ) );
+            int pixLevel = getPixelLevel( surface );
+            level_ = style_.level_ >= 0
+                   ? Math.min( style_.level_, pixLevel )
+                   : Math.max( 0, pixLevel + style_.level_ );
         }
 
         public Object calculatePlan( Object[] knownPlans,
@@ -354,7 +373,7 @@ public class SkyDensityPlotter
                 }
             }
             BinList binList = readBins( dataStore );
-            return new SkyDensityPlan( binList, dataSpec_, geom_ );
+            return new SkyDensityPlan( level_, binList, dataSpec_, geom_ );
         }
 
         public void paintData( Object plan, Paper paper, DataStore dataStore ) {
@@ -370,7 +389,12 @@ public class SkyDensityPlotter
         }
 
         public ReportMap getReport( Object plan ) {
-            return null;
+            ReportMap map = new ReportMap();
+            if ( plan instanceof SkyDensityPlan ) {
+                map.put( DISPLAYLEVEL_KEY,
+                         new Integer( ((SkyDensityPlan) plan).level_ ) );
+            }
+            return map;
         }
 
         /**
@@ -509,6 +533,7 @@ public class SkyDensityPlotter
      * with plot pixel count, not with dataset size).
      */
     private static class SkyDensityPlan {
+        final int level_;
         final BinList binList_;
         final DataSpec dataSpec_;
         final SkyDataGeom geom_;
@@ -516,11 +541,14 @@ public class SkyDensityPlotter
         /**
          * Constructor.
          *
+         * @param   level   HEALPix level
          * @param   binList  data structure containing sky pixel values
          * @param   dataSpec  data specification used to generate binList
          * @param   geom   sky geometry used to generate binList
          */
-        SkyDensityPlan( BinList binList, DataSpec dataSpec, SkyDataGeom geom ) {
+        SkyDensityPlan( int level, BinList binList, DataSpec dataSpec,
+                        SkyDataGeom geom ) {
+            level_ = level;
             binList_ = binList;
             dataSpec_ = dataSpec;
             geom_ = geom;
@@ -537,7 +565,7 @@ public class SkyDensityPlotter
          */
         public boolean matches( int level, Combiner combiner,
                                 DataSpec dataSpec, SkyDataGeom geom ) {
-             return binList_.getSize() == new SkyPixer( level ).getPixelCount()
+             return level_ == level
                  && binList_.getCombiner().equals( combiner )
                  && dataSpec_.equals( dataSpec )
                  && geom_.equals( geom );
