@@ -545,15 +545,19 @@
     <antcall target="unpack_jni_arch">
       <param name="unpack.arch" value="i386"/>
     </antcall>
-#    <antcall target="unpack_jni_arch">
-#      <param name="unpack.arch" value="sparc"/>
+<!--  removed old stuff 
+    <antcall target="unpack_jni_arch">
+      <param name="unpack.arch" value="sparc"/>
     </antcall>
+-->
     <antcall target="unpack_jni_arch">
       <param name="unpack.arch" value="x86"/>
     </antcall>
-#    <antcall target="unpack_jni_arch">
-#      <param name="unpack.arch" value="ppc"/>
+<!--  removed old stuff 
+    <antcall target="unpack_jni_arch">
+      <param name="unpack.arch" value="ppc"/>
     </antcall>
+-->
     <antcall target="unpack_jni_arch">
       <param name="unpack.arch" value="amd64"/>
     </antcall>
