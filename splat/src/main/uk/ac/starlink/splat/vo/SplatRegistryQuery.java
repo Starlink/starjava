@@ -43,6 +43,8 @@ import uk.ac.starlink.vo.RegResource;
 import uk.ac.starlink.vo.RegTapRegistryQuery;
 import uk.ac.starlink.vo.RegistryQuery;
 
+import uk.ac.starlink.util.ContentCoding;
+
 
 /**
  * Registry Query implementation that uses TAP to access a Relational Registry.
@@ -182,7 +184,7 @@ public class SplatRegistryQuery implements RegistryQuery {
         QuerySink sink = new QuerySink();
         boolean overflow;
         try {
-            overflow = query.executeSync( sink );
+            overflow = query.executeSync( sink, ContentCoding.NONE );
         }
         catch ( SAXException e ) {
             throw (IOException) new IOException( e.getMessage() )
@@ -237,7 +239,7 @@ public class SplatRegistryQuery implements RegistryQuery {
         TapQuery query =
             new TapQuery( toUrl( regUrl ), adql, null );
         logger_.info( adql );
-        StarTable table = query.executeSync( StoragePolicy.PREFER_MEMORY );
+        StarTable table = query.executeSync( StoragePolicy.PREFER_MEMORY, ContentCoding.NONE );
         List<String> urlList = new ArrayList<String>();
         RowSequence rseq = table.getRowSequence();
         while ( rseq.next() ) {
