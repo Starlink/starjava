@@ -3944,6 +3944,21 @@ You can do this in three ways:
     the requested Utype, the column value will be used.
     </p></dd>
 
+<dt>With the Object$ prefix</dt>
+<dd><p>If a column is referenced with the prefix "<code>Object$</code>"
+    before its identifier
+    (e.g. "<code>Object$BMAG</code>" for a column named <code>BMAG</code>)
+    the result will be the column value as a java Object.
+    Without that prefix, numeric columns are evaluated as java primitives.
+    In most cases, you <em>don't want to do this</em>,
+    since it means that you can't use the value in arithmetic expressions.
+    However, if you need the value to be passed to a
+    (possibly user-defined) method,
+    and you need that method to be invoked even when the value is null,
+    you have to do it like this.  Null-valued primitives
+    otherwise cause expression evaluation to abort.
+    </p></dd>
+
 </dl>
 </p>
 
@@ -10344,6 +10359,12 @@ eds. C. Gabriel et al., ASP Conf. Ser. 351, p. 666 (2006)
         CDF files.</li>
     <li>Added source code for an example basic GUI plot application,
         <code>uk.ac.starlink.ttools.example.BasicPlotGui</code>.</li>
+    <li>The expression language has a new way of
+        <ref id="jel-colref">referring to a column</ref>;
+        if you use the form "<code>Object$</code><em>&lt;column-id&gt;</em>"
+        you get the value as an Object not a primitive.
+        This is a special-interest measure for user-defined
+        functions that need to see null numeric values.</li>
     </ul>
     </p></dd>
 

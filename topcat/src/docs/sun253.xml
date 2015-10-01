@@ -2624,6 +2624,21 @@ You can do this in three ways:
     the requested Utype, the column value will be used.
     </p></dd>
 
+<dt>With the Object$ prefix</dt>
+<dd><p>If a column is referenced with the prefix "<code>Object$</code>"
+    before its identifier
+    (e.g. "<code>Object$BMAG</code>" for a column named <code>BMAG</code>)
+    the result will be the column value as a java Object.
+    Without that prefix, numeric columns are evaluated as java primitives.
+    In most cases, you <em>don't want to do this</em>, 
+    since it means that you can't use the value in arithmetic expressions.  
+    However, if you need the value to be passed to a 
+    (possibly user-defined activation) method,
+    and you need that method to be invoked even when the value is null,
+    you have to do it like this.  Null-valued primitives
+    otherwise cause expression evaluation to abort.
+    </p></dd>
+
 </dl>
 </p>
 
@@ -22355,6 +22370,12 @@ introduced since the last version:
         disallow table-qualified names in ORDER/GROUP BY clauses.</li>
     <li>Upgrade to JCDF v1.2 - fixes a bug when reading large (multi-Gb)
         CDF files.</li>
+    <li>The expression language has a new way of
+        <ref id="jelCols">referring to a column</ref>;
+        if you use the form "<code>Object$</code><em>&lt;column-id&gt;</em>"
+        you get the value as an Object not a primitive.
+        This is a special-interest measure for user-defined
+        activation functions that need to see null numeric values.</li>
     </ul>
     </p></dd>
 
