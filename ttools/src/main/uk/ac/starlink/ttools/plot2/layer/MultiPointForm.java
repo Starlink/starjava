@@ -527,28 +527,30 @@ public class MultiPointForm implements ShapeForm {
                                    final MultiPointCoordSet extraCoordSet ) {
             final int ndim = geom.getDataDimCount();
             final int nextra = extraCoordSet.getPointCount();
-            final double[] dpos0 = new double[ ndim ];
-            final double[][] dposExtras = new double[ nextra ][ ndim ];
             final int icExtra = getExtrasCoordIndex( geom );
-            final Point2D.Double gpos0 = new Point2D.Double();
-            final Point2D.Double gpos1 = new Point2D.Double();
             return new AuxReader() {
-                public void updateAuxRange( Surface surface,
+                public void adjustAuxRange( Surface surface,
                                             TupleSequence tseq, Range range ) {
-                    if ( geom.readDataPos( tseq, 0, dpos0 ) &&
-                         surface.dataToGraphics( dpos0, scaleFromVisible_,
-                                                 gpos0 ) &&
-                         PlotUtil.isPointFinite( gpos0 ) &&
-                         extraCoordSet.readPoints( tseq, icExtra, dpos0,
-                                                   dposExtras ) ) {
-                        for ( int ie = 0; ie < nextra; ie++ ) {
-                            if ( surface
-                                .dataToGraphicsOffset( dpos0, gpos0,
-                                                       dposExtras[ ie ], false,
-                                                       gpos1 ) &&
-                                PlotUtil.isPointFinite( gpos1 ) ) {
-                                range.submit( gpos1.x - gpos0.x );
-                                range.submit( gpos1.y - gpos0.y );
+                    double[] dpos0 = new double[ ndim ];
+                    double[][] dposExtras = new double[ nextra ][ ndim ];
+                    Point2D.Double gpos0 = new Point2D.Double();
+                    Point2D.Double gpos1 = new Point2D.Double();
+                    while ( tseq.next() ) {
+                        if ( geom.readDataPos( tseq, 0, dpos0 ) &&
+                             surface.dataToGraphics( dpos0, scaleFromVisible_,
+                                                     gpos0 ) &&
+                             PlotUtil.isPointFinite( gpos0 ) &&
+                             extraCoordSet.readPoints( tseq, icExtra, dpos0,
+                                                       dposExtras ) ) {
+                            for ( int ie = 0; ie < nextra; ie++ ) {
+                                if ( surface
+                                    .dataToGraphicsOffset( dpos0, gpos0,
+                                                           dposExtras[ ie ],
+                                                           false, gpos1 ) &&
+                                    PlotUtil.isPointFinite( gpos1 ) ) {
+                                    range.submit( gpos1.x - gpos0.x );
+                                    range.submit( gpos1.y - gpos0.y );
+                                }
                             }
                         }
                     }

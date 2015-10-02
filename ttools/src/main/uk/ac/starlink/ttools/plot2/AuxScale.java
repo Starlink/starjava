@@ -116,9 +116,7 @@ public class AuxScale {
             if ( rdr != null ) {
                 TupleSequence tseq =
                     dataStore.getTupleSequence( layer.getDataSpec() );
-                while ( tseq.next() ) {
-                    rdr.updateAuxRange( surface, tseq, range );
-                }
+                rdr.adjustAuxRange( surface, tseq, range );
             }
         }
         return range;

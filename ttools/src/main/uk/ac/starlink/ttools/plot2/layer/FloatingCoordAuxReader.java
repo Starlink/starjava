@@ -45,20 +45,22 @@ public class FloatingCoordAuxReader implements AuxReader {
         gpos_ = new Point2D.Double();
     }
 
-    public void updateAuxRange( Surface surface, TupleSequence tseq,
+    public void adjustAuxRange( Surface surface, TupleSequence tseq,
                                 Range range ) {
 
         /* Convert data to graphics coordinates.  The resulting values are
          * not used, but this determines whether the points are plottable. */
-        if ( geom_.readDataPos( tseq, 0, dpos_ ) &&
-             surface.dataToGraphics( dpos_, visibleOnly_, gpos_ ) &&
-             ( visibleOnly_ || PlotUtil.isPointFinite( gpos_ ) ) ) {
+        while ( tseq.next() ) {
+            if ( geom_.readDataPos( tseq, 0, dpos_ ) &&
+                 surface.dataToGraphics( dpos_, visibleOnly_, gpos_ ) &&
+                 ( visibleOnly_ || PlotUtil.isPointFinite( gpos_ ) ) ) {
 
-            /* Read the coordinate value. */
-            double value = coord_.readDoubleCoord( tseq, icol_ );
+                /* Read the coordinate value. */
+                double value = coord_.readDoubleCoord( tseq, icol_ );
 
-            /* Extend the submitted range accordingly. */
-            range.submit( value );
+                /* Extend the submitted range accordingly. */
+                range.submit( value );
+            }
         }
     }
 }
