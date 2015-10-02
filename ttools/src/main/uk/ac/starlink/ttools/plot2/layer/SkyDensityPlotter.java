@@ -140,7 +140,7 @@ public class SkyDensityPlotter
         Scaling scaling = ramp.getScaling();
         float scaleAlpha = (float) ( 1.0 / config.get( OPAQUE_KEY ) );
         Shader shader = Shaders.fade( ramp.getShader(), scaleAlpha );
-        Combiner combiner = weightCoord_ == null ? Combiner.SUM
+        Combiner combiner = weightCoord_ == null ? Combiner.COUNT
                                                  : config.get( COMBINER_KEY );
         return new SkyDenseStyle( level, scaling, shader, combiner );
     }
@@ -217,7 +217,7 @@ public class SkyDensityPlotter
             "</p>",
             "<p>For unweighted values (a pure density map),",
             "it usually makes sense to use",
-            "<code>" + Combiner.SUM + "</code>.",
+            "<code>" + Combiner.COUNT + "</code>.",
             "However, if the input is weighted by an additional",
             "data coordinate, one of the other values such as",
             "<code>" + Combiner.MEAN + "</code>",
@@ -353,15 +353,15 @@ public class SkyDensityPlotter
                     }
                 }
             }
-            IntegerBinBag binBag = readBins( dataStore );
-            return new SkyDensityPlan( binBag, dataSpec_, geom_ );
+            BinList binList = readBins( dataStore );
+            return new SkyDensityPlan( binList, dataSpec_, geom_ );
         }
 
         public void paintData( Object plan, Paper paper, DataStore dataStore ) {
             final SkyDensityPlan dplan = (SkyDensityPlan) plan;
             paperType_.placeDecal( paper, new Decal() {
                 public void paintDecal( Graphics g ) {
-                    paintBins( g, dplan.binBag_ );
+                    paintBins( g, dplan.binList_ );
                 }
                 public boolean isOpaque() {
                     return style_.isOpaque();
@@ -374,18 +374,25 @@ public class SkyDensityPlotter
         }
 
         /**
-         * Constructs and populates a bin bag (weighted histogram) 
+         * Constructs and populates a bin list (weighted histogram) 
          * suitable for the plot from the data specified for this drawing.
          *
          * @param   dataStore   contains data required for plot
-         * @return   populated bin bag
+         * @return   populated bin list
          * @slow
          */
-        private IntegerBinBag readBins( DataStore dataStore ) {
+        private BinList readBins( DataStore dataStore ) {
             SkyPixer skyPixer = createSkyPixer();
-            IntegerBinBag binBag =
-                IntegerBinBag.createBinBag( skyPixer.getPixelCount(),
-                                            style_.combiner_ );
+            BinList binList = null;
+            long npix = skyPixer.getPixelCount();
+            Combiner combiner = style_.combiner_;
+            if ( npix < 200000 ) {
+                binList = combiner.createArrayBinList( (int) npix );
+            }
+            if ( binList == null ) {
+                binList = new HashBinList( npix, combiner );
+            }
+            assert binList != null;
             int icPos = coordGrp_.getPosCoordIndex( 0, geom_ );
             int icWeight = weightCoord_ == null
                          ? -1
@@ -397,7 +404,7 @@ public class SkyDensityPlotter
             if ( icWeight < 0 || dataSpec_.isCoordBlank( icWeight ) ) {
                 while ( tseq.next() ) {
                     if ( geom_.readDataPos( tseq, icPos, v3 ) ) {
-                        binBag.addToBin( skyPixer.getIndex( v3 ), 1 );
+                        binList.addToBin( skyPixer.getIndex( v3 ), 1 );
                     }
                 }
             }
@@ -409,12 +416,12 @@ public class SkyDensityPlotter
                         double w = weightCoord_
                                   .readDoubleCoord( tseq, icWeight );
                         if ( ! Double.isNaN( w ) ) {
-                            binBag.addToBin( skyPixer.getIndex( v3 ), w );
+                            binList.addToBin( skyPixer.getIndex( v3 ), w );
                         }
                     }
                 }
             }
-            return binBag;
+            return binList;
         }
 
         /**
@@ -422,15 +429,15 @@ public class SkyDensityPlotter
          * onto a graphics context appropriate for this layer drawing.
          *
          * @param  g  graphics context
-         * @param  binBag   histogram containing sky pixel values
+         * @param  binList   histogram containing sky pixel values
          */
-        private void paintBins( Graphics g, IntegerBinBag binBag ) {
+        private void paintBins( Graphics g, BinList binList ) {
             Rectangle bounds = surface_.getPlotBounds();
 
-            /* Work out how to scale binbag values to turn into
+            /* Work out how to scale binlist values to turn into
              * entries in a colour map.  The first entry in the colour map
              * (index zero) corresponds to transparency. */
-            Range densRange = new Range( binBag.getBounds() );
+            Range densRange = new Range( binList.getBounds() );
             Scaler scaler =
                 Scaling.createRangeScaler( style_.scaling_, densRange );
             IndexColorModel colorModel =
@@ -461,7 +468,7 @@ public class SkyDensityPlotter
                  * Positions outside the sky coord range are untouched,
                  * so have a value of zero (transparent). */
                 if ( dpos != null ) {
-                    double dval = binBag.getValue( skyPixer.getIndex( dpos ) );
+                    double dval = binList.getValue( skyPixer.getIndex( dpos ) );
                     pixels[ ip ] =
                         Math.min( 1 +
                                   (int) ( scaler.scaleValue( dval ) * ncolor ),
@@ -494,20 +501,19 @@ public class SkyDensityPlotter
      * with plot pixel count, not with dataset size).
      */
     private static class SkyDensityPlan {
-        final IntegerBinBag binBag_;
+        final BinList binList_;
         final DataSpec dataSpec_;
         final SkyDataGeom geom_;
 
         /**
          * Constructor.
          *
-         * @param   binBag  data structure containing sky pixel values
-         * @param   dataSpec  data specification used to generate binBag
-         * @param   geom   sky geometry used to generate binBag
+         * @param   binList  data structure containing sky pixel values
+         * @param   dataSpec  data specification used to generate binList
+         * @param   geom   sky geometry used to generate binList
          */
-        SkyDensityPlan( IntegerBinBag binBag, DataSpec dataSpec,
-                        SkyDataGeom geom ) {
-            binBag_ = binBag;
+        SkyDensityPlan( BinList binList, DataSpec dataSpec, SkyDataGeom geom ) {
+            binList_ = binList;
             dataSpec_ = dataSpec;
             geom_ = geom;
         }
@@ -523,8 +529,8 @@ public class SkyDensityPlotter
          */
         public boolean matches( int level, Combiner combiner,
                                 DataSpec dataSpec, SkyDataGeom geom ) {
-             return binBag_.getSize() == new SkyPixer( level ).getPixelCount()
-                 && binBag_.getCombiner().equals( combiner )
+             return binList_.getSize() == new SkyPixer( level ).getPixelCount()
+                 && binList_.getCombiner().equals( combiner )
                  && dataSpec_.equals( dataSpec )
                  && geom_.equals( geom );
         }
