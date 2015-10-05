@@ -63,8 +63,10 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JRadioButton;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
@@ -1837,6 +1839,8 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             int nrows = (int) starTable.getRowCount();
             if (  nrows > 0 ) {
                 table = new StarJTable( starTable, true );
+//                table.setCellSelectionEnabled(true);
+                table.setComponentPopupMenu(new SSAQueryResultsTablePopupMenu(table));
                 scrollPane = new JScrollPane( table );
               //  scrollPane.setPreferredSize(new Dimension(600,400));
                 
@@ -3757,7 +3761,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         updateQueryText();
         
     }
-
+    
     /*     public void removeUpdate(DocumentEvent de) {
         
         
