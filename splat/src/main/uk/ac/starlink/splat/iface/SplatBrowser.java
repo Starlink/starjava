@@ -71,6 +71,8 @@ import javax.swing.border.TitledBorder;
 
 //import org.astrogrid.acr.InvalidArgumentException;
 
+
+
 import uk.ac.starlink.ast.gui.ScientificFormat;
 import uk.ac.starlink.splat.data.EditableSpecData;
 import uk.ac.starlink.splat.data.NameParser;
@@ -634,6 +636,16 @@ public class SplatBrowser
         specList.setDragEnabled( true );
         specList.setTransferHandler( new SpecTransferHandler() );
 
+        // Scroll to the current spectra when selection changed
+        ((SpecListModel)specList.getModel()).addSelectionChangeListener(new SpecListModelSelectionListener() {
+			
+			@Override
+			public void selectionChanged(SpecListModelSelectionEvent e) {
+				if (e.getIndex() != null && e.getIndex().length > 0)
+					specList.ensureIndexIsVisible(e.getIndex()[0]);
+			}
+		});
+        
         //  Short or full names.
         setShowShortNames( true );
         setShowSimpleShortNames( false );
@@ -2420,6 +2432,7 @@ public class SplatBrowser
                 SpecData spec = null;
                 //spec = globalList.getSpectrum( specIndices[0] );
                 spec = allSelectedSpectra.get(0);
+                
                 final PlotControlFrame plot = displaySpectrum( spec );
                 plotIndex = globalList.getPlotIndex( plot.getPlot() );
                 
