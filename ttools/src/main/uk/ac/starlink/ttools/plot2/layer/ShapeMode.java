@@ -1263,9 +1263,10 @@ public abstract class ShapeMode implements ModePlotter.Mode {
          */
         private static class WeightLayer extends AbstractPlotLayer {
 
-            private final ShapePlotter splotter_;
             private final Outliner outliner_;
             private final WeightStamper wstamper_;
+            private final int icWeight_;
+            private final boolean hasWeight_;
 
             /**
              * Constructor.
@@ -1282,29 +1283,42 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                        new ShapeStyle( outliner, wstamper ),
                        isTransparent( wstamper ) ? LayerOpt.NO_SPECIAL
                                                  : LayerOpt.OPAQUE );
-                splotter_ = plotter;
                 outliner_ = outliner;
                 wstamper_ = wstamper;
+                icWeight_ = plotter.getModeCoordsIndex( geom );
+                assert dataSpec.getCoord( icWeight_ ) == WEIGHT_COORD;
+                hasWeight_ = ! dataSpec.isCoordBlank( icWeight_ );
             }
 
             @Override
             public Map<AuxScale,AuxReader> getAuxRangers() {
                 Map<AuxScale,AuxReader> map = super.getAuxRangers();
                 map.putAll( outliner_.getAuxRangers( getDataGeom() ) );
-                AuxReader weightReader = new AuxReader() {
-                    public void adjustAuxRange( Surface surface,
-                                                TupleSequence tseq,
-                                                Range range ) {
-                        /* We don't have one - have to fake it. */
-                        Map<AuxScale,Range> auxRanges =
-                            new HashMap<AuxScale,Range>();
-                        BinList binList =
-                            readBinList( surface, tseq, auxRanges );
-                        double[] bounds = binList.getBounds();
-                        range.submit( bounds[ 0 ] );
-                        range.submit( bounds[ 1 ] );
-                    }
-                };
+                final AuxReader weightReader;
+                if ( hasWeight_ ) {
+                    weightReader = new AuxReader() {
+                        public void adjustAuxRange( Surface surface,
+                                                    TupleSequence tseq,
+                                                    Range range ) {
+                            /* We don't have one - have to fake it. */
+                            Map<AuxScale,Range> auxRanges =
+                                new HashMap<AuxScale,Range>();
+                            BinList binList =
+                                readBinList( surface, tseq, auxRanges );
+                            double[] bounds = binList.getBounds();
+                            range.submit( bounds[ 0 ] );
+                            range.submit( bounds[ 1 ] );
+                        }
+                    };
+                }
+                else {
+                    weightReader = new AuxReader() {
+                        public void adjustAuxRange( Surface surface,
+                                                    TupleSequence tseq,
+                                                    Range range ) {
+                        }
+                    };
+                }
                 map.put( SCALE, weightReader );
                 return map;
             }
@@ -1328,16 +1342,33 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                 DataGeom geom = getDataGeom();
                 WeightPaper wpaper =
                     new WeightPaper( surface.getPlotBounds(),
-                                     wstamper_.combiner_ );
+                                     hasWeight_ ? wstamper_.combiner_
+                                                : Combiner.HIT );
                 Outliner.ShapePainter painter =
                     outliner_.create2DPainter( surface, geom, auxRanges,
                                                wpaper.getPaperType() );
-                int icWeight = splotter_.getModeCoordsIndex( geom );
-                assert getDataSpec().getCoord( icWeight ) == WEIGHT_COORD;
-                while ( tseq.next() ) {
-                    double w = WEIGHT_COORD.readDoubleCoord( tseq, icWeight );
-                    if ( ! Double.isNaN( w ) ) {
-                        wpaper.setWeight( w );
+
+                /* Under normal circumstances, use the submitted combiner
+                 * to construct a bin list to order. */
+                if ( hasWeight_ ) {
+                    while ( tseq.next() ) {
+                        double w =
+                            WEIGHT_COORD.readDoubleCoord( tseq, icWeight_ );
+                        if ( ! Double.isNaN( w ) ) {
+                            wpaper.setWeight( w );
+                            painter.paintPoint( tseq, null, wpaper );
+                        }
+                    }
+                }
+
+                /* If no weight coordinate has been supplied, draw the points
+                 * as if with weight 0.  This is not strictly what's been
+                 * requested, but it probably gives a visual clue that
+                 * more information is required to produce a usefully
+                 * weighted plot. */
+                else {
+                    wpaper.setWeight( 0 );
+                    while ( tseq.next() ) {
                         painter.paintPoint( tseq, null, wpaper );
                     }
                 }
@@ -1421,6 +1452,9 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                  */
                 private void paintBinList( Graphics g, BinList binList ) {
                     Range auxRange = auxRanges_.get( SCALE );
+                    if ( auxRange == null ) {
+                        auxRange = new Range();
+                    }
                     Rectangle plotBounds = surface_.getPlotBounds();
                     IndexColorModel colorModel =
                         PixelImage.createColorModel( wstamper_.shader_, true );
