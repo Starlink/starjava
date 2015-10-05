@@ -31,7 +31,7 @@ public abstract class ArrayBinList implements BinList {
      * @param   index  bin index
      * @param   value  increment for the current bin value
      */
-    protected abstract void addToBinInt( int index, double value );
+    protected abstract void submitToBinInt( int index, double value );
 
     /**
      * Variant of the <code>getValue</code> method
@@ -40,14 +40,14 @@ public abstract class ArrayBinList implements BinList {
      * @param  index  bin index
      * @return   bin value
      */
-    protected abstract double getValueInt( int index );
+    protected abstract double getBinResultInt( int index );
 
-    public void addToBin( long index, double value ) {
-        addToBinInt( (int) index, value );
+    public void submitToBin( long index, double datum ) {
+        submitToBinInt( (int) index, datum );
     }
 
-    public double getValue( long index ) {
-        return getValueInt( (int) index );
+    public double getBinResult( long index ) {
+        return getBinResultInt( (int) index );
     }
 
     public double[] getBounds() {
@@ -55,7 +55,7 @@ public abstract class ArrayBinList implements BinList {
         double hi = Double.NEGATIVE_INFINITY;
         int n = (int) getSize();
         for ( int i = 0; i < n; i++ ) {
-            double v = getValueInt( i );
+            double v = getBinResultInt( i );
             if ( v < lo ) {
                 lo = v;
             }

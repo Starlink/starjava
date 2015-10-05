@@ -404,7 +404,7 @@ public class SkyDensityPlotter
             if ( icWeight < 0 || dataSpec_.isCoordBlank( icWeight ) ) {
                 while ( tseq.next() ) {
                     if ( geom_.readDataPos( tseq, icPos, v3 ) ) {
-                        binList.addToBin( skyPixer.getIndex( v3 ), 1 );
+                        binList.submitToBin( skyPixer.getIndex( v3 ), 1 );
                     }
                 }
             }
@@ -416,7 +416,7 @@ public class SkyDensityPlotter
                         double w = weightCoord_
                                   .readDoubleCoord( tseq, icWeight );
                         if ( ! Double.isNaN( w ) ) {
-                            binList.addToBin( skyPixer.getIndex( v3 ), w );
+                            binList.submitToBin( skyPixer.getIndex( v3 ), w );
                         }
                     }
                 }
@@ -466,9 +466,17 @@ public class SkyDensityPlotter
 
                 /* Positions on the sky always have a value >= 1.
                  * Positions outside the sky coord range are untouched,
-                 * so have a value of zero (transparent). */
+                 * so have a value of 0 (transparent). */
                 if ( dpos != null ) {
-                    double dval = binList.getValue( skyPixer.getIndex( dpos ) );
+                    double dval =
+                        binList.getBinResult( skyPixer.getIndex( dpos ) );
+
+                    /* NaN bin result corresponds to no submitted values;
+                     * map it to zero here, which makes sense for many,
+                     * though maybe not all, combiner types. */
+                    if ( Double.isNaN( dval ) ) {
+                        dval = 0;
+                    }
                     pixels[ ip ] =
                         Math.min( 1 +
                                   (int) ( scaler.scaleValue( dval ) * ncolor ),

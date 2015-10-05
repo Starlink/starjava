@@ -36,7 +36,7 @@ public class HashBinList implements BinList {
         return combiner_;
     }
 
-    public void addToBin( long index, double value ) {
+    public void submitToBin( long index, double value ) {
         Long key = new Long( index );
         Combiner.Container container = map_.get( key );
         if ( container == null ) {
@@ -46,9 +46,9 @@ public class HashBinList implements BinList {
         container.submit( value );
     }
 
-    public double getValue( long index ) {
+    public double getBinResult( long index ) {
         Combiner.Container container = map_.get( new Long( index ) );
-        return container == null ? 0 : container.getResult();
+        return container == null ? Double.NaN : container.getResult();
     }
 
     public double[] getBounds() {

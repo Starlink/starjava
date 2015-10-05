@@ -125,14 +125,17 @@ public abstract class Combiner {
     public interface Container {
 
         /**
-         * Submits a new datum for accumulation to the result.
+         * Submits a new numeric value for accumulation to the result.
+         * In general, NaN values should not be submitted.
          *
          * @param  datum  new value to accumulate
          */
         void submit( double datum );
 
         /**
-         * Returns the combined result of all the values accumulated so far.
+         * Returns the combined result of all the values submitted so far.
+         * In general, if no values have been submitted,
+         * a NaN should be returned.
          *
          * @return  combined value of all submitted data
          */
@@ -155,12 +158,14 @@ public abstract class Combiner {
             final int[] counts = new int[ size ];
             final double[] sums = new double[ size ];
             return new ArrayBinList( size, this ) {
-                public void addToBinInt( int index, double value ) {
+                public void submitToBinInt( int index, double value ) {
                     counts[ index ]++;
                     sums[ index ] += value;
                 }
-                public double getValueInt( int index ) {
-                    return sums[ index ] / (double) counts[ index ];
+                public double getBinResultInt( int index ) {
+                    int count = counts[ index ];
+                    return count == 0 ? Double.NaN
+                                      : sums[ index ] / (double) count;
                 }
             };
         }
@@ -182,7 +187,7 @@ public abstract class Combiner {
                 sum_ += datum;
             }
             public double getResult() {
-                return sum_ / (double) count_;
+                return count_ == 0 ? Double.NaN : sum_ / (double) count_;
             }
         }
     }
@@ -202,11 +207,12 @@ public abstract class Combiner {
         public BinList createArrayBinList( int size ) {
             final int[] counts = new int[ size ];
             return new ArrayBinList( size, this ) {
-                public void addToBinInt( int index, double value ) {
+                public void submitToBinInt( int index, double value ) {
                     counts[ index ]++;
                 }
-                public double getValueInt( int index ) {
-                    return counts[ index ];
+                public double getBinResultInt( int index ) {
+                    int count = counts[ index ];
+                    return count == 0 ? Double.NaN : count;
                 }
             };
         }
@@ -226,7 +232,7 @@ public abstract class Combiner {
                 count_++;
             }
             public double getResult() {
-                return count_;
+                return count_ == 0 ? Double.NaN : count_;
             }
         }
     }
@@ -237,6 +243,18 @@ public abstract class Combiner {
     private static class SumCombiner extends Combiner {
 
         /**
+         * Combines the existing state value with a supplied datum
+         * to give a new state value (sum).
+         *
+         * @param  oldValue  previous value
+         * @param  datum   newly submitted value
+         * @return  new state
+         */
+        private static double combineSum( double oldValue, double datum ) {
+            return Double.isNaN( oldValue ) ? datum : oldValue + datum;
+        }
+
+        /**
          * Constructor.
          */
         SumCombiner() {
@@ -245,11 +263,12 @@ public abstract class Combiner {
 
         public BinList createArrayBinList( int size ) {
             final double[] sums = new double[ size ];
+            Arrays.fill( sums, Double.NaN );
             return new ArrayBinList( size, this ) {
-                public void addToBinInt( int index, double value ) {
-                    sums[ index ] += value;
+                public void submitToBinInt( int index, double datum ) {
+                    sums[ index ] = combineSum( sums[ index ], datum );
                 }
-                public double getValueInt( int index ) {
+                public double getBinResultInt( int index ) {
                     return sums[ index ];
                 }
             };
@@ -259,19 +278,15 @@ public abstract class Combiner {
             return new SumContainer();
         }
 
-        public double extractResult( double state ) {
-            return state;
-        }
-
         /**
          * Container that holds a sum.
          * Note this is a static class to keep memory usage down
          * if there are many instances.
          */
         private static class SumContainer implements Container {
-            int sum_;
+            double sum_ = Double.NaN;
             public void submit( double datum ) {
-                sum_ += datum;
+                sum_ = combineSum( sum_, datum );
             }
             public double getResult() {
                 return sum_;
@@ -285,6 +300,19 @@ public abstract class Combiner {
     private static class MinCombiner extends Combiner {
 
         /**
+         * Combines the existing state value with a supplied datum
+         * to give a new state value (min).
+         *
+         * @param  oldValue  previous value
+         * @param  datum   newly submitted value
+         * @return  new state
+         */
+        private static double combineMin( double oldValue, double datum ) {
+            return Double.isNaN( oldValue ) ? datum
+                                            : Math.min( oldValue, datum );
+        }
+
+        /**
          * Constructor.
          */
         MinCombiner() {
@@ -295,40 +323,17 @@ public abstract class Combiner {
             final double[] mins = new double[ size ];
             Arrays.fill( mins, Double.NaN );
             return new ArrayBinList( size, this ) {
-                public void addToBinInt( int index, double value ) {
-                    mins[ index ] = combineMin( mins[ index ], value );
+                public void submitToBinInt( int index, double datum ) {
+                    mins[ index ] = combineMin( mins[ index ], datum );
                 }
-                public double getValueInt( int index ) {
-                    return resultMin( mins[ index ] );
+                public double getBinResultInt( int index ) {
+                    return mins[ index ];
                 }
             };
         }
 
         public Container createContainer() {
             return new MinContainer();
-        }
-
-        /**
-         * Combines the existing state value with a supplied datum
-         * to give a new state value (minimum).
-         *
-         * @param  oldState  previous state
-         * @param  datum   newly submitted value
-         * @return  new state
-         */
-        static double combineMin( double oldState, double datum ) {
-            return Double.isNaN( oldState ) ? datum
-                                            : Math.min( oldState, datum );
-        }
-
-        /**
-         * Returns the result value corresponding to a state primitive.
-         *
-         * @param  state  state value
-         * @return  minimum result
-         */
-        static double resultMin( double state ) {
-            return Double.isNaN( state ) ? 0 : state;
         }
 
         /**
@@ -342,7 +347,7 @@ public abstract class Combiner {
                 min_ = combineMin( min_, datum );
             }
             public double getResult() {
-                return resultMin( min_ );
+                return min_;
             }
         }
     }
@@ -351,6 +356,19 @@ public abstract class Combiner {
      * Combiner implementation that calculates the maximum submitted value.
      */
     private static class MaxCombiner extends Combiner {
+
+        /**
+         * Combines the existing state value with a supplied datum
+         * to give a new state value (max).
+         *
+         * @param  oldValue  previous value
+         * @param  datum   newly submitted value
+         * @return  new state
+         */
+        private static double combineMax( double oldValue, double datum ) {
+            return Double.isNaN( oldValue ) ? datum
+                                            : Math.max( oldValue, datum );
+        }
 
         /**
          * Constructor.
@@ -363,40 +381,17 @@ public abstract class Combiner {
             final double[] maxs = new double[ size ];
             Arrays.fill( maxs, Double.NaN );
             return new ArrayBinList( size, this ) {
-                public void addToBinInt( int index, double value ) {
-                    maxs[ index ] = combineMax( maxs[ index ], value );
+                public void submitToBinInt( int index, double datum ) {
+                    maxs[ index ] = combineMax( maxs[ index ], datum );
                 }
-                public double getValueInt( int index ) {
-                    return resultMax( maxs[ index ] );
+                public double getBinResultInt( int index ) {
+                    return maxs[ index ];
                 }
             };
         }
 
         public Container createContainer() {
             return new MaxContainer();
-        }
-
-        /**
-         * Combines the existing state value with a supplied datum
-         * to give a new state value (maximum).
-         *
-         * @param  oldState  previous state
-         * @param  datum   newly submitted value
-         * @return  new state
-         */
-        static double combineMax( double oldState, double datum ) {
-            return Double.isNaN( oldState ) ? datum
-                                            : Math.max( oldState, datum );
-        }
-
-        /**
-         * Returns the result value corresponding to a state primitive.
-         *
-         * @param  state  state value
-         * @return  maximum result
-         */
-        static double resultMax( double state ) {
-            return Double.isNaN( state ) ? 0 : state;
         }
 
         /**
@@ -410,28 +405,31 @@ public abstract class Combiner {
                 max_ = combineMax( max_, datum );
             }
             public double getResult() {
-                return resultMax( max_ );
+                return max_;
             }
         }
     }
 
+    /**
+     * Combiner that just registers whether any data have been submitted.
+     */
     private static class HitCombiner extends Combiner {
 
         /**
          * Constructor.
          */
         HitCombiner() {
-            super( "hit", "1 if any values present, zero otherwise" );
+            super( "hit", "1 if any values present, NaN otherwise" );
         }
 
         public BinList createArrayBinList( int size ) {
             final BitSet mask = new BitSet();
             return new ArrayBinList( size, this ) {
-                public void addToBinInt( int index, double value ) {
+                public void submitToBinInt( int index, double datum ) {
                     mask.set( index );
                 }
-                public double getValueInt( int index ) {
-                    return mask.get( index ) ? 1 : 0;
+                public double getBinResultInt( int index ) {
+                    return mask.get( index ) ? 1 : Double.NaN;
                 }
             };
         }
@@ -446,7 +444,7 @@ public abstract class Combiner {
                 hit_ = true;
             }
             public double getResult() {
-                return hit_ ? 1 : 0;
+                return hit_ ? 1 : Double.NaN;
             }
         }
     }

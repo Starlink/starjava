@@ -5,7 +5,11 @@ package uk.ac.starlink.ttools.plot2.layer;
  * Each bin is given a fixed integer label, from zero to a specified maximum.
  * In practice, not all the bins may be used, and implementations may
  * take advantage of this.
- * Each bin accumulates a floating point value, which starts at zero.
+ *
+ * <p>Zero or more data values may be submitted to each bin,
+ * and a floating point result value may later be obtained from each bin,
+ * which forms a digest of the values submitted to that bin.
+ * The nature of this digest is determined by a Combiner object.
  *
  * <p>Instances of this class are in general not thread-safe.
  *
@@ -30,23 +34,29 @@ public interface BinList {
     Combiner getCombiner();
 
     /**
-     * Adds a given value to the bin at the given index.
+     * Adds a given numeric value to the bin at the given index.
+     * In general, NaN values should not be submitted.
      *
      * @param   index  bin index
-     * @param   value  increment for the current bin value
+     * @param   datum   finite value to submit to the bin
      */
-    void addToBin( long index, double value );
+    void submitToBin( long index, double datum );
 
     /**
      * Returns the value that has been accumulated into the given bin index.
+     * The value is the result of using this object's Combiner to combine
+     * the submitted values.
+     * In general, if no values have been submitted to the bin in question,
+     * a NaN should be returned.
      *
      * @param  index  bin index
      * @return   bin value
      */
-    double getValue( long index );
+    double getBinResult( long index );
 
     /**
-     * Returns the range of bin values currently present in all the bins.
+     * Returns the range of bin values currently present in all the
+     * occupied bins.
      *
      * @return   2-element array giving (min,max) of all bin values
      */
