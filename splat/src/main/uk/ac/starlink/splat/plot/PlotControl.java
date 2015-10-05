@@ -25,23 +25,23 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.geom.Rectangle2D;
+import java.beans.PropertyChangeListener;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Vector;
 
 import javax.print.attribute.PrintRequestAttributeSet;
-
 import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.BorderFactory;
-import javax.swing.ComboBoxModel;
-import javax.swing.DefaultComboBoxModel;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
@@ -199,6 +199,11 @@ public class PlotControl
      */
     protected JComboBox nameList = new JComboBox();
     protected JLabel nameLabel = new JLabel( "Displaying: ", JLabel.RIGHT );
+    
+    /**
+     * Spectrum delete button
+     */
+    protected JButton deleteCurrentSpectrum = new JButton();
 
     /**
      * The name of this plot (unique among plots).
@@ -425,11 +430,27 @@ public class PlotControl
         gbc.gridwidth = 1;
         controlPanel.add( nameLabel, gbc );
 
-        gbc.anchor = GridBagConstraints.WEST;
+        gbc.anchor = GridBagConstraints.CENTER;
         gbc.gridx = 1;
-        gbc.gridwidth = 4;
+        gbc.gridwidth = 3;
         gbc.weightx = 1.0;
         controlPanel.add( nameList, gbc );
+        
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.gridx = 4;
+        gbc.gridwidth = 1;
+        gbc.weightx = 1.0;
+        controlPanel.add(deleteCurrentSpectrum, gbc);
+        deleteCurrentSpectrum.setText("Remove");
+        deleteCurrentSpectrum.setMnemonic(KeyEvent.VK_D);
+        deleteCurrentSpectrum.addActionListener(
+                new ActionListener()
+                {
+                    public void actionPerformed( ActionEvent e )
+                    {
+                    	removeCurrentSpectrumFromPlot();
+                    }
+                } );
 
         //  The list of names uses a special renderer to also display
         //  the line properties.
@@ -554,7 +575,12 @@ public class PlotControl
 
         //  Respond to zoom messages (after controls are set).
         plot.addPlotScaledListener( this );
-
+        
+        // Add key listener
+        PlotControlKeyListener plotControlKeyListener = new PlotControlKeyListener(this);
+        plot.addKeyListener(plotControlKeyListener);
+        controlPanel.addKeyListener(plotControlKeyListener);
+        
         //  Now that this is configured, we can properly configure the
         //  SimpleDataLimits object (needs the DataLimits object from
         //  the DivaPlot).
@@ -1881,7 +1907,8 @@ public class PlotControl
     	Rectangle2D region = (Rectangle2D)
             ( (DragRegion) e.getSource() ).getFinalShape();
         LayerEvent le = e.getLayerEvent();
-
+        
+        
         if ( le.getModifiers() == LayerEvent.BUTTON3_MASK ) {
         	zoomAbout( -1, -1, region.getX(), region.getY() );
         } 
@@ -2216,5 +2243,42 @@ public class PlotControl
 	    	}
     	}
     }
+    
+    /**
+     * Removes the currently selected spectrum from the plot
+     */
+    public void removeCurrentSpectrumFromPlot() {
+		SpecData currentlySelectedSpectrum = (SpecData)nameList.getModel().getSelectedItem();
+		
+		// message + global list checkbox
+		String message = String.format("Do you really want to remove the spectrum '%s'?",
+        		currentlySelectedSpectrum.getShortName()
+        		);
+		
+		JCheckBox checkBox = new JCheckBox("Remove from global list as well", true);
+		
+		Object[] params = {message, checkBox};
+		
+		// ask the user
+		int n = JOptionPane.showConfirmDialog( this,
+                params,
+                        "Remove the spectrum",
+                        JOptionPane.YES_NO_OPTION );
+        
+		// return without taking action on 'No'
+		if ( n == JOptionPane.NO_OPTION ) {
+        	return;
+        }
+
+        // remove the spectrum from plot
+        SpecDataComp specDataComp = getSpecDataComp();
+        specDataComp.remove(currentlySelectedSpectrum);
+        repaint();
+        
+        // remove the spectrum from global list, if required
+        if (checkBox.isSelected()) {
+        	globalList.removeSpectrum(currentlySelectedSpectrum);
+        }
+	}
 }
 
