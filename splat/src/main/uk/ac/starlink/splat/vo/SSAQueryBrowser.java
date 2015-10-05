@@ -1924,6 +1924,8 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
             int nrows = (int) starTable.getRowCount();
             if (  nrows > 0 ) {
                 table = new StarPopupTable( starTable, true );
+//                table.setCellSelectionEnabled(true);
+                table.setComponentPopupMenu(new SSAQueryResultsTablePopupMenu(table));
                 scrollPane = new JScrollPane( table );
                 table.setComponentPopupMenu(specPopupMenu);
               //  scrollPane.setPreferredSize(new Dimension(600,400));
@@ -3997,7 +3999,7 @@ implements ActionListener, MouseListener, DocumentListener, PropertyChangeListen
         }
     }
 
-
+    
     /*     public void removeUpdate(DocumentEvent de) {
         
         
