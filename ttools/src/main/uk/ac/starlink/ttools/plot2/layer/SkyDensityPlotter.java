@@ -7,6 +7,7 @@ import java.awt.geom.Point2D;
 import java.awt.image.IndexColorModel;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.swing.Icon;
@@ -17,6 +18,7 @@ import uk.ac.starlink.ttools.plot.Range;
 import uk.ac.starlink.ttools.plot.Shader;
 import uk.ac.starlink.ttools.plot.Shaders;
 import uk.ac.starlink.ttools.plot.Style;
+import uk.ac.starlink.ttools.plot2.AuxReader;
 import uk.ac.starlink.ttools.plot2.AuxScale;
 import uk.ac.starlink.ttools.plot2.DataGeom;
 import uk.ac.starlink.ttools.plot2.Decal;
@@ -64,6 +66,7 @@ public class SkyDensityPlotter
     private final boolean transparent_;
     private final CoordGroup coordGrp_;
     private final FloatingCoord weightCoord_;
+    private final boolean reportAuxKeys_;
 
     /** Report key for the HEALPix level actually plotted. */
     public static final ReportKey<Integer> DISPLAYLEVEL_KEY =
@@ -73,7 +76,7 @@ public class SkyDensityPlotter
     private static final AuxScale SCALE = AuxScale.COLOR;
     private static final FloatingCoord WEIGHT_COORD =
         FloatingCoord.WEIGHT_COORD;
-    private static final RampKeySet RAMP_KEYS = StyleKeys.DENSEMAP_RAMP;
+    private static final RampKeySet RAMP_KEYS = StyleKeys.AUX_RAMP;
     private static final ConfigKey<Integer> LEVEL_KEY =
         IntegerConfigKey.createSpinnerPairKey(
             new ConfigMeta( "level", "HEALPix Level" )
@@ -114,6 +117,10 @@ public class SkyDensityPlotter
                             ? new Coord[ 0 ]
                             : new Coord[] { weightCoord_ };
         coordGrp_ = CoordGroup.createCoordGroup( 1, extraCoords );
+
+        /* Set reportAuxKeys false, since the colour ramp config will
+         * usually be controlled globally at the level of the plot. */
+        reportAuxKeys_ = false;
     }
 
     public String getPlotterName() {
@@ -133,10 +140,28 @@ public class SkyDensityPlotter
     }
 
     public String getPlotterDescription() {
-        return PlotUtil.concatLines( new String[] {
-            "<p>Plots a density map on the sky.",
-            "</p>",
-        } );
+        StringBuffer sbuf = new StringBuffer()
+            .append( "<p>Plots a density map on the sky.\n" )
+            .append( "The grid on which the values are drawn uses\n" )
+            .append( "the HEALPix tesselation,\n" )
+            .append( "with a configurable resolution.\n" )
+            .append( "You can optionally use a weighting for the points,\n" )
+            .append( "and you can configure how the points are combined\n" )
+            .append( "to produce the output pixel values.\n" )
+            .append( "</p>\n" );
+        sbuf.append( "<p>" );
+        if ( reportAuxKeys_ ) {
+            sbuf.append( "There are additional options to adjust\n" )
+                .append( "the way data values are mapped to colours.\n" );
+        }
+        else {
+            sbuf.append( "The way that data values are mapped\n" )
+                .append( "to colours is usually controlled by options\n" )
+                .append( "at the level of the plot itself,\n" )
+                .append( "rather than by per-layer configuration.\n" );
+        }
+        sbuf.append( "</p>\n" );
+        return sbuf.toString();
     }
 
     public ConfigKey[] getStyleKeys() {
@@ -145,7 +170,9 @@ public class SkyDensityPlotter
         if ( weightCoord_ != null ) {
             keyList.add( COMBINER_KEY );
         }
-        keyList.addAll( Arrays.asList( RAMP_KEYS.getKeys() ) );
+        if ( reportAuxKeys_ ) {
+            keyList.addAll( Arrays.asList( RAMP_KEYS.getKeys() ) );
+        }
         if ( transparent_ ) {
             keyList.add( OPAQUE_KEY );
         }
@@ -350,6 +377,21 @@ public class SkyDensityPlotter
                                           paperType );
         }
 
+        public Map<AuxScale,AuxReader> getAuxRangers() {
+            Map<AuxScale,AuxReader> map = new HashMap<AuxScale,AuxReader>();
+            map.put( SCALE, new AuxReader() {
+                public void adjustAuxRange( Surface surface, TupleSequence tseq,
+                                            Range range ) {
+                    BinList binList =
+                        readBins( (SkySurface) surface, true, tseq );
+                    double[] bounds = binList.getBounds();
+                    range.submit( bounds[ 0 ] );
+                    range.submit( bounds[ 1 ] );
+                }
+            } );
+            return map;
+        }
+
         /**
          * Returns the HEALPix level that this layer will plot pixels at
          * for a given plot surface.
@@ -380,11 +422,14 @@ public class SkyDensityPlotter
          * suitable for plotting this layer on a given surface.
          *
          * @param   surface   target plot surface
-         * @param   dataStore   contains data required for plot
+         * @param   visibleOnly   true to use only points in the plot bounds,
+         *                        false to use them all
+         * @param   tseq   row iterator
          * @return   populated bin list
          * @slow
          */
-        private BinList readBins( SkySurface surface, DataStore dataStore ) {
+        private BinList readBins( SkySurface surface, boolean visibleOnly,
+                                  TupleSequence tseq ) {
             SkyPixer skyPixer = createSkyPixer( surface );
             BinList binList = null;
             long npix = skyPixer.getPixelCount();
@@ -396,19 +441,23 @@ public class SkyDensityPlotter
                 binList = new HashBinList( npix, combiner );
             }
             assert binList != null;
+            DataSpec dataSpec = getDataSpec();
             int icPos = coordGrp_.getPosCoordIndex( 0, geom_ );
             int icWeight = weightCoord_ == null
                          ? -1
                          : coordGrp_.getExtraCoordIndex( 0, geom_ );
+            assert weightCoord_ == null ||
+                   weightCoord_ == dataSpec.getCoord( icWeight );
     
-            DataSpec dataSpec = getDataSpec();
-            TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
             double[] v3 = new double[ 3 ];
+            Point2D.Double gp = new Point2D.Double();
 
             /* Unweighted. */
             if ( icWeight < 0 || dataSpec.isCoordBlank( icWeight ) ) {
                 while ( tseq.next() ) {
-                    if ( geom_.readDataPos( tseq, icPos, v3 ) ) {
+                    if ( geom_.readDataPos( tseq, icPos, v3 ) &&
+                        ( ! visibleOnly ||
+                          surface.dataToGraphics( v3, true, gp ) ) ) {
                         binList.submitToBin( skyPixer.getIndex( v3 ), 1 );
                     }
                 }
@@ -417,7 +466,9 @@ public class SkyDensityPlotter
             /* Weighted. */
             else {
                 while ( tseq.next() ) {
-                    if ( geom_.readDataPos( tseq, icPos, v3 ) ) {
+                    if ( geom_.readDataPos( tseq, icPos, v3 ) &&
+                         ( ! visibleOnly ||
+                           surface.dataToGraphics( v3, true, gp ) ) ) {
                         double w = weightCoord_
                                   .readDoubleCoord( tseq, icWeight );
                         if ( ! Double.isNaN( w ) ) {
@@ -466,7 +517,9 @@ public class SkyDensityPlotter
                         }
                     }
                 }
-                BinList binList = readBins( surface_, dataStore );
+                BinList binList =
+                    readBins( surface_, false,
+                              dataStore.getTupleSequence( dataSpec ) );
                 return new SkyDensityPlan( level_, binList, dataSpec, geom_ );
             }
 
@@ -505,9 +558,8 @@ public class SkyDensityPlotter
                 /* Work out how to scale binlist values to turn into
                  * entries in a colour map.  The first entry in the colour map
                  * (index zero) corresponds to transparency. */
-                Range densRange = new Range( binList.getBounds() );
                 Scaler scaler =
-                    Scaling.createRangeScaler( dstyle_.scaling_, densRange );
+                    Scaling.createRangeScaler( dstyle_.scaling_, auxRange_ );
                 IndexColorModel colorModel =
                     PixelImage.createColorModel( dstyle_.shader_, true );
                 int ncolor = colorModel.getMapSize() - 1;
@@ -538,17 +590,12 @@ public class SkyDensityPlotter
                     if ( dpos != null ) {
                         double dval =
                             binList.getBinResult( skyPixer.getIndex( dpos ) );
-
-                        /* NaN bin result corresponds to no submitted values;
-                         * map it to zero here, which makes sense for many,
-                         * though maybe not all, combiner types. */
-                        if ( Double.isNaN( dval ) ) {
-                            dval = 0;
+                        if ( ! Double.isNaN( dval ) ) {
+                            pixels[ ip ] =
+                                Math.min( 1 + (int) ( scaler.scaleValue( dval )
+                                                      * ncolor ),
+                                          ncolor - 1 );
                         }
-                        pixels[ ip ] =
-                            Math.min( 1 + (int) ( scaler.scaleValue( dval )
-                                                  * ncolor ),
-                                      ncolor - 1 );
                     }
                 }
 

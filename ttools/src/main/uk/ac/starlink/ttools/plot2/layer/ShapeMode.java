@@ -1240,7 +1240,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                 "If there is no weight (a pure density map)",
                 "then <code>" + Combiner.COUNT + "</code> is usually better,",
                 "but in that case it may make more sense",
-                "(it is probably more efficient)",
+                "(it is more efficient)",
                 "to use one of the other shading modes instead.",
                 "</p>",
             } );
@@ -1266,7 +1266,6 @@ public abstract class ShapeMode implements ModePlotter.Mode {
             private final Outliner outliner_;
             private final WeightStamper wstamper_;
             private final int icWeight_;
-            private final boolean hasWeight_;
 
             /**
              * Constructor.
@@ -1287,39 +1286,26 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                 wstamper_ = wstamper;
                 icWeight_ = plotter.getModeCoordsIndex( geom );
                 assert dataSpec.getCoord( icWeight_ ) == WEIGHT_COORD;
-                hasWeight_ = ! dataSpec.isCoordBlank( icWeight_ );
             }
 
             @Override
             public Map<AuxScale,AuxReader> getAuxRangers() {
                 Map<AuxScale,AuxReader> map = super.getAuxRangers();
                 map.putAll( outliner_.getAuxRangers( getDataGeom() ) );
-                final AuxReader weightReader;
-                if ( hasWeight_ ) {
-                    weightReader = new AuxReader() {
-                        public void adjustAuxRange( Surface surface,
-                                                    TupleSequence tseq,
-                                                    Range range ) {
-                            /* We don't have one - have to fake it. */
-                            Map<AuxScale,Range> auxRanges =
-                                new HashMap<AuxScale,Range>();
-                            BinList binList =
-                                readBinList( surface, tseq, auxRanges );
-                            double[] bounds = binList.getBounds();
-                            range.submit( bounds[ 0 ] );
-                            range.submit( bounds[ 1 ] );
-                        }
-                    };
-                }
-                else {
-                    weightReader = new AuxReader() {
-                        public void adjustAuxRange( Surface surface,
-                                                    TupleSequence tseq,
-                                                    Range range ) {
-                        }
-                    };
-                }
-                map.put( SCALE, weightReader );
+                map.put( SCALE, new AuxReader() {
+                    public void adjustAuxRange( Surface surface,
+                                                TupleSequence tseq,
+                                                Range range ) {
+                        /* We don't have one - have to fake it. */
+                        Map<AuxScale,Range> auxRanges =
+                            new HashMap<AuxScale,Range>();
+                        BinList binList =
+                            readBinList( surface, tseq, auxRanges );
+                        double[] bounds = binList.getBounds();
+                        range.submit( bounds[ 0 ] );
+                        range.submit( bounds[ 1 ] );
+                    }
+                } );
                 return map;
             }
 
@@ -1342,15 +1328,15 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                 DataGeom geom = getDataGeom();
                 WeightPaper wpaper =
                     new WeightPaper( surface.getPlotBounds(),
-                                     hasWeight_ ? wstamper_.combiner_
-                                                : Combiner.HIT );
+                                     wstamper_.combiner_ );
                 Outliner.ShapePainter painter =
                     outliner_.create2DPainter( surface, geom, auxRanges,
                                                wpaper.getPaperType() );
 
                 /* Under normal circumstances, use the submitted combiner
                  * to construct a bin list to order. */
-                if ( hasWeight_ ) {
+                boolean hasWeight = ! getDataSpec().isCoordBlank( icWeight_ );
+                if ( hasWeight ) {
                     while ( tseq.next() ) {
                         double w =
                             WEIGHT_COORD.readDoubleCoord( tseq, icWeight_ );
@@ -1361,13 +1347,10 @@ public abstract class ShapeMode implements ModePlotter.Mode {
                     }
                 }
 
-                /* If no weight coordinate has been supplied, draw the points
-                 * as if with weight 0.  This is not strictly what's been
-                 * requested, but it probably gives a visual clue that
-                 * more information is required to produce a usefully
-                 * weighted plot. */
+                /* If no weight coordinate has been supplied,
+                 * assume a weighting of unity. */
                 else {
-                    wpaper.setWeight( 0 );
+                    wpaper.setWeight( 1 );
                     while ( tseq.next() ) {
                         painter.paintPoint( tseq, null, wpaper );
                     }
