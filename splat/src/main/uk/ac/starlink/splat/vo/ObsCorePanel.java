@@ -79,6 +79,7 @@ import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.gui.StarJTable;
 import uk.ac.starlink.table.gui.StarTableModel;
 import uk.ac.starlink.table.gui.TableLoadPanel;
+import uk.ac.starlink.util.ContentCoding;
 import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.util.gui.GridBagLayouter;
 import uk.ac.starlink.vo.ResolverInfo;
@@ -428,7 +429,7 @@ public class ObsCorePanel extends JFrame implements ActionListener, MouseListene
              
                 
                 try {
-                    table = tq.executeSync( tfact.getStoragePolicy() ); // to do check storagepolicy
+                    table = tq.executeSync( tfact.getStoragePolicy(), ContentCoding.NONE ); // to do check storagepolicy
                   
                 } catch (IOException e) {
                     
