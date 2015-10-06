@@ -60,6 +60,7 @@ public class ResourceIcon {
         MODE_ALPHA = readIcon( "mode-transparent.gif" ),
         MODE_ALPHA_FIX = readIcon( "mode-transparent-lock.gif" ),
         MODE_AUX = readIcon( "mode-aux.gif" ),
+        MODE_WEIGHT = readIcon( "mode-weight.gif" ),
         DRAG1 = readIcon( "drag1.gif" ),
         DRAG2 = readIcon( "drag2.gif" ),
         DRAG3 = readIcon( "drag3.gif" ),

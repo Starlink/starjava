@@ -1165,7 +1165,7 @@ public abstract class ShapeMode implements ModePlotter.Mode {
          * @param   reportAuxKeys  if true, report global aux ramp config keys
          */
         WeightedDensityMode( boolean reportAuxKeys ) {
-            super( "weight", ResourceIcon.TTOOLS_DOWHAT,
+            super( "weighted", ResourceIcon.MODE_WEIGHT,
                    new Coord[] { WEIGHT_COORD } );
             reportAuxKeys_ = reportAuxKeys;
         }
