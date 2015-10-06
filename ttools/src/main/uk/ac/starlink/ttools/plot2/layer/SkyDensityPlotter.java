@@ -70,7 +70,9 @@ public class SkyDensityPlotter
         new ReportKey<Integer>( new ReportMeta( "level", "HEALPix Level" ),
                                 Integer.class, false );
 
-    private static FloatingCoord WEIGHT_COORD = FloatingCoord.WEIGHT_COORD;
+    private static final AuxScale SCALE = AuxScale.COLOR;
+    private static final FloatingCoord WEIGHT_COORD =
+        FloatingCoord.WEIGHT_COORD;
     private static final RampKeySet RAMP_KEYS = StyleKeys.DENSEMAP_RAMP;
     private static final ConfigKey<Integer> LEVEL_KEY =
         IntegerConfigKey.createSpinnerPairKey(
@@ -161,18 +163,9 @@ public class SkyDensityPlotter
         return new SkyDenseStyle( level, scaling, shader, combiner );
     }
 
-    public PlotLayer createLayer( final DataGeom geom, final DataSpec dataSpec,
-                                  final SkyDenseStyle style ) {
-        LayerOpt opt = style.isOpaque() ? LayerOpt.OPAQUE : LayerOpt.NO_SPECIAL;
-        return new AbstractPlotLayer( this, geom, dataSpec, style, opt ) {
-            public Drawing createDrawing( Surface surface,
-                                          Map<AuxScale,Range> auxRanges,
-                                          PaperType paperType ) {
-                return new SkyDensityDrawing( (SkySurface) surface,
-                                              (SkyDataGeom) geom,
-                                              dataSpec, style, paperType );
-            }
-        };
+    public PlotLayer createLayer( DataGeom geom, DataSpec dataSpec,
+                                  SkyDenseStyle style ) {
+        return new SkyDensityLayer( (SkyDataGeom) geom, dataSpec, style );
     }
 
     /**
@@ -327,89 +320,75 @@ public class SkyDensityPlotter
     }
 
     /**
-     * Drawing implementation for the sky density map.
+     * PlotLayer implementation for sky density plotter.
      */
-    private class SkyDensityDrawing implements Drawing {
+    private class SkyDensityLayer extends AbstractPlotLayer {
 
-        private final SkySurface surface_;
+        private final SkyDenseStyle dstyle_;
         private final SkyDataGeom geom_;
-        private final DataSpec dataSpec_;
-        private final SkyDenseStyle style_;
-        private final PaperType paperType_;
-        private final int level_;
 
         /**
          * Constructor.
          *
-         * @param  surface  plotting surface
-         * @param  geom    coordinate geometry
-         * @param  dataSpec   specifies data coordinates
-         * @param  style  density map style
-         * @param  paperType  paper type
+         * @param  geom  geom
+         * @param  dataSpec   data specification
+         * @param  style   layer style
          */
-        SkyDensityDrawing( SkySurface surface, SkyDataGeom geom,
-                           DataSpec dataSpec, SkyDenseStyle style,
-                           PaperType paperType ) {
-            surface_ = surface;
+        SkyDensityLayer( SkyDataGeom geom, DataSpec dataSpec,
+                         SkyDenseStyle style ) {
+            super( SkyDensityPlotter.this, geom, dataSpec, style,
+                   style.isOpaque() ? LayerOpt.OPAQUE : LayerOpt.NO_SPECIAL );
+            dstyle_ = style;
             geom_ = geom;
-            dataSpec_ = dataSpec;
-            style_ = style;
-            paperType_ = paperType;
+        }
+
+        public Drawing createDrawing( Surface surface,
+                                      Map<AuxScale,Range> auxRanges,
+                                      PaperType paperType ) {
+            return new SkyDensityDrawing( (SkySurface) surface,
+                                          auxRanges.get( SCALE ),
+                                          paperType );
+        }
+
+        /**
+         * Returns the HEALPix level that this layer will plot pixels at
+         * for a given plot surface.
+         *
+         * @param  surface   plot surface
+         * @return   HEALPix grid level
+         */
+        private int getLevel( SkySurface surface ) {
             int pixLevel = getPixelLevel( surface );
-            level_ = style_.level_ >= 0
-                   ? Math.min( style_.level_, pixLevel )
-                   : Math.max( 0, pixLevel + style_.level_ );
+            return dstyle_.level_ >= 0
+                   ? Math.min( dstyle_.level_, pixLevel )
+                   : Math.max( 0, pixLevel + dstyle_.level_ );
         }
 
-        public Object calculatePlan( Object[] knownPlans,
-                                     DataStore dataStore ) {
-            for ( Object plan : knownPlans ) {
-                if ( plan instanceof SkyDensityPlan ) {
-                    SkyDensityPlan skyPlan = (SkyDensityPlan) plan;
-                    if ( skyPlan.matches( level_, style_.combiner_,
-                                          dataSpec_, geom_ ) ) {
-                        return skyPlan;
-                    }
-                }
-            }
-            BinList binList = readBins( dataStore );
-            return new SkyDensityPlan( level_, binList, dataSpec_, geom_ );
-        }
-
-        public void paintData( Object plan, Paper paper, DataStore dataStore ) {
-            final SkyDensityPlan dplan = (SkyDensityPlan) plan;
-            paperType_.placeDecal( paper, new Decal() {
-                public void paintDecal( Graphics g ) {
-                    paintBins( g, dplan.binList_ );
-                }
-                public boolean isOpaque() {
-                    return style_.isOpaque();
-                }
-            } );
-        }
-
-        public ReportMap getReport( Object plan ) {
-            ReportMap map = new ReportMap();
-            if ( plan instanceof SkyDensityPlan ) {
-                map.put( DISPLAYLEVEL_KEY,
-                         new Integer( ((SkyDensityPlan) plan).level_ ) );
-            }
-            return map;
+        /**
+         * Constructs an object which can map sky positions to a pixel
+         * index in a HEALPix grid.
+         *
+         * @param   surface  target plot surface
+         * @return   sky pixer
+         */
+        private SkyPixer createSkyPixer( SkySurface surface ) {
+            return new SkyPixer( getLevel( surface ) );
         }
 
         /**
          * Constructs and populates a bin list (weighted histogram) 
-         * suitable for the plot from the data specified for this drawing.
+         * suitable for plotting this layer on a given surface.
          *
+         * @param   surface   target plot surface
          * @param   dataStore   contains data required for plot
          * @return   populated bin list
          * @slow
          */
-        private BinList readBins( DataStore dataStore ) {
-            SkyPixer skyPixer = createSkyPixer();
+        private BinList readBins( SkySurface surface, DataStore dataStore ) {
+            SkyPixer skyPixer = createSkyPixer( surface );
             BinList binList = null;
             long npix = skyPixer.getPixelCount();
-            Combiner combiner = style_.combiner_;
+            Combiner combiner = dstyle_.combiner_;
             if ( npix < 200000 ) {
                 binList = combiner.createArrayBinList( (int) npix );
             }
@@ -421,11 +400,13 @@ public class SkyDensityPlotter
             int icWeight = weightCoord_ == null
                          ? -1
                          : coordGrp_.getExtraCoordIndex( 0, geom_ );
-            TupleSequence tseq = dataStore.getTupleSequence( dataSpec_ );
+    
+            DataSpec dataSpec = getDataSpec();
+            TupleSequence tseq = dataStore.getTupleSequence( dataSpec );
             double[] v3 = new double[ 3 ];
 
             /* Unweighted. */
-            if ( icWeight < 0 || dataSpec_.isCoordBlank( icWeight ) ) {
+            if ( icWeight < 0 || dataSpec.isCoordBlank( icWeight ) ) {
                 while ( tseq.next() ) {
                     if ( geom_.readDataPos( tseq, icPos, v3 ) ) {
                         binList.submitToBin( skyPixer.getIndex( v3 ), 1 );
@@ -449,79 +430,133 @@ public class SkyDensityPlotter
         }
 
         /**
-         * Given a prepared data structure, paints the results it represents
-         * onto a graphics context appropriate for this layer drawing.
-         *
-         * @param  g  graphics context
-         * @param  binList   histogram containing sky pixel values
+         * Drawing implementation for the sky density map.
          */
-        private void paintBins( Graphics g, BinList binList ) {
-            Rectangle bounds = surface_.getPlotBounds();
+        private class SkyDensityDrawing implements Drawing {
 
-            /* Work out how to scale binlist values to turn into
-             * entries in a colour map.  The first entry in the colour map
-             * (index zero) corresponds to transparency. */
-            Range densRange = new Range( binList.getBounds() );
-            Scaler scaler =
-                Scaling.createRangeScaler( style_.scaling_, densRange );
-            IndexColorModel colorModel =
-                PixelImage.createColorModel( style_.shader_, true );
-            int ncolor = colorModel.getMapSize() - 1;
+            private final SkySurface surface_;
+            private final Range auxRange_;
+            private final PaperType paperType_;
+            private final int level_;
 
-            /* Prepare a screen pixel grid. */
-            int nx = bounds.width;
-            int ny = bounds.height;
-            Gridder gridder = new Gridder( nx, ny );
-            int npix = gridder.getLength();
-            int[] pixels = new int[ npix ];
-
-            /* Iterate over screen pixel grid pulling samples from the
-             * sky pixel grid for each screen pixel.  Note this is only
-             * a good strategy if the screen oversamples the sky grid
-             * (i.e. if the screen pixels are smaller than the sky pixels). */
-            Point2D.Double point = new Point2D.Double();
-            double x0 = bounds.x + 0.5;
-            double y0 = bounds.y + 0.5;
-            SkyPixer skyPixer = createSkyPixer();
-            for ( int ip = 0; ip < npix; ip++ ) {
-                point.x = x0 + gridder.getX( ip );
-                point.y = y0 + gridder.getY( ip );
-                double[] dpos = surface_.graphicsToData( point, null );
-
-                /* Positions on the sky always have a value >= 1.
-                 * Positions outside the sky coord range are untouched,
-                 * so have a value of 0 (transparent). */
-                if ( dpos != null ) {
-                    double dval =
-                        binList.getBinResult( skyPixer.getIndex( dpos ) );
-
-                    /* NaN bin result corresponds to no submitted values;
-                     * map it to zero here, which makes sense for many,
-                     * though maybe not all, combiner types. */
-                    if ( Double.isNaN( dval ) ) {
-                        dval = 0;
-                    }
-                    pixels[ ip ] =
-                        Math.min( 1 +
-                                  (int) ( scaler.scaleValue( dval ) * ncolor ),
-                                  ncolor - 1 );
-                }
+            /**
+             * Constructor.
+             *
+             * @param   surface  plot surface
+             * @param   auxRange  range defining colour scaling
+             * @param   paperType  paper type
+             */
+            SkyDensityDrawing( SkySurface surface, Range auxRange,
+                               PaperType paperType ) {
+                surface_ = surface;
+                auxRange_ = auxRange;
+                paperType_ = paperType;
+                level_ = getLevel( surface );
             }
 
-            /* Copy the pixel grid to the graphics context using the
-             * requested colour map. */
-            new PixelImage( bounds.getSize(), pixels, colorModel )
-               .paintPixels( g, bounds.getLocation() );
-        }
+            public Object calculatePlan( Object[] knownPlans,
+                                         DataStore dataStore ) {
+                DataSpec dataSpec = getDataSpec();
+                for ( Object plan : knownPlans ) {
+                    if ( plan instanceof SkyDensityPlan ) {
+                        SkyDensityPlan skyPlan = (SkyDensityPlan) plan;
+                        if ( skyPlan.matches( level_, dstyle_.combiner_,
+                                              dataSpec, geom_ ) ) {
+                            return skyPlan;
+                        }
+                    }
+                }
+                BinList binList = readBins( surface_, dataStore );
+                return new SkyDensityPlan( level_, binList, dataSpec, geom_ );
+            }
 
-        /**
-         * Constructs an object which can map sky positions to a pixel
-         * index in a HEALPix grid.
-         *
-         * @return   sky pixer for this drawing
-         */
-        private SkyPixer createSkyPixer() {
-            return new SkyPixer( level_ );
+            public void paintData( Object plan, Paper paper,
+                                   DataStore dataStore ) {
+                final SkyDensityPlan dplan = (SkyDensityPlan) plan;
+                paperType_.placeDecal( paper, new Decal() {
+                    public void paintDecal( Graphics g ) {
+                        paintBins( g, dplan.binList_ );
+                    }
+                    public boolean isOpaque() {
+                        return dstyle_.isOpaque();
+                    }
+                } );
+            }
+
+            public ReportMap getReport( Object plan ) {
+                ReportMap map = new ReportMap();
+                if ( plan instanceof SkyDensityPlan ) {
+                    map.put( DISPLAYLEVEL_KEY,
+                             new Integer( ((SkyDensityPlan) plan).level_ ) );
+                }
+                return map;
+            }
+
+            /**
+             * Given a prepared data structure, paints the results it
+             * represents onto a graphics context appropriate for this drawing.
+             *
+             * @param  g  graphics context
+             * @param  binList   histogram containing sky pixel values
+             */
+            private void paintBins( Graphics g, BinList binList ) {
+                Rectangle bounds = surface_.getPlotBounds();
+
+                /* Work out how to scale binlist values to turn into
+                 * entries in a colour map.  The first entry in the colour map
+                 * (index zero) corresponds to transparency. */
+                Range densRange = new Range( binList.getBounds() );
+                Scaler scaler =
+                    Scaling.createRangeScaler( dstyle_.scaling_, densRange );
+                IndexColorModel colorModel =
+                    PixelImage.createColorModel( dstyle_.shader_, true );
+                int ncolor = colorModel.getMapSize() - 1;
+
+                /* Prepare a screen pixel grid. */
+                int nx = bounds.width;
+                int ny = bounds.height;
+                Gridder gridder = new Gridder( nx, ny );
+                int npix = gridder.getLength();
+                int[] pixels = new int[ npix ];
+
+                /* Iterate over screen pixel grid pulling samples from the
+                 * sky pixel grid for each screen pixel.  Note this is only
+                 * a good strategy if the screen oversamples the sky grid
+                 * (i.e. if screen pixels are smaller than the sky pixels). */
+                Point2D.Double point = new Point2D.Double();
+                double x0 = bounds.x + 0.5;
+                double y0 = bounds.y + 0.5;
+                SkyPixer skyPixer = createSkyPixer( surface_ );
+                for ( int ip = 0; ip < npix; ip++ ) {
+                    point.x = x0 + gridder.getX( ip );
+                    point.y = y0 + gridder.getY( ip );
+                    double[] dpos = surface_.graphicsToData( point, null );
+
+                    /* Positions on the sky always have a value >= 1.
+                     * Positions outside the sky coord range are untouched,
+                     * so have a value of 0 (transparent). */
+                    if ( dpos != null ) {
+                        double dval =
+                            binList.getBinResult( skyPixer.getIndex( dpos ) );
+
+                        /* NaN bin result corresponds to no submitted values;
+                         * map it to zero here, which makes sense for many,
+                         * though maybe not all, combiner types. */
+                        if ( Double.isNaN( dval ) ) {
+                            dval = 0;
+                        }
+                        pixels[ ip ] =
+                            Math.min( 1 + (int) ( scaler.scaleValue( dval )
+                                                  * ncolor ),
+                                      ncolor - 1 );
+                    }
+                }
+
+                /* Copy the pixel grid to the graphics context using the
+                 * requested colour map. */
+                new PixelImage( bounds.getSize(), pixels, colorModel )
+                   .paintPixels( g, bounds.getLocation() );
+            }
         }
     }
 
